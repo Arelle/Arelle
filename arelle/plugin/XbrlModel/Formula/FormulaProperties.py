@@ -315,12 +315,31 @@ def getProperty(
     if obj.type == FormulaValueType.CUBE:
         return _cubeProp(obj.value, propName, args, ctx)
 
+    if propName == "random":
+        raise FormulaRuntimeError("'random' is not a valid property.")
+
     # none → none, skip → skip: any property access propagates the value
     if obj.type == FormulaValueType.NONE:
         return NONE_VALUE
     if obj.type == FormulaValueType.SKIP:
         from .FormulaValue import SKIP_VALUE
         return SKIP_VALUE
+
+    # Numeric scalar properties
+    if obj.type in (FormulaValueType.INTEGER, FormulaValueType.FLOAT, FormulaValueType.DECIMAL, FormulaValueType.FACT):
+        from .FormulaFunctions import callFunction
+        if propName in ("abs", "log10", "decimal", "int", "signum"):
+            if args:
+                raise FormulaRuntimeError(f"Property '{propName}' must have 0 arguments. Found {len(args)}.")
+            return callFunction(propName, [obj], ctx)
+        if propName in ("power", "mod", "round"):
+            if len(args) != 1:
+                raise FormulaRuntimeError(f"Property '{propName}' must have 1 arguments. Found {len(args)}.")
+            return callFunction(propName, [obj] + list(args), ctx)
+        if propName == "trunc":
+            if len(args) > 1:
+                raise FormulaRuntimeError(f"Property '{propName}' must have 0 or 1 arguments. Found {len(args)}.")
+            return callFunction(propName, [obj] + list(args), ctx)
 
     # String properties
     if obj.type == FormulaValueType.STRING:
@@ -454,13 +473,28 @@ def getProperty(
             if obj.type == FormulaValueType.SET:
                 return obj
             return FormulaValue(FormulaValueType.SET, OrderedSet(coll))
+        if propName in ("log10", "signum", "power", "round", "trunc"):
+            from .FormulaFunctions import callFunction
+            if propName in ("power", "round") and len(args) != 1:
+                raise FormulaRuntimeError(f"Property '{propName}' must have 1 arguments. Found {len(args)}.")
+            if propName in ("log10", "signum") and len(args) != 0:
+                raise FormulaRuntimeError(f"Property '{propName}' must have 0 arguments. Found {len(args)}.")
+            if propName == "trunc" and len(args) > 1:
+                raise FormulaRuntimeError(f"Property '{propName}' must have 0 or 1 arguments. Found {len(args)}.")
+            projected = [callFunction(propName, [item] + list(args), ctx) for item in list(coll)]
+            if obj.type == FormulaValueType.SET:
+                return FormulaValue(FormulaValueType.SET, OrderedSet(projected))
+            return FormulaValue(FormulaValueType.LIST, projected)
         if propName in (
             "to-list", "to-dict", "to-json", "to-csv", "to-spreadsheet", "agg-to-dict",
             "sort", "sum", "max", "min", "prod", "stdev", "join",
             "all", "any", "contains", "intersect", "union", "difference",
             "values", "keys",
+            "abs", "avg",
         ):
             from .FormulaFunctions import callFunction
+            if propName in ("abs", "avg") and len(args) != 0:
+                raise FormulaRuntimeError(f"Property '{propName}' must have 0 arguments. Found {len(args)}.")
             return callFunction(propName, [obj] + list(args), ctx)
         raise FormulaRuntimeError(f"Unknown collection property {propName!r}")
 

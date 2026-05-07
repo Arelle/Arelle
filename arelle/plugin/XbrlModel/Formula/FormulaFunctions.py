@@ -11,6 +11,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import math
+import random
 from decimal import Decimal, InvalidOperation
 from typing import Callable, Dict, List, Optional, TYPE_CHECKING
 
@@ -55,6 +56,55 @@ def _unwrapCollection(fv: FormulaValue) -> List[FormulaValue]:
     if fv.type == FormulaValueType.NONE:
         return []
     return [fv]   # treat a single value as a one-element collection
+
+
+def _typeName(fv: FormulaValue, capitalizeNone: bool = False) -> str:
+    if fv.type == FormulaValueType.NONE:
+        return "None" if capitalizeNone else "none"
+    return fv.type.name.lower()
+
+
+def _isInfinityLiteral(fv: FormulaValue) -> bool:
+    if fv.type != FormulaValueType.QNAME:
+        return False
+    local_name = getattr(fv.value, "localName", str(fv.value))
+    return str(local_name).lower() in ("inf", "infinity")
+
+
+def _numericOrError(fv: FormulaValue, fnName: str, allowString: bool = False, capitalizeNone: bool = False) -> Decimal:
+    if _isInfinityLiteral(fv):
+        return Decimal("Infinity")
+    if allowString and fv.type == FormulaValueType.STRING:
+        return Decimal(fv.value)
+    try:
+        return fv.numericValue()
+    except (TypeError, ValueError, InvalidOperation) as exc:
+        raise FormulaRuntimeError(
+            f"The first argument of function '{fnName}' must be int, float, decimal, "
+            f"{'string, ' if allowString else ''}fact, found '{_typeName(fv, capitalizeNone=capitalizeNone)}'."
+        ) from exc
+
+
+def _applyNumericProjection(
+    name: str,
+    source: FormulaValue,
+    compute,
+) -> FormulaValue:
+    if source.type in (FormulaValueType.LIST, FormulaValueType.SET):
+        projected: List[FormulaValue] = []
+        for item in list(source.value):
+            if item.type == FormulaValueType.NONE:
+                projected.append(NONE_VALUE)
+                continue
+            if item.type not in (FormulaValueType.INTEGER, FormulaValueType.FLOAT, FormulaValueType.DECIMAL, FormulaValueType.FACT) and not _isInfinityLiteral(item):
+                raise FormulaRuntimeError(
+                    f"Property '{name}' is not a property of a '{_typeName(item)}'."
+                )
+            projected.append(compute(item))
+        if source.type == FormulaValueType.SET:
+            return FormulaValue(FormulaValueType.SET, OrderedSet(projected))
+        return FormulaValue(FormulaValueType.LIST, projected)
+    return compute(source)
 
 
 # ---------------------------------------------------------------------------
@@ -157,12 +207,26 @@ def _fn_min(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue
 
 def _fn_avg(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
     if len(args) != 1:
-        raise FormulaRuntimeError("avg() requires exactly one argument")
-    items = _unwrapCollection(args[0])
-    nums = [_num(i) for i in items if i.type != FormulaValueType.NONE]
-    if not nums:
+        raise FormulaRuntimeError(
+            f"The first argument of function 'avg' must be set, list, found '{_typeName(args[0])}'."
+        )
+    if args[0].type not in (FormulaValueType.SET, FormulaValueType.LIST):
+        raise FormulaRuntimeError(
+            f"The first argument of function 'avg' must be set, list, found '{_typeName(args[0])}'."
+        )
+    items = list(args[0].value)
+    if not items:
         return NONE_VALUE
-    return FormulaValue(FormulaValueType.DECIMAL, sum(nums) / len(nums))
+    nums: List[Decimal] = []
+    for item in items:
+        if item.type == FormulaValueType.NONE:
+            raise FormulaRuntimeError("Statistic properties expect numeric inputs, found 'none'.")
+        if not item.isNumeric and item.type != FormulaValueType.FACT:
+            raise FormulaRuntimeError(
+                f"Statistic properties expect numeric inputs, found '{_typeName(item)}'."
+            )
+        nums.append(_num(item))
+    return FormulaValue(FormulaValueType.DECIMAL, (sum(nums) / len(nums)).normalize())
 
 
 # ---------------------------------------------------------------------------
@@ -482,16 +546,34 @@ def _fn_endsWith(args: List[FormulaValue], ctx: "FormulaRuleContext") -> Formula
 # ---------------------------------------------------------------------------
 
 def _fn_abs(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
-    if not args:
+    if len(args) != 1:
         raise FormulaRuntimeError("abs() requires an argument")
-    return FormulaValue(FormulaValueType.DECIMAL, abs(_num(args[0])))
+
+    def _compute(v: FormulaValue) -> FormulaValue:
+        n = _numericOrError(v, "abs", capitalizeNone=True)
+        return FormulaValue(FormulaValueType.DECIMAL, abs(n))
+
+    return _applyNumericProjection("abs", args[0], _compute)
 
 
 def _fn_round(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
-    if not args:
+    if len(args) < 1:
         raise FormulaRuntimeError("round() requires an argument")
-    decimals_arg = int(args[1].value) if len(args) >= 2 else 0
-    return FormulaValue(FormulaValueType.DECIMAL, round(_num(args[0]), decimals_arg))
+
+    places = 0
+    if len(args) >= 2:
+        if args[1].type == FormulaValueType.NONE:
+            raise FormulaRuntimeError("The argument to the 'round' property must be a number, found none.")
+        places = int(_numericOrError(args[1], "round"))
+
+    def _compute(v: FormulaValue) -> FormulaValue:
+        n = _numericOrError(v, "round", capitalizeNone=True)
+        result = round(n, places)
+        if isinstance(result, Decimal):
+            result = result.normalize()
+        return FormulaValue(FormulaValueType.DECIMAL, Decimal(str(result)).normalize())
+
+    return _applyNumericProjection("round", args[0], _compute)
 
 
 def _fn_floor(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
@@ -509,9 +591,157 @@ def _fn_ceiling(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaV
 def _fn_power(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
     if len(args) != 2:
         raise FormulaRuntimeError("power() requires two arguments")
-    base = float(_num(args[0]))
-    exp  = float(_num(args[1]))
-    return FormulaValue(FormulaValueType.DECIMAL, Decimal(str(base ** exp)))
+
+    exp_arg = args[1]
+    if exp_arg.type == FormulaValueType.NONE:
+        raise FormulaRuntimeError("The 'power' property requires a numeric argument, found 'none'")
+
+    def _pow(v: FormulaValue) -> FormulaValue:
+        base_num = _numericOrError(v, "power")
+        exp = float(_numericOrError(exp_arg, "power"))
+        if float(exp).is_integer() and base_num.is_finite():
+            value = base_num ** int(exp)
+        else:
+            value = Decimal(str(float(base_num) ** exp))
+        return FormulaValue(FormulaValueType.DECIMAL, value.normalize())
+
+    return _applyNumericProjection("power", args[0], _pow)
+
+
+def _fn_log10(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+    if len(args) != 1:
+        raise FormulaRuntimeError("log10() requires exactly one argument")
+    if args[0].type in (FormulaValueType.LIST, FormulaValueType.SET):
+        raise FormulaRuntimeError(
+            f"The first argument of function 'log10' must be int, float, decimal, found '{_typeName(args[0])}'."
+        )
+
+    def _compute(v: FormulaValue) -> FormulaValue:
+        n = _numericOrError(v, "log10", capitalizeNone=True)
+        if n.is_signed() and n != Decimal("-Infinity"):
+            return NONE_VALUE
+        if n == 0:
+            return NONE_VALUE
+        if n == Decimal("Infinity"):
+            return FormulaValue(FormulaValueType.DECIMAL, Decimal("Infinity"))
+        return FormulaValue(FormulaValueType.DECIMAL, Decimal(str(math.log10(float(n)))).normalize())
+
+    return _compute(args[0])
+
+
+def _fn_mod(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+    if len(args) != 2:
+        raise FormulaRuntimeError("mod() requires exactly two arguments")
+    left = _numericOrError(args[0], "mod")
+    right = _numericOrError(args[1], "mod")
+    if right == 0:
+        raise FormulaRuntimeError("Divide by zero error in property/function mod()")
+    return FormulaValue(FormulaValueType.DECIMAL, (left % right).normalize())
+
+
+def _fn_decimal(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+    if len(args) != 1:
+        raise FormulaRuntimeError("decimal() requires exactly one argument")
+    return FormulaValue(FormulaValueType.DECIMAL, _numericOrError(args[0], "decimal", allowString=True))
+
+
+def _fn_int(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+    if len(args) != 1:
+        raise FormulaRuntimeError("int() requires exactly one argument")
+    try:
+        if _isInfinityLiteral(args[0]):
+            return FormulaValue(FormulaValueType.INTEGER, int(float("inf")))
+        if args[0].type == FormulaValueType.STRING:
+            return FormulaValue(FormulaValueType.INTEGER, int(float(args[0].value)))
+        return FormulaValue(FormulaValueType.INTEGER, int(float(_numericOrError(args[0], "int", allowString=True))))
+    except OverflowError as exc:
+        raise FormulaRuntimeError(str(exc)) from exc
+    except (ValueError, InvalidOperation, TypeError) as exc:
+        raise FormulaRuntimeError(
+            f"The first argument of function 'int' must be int, float, decimal, string, fact, found '{_typeName(args[0])}'."
+        ) from exc
+
+
+def _fn_signum(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+    if len(args) != 1:
+        raise FormulaRuntimeError("signum() requires exactly one argument")
+    if args[0].type in (FormulaValueType.LIST, FormulaValueType.SET):
+        raise FormulaRuntimeError(
+            f"The first argument of function 'signum' must be int, float, decimal, fact, found '{_typeName(args[0])}'."
+        )
+
+    def _compute(v: FormulaValue) -> FormulaValue:
+        if v.type == FormulaValueType.STRING:
+            raise FormulaRuntimeError("'<' not supported between instances of 'XuleString' and 'int'")
+        if v.type not in (FormulaValueType.INTEGER, FormulaValueType.FLOAT, FormulaValueType.DECIMAL, FormulaValueType.FACT):
+            raise FormulaRuntimeError(
+                f"The first argument of function 'signum' must be int, float, decimal, fact, found '{_typeName(v)}'."
+            )
+        n = _numericOrError(v, "signum")
+        if n > 0:
+            return FormulaValue(FormulaValueType.INTEGER, 1)
+        if n < 0:
+            return FormulaValue(FormulaValueType.INTEGER, -1)
+        return FormulaValue(FormulaValueType.INTEGER, 0)
+
+    return _compute(args[0])
+
+
+def _fn_trunc(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+    if len(args) < 1 or len(args) > 2:
+        raise FormulaRuntimeError("trunc() requires one or two arguments")
+    value = args[0]
+    if value.type in (FormulaValueType.LIST, FormulaValueType.SET):
+        raise FormulaRuntimeError(
+            f"The first argument of function 'trunc' must be int, float, decimal, fact, found '{_typeName(value, capitalizeNone=True)}'."
+        )
+    places_arg = args[1] if len(args) == 2 else FormulaValue(FormulaValueType.INTEGER, 0)
+
+    if places_arg.type in (FormulaValueType.FLOAT, FormulaValueType.DECIMAL):
+        places_num = float(places_arg.value)
+        if not places_num.is_integer() and not math.isinf(places_num):
+            raise FormulaRuntimeError(
+                f"For the trunc() property, the places argument must be an integer value, found {places_arg.value}"
+            )
+
+    if _isInfinityLiteral(places_arg):
+        places = math.inf
+    else:
+        places = float(_numericOrError(places_arg, "trunc"))
+
+    if _isInfinityLiteral(value):
+        num = Decimal("Infinity")
+    else:
+        num = _numericOrError(value, "trunc", capitalizeNone=True)
+
+    if places == math.inf:
+        return FormulaValue(FormulaValueType.DECIMAL, num)
+    if places == -math.inf:
+        return FormulaValue(FormulaValueType.DECIMAL, Decimal(0))
+    if num == Decimal("Infinity") or num == Decimal("-Infinity"):
+        if places >= 0:
+            raise FormulaRuntimeError("cannot convert Infinity to integer")
+        return FormulaValue(FormulaValueType.DECIMAL, Decimal(0))
+
+    int_places = int(places)
+    quant = Decimal(f"1e{-int_places}")
+    truncated = num.quantize(quant, rounding="ROUND_DOWN") if num >= 0 else num.quantize(quant, rounding="ROUND_UP")
+    if int_places < 0:
+        truncated = Decimal(int(truncated))
+    return FormulaValue(FormulaValueType.DECIMAL, truncated)
+
+
+def _fn_random(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+    if len(args) > 1:
+        raise FormulaRuntimeError("random() takes at most one argument")
+    if not args or args[0].type == FormulaValueType.NONE:
+        return FormulaValue(FormulaValueType.DECIMAL, Decimal(str(random.random())))
+    scale = float(_numericOrError(args[0], "random"))
+    if scale == 0:
+        return FormulaValue(FormulaValueType.DECIMAL, Decimal(str(random.random())))
+    if scale < 0:
+        return FormulaValue(FormulaValueType.DECIMAL, Decimal(str(-random.random() * abs(scale))))
+    return FormulaValue(FormulaValueType.DECIMAL, Decimal(str(random.random() * scale)))
 
 
 # ---------------------------------------------------------------------------
@@ -969,6 +1199,13 @@ BUILTIN_FUNCTIONS: Dict[str, Callable] = {
     "floor":            _fn_floor,
     "ceiling":          _fn_ceiling,
     "power":            _fn_power,
+    "log10":            _fn_log10,
+    "mod":              _fn_mod,
+    "decimal":          _fn_decimal,
+    "int":              _fn_int,
+    "signum":           _fn_signum,
+    "trunc":            _fn_trunc,
+    "random":           _fn_random,
     # Taxonomy / model
     "taxonomy":         _fn_taxonomy,
     # Alignment

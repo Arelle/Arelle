@@ -593,6 +593,17 @@ def _evalQName(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
         for propName in localName.split(".")[1:]:
             value = getProperty(value, propName, [], ctx)
         return value
+    if "." in localName:
+        head, *props = localName.split(".")
+        try:
+            qn = ctx.globalCtx.resolveQName(prefix, head)
+            value = FormulaValue(FormulaValueType.QNAME, qn)
+        except KeyError:
+            from arelle.ModelValue import qname as mkQn
+            value = FormulaValue(FormulaValueType.QNAME, mkQn("", head))
+        for propName in props:
+            value = getProperty(value, propName, [], ctx)
+        return value
     try:
         qn = ctx.globalCtx.resolveQName(prefix, localName)
         return FormulaValue(FormulaValueType.QNAME, qn)
@@ -900,11 +911,26 @@ def _evalBinary(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
 
 def _evalUnary(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
     op   = str(node.get("op", ""))
-    expr = evaluateExpr(node.get("expr"), ctx)
+    exprNode = node.get("expr")
+    expr = evaluateExpr(exprNode, ctx)
 
     if op == "-":
+        # Interpret -10.abs as (-10).abs and -123.log10 as (-123).log10.
+        if isinstance(exprNode, (dict, ParseResults)) and "props" in exprNode and exprNode.get("props"):
+            base_node = exprNode.get("base")
+            props_node = exprNode.get("props")
+            if isinstance(base_node, ParseResults):
+                base_node = base_node[0] if len(base_node) == 1 else base_node
+            base_val = evaluateExpr(base_node, ctx)
+            if base_val.isNumeric:
+                neg_base = FormulaValue(base_val.type, -base_val.numericValue(), alignment=base_val.alignment)
+                return _evalAtomWithProps({"base": neg_base, "props": props_node}, ctx)
         if expr.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
             return expr
+        if expr.type == FormulaValueType.QNAME:
+            local_name = getattr(expr.value, "localName", str(expr.value))
+            if str(local_name).lower() in ("inf", "infinity"):
+                return FormulaValue(FormulaValueType.FLOAT, float("-inf"), alignment=expr.alignment)
         if expr.isNumeric:
             return FormulaValue(expr.type, -expr.numericValue(), alignment=expr.alignment)
         raise FormulaRuntimeError(f"Unary minus requires numeric value, got {expr.type.name}")
