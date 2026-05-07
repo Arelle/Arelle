@@ -536,6 +536,32 @@ def _unescape(ch: str) -> str:
     return escapes.get(ch, ch)
 
 
+def _itemSortKey(val: FormulaValue) -> tuple:
+    """Create a sort key for a FormulaValue to enable consistent set ordering."""
+    # Sort by type first, then by value
+    type_order = {
+        FormulaValueType.NONE: 0,
+        FormulaValueType.BOOLEAN: 1,
+        FormulaValueType.INTEGER: 2,
+        FormulaValueType.FLOAT: 2,
+        FormulaValueType.DECIMAL: 2,
+        FormulaValueType.STRING: 3,
+        FormulaValueType.QNAME: 4,
+        FormulaValueType.DATE: 5,
+        FormulaValueType.DURATION: 6,
+    }
+    type_idx = type_order.get(val.type, 99)
+    
+    if val.type in (FormulaValueType.INTEGER, FormulaValueType.FLOAT, FormulaValueType.DECIMAL):
+        return (type_idx, float(val.value) if val.value is not None else float('inf'))
+    elif val.type == FormulaValueType.STRING:
+        return (type_idx, str(val.value))
+    elif val.type == FormulaValueType.BOOLEAN:
+        return (type_idx, int(bool(val.value)))
+    else:
+        return (type_idx, str(val.value))
+
+
 def _formatCollectionItem(val: FormulaValue) -> str:
     if val.type == FormulaValueType.NONE:
         return "None"
@@ -554,13 +580,20 @@ def _formatValue(val: FormulaValue) -> str:
         return ""
     if val.type == FormulaValueType.NONE:
         return "none"
+    if val.type == FormulaValueType.SKIP:
+        return "skip"
     if val.type == FormulaValueType.BOOLEAN:
         return "true" if bool(val.value) else "false"
     if val.type == FormulaValueType.LIST:
         items = [_formatCollectionItem(v if isinstance(v, FormulaValue) else FormulaValue(FormulaValueType.STRING, v)) for v in val.value]
         return f"list({', '.join(items)})"
     if val.type == FormulaValueType.SET:
-        items = [_formatCollectionItem(v if isinstance(v, FormulaValue) else FormulaValue(FormulaValueType.STRING, v)) for v in val.value]
+        # Display in insertion order, but None elements come last
+        items_list = list(val.value)
+        non_none = [v for v in items_list if not (isinstance(v, FormulaValue) and v.type == FormulaValueType.NONE)]
+        none_items = [v for v in items_list if isinstance(v, FormulaValue) and v.type == FormulaValueType.NONE]
+        ordered = non_none + none_items
+        items = [_formatCollectionItem(v if isinstance(v, FormulaValue) else FormulaValue(FormulaValueType.STRING, v)) for v in ordered]
         return f"set({', '.join(items)})"
     if val.type == FormulaValueType.DICT:
         parts = []
@@ -576,6 +609,9 @@ def _formatValue(val: FormulaValue) -> str:
             return format_range(val.value)
         if isinstance(val.value, TimeSpanValue):
             return str(val.value.delta)
+    if val.type == FormulaValueType.DECIMAL and isinstance(val.value, Decimal):
+        if val.value.is_nan():
+            return "nan"
     return str(val.value)
 
 
@@ -846,10 +882,22 @@ def _evalBinary(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
             raise FormulaRuntimeError(
                 f"Property 'contains' or 'in' expression cannot operate on a '{right.type.name.lower()}' and '{left.type.name.lower()}'"
             )
+        if right.type in (FormulaValueType.STRING, FormulaValueType.QNAME):
+            if left.type == FormulaValueType.NONE:
+                return FALSE_VALUE
+            lhs = str(getattr(left.value, "localName", left.value))
+            rhs = str(getattr(right.value, "localName", right.value))
+            return FormulaValue(FormulaValueType.BOOLEAN, lhs in rhs, alignment=merged)
         items = _unwrapColl(right)
         result = left in items
         return FormulaValue(FormulaValueType.BOOLEAN, result, alignment=merged)
     if op in ("not in", "not  in"):
+        if right.type in (FormulaValueType.STRING, FormulaValueType.QNAME):
+            if left.type == FormulaValueType.NONE:
+                return TRUE_VALUE
+            lhs = str(getattr(left.value, "localName", left.value))
+            rhs = str(getattr(right.value, "localName", right.value))
+            return FormulaValue(FormulaValueType.BOOLEAN, lhs not in rhs, alignment=merged)
         items = _unwrapColl(right)
         result = left not in items
         return FormulaValue(FormulaValueType.BOOLEAN, result, alignment=merged)
@@ -881,12 +929,14 @@ def _evalBinary(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
     # ---- Set intersection ----
     if op.lower() == "intersect":
         if left.type != FormulaValueType.SET:
+            leftName = 'unbound' if left.type == FormulaValueType.NONE else left.type.name.lower()
             raise FormulaRuntimeError(
-                f"Intersection can only operatate on sets. The left side is a '{left.type.name.lower()}'."
+                f"Intersection can only operatate on sets. The left side is a '{leftName}'."
             )
         if right.type != FormulaValueType.SET:
+            rightName = 'unbound' if right.type == FormulaValueType.NONE else right.type.name.lower()
             raise FormulaRuntimeError(
-                f"Intersection can only operatate on sets. The right side is a '{right.type.name.lower()}'."
+                f"Intersection can only operatate on sets. The right side is a '{rightName}'."
             )
         return _setOp(left, "intersect", right, merged)
     if op == "&":
@@ -954,6 +1004,20 @@ def _arith(left: FormulaValue, op: str, right: FormulaValue,
             raise FormulaRuntimeError("Right side of a + operation cannot be bool.")
         if left.type == FormulaValueType.DURATION and isinstance(left.value, DateRangeValue):
             raise FormulaRuntimeError("Left side of a + operation cannot be duration.")
+        # Set union - use insertion-order union (left elements first, new right elements appended)
+        if left.type == FormulaValueType.SET and right.type == FormulaValueType.SET:
+            result_set = left.value | right.value
+            return FormulaValue(FormulaValueType.SET, result_set, alignment=merged)
+        # set + none/skip = identity (set unchanged)
+        if left.type == FormulaValueType.SET and right.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
+            return FormulaValue(FormulaValueType.SET, left.value, alignment=merged)
+        if right.type == FormulaValueType.SET and left.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
+            return FormulaValue(FormulaValueType.SET, right.value, alignment=merged)
+        # Type mismatch: set + list/other non-set
+        if left.type == FormulaValueType.SET or right.type == FormulaValueType.SET:
+            lname = left.type.name.lower()
+            rname = right.type.name.lower()
+            raise FormulaRuntimeError(f"Incompatabile operands {lname} + {rname}.")
         if left.type == FormulaValueType.DICT and right.type == FormulaValueType.DICT:
             resultDict = dict(left.value)
             resultDict.update(right.value)
@@ -981,6 +1045,9 @@ def _arith(left: FormulaValue, op: str, right: FormulaValue,
     if op == "-":
         if left.type == FormulaValueType.DURATION and isinstance(left.value, DateRangeValue):
             raise FormulaRuntimeError("Left side of a - operation cannot be duration.")
+        # Set difference
+        if left.type == FormulaValueType.SET and right.type == FormulaValueType.SET:
+            return FormulaValue(FormulaValueType.SET, left.value - right.value, alignment=merged)
         if left.type == FormulaValueType.DICT and right.type == FormulaValueType.DICT:
             resultDict = {k: v for k, v in left.value.items() if k not in right.value}
             return FormulaValue(FormulaValueType.DICT, resultDict, alignment=merged)
@@ -1018,15 +1085,21 @@ def _arith(left: FormulaValue, op: str, right: FormulaValue,
     except (TypeError, FormulaRuntimeError) as exc:
         raise FormulaRuntimeError(f"Arithmetic error: {exc}") from exc
 
-    if op == "+":  result = l + r
-    elif op == "-": result = l - r
-    elif op == "*": result = l * r
-    elif op == "/":
-        if r == 0:
-            raise FormulaRuntimeError("Division by zero")
-        result = l / r
-    else:
-        raise FormulaRuntimeError(f"Unknown arithmetic operator {op!r}")
+    try:
+        if op == "+":
+            result = l + r
+        elif op == "-":
+            result = l - r
+        elif op == "*":
+            result = l * r
+        elif op == "/":
+            if r == 0:
+                raise FormulaRuntimeError("Division by zero")
+            result = l / r
+        else:
+            raise FormulaRuntimeError(f"Unknown arithmetic operator {op!r}")
+    except InvalidOperation:
+        result = Decimal("NaN")
 
     return FormulaValue(FormulaValueType.DECIMAL, result, alignment=merged)
 

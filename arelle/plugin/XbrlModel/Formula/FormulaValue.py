@@ -229,6 +229,12 @@ class FormulaValue:
             return self.value
         if self.type in (FormulaValueType.INTEGER, FormulaValueType.FLOAT):
             return Decimal(str(self.value))
+        if self.type == FormulaValueType.QNAME:
+            local = str(getattr(self.value, "localName", self.value)).lower()
+            if local in ("inf", "infinity"):
+                return Decimal("Infinity")
+            if local in ("nan",):
+                return Decimal("NaN")
         raise TypeError(f"Cannot convert {self.type} to numeric")
 
     def mergeAlignment(self, other: "FormulaValue") -> Optional[AlignmentKey]:
@@ -259,7 +265,26 @@ class FormulaValue:
             if objIndex is not None:
                 return hash((self.type, objIndex))
             return hash((self.type, id(self.value)))
+        # For numeric types, use the numeric value directly so that 1 == 1.0 == Decimal(1)
+        if self.type in (FormulaValueType.INTEGER, FormulaValueType.FLOAT, FormulaValueType.DECIMAL):
+            try:
+                return hash(Decimal(str(self.value)))
+            except Exception:
+                pass
         return hash((self.type, _hashableFormulaValueData(self.value)))
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, FormulaValue):
+            return NotImplemented
+        # Cross-type numeric equality: 1 == 1.0 == Decimal('1')
+        _NUMERIC = (FormulaValueType.INTEGER, FormulaValueType.FLOAT, FormulaValueType.DECIMAL)
+        if self.type in _NUMERIC and other.type in _NUMERIC:
+            try:
+                return Decimal(str(self.value)) == Decimal(str(other.value))
+            except Exception:
+                return False
+        # Default: compare type and value
+        return self.type == other.type and self.value == other.value
 
 
 # ---------------------------------------------------------------------------
