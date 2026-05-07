@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from typing import TYPE_CHECKING, Any, cast
 from lxml import etree
 from regex import Match, Pattern, compile as re_compile
@@ -422,8 +422,8 @@ def validateValueString(
     value: str,
     isNillable: bool = False,
     isNil: bool = False,
-    facets: dict[str, Any] | None = None,
-    nsmap: dict[str | None, str] | None = None,
+    facets: Mapping[str, Any] | None = None,
+    nsmap: Mapping[str | None, str] | None = None,
 ) -> XmlValidationResult:
     try:
         return _validateValueStringOrRaise(baseXsdType, value, isNillable, isNil, facets, nsmap)
@@ -436,8 +436,8 @@ def _validateValueStringOrRaise(
     value: str,
     isNillable: bool = False,
     isNil: bool = False,
-    facets: dict[str, Any] | None = None,
-    nsmap: dict[str | None, str] | None = None,
+    facets: Mapping[str, Any] | None = None,
+    nsmap: Mapping[str | None, str] | None = None,
 ) -> XmlValidationResult:
     if nsmap is None:
         nsmap = {}
@@ -451,8 +451,10 @@ def _validateValueStringOrRaise(
         baseXsdType = baseXsdType[:-1] # remove plural
         if facets:
             if "minLength" not in facets:
-                facets = facets.copy()
-                facets["minLength"] = 1
+                facets = {
+                    **facets,
+                    "minLength": 1,
+                }
         else:
             facets = {"minLength": 1}
     pattern = baseXsdTypePatterns.get(baseXsdType)
@@ -644,7 +646,7 @@ def validateValue(
     value: str,
     isNillable: bool = False,
     isNil: bool = False,
-    facets: dict[str, Any] | None = None,
+    facets: Mapping[str, Any] | None = None,
 ) -> None:
     sValue: TypeSValue
     xValue: TypeXValue
