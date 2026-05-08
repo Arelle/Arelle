@@ -78,7 +78,9 @@ class PluginValidationDataExtension(PluginData):
     fixedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn: QName
     jpcrpEsrFilingDateCoverPageQn: QName
     jpcrpFilingDateCoverPageQn: QName
+    jplvhFilingDateCoverPageQn: QName
     jpspsFilingDateCoverPageQn: QName
+    jptoiFilingDateCoverPageQn: QName
     issuedSharesTotalNumberOfSharesEtcQn: QName
     nonConsolidatedMemberQn: QName
     nonMonetaryRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn: QName
@@ -125,7 +127,9 @@ class PluginValidationDataExtension(PluginData):
         self.issuedSharesTotalNumberOfSharesEtcQn = qname(self.namespaces.jpcrp, 'IssuedSharesTotalNumberOfSharesEtcTextBlock')
         self.jpcrpEsrFilingDateCoverPageQn = qname(self.namespaces.jpcrpEsr, 'FilingDateCoverPage')
         self.jpcrpFilingDateCoverPageQn = qname(self.namespaces.jpcrp, 'FilingDateCoverPage')
+        self.jplvhFilingDateCoverPageQn = qname(self.namespaces.jplvh, 'FilingDateCoverPage')
         self.jpspsFilingDateCoverPageQn = qname(self.namespaces.jpsps, 'FilingDateCoverPage')
+        self.jptoiFilingDateCoverPageQn = qname(self.namespaces.jptoi, 'FilingDateCoverPage')
         self.nonConsolidatedMemberQn = qname(self.namespaces.jppfs, "NonConsolidatedMember")
         self.nonMonetaryRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "NonMonetaryRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficers")
         self.otherRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "OtherRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")

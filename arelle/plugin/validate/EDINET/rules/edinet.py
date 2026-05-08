@@ -117,21 +117,22 @@ def rule_EC1057E(
     Ensure that there is a nonnil value disclosed for FilingDateCoverPage
     Note: This rule is only applicable to the public documents.
     """
-    facts = [
-        fact
-        for qname in (
+    filingDateQns = (
         pluginData.jpcrpEsrFilingDateCoverPageQn,
         pluginData.jpcrpFilingDateCoverPageQn,
-            pluginData.jpspsFilingDateCoverPageQn
+        pluginData.jplvhFilingDateCoverPageQn,
+        pluginData.jpspsFilingDateCoverPageQn,
+        pluginData.jptoiFilingDateCoverPageQn,
     )
-        for fact in pluginData.iterValidNonNilFacts(val.modelXbrl, qname)
+    facts = [
+        fact
+        for qn in filingDateQns
+        for fact in pluginData.iterValidNonNilFacts(val.modelXbrl, qn)
     ]
     for modelDocument in pluginData.iterCoverPages(val.modelXbrl):
         if any(fact.modelDocument == modelDocument for fact in facts):
             continue
-        if not (pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.jpcrpEsrFilingDateCoverPageQn)
-                or pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.jpcrpFilingDateCoverPageQn)
-                or pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.jpspsFilingDateCoverPageQn)):
+        if not any(pluginData.hasValidNonNilFact(val.modelXbrl, qn) for qn in filingDateQns):
             yield Validation.error(
                 codes='EDINET.EC1057E',
                 msg=_("There is no submission date ('【提出日】') on the cover page. "
