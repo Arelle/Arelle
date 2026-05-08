@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.valid"
+        description="EDINET.valid: These variations are valid EDINET filings. They are not expected to produce any errors."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="valid01" name="valid01">
+        <description>
+            Sample filing.
+            01_開示府令-有価証券届出書
+            01_Disclosure Ordinance-Securities Registration Statement
+        </description>
+        <data>
+            <instance readMeFirst="true">valid01.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC8015W</warning>
+        </result>
+    </variation>
+    <variation id="valid02" name="valid02">
+        <description>
+            Sample filing.
+            02_開示府令-有価証券報告書
+            02_Disclosure Ordinance-Securities Report
+        </description>
+        <data>
+            <instance readMeFirst="true">valid02.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC8015W</warning>
+        </result>
+    </variation>
+    <variation id="valid03" name="valid03">
+        <description>
+            Sample filing.
+            03_開示府令-IFRS有価証券報告書
+            03_Disclosure Ordinance-IFRS Securities Report
+        </description>
+        <data>
+            <instance readMeFirst="true">valid03.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC8015W</warning>
+            <warning>EDINET.EC8055W</warning>
+            <warning>EDINET.EC8065W</warning>
+            <warning>EDINET.EC8067W</warning>
+        </result>
+    </variation>
+    <variation id="valid04" name="valid04">
+        <description>
+            Sample filing.
+            04_開示府令-半期報告書（第四号の三様式、銀行業）
+            04_Disclosure Ordinance-Semi-Annual Report (Form 4-3, Banking Industry)
+        </description>
+        <data>
+            <instance readMeFirst="true">valid04.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC8015W</warning>
+            <warning>EDINET.EC8050W</warning>
+            <warning>EDINET.EC8069W</warning>
+        </result>
+    </variation>
+    <variation id="valid05" name="valid05">
+        <description>
+            Sample filing.
+            05_開示府令-半期報告書（第四号の三様式、建設業）
+            05_Disclosure Ordinance-Semi-Annual Report (Form 4-3, Construction Industry)
+            <!--Modified from original to replace reference to "http://www.xbrl.org/2003/xbrl-instance-2003-09-30.xsd" with "http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd".-->
+        </description>
+        <data>
+            <instance readMeFirst="true">valid05.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC8043W</warning>
+            <warning>EDINET.EC8045W</warning>
+            <warning>EDINET.EC8069W</warning>
+        </result>
+    </variation>
+    <variation id="valid06" name="valid06">
+        <description>
+            Sample filing.
+            06_開示府令-半期報告書（第五号様式、鉄道業）
+            06_Disclosure Ordinance-Semi-Annual Report (Form 5, Railway Industry)
+        </description>
+        <data>
+            <instance readMeFirst="true">valid06.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC8015W</warning>
+        </result>
+    </variation>
+    <variation id="valid07" name="valid07">
+        <description>
+            Sample filing.
+            07_開示府令-発行登録書
+            07_Disclosure Ordinance-Shelf Registration Statement
+        </description>
+        <data>
+            <instance readMeFirst="true">valid07.zip</instance>
+        </data>
+        <result expected="valid"/>
+    </variation>
+    <variation id="valid08" name="valid08">
+        <description>
+            Sample filing.
+            08_開示府令-発行登録追補書類
+            08_Disclosure Ordinance-Shelf Registration Supplement
+        </description>
+        <data>
+            <instance readMeFirst="true">valid08.zip</instance>
+        </data>
+        <result expected="valid"/>
+    </variation>
+    <variation id="valid10" name="valid10">
+        <description>
+            Sample filing.
+            10_特定有価証券府令-有価証券届出書
+            10_Specific Securities Ordinance - Securities Registration Statement
+        </description>
+        <data>
+            <instance readMeFirst="true">valid10.zip</instance>
+        </data>
+        <result expected="valid"/>
+    </variation>
+    <variation id="valid11" name="valid11">
+        <description>
+            Sample filing.
+            11_特定有価証券府令-有価証券報告書【みなし有価証券届出書】
+            11_Specific Securities Ordinance - Securities Report [Deemed Securities Registration Statement]
+        </description>
+        <data>
+            <instance readMeFirst="true">valid11.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC8037W</warning>
+            <warning>EDINET.EC8038W</warning>
+            <warning>EDINET.EC8042W</warning>
+            <warning>EDINET.EC8045W</warning>
+            <warning>EDINET.EC8049W</warning>
+            <warning>EDINET.EC8050W</warning>
+        </result>
+    </variation>
+    <variation id="valid12" name="valid12">
+        <description>
+            Sample filing.
+            12_特定有価証券府令-半期報告書【みなし訂正有価証券届出書】
+            12_Specific Securities Ordinance - Semiannual Report [Deemed Amended Securities Registration Statement]
+        </description>
+        <data>
+            <instance readMeFirst="true">valid12.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC8037W</warning>
+            <warning>EDINET.EC8038W</warning>
+            <warning>EDINET.EC8042W</warning>
+            <warning>EDINET.EC8045W</warning>
+            <warning>EDINET.EC8049W</warning>
+            <warning>EDINET.EC8050W</warning>
+        </result>
+    </variation>
+    <variation id="valid13" name="valid13">
+        <description>
+            Sample filing.
+            13_特定有価証券府令-発行登録書
+            13_Specific Securities Ordinance - Shelf Registration Statement
+        </description>
+        <data>
+            <instance readMeFirst="true">valid13.zip</instance>
+        </data>
+        <result expected="valid"/>
+    </variation>
+    <variation id="valid14" name="valid14">
+        <description>
+            Sample filing.
+            14_特定有価証券府令-発行登録追補書類
+            14_Specific Securities Ordinance - Shelf Registration Supplement
+        </description>
+        <data>
+            <instance readMeFirst="true">valid14.zip</instance>
+        </data>
+        <result expected="valid"/>
+    </variation>
+    <variation id="valid16" name="valid16">
+        <description>
+            Sample filing.
+            16_自社株買付府令-公開買付届出書
+            16_Cabinet Office Ordinance on Share Buybacks — Tender Offer Notification Statement
+        </description>
+        <data>
+            <instance readMeFirst="true">valid16.zip</instance>
+        </data>
+        <result expected="valid"/>
+    </variation>
+    <variation id="valid17" name="valid17">
+        <description>
+            Sample filing.
+            17_自社株買付府令-公開買付報告書
+            17_Cabinet Office Ordinance on Share Buybacks — Tender Offer Report
+        </description>
+        <data>
+            <instance readMeFirst="true">valid17.zip</instance>
+        </data>
+        <result expected="valid"/>
+    </variation>
+    <variation id="valid18" name="valid18">
+        <description>
+            Sample filing.
+            18_大量保有府令-大量保有報告書
+            18_Cabinet Office Ordinance on Large Shareholding—Large Shareholding Report
+        </description>
+        <data>
+            <instance readMeFirst="true">valid18.zip</instance>
+        </data>
+        <result expected="valid"/>
+    </variation>
+    <variation id="valid20" name="valid20">
+        <description>
+            Sample filing.
+            20_開示府令-訂正有価証券報告書
+            20_Disclosure Ordinance-Amendment of Securities Reports
+        </description>
+        <data>
+            <instance readMeFirst="true">valid20.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC8015W</warning>
+        </result>
+    </variation>
+    <variation id="valid21" name="valid21">
+        <description>
+            Sample filing.
+            21_特定有価証券府令-訂正有価証券届出書
+            21_Specific Securities Ordinance-Amendment of Securities Registration Statement
+        </description>
+        <data>
+            <instance readMeFirst="true">valid21.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC8037W</warning>
+            <warning>EDINET.EC8038W</warning>
+            <warning>EDINET.EC8042W</warning>
+            <warning>EDINET.EC8045W</warning>
+            <warning>EDINET.EC8049W</warning>
+            <warning>EDINET.EC8050W</warning>
+        </result>
+    </variation>
+    <variation id="valid22" name="valid22">
+        <description>
+            Sample filing.
+            22_特定有価証券府令-訂正有価証券報告書【みなし訂正有価証券届出書】
+            22_Specific Securities Ordinance-Amendment of Securities Report [Deemed Amendment of Securities Registration Statement]
+        </description>
+        <data>
+            <instance readMeFirst="true">valid22.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC8037W</warning>
+            <warning>EDINET.EC8038W</warning>
+            <warning>EDINET.EC8042W</warning>
+            <warning>EDINET.EC8045W</warning>
+            <warning>EDINET.EC8049W</warning>
+            <warning>EDINET.EC8050W</warning>
+        </result>
+    </variation>
+</testcase>
