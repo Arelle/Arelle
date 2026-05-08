@@ -210,5 +210,5 @@
     <!-- <testcase uri="EC8064W/index.xml" /> TODO: Relevant sample filings not provided, not found in EDINET index, not trivial to create. -->
     <testcase uri="EC8075W/index.xml" />
     <testcase uri="valid/index.xml" />
-    <testcase uri="valid2026/index.xml" />
+    <testcase uri="samples/2026/index.xml" />
 </testcases>

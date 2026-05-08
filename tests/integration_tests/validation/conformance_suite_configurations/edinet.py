@@ -79,11 +79,11 @@ VALID_EXPECTED_ERRORS = _merge_expected_error_maps(
     VALID_EXPECTED_ERRORS,
     {
         # 2026 samples are mostly the same as 2025, so start from a copy.
-        k.replace('valid/', 'valid2026/'): v
+        k.replace('valid/index.xml:', 'samples/2026/index.xml:'): v
         for k, v in VALID_EXPECTED_ERRORS.items()
     },{
         # 2026 sample introduced invalid `sign="-"` to a couple of facts.
-        "valid2026/index.xml:valid05": {
+        "samples/2026/index.xml:valid05": {
             "EDINET.EC8023W": 2,
         },
     }
@@ -292,7 +292,7 @@ config = ConformanceSuiteConfig(
     ],
     base_taxonomy_validation='none',
     disclosure_system=DISCLOSURE_SYSTEM_2025,
-    disclosure_system_by_prefix=[(f'valid2026/', DISCLOSURE_SYSTEM_2026)],
+    disclosure_system_by_prefix=[(f'samples/2026/', DISCLOSURE_SYSTEM_2026)],
     expected_additional_testcase_errors={f"*{s}": val for s, val in EXPECTED_ADDITIONAL_TESTCASE_ERRORS.items()},
     expected_failure_ids=frozenset([]),
     info_url='https://disclosure2.edinet-fsa.go.jp/weee0020.aspx',
