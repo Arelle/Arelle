@@ -292,7 +292,7 @@ config = ConformanceSuiteConfig(
     ],
     base_taxonomy_validation='none',
     disclosure_system=DISCLOSURE_SYSTEM_2025,
-    disclosure_system_by_prefix=[(f'samples/2026/', DISCLOSURE_SYSTEM_2026)],
+    disclosure_system_by_prefix=[('samples/2026/', DISCLOSURE_SYSTEM_2026)],
     expected_additional_testcase_errors={f"*{s}": val for s, val in EXPECTED_ADDITIONAL_TESTCASE_ERRORS.items()},
     expected_failure_ids=frozenset([]),
     info_url='https://disclosure2.edinet-fsa.go.jp/weee0020.aspx',
