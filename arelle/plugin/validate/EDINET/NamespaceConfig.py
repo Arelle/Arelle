@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 
 from __future__ import annotations
 
-from arelle.plugin.validate.EDINET.DisclosureSystems import DISCLOSURE_SYSTEM_RELEASE_DATES
+from .DisclosureSystems import DISCLOSURE_SYSTEM_RELEASE_DATES
 
 
 class NamespaceConfig:
