@@ -3,6 +3,17 @@ from pathlib import PurePath, Path
 
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 
+def _merge_expected_error_maps(
+        *maps: dict[str, dict[str, int]],
+) -> dict[str, dict[str, int]]:
+    result: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    for _map in maps:
+        for test_id, errors in _map.items():
+            for k, v in errors.items():
+                result[test_id][k] += v
+    return result
+
+
 VALID_EXPECTED_ERRORS = {
     "valid/index.xml:valid01": {
         "EDINET.EC2002W": 1,
@@ -62,6 +73,20 @@ VALID_EXPECTED_ERRORS = {
         "EDINET.EC2002W": 3,
     },
 }
+
+VALID_EXPECTED_ERRORS = _merge_expected_error_maps(
+    VALID_EXPECTED_ERRORS,
+    {
+        # 2026 samples are mostly the same as 2025, so start from a copy.
+        k.replace('valid/', 'valid2026/'): v
+        for k, v in VALID_EXPECTED_ERRORS.items()
+    },{
+        # 2026 sample introduced invalid `sign="-"` to a couple of facts.
+        "valid2026/index.xml:valid05": {
+            "EDINET.EC8023W": 2,
+        },
+    }
+)
 
 INVALID_TESTCASE_PARENTS = {
     "EC1001E/index.xml:invalid01": "valid/index.xml:valid09",
@@ -199,6 +224,15 @@ INVALID_TESTCASE_PARENTS = {
     "EC8077W/index.xml:invalid02": "valid/index.xml:valid05",
 }
 
+# Apply expected errors to invalid testcases based on their valid parent.
+PARENT_EXPECTED_ERRORS = {
+    invalid_id: {
+        k: v
+        for k, v in VALID_EXPECTED_ERRORS.get(valid_id, {}).items()
+    }
+    for invalid_id, valid_id in INVALID_TESTCASE_PARENTS.items()
+}
+
 ADDITIONAL_INVALID_ERRORS = {
     # EDINET.EC5700W.GFM.1.1.3: valid05.zip (and testcases built from it) references
     # non-existent and non-standard "http://www.xbrl.org/2003/xbrl-instance-2003-09-30.xsd".
@@ -232,20 +266,11 @@ ADDITIONAL_INVALID_ERRORS = {
     },
 }
 
-EXPECTED_ADDITIONAL_TESTCASE_ERRORS: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
-# Apply expected errors to valid testcases.
-for test_id, errors in VALID_EXPECTED_ERRORS.items():
-    for k, v in errors.items():
-        EXPECTED_ADDITIONAL_TESTCASE_ERRORS[test_id][k] += v
-# Apply expected errors to invalid testcases based on their valid parent.
-for invalid_id, valid_id in INVALID_TESTCASE_PARENTS.items():
-    for k, v in VALID_EXPECTED_ERRORS.get(valid_id, {}).items():
-        EXPECTED_ADDITIONAL_TESTCASE_ERRORS[invalid_id][k] += v
-# Apply additional expected errors to invalid testcases.
-for test_id, errors in ADDITIONAL_INVALID_ERRORS.items():
-    for k, v in errors.items():
-        EXPECTED_ADDITIONAL_TESTCASE_ERRORS[test_id][k] += v
-
+EXPECTED_ADDITIONAL_TESTCASE_ERRORS = _merge_expected_error_maps(
+    VALID_EXPECTED_ERRORS,
+    PARENT_EXPECTED_ERRORS,
+    ADDITIONAL_INVALID_ERRORS
+)
 
 config = ConformanceSuiteConfig(
     assets=[
