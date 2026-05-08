@@ -1,7 +1,6 @@
 from collections import defaultdict
 from pathlib import PurePath, Path
 
-from arelle.plugin.validate.EDINET.DisclosureSystems import DISCLOSURE_SYSTEM_2025, DISCLOSURE_SYSTEM_2026
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 
 def _merge_expected_error_maps(
@@ -291,8 +290,8 @@ config = ConformanceSuiteConfig(
         ),
     ],
     base_taxonomy_validation='none',
-    disclosure_system=DISCLOSURE_SYSTEM_2025,
-    disclosure_system_by_prefix=[('samples/2026/', DISCLOSURE_SYSTEM_2026)],
+    disclosure_system='EDINET-2025',
+    disclosure_system_by_prefix=[('samples/2026/', 'EDINET-2026')],
     expected_additional_testcase_errors={f"*{s}": val for s, val in EXPECTED_ADDITIONAL_TESTCASE_ERRORS.items()},
     expected_failure_ids=frozenset([]),
     info_url='https://disclosure2.edinet-fsa.go.jp/weee0020.aspx',
