@@ -258,6 +258,11 @@ config = ConformanceSuiteConfig(
             # with added META-INF
             public_download_url='https://www.fsa.go.jp/search/20241112/1c_Taxonomy.zip',
         ),
+        ConformanceSuiteAssetConfig.public_taxonomy_package(
+            Path('edinet-2026.zip'),
+            # with added META-INF
+            public_download_url='https://www.fsa.go.jp/search/20251111/1c_Taxonomy.zip',
+        ),
     ],
     base_taxonomy_validation='none',
     disclosure_system='EDINET',
