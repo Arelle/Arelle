@@ -4,26 +4,33 @@ See COPYRIGHT.md for copyright information.
 
 from __future__ import annotations
 
+from arelle.plugin.validate.EDINET.DisclosureSystems import DISCLOSURE_SYSTEM_RELEASE_DATES
+
 
 class NamespaceConfig:
-    def __init__(self) -> None:
-        self.jpcrpEsr = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp-esr/2024-11-01/jpcrp-esr_cor"
-        self.jpcrp = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp/2024-11-01/jpcrp_cor"
-        self.jpcrpSbr = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp-sbr/2024-11-01/jpcrp-sbr_cor"
-        self.jpctl = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpctl/2024-11-01/jpctl_cor"
+    def __init__(self, disclosureSystemName: str | None) -> None:
+        assert (disclosureSystemName is not None and
+                disclosureSystemName in DISCLOSURE_SYSTEM_RELEASE_DATES), \
+            f"Invalid EDINET disclosure system: {disclosureSystemName}"
+        release_date = DISCLOSURE_SYSTEM_RELEASE_DATES[disclosureSystemName]
+        self.jpcrpEsr = f"http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp-esr/{release_date}/jpcrp-esr_cor"
+        self.jpcrp = f"http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp/{release_date}/jpcrp_cor"
+        self.jpcrpSbr = f"http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp-sbr/{release_date}/jpcrp-sbr_cor"
+        self.jpctl = f"http://disclosure.edinet-fsa.go.jp/taxonomy/jpctl/{release_date}/jpctl_cor"
+        self.jpigp = f"http://disclosure.edinet-fsa.go.jp/taxonomy/jpigp/{release_date}/jpigp_cor"
+        self.jplvh = f"http://disclosure.edinet-fsa.go.jp/taxonomy/jplvh/{release_date}/jplvh_cor"
+        self.jppfs = f"http://disclosure.edinet-fsa.go.jp/taxonomy/jppfs/{release_date}/jppfs_cor"
+        self.jpspsEsr = f"http://disclosure.edinet-fsa.go.jp/taxonomy/jpsps-esr/{release_date}/jpsps-esr_cor"
+        self.jpspsSbr = f"http://disclosure.edinet-fsa.go.jp/taxonomy/jpsps-sbr/{release_date}/jpsps-sbr_cor"
+        self.jpsps = f"http://disclosure.edinet-fsa.go.jp/taxonomy/jpsps/{release_date}/jpsps_cor"
+        self.jptoi = f"http://disclosure.edinet-fsa.go.jp/taxonomy/jptoi/{release_date}/jptoi_cor"
+        self.jptooPst = f"http://disclosure.edinet-fsa.go.jp/taxonomy/jptoo-pst/{release_date}/jptoo-pst_cor"
+        self.jptooToa = f"http://disclosure.edinet-fsa.go.jp/taxonomy/jptoo-toa/{release_date}/jptoo-toa_cor"
+        self.jptooTon = f"http://disclosure.edinet-fsa.go.jp/taxonomy/jptoo-ton/{release_date}/jptoo-ton_cor"
+        self.jptooTor = f"http://disclosure.edinet-fsa.go.jp/taxonomy/jptoo-tor/{release_date}/jptoo-tor_cor"
+        self.jptooWto = f"http://disclosure.edinet-fsa.go.jp/taxonomy/jptoo-wto/{release_date}/jptoo-wto_cor"
+
         self.jpdei = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpdei/2013-08-31/jpdei_cor"
-        self.jpigp = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpigp/2024-11-01/jpigp_cor"
-        self.jplvh = "http://disclosure.edinet-fsa.go.jp/taxonomy/jplvh/2024-11-01/jplvh_cor"
-        self.jppfs = "http://disclosure.edinet-fsa.go.jp/taxonomy/jppfs/2024-11-01/jppfs_cor"
-        self.jpspsEsr = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpsps-esr/2024-11-01/jpsps-esr_cor"
-        self.jpspsSbr = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpsps-sbr/2024-11-01/jpsps-sbr_cor"
-        self.jpsps = "http://disclosure.edinet-fsa.go.jp/taxonomy/jpsps/2024-11-01/jpsps_cor"
-        self.jptoi = "http://disclosure.edinet-fsa.go.jp/taxonomy/jptoi/2024-11-01/jptoi_cor"
-        self.jptooPst = "http://disclosure.edinet-fsa.go.jp/taxonomy/jptoo-pst/2024-11-01/jptoo-pst_cor"
-        self.jptooToa = "http://disclosure.edinet-fsa.go.jp/taxonomy/jptoo-toa/2024-11-01/jptoo-toa_cor"
-        self.jptooTon = "http://disclosure.edinet-fsa.go.jp/taxonomy/jptoo-ton/2024-11-01/jptoo-ton_cor"
-        self.jptooTor = "http://disclosure.edinet-fsa.go.jp/taxonomy/jptoo-tor/2024-11-01/jptoo-tor_cor"
-        self.jptooWto = "http://disclosure.edinet-fsa.go.jp/taxonomy/jptoo-wto/2024-11-01/jptoo-wto_cor"
 
         self._namespaceMap = {
             "jpcrp-esr_cor": self.jpcrpEsr,

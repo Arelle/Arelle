@@ -45,9 +45,9 @@ class ControllerPluginData(PluginData):
     _uploadContents: UploadContents | None
     _usedFilepaths: set[Path]
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, disclosureSystemName: str | None):
         super().__init__(name)
-        self.namespaces = NamespaceConfig()
+        self.namespaces = NamespaceConfig(disclosureSystemName)
         # Contents sourced from Section 4-1 of https://disclosure2dl.edinet-fsa.go.jp/guide/static/disclosure/download/ESE140104.pdf
         self._allowedCharacterSheetPath = Path(__file__).parent / "resources" / "allowed-character-sheet.txt"
         self._deiValues = {}
@@ -311,7 +311,7 @@ class ControllerPluginData(PluginData):
     def get(cntlr: Cntlr, name: str) -> ControllerPluginData:
         controllerPluginData = cntlr.getPluginData(name)
         if controllerPluginData is None:
-            controllerPluginData = ControllerPluginData(name)
+            controllerPluginData = ControllerPluginData(name, cntlr.modelManager.disclosureSystem.name)
             cntlr.setPluginData(controllerPluginData)
         assert isinstance(controllerPluginData, ControllerPluginData), "Expected ControllerPluginData instance."
         return controllerPluginData
