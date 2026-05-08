@@ -177,12 +177,23 @@ class PluginValidationDataExtension(PluginData):
         return bool(statement.isConsolidated == contextIsConsolidated)
 
     def _initializeDocument(self, uri: str, modelDocument: ModelDocument, modelXbrl: ModelXbrl) -> None:
-        docPath = Path(uri)
         basePath = Path(str(modelXbrl.fileSource.basefile))
-        if not docPath.is_relative_to(basePath):
+
+        def relativeToBase(path: Path) -> Path | None:
+            if path.is_relative_to(basePath):
+                return path.relative_to(basePath)
+            resolvedPath = path.resolve()
+            resolvedBasePath = basePath.resolve()
+            if resolvedPath.is_relative_to(resolvedBasePath):
+                return resolvedPath.relative_to(resolvedBasePath)
+            return None
+
+        docRelativePath = relativeToBase(Path(uri))
+        if docRelativePath is None:
             return
         controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
-        controllerPluginData.addUsedFilepath(docPath.relative_to(basePath))
+        controllerPluginData.addUsedFilepath(docRelativePath)
+        documentFullPath = basePath / docRelativePath
         for elt, name, value in self.getUriAttributeValues(modelDocument):
             self._uriReferences.append(UriReference(
                 attributeName=name,
@@ -190,9 +201,9 @@ class PluginValidationDataExtension(PluginData):
                 document=modelDocument,
                 element=elt,
             ))
-            fullPath = (Path(modelDocument.uri).parent / value).resolve()
-            if fullPath.is_relative_to(basePath):
-                fileSourcePath = fullPath.relative_to(basePath)
+            fullPath = Path(os.path.normpath(documentFullPath.parent / value))
+            fileSourcePath = relativeToBase(fullPath)
+            if fileSourcePath is not None:
                 controllerPluginData.addUsedFilepath(fileSourcePath)
             referenceUri = str(fullPath)
             if (
