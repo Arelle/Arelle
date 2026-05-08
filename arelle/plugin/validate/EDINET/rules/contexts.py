@@ -24,7 +24,7 @@ from arelle.utils.validate.Validation import Level, Validation
 from ..Constants import FINANCIAL_STATEMENT_CONTEXT_ID_PATTERN, CONTEXT_ID_PATTERN, INDIVIDUAL_CONTEXT_ID_PATTERN
 from ..ContextRequirement import CONTEXT_REQUIREMENTS
 from ..ControllerPluginData import ControllerPluginData
-from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
+from ..DisclosureSystems import ALL_DISCLOSURE_SYSTEMS
 from ..FilingFormat import DocumentType
 from ..FormType import FormType
 from ..PluginValidationDataExtension import PluginValidationDataExtension
@@ -44,7 +44,7 @@ FINANCIAL_STATEMENT_ELR_PREFIXES = (
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8011W(
         pluginData: PluginValidationDataExtension,
@@ -73,7 +73,7 @@ def rule_EC8011W(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8012W(
         pluginData: PluginValidationDataExtension,
@@ -102,7 +102,7 @@ def rule_EC8012W(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8013W(
         pluginData: PluginValidationDataExtension,
@@ -164,7 +164,7 @@ def rule_EC8013W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8014W(
         pluginData: ControllerPluginData,
@@ -199,7 +199,7 @@ def rule_EC8014W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8015W(
         pluginData: ControllerPluginData,
@@ -239,7 +239,7 @@ def rule_EC8015W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_contextDeiRequirements(
         pluginData: ControllerPluginData,
@@ -308,7 +308,7 @@ def rule_contextDeiRequirements(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8021W(
         pluginData: ControllerPluginData,
@@ -358,7 +358,7 @@ def rule_EC8021W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8032E(
         pluginData: ControllerPluginData,
@@ -400,7 +400,7 @@ def rule_EC8032E(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8033W(
         pluginData: PluginValidationDataExtension,
@@ -458,7 +458,7 @@ def rule_EC8033W(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8054W(
         pluginData: PluginValidationDataExtension,
@@ -493,7 +493,7 @@ def rule_EC8054W(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8060E(
         pluginData: PluginValidationDataExtension,
