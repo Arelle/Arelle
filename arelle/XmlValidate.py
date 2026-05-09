@@ -566,16 +566,7 @@ def _validateValueStringOrRaise(
             else: raise ValueError
         elif baseXsdType == "QName":
             xValue = qnameFromNsmap(nsmap, value, prefixException=ValueError)
-            #xValue = qname(elt, value, castException=ValueError, prefixException=ValueError)
             sValue = value
-            ''' not sure here, how are explicitDimensions validated, but bad units not?
-            if xValue.namespaceURI in modelXbrl.namespaceDocs:
-                if (xValue not in modelXbrl.qnameConcepts and
-                    xValue not in modelXbrl.qnameTypes and
-                    xValue not in modelXbrl.qnameAttributes and
-                    xValue not in modelXbrl.qnameAttributeGroups):
-                    raise ValueError("qname not defined " + str(xValue))
-            '''
         elif baseXsdType == "enumerationHrefs":
             xValue = [qnameHref(href) for href in value.split()]
             sValue = value
