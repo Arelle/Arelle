@@ -7,7 +7,7 @@ from __future__ import annotations
 from collections.abc import Generator, Mapping
 
 from arelle.ModelValue import QName
-from arelle.oim._tc.const import TCME_ILLEGAL_CONSTRAINT, TCME_UNKNOWN_TYPE
+from arelle.oim._tc.const import TCME_ILLEGAL_CONSTRAINT, TCME_UNKNOWN_PERIOD_TYPE, TCME_UNKNOWN_TYPE
 from arelle.oim._tc.metadata.common import TCMetadataValidationError
 from arelle.oim._tc.metadata.model import TCValueConstraint
 from arelle.oim._tc.metadata.restrictions import (
@@ -21,6 +21,18 @@ from arelle.XmlValidate import validateFacetValueString
 from arelle.XmlValidateConst import VALID
 
 _: TypeGetText
+
+_VALID_PERIOD_TYPES = frozenset(
+    {
+        "year",
+        "half",
+        "quarter",
+        "week",
+        "month",
+        "day",
+        "instant",
+    }
+)
 
 
 class TCMetadataIllegalConstraintError(TCMetadataValidationError):
@@ -52,6 +64,7 @@ def validate_value_constraint(
         return
     yield from _validate_permitted_restrictions(constraint, effective_lexical_type)
     yield from _validate_patterns_restriction(constraint)
+    yield from _validate_period_type_restriction(constraint)
 
 
 def _validate_permitted_restrictions(
@@ -84,4 +97,15 @@ def _validate_patterns_restriction(constraint: TCValueConstraint) -> Generator[T
         yield TCMetadataIllegalConstraintError(
             _("Patterns {} are not valid XSD regular expressions").format(invalid_patterns),
             TCRestriction.PATTERNS,
+        )
+
+
+def _validate_period_type_restriction(
+    constraint: TCValueConstraint,
+) -> Generator[TCMetadataValidationError, None, None]:
+    if constraint.period_type is not None and constraint.period_type not in _VALID_PERIOD_TYPES:
+        yield TCMetadataValidationError(
+            _("Unknown period type: '{}'").format(constraint.period_type),
+            TCRestriction.PERIOD_TYPE,
+            code=TCME_UNKNOWN_PERIOD_TYPE,
         )

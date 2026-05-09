@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import pytest
+
 from arelle import XbrlConst
-from arelle.oim._tc.const import TCME_ILLEGAL_CONSTRAINT, TCME_UNKNOWN_TYPE
+from arelle.oim._tc.const import TCME_ILLEGAL_CONSTRAINT, TCME_UNKNOWN_PERIOD_TYPE, TCME_UNKNOWN_TYPE
 from arelle.oim._tc.metadata.common import TCMetadataValidationError
 from arelle.oim._tc.metadata.model import TCValueConstraint
 from arelle.oim._tc.metadata.value_constraint_validation import validate_value_constraint
@@ -84,8 +86,15 @@ class TestValidateValueConstraint:
         assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
         assert errors[0].json_pointers == ["/type", "/timeZone"]
 
-    def test_period_type_permitted_on_period(self) -> None:
-        assert _errors(TCValueConstraint(type="period", period_type="year")) == []
+    @pytest.mark.parametrize("period_type", ["year", "half", "quarter", "week", "month", "day", "instant"])
+    def test_valid_period_type_no_error(self, period_type: str) -> None:
+        assert _errors(TCValueConstraint(type="period", period_type=period_type)) == []
+
+    def test_unknown_period_type_error(self) -> None:
+        errors = _errors(TCValueConstraint(type="period", period_type="biweekly"))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_UNKNOWN_PERIOD_TYPE
+        assert errors[0].json_pointers == ["/periodType"]
 
     def test_period_type_disallowed_on_string(self) -> None:
         errors = _errors(TCValueConstraint(type="xs:string", period_type="year"))
