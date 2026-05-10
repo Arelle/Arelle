@@ -82,6 +82,7 @@ def validate_value_constraint(
     yield from _validate_duration_type_restriction(constraint)
     yield from _validate_length_restrictions(constraint)
     yield from _validate_bounds_restrictions(constraint, effective_lexical_type)
+    yield from _validate_digit_restrictions(constraint, effective_lexical_type)
 
 
 def _validate_permitted_restrictions(
@@ -260,3 +261,30 @@ def _comparable_value(result: XmlValidationResult | None) -> Any:
     if result is not None and result.isXValid and not isinstance(result.xValue, str):
         return result.xValue
     return None
+
+
+def _validate_digit_restrictions(
+    constraint: TCValueConstraint,
+    effective_lexical_type: QName,
+) -> Generator[TCMetadataValidationError, None, None]:
+    fraction_digits = constraint.fraction_digits
+    if fraction_digits is None:
+        return
+
+    result = validateFacetValueString("fractionDigits", str(fraction_digits), effective_lexical_type.localName)
+    if not result.isXValid:
+        yield TCMetadataIllegalConstraintError(
+            _("fractionDigits ({}) is not valid for type '{}'").format(fraction_digits, constraint.type),
+            TCRestriction.FRACTION_DIGITS,
+        )
+
+    total_digits = constraint.total_digits
+    if total_digits is not None and fraction_digits > total_digits:
+        yield TCMetadataIllegalConstraintError(
+            _("fractionDigits ({}) must be less than or equal to totalDigits ({})").format(
+                fraction_digits,
+                total_digits,
+            ),
+            TCRestriction.FRACTION_DIGITS,
+            TCRestriction.TOTAL_DIGITS,
+        )

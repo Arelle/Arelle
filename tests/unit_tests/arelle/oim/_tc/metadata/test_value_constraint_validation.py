@@ -413,3 +413,20 @@ class TestBaseTypeBoundsRestrictions:
 
     def test_min_exclusive_on_decimal_no_inherent_bounds_check(self) -> None:
         assert _errors(TCValueConstraint(type="xs:decimal", min_exclusive="99999999")) == []
+
+
+class TestDigitFacets:
+    def test_total_digits_one_no_error(self) -> None:
+        assert _errors(TCValueConstraint(type="xs:decimal", total_digits=1)) == []
+
+    def test_fraction_digits_zero_no_error(self) -> None:
+        assert _errors(TCValueConstraint(type="xs:decimal", fraction_digits=0)) == []
+
+    def test_fraction_digits_equal_total_digits_no_error(self) -> None:
+        assert _errors(TCValueConstraint(type="xs:decimal", total_digits=2, fraction_digits=2)) == []
+
+    def test_fraction_digits_greater_than_total_digits_error(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:decimal", total_digits=2, fraction_digits=3))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/fractionDigits", "/totalDigits"]
