@@ -3,7 +3,12 @@ from __future__ import annotations
 import pytest
 
 from arelle import XbrlConst
-from arelle.oim._tc.const import TCME_ILLEGAL_CONSTRAINT, TCME_UNKNOWN_PERIOD_TYPE, TCME_UNKNOWN_TYPE
+from arelle.oim._tc.const import (
+    TCME_ILLEGAL_CONSTRAINT,
+    TCME_UNKNOWN_DURATION_TYPE,
+    TCME_UNKNOWN_PERIOD_TYPE,
+    TCME_UNKNOWN_TYPE,
+)
 from arelle.oim._tc.metadata.common import TCMetadataValidationError
 from arelle.oim._tc.metadata.model import TCValueConstraint
 from arelle.oim._tc.metadata.value_constraint_validation import validate_value_constraint
@@ -102,8 +107,15 @@ class TestValidateValueConstraint:
         assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
         assert errors[0].json_pointers == ["/type", "/periodType"]
 
-    def test_duration_type_permitted_on_duration(self) -> None:
-        assert _errors(TCValueConstraint(type="xs:duration", duration_type="yearMonth")) == []
+    @pytest.mark.parametrize("duration_type", ["yearMonth", "dayTime"])
+    def test_valid_duration_type_no_error(self, duration_type: str) -> None:
+        assert _errors(TCValueConstraint(type="xs:duration", duration_type=duration_type)) == []
+
+    def test_unknown_duration_type_error(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:duration", duration_type="P1Y"))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_UNKNOWN_DURATION_TYPE
+        assert errors[0].json_pointers == ["/durationType"]
 
     def test_duration_type_disallowed_on_string(self) -> None:
         errors = _errors(TCValueConstraint(type="xs:string", duration_type="yearMonth"))

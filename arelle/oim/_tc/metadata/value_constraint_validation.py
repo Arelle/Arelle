@@ -7,7 +7,12 @@ from __future__ import annotations
 from collections.abc import Generator, Mapping
 
 from arelle.ModelValue import QName
-from arelle.oim._tc.const import TCME_ILLEGAL_CONSTRAINT, TCME_UNKNOWN_PERIOD_TYPE, TCME_UNKNOWN_TYPE
+from arelle.oim._tc.const import (
+    TCME_ILLEGAL_CONSTRAINT,
+    TCME_UNKNOWN_DURATION_TYPE,
+    TCME_UNKNOWN_PERIOD_TYPE,
+    TCME_UNKNOWN_TYPE,
+)
 from arelle.oim._tc.metadata.common import TCMetadataValidationError
 from arelle.oim._tc.metadata.model import TCValueConstraint
 from arelle.oim._tc.metadata.restrictions import (
@@ -31,6 +36,14 @@ _VALID_PERIOD_TYPES = frozenset(
         "month",
         "day",
         "instant",
+    }
+)
+
+
+_VALID_DURATION_TYPES = frozenset(
+    {
+        "dayTime",
+        "yearMonth",
     }
 )
 
@@ -65,6 +78,7 @@ def validate_value_constraint(
     yield from _validate_permitted_restrictions(constraint, effective_lexical_type)
     yield from _validate_patterns_restriction(constraint)
     yield from _validate_period_type_restriction(constraint)
+    yield from _validate_duration_type_restriction(constraint)
 
 
 def _validate_permitted_restrictions(
@@ -108,4 +122,15 @@ def _validate_period_type_restriction(
             _("Unknown period type: '{}'").format(constraint.period_type),
             TCRestriction.PERIOD_TYPE,
             code=TCME_UNKNOWN_PERIOD_TYPE,
+        )
+
+
+def _validate_duration_type_restriction(
+    constraint: TCValueConstraint,
+) -> Generator[TCMetadataValidationError, None, None]:
+    if constraint.duration_type is not None and constraint.duration_type not in _VALID_DURATION_TYPES:
+        yield TCMetadataValidationError(
+            _("Unknown duration type: '{}'").format(constraint.duration_type),
+            TCRestriction.DURATION_TYPE,
+            code=TCME_UNKNOWN_DURATION_TYPE,
         )
