@@ -26,7 +26,7 @@ from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XmlValidateConst import VALID
 
 from ..Constants import JAPAN_LANGUAGE_CODES
-from ..DisclosureSystems import DISCLOSURE_SYSTEM_EDINET
+from ..DisclosureSystems import ALL_DISCLOSURE_SYSTEMS
 from ..FilingFormat import Ordinance, Taxonomy
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from ..ReportFolderType import HTML_EXTENSIONS, IMAGE_EXTENSIONS, ReportFolderType
@@ -63,7 +63,7 @@ FILENAME_STEM_PATTERN = regex.compile(r'[a-zA-Z0-9_-]*')
 
 @validation(
     hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC0100E(
         pluginData: ControllerPluginData,
@@ -106,7 +106,7 @@ def rule_EC0100E(
 
 @validation(
     hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC0124E_EC0187E(
         pluginData: ControllerPluginData,
@@ -147,7 +147,7 @@ def rule_EC0124E_EC0187E(
 
 @validation(
     hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC0129E(
         pluginData: ControllerPluginData,
@@ -183,7 +183,7 @@ def rule_EC0129E(
 
 @validation(
     hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC0130E(
         pluginData: ControllerPluginData,
@@ -223,7 +223,7 @@ def rule_EC0130E(
 
 @validation(
     hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC0132E(
         pluginData: ControllerPluginData,
@@ -271,7 +271,7 @@ def rule_EC0132E(
 
 @validation(
     hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC0183E(
         pluginData: ControllerPluginData,
@@ -296,7 +296,7 @@ def rule_EC0183E(
 
 @validation(
     hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC0188E(
         pluginData: ControllerPluginData,
@@ -329,7 +329,7 @@ def rule_EC0188E(
 
 @validation(
     hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC0192E(
         pluginData: ControllerPluginData,
@@ -361,7 +361,7 @@ def rule_EC0192E(
 
 @validation(
     hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC0198E(
         pluginData: ControllerPluginData,
@@ -397,7 +397,7 @@ def rule_EC0198E(
 
 @validation(
     hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC0233E(
         pluginData: ControllerPluginData,
@@ -444,7 +444,7 @@ def rule_EC0233E(
 
 @validation(
     hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC0234E(
         pluginData: ControllerPluginData,
@@ -477,7 +477,7 @@ def rule_EC0234E(
 
 @validation(
     hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC0237E(
         pluginData: ControllerPluginData,
@@ -505,7 +505,7 @@ def rule_EC0237E(
 
 @validation(
     hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC0206E(
         pluginData: ControllerPluginData,
@@ -532,7 +532,7 @@ def rule_EC0206E(
 
 @validation(
     hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC0349E(
         pluginData: ControllerPluginData,
@@ -568,7 +568,7 @@ def rule_EC0349E(
 
 @validation(
     hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC0352E(
         pluginData: ControllerPluginData,
@@ -605,7 +605,7 @@ def rule_EC0352E(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_cover_items(
         pluginData: PluginValidationDataExtension,
@@ -734,7 +734,7 @@ def rule_cover_items(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC1006E(
         pluginData: PluginValidationDataExtension,
@@ -762,7 +762,7 @@ def rule_EC1006E(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_uri_references(
         pluginData: PluginValidationDataExtension,
@@ -893,7 +893,7 @@ def rule_uri_references(
 
 @validation(
     hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC1009R(
         pluginData: ControllerPluginData,
@@ -920,7 +920,7 @@ def rule_EC1009R(
 
 @validation(
     hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC1016E(
         pluginData: ControllerPluginData,
@@ -949,7 +949,7 @@ def rule_EC1016E(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC1017E(
         pluginData: ControllerPluginData,
@@ -983,7 +983,7 @@ def rule_EC1017E(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_toc(
         pluginData: ControllerPluginData,
@@ -1001,7 +1001,7 @@ def rule_toc(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_toc_pre(
         pluginData: PluginValidationDataExtension,
@@ -1020,7 +1020,7 @@ def rule_toc_pre(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_html_elements(
         pluginData: PluginValidationDataExtension,
@@ -1080,7 +1080,7 @@ def rule_html_elements(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC1031E(
         pluginData: PluginValidationDataExtension,
@@ -1107,7 +1107,7 @@ def rule_EC1031E(
 
 @validation(
     hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC5003E(
         pluginData: ControllerPluginData,
@@ -1148,7 +1148,7 @@ def rule_EC5003E(
 
 @validation(
     hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC5032E(
         pluginData: ControllerPluginData,
@@ -1186,7 +1186,7 @@ def rule_EC5032E(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8023W(
         pluginData: PluginValidationDataExtension,
@@ -1253,7 +1253,7 @@ def rule_EC8023W(
 
 @validation(
     hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_filenames(
         pluginData: ControllerPluginData,
@@ -1311,7 +1311,7 @@ def rule_filenames(
 
 @validation(
     hook=ValidationHook.FILESOURCE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_manifest_preferredFilename(
         pluginData: ControllerPluginData,

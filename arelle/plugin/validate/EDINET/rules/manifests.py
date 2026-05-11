@@ -12,7 +12,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
+from ..DisclosureSystems import ALL_DISCLOSURE_SYSTEMS
 from ..ManifestInstance import ManifestTocItem
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -59,7 +59,7 @@ def _validateTocItem(modelXbrl: ModelXbrl, tocItem: ManifestTocItem, instanceId:
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC5800E(
         pluginData: PluginValidationDataExtension,
