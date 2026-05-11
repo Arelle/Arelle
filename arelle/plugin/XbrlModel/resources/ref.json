@@ -4,7 +4,7 @@
         "documentType": "https://xbrl.org/2026/model",
         "namespaces": {
             "xbrl": "https://xbrl.org/2025",
-            "xbrli":"https://xbrl.org/2025/instance",
+            "xbrlr":"https://xbrl.org/2025/report",
             "xs": "http://www.w3.org/2001/XMLSchema",
             "ref": "https://xbrl.org/2025/ref"
             },
@@ -201,7 +201,7 @@
             },
             {
                 "name": "ref:documentationLinkMD",
-                "dataType": "xbrli:linkToMarkdownFormat",
+                "dataType": "xbrlr:linkToMarkdownFormat",
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:referenceObject"

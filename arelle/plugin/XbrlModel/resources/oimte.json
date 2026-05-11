@@ -64,7 +64,7 @@
                     },
                     {
                         "source": "oimte:OIMErrorClassDomain",
-                        "target": "oimte:cannotExtendCompleteDomain",
+                        "target": "oimte:cannotExtendObject",
                         "order": 3.3
                     },
                     {
@@ -169,7 +169,7 @@
                     },
                     {
                         "source": "oimte:OIMErrorClassDomain",
-                        "target": "oimte:invalidDimensionMember",
+                        "target": "oimte:invalidFactDimensionMember",
                         "order": 19
                     },
                     {
@@ -209,11 +209,6 @@
                     },
                     {
                         "source": "oimte:OIMErrorClassDomain",
-                        "target": "oimte:invalidFactMember",
-                        "order": 28
-                    },
-                    {
-                        "source": "oimte:OIMErrorClassDomain",
                         "target": "oimte:factValueDataTypeMismatch",
                         "order": 28.5
                     },
@@ -234,7 +229,12 @@
                     },
                     {
                         "source": "oimte:OIMErrorClassDomain",
-                        "target": "oimte:ambiguousFileReference",
+                        "target": "oimte:factValueLocatorRequiredForValueSources",
+                        "order": 28.62
+                    },
+                    {
+                        "source": "oimte:OIMErrorClassDomain",
+                        "target": "oimte:factSourceResolutionFailed",
                         "order": 28.65
                     },
                     {
@@ -259,7 +259,7 @@
                     },
                     {
                         "source": "oimte:OIMErrorClassDomain",
-                        "target": "oimte:invalidQNameType",
+                        "target": "oimte:invalidObjectType",
                         "order": 38.5
                     },
                     {
@@ -593,7 +593,7 @@
                 ]
             },
             {
-                "name": "oimte:invalidQNameType",
+                "name": "oimte:invalidObjectType",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
                 ],
@@ -969,7 +969,7 @@
                 ]
             },
             {
-                "name": "oimte:invalidDimensionMember",
+                "name": "oimte:invalidFactDimensionMember",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
                 ],
@@ -982,18 +982,6 @@
             },
             {
                 "name": "oimte:invalidDomainRelationshipTarget",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:invalidFactMember",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
                 ],
@@ -1053,7 +1041,19 @@
                 ]
             },
             {
-                "name": "oimte:ambiguousFileReference",
+                "name": "oimte:factValueLocatorRequiredForValueSources",
+                "domainClasses": [
+                    "oimte:OIMErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factSourceResolutionFailed",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
                 ],
@@ -1173,7 +1173,7 @@
                 ]
             },
             {
-                "name": "oimte:cannotExtendCompleteDomain",
+                "name": "oimte:cannotExtendObject",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
                 ],
@@ -1210,18 +1210,6 @@
             },
             {
                 "name": "oimte:missingRequiredModelTypeProperty",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:objectNamespacePrefixNotDefined",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
                 ],
@@ -2434,7 +2422,7 @@
                     },
                     {
                         "source": "oimte:DimensionErrors",
-                        "target": "oimte:invalidQNameType",
+                        "target": "oimte:invalidObjectType",
                         "order": 2
                     },
                     {
@@ -2469,7 +2457,7 @@
                     },
                     {
                         "source": "oimte:DomainErrors",
-                        "target": "oimte:invalidDimensionMember",
+                        "target": "oimte:invalidFactDimensionMember",
                         "order": 8
                     },
                     {
@@ -2489,7 +2477,7 @@
                     },
                     {
                         "source": "oimte:DomainErrors",
-                        "target": "oimte:cannotExtendCompleteDomain",
+                        "target": "oimte:cannotExtendObject",
                         "order": 11
                     },
                     {
@@ -2545,11 +2533,6 @@
                     {
                         "source": "oimte:ConceptErrors",
                         "target": "oimte:invalidPeriodType",
-                        "order": 1
-                    },
-                    {
-                        "source": "oimte:FactErrors",
-                        "target": "oimte:invalidFactMember",
                         "order": 1
                     },
                     {
@@ -2626,11 +2609,6 @@
                         "source": "oimte:JSONErrors",
                         "target": "oimte:invalidJSONStructureInvalidPropertyDefined",
                         "order": 4
-                    },
-                    {
-                        "source": "oimte:DocumentInfoErrors",
-                        "target": "oimte:objectNamespacePrefixNotDefined",
-                        "order": 5
                     },
                     {
                         "source": "oimte:DocumentInfoErrors",
@@ -2902,7 +2880,7 @@
                     },
                     {
                         "source": "xbrl:dimensionObject",
-                        "target": "oimte:invalidQNameType",
+                        "target": "oimte:invalidObjectType",
                         "order": 2
                     },
                     {
@@ -2937,7 +2915,7 @@
                     },
                     {
                         "source": "xbrl:domainObject",
-                        "target": "oimte:invalidDimensionMember",
+                        "target": "oimte:invalidFactDimensionMember",
                         "order": 8
                     },
                     {
@@ -2957,7 +2935,7 @@
                     },
                     {
                         "source": "xbrl:domainObject",
-                        "target": "oimte:cannotExtendCompleteDomain",
+                        "target": "oimte:cannotExtendObject",
                         "order": 11
                     },
                     {
@@ -3008,11 +2986,6 @@
                     {
                         "source": "xbrl:conceptObject",
                         "target": "oimte:invalidPeriodType",
-                        "order": 1
-                    },
-                    {
-                        "source": "xbrl:factObject",
-                        "target": "oimte:invalidFactMember",
                         "order": 1
                     },
                     {
@@ -3219,11 +3192,6 @@
                         "source": "xbrl:cubeTypeObject",
                         "target": "oimte:missingRequiredDimensionProperty",
                         "order": 23
-                    },
-                    {
-                        "source": "oimte:DocumentInfoErrors",
-                        "target": "oimte:objectNamespacePrefixNotDefined",
-                        "order": 5
                     },
                     {
                         "source": "oimte:DocumentInfoErrors",
@@ -3514,13 +3482,13 @@
                 "labelType": "xbrl:errorMessage"
             },
             {
-                "relatedName": "oimte:invalidQNameType",
+                "relatedName": "oimte:invalidObjectType",
                 "language": "en",
                 "value": "Invalid QName Object Type",
                 "labelType": "xbrl:label"
             },
             {
-                "relatedName": "oimte:invalidQNameType",
+                "relatedName": "oimte:invalidObjectType",
                 "language": "en",
                 "value": "The referenced QName '{qname}' resolves to an object of an incorrect type. Expected a '{expectedType}' object but found a '{actualType}' object.",
                 "labelType": "xbrl:errorMessage"
@@ -3958,33 +3926,51 @@
                 "labelType": "xbrl:documentation"
             },
             {
-                "relatedName": "oimte:ambiguousFileReference",
+                "relatedName": "oimte:factValueLocatorRequiredForValueSources",
                 "language": "en",
-                "value": "Ambiguous File Reference",
+                "value": "Fact Value Locator Required For Value Sources",
                 "labelType": "xbrl:label"
             },
             {
-                "relatedName": "oimte:ambiguousFileReference",
+                "relatedName": "oimte:factValueLocatorRequiredForValueSources",
+                "language": "en",
+                "value": "A factValue object with a 'valueSources' or 'valueAnchors' property must define a 'factInterfaceName' either on the factValue object itself or on the corresponding sourceMappings entry in the DocumentInfo object.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimte:factValueLocatorRequiredForValueSources",
+                "language": "en",
+                "value": "This error is raised when a factValue object uses 'valueSources' or 'valueAnchors' but no factLocatorType is specified. The 'factInterfaceName' property, which references a factLocatorType object, must be provided either directly on the factValue object or on the corresponding sourceMappings entry in the DocumentInfo object. Without a factLocatorType, the processor cannot determine how to locate and extract the value from the source document.",
+                "labelType": "xbrl:documentation"
+            },
+            {
+                "relatedName": "oimte:factSourceResolutionFailed",
+                "language": "en",
+                "value": "Fact Source Resolution Failed",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimte:factSourceResolutionFailed",
                 "language": "en",
                 "value": "The factValueSource or factValueAnchor object does not specify a 'source' attribute, and the sourceMapping object contains multiple files. When multiple source files are defined, the 'source' attribute must be provided to identify which file to use.",
                 "labelType": "xbrl:errorMessage"
             },
             {
-                "relatedName": "oimte:ambiguousFileReference",
+                "relatedName": "oimte:factSourceResolutionFailed",
                 "language": "en",
                 "value": "This error occurs when a factValueSource or factValueAnchor object specifies an 'id' property to reference content in a source document, but does not include a 'source' attribute to identify which document file to use. If the sourceMapping object in documentInfo contains only one file, that file is used by default. However, if sourceMapping contains multiple files (e.g., multiple HTML or PDF files), the 'source' attribute becomes mandatory to disambiguate which file contains the referenced ID. Without this disambiguation, the system cannot determine the correct source document, and this error is raised.",
                 "labelType": "xbrl:documentation"
             },
             {
-                "relatedName": "oimte:invalidDimensionMember",
+                "relatedName": "oimte:invalidFactDimensionMember",
                 "language": "en",
-                "value": "Invalid Dimension Member",
+                "value": "Invalid Fact Dimension Member",
                 "labelType": "xbrl:label"
             },
             {
-                "relatedName": "oimte:invalidDimensionMember",
+                "relatedName": "oimte:invalidFactDimensionMember",
                 "language": "en",
-                "value": "The object '{memberName}' is not a valid dimension member for dimension '{dimensionName}'.",
+                "value": "The object '{memberName}' used as a member on dimension '{dimensionName}' is not appropriate. Only member objects, entity objects, unit objects, and concept objects are permitted as dimension members on a fact.",
                 "labelType": "xbrl:errorMessage"
             },
             {
@@ -3997,18 +3983,6 @@
                 "relatedName": "oimte:invalidDomainRelationshipTarget",
                 "language": "en",
                 "value": "The relationship target '{targetName}' in domain '{domainName}' must be a concept, member, entity, abstract, or unit object.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
-                "relatedName": "oimte:invalidFactMember",
-                "language": "en",
-                "value": "Invalid Fact Member",
-                "labelType": "xbrl:label"
-            },
-            {
-                "relatedName": "oimte:invalidFactMember",
-                "language": "en",
-                "value": "The object '{memberName}' cannot be used as a dimension member in a fact.",
                 "labelType": "xbrl:errorMessage"
             },
             {
@@ -4096,15 +4070,15 @@
                 "labelType": "xbrl:documentation"
             },
             {
-                "relatedName": "oimte:cannotExtendCompleteDomain",
+                "relatedName": "oimte:cannotExtendObject",
                 "language": "en",
-                "value": "Cannot Extend Complete Domain",
+                "value": "Cannot Extend Non-Extensible Object",
                 "labelType": "xbrl:label"
             },
             {
-                "relatedName": "oimte:cannotExtendCompleteDomain",
+                "relatedName": "oimte:cannotExtendObject",
                 "language": "en",
-                "value": "The domain {domainName} is marked as complete and cannot be extended.",
+                "value": "The object {targetName} is marked as non-extensible and cannot be extended.",
                 "labelType": "xbrl:errorMessage"
             },
             {
@@ -4135,18 +4109,6 @@
                 "relatedName": "oimte:documentNamespaceNotDefined",
                 "language": "en",
                 "value": "The documentNamespace property is required for modules but is not defined in the documentInfo object.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
-                "relatedName": "oimte:objectNamespacePrefixNotDefined",
-                "language": "en",
-                "value": "Object Namespace Prefix Not Defined",
-                "labelType": "xbrl:label"
-            },
-            {
-                "relatedName": "oimte:objectNamespacePrefixNotDefined",
-                "language": "en",
-                "value": "The object namespace prefix '{prefix}' is not defined for object '{objectName}' in the namespace declaration.",
                 "labelType": "xbrl:errorMessage"
             },
             {
@@ -4654,9 +4616,9 @@
                 "labelType": "xbrl:documentation"
             },
             {
-                "relatedName": "oimte:cannotExtendCompleteDomain",
+                "relatedName": "oimte:cannotExtendObject",
                 "language": "en",
-                "value": "This error is generated when an attempt is made to extend a domain that is marked as complete. A complete domain cannot be extended with additional relationships or members, so any such attempt results in this error.",
+                "value": "This error is generated when an attempt is made to extend an object that is marked as non-extensible using isExtensible: false. A non-extensible object cannot be augmented by an importing taxonomy, so any such attempt results in this error.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -4696,7 +4658,7 @@
                 "labelType": "xbrl:documentation"
             },
             {
-                "relatedName": "oimte:invalidQNameType",
+                "relatedName": "oimte:invalidObjectType",
                 "language": "en",
                 "value": "This error is generated when a QName reference in the XBRL Model resolves to a defined object, but that object is not of the expected type. For example, a cubeType property referencing a concept object instead of a cubeType object, or an extendTargetName referencing a domain instead of the expected object type.",
                 "labelType": "xbrl:documentation"
@@ -4870,21 +4832,15 @@
                 "labelType": "xbrl:documentation"
             },
             {
-                "relatedName": "oimte:invalidDimensionMember",
+                "relatedName": "oimte:invalidFactDimensionMember",
                 "language": "en",
-                "value": "This error is generated when an object used as a dimension member is not valid for that dimension. Explicit dimensions require members from their associated domain, while typed dimensions require values that conform to their domain datatype. The member must be appropriate for the dimension's type.",
+                "value": "This error is raised when an object used as a dimension member value on a fact is not an appropriate object type. Only member objects, entity objects, unit objects, and concept objects are permitted as dimension members on a fact. Using other object types — such as abstract objects — as dimension members is not permitted and must cause this error to be raised.",
                 "labelType": "xbrl:documentation"
             },
             {
                 "relatedName": "oimte:invalidDomainRelationshipTarget",
                 "language": "en",
                 "value": "This error is generated when a relationship in a domain specifies a target that is not an allowed object type. Domain relationships must target concepts, members, entities, abstracts, or units. Using other object types as relationship targets violates the domain's structural constraints.",
-                "labelType": "xbrl:documentation"
-            },
-            {
-                "relatedName": "oimte:invalidFactMember",
-                "language": "en",
-                "value": "This error occurs when a fact uses a dimension member that is not valid according to the model constraints. The member must be part of the dimension's domain (for explicit dimensions) or must conform to the dimension's datatype (for typed dimensions). The fact's dimensional coordinates must be valid.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -4975,12 +4931,6 @@
                 "relatedName": "oimte:documentNamespacePrefixNotDefined",
                 "language": "en",
                 "value": "This error occurs when the documentNamespace property specifies a prefix that is not defined in the namespaces declaration. The documentNamespace must reference a valid prefix that exists in the namespaces map.",
-                "labelType": "xbrl:documentation"
-            },
-            {
-                "relatedName": "oimte:objectNamespacePrefixNotDefined",
-                "language": "en",
-                "value": "This error occurs when an object's QName uses a namespace prefix that is not defined in the taxonomy's defined documentNamespace declaration.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -6757,7 +6707,7 @@
             {
                 "name": "oimte:dimensionNameNotDimensionObjectReference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -6783,7 +6733,7 @@
             {
                 "name": "oimte:dimensionNameNotDimensionObject2Reference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -6809,7 +6759,7 @@
             {
                 "name": "oimte:invalidCubeTypeReference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -6835,7 +6785,7 @@
             {
                 "name": "oimte:invalidCubeTypeNoMatchReference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -6861,7 +6811,7 @@
             {
                 "name": "oimte:factConceptIsAnAbstractReference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -6881,6 +6831,277 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-ConceptIsAnAbstract"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:abstractUsedAsDimensionMemberReference",
+                "relatedNames": [
+                    "oimte:invalidFactDimensionMember"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACT-AbstractUsedAsDimensionMember.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "A domain for exp:GeographyAxis uses exp:ContinentAbstract as a parent node in the hierarchy. exp:SalesRevenueFact specifies exp:ContinentAbstract as the value of exp:GeographyAxis. Abstract objects MUST NOT be used as dimension members on a fact."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-AbstractUsedAsDimensionMember"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:entityDimensionUsingConceptReference",
+                "relatedNames": [
+                    "oimte:invalidFactDimensionMember"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACT-EntityDimensionUsingConcept.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "exp:SalesRevenueFact sets xbrl:entity to exp:SalesRevenue, which is a concept object. Only entity objects are permitted as the value of the xbrl:entity dimension on a fact."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-EntityDimensionUsingConcept"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:entityDimensionUsingMemberReference",
+                "relatedNames": [
+                    "oimte:invalidFactDimensionMember"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACT-EntityDimensionUsingMember.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "exp:SalesRevenueFact sets xbrl:entity to exp:EuropeMember, which is a member object. Only entity objects are permitted as the value of the xbrl:entity dimension on a fact."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-EntityDimensionUsingMember"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:geographyAxisUsingConceptReference",
+                "relatedNames": [
+                    "oimte:invalidFactDimensionMember"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACT-GeographyAxisUsingConcept.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "exp:SalesRevenueFact sets exp:GeographyAxis to exp:SalesRevenue, which is a concept object. Only member objects are permitted as the value of a taxonomy-defined dimension on a fact."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-GeographyAxisUsingConcept"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:geographyAxisUsingEntityReference",
+                "relatedNames": [
+                    "oimte:invalidFactDimensionMember"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACT-GeographyAxisUsingEntity.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "exp:SalesRevenueFact sets exp:GeographyAxis to exp:Company1, which is an entity object. Only member objects are permitted as the value of a taxonomy-defined dimension on a fact."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-GeographyAxisUsingEntity"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:undefinedDimensionForEntityReference",
+                "relatedNames": [
+                    "oimte:invalidFactDimensionMember",
+                    "oimte:noFactSpaceForFact"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACT-UndefinedDimensionForEntity.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "exp:SharesFactWithTextValue specifies xbrl:entity1 as a fact dimension, which is not a defined dimension in the taxonomy. The fact cannot match the reporting cube (which expects xbrl:entity), resulting in both an invalid fact dimension member error and a no-factspace error."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-UndefinedDimensionForEntity"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:domainFactMistmatchReference",
+                "relatedNames": [
+                    "oimte:invalidFactDimensionMember"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACT-DomainFactMistmatch.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "The fact uses exp:PacificMember for exp:RegionAxis, but exp:PacificMember does not match the dimension's required domain class for valid members in this context."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-DomainFactMistmatch"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidFactMemberDomainMismatchReference",
+                "relatedNames": [
+                    "oimte:invalidFactDimensionMember"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACT-invalidFactMemberDomainMismatch.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "Facts use exp:RegionAMember for exp:newDimension, but the member's domainClasses do not include the dimension's domainClass, so the fact member is not part of the dimension's domain."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-invalidFactMemberDomainMismatch"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidFactMemberTypeMismatchReference",
+                "relatedNames": [
+                    "oimte:invalidFactDimensionMember"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACT-invalidFactMemberTypeMismatch.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "Fact uses typed dimension value 'hello' for exp:newDimension, but the dimension domain type expects xs:date, so the member is invalid for that fact dimension."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-invalidFactMemberTypeMismatch"
                     }
                 ]
             },
@@ -7914,9 +8135,9 @@
                 ]
             },
             {
-                "name": "oimte:cannotExtendCompleteDomainReference",
+                "name": "oimte:cannotExtendObjectReference",
                 "relatedNames": [
-                    "oimte:cannotExtendCompleteDomain"
+                    "oimte:cannotExtendObject"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -7936,6 +8157,136 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAIN-ExtendClosedDomain"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:cannotExtendObjectCubeReference",
+                "relatedNames": [
+                    "oimte:cannotExtendObject"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBE-ExtendClosedCube.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-ExtendClosedCube"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:cannotExtendObjectNetworkReference",
+                "relatedNames": [
+                    "oimte:cannotExtendObject"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "NETWORK-ExtendClosedNetwork.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NETWORK-ExtendClosedNetwork"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:cannotExtendObjectReferenceObjectReference",
+                "relatedNames": [
+                    "oimte:cannotExtendObject"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "REFERENCE-ExtendClosedReference.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#REFERENCE-ExtendClosedReference"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:cannotExtendObjectFactReference",
+                "relatedNames": [
+                    "oimte:cannotExtendObject"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACT-ExtendClosedFact.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-ExtendClosedFact"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:cannotExtendObjectTableTemplateReference",
+                "relatedNames": [
+                    "oimte:cannotExtendObject"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "TABLETEMPLATE-ExtendClosedTableTemplate.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#TABLETEMPLATE-ExtendClosedTableTemplate"
                     }
                 ]
             },
@@ -8101,110 +8452,6 @@
                 ]
             },
             {
-                "name": "oimte:objectNamespacePrefixNotDefinedReference",
-                "relatedNames": [
-                    "oimte:objectNamespacePrefixNotDefined"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "NAMESPACE-PrefixNotDefined.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "❌ Fail"
-                    },
-                    {
-                        "property": "xbrl:conformanceErrorsProduced",
-                        "value": "3"
-                    },
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NAMESPACE-PrefixNotDefined"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:objectNamespacePrefixNotDefined2Reference",
-                "relatedNames": [
-                    "oimte:objectNamespacePrefixNotDefined"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "NAMESPACE-DocumentNamespaceDoesNotMatch.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "❌ Fail"
-                    },
-                    {
-                        "property": "xbrl:conformanceErrorsProduced",
-                        "value": "3"
-                    },
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NAMESPACE-DocumentNamespaceDoesNotMatch"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:objectNamespacePrefixNotDefinedCompiledReference",
-                "relatedNames": [
-                    "oimte:objectNamespacePrefixNotDefined"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "NAMESPACE-PrefixNotDefinedCompiled.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "❌ Fail"
-                    },
-                    {
-                        "property": "xbrl:conformanceErrorsProduced",
-                        "value": "3"
-                    },
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NAMESPACE-PrefixNotDefinedCompiled"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:objectNamespacePrefixNotDefinedDocumentNamespaceNotInNamespaceMapReference",
-                "relatedNames": [
-                    "oimte:objectNamespacePrefixNotDefined"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "NAMESPACE-DocumentNamespaceNotInNamespaceMap.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "❌ Fail"
-                    },
-                    {
-                        "property": "xbrl:conformanceErrorsProduced",
-                        "value": "1"
-                    },
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NAMESPACE-DocumentNamespaceNotInNamespaceMap"
-                    }
-                ]
-            },
-            {
                 "name": "oimte:documentNamespacePrefixNotDefined2Reference",
                 "relatedNames": [
                     "oimte:documentNamespacePrefixNotDefined"
@@ -8283,9 +8530,9 @@
                 ]
             },
             {
-                "name": "oimte:invalidQNameTypeReference",
+                "name": "oimte:invalidObjectTypeReference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -8337,7 +8584,7 @@
             {
                 "name": "oimte:invalidQNameCubeTypeReference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -8389,7 +8636,7 @@
             {
                 "name": "oimte:invalidQNamePeriodConceptNameReference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -8415,7 +8662,7 @@
             {
                 "name": "oimte:invalidQNamePeriodContextNameReference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -8519,7 +8766,7 @@
             {
                 "name": "oimte:invalidQNameCubeType2Reference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -8545,7 +8792,7 @@
             {
                 "name": "oimte:invalidQNameExtendTargetReference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -8571,7 +8818,7 @@
             {
                 "name": "oimte:invalidQNameNetworkReferencesDomainReference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -8673,9 +8920,9 @@
                 ]
             },
             {
-                "name": "oimte:invalidQNameTypeInappropriateExcludeCubeReferenceConformanceReference",
+                "name": "oimte:invalidObjectTypeInappropriateExcludeCubeReferenceConformanceReference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -8699,9 +8946,9 @@
                 ]
             },
             {
-                "name": "oimte:invalidQNameTypeInappropriateRequiredCubeReferenceConformanceReference",
+                "name": "oimte:invalidObjectTypeInappropriateRequiredCubeReferenceConformanceReference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -8725,9 +8972,9 @@
                 ]
             },
             {
-                "name": "oimte:invalidQNameTypeCubeTypeInvalidRelationshipTypeReferenceAllowedConformanceReference",
+                "name": "oimte:invalidObjectTypeCubeTypeInvalidRelationshipTypeReferenceAllowedConformanceReference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -8751,9 +8998,9 @@
                 ]
             },
             {
-                "name": "oimte:invalidQNameTypeCubeTypeRequiredCubeRelationshipInvalidSourceConformanceReference",
+                "name": "oimte:invalidObjectTypeCubeTypeRequiredCubeRelationshipInvalidSourceConformanceReference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -9201,6 +9448,32 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-RequiredCubeDimensionalSpaceMissing"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:requiredCubeDimensionalSpaceMissingFromCubeExcludeCannotBeRequiredReference",
+                "relatedNames": [
+                    "oimte:requiredCubeDimensionalSpaceMissingFromCube"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBE-ExcludeCannotBeRequired.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-ExcludeCannotBeRequired"
                     }
                 ]
             },
@@ -11360,6 +11633,84 @@
                 ]
             },
             {
+                "name": "oimte:noFactSpaceForFactOpenCubeEntityRequiredReference",
+                "relatedNames": [
+                    "oimte:noFactSpaceForFact"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACTSET-InvalidOpenCubeEntityRequired.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-FactNotInCube"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:noFactSpaceForFactOpenCubePeriodRequiredReference",
+                "relatedNames": [
+                    "oimte:noFactSpaceForFact"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACTSET-InvalidOpenCubePeriodRequired.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-FactNotInCube"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:noFactSpaceForFactOpenCubeUnitRequiredReference",
+                "relatedNames": [
+                    "oimte:noFactSpaceForFact"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACTSET-InvalidOpenCubeUnit.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-FactNotInCube"
+                    }
+                ]
+            },
+            {
                 "name": "oimte:invalidTaxonomyGroupSourceReference",
                 "relatedNames": [
                     "oimte:invalidTaxonomyGroupSource"
@@ -12544,7 +12895,7 @@
             {
                 "name": "oimte:allowedCubeDimensionNoDimensionTypeConformanceReference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -12596,7 +12947,7 @@
             {
                 "name": "oimte:invalidPreferredLabelQNameTypeConformanceReference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -12622,7 +12973,7 @@
             {
                 "name": "oimte:invalidExtendCubeWrongTypeConformanceReference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -12648,7 +12999,7 @@
             {
                 "name": "oimte:validPreferredLabelConformanceReference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -12752,7 +13103,7 @@
             {
                 "name": "oimte:invalidRelationshipTypeReferenceConformanceReference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -12882,7 +13233,7 @@
             {
                 "name": "oimte:invalidPropertyTypeReferenceConformanceReference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -13924,6 +14275,36 @@
                 ]
             },
             {
+                "name": "oimte:factValueLocatorRequiredForValueSourcesConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueLocatorRequiredForValueSources"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACTLOCATOR-MissingfactInterfaceName.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "A factValue object uses 'valueSources' but no 'factInterfaceName' is defined on the factValue object or on the sourceMappings entry. The processor must raise oimte:factValueLocatorRequiredForValueSources."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACTLOCATOR-MissingfactInterfaceName"
+                    }
+                ]
+            },
+            {
                 "name": "oimte:invalidRelationshipSourceObjectConformanceReference",
                 "relatedNames": [
                     "oimte:invalidRelationshipSourceObject"
@@ -14266,16 +14647,16 @@
                 ]
             },
             {
-                "name": "oimte:cannotExtendCompleteDomainSpecReference",
+                "name": "oimte:cannotExtendObjectSpecReference",
                 "relatedNames": [
-                    "oimte:cannotExtendCompleteDomain"
+                    "oimte:cannotExtendObject"
                 ],
                 "referenceType": "xbrl:specificationErrorReference",
                 "language": "en",
                 "properties": [
                     {
                         "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-cannotextendcompletedomain"
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-cannotextendobject"
                     }
                 ]
             },
@@ -14318,20 +14699,6 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-documentnamespacenotdefined"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:objectNamespacePrefixNotDefinedSpecReference",
-                "relatedNames": [
-                    "oimte:objectNamespacePrefixNotDefined"
-                ],
-                "referenceType": "xbrl:specificationErrorReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-objectnamespaceprefixnotdefined"
                     }
                 ]
             },
@@ -14952,6 +15319,36 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#REFERENCETYPE-InvalidRequiredProperty"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:missingRequiredPropertyFactLocatorReference",
+                "relatedNames": [
+                    "oimte:missingRequiredProperty"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACTLOCATOR-MissingRequiredProperty.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "factLocatorType exp:myHtmlLocatorType defines exp:htmlElementId as a required property, but the valueSource of fact exp:RevenueFact only supplies exp:htmlDataAttribute, omitting the required exp:htmlElementId property."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACTLOCATOR-MissingRequiredProperty"
                     }
                 ]
             },
@@ -15834,14 +16231,14 @@
             {
                 "name": "oimte:invalidCubeTypeSpecReference",
                 "relatedNames": [
-                    "oimte:invalidQNameType"
+                    "oimte:invalidObjectType"
                 ],
                 "referenceType": "xbrl:specificationErrorReference",
                 "language": "en",
                 "properties": [
                     {
                         "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-invalidqnametype"
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-invalidobjecttype"
                     }
                 ]
             },
@@ -17264,6 +17661,156 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-illegalconstraint"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:disallowedObjectPropertyConformanceReference",
+                "relatedNames": [
+                    "oimte:disallowedObjectProperty"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACTLOCATOR-InvalidAllowedPropertyOnValueSource.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "A factValue valueSource uses property xbrl:htmlDataAttribute, but the factLocatorType in use (xbrl:htmlElementLocatorType, resolved via factInterfaceName on the sourceMappings entry) only permits xbrl:htmlSpanId in its allowedProperties. The processor must raise oimte:disallowedObjectProperty."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-disallowedobjectproperty"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidQNameFactInterfaceNameReference",
+                "relatedNames": [
+                    "oimte:invalidQNameReference"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACTLOCATOR-InvalidLocatorTypeReference.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "The factInterfaceName exp:nonExistentLocatorType referenced in a sourceMappings entry does not resolve to any known factLocatorType object in the model or its imports. The processor must raise oimte:invalidQNameReference."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACTLOCATOR-InvalidLocatorTypeReference"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidQNameFactLocatorSourceNameReference",
+                "relatedNames": [
+                    "oimte:invalidQNameReference"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACTLOCATOR-InvalidSourceNameReference.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "The valueSource references sourceName exp:nonExistentSource, which is not defined in any sourceMappings entry in this document."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACTLOCATOR-InvalidSourceNameReference"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidQNameFactLocatorTransformationReference",
+                "relatedNames": [
+                    "oimte:invalidQNameReference"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACTLOCATOR-InvalidTransformationReference.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "The factValue specifies transformation exp:unknownTransform, which does not resolve to any transform object in the model or its imports."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACTLOCATOR-InvalidTransformationReference"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidQNameFactInterfaceNameObjectTypeReference",
+                "relatedNames": [
+                    "oimte:invalidObjectType"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACTLOCATOR-InvalidLocatorTypeObjectType.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "The factInterfaceName exp:RevenueFact referenced in a sourceMappings entry resolves to an existing object in the model, but that object is a fact rather than a factLocatorType. The processor must raise oimte:invalidObjectType."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-invalidobjecttype"
                     }
                 ]
             }

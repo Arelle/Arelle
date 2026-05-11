@@ -4,7 +4,7 @@
         "documentType": "https://xbrl.org/2026/model",
         "namespaces": {
             "xbrl": "https://xbrl.org/2025",
-            "xbrli":"https://xbrl.org/2025/instance",
+            "xbrlr":"https://xbrl.org/2025/report",
             "xs": "http://www.w3.org/2001/XMLSchema",
             "iso4217": "http://www.xbrl.org/2003/iso421",
             "utr": "https://xbrl.org/2025/utr"
@@ -17,471 +17,471 @@
         "version": "2025",
         "units": [
             {
-                "dataType": "xbrli:area",
+                "dataType": "xbrlr:area",
                 "name": "utr:acre"
             },
             {
-                "dataType": "xbrli:area",
+                "dataType": "xbrlr:area",
                 "name": "utr:sqft"
             },
             {
-                "dataType": "xbrli:area",
+                "dataType": "xbrlr:area",
                 "name": "utr:sqmi"
             },
             {
-                "dataType": "xbrli:area",
+                "dataType": "xbrlr:area",
                 "name": "utr:sqyd"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:Boe"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:Btu"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:ft_lb"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:MBoe"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:Mcfe"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:MMBoe"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:MMBTU"
             },
             {
-                "dataType": "xbrli:length",
+                "dataType": "xbrlr:length",
                 "name": "utr:ft"
             },
             {
-                "dataType": "xbrli:length",
+                "dataType": "xbrlr:length",
                 "name": "utr:in"
             },
             {
-                "dataType": "xbrli:length",
+                "dataType": "xbrlr:length",
                 "name": "utr:mi"
             },
             {
-                "dataType": "xbrli:length",
+                "dataType": "xbrlr:length",
                 "name": "utr:nmi"
             },
             {
-                "dataType": "xbrli:length",
+                "dataType": "xbrlr:length",
                 "name": "utr:yd"
             },
             {
-                "dataType": "xbrli:mass",
+                "dataType": "xbrlr:mass",
                 "name": "utr:lb"
             },
             {
-                "dataType": "xbrli:mass",
+                "dataType": "xbrlr:mass",
                 "name": "utr:oz"
             },
             {
-                "dataType": "xbrli:mass",
+                "dataType": "xbrlr:mass",
                 "name": "utr:ozt"
             },
             {
-                "dataType": "xbrli:mass",
+                "dataType": "xbrlr:mass",
                 "name": "utr:T"
             },
             {
-                "dataType": "xbrli:power",
+                "dataType": "xbrlr:power",
                 "name": "utr:hp"
             },
             {
-                "dataType": "xbrli:volume",
+                "dataType": "xbrlr:volume",
                 "name": "utr:bbl"
             },
             {
-                "dataType": "xbrli:volume",
+                "dataType": "xbrlr:volume",
                 "name": "utr:ft3"
             },
             {
-                "dataType": "xbrli:volume",
+                "dataType": "xbrlr:volume",
                 "name": "utr:gal"
             },
             {
-                "dataType": "xbrli:volume",
+                "dataType": "xbrlr:volume",
                 "name": "utr:MBbls"
             },
             {
-                "dataType": "xbrli:volume",
+                "dataType": "xbrlr:volume",
                 "name": "utr:Mcf"
             },
             {
-                "dataType": "xbrli:volume",
+                "dataType": "xbrlr:volume",
                 "name": "utr:MMBbls"
             },
             {
-                "dataType": "xbrli:volume",
+                "dataType": "xbrlr:volume",
                 "name": "utr:MMcf"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:Cal"
             },
             {
-                "dataType": "xbrli:mass",
+                "dataType": "xbrlr:mass",
                 "name": "utr:t"
             },
             {
-                "dataType": "xbrli:memory",
+                "dataType": "xbrlr:memory",
                 "name": "utr:B"
             },
             {
-                "dataType": "xbrli:memory",
+                "dataType": "xbrlr:memory",
                 "name": "utr:GB"
             },
             {
-                "dataType": "xbrli:memory",
+                "dataType": "xbrlr:memory",
                 "name": "utr:kB"
             },
             {
-                "dataType": "xbrli:memory",
+                "dataType": "xbrlr:memory",
                 "name": "utr:MB"
             },
             {
-                "dataType": "xbrli:memory",
+                "dataType": "xbrlr:memory",
                 "name": "utr:TB"
             },
             {
-                "dataType": "xbrli:area",
+                "dataType": "xbrlr:area",
                 "name": "utr:ha"
             },
             {
-                "dataType": "xbrli:area",
+                "dataType": "xbrlr:area",
                 "name": "utr:sqkm"
             },
             {
-                "dataType": "xbrli:area",
+                "dataType": "xbrlr:area",
                 "name": "utr:sqm"
             },
             {
-                "dataType": "xbrli:electricCurrent",
+                "dataType": "xbrlr:electricCurrent",
                 "name": "utr:A"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:J"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:kJ"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:kWh"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:mJ"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:MWh"
             },
             {
-                "dataType": "xbrli:voltage",
+                "dataType": "xbrlr:voltage",
                 "name": "utr:V"
             },
             {
-                "dataType": "xbrli:frequency",
+                "dataType": "xbrlr:frequency",
                 "name": "utr:Hz"
             },
             {
-                "dataType": "xbrli:length",
+                "dataType": "xbrlr:length",
                 "name": "utr:cm"
             },
             {
-                "dataType": "xbrli:length",
+                "dataType": "xbrlr:length",
                 "name": "utr:dm"
             },
             {
-                "dataType": "xbrli:length",
+                "dataType": "xbrlr:length",
                 "name": "utr:km"
             },
             {
-                "dataType": "xbrli:length",
+                "dataType": "xbrlr:length",
                 "name": "utr:m"
             },
             {
-                "dataType": "xbrli:length",
+                "dataType": "xbrlr:length",
                 "name": "utr:mm"
             },
             {
-                "dataType": "xbrli:mass",
+                "dataType": "xbrlr:mass",
                 "name": "utr:g"
             },
             {
-                "dataType": "xbrli:mass",
+                "dataType": "xbrlr:mass",
                 "name": "utr:kg"
             },
             {
-                "dataType": "xbrli:power",
+                "dataType": "xbrlr:power",
                 "name": "utr:GW"
             },
             {
-                "dataType": "xbrli:power",
+                "dataType": "xbrlr:power",
                 "name": "utr:kW"
             },
             {
-                "dataType": "xbrli:power",
+                "dataType": "xbrlr:power",
                 "name": "utr:MW"
             },
             {
-                "dataType": "xbrli:power",
+                "dataType": "xbrlr:power",
                 "name": "utr:TW"
             },
             {
-                "dataType": "xbrli:power",
+                "dataType": "xbrlr:power",
                 "name": "utr:W"
             },
             {
-                "dataType": "xbrli:voltage",
+                "dataType": "xbrlr:voltage",
                 "name": "utr:kV"
             },
             {
-                "dataType": "xbrli:volume",
+                "dataType": "xbrlr:volume",
                 "name": "utr:l"
             },
             {
-                "dataType": "xbrli:volume",
+                "dataType": "xbrlr:volume",
                 "name": "utr:m3"
             },
             {
-                "dataType": "xbrli:volume",
+                "dataType": "xbrlr:volume",
                 "name": "utr:bu"
             },
             {
-                "dataType": "xbrli:volume",
+                "dataType": "xbrlr:volume",
                 "name": "utr:aft"
             },
             {
-                "dataType": "xbrli:pureType",
+                "dataType": "xbrlr:pureType",
                 "name": "utr:Rate"
             },
             {
-                "dataType": "xbrli:time",
+                "dataType": "xbrlr:time",
                 "name": "utr:Y"
             },
             {
-                "dataType": "xbrli:time",
+                "dataType": "xbrlr:time",
                 "name": "utr:M"
             },
             {
-                "dataType": "xbrli:time",
+                "dataType": "xbrlr:time",
                 "name": "utr:D"
             },
             {
-                "dataType": "xbrli:time",
+                "dataType": "xbrlr:time",
                 "name": "utr:H"
             },
             {
-                "dataType": "xbrli:time",
+                "dataType": "xbrlr:time",
                 "name": "utr:MM"
             },
             {
-                "dataType": "xbrli:time",
+                "dataType": "xbrlr:time",
                 "name": "utr:S"
             },
             {
-                "dataType": "xbrli:voltage",
+                "dataType": "xbrlr:voltage",
                 "name": "utr:MV"
             },
             {
-                "dataType": "xbrli:voltage",
+                "dataType": "xbrlr:voltage",
                 "name": "utr:GV"
             },
             {
-                "dataType": "xbrli:volume",
+                "dataType": "xbrlr:volume",
                 "name": "utr:Bcf"
             },
             {
-                "dataType": "xbrli:volume",
+                "dataType": "xbrlr:volume",
                 "name": "utr:Tcf"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:GWh"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:TWh"
             },
             {
-                "dataType": "xbrli:time",
+                "dataType": "xbrlr:time",
                 "name": "utr:Q"
             },
             {
-                "dataType": "xbrli:time",
+                "dataType": "xbrlr:time",
                 "name": "utr:WK"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:MMcfe"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:Bcfe"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:Tcfe"
             },
             {
-                "dataType": "xbrli:mass",
+                "dataType": "xbrlr:mass",
                 "name": "utr:kT"
             },
             {
-                "dataType": "xbrli:mass",
+                "dataType": "xbrlr:mass",
                 "name": "utr:MT"
             },
             {
-                "dataType": "xbrli:mass",
+                "dataType": "xbrlr:mass",
                 "name": "utr:GT"
             },
             {
-                "dataType": "xbrli:mass",
+                "dataType": "xbrlr:mass",
                 "name": "utr:kt"
             },
             {
-                "dataType": "xbrli:mass",
+                "dataType": "xbrlr:mass",
                 "name": "utr:Mt"
             },
             {
-                "dataType": "xbrli:mass",
+                "dataType": "xbrlr:mass",
                 "name": "utr:Gt"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:MWM"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:GWM"
             },
             {
-                "dataType": "xbrli:temperature",
+                "dataType": "xbrlr:temperature",
                 "name": "utr:Celsius"
             },
             {
-                "dataType": "xbrli:temperature",
+                "dataType": "xbrlr:temperature",
                 "name": "utr:K"
             },
             {
-                "dataType": "xbrli:temperature",
+                "dataType": "xbrlr:temperature",
                 "name": "utr:F"
             },
             {
-                "dataType": "xbrli:pressure",
+                "dataType": "xbrlr:pressure",
                 "name": "utr:Pa"
             },
             {
-                "dataType": "xbrli:pressure",
+                "dataType": "xbrlr:pressure",
                 "name": "utr:Bar"
             },
             {
-                "dataType": "xbrli:pressure",
+                "dataType": "xbrlr:pressure",
                 "name": "utr:psi"
             },
             {
-                "dataType": "xbrli:pressure",
+                "dataType": "xbrlr:pressure",
                 "name": "utr:atm"
             },
             {
-                "dataType": "xbrli:force",
+                "dataType": "xbrlr:force",
                 "name": "utr:N"
             },
             {
-                "dataType": "xbrli:power",
+                "dataType": "xbrlr:power",
                 "name": "utr:var"
             },
             {
-                "dataType": "xbrli:power",
+                "dataType": "xbrlr:power",
                 "name": "utr:VA"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:Wh"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:VAh"
             },
             {
-                "dataType": "xbrli:electricCharge",
+                "dataType": "xbrlr:electricCharge",
                 "name": "utr:Ah"
             },
             {
-                "dataType": "xbrli:electricCharge",
+                "dataType": "xbrlr:electricCharge",
                 "name": "utr:C"
             },
             {
-                "dataType": "xbrli:planeAngle",
+                "dataType": "xbrlr:planeAngle",
                 "name": "utr:Degree"
             },
             {
-                "dataType": "xbrli:planeAngle",
+                "dataType": "xbrlr:planeAngle",
                 "name": "utr:rad"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:dth"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:MWd"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:GJ"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:MJ"
             },
             {
-                "dataType": "xbrli:energy",
+                "dataType": "xbrlr:energy",
                 "name": "utr:TJ"
             },
             {
-                "dataType": "xbrli:memory",
+                "dataType": "xbrlr:memory",
                 "name": "utr:PB"
             },
             {
-                "dataType": "xbrli:power",
+                "dataType": "xbrlr:power",
                 "name": "utr:Mvar"
             },
             {
-                "dataType": "xbrli:power",
+                "dataType": "xbrlr:power",
                 "name": "utr:MVA"
             },
             {
-                "dataType": "xbrli:ghgEmissions",
+                "dataType": "xbrlr:ghgEmissions",
                 "name": "utr:tCO2e"
             },
             {
-                "dataType": "xbrli:ghgEmissions",
+                "dataType": "xbrlr:ghgEmissions",
                 "name": "utr:ktCO2e"
             },
             {
-                "dataType": "xbrli:ghgEmissions",
+                "dataType": "xbrlr:ghgEmissions",
                 "name": "utr:MtCO2e"
             },
             {
-                "dataType": "xbrli:ghgEmissions",
+                "dataType": "xbrlr:ghgEmissions",
                 "name": "utr:GtCO2e"
             }
         ],
@@ -1623,14 +1623,14 @@
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrli:pure",
+                "relatedName": "xbrlr:pure",
                 "value": "pure"
             },
             
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrli:pure",
+                "relatedName": "xbrlr:pure",
                 "value": "Dimensionless (Pure) Number"
             },
             {
@@ -1649,14 +1649,14 @@
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrli:shares",
+                "relatedName": "xbrlr:shares",
                 "value": "Share"
             },
             
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrli:shares",
+                "relatedName": "xbrlr:shares",
                 "value": "Unit of Ownership (Stock)"
             },
             {
@@ -2697,9 +2697,9 @@
                                     "utr:l",
                                     "utr:m3",
                                     "utr:bu",
-                                    "xbrli:pure",
+                                    "xbrlr:pure",
                                     "utr:Rate",
-                                    "xbrli:shares",
+                                    "xbrlr:shares",
                                     "utr:Y",
                                     "utr:M",
                                     "utr:D",
@@ -2846,9 +2846,9 @@
             },
             {
                 "name" : "utr:XbrlDerivedUnitsRef",
-                "relatedNames" : ["xbrli:pure",
+                "relatedNames" : ["xbrlr:pure",
                                     "utr:Rate",
-                                    "xbrli:shares" ],
+                                    "xbrlr:shares" ],
                 "referenceType" : "xbrl:baseUnitsStandard",
                 "properties" : [{"property":"utr:baseStandardIdentifier", "value":"xbrl"}]
             }

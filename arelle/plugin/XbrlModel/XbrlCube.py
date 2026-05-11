@@ -101,6 +101,7 @@ class XbrlCube(XbrlReferencableModelObject):
     duplicateFactsInCube: Optional[str] # (optional) A string value that indicates if the cube validates duplicate facts. It can be one of the following: no duplicates, complete duplicates,consistent duplicates, or inconsistent duplicates. 
     properties: OrderedSet[XbrlProperty] # (optional) An ordered set of property objects Used to specify additional properties associated with the cube using the property object. Only immutable properties as defined in the propertyType object can be added to a cube.
     extendTargetName: Optional[QName] # (required if no name) The cubeType QName of a cube that this cube extends. This is used to indicate that this cube is an extension of another cube and inherits the properties of the base cube. The base cube must be defined in the same taxonomy module as this cube or in a directly imported module.
+    isExtensible: Union[bool, DefaultTrue] # (optional) If set to false, the cube is non-extensible, meaning that no importing taxonomy may add further relationships or members. If set to true or omitted, the cube may be extended by an importing taxonomy. The default value is true.
 
 class XbrlPropertiesConstraint(XbrlModelObject):
     """ Properties Constraint Object

@@ -4,9 +4,10 @@
         "documentType": "https://xbrl.org/2026/model",
         "namespaces": {
             "xbrl": "https://xbrl.org/2025",
-            "xbrli":"https://xbrl.org/2025/instance",
+            "xbrlr":"https://xbrl.org/2025/report",
             "xs": "http://www.w3.org/2001/XMLSchema",
-            "utr": "https://xbrl.org/2025/utr"
+            "utr": "https://xbrl.org/2025/utr",
+            "lei": "http://standards.iso.org/iso/17442"
             },
         "documentNamespace":"xbrl"
     },
@@ -103,11 +104,11 @@
             },
             {
                 "name": "xbrl:periodDomain",
-                "allowedDomainItems" : ["xs:dateTime", "xbrli:startEndDates", "xbrli:periodString"]
+                "allowedDomainItems" : ["xs:dateTime", "xbrlr:startEndDates", "xbrlr:periodString"]
             },
             {
                 "name": "xbrl:unitDomain",
-                "allowedDomainItems" : ["xbrl:unitObject", "xbrli:unitString"]
+                "allowedDomainItems" : ["xbrl:unitObject", "xbrlr:unitString"]
             },
             {
                 "name": "xbrl:entityDomain",
@@ -451,7 +452,7 @@
             },
             {
                 "name": "xbrl:iconLabel",
-                "dataType": "xbrli:emoji"
+                "dataType": "xbrlr:emoji"
             },
             {
                 "name": "xbrl:errorMessage",
@@ -1381,8 +1382,8 @@
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:htmlElementId",
-                "value": "The HTML id attribute value of the element whose inner text content contributes to the fact value."
+                "relatedName": "xbrl:htmlSpanId",
+                "value": "The HTML id attribute value of the span element whose inner text content contributes to the fact value."
             },
             {
                 "labelType": "xbrl:documentation",
@@ -1439,8 +1440,8 @@
                 "preferredPrefixes": ["xbrl"]
             },
             {
-                "namespace": "https://xbrl.org/2025/instance",
-                "preferredPrefixes": ["xbrli"]
+                "namespace": "https://xbrl.org/2025/report",
+                "preferredPrefixes": ["xbrlr"]
             },
             {
                 "namespace": "http://www.w3.org/2001/XMLSchema",
@@ -1486,7 +1487,7 @@
             },
             {
                 "name": "xbrl:aggregation",
-                "dataType": "xbrli:aggregationType",
+                "dataType": "xbrlr:aggregationType",
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:relationshipObject",
@@ -1513,7 +1514,7 @@
             },
             {
                 "name": "xbrl:reportAttribute",
-                "dataType": "xbrli:reportAttributeType",
+                "dataType": "xbrlr:reportAttributeType",
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:conceptObject"
@@ -1564,7 +1565,7 @@
             },
             {
                 "name": "xbrl:specificationErrorURI",
-                "dataType": "xbrli:realURL",
+                "dataType": "xbrlr:realURL",
                 "allowedObjects": ["xbrl:referenceObject"]
             },
             {
@@ -1584,7 +1585,7 @@
             },
             {
                 "name": "xbrl:defaultLanguage",
-                "dataType": "xbrli:languageType",
+                "dataType": "xbrlr:languageType",
                 "allowedObjects": ["xbrl:xbrlModelObject"]
             },
             {
@@ -1597,15 +1598,15 @@
             },
             {
                 "name": "xbrl:nil",
-                "dataType": "xbrli:nilReasonType",
+                "dataType": "xbrlr:nilReasonType",
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:factObject"
                 ]
             },
             {
-                "name": "xbrl:htmlElementId",
-                "dataType": "xs:string",
+                "name": "xbrl:htmlSpanId",
+                "dataType": "xbrl:stringCollection",
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:factValueSourceObject"
@@ -1645,7 +1646,7 @@
             },
             {
                 "name": "xbrl:pdfMcid",
-                "dataType": "xs:string",
+                "dataType": "xbrl:stringCollection",
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:factValueSourceObject"
@@ -1676,16 +1677,23 @@
                 ]
             }
         ],
+        "collectionTypes": [
+            {
+            "name": "xbrl:stringCollection",
+            "dataType": "xs:string",
+            "minItems": 1,
+            "orderedValues": true
+            }
+        ],
         "factLocatorTypes": [
             {
                 "name": "xbrl:htmlElementLocatorType",
                 "sourceMediaType": "text/html",
                 "requiredProperties": [
-                    "xbrl:htmlElementId"
+                    "xbrl:htmlSpanId"
                 ],
                 "allowedProperties": [
-                    "xbrl:htmlElementId",
-                    "xbrl:htmlEscape"
+                    "xbrl:htmlSpanId"
                 ]
             },
             {
@@ -2013,7 +2021,13 @@
                 "name": "xbrl:fact-explanatoryFact-network",
                 "relationshipTypeName": "xbrl:fact-explanatoryFact"
             }
+        ],
+        "impliedObjects": [
+            {
+                "name": "xbrl:LegalEntityIdentifier",
+                "namespace" : "http://standards.iso.org/iso/17442",
+                "domainClass": "xbrl:entityDomain"
+            }
         ]
-        
     }
 }

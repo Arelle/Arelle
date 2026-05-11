@@ -27,14 +27,19 @@
               "type": "string"
             }
           },
-          "sourceMapping": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "array",
-              "items": { "type": "string" },
-              "minItems": 1,
-              "uniqueItems": true
-            }
+          "sourceMappings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "sourceName": { "$ref": "#/definitions/QName" },
+                "url": { "type": "string" },
+                "factInterfaceName": { "$ref": "#/definitions/QName" }
+              },
+              "required": ["sourceName", "url"],
+              "additionalProperties": false
+            },
+            "uniqueItems": true
           },
           "description": {
             "type": "string"
@@ -321,7 +326,11 @@
                             "description": "Additional properties associated with the cube.",
                             "uniqueItems": true
                         },
-                      "extendTargetName": { "$ref": "#/definitions/QName" }
+                      "extendTargetName": { "$ref": "#/definitions/QName" },
+                      "isExtensible": {
+                        "type": "boolean",
+                        "description": "Indicates whether the cube can be extended by an importing taxonomy. Defaults to true (extensible). Set to false to prevent any importing taxonomy from augmenting this cube."
+                      }
                     },
                       "oneOf": [
                         { "required": ["name", "cubeDimensions"] },
@@ -390,9 +399,9 @@
                           }
                         },
                         "extendTargetName": { "$ref": "#/definitions/QName" },
-                        "completeDomain" :{
+                        "isExtensible" :{
                           "type": "boolean",
-                          "description": "Indicates if all relationships in the domain are required to be defined."
+                          "description": "Indicates whether the domain can be extended by an importing taxonomy. Defaults to true (extensible). Set to false to prevent any importing taxonomy from adding relationships to this domain."
                         },
                         "properties": {
                           "type": "array",
@@ -474,6 +483,10 @@
                           "uniqueItems": true
                         },
                         "extendTargetName": { "$ref": "#/definitions/QName" },
+                        "isExtensible": {
+                          "type": "boolean",
+                          "description": "Indicates whether the network can be extended by an importing taxonomy. Defaults to true (extensible). Set to false to prevent any importing taxonomy from augmenting this network."
+                        },
                         "properties": {
                           "type": "array",
                           "items": { "$ref": "#/definitions/propertyObject" },
@@ -696,6 +709,10 @@
                      "properties": {
                         "name": { "$ref": "#/definitions/QName" },
                         "extendTargetName": { "$ref": "#/definitions/QName" },
+                        "isExtensible": {
+                          "type": "boolean",
+                          "description": "Indicates whether the reference can be extended by an importing taxonomy. Defaults to true (extensible). Set to false to prevent any importing taxonomy from augmenting this reference."
+                        },
                         "relatedNames": {
                           "type": "array",
                           "items": { "$ref": "#/definitions/QName" },
@@ -774,13 +791,13 @@
                               "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
                               "description": "Language of the fact value (BCP 47)."
                             },
-                            "locatorType": {
+                            "factInterfaceName": {
                               "$ref": "#/definitions/QName",
-                              "description": "QName of the factLocatorType that defines the addressing strategy for all valueSources entries on this factValue. Inherited from sourceMapping.factInterfaceName when omitted."
+                              "description": "QName of the factLocatorType that defines the addressing strategy for all valueSources entries on this factValue. Inherited from the matching sourceMappings entry's factInterfaceName when omitted."
                             },
                             "source": {
                               "$ref": "#/definitions/QName",
-                              "description": "QName identifying the source document via the sourceMapping of the documentInfo object. Applied to all valueSources entries on this factValue when present."
+                              "description": "QName identifying the source document via the sourceMappings array of the documentInfo object. Applied to all valueSources entries on this factValue when present."
                             },
                             "transformation": {
                               "$ref": "#/definitions/QName",
@@ -861,7 +878,11 @@
                         "description": "Additional properties associated with the label.",
                         "uniqueItems": true
                       },
-                      "extendTargetName": { "$ref": "#/definitions/SQName"}
+                      "extendTargetName": { "$ref": "#/definitions/SQName"},
+                      "isExtensible": {
+                        "type": "boolean",
+                        "description": "Indicates whether the fact can be extended by an importing taxonomy. Defaults to true (extensible). Set to false to prevent any importing taxonomy from augmenting this fact."
+                      }
                     },
                       "oneOf": [
                         { "required": ["name", "factDimensions"] },
@@ -1060,7 +1081,11 @@
                               { "type": "string", "pattern": "INF" }
                             ]
                           },
-                          "extendTargetName": { "$ref": "#/definitions/QName" }
+                          "extendTargetName": { "$ref": "#/definitions/QName" },
+                          "isExtensible": {
+                            "type": "boolean",
+                            "description": "Indicates whether the table template can be extended by an importing taxonomy. Defaults to true (extensible). Set to false to prevent any importing taxonomy from augmenting this table template."
+                          }
                         },
                         "required": ["columns"],
                         "additionalProperties": false
@@ -1563,6 +1588,35 @@
                         }
                       },
                       "required": ["namespace", "preferredPrefixes"],
+                      "additionalProperties": false
+                    },
+                    "uniqueItems": true
+                },
+                "impliedObjects": {
+                    "type": "array",
+                    "description": "Array of impliedObject entries defining objects that are implicitly available in the model by virtue of their namespace.",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "$ref": "#/definitions/QName",
+                          "description": "The name of the implied object definition. The local name is not used for resolution; only the namespace URI is relevant."
+                        },
+                        "namespace": {
+                          "type": "string",
+                          "format": "uri",
+                          "description": "The namespace URI that defines the implied object namespace. Any QName with this namespace is considered to resolve to an implied object of the type defined by this entry."
+                        },
+                        "domainClass": {
+                          "$ref": "#/definitions/QName",
+                          "description": "The domain class that the implied object belongs to."
+                        },
+                        "localNameConstraint": {
+                          "$ref": "#/definitions/QName",
+                          "description": "Optional QName representing constraints on the local-name, such as the Luhn mod-97-10 algorithm for the LEI."
+                        }
+                      },
+                      "required": ["name", "namespace", "domainClass"],
                       "additionalProperties": false
                     },
                     "uniqueItems": true
