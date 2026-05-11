@@ -530,7 +530,7 @@ def create(modelXbrl: ModelXbrl, type: int, uri: str, schemaRefs: list[str] | No
         xmlDocument = None
     if type == Type.RSSFEED:
         from arelle.ModelRssObject import ModelRssObject
-        modelDocument = ModelRssObject(modelXbrl, type, uri, filepath, xmlDocument)  # type: ignore[no-untyped-call]
+        modelDocument = ModelRssObject(modelXbrl, type, uri, filepath, xmlDocument)
     else:
         modelDocument = ModelDocument(modelXbrl, type, normalizedUri, filepath, xmlDocument)  # type: ignore[assignment,arg-type]
     if Xml and xmlDocument:
@@ -552,7 +552,7 @@ def create(modelXbrl: ModelXbrl, type: int, uri: str, schemaRefs: list[str] | No
     if type == Type.INSTANCE and discover:
         modelDocument.instanceDiscover(modelDocument.xmlRootElement)
     elif type == Type.RSSFEED and discover:
-        modelDocument.rssFeedDiscover(modelDocument.xmlRootElement)  # type: ignore[no-untyped-call]
+        modelDocument.rssFeedDiscover(modelDocument.xmlRootElement)
     elif type == Type.SCHEMA:
         modelDocument.targetNamespace = None
         modelDocument.isQualifiedElementFormDefault = False

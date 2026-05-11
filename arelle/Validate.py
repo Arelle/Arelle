@@ -173,14 +173,15 @@ class Validate:
         for rssItem in self.modelXbrl.modelDocument.rssItems:
             if getattr(rssItem, "skipRssItem", False):
                 self.modelXbrl.info("info", _("skipping RSS Item %(accessionNumber)s %(formType)s %(companyName)s %(period)s"),
-                    modelObject=rssItem, accessionNumber=rssItem.accessionNumber, formType=rssItem.formType, companyName=rssItem.companyName, period=rssItem.period)
+                    modelObject=rssItem, accessionNumber=rssItem.accessionNumber, formType=rssItem.formType, companyName=rssItem.companyName, period=rssItem.period)  # type: ignore[union-attr]
                 continue
             self.modelXbrl.info("info", _("RSS Item %(accessionNumber)s %(formType)s %(companyName)s %(period)s"),
-                modelObject=rssItem, accessionNumber=rssItem.accessionNumber, formType=rssItem.formType, companyName=rssItem.companyName, period=rssItem.period)
+                modelObject=rssItem, accessionNumber=rssItem.accessionNumber, formType=rssItem.formType, companyName=rssItem.companyName, period=rssItem.period)  # type: ignore[union-attr]
             modelXbrl = None
             try:
-                rssItemUrl = rssItem.zippedUrl
+                rssItemUrl = rssItem.zippedUrl  # type: ignore[union-attr]
                 assert self.useFileSource is not None, "self.useFileSource must be set"
+                assert rssItemUrl is not None, "rssItem.zippedUrl must be set"
                 if self.useFileSource.isArchive and (isLegacyAbs(rssItemUrl) or not rssItemUrl.endswith(".zip")):
                     modelXbrl = modelXbrlLoad(self.modelXbrl.modelManager,
                                                openFileSource(rssItemUrl, self.modelXbrl.modelManager.cntlr, reloadCache=reloadCache),
@@ -208,8 +209,8 @@ class Validate:
                     continue # skip entry based on processing criteria
                 self.instValidator.validate(modelXbrl, self.modelXbrl.modelManager.formulaOptions.typedParameters(self.modelXbrl.prefixedNamespaces))  # type: ignore[no-untyped-call]
                 self.instValidator.close()
-                rssItem.setResults(modelXbrl)
-                self.modelXbrl.modelManager.viewModelObject(self.modelXbrl, rssItem.objectId())
+                rssItem.setResults(modelXbrl)  # type: ignore[union-attr]
+                self.modelXbrl.modelManager.viewModelObject(self.modelXbrl, rssItem.objectId())  # type: ignore[union-attr]
                 for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.plugins.hooks("Validate.RssItem"):
                     pluginXbrlMethod(self, modelXbrl, rssItem)
                 modelXbrl.close()
@@ -217,7 +218,7 @@ class Validate:
                 self.modelXbrl.error("exception:" + type(err).__name__,
                     _("RSS item validation exception: %(error)s, instance: %(instance)s"),
                     modelXbrl=(self.modelXbrl, modelXbrl),
-                    instance=rssItem.zippedUrl, error=err,
+                    instance=rssItem.zippedUrl, error=err,  # type: ignore[union-attr]
                     exc_info=True)
                 try:
                     self.instValidator.close()

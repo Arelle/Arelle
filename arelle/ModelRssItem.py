@@ -1,11 +1,35 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
+from __future__ import annotations
+
+import datetime
 import os
+from typing import TYPE_CHECKING, Any
+
 from arelle import XmlUtil
 from arelle.ModelObject import ModelObject
+from arelle.typing import TypeGetText
 
-newRssWatchOptions = {
+if TYPE_CHECKING:
+    from arelle.ModelDocument import ModelDocument
+    from arelle.ModelXbrl import ModelXbrl
+
+_: TypeGetText
+
+
+def _descendantText(
+    element: ModelObject,
+    namespaceURI: str | None,
+    localNames: str,
+) -> str | None:
+    descendantElt = XmlUtil.descendant(element, namespaceURI, localNames)
+    if descendantElt is None:
+        return None
+    return XmlUtil.text(descendantElt)
+
+
+newRssWatchOptions: dict[str, str | bool | None] = {
     "feedSource": "",
     "feedSourceUri": None,
     "matchTextExpr": "",
@@ -24,11 +48,33 @@ newRssWatchOptions = {
 
         # Note: if adding to this list keep DialogRssWatch in sync
 class ModelRssItem(ModelObject):
-    def init(self, modelDocument):
+
+    status: str
+    results: list[str] | None
+    assertions: dict[str, Any] | None
+    edgr: str | None
+    edgrDescription: str
+    edgrFile: str
+    edgrInlineXBRL: str
+    edgrSequence: str
+    edgrType: str
+    edgrUrl: str
+    assertionUnsuccessful: bool
+    _pubDate: datetime.datetime | None
+    _filingDate: datetime.date | None
+    _acceptanceDatetime: datetime.datetime | None
+    _url: str | None
+    _htmURLs: list[tuple[str | None, str | None]]
+    _primaryDocumentURL: str | None
+
+    def init(self, modelDocument: ModelDocument) -> None:
         super(ModelRssItem, self).init(modelDocument)
         try:
-            if (self.modelXbrl.modelManager.rssWatchOptions.latestPubDate and
-                self.pubDate <= self.modelXbrl.modelManager.rssWatchOptions.latestPubDate):
+            assert self.modelXbrl is not None
+            rssWatchOptions: Any = self.modelXbrl.modelManager.rssWatchOptions  # type: ignore[attr-defined]
+            if (rssWatchOptions.latestPubDate and
+                self.pubDate is not None and
+                self.pubDate <= rssWatchOptions.latestPubDate):
                 self.status = _("tested")
             else:
                 self.status = _("not tested")
@@ -54,122 +100,125 @@ class ModelRssItem(ModelObject):
 
 
     @property
-    def cikNumber(self):
-        return XmlUtil.text(XmlUtil.descendant(self, self.edgr, "cikNumber"))
+    def cikNumber(self) -> str | None:
+        return _descendantText(self, self.edgr, "cikNumber")
 
     @property
-    def accessionNumber(self):
-        return XmlUtil.text(XmlUtil.descendant(self, self.edgr, "accessionNumber"))
+    def accessionNumber(self) -> str | None:
+        return _descendantText(self, self.edgr, "accessionNumber")
 
     @property
-    def fileNumber(self):
-        return XmlUtil.text(XmlUtil.descendant(self, self.edgr, "fileNumber"))
+    def fileNumber(self) -> str | None:
+        return _descendantText(self, self.edgr, "fileNumber")
 
     @property
-    def companyName(self):
-        return XmlUtil.text(XmlUtil.descendant(self, self.edgr, "companyName"))
+    def companyName(self) -> str | None:
+        return _descendantText(self, self.edgr, "companyName")
 
     @property
-    def formType(self):
-        return XmlUtil.text(XmlUtil.descendant(self, self.edgr, "formType"))
+    def formType(self) -> str | None:
+        return _descendantText(self, self.edgr, "formType")
 
     @property
-    def pubDate(self):
+    def pubDate(self) -> datetime.datetime | None:
         try:
             return self._pubDate
         except AttributeError:
             from arelle.UrlUtil import parseRfcDatetime
-            self._pubDate = parseRfcDatetime(XmlUtil.text(XmlUtil.descendant(self, None, "pubDate")))
+            pubDateText = _descendantText(self, None, "pubDate")
+            self._pubDate = parseRfcDatetime(pubDateText) if pubDateText else None
             return self._pubDate
+
     @property
-    def filingDate(self):
+    def filingDate(self) -> datetime.date | None:
         try:
             return self._filingDate
         except AttributeError:
-            import datetime
             self._filingDate = None
-            date = XmlUtil.text(XmlUtil.descendant(self, self.edgr, "filingDate"))
-            d = date.split("/")
+            date = _descendantText(self, self.edgr, "filingDate")
+            d = date.split("/") if date else []
             if d and len(d) == 3:
-                self._filingDate = datetime.date(int(d[2]),int(d[0]),int(d[1]))
+                self._filingDate = datetime.date(int(d[2]), int(d[0]), int(d[1]))
             return self._filingDate
 
     @property
-    def period(self):
-        per = XmlUtil.text(XmlUtil.descendant(self, self.edgr, "period"))
+    def period(self) -> str | None:
+        per = _descendantText(self, self.edgr, "period")
         if per and len(per) == 8:
-            return "{0}-{1}-{2}".format(per[0:4],per[4:6],per[6:8])
+            return "{0}-{1}-{2}".format(per[0:4], per[4:6], per[6:8])
         return None
 
     @property
-    def assignedSic(self):
-        return XmlUtil.text(XmlUtil.descendant(self, self.edgr, "assignedSic"))
+    def assignedSic(self) -> str | None:
+        return _descendantText(self, self.edgr, "assignedSic")
 
     @property
-    def acceptanceDatetime(self):
+    def acceptanceDatetime(self) -> datetime.datetime | None:
         try:
             return self._acceptanceDatetime
         except AttributeError:
-            import datetime
             self._acceptanceDatetime = None
-            date = XmlUtil.text(XmlUtil.descendant(self, self.edgr, "acceptanceDatetime"))
+            date = _descendantText(self, self.edgr, "acceptanceDatetime")
             if date and len(date) == 14:
-                self._acceptanceDatetime = datetime.datetime(int(date[0:4]),int(date[4:6]),int(date[6:8]),int(date[8:10]),int(date[10:12]),int(date[12:14]))
+                self._acceptanceDatetime = datetime.datetime(
+                    int(date[0:4]), int(date[4:6]), int(date[6:8]),
+                    int(date[8:10]), int(date[10:12]), int(date[12:14]))
             return self._acceptanceDatetime
 
     @property
-    def fiscalYearEnd(self):
-        yrEnd = XmlUtil.text(XmlUtil.descendant(self, self.edgr, "fiscalYearEnd"))
+    def fiscalYearEnd(self) -> str | None:
+        yrEnd = _descendantText(self, self.edgr, "fiscalYearEnd")
         if yrEnd and len(yrEnd) == 4:
-            return "{0}-{1}".format(yrEnd[0:2],yrEnd[2:4])
+            return "{0}-{1}".format(yrEnd[0:2], yrEnd[2:4])
         return None
 
     @property
-    def htmlUrl(self):  # main filing document
+    def htmlUrl(self) -> str | None:  # main filing document
         htmlDocElt = XmlUtil.descendant(self, self.edgr, "xbrlFile", attrName=self.edgrSequence, attrValue="1")
         if htmlDocElt is not None:
             return htmlDocElt.get(self.edgrUrl)
         return None
 
     @property
-    def url(self):
+    def url(self) -> str | None:
         try:
             return self._url
         except AttributeError:
             self._url = None
             for instDocElt in XmlUtil.descendants(self, self.edgr, "xbrlFile"):
-                if instDocElt.get(self.edgrType).endswith(".INS") or instDocElt.get(self.edgrInlineXBRL) == "true":
+                edgrTypeAttr = instDocElt.get(self.edgrType)
+                if (edgrTypeAttr is not None and edgrTypeAttr.endswith(".INS")) or instDocElt.get(self.edgrInlineXBRL) == "true":
                     self._url = instDocElt.get(self.edgrUrl)
                     break
             return self._url
 
     @property
-    def enclosureUrl(self):
+    def enclosureUrl(self) -> str | None:
         return XmlUtil.childAttr(self, None, "enclosure", "url")
 
     @property
-    def zippedUrl(self):
+    def zippedUrl(self) -> str | None:
         enclosure = XmlUtil.childAttr(self, None, "enclosure", "url")
         if enclosure:
             # retrun enclosure which may contain multi-IXDSes and multi-doc primary files
             return enclosure
-        else: # no zipped enclosure, just use unzipped file
+        else:  # no zipped enclosure, just use unzipped file
             return self.url
 
 
     @property
-    def htmURLs(self):
+    def htmURLs(self) -> list[tuple[str | None, str | None]]:
         try:
             return self._htmURLs
         except AttributeError:
             self._htmURLs = [
-                (instDocElt.get(self.edgrDescription),instDocElt.get(self.edgrUrl))
-                  for instDocElt in XmlUtil.descendants(self, self.edgr, "xbrlFile")
-                    if instDocElt.get(self.edgrFile).endswith(".htm")]
+                (instDocElt.get(self.edgrDescription), instDocElt.get(self.edgrUrl))
+                for instDocElt in XmlUtil.descendants(self, self.edgr, "xbrlFile")
+                if (instDocElt.get(self.edgrFile) or "").endswith(".htm")]
             return self._htmURLs
 
     @property
-    def primaryDocumentURL(self):
+    def primaryDocumentURL(self) -> str | None:
         try:
             return self._primaryDocumentURL
         except AttributeError:
@@ -181,25 +230,25 @@ class ModelRssItem(ModelObject):
                     break
             return self._primaryDocumentURL
 
-    def setResults(self, modelXbrl):
+    def setResults(self, modelXbrl: ModelXbrl) -> None:
         self.results = []
         self.assertionUnsuccessful = False
         # put error codes first, sorted, then assertion result (dict's)
         self.status = "pass"
         for error in modelXbrl.errors:
-            if isinstance(error,dict):  # assertion results
+            if isinstance(error, dict):  # assertion results
                 self.assertions = error
                 for countSuccessful, countNotsuccessful in error.items():
-                    if countNotsuccessful > 0:
+                    if countNotsuccessful > 0:  # type: ignore[operator]
                         self.assertionUnsuccessful = True
                         self.status = "unsuccessful"
             else:   # error code results
                 self.results.append(error)
-                self.status = "fail" # error code
+                self.status = "fail"  # error code
         self.results.sort()
 
     @property
-    def propertyView(self):
+    def propertyView(self) -> tuple[tuple[str, Any], ...]:
         return (("CIK", self.cikNumber),
                 ("company", self.companyName),
                 ("published", self.pubDate),
@@ -208,7 +257,9 @@ class ModelRssItem(ModelObject):
                 ("period", self.period),
                 ("year end", self.fiscalYearEnd),
                 ("status", self.status),
-                ("instance", os.path.basename(self.url)),
+                ("instance", os.path.basename(self.url) if self.url else None),
                 )
-    def __repr__(self):
-        return ("rssItem[{0}]{1})".format(self.objectId(),self.propertyView))
+
+    def __repr__(self) -> str:
+        return ("rssItem[{0}]{1})".format(self.objectId(), self.propertyView))
+

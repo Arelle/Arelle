@@ -169,8 +169,6 @@ module = [
     'arelle.ModelFormulaObject',
     'arelle.ModelInstanceObject',
     'arelle.ModelRenderingObject',
-    'arelle.ModelRssItem',
-    'arelle.ModelRssObject',
     'arelle.ModelTestcaseObject',
     'arelle.ModelVersObject',
     'arelle.ModelVersReport',

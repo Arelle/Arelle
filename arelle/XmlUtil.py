@@ -427,7 +427,7 @@ def ancestorOrSelfAttr(element: ModelObject, attrClarkName: str) -> str | None:
 
 def childAttr(
     element: ModelObject,
-    childNamespaceURI: str,
+    childNamespaceURI: str | tuple[str, ...] | None,
     childLocalNames: str | tuple[str, ...],
     attrClarkName: str
 ) -> str | None:
