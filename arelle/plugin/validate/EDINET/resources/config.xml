@@ -4,7 +4,7 @@
         xsi:noNamespaceSchemaLocation="../../../../config/disclosuresystems.xsd">
     <!-- see arelle/config/disclosuresystems.xml for full comments -->
     <DisclosureSystem
-            names="EDINET-2026|edinet-2026"
+            names="EDINET-2026|edinet-2026|EDINET|edinet"
             description="Checks for EDINET."
             arcroleCyclesAllowed='{
                 "http://xbrl.org/int/dim/arcrole/dimension-domain": ["none", "EDINET.EC5700W.GFM.1.8.4"],
