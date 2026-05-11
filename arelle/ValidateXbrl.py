@@ -195,7 +195,6 @@ class ValidateXbrl:
                         fromConcept = modelRel.fromModelObject
                         toConcept = modelRel.toModelObject
                         if fromConcept is not None and toConcept is not None:
-                            assert isinstance(weight, float), "weight is not an integer"
                             if weight == 0:
                                 modelXbrl.error("xbrl.5.2.5.2.1:zeroWeight",  # type: ignore[func-returns-value]
                                     _("Calculation relationship has zero weight from %(source)s to %(target)s in link role %(linkrole)s"),
@@ -203,7 +202,7 @@ class ValidateXbrl:
                                     source=fromConcept.qname, target=toConcept.qname, linkrole=ELR),
                             fromBalance = fromConcept.balance
                             toBalance = toConcept.balance
-                            if fromBalance and toBalance:
+                            if fromBalance and toBalance and weight is not None:
                                 if (fromBalance == toBalance and weight < 0) or \
                                 (fromBalance != toBalance and weight > 0):
                                     modelXbrl.error("xbrl.5.1.1.2:balanceCalcWeightIllegal" +

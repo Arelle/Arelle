@@ -82,10 +82,35 @@ from arelle.typing import ModelFactBase, ModelResourceBase
 
 if TYPE_CHECKING:
     from arelle.ModelDocument import ModelDocument
-    from arelle.ModelValue import QName
+    from arelle.ModelValue import QName, TypeXValue
     from arelle.typing import TypeGetText
 
 _: TypeGetText
+
+
+class AllowsNamespaceMixin(ABC):
+    _isAny: bool
+    _namespaces: Iterable[str]
+
+    def allowsNamespace(self, namespaceURI: str | None) -> bool:
+        try:
+            if self._isAny:
+                return True
+            if not namespaceURI:
+                return "##local" in self._namespaces
+            if namespaceURI in self._namespaces:
+                return True
+            if namespaceURI == self.modelDocument.targetNamespace:  # type: ignore[attr-defined]
+                if "##targetNamespace" in self._namespaces:
+                    return True
+            else:  # not equal namespaces
+                if "##other" in self._namespaces:
+                    return True
+            return False
+        except AttributeError:
+            self._namespaces = self.get("namespace", '').split()  # type: ignore[attr-defined]
+            self._isAny = (not self._namespaces) or "##any" in self._namespaces
+            return self.allowsNamespace(namespaceURI)
 
 
 class ModelRoleType(ModelObject):
@@ -98,7 +123,7 @@ class ModelRoleType(ModelObject):
     :type modelDocument: ModelDocument
     """
     _definition: str | None
-    _usedOns: set[QName]
+    _usedOns: set[TypeXValue]
     _tableCode: str | None
 
     def init(self, modelDocument: ModelDocument) -> None:
@@ -141,13 +166,13 @@ class ModelRoleType(ModelObject):
         return definition.textValue if definition is not None else None
 
     @property
-    def usedOns(self) -> set[QName]:
+    def usedOns(self) -> set[TypeXValue]:
         """( {QName} ) -- Set of PSVI QNames of descendant usedOn elements"""
         try:
             return self._usedOns
         except AttributeError:
             XmlValidate.validate(self.modelXbrl, self)
-            self._usedOns = set(usedOn.xValue  # type: ignore[misc]
+            self._usedOns = set(usedOn.xValue
                                 for usedOn in self.iterdescendants("{http://www.xbrl.org/2003/linkbase}usedOn")
                                 if isinstance(usedOn,ModelObject))
             return self._usedOns
@@ -1657,7 +1682,45 @@ class ModelSequence(ModelGroupCompositor):
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelSequence, self).init(modelDocument)
 
-class ModelAnyAttribute(ModelObject):
+
+class ModelAny(AllowsNamespaceMixin, ModelObject, ModelParticle):
+    """
+    .. class:: ModelAny(modelDocument)
+
+    Particle Model any term
+
+    :param modelDocument: owner document
+    :type modelDocument: ModelDocument
+    """
+    def init(self, modelDocument: ModelDocument) -> None:
+        super(ModelAny, self).init(modelDocument)
+        self.addToParticles()
+
+    def dereference(self) -> Self:
+        return self
+
+    def allowsNamespace(self, namespaceURI: str | None) -> bool:
+        try:
+            if self._isAny:
+                return True
+            if not namespaceURI:
+                return "##local" in self._namespaces
+            if namespaceURI in self._namespaces:
+                return True
+            if namespaceURI == self.modelDocument.targetNamespace:
+                if "##targetNamespace" in self._namespaces:
+                    return True
+            else: # not equal namespaces
+                if "##other" in self._namespaces:
+                    return True
+            return False
+        except AttributeError:
+            self._namespaces = self.get("namespace", '').split()
+            self._isAny = (not self._namespaces) or "##any" in self._namespaces
+            return self.allowsNamespace(namespaceURI)
+
+
+class ModelAnyAttribute(AllowsNamespaceMixin, ModelObject):
     """
     .. class:: ModelAnyAttribute(modelDocument)
 
@@ -1666,9 +1729,6 @@ class ModelAnyAttribute(ModelObject):
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
-    _isAny: bool
-    _namespaces: Iterable[str]
-
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelAnyAttribute, self).init(modelDocument)
 
@@ -1691,23 +1751,6 @@ class ModelAnyAttribute(ModelObject):
             self._namespaces = self.get("namespace", '').split()
             self._isAny = (not self._namespaces) or "##any" in self._namespaces
             return self.allowsNamespace(namespaceURI)
-
-class ModelAny(ModelAnyAttribute, ModelParticle):
-    """
-    .. class:: ModelAny(modelDocument)
-
-    Particle Model any term
-
-    :param modelDocument: owner document
-    :type modelDocument: ModelDocument
-    """
-
-    def init(self, modelDocument: ModelDocument) -> None:
-        super(ModelAny, self).init(modelDocument)
-        self.addToParticles()
-
-    def dereference(self) -> Self:
-        return self
 
 
 class ModelEnumeration(ModelNamableTerm):

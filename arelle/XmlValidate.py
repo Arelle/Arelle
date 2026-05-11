@@ -3,10 +3,9 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
-import sys
 from dataclasses import dataclass
-import logging, os
-from collections.abc import Callable, Set
+import logging
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, cast
 from lxml import etree
 from regex import Match, Pattern, compile as re_compile
@@ -22,7 +21,7 @@ from arelle.PythonUtil import strTruncate
 if TYPE_CHECKING:
     from arelle.Cntlr import Cntlr
     from arelle.ModelXbrl import ModelXbrl
-    from arelle.ModelDtsObject import ModelAny, ModelConcept
+    from arelle.ModelDtsObject import ModelAny
     from arelle.ModelDocument import ModelDocument
     from arelle.ModelInstanceObject import ModelFact
     from arelle.typing import TypeGetText

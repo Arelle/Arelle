@@ -345,8 +345,8 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                 if linkEltName in ("definitionLink", ) and esefDisclosureSystemYear == 2023 and val.authParam["validate1_9_1"] in ("true", "True", 1):
                     for locElt in linkElt.iterchildren("{http://www.xbrl.org/2003/linkbase}loc"):
                         refObject = locElt.dereference()
-                        assert refObject.qname is not None, "refObject.qname is None"
                         if (isinstance(refObject, ModelConcept)
+                                and refObject.qname is not None
                                 and refObject.qname.namespaceURI in ifrsNses
                                 and refObject.qname.localName == "DisclosureOfNotesAndOtherExplanatoryInformationExplanatory"):
                             val.modelXbrl.warning(
