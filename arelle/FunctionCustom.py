@@ -136,9 +136,9 @@ def my_fn_PDxEV(
                 if ev.context is not None:
                     evDim = ev.context.dimValue(dimQname)
                     if pdDim is not None and isinstance(pdDim, ModelDimensionValue):
-                        dimEqual = pdDim.isEqualTo(evDim, equalMode=XbrlUtil.S_EQUAL2)
+                        dimEqual = pdDim.isEqualTo(evDim, equalMode=XbrlUtil.S_EQUAL2)  # type: ignore[no-untyped-call]
                     elif evDim is not None and isinstance(evDim, ModelDimensionValue):
-                        dimEqual = evDim.isEqualTo(pdDim, equalMode=XbrlUtil.S_EQUAL2)
+                        dimEqual = evDim.isEqualTo(pdDim, equalMode=XbrlUtil.S_EQUAL2)  # type: ignore[no-untyped-call]
                     else:
                         dimEqual = (pdDim == evDim)
                     if dimEqual:

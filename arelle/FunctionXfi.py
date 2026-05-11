@@ -1466,9 +1466,9 @@ def fact_dimension_s_equal2(xc: XPathContext.XPathContext, p: OperationDef, args
             dimValue1 = context1.dimValue(qn)  # type: ignore[no-untyped-call]
             dimValue2 = context2.dimValue(qn)  # type: ignore[no-untyped-call]
             if dimValue1 is not None and isinstance(dimValue1, ModelDimensionValue):
-                return dimValue1.isEqualTo(dimValue2, equalMode=XbrlUtil.S_EQUAL2)  # type: ignore[no-any-return]
+                return dimValue1.isEqualTo(dimValue2, equalMode=XbrlUtil.S_EQUAL2)  # type: ignore[no-any-return, no-untyped-call]
             elif dimValue2 is not None and isinstance(dimValue2, ModelDimensionValue):
-                return dimValue2.isEqualTo(dimValue1, equalMode=XbrlUtil.S_EQUAL2)  # type: ignore[no-any-return]
+                return dimValue2.isEqualTo(dimValue1, equalMode=XbrlUtil.S_EQUAL2)  # type: ignore[no-any-return, no-untyped-call]
             return dimValue1 == dimValue2
         raise XPathContext.FunctionArgType(2, "xbrl:item")
     raise XPathContext.FunctionArgType(1, "xbrl:item")
