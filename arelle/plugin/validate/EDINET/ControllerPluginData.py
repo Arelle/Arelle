@@ -45,7 +45,7 @@ class ControllerPluginData(PluginData):
     _uploadContents: UploadContents | None
     _usedFilepaths: set[Path]
 
-    def __init__(self, name: str, disclosureSystemName: str | None):
+    def __init__(self, name: str, disclosureSystemName: str):
         super().__init__(name)
         self.namespaces = NamespaceConfig(disclosureSystemName)
         # Contents sourced from Section 4-1 of https://disclosure2dl.edinet-fsa.go.jp/guide/static/disclosure/download/ESE140104.pdf
@@ -315,7 +315,10 @@ class ControllerPluginData(PluginData):
     def get(cntlr: Cntlr, name: str) -> ControllerPluginData:
         controllerPluginData = cntlr.getPluginData(name)
         if controllerPluginData is None:
-            controllerPluginData = ControllerPluginData(name, cntlr.modelManager.disclosureSystem.name)
+            disclosureSystemName = cntlr.modelManager.disclosureSystem.name
+            assert disclosureSystemName is not None, \
+                f"Disclosure system is required: {disclosureSystemName}"
+            controllerPluginData = ControllerPluginData(name, disclosureSystemName)
             cntlr.setPluginData(controllerPluginData)
         assert isinstance(controllerPluginData, ControllerPluginData), "Expected ControllerPluginData instance."
         return controllerPluginData

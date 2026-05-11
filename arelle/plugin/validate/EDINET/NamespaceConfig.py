@@ -8,9 +8,8 @@ from .DisclosureSystems import DISCLOSURE_SYSTEM_RELEASE_DATES
 
 
 class NamespaceConfig:
-    def __init__(self, disclosureSystemName: str | None) -> None:
-        assert (disclosureSystemName is not None and
-                disclosureSystemName in DISCLOSURE_SYSTEM_RELEASE_DATES), \
+    def __init__(self, disclosureSystemName: str) -> None:
+        assert disclosureSystemName in DISCLOSURE_SYSTEM_RELEASE_DATES, \
             f"Invalid EDINET disclosure system: {disclosureSystemName}"
         release_date = DISCLOSURE_SYSTEM_RELEASE_DATES[disclosureSystemName]
         self.jpcrpEsr = f"http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp-esr/{release_date}/jpcrp-esr_cor"

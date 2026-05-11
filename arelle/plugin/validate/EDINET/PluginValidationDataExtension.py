@@ -107,7 +107,10 @@ class PluginValidationDataExtension(PluginData):
     def __init__(self, name: str, validateXbrl: ValidateXbrl):
         super().__init__(name)
 
-        self.namespaces = NamespaceConfig(validateXbrl.disclosureSystem.name)
+        disclosureSystemName = validateXbrl.disclosureSystem.name
+        assert disclosureSystemName is not None, \
+            f"Disclosure system is required: {disclosureSystemName}"
+        self.namespaces = NamespaceConfig(disclosureSystemName)
 
         # QNames
         self.accountingStandardsDeiQn = qname(self.namespaces.jpdei, 'AccountingStandardsDEI')
