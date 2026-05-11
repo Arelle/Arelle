@@ -2,12 +2,12 @@
 See COPYRIGHT.md for copyright information.
 """
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union
 
 from arelle.ModelValue import QName, AnyURI
 from arelle.PythonUtil import OrderedSet
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlModuleType, QNameKeyType
+from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue
 from .ModelValueMore import SQName
 from .XbrlObject import XbrlReferencableModelObject, XbrlTaxonomyTagObject
 
@@ -18,6 +18,7 @@ class XbrlReference(XbrlTaxonomyTagObject):
     module: XbrlModuleType
     name: QNameKeyType # (required if no extendTargetame) The name is a QName that uniquely identifies the reference object.
     extendTargetName: Optional[QName] # (required if no name) Names the reference object that the defined relatedNames property should be appended to. The relatedNames property in the reference with this property are appended to the end of the relatedName property defined in the target reference object. This property cannot be used in conjunction with the name property.
+    isExtensible: Union[bool, DefaultTrue] # (optional) If set to false, the reference is non-extensible and no importing taxonomy may augment it using extendTargetName. If set to true or omitted, the reference may be extended. The default value is true.
     relatedNames: OrderedSet[QName] # (optional) Defines a set of ordered QNames that the reference is associated with.
     referenceType: QName # (required) A QName representing the reference type of the reference. This can be a taxonomy defined reference or a standard XBRL reference included in the specification.
     language: Optional[str] # (optional) Defines the language of the reference using a valid BCP 47 [BCP47] language code.

@@ -5,7 +5,7 @@
         "namespaces": {
             "xbrl": "https://xbrl.org/2025",
             "xbrla": "http://xbrl.org/accounting",
-            "xbrli":"https://xbrl.org/2025/instance",
+            "xbrlr":"https://xbrl.org/2025/report",
             "xs": "http://www.w3.org/2001/XMLSchema",
             "utr": "https://xbrl.org/2025/utr"
             },
@@ -40,7 +40,7 @@
             },
             {
                 "name": "xbrla:timeSeriesType",
-                "dataType": "xbrli:timeSeriesDataType",
+                "dataType": "xbrlr:timeSeriesDataType",
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:domainClassObject"
@@ -48,7 +48,7 @@
             },
             {
                 "name": "xbrla:intervalConvention",
-                "dataType": "xbrli:intervalConventionType",
+                "dataType": "xbrlr:intervalConventionType",
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:domainClassObject"
@@ -64,7 +64,7 @@
             },
             {
                 "name": "xbrla:excludedIntervals",
-                "dataType": "xbrli:excludedIntervalsSet",
+                "dataType": "xbrlr:excludedIntervalsSet",
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:domainClassObject"
@@ -87,7 +87,7 @@
                 "targetObjects" : ["xbrl:conceptObject"],
                 "constraints": [
                           {
-                              "constraint": "relationship.source.xbrli:dataType == relationship.target.xbrli:dataType AND relationship.source.property.xbrla:balance == relationship.target.property.xbrla:balance AND relationship.source.xbrli:periodType == instant AND relationship.target.xbrli:periodType == duration"
+                              "constraint": "relationship.source.xbrlr:dataType == relationship.target.xbrlr:dataType AND relationship.source.property.xbrla:balance == relationship.target.property.xbrla:balance AND relationship.source.xbrlr:periodType == instant AND relationship.target.xbrlr:periodType == duration"
                           }         
                         ]
             },
@@ -99,7 +99,7 @@
                 "targetObjects" : ["xbrl:conceptObject"],
                  "constraints": [
                           {
-                              "constraint": "relationship.source.xbrli:dataType == relationship.target.xbrli:dataType AND relationship.source.property.xbrla:balance != relationship.target.property.xbrla:balance AND relationship.source.xbrli:periodType == instant AND relationship.target.xbrli:periodType == duration"
+                              "constraint": "relationship.source.xbrlr:dataType == relationship.target.xbrlr:dataType AND relationship.source.property.xbrla:balance != relationship.target.property.xbrla:balance AND relationship.source.xbrlr:periodType == instant AND relationship.target.xbrlr:periodType == duration"
                           }         
                         ]
             },

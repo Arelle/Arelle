@@ -4,7 +4,7 @@
         "documentType": "https://xbrl.org/2026/model",
         "namespaces": {
             "xbrl": "https://xbrl.org/2025",
-            "xbrli":"https://xbrl.org/2025/instance",
+            "xbrlr":"https://xbrl.org/2025/report",
             "xs": "http://www.w3.org/2001/XMLSchema",
             "iso4217": "http://www.xbrl.org/2003/iso4217",
             "utr": "https://xbrl.org/2025/utr"
@@ -17,767 +17,767 @@
         "version": "2025",
         "units": [
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:AED"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:AFN"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:ALL"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:AMD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:ANG"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:AOA"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:ARS"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:AUD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:AWG"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:AZN"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:BAM"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:BBD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:BDT"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:BGN"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:BHD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:BIF"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:BMD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:BND"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:BOB"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:BOV"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:BRL"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:BSD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:BTN"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:BWP"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:BYN"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:BYR"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:BZD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:CAD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:CDF"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:CHE"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:CHF"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:CHW"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:CLF"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:CLP"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:CNY"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:COP"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:COU"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:CRC"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:CUC"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:CUP"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:CVE"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:CZK"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:DJF"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:DKK"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:DOP"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:DZD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:EEK"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:EGP"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:ERN"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:ETB"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:EUR"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:FJD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:FKP"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:GBP"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:GEL"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:GHS"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:GIP"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:GMD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:GNF"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:GTQ"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:GYD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:HKD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:HNL"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:HRK"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:HTG"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:HUF"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:IDR"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:ILS"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:INR"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:IQD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:IRR"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:ISK"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:JMD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:JOD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:JPY"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:KES"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:KGS"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:KHR"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:KMF"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:KPW"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:KRW"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:KWD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:KYD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:KZT"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:LAK"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:LBP"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:LKR"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:LRD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:LSL"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:LTL"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:LVL"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:LYD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:MAD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:MDL"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:MGA"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:MKD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:MMK"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:MNT"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:MOP"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:MRO"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:MRU"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:MUR"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:MVR"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:MWK"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:MXN"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:MXV"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:MYR"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:MZN"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:NAD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:NGN"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:NIO"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:NOK"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:NPR"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:NZD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:OMR"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:PAB"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:PEN"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:PGK"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:PHP"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:PKR"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:PLN"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:PYG"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:QAR"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:RON"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:RSD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:RUB"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:RWF"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:SAR"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:SBD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:SCR"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:SDG"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:SEK"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:SGD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:SHP"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:SLL"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:SLE"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:SOS"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:SRD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:SSP"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:STD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:STN"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:SVC"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:SYP"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:SZL"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:THB"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:TJS"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:TMT"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:TND"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:TOP"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:TRY"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:TTD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:TWD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:TZS"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:UAH"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:UGX"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:USD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:USN"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:USS"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:UYI"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:UYU"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:UYW"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:UZS"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:VEB"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:VEF"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:VES"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:VED"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:VND"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:VUV"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:WST"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:XAF"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:XAG"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:XAU"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:XBA"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:XBB"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:XBC"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:XBD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:XCD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:XDR"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:XFU"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:XOF"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:XPD"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:XPF"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:XPT"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:XSU"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:XUA"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:YER"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:ZAR"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:ZMK"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:ZMW"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:ZWG"
             },
             {
-                "dataType": "xbrli:monetary",
+                "dataType": "xbrlr:monetary",
                 "name": "iso4217:ZWL"
             }
         ],

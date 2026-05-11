@@ -46,6 +46,16 @@ class XbrlNamespacePrefix(XbrlReferencableModelObject):
     namespace: AnyURI # (required) The namespace URI for which preferred prefixes are being declared.
     preferredPrefixes: OrderedSet[str] # (required) An ordered set of preferred prefix strings for the namespace. Each value MUST be a valid xs:NCName. The first item is the most preferred prefix. Values MUST be unique within the set.
 
+class XbrlImpliedObject(XbrlReferencableModelObject):
+    """ Implied Object
+        Reference: oim-taxonomy#impliedobject-object
+    """
+    module: XbrlModuleType
+    name: QNameKeyType # (required) The name of the implied object definition. This is a QName that identifies the implied object namespace. The local name of the QName is not used for resolution; only the namespace URI is relevant.
+    namespace: AnyURI # (required) This is the namespace URI that defines the implied object namespace. Any QName with this namespace is considered to resolve to an implied object of the type defined by this implied object definition.
+    domainClass: QName # (required) The domain class that the implied object belongs to. This is a QName that identifies the domain class within the XBRL model.
+    localNameConstraint: Optional[QName] # (optional) A QName that represents contraints on the local-name such as the Luhn mod-97-10 algorithm for the LEI, defined as a data type object.
+
 class XbrlModule(XbrlModelObject):
     """ XBRL Module Object
         Reference: oim-taxonomy#taxonomy-object
@@ -93,6 +103,7 @@ class XbrlModule(XbrlModelObject):
     importedTaxonomies: OrderedSet[XbrlImportTaxonomy] # ordered set of importTaxonomy objects that can comprise QName of the taxonomy to be imported, an object type or a taxonomy object referenced by its QName.
     finalTaxonomy: Optional[XbrlFinalTaxonomy] # (optional) A final taxonomy object that indicates those components of the taxonomy that are final and cannot be amended or added by an importing taxonomy.
     namespacePrefixes: OrderedSet[XbrlNamespacePrefix] # (optional) ordered set of namespace prefix objects that define preferred prefixes for namespaces used within the taxonomy.
+    impliedObjects: OrderedSet[XbrlImpliedObject] # (optional) A set of implied Objects that defines objects that are implied by the model but not explicitly defined.
     JSONTemplateMaps: OrderedSet[XbrlJSONTemplateMap]
     XMLTemplateMaps: OrderedSet[XbrlXMLTemplateMap]
     properties: OrderedSet[XbrlProperty] # ordered set of property objects used to specify additional properties associated with the taxonomy. Only immutable properties as defined in the propertyType object can be added to a taxonom
@@ -142,6 +153,7 @@ nonReferencableObjectTypes = {
         qname("{https://xbrl.org/2025}xbrl:factValueSourceObject"): XbrlFactValueSource,
         qname("{https://xbrl.org/2025}xbrl:factValueAnchorObject"): XbrlFactValueAnchor,
         qname("{https://xbrl.org/2025}xbrl:groupContentObject"): XbrlGroupContent,
+        qname("{https://xbrl.org/2025}xbrl:impliedObject"): XbrlImpliedObject,
         qname("{https://xbrl.org/2025}xbrl:periodConstraintObject"): XbrlPeriodConstraint,
         qname("{https://xbrl.org/2025}xbrl:dateResolutionObject"): XbrlDateResolution,
         qname("{https://xbrl.org/2025}xbrl:relationshipObject"): XbrlRelationship,

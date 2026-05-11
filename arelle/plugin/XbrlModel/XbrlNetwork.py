@@ -2,13 +2,13 @@
 See COPYRIGHT.md for copyright information.
 """
 
-from typing import TYPE_CHECKING, Optional, Any
+from typing import TYPE_CHECKING, Optional, Union
 from collections import defaultdict
 
 from arelle.ModelValue import QName, AnyURI
 from arelle.PythonUtil import OrderedSet
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlModuleType, QNameKeyType
+from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
 
 class XbrlRelationship(XbrlModelObject):
@@ -85,6 +85,7 @@ class XbrlNetwork(XbrlReferencableModelObject, XbrlRelationshipSet):
     roots: OrderedSet[QName] # (optional) A list of the root objects of the network object. This allows a single object to be associated with a network without the need for a relationship. The order of roots in the list indicates the order in which the roots should appear. If no root is specified for a list of relationships the roots property is inferred from the relationships defined.
     relationships: OrderedSet[XbrlRelationship] # (optional) A set of the relationship objects comprising the network.
     extendTargetName: Optional[QName] # (required if no name) Names the network object that the defined network relationships should be appended to. The items in the network with this property are appended to the end of the relationships or roots defined in the target network object. This property cannot be used in conjunction with the relationshipTypeName and name property.
+    isExtensible: Union[bool, DefaultTrue] # (optional) If set to false, the network is non-extensible and no importing taxonomy may augment it using extendTargetName. If set to true or omitted, the network may be extended. The default value is true.
     properties: OrderedSet[XbrlProperty] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.
 
 class XbrlRelationshipConstraint(XbrlModelObject):

@@ -7,7 +7,7 @@ from collections import defaultdict, OrderedDict
 from decimal import Decimal
 from arelle.ModelValue import QName, AnyURI
 from arelle.PythonUtil import OrderedSet
-from .XbrlTypes import XbrlTaxonomyModelType,XbrlModuleType, XbrlReportType, QNameKeyType, DefaultFalse, OptionalList
+from .XbrlTypes import XbrlTaxonomyModelType,XbrlModuleType, XbrlReportType, QNameKeyType, DefaultFalse, DefaultTrue, OptionalList
 from .XbrlObject import XbrlObject, XbrlReportObject
 from .XbrlProperty import XbrlProperty
 from .XbrlUnit import  parseUnitString
@@ -62,6 +62,7 @@ class XbrlFact(XbrlReportObject):
     factDimensions: Dict[QName, Any] # (required) A dimensions object with properties corresponding to the members of the {dimensions} property.
     properties: OrderedSet[XbrlProperty] # (optional) an ordered set of property objects used to specify additional properties associated with the fact using the property object.
     extendTargetName: Optional[QName] # (required if no name property) Names the fact object that is appended to. The fact values and dimensions of the fact with this property are appended to the end of the fact object with the name property. This property cannot be used in conjunction with the name property.
+    isExtensible: Union[bool, DefaultTrue] # (optional) If set to false, the fact is non-extensible and no importing taxonomy may augment it using extendTargetName. If set to true or omitted, the fact may be extended. The default value is true.
     _propertyMap: ClassVar[dict[type,dict[str, str]]] = {}
 
 class XbrlFootnote(XbrlReportObject):
@@ -134,6 +135,7 @@ class XbrlTableTemplate(XbrlReportObject):
     factDimensions: dict[QName, Any] # (required) A dimensions object that defines table dimensions. (See xbrl-csv specification)
     decimals: Optional[Decimal] # (optional) A decimals val
     extendTargetName: Optional[QName] # (required if no name property) Names the tableTemplate object that is appended to. The items in the table template with this property are appended to the end of the columns target table template object. This property cannot be used in conjunction with the name and rowIdColumn property.
+    isExtensible: Union[bool, DefaultTrue] # (optional) If set to false, the table template is non-extensible and no importing taxonomy may augment it using extendTargetName. If set to true or omitted, the table template may be extended. The default value is true.
 
 class XbrlJSONTemplateMap(XbrlReportObject):
     """ JSON Template Map Object

@@ -4,7 +4,7 @@
       "documentType": "https://xbrl.org/2026/model",
         "namespaces": {
             "xbrl": "https://xbrl.org/2025",
-            "xbrli":"https://xbrl.org/2025/instance",
+            "xbrlr":"https://xbrl.org/2025/report",
             "xs": "http://www.w3.org/2001/XMLSchema",
             "xbrltt":"https://xbrl.org/2025/transform-types"  
             },
@@ -742,6 +742,12 @@
                 "name": "xbrltt:nonNegativeDecimalType",
                 "baseType": "xs:decimal",
                 "minInclusive": 0
+              },
+              {
+                "name": "xbrltt:nonNegativeAposType",
+                "baseType": "xs:string",
+                "whiteSpace": "collapse",
+                "patterns": ["[\\.'`´’′  0-9]*(,[  0-9]+)?"]
               },
               {
                 "name": "xbrltt:numCommaDecimalType",

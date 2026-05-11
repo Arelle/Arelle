@@ -4,7 +4,7 @@
         "documentNamespace": "https://xbrl.org/2026/model/meta",
         "namespaces": {
             "xbrl": "https://xbrl.org/2025",
-            "xbrli": "https://xbrl.org/2025/instance",
+            "xbrlr": "https://xbrl.org/2025/report",
             "xs": "https://www.w3.org/2001/XMLSchema"
         }
     },
@@ -27,7 +27,7 @@
                     },
                     {
                         "name": "xbrl:conceptObjectPeriodType",
-                        "dataType": "xbrli:periodType",
+                        "dataType": "xbrlr:periodType",
                         "required": true
                     },
                     {

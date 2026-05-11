@@ -9,7 +9,7 @@ from arelle.PythonUtil import OrderedSet
 from .XbrlConst import xbrl
 from .XbrlNetwork import XbrlRelationship, XbrlRelationshipSet
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultFalse
+from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue
 from .XbrlObject import XbrlReferencableModelObject
 
 class XbrlDimension(XbrlReferencableModelObject):
@@ -31,7 +31,7 @@ class XbrlDomain(XbrlReferencableModelObject, XbrlRelationshipSet):
     root: Optional[QName] # (required if no extendedTargetName) The QName that uniquely identifies the root of the domain object. This must be a domain root object.
     relationships: OrderedSet[XbrlRelationship] # (optional) This is an ordered set of relationship objects that associate taxonomy objects with the domain. A list of relationships can be organised into a domain hierarchy. For typed domains (where domainDataType is present), relationships are optional as values are constrained by the data type rather than member hierarchies.
     extendTargetName: Optional[QName] # (required Optional[if]no name) Optional[Names]the Optional[domain]object Optional[that]the Optional[defined]domain Optional[relationships]should Optional[be]appended to. Optional[The]items Optional[in]the Optional[domain]with Optional[this]property Optional[are]appended Optional[to]the Optional[end]of Optional[the]relationships Optional[defined]in Optional[the]target Optional[domain]object. Optional[This]property Optional[cannot]be Optional[used]in Optional[conjunction]with Optional[the]name property.
-    completeDomain: Union[bool, DefaultFalse] # (optional) If set to true, the domain is considered complete, meaning that it includes all relationships and members necessary for the domain. If set to false, the domain may be incomplete, and additional relationships or members may be added by an extension taxonomy. The default value is false.
+    isExtensible: Union[bool, DefaultTrue] # (optional) If set to false, the domain is considered complete and non-extensible, meaning that no importing taxonomy may add further relationships or members. If set to true or omitted, the domain may be extended by an importing taxonomy. The default value is true.
     properties: OrderedSet[XbrlProperty] # (optional) Optional[an]ordered Optional[set]of Optional[property]objects Optional[used]to Optional[specify]additional Optional[properties]associated Optional[with]the Optional[domain]using Optional[the]property object. Optional[Only]immutable Optional[properties]as Optional[defined]in Optional[the]propertyType Optional[object]can Optional[be]added Optional[to]a domain.
 
 class XbrlDomainClass(XbrlReferencableModelObject):
