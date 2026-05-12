@@ -21,7 +21,7 @@ from arelle.PythonUtil import strTruncate
 if TYPE_CHECKING:
     from arelle.Cntlr import Cntlr
     from arelle.ModelXbrl import ModelXbrl
-    from arelle.ModelDtsObject import ModelAny
+    from arelle.ModelDtsObject import ModelAnyAttribute
     from arelle.ModelDocument import ModelDocument
     from arelle.ModelInstanceObject import ModelFact
     from arelle.typing import TypeGetText
@@ -716,7 +716,7 @@ def validateFacetValueString(facetName: str, facetValue: str, baseXsdType: str) 
     return validateValueString(facetType, facetValue, facets=facets)
 
 
-def validateAnyWildcard(qnElt: QName, qnAttr: QName, attributeWildcards: list[ModelAny]) -> bool:
+def validateAnyWildcard(qnElt: QName, qnAttr: QName, attributeWildcards: list[ModelAnyAttribute]) -> bool:
     # note wildcard is a set of possibly multiple values from inherited attribute groups
     for attributeWildcard in attributeWildcards:
         if attributeWildcard.allowsNamespace(qnAttr.namespaceURI):

@@ -1699,26 +1699,6 @@ class ModelAny(AllowsNamespaceMixin, ModelObject, ModelParticle):
     def dereference(self) -> Self:
         return self
 
-    def allowsNamespace(self, namespaceURI: str | None) -> bool:
-        try:
-            if self._isAny:
-                return True
-            if not namespaceURI:
-                return "##local" in self._namespaces
-            if namespaceURI in self._namespaces:
-                return True
-            if namespaceURI == self.modelDocument.targetNamespace:
-                if "##targetNamespace" in self._namespaces:
-                    return True
-            else: # not equal namespaces
-                if "##other" in self._namespaces:
-                    return True
-            return False
-        except AttributeError:
-            self._namespaces = self.get("namespace", '').split()
-            self._isAny = (not self._namespaces) or "##any" in self._namespaces
-            return self.allowsNamespace(namespaceURI)
-
 
 class ModelAnyAttribute(AllowsNamespaceMixin, ModelObject):
     """
@@ -1731,26 +1711,6 @@ class ModelAnyAttribute(AllowsNamespaceMixin, ModelObject):
     """
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelAnyAttribute, self).init(modelDocument)
-
-    def allowsNamespace(self, namespaceURI: str | None) -> bool:
-        try:
-            if self._isAny:
-                return True
-            if not namespaceURI:
-                return "##local" in self._namespaces
-            if namespaceURI in self._namespaces:
-                return True
-            if namespaceURI == self.modelDocument.targetNamespace:
-                if "##targetNamespace" in self._namespaces:
-                    return True
-            else: # not equal namespaces
-                if "##other" in self._namespaces:
-                    return True
-            return False
-        except AttributeError:
-            self._namespaces = self.get("namespace", '').split()
-            self._isAny = (not self._namespaces) or "##any" in self._namespaces
-            return self.allowsNamespace(namespaceURI)
 
 
 class ModelEnumeration(ModelNamableTerm):
