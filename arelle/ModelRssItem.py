@@ -70,8 +70,7 @@ class ModelRssItem(ModelObject):
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelRssItem, self).init(modelDocument)
         try:
-            assert self.modelXbrl is not None
-            rssWatchOptions: Any = self.modelXbrl.modelManager.rssWatchOptions  # type: ignore[attr-defined]
+            rssWatchOptions: Any = self.modelXbrl.modelManager.rssWatchOptions  # type: ignore[union-attr]
             if (rssWatchOptions.latestPubDate and
                 self.pubDate is not None and
                 self.pubDate <= rssWatchOptions.latestPubDate):
