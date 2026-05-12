@@ -257,7 +257,7 @@ class ModelNamableTerm(ModelObject):
         self,
         prefixedName: str | None,
         isQualifiedForm: bool = True,
-        prefixException: Exception | None = None,
+        prefixException: Exception | type[Exception] | None = None,
     ) -> QName | None:
         """Returns ModelValue.QName of prefixedName using this element and its ancestors' xmlns.
 
