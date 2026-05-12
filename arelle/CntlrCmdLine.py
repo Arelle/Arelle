@@ -1389,7 +1389,7 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict[str, Any]]:
         parser.exit()
     elif options.disclosureSystemName in ("help", "help-verbose"):
         text = _("Disclosure system choices: \n{0}").format(
-            " \n".join(cntlr.modelManager.disclosureSystem.dirlist(options.disclosureSystemName))  # type: ignore[no-untyped-call]
+            " \n".join(cntlr.modelManager.disclosureSystem.dirlist(options.disclosureSystemName))  # type: ignore[arg-type]
             )
         try:
             print(text)
@@ -1792,18 +1792,18 @@ class CntlrCmdLine(Cntlr.Cntlr):
         self.password = options.password
         if options.disclosureSystemName:
             self.modelManager.validateDisclosureSystem = True
-            self.modelManager.disclosureSystem.select(options.disclosureSystemName)  # type: ignore[no-untyped-call]
+            self.modelManager.disclosureSystem.select(options.disclosureSystemName)
             if options.validateEFM:
                 self.addToLog(_("both --efm and --disclosureSystem validation are requested, ignoring --efm only"),
                               messageCode="info", file=options.entrypointFile)  # type: ignore[arg-type]
         elif options.validateEFM:
             self.modelManager.validateDisclosureSystem = True
-            self.modelManager.disclosureSystem.select("efm")  # type: ignore[no-untyped-call]
+            self.modelManager.disclosureSystem.select("efm")
         elif options.validateHMRC:
             self.modelManager.validateDisclosureSystem = True
-            self.modelManager.disclosureSystem.select("hmrc")  # type: ignore[no-untyped-call]
+            self.modelManager.disclosureSystem.select("hmrc")
         else:
-            self.modelManager.disclosureSystem.select(None)  # type: ignore[no-untyped-call] # just load ordinary mappings
+            self.modelManager.disclosureSystem.select(None)  # just load ordinary mappings
             self.modelManager.validateDisclosureSystem = False
         if self.modelManager.disclosureSystem.keepOpen:
             # Force keepOpen if specified by disclosure system.

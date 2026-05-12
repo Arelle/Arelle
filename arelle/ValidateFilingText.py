@@ -665,7 +665,7 @@ def validateTextBlockFacts(modelXbrl: ModelXbrl) -> None:
                                             attribute=attrValue, element=eltTag)
                                     else:   # test file contents
                                         try:
-                                            graphicFileFormat = validateGraphicFile(f1, attrValue, checkIfAnimated=allowedImageTypes.get("disallow-animated"))
+                                            graphicFileFormat = validateGraphicFile(f1, attrValue, checkIfAnimated=bool(allowedImageTypes.get("disallow-animated")))
                                             if graphicFileFormat != attrValue.lower()[-3:]:
                                                 modelXbrl.error(("EFM.6.05.16.graphicFileContent", "FERC.6.05.16.graphicFileContent"),
                                                     _("Fact %(fact)s of context %(contextID)s references a graphics file which has invalid format %(format)s in '%(attribute)s' for <%(element)s>"),
@@ -808,7 +808,7 @@ def validateHtmlContent(modelXbrl: ModelXbrl, referenceElt: ModelObject, htmlElt
                             messageCodes=("EFM.6.05.34.graphicFileType", "EFM.5.02.05.graphicFileType", "FERC.6.05.34.graphicFileType", "FERC.5.02.05.graphicFileType"))
                     else:   # test file contents
                         try:
-                            graphicFileFormat = validateGraphicFile(referenceElt, attrValue, checkIfAnimated=allowedImageTypes.get("disallow-animated"))
+                            graphicFileFormat = validateGraphicFile(referenceElt, attrValue, checkIfAnimated=bool(allowedImageTypes.get("disallow-animated")))
                             if graphicFileFormat != attrValue.lower()[-3:]:
                                 modelXbrl.error(messageCodePrefix +"graphicFileContent",
                                     _("%(validatedObjectLabel)s references a graphics file which has invalid format %(format)s in '%(attribute)s' for <%(element)s>"),

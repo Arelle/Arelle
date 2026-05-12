@@ -60,7 +60,7 @@ class ModelManager:
     def __init__(self, cntlr: Cntlr):
         self.cntlr = cntlr
         self.validateDisclosureSystem = False
-        self.disclosureSystem = DisclosureSystem.DisclosureSystem(self)  # type: ignore[no-untyped-call]
+        self.disclosureSystem = DisclosureSystem.DisclosureSystem(self)
         self.validateCalcs = 0 # ValidateXbrlCalcs.ValidateCalcsMode
         self.validateInfoset = False
         self.validateUtr = False
