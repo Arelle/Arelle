@@ -147,6 +147,7 @@ class ValidateXbrl:
         # check base set cycles, dimensions
         modelXbrl.modelManager.showStatus(_("validating relationship sets"))
         for baseSetKey in modelXbrl.baseSets.keys():
+            cyclesAllowed: str | None
             arcrole, ELR, linkqname, arcqname = baseSetKey
             if arcrole.startswith("XBRL-") or ELR is None or \
                 linkqname is None or arcqname is None:
