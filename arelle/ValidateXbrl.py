@@ -113,7 +113,8 @@ class ValidateXbrl:
                 self.validateEFM
                 and any(
                     (
-                        concept.qname.namespaceURI in self.disclosureSystem.standardTaxonomiesDict  # type: ignore[union-attr]
+                        concept.qname is not None
+                        and concept.qname.namespaceURI in self.disclosureSystem.standardTaxonomiesDict
                         and concept.modelDocument.inDTS
                     )
                     for concept in self.modelXbrl.nameConcepts.get("UTR", ())
