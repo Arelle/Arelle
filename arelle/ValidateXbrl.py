@@ -158,7 +158,7 @@ class ValidateXbrl:
                 # TODO: table should be in this module, where it is used
                 cyclesAllowed, specSect = XbrlConst.standardArcroleCyclesAllowed[arcrole]
             elif arcrole in self.modelXbrl.arcroleTypes and len(self.modelXbrl.arcroleTypes[arcrole]) > 0:
-                cyclesAllowed = self.modelXbrl.arcroleTypes[arcrole][0].cyclesAllowed
+                cyclesAllowed = self.modelXbrl.arcroleTypes[arcrole][0].cyclesAllowed  # type: ignore[assignment]
                 if arcrole in self.genericArcArcroles:
                     specSect = "xbrlgene:violatedCyclesConstraint"
                 else:

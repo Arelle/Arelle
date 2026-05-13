@@ -159,7 +159,6 @@ module = [
     'arelle.DialogOpenArchive',
     'arelle.DialogPackageManager',
     'arelle.DialogPluginManager',
-    'arelle.DialogRssWatch',
     'arelle.DialogURL',
     'arelle.DialogUserPassword',
     'arelle.HashUtil',
