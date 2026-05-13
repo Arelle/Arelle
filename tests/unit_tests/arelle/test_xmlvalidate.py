@@ -420,6 +420,9 @@ BASE_XSD_TYPES = {
         {"value": r"[\i-[:]][\c-[:]]*", "expected": ("=", XsdPattern(xsdPattern=r"[\i-[:]][\c-[:]]*", pyPattern=NCNamePattern), VALID)},
         {"value": "test", "expected": ("=", XsdPattern.compile("test"), VALID)},
         {"value": r"invalid(", "expected": ("=", None, INVALID)},
+        {"value": r"\(?", "expected": ("=", XsdPattern.compile(r"\(?"), VALID)},
+        {"value": "foo(?=bar)", "expected": ("=", None, INVALID)},
+        {"value": "(?:foo)", "expected": ("=", None, INVALID)},
     ],
 }
 

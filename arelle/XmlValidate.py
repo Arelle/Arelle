@@ -36,6 +36,21 @@ iNameChar = "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F
 cNameChar = r"[_\-\.:"   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]"
 cMinusCNameChar = r"[_\-\."   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]"
 
+def _raiseOnNonXsdRegexSyntax(p: str) -> None:
+    """
+    Python regex supports extension groups (?:...) syntax (lookahead, non-capturing groups) that XSD patterns do not.
+    Raise a ValueError if the pattern contains any such syntax.
+    """
+    i = 0
+    while i < len(p) - 1:
+        if p[i] == "\\":
+            i += 2
+        elif p[i] == "(" and p[i + 1] == "?":
+            raise ValueError("XSD regular expressions do not support '(?' syntax")
+        else:
+            i += 1
+
+
 @dataclass(frozen=True)
 class XsdPattern:
     xsdPattern: str
@@ -44,6 +59,7 @@ class XsdPattern:
     # shim class for python wrapper of xsd pattern
     @classmethod
     def compile(cls, p: str) -> XsdPattern:
+        _raiseOnNonXsdRegexSyntax(p)
         if r"\i" in p or r"\c" in p:
             p = p.replace(r"[\i-[:]]", iNameChar).replace(r"\i", iNameChar) \
                  .replace(r"[\c-[:]]", cMinusCNameChar).replace(r"\c", cNameChar)

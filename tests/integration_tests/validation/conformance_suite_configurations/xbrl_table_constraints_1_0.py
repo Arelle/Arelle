@@ -43,8 +43,6 @@ config = ConformanceSuiteConfig(
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-577-enumerationValues-vs-maxLength-invalid',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-577-enumerationValues-vs-minInclusive-invalid',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-577-enumerationValues-vs-pattern-invalid',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-577-patterns-syntax-lookahead',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-577-patterns-syntax-non-capturing',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-577-referenceKeyDuplicates',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-577-uniqueKeyDuplicates',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-753a',

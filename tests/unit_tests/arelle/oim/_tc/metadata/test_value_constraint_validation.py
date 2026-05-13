@@ -133,5 +133,17 @@ class TestValidateValueConstraint:
     def test_patterns_unicode_category_no_error(self) -> None:
         assert _errors(TCValueConstraint(type="xs:string", patterns=frozenset({r"\p{L}+"}))) == []
 
+    def test_patterns_lookahead_rejected(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:string", patterns=frozenset({"foo(?=bar)"})))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/patterns"]
+
+    def test_patterns_non_capturing_group_rejected(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:string", patterns=frozenset({"(?:foo)"})))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/patterns"]
+
     def test_patterns_escaped_paren_with_quantifier_no_error(self) -> None:
         assert _errors(TCValueConstraint(type="xs:string", patterns=frozenset({r"\(?"}))) == []
