@@ -102,11 +102,24 @@ class ValidateXbrl:
         self.validateEFMorGFMorSBRNL = self.validateEFMorGFM or self.validateSBRNL
         self.validateXmlLang = self.validateDisclosureSystem and self.disclosureSystem.xmlLangPattern
         self.validateCalcs = modelXbrl.modelManager.validateCalcs
-        self.validateUTR = (modelXbrl.modelManager.validateUtr or
-                            (self.parameters and self.parameters.get(qname("forceUtrValidation",noPrefixIsNoNamespace=True),(None,"false"))[1] == "true") or
-                            (self.validateEFM and
-                             any((concept.qname.namespaceURI in self.disclosureSystem.standardTaxonomiesDict and concept.modelDocument.inDTS)  # type: ignore[union-attr]
-                                 for concept in self.modelXbrl.nameConcepts.get("UTR",()))))
+        self.validateUTR = (
+            modelXbrl.modelManager.validateUtr
+            or (
+                self.parameters
+                and self.parameters.get(qname("forceUtrValidation", noPrefixIsNoNamespace=True), (None, "false"))[1]
+                == "true"
+            )
+            or (
+                self.validateEFM
+                and any(
+                    (
+                        concept.qname.namespaceURI in self.disclosureSystem.standardTaxonomiesDict  # type: ignore[union-attr]
+                        and concept.modelDocument.inDTS
+                    )
+                    for concept in self.modelXbrl.nameConcepts.get("UTR", ())
+                )
+            )
+        )
         self.validateIXDS = False # set when any inline document found
         self.validateEnum = bool(XbrlConst.enums & modelXbrl.namespaceDocs.keys())
         self.validateDuplicateFacts = modelXbrl.modelManager.validateDuplicateFacts
