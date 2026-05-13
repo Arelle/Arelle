@@ -304,7 +304,7 @@ class DisclosureSystem:
                                         validTaxonomiesUrl,
                                         url,
                                     )
-                                if mappingsUrl:= dsElt.get("mappingsUrl"):
+                                if mappingsUrl := dsElt.get("mappingsUrl"):
                                     self.mappingsUrl = self.modelManager.cntlr.webCache.normalizeUrl(
                                         mappingsUrl,
                                         url,
