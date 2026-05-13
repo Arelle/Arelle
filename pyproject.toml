@@ -178,7 +178,6 @@ module = [
     'arelle.TableStructure',
     'arelle.TkTableWrapper',
     'arelle.UITkTable',
-    'arelle.UiUtil',
     'arelle.ValidateInfoset',
     'arelle.ValidateVersReport',
     'arelle.ValidateXbrlCalcs',
