@@ -162,7 +162,6 @@ module = [
     'arelle.DialogRssWatch',
     'arelle.DialogURL',
     'arelle.DialogUserPassword',
-    'arelle.DisclosureSystem',
     'arelle.HashUtil',
     'arelle.InstanceAspectsEvaluator',
     'arelle.ModelFormulaObject',
