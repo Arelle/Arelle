@@ -86,8 +86,9 @@ def validate(modelDocument: ModelDocument, schemaElement: ModelObject, targetNam
             if attr is not None:
                 try:
                     qnValue = elt.schemaNameQname(attr,  # type: ignore[union-attr]
-                                                  isQualifiedForm=isQualifiedForm or elt.isQualifiedForm,  # type: ignore[union-attr]
+                                                  isQualifiedForm=isQualifiedForm or elt.isQualifiedForm,
                                                   prefixException=ValueError)
+                    assert qnValue is not None, "qnValue is None"
                     if qnValue.namespaceURI == XbrlConst.xsd:
                         if attrType != ModelType:
                             raise ValueError("{0} can not have xml schema namespace".format(attrName))

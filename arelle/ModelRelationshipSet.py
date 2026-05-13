@@ -60,7 +60,7 @@ def ineffectiveArcs(
                 toLabel = linkChild.get("{http://www.w3.org/1999/xlink}to")
                 for fromResource in modelLink.labeledResources[fromLabel]:  # type: ignore[index]
                     for toResource in modelLink.labeledResources[toLabel]:  # type: ignore[index]
-                        modelRel = ModelRelationship(modelLink.modelDocument, linkChild, fromResource.dereference(), toResource.dereference(), linkrole=modelLinkrole)  # type: ignore[no-untyped-call,union-attr]
+                        modelRel = ModelRelationship(modelLink.modelDocument, linkChild, fromResource.dereference(), toResource.dereference(), linkrole=modelLinkrole)  # type: ignore[union-attr,arg-type]
                         hashEquivalentRels[modelRel.equivalenceHash].append(modelRel)
     # determine ineffective relationships
     ineffectives: list[ModelRelationship] = []
@@ -199,14 +199,14 @@ class ModelRelationshipSet:
                 else: # use equivalenceKey instead of hash
                     otherRel = relationships[modelRelEquivalenceHash]
                     if otherRel is not USING_EQUIVALENCE_KEY: # move equivalentRel to use key instead of hasn
-                        if modelRel.isIdenticalTo(otherRel):
+                        if modelRel.isIdenticalTo(otherRel):  # type: ignore[arg-type]
                             continue # skip identical arc
-                        relationships[otherRel.equivalenceKey] = otherRel  # type: ignore[union-attr]
+                        relationships[otherRel.equivalenceKey] = otherRel  # type: ignore[union-attr,index]
                         relationships[modelRelEquivalenceHash] = USING_EQUIVALENCE_KEY
                     modelRelEquivalenceKey = modelRel.equivalenceKey    # this is a complex tuple to compute, get once for below
-                    if modelRelEquivalenceKey not in relationships or \
-                        modelRel.priorityOver(relationships[modelRelEquivalenceKey]):  # type: ignore[no-untyped-call]
-                        relationships[modelRelEquivalenceKey] = modelRel
+                    if (modelRelEquivalenceKey not in relationships or   # type: ignore[comparison-overlap]
+                        modelRel.priorityOver(relationships[modelRelEquivalenceKey])):  # type: ignore[index,arg-type]
+                        relationships[modelRelEquivalenceKey] = modelRel  # type: ignore[index]
 
         #reduce effective arcs and order relationships...
         self.modelRelationshipsFrom = None
@@ -340,8 +340,8 @@ class ModelRelationshipSet:
                     return True
                 if visited is None: visited = set()
                 if toConcept not in visited:
-                    visited.add(toConcept)
-                    if self.isRelated(toConcept, axis, modelTo, visited, isDRS):
+                    visited.add(toConcept)  # type: ignore[arg-type]
+                    if self.isRelated(toConcept, axis, modelTo, visited, isDRS):  # type: ignore[arg-type]
                         return True
                     visited.discard(toConcept)
             return False
@@ -353,13 +353,13 @@ class ModelRelationshipSet:
             if modelFrom in visited:
                 return False # prevent looping
             visited.add(modelFrom)
-            isRel = any(self.isRelated(modelRel.fromModelObject, axis, modelTo, visited) # any ancestral sibling?
+            isRel = any(self.isRelated(modelRel.fromModelObject, axis, modelTo, visited)  # type: ignore[arg-type] # any ancestral sibling?
                         for modelRel in self.toModelObject(modelFrom))
             visited.discard(modelFrom)
             return isRel
         if axis.startswith("sibling"):  # allow sibling-or-self or sibling-or-descendant
             axis = axis[7:] # remove sibling, else recursion will loop
-            return any(self.isRelated(modelRel.fromModelObject, axis, modelTo)
+            return any(self.isRelated(modelRel.fromModelObject, axis, modelTo)  # type: ignore[arg-type]
                        for modelRel in self.toModelObject(modelFrom))
         for modelRel in self.fromModelObject(modelFrom):
             toConcept = modelRel.toModelObject
@@ -368,19 +368,19 @@ class ModelRelationshipSet:
             if isDescendantAxis:
                 if visited is None: visited = set()
                 if toConcept not in visited:
-                    visited.add(toConcept)
+                    visited.add(toConcept)  # type: ignore[arg-type]
                     if isDRS:
-                        if (self.modelXbrl.relationshipSet(consecutiveArcrole[modelRel.arcrole],
+                        if (self.modelXbrl.relationshipSet(consecutiveArcrole[modelRel.arcrole],  # type: ignore[index]
                                                            modelRel.consecutiveLinkrole, self.linkqname, self.arcqname)
-                            .isRelated(toConcept, axis, modelTo, visited, isDRS)):
+                            .isRelated(toConcept, axis, modelTo, visited, isDRS)):  # type: ignore[arg-type]
                             return True
                     elif consecutiveLinkrole: # allows starting at relationship set with ELR None
-                        if (self.modelXbrl.relationshipSet(modelRel.arcrole,
+                        if (self.modelXbrl.relationshipSet(modelRel.arcrole,  # type: ignore[arg-type]
                                                            modelRel.consecutiveLinkrole, self.linkqname, self.arcqname)
-                            .isRelated(toConcept, axis, modelTo, visited, isDRS, consecutiveLinkrole)):
+                            .isRelated(toConcept, axis, modelTo, visited, isDRS, consecutiveLinkrole)):  # type: ignore[arg-type]
                             return True
                     else:
-                        if self.isRelated(toConcept, axis, modelTo, visited, isDRS):
+                        if self.isRelated(toConcept, axis, modelTo, visited, isDRS):  # type: ignore[arg-type]
                             return True
                     visited.discard(toConcept)
         return False
@@ -389,7 +389,7 @@ class ModelRelationshipSet:
             self,
             modelFrom: ModelObject,
             role: str,
-            lang: str,
+            lang: str | None,
             returnMultiple: bool = False,
             returnText: bool = True,
             linkroleHint: str | None = None
@@ -409,6 +409,7 @@ class ModelRelationshipSet:
                 labelsOtherLinks = []
                 for modelLabelRel in labels:
                     label = modelLabelRel.toModelObject
+                    assert label is not None, "modelLabelRel.toModelObject is None"
                     if wildRole or role == label.role:
                         linkrole = modelLabelRel.linkrole
                         if linkrole == linkroleHint:
@@ -426,31 +427,33 @@ class ModelRelationshipSet:
         baseLang = _lang.partition(Locale.BCP47_LANGUAGE_REGION_SEPARATOR)[0] if _lang else None
         for modelLabelRel in labels:
             label = modelLabelRel.toModelObject
+            assert label is not None, "modelLabelRel.toModelObject is None"
             if wildRole or role == label.role:
                 labelLang = label.xmlLang # None if absent or un-declared by empty string (see xml schema)
                 if labelLang:
                     labelLang = labelLang.lower() # must be case insensitive for processiing
                 text = label.textValue if returnText else label
                 if _lang is None or len(_lang) == 0 or _lang == labelLang:
-                    langLabels.append(text)
+                    langLabels.append(text)  # type: ignore[arg-type]
                     if not returnMultiple:
                         break
                 elif labelLang is not None:
+                    assert lang is not None, "lang is None"
                     if labelLang.startswith(_lang):
                         if not longer or len(longer.lang) > len(labelLang):
-                            longer = _LangLabels(labelLang, [text])
+                            longer = _LangLabels(labelLang, [text])  # type: ignore[arg-type]
                         else:
-                            longer.labels.append(text)
+                            longer.labels.append(text)  # type: ignore[arg-type]
                     elif lang.startswith(labelLang):
                         if not shorter or len(shorter.lang) < len(labelLang):
-                            shorter = _LangLabels(labelLang, [text])
+                            shorter = _LangLabels(labelLang, [text])  # type: ignore[arg-type]
                         else:
-                            shorter.labels.append(text)
+                            shorter.labels.append(text)  # type: ignore[arg-type]
                     elif baseLang and labelLang.startswith(baseLang):
                         if not regionalVariant:
-                            regionalVariant = _LangLabels(labelLang, [text])
+                            regionalVariant = _LangLabels(labelLang, [text])  # type: ignore[arg-type]
                         else:
-                            regionalVariant.labels.append(text)
+                            regionalVariant.labels.append(text)  # type: ignore[arg-type]
         if langLabels:
             if returnMultiple: return langLabels
             else: return langLabels[0]

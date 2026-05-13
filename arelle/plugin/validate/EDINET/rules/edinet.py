@@ -584,7 +584,7 @@ def rule_roles(
                     file=roleType.modelDocument.basename,
                     id=roleType.id
                 )
-            if not REPORT_ELR_URI_PATTERN.fullmatch(roleType.roleURI):
+            if not REPORT_ELR_URI_PATTERN.fullmatch(roleType.roleURI):  # type: ignore[arg-type]
                 yield Validation.warning(
                     codes='EDINET.EC8007W',
                     msg=_("The URI of the report's extended link role does not conform to the rules. "
@@ -772,7 +772,7 @@ def rule_EC8029W(
                   "Element: '%(concept)s'. "
                   "Please use the element in the inline XBRL file. If it is an unnecessary "
                   "element, please delete it from the presentation link and definition link."),
-            concept=concept.qname.localName,
+            concept=concept.qname.localName,  # type: ignore[union-attr]
             modelObject=concept,
         )
 
@@ -794,9 +794,9 @@ def rule_EC8030W(
     usedConcepts = pluginData.getUsedConcepts(val.modelXbrl)
     relSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.PRESENTATION.getArcroles()))
     for concept in usedConcepts:
-        if concept.qname.namespaceURI == pluginData.namespaces.jpdei:
+        if concept.qname.namespaceURI == pluginData.namespaces.jpdei:  # type: ignore[union-attr]
             continue
-        if concept.qname.localName.endswith('DEI'):
+        if concept.qname.localName.endswith('DEI'):  # type: ignore[union-attr]
             # Example: jpsps_cor:SecuritiesRegistrationStatementAmendmentFlagDeemedRegistrationStatementDEI
             continue
         if not relSet.contains(concept):
@@ -806,7 +806,7 @@ def rule_EC8030W(
                       "presentation linkbase. "
                       "Element: '%(concept)s'. "
                       "Please set the relevant element in the presentation linkbase."),
-                concept=concept.qname.localName,
+                concept=concept.qname.localName,  # type: ignore[union-attr]
                 modelObject=concept,
             )
 
@@ -2336,6 +2336,7 @@ def rule_EC8073W_EC8074W(
             if label.xmlLang in JAPAN_LANGUAGE_CODES:
                 illegalChars = findProhibitedCharacters(label.textValue, illegalJapaneseCharactersPattern)
                 if illegalChars:
+                    assert concept.qname is not None, "concept.qname is None"
                     yield Validation.warning(
                         codes='EDINET.EC8073W',
                         msg=_("The concept: %(concept)s has a %(role)s label which contains characters that are not "
@@ -2350,6 +2351,7 @@ def rule_EC8073W_EC8074W(
             elif label.xmlLang == 'en':
                 illegalChars = findProhibitedCharacters(label.textValue, illegalEnglishCharactersPattern)
                 if illegalChars:
+                    assert concept.qname is not None, "concept.qname is None"
                     yield Validation.warning(
                         codes='EDINET.EC8074W',
                         msg=_("The concept: %(concept)s has a %(role)s label which contains characters that are not "

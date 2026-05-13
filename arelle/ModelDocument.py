@@ -1571,7 +1571,7 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
                 continuationElements[elt.id] = elt
         for elt in htmlElement.iterdescendants(tag=XbrlConst.qnIXbrl11Footnote.clarkNotation):
             if isinstance(elt,ModelObject):
-                modelInlineFootnotesById[elt.footnoteID] = elt  # type: ignore[attr-defined]
+                modelInlineFootnotesById[elt.footnoteID] = elt
         for elt in htmlElement.iterdescendants(tag=ixNStag + "references"):
             if isinstance(elt,ModelObject):
                 target = elt.get("target")
@@ -2012,7 +2012,7 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
                 # link
                 linkrole = modelInlineFootnote.get("footnoteLinkRole", XbrlConst.defaultLinkRole)
                 arcrole = modelInlineFootnote.get("arcrole", XbrlConst.factFootnote)
-                footnoteID = modelInlineFootnote.footnoteID or ""  # type: ignore[attr-defined]
+                footnoteID = modelInlineFootnote.footnoteID or ""
                 # check if any footnoteRef fact is in this target instance
                 if not any(modelFact.get("target") == ixdsTarget for modelFact in footnoteRefs[footnoteID]):
                     continue # skip footnote, it's not in this target document
