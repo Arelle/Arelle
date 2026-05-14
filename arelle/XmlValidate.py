@@ -716,9 +716,13 @@ def validateValue(
 
 def _facetTypeAndFacets(facetName: str, baseXsdType: str) -> tuple[str, dict[str, int | set[str]] | None]:
     facets: dict[str, int | set[str]] | None
-    if facetName in ("length", "minLength", "maxLength", "fractionDigits"):
+    if facetName in ("length", "minLength", "maxLength"):
         baseXsdType = "nonNegativeInteger"
         facets = None
+    elif facetName == "fractionDigits":
+        # Integer and its derived types have fractionDigits fixed at 0 while xs:decimal allows any non-negative value.
+        facets = {"maxInclusive": 0} if baseXsdType in _INTEGER_BASE_XSD_TYPES else None
+        baseXsdType = "nonNegativeInteger"
     elif facetName == "totalDigits":
         baseXsdType = "positiveInteger"
         facets = None

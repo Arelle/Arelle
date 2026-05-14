@@ -1019,3 +1019,41 @@ class TestValidateFacetValueString:
         result = validateFacetValueString(facet_name, value, base_xsd_type)
         assert result.xValid == expected_x_valid
         assert result.isXValid == (expected_x_valid >= VALID)
+
+    @pytest.mark.parametrize(
+        "base_xsd_type,value,expected_x_valid",
+        [
+            ("decimal", "0", VALID),
+            ("decimal", "3", VALID),
+            ("integer", "0", VALID),
+            ("integer", "1", INVALID),
+            ("byte", "0", VALID),
+            ("byte", "1", INVALID),
+            ("short", "0", VALID),
+            ("short", "1", INVALID),
+            ("int", "0", VALID),
+            ("int", "1", INVALID),
+            ("long", "0", VALID),
+            ("long", "1", INVALID),
+            ("unsignedByte", "0", VALID),
+            ("unsignedByte", "1", INVALID),
+            ("unsignedShort", "0", VALID),
+            ("unsignedShort", "1", INVALID),
+            ("unsignedInt", "0", VALID),
+            ("unsignedInt", "1", INVALID),
+            ("unsignedLong", "0", VALID),
+            ("unsignedLong", "1", INVALID),
+            ("negativeInteger", "0", VALID),
+            ("negativeInteger", "1", INVALID),
+            ("nonNegativeInteger", "0", VALID),
+            ("nonNegativeInteger", "1", INVALID),
+            ("nonPositiveInteger", "0", VALID),
+            ("nonPositiveInteger", "1", INVALID),
+            ("positiveInteger", "0", VALID),
+            ("positiveInteger", "1", INVALID),
+        ],
+    )
+    def test_fractionDigits_facet_integer_types(self, base_xsd_type: str, value: str, expected_x_valid: int):
+        result = validateFacetValueString("fractionDigits", value, base_xsd_type)
+        assert result.xValid == expected_x_valid
+        assert result.isXValid == (expected_x_valid >= VALID)
