@@ -75,16 +75,16 @@ class DialogRssWatch(Toplevel):
         feedSources = sorted(rssFeeds.keys())
         self.cellFeed = gridCombobox(frame, 2, row, options.get("feedSource", ""), values=feedSources)
         self.cellFeed.grid(pady=2)
-        ToolTip(self.cellFeed, text=_("Select an RSS feed to process for item matching, formulas, and validations as selected below"), wraplength=240)  # type: ignore[no-untyped-call]
+        ToolTip(self.cellFeed, text=_("Select an RSS feed to process for item matching, formulas, and validations as selected below"), wraplength=240)
         row += 1
         label(frame, 1, row, "Match fact text:")
         self.cellMatchText = gridCell(frame, 2, row, options.get("matchTextExpr", ""))
-        ToolTip(self.cellMatchText, text=_("Enter a regular expression to be matched to the text of each filing instance fact item. "  # type: ignore[no-untyped-call]
+        ToolTip(self.cellMatchText, text=_("Enter a regular expression to be matched to the text of each filing instance fact item. "
                                            "Regular expressions may contain patterns to detect, such as ab.?c, for any single character between b and c, or ab.*c for any number of characters between b and c."), wraplength=240)
         row += 1
         label(frame, 1, row, "Formula file:")
         self.cellFormulaFile = gridCell(frame, 2, row, options.get("formulaFileUri", ""))
-        ToolTip(self.cellFormulaFile, text=_("Select a formula linkbase to to evaluate each filing.  "  # type: ignore[no-untyped-call]
+        ToolTip(self.cellFormulaFile, text=_("Select a formula linkbase to to evaluate each filing.  "
                                              "The formula linkbase may contain one or more assertions, the results of which is recorded in the log file.  "
                                              "If unsuccessful assertion alerts are selected and an e-mail address provided, the recipient will be notified of filings with assertions that do not pass."), wraplength=240)
         openFileImage = PhotoImage(file=os.path.join(mainWin.imagesDir, "toolbarOpenFile.gif"))
@@ -97,27 +97,27 @@ class DialogRssWatch(Toplevel):
             row += 1
         label(frame, 1, row, "Log file:")
         self.cellLogFile = gridCell(frame, 2, row, options.get("logFileUri", ""))
-        ToolTip(self.cellLogFile, text=_("Select a log file in which to save an activity log, including validation results, matched item text, and formula results.\n\n "  # type: ignore[no-untyped-call]
+        ToolTip(self.cellLogFile, text=_("Select a log file in which to save an activity log, including validation results, matched item text, and formula results.\n\n "
                                          "If file ends in .xml it is xml-formatted, otherwise it is text. "), wraplength=240)
         chooseLogFileButton = Button(frame, image=openFileImage, width=12, command=self.chooseLogFile)
         chooseLogFileButton.grid(row=row, column=3, sticky=W)
         row += 1
         label(frame, 1, row, "E-mail alerts to:")
         self.cellEmailAddress = gridCell(frame, 2, row, options.get("emailAddress", ""))
-        ToolTip(self.cellEmailAddress, text=_("Specify e-mail recipient(s) for alerts per below."), wraplength=240)  # type: ignore[no-untyped-call]
+        ToolTip(self.cellEmailAddress, text=_("Specify e-mail recipient(s) for alerts per below."), wraplength=240)
         propertiesImage = PhotoImage(file=os.path.join(mainWin.imagesDir, "toolbarProperties.gif"))
         smtpSetupButton = Button(frame, image=propertiesImage, width=12, command=self.setupSmtp)
         smtpSetupButton.grid(row=row, column=3, sticky=W)
-        ToolTip(smtpSetupButton, text=_("Enter/edit settings of outgoing e-mail server (SMTP)."), wraplength=240)  # type: ignore[no-untyped-call]
+        ToolTip(smtpSetupButton, text=_("Enter/edit settings of outgoing e-mail server (SMTP)."), wraplength=240)
         row += 1
         label(frame, 1, row, "Latest pub date:")
         pubdate = getattr(options, "latestPubDate", None)
         self.cellLatestPubDate = gridCell(frame, 2, row, str(pubdate) if pubdate else "")
-        ToolTip(self.cellLatestPubDate, text=_("Specify pub dateTime of last processed submission.  Next item to examine will be after this dateTime."), wraplength=240)  # type: ignore[no-untyped-call]
+        ToolTip(self.cellLatestPubDate, text=_("Specify pub dateTime of last processed submission.  Next item to examine will be after this dateTime."), wraplength=240)
         clearImage = PhotoImage(file=os.path.join(mainWin.imagesDir, "toolbarDelete.gif"))
         clearPubDateButton = Button(frame, image=clearImage, width=12, command=self.clearPubDate)
         clearPubDateButton.grid(row=row, column=3, sticky=W)
-        ToolTip(clearPubDateButton, text=_("Clear pub dateTime so that next cycle processes all entries in RSS feed."), wraplength=240)  # type: ignore[no-untyped-call]
+        ToolTip(clearPubDateButton, text=_("Clear pub dateTime so that next cycle processes all entries in RSS feed."), wraplength=240)
         row += 1
         label(frame, 2, row, "Validate:")
         row += 1
@@ -135,7 +135,7 @@ class DialogRssWatch(Toplevel):
         keys = dict((v, k) for k, v in self.calcModeMenu.items())
         self.validateCalcs = gridCombobox(frame, 2, row, keys.get(options.get("validateCalcs", 0), ""), values=vals)
         self.validateCalcs.grid(pady=2, padx=(44, 0))
-        ToolTip(self.validateCalcs, text=_("Select calculations validation"), wraplength=240)  # type: ignore[no-untyped-call]
+        ToolTip(self.validateCalcs, text=_("Select calculations validation"), wraplength=240)
         row += 1
         self.checkboxes += (
             checkbox(frame, 2, row,
@@ -166,9 +166,9 @@ class DialogRssWatch(Toplevel):
         mainWin.showStatus("")
 
         cancelButton = Button(frame, text=_("Cancel"), width=8, command=self.close)
-        ToolTip(cancelButton, text=_("Cancel operation, discarding changes and entries"))  # type: ignore[no-untyped-call]
+        ToolTip(cancelButton, text=_("Cancel operation, discarding changes and entries"))
         okButton = Button(frame, text=_("OK"), width=8, command=self.ok)
-        ToolTip(okButton, text=_("Accept the options as entered above"))  # type: ignore[no-untyped-call]
+        ToolTip(okButton, text=_("Accept the options as entered above"))
         cancelButton.grid(row=row, column=1, columnspan=3, sticky=E, pady=3, padx=3)
         okButton.grid(row=row, column=1, columnspan=3, sticky=E, pady=3, padx=86)
 
