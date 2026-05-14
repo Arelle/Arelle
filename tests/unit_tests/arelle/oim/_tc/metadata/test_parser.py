@@ -130,6 +130,12 @@ class TestPrimitiveInt:
         assert "Value -1 is less than minimum 0" in str(result.errors[0])
         assert result.errors[0].code == TCME_INVALID_JSON_STRUCTURE
 
+    def test_total_digits_zero_rejected(self) -> None:
+        result = parse_tc_metadata(_with_constraint({"type": "xs:decimal", "totalDigits": 0}), TC_MINIMAL_NAMESPACES)
+        assert not result.is_valid
+        assert "Value 0 is less than minimum 1" in str(result.errors[0])
+        assert result.errors[0].code == TCME_INVALID_JSON_STRUCTURE
+
     def test_positive_int_rejects_zero(self) -> None:
         result = parse_tc_metadata(
             _with_template({"tc:tableConstraints": {"minTables": 0}}),

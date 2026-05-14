@@ -401,7 +401,7 @@ def _parse_value_constraint(
     max_inclusive = _parse_primitive_field(obj, "maxInclusive", str, local_errors, default=None)
     min_exclusive = _parse_primitive_field(obj, "minExclusive", str, local_errors, default=None)
     max_exclusive = _parse_primitive_field(obj, "maxExclusive", str, local_errors, default=None)
-    total_digits = _parse_bounded_int(obj, "totalDigits", local_errors, min_value=0, default=None)
+    total_digits = _parse_bounded_int(obj, "totalDigits", local_errors, min_value=1, default=None)
     fraction_digits = _parse_bounded_int(obj, "fractionDigits", local_errors, min_value=0, default=None)
     if local_errors:
         errors.extend(local_errors)
