@@ -8,12 +8,13 @@ import logging
 import os
 import sys
 import traceback
+from types import MappingProxyType
 import uuid
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any, TypeVar, Union, cast, Optional
 
 import regex as re
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, Iterator, Mapping
 
 import arelle
 from arelle import FileSource, ModelRelationshipSet, XmlUtil, ModelValue, XbrlConst, XmlValidate
@@ -561,7 +562,7 @@ class ModelXbrl:
         assert self.modelDocument is not None
         self.modelDocument.save(**kwargs)
 
-    @cached_property
+    @property
     def prefixedNamespaces(self) -> dict[str, str]:
         """
         Dict of prefixes for namespaces defined in DTS.
