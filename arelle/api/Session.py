@@ -15,6 +15,7 @@ from arelle.CntlrCmdLine import CntlrCmdLine, createCntlrAndPreloadPlugins
 from arelle.FileSource import FileNamedBytesIO
 from arelle.ModelXbrl import ModelXbrl
 from arelle.RuntimeOptions import RuntimeOptions
+from arelle.logging.handlers.LogToXmlHandler import LogToXmlHandler
 
 _session_lock = threading.Lock()
 
@@ -59,6 +60,13 @@ class Session:
         exc_tb: TracebackType | None
     ) -> None:
         self.close()
+
+    def clear_logs(self) -> None:
+        """
+        Clears the log buffer (if the current log handler supports buffering, e.g., LogToXmlHandler).
+        """
+        if self._cntlr and isinstance(self._cntlr.logHandler, LogToXmlHandler):
+            self._cntlr.logHandler.clearLogBuffer()
 
     def close(self) -> None:
         with _session_lock:
