@@ -34,7 +34,7 @@ LC_MONETARY = 4
 LC_NUMERIC = 1
 LC_TIME = 2
 
-default_LocaleCodes = {
+defaultLocaleCodes = {
     "af": "ZA", "ar": "AE", "be": "BY", "bg": "BG", "ca": "ES", "cs": "CZ",
     "da": "DK", "de": "DE", "el": "GR", "en": "GB", "es": "ES", "et": "EE",
     "eu": "ES", "fa": "IR", "fi": "FI", "fo": "FO", "fr": "FR", "he": "IL",
@@ -204,7 +204,7 @@ def getLanguageCodes(configLang: str | None = None) -> list[str]:
     lc = _LocaleCode.parse(configLang or getLanguageCode()).strip_encoding()
     if lc.region:
         return [lc.to_posix, lc.to_bcp47, lc.lang]
-    if defaultRegion := default_LocaleCodes.get(lc.lang):
+    if defaultRegion := defaultLocaleCodes.get(lc.lang):
         default_lc = _LocaleCode(lc.lang, defaultRegion, None)
         return [lc.lang, default_lc.to_posix, default_lc.to_bcp47]
     return [lc.lang]
@@ -237,7 +237,7 @@ def _candidatePosixLocales(posixLocale: str) -> list[str]:
     Returns a list of additional candidate POSIX locales including default region and utf-8 encoding variants.
     """
     lc = _LocaleCode.from_posix(posixLocale)
-    defaultRegion = default_LocaleCodes.get(lc.lang)
+    defaultRegion = defaultLocaleCodes.get(lc.lang)
     not_default_encoding = lc.encoding is not None and lc.encoding.lower() != POSIX_LOCALE_DEFAULT_ENCODING
 
     candidates: list[_LocaleCode] = []
