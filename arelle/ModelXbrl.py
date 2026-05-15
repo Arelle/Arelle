@@ -3,18 +3,16 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
-from functools import cached_property
 import logging
 import os
 import sys
 import traceback
-from types import MappingProxyType
 import uuid
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any, TypeVar, Union, cast, Optional
 
 import regex as re
-from collections.abc import Iterable, Iterator, Mapping
+from collections.abc import Iterable, Iterator
 
 import arelle
 from arelle import FileSource, ModelRelationshipSet, XmlUtil, ModelValue, XbrlConst, XmlValidate
