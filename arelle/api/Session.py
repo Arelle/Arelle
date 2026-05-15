@@ -5,6 +5,8 @@ The `arelle.api` module is the supported method for integrating Arelle into othe
 """
 from __future__ import annotations
 
+from pathlib import Path
+
 import logging
 import threading
 from types import TracebackType
@@ -118,7 +120,7 @@ class Session:
         responseZipStream: BinaryIO | None = None,
         logHandler: logging.Handler | None = None,
         logFilters: list[logging.Filter] | None = None,
-        logFileName: str | None = None,
+        logFileName: Path | str | None = None,
     ) -> bool:
         """
         Perform a run using the given options.
@@ -134,6 +136,8 @@ class Session:
         :param logHandler: Optional log handler to use for logging.
         :return: True if the run was successful, False otherwise.
         """
+        if isinstance(logFileName, Path):
+            logFileName = str(logFileName)
         with _session_lock:
             self._check_thread()
             PackageManager.getInstance().close()
