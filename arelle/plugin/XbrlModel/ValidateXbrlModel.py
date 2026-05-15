@@ -40,6 +40,10 @@ from .XbrlModule import XbrlModule, XbrlModelType, xbrlObjectTypes, referencable
 from .XbrlUnit import XbrlUnit, parseUnitString
 from .XbrlConst import qnXsQName, qnXsDate, qnXsDateTime, qnXsDuration, objectsWithProperties
 from .ValidateConceptObjects import validateConceptFamily
+from .ValidateCubeTypeObjects import validateCubeTypeFamily
+from .ValidateImportObjects import validateImportFamily
+from .ValidateNamespaceObjects import validateNamespaceFamily
+from .ValidateNetworkObjects import validateNetworkFamily
 from arelle.FunctionFn import true
 from .ErrorCatalog import emit_error, get_error_catalog
 resolveFact = validateFactPosition = None
@@ -286,111 +290,16 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             None
     """
     oimFile = str(module.name)
-    txmyNamespace = module.name.namespaceURI
-    isCompiledModel = module.modelForm == "compiled"
 
-    # Taxonomy object
-    assertObjectType(compMdl, module, XbrlModule)
+    familyKwargs = dict(
+        assertObjectType=assertObjectType,
+        validateQNameReference=validateQNameReference,
+        validateProperties=validateProperties,
+    )
 
-    # taxonomy namespace for objects
-    if module.modelType:
-        modelTpObj = validateQNameReference(compMdl, module, "modelType", XbrlModelType)
-        if modelTpObj:
-            if modelTpObj.allowedObjects:
-                disallowedObjs = set(
-                    xbrlObjectQNames.get(propType.__args__[0])    
-                    for propName, propType in XbrlModule.propertyNameTypes(skipParentProperty=True)
-                    if isinstance(propType, GenericAlias) and issubclass(propType.__origin__, OrderedSet) and len(getattr(module, propName, ())) > 0
-                    ) - modelTpObj.allowedObjects - {qnXbrlPropertyObj}
-                if disallowedObjs:
-                    compMdl.error("oimte:disallowedObjectModelType",
-                              _("The modelType %(moduleType)s does not allow objects %(objNames)s."),
-                              xbrlObject=module, moduleType=module.modelType, objNames=", ".join(str(p) for p in disallowedObjs))
-            if modelTpObj.allowedProperties:
-                missingReqProps = modelTpObj.requiredProperties - set(p.property for p in module.properties)
-                if missingReqProps:
-                    compMdl.error("oimte:missingRequiredModelTypeProperty",
-                              _("The modelType %(moduleType)s requires properties %(propNames)s."),
-                              xbrlObject=module, moduleType=module.modelType, propNames=", ".join(str(p) for p in missingReqProps))
-            if modelTpObj.requiredProperties:
-                missingReqProps = modelTpObj.requiredProperties - set(p.property for p in module.properties)
-                if missingReqProps:
-                    compMdl.error("oimte:missingRequiredModelTypeProperty",
-                              _("The modelType %(moduleType)s requires properties %(propNames)s."),
-                              xbrlObject=module, moduleType=module.modelType, propNames=", ".join(str(p) for p in missingReqProps))
-    else:
-        modelTpObj = None
-    
-    for txMdlPropName, propType in XbrlModule.propertyNameTypes(skipParentProperty=True):
-        if isinstance(propType, GenericAlias) and issubclass(propType.__origin__, OrderedSet):
-            isFirstObj = True
-            for txMdlObj in getattr(module, txMdlPropName, ()):
-                name = getattr(txMdlObj, "name", None)
-                if isinstance(name, QName):
-                    ns = name.namespaceURI
-                    if ns != txmyNamespace:
-                        if ns in reservedPrefixNamespaces.values():
-                            compMdl.error("oimte:invalidObjectNamespacePrefix",
-                                      _("The taxonomy module object %(name)s cannot have a reserved namespace URI."),
-                                      xbrlObject=txMdlObj, name=name)
-                        if not isCompiledModel:
-                            compMdl.error("oimte:objectNamespaceMismatch",
-                                      _("The taxonomy module object %(name)s does not match the namespace %(nsPrefix)s: of the module."),
-                                      xbrlObject=txMdlObj, name=name, nsPrefix=module.name.prefix)
-    validateProperties(compMdl, oimFile, module, module)
+    validateNamespaceFamily(compMdl, module, oimFile, **familyKwargs)
 
-    for impTxObj in module.importedTaxonomies:
-        assertObjectType(compMdl, impTxObj, XbrlImportTaxonomy)
-        impMdlName = impTxObj.xbrlModelName
-        for qnObjType in impTxObj.importObjectTypes:
-            if qnObjType in xbrlObjectTypes:
-                clsForObjType = xbrlObjectTypes[qnObjType]
-                if clsForObjType == XbrlLabel:
-                    compMdl.error("oimte:invalidImportObjectType",
-                              _("The importObjectTypes property MUST not include the label object."),
-                              xbrlObject=impTxObj)
-                elif clsForObjType == XbrlModule:
-                    compMdl.error("oimte:invalidImportObjectType",
-                              _("The importObjectTypes property MUST not include the xbrlModelObject (taxonomy root): %(qname)s."),
-                              xbrlObject=impTxObj, qname=qnObjType)
-                elif clsForObjType == XbrlFinalTaxonomy:
-                    compMdl.error("oimte:invalidImportObjectType",
-                              _("The importObjectTypes property MUST not include the finalTaxonomyObject: %(qname)s."),
-                              xbrlObject=impTxObj, qname=qnObjType)
-                elif qnObjType not in referencableObjectTypes:
-                    compMdl.error("oimte:invalidImportObjectType",
-                              _("The importObjectTypes property MUST specify a referencable taxonomy component object: %(qname)s is non-referencable."),
-                              xbrlObject=impTxObj, qname=qnObjType)
-            else:
-                compMdl.error("oimte:invalidImportObjectType",
-                          _("The importObjectTypes property MUST specify valid OIM object types, %(qname)s is not valid."),
-                          xbrlObject=impTxObj, qname=qnObjType)
-        finalTxObj = compMdl.namedObjects.get(impMdlName)
-        if isinstance(finalTxObj, XbrlFinalTaxonomy):
-            def extendsFinalTaxonomy(obj):
-                # check for extended objects
-                if finalTxObj.finalTaxonomyFlag:
-                    if isinstance(obj, XbrlReferencableModelObject) and not isinstance(obj, (XbrlFact, XbrlFootnote, XbrlEntity)):
-                        compMdl.error("oimte:invalidFinalTaxonomyModification",
-                                  _("The importTaxonomy %(moduleName)s cannot be extended by object %(qname)s due to a finalTaxonomyFlag."),
-                                  xbrlObject=impTxObj, moduleName=impMdlName, qname=obj.name)
-                elif finalTxObj.finalObjectTypes and xbrlObjectQNames[type(obj)] in finalTxObj.finalObjectTypes:
-                    compMdl.error("oimte:invalidFinalTaxonomyObjectType",
-                              _("The importTaxonomy %(moduleName)s cannot be extended by object %(qname)s due to it's type, %(type)s, being in finalObjectTypes."),
-                              xbrlObject=impTxObj, moduleName=impMdlName, qname=obj.name, type=xbrlObjectQNames[type(obj)] )
-                elif finalTxObj.finalObjects and getattr(obj, "extendTargetName", None) in finalTxObj.finalObjects:
-                    compMdl.error("oimte:invalidFinalTaxonomyObject",
-                              _("The importTaxonomy %(moduleName)s cannot be extended by object %(qname)s due to having %(name)s in finalObjects."),
-                              xbrlObject=impTxObj, moduleName=impMdlName, qname=xbrlObjectQNames[type(obj)], name=obj.extendTargetName)
-                elif finalTxObj.selections:
-                    for i, selObj in enumerate(impTxObj.selections):
-                        if xbrlObjectQNames[type(obj)] == selObj.objectType and (
-                            all((eval(obj, whereObj) for whereObj in selObj.where))):
-                            compMdl.error("oimte:invalidFinalTaxonomyObject",
-                                      _("The importTaxonomy %(moduleName)s cannot be extended by object %(qname)s due matching selection %(i)s."),
-                                      xbrlObject=impTxObj, moduleName=impMdlName, qname=xbrlObjectQNames[type(obj)], i=i)
-                            break # selections are or'ed, don't need to try more
-            module.referencedObjectsAction(compMdl, extendsFinalTaxonomy)
+    validateImportFamily(compMdl, module, oimFile, **familyKwargs)
 
     validateConceptFamily(
         compMdl,
@@ -401,147 +310,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         validateProperties=validateProperties,
     )
 
-    # CubeType Objects
-    for cubeType in module.cubeTypes:
-        assertObjectType(compMdl, cubeType, XbrlCubeType)
-        name = cubeType.name
-        if cubeType.coreDimensions - coreDimensions:
-            compMdl.error("oimte:invalidCoreDimension",
-                      _("The cube type %(name)s, specifies QNames which are not core dimensions: %(qnames)s."),
-                      xbrlObject=cubeType, name=name, qnames=", ".join(str(qn) for qn in (cubeType.coreDimensions - coreDimensions)))
-        dConstrNames = {}
-        if cubeType.cubeDimensionConstraints:
-            for i, dConstr in enumerate(cubeType.cubeDimensionConstraints.allowed):
-                if dConstr.dimensionName:
-                    validateQNameReference(compMdl, dConstr, "dimensionName", XbrlDimension,
-                                           undefinedMsgCode="oimte:invalidDimensionConstraintDimensionName",
-                                           invalidTypeMsgCode="oimte:invalidDimensionConstraintDimensionName")
-                if dConstr.minDimensions is not None and dConstr.maxDimensions is not None and dConstr.minDimensions > dConstr.maxDimensions:
-                    compMdl.error("oimte:invalidCubeConstraints",
-                              _("The cube type %(name)s, cubeDimensionConstraints/allowed[%(i)s] minDimensions %(minDimensions)s MUST NOT be greater than maxDimensions %(maxDimensions)s."),
-                              xbrlObject=cubeType, name=name, i=i, minDimensions=dConstr.minDimensions, maxDimensions=dConstr.maxDimensions)
-                if dConstr.dimensionName in dConstrNames:
-                    compMdl.error("oimte:duplicateDimension",
-                              _("The cube type %(name)s, cubeDimensionConstraints/allowed[%(i)s] dimensionName %(dimName)s duplicates cubeDimensionConstraints[%(i2)s]."),
-                              xbrlObject=cubeType, name=name, i=i, dimName=dConstr.dimensionName, i2=dConstrNames[dConstr.dimensionName])
-                else:
-                    dConstrNames[dConstr.dimensionName] = i
-                if dConstr.dataType:
-                    dtObj = validateQNameReference(compMdl, dConstr, "dataType", XbrlDataType)
-                    if dtObj and dtObj.allowedObjects and qnXbrlDimensionObj not in dtObj.allowedObjects:
-                        compMdl.error("oimte:unallowedDataTypeObject",
-                                  _("The cube type %(name)s, cubeDimensionConstraints/allowed[%(i)s] dataType %(dataType)s is not allowed on a dimension object."),
-                                  xbrlObject=cubeType, name=name, i=i, dataType=dConstr.dataType)
-                if dConstr.dataType and dConstr.type != "typed":
-                    compMdl.error("oimte:invalidDimensionDataTypeProperty",
-                              _("The cube type %(name)s, cubeDimensionConstraints/allowed[%(i)s] has a dataType which requires type must be \"typed\" but is: %(typed)s."),
-                              xbrlObject=cubeType, name=name, i=i, typed=dConstr.type)
-        if cubeType.cubeNetworkConstraints:
-            cnc = cubeType.cubeNetworkConstraints
-            if (getattr(cnc, "minNetworks", None) is not None and getattr(cnc, "maxNetworks", None) is not None
-                    and cnc.minNetworks > cnc.maxNetworks):
-                compMdl.error("oimte:invalidCubeConstraints",
-                          _("The cube type %(name)s, cubeNetworkConstraints minNetworks %(minNetworks)s MUST NOT be greater than maxNetworks %(maxNetworks)s."),
-                          xbrlObject=cubeType, name=name, minNetworks=cnc.minNetworks, maxNetworks=cnc.maxNetworks)
-            if cubeType.cubeNetworkConstraints.cubeNetworks:
-                for cubeNtwkCnstrObj in cubeType.cubeNetworkConstraints.cubeNetworks:
-                    validateQNameReference(compMdl, cubeNtwkCnstrObj, "relationshipType", XbrlRelationshipType)
-                    for endPtCnstrObj in (cubeNtwkCnstrObj.source, cubeNtwkCnstrObj.target):
-                        if endPtCnstrObj is not None:
-                            if endPtCnstrObj.qname:
-                                validateQNameReference(compMdl, endPtCnstrObj, "qname", None)
-                            if endPtCnstrObj.objectType and endPtCnstrObj.objectType not in referencableObjectTypes:
-                                compMdl.error(f"oimte:invalidObjectTypeReference",
-                                        _("The cube type %(name)s, cubeNetworkConstraints/cubeNetworks/relationshipType %(relType)s, end point constraint object does not specify a referencable model component object type: %(objType)s."),
-                                        xbrlObject=cubeType, name=name, relType=cubeNtwkCnstrObj.relationshipType, objType=endPtCnstrObj.objectType)
-                            if endPtCnstrObj.dataType:
-                                validateQNameReference(compMdl, endPtCnstrObj, "dataType", XbrlDataType)
-        if cubeType.cubeProperties:
-            for ra in ("requiredProperties", "allowedProperties"):
-                for i, propTpQn in enumerate(getattr(cubeType.cubeProperties, ra)):
-                    if  not isinstance(compMdl.namedObjects.get(propTpQn), XbrlPropertyType):
-                        compMdl.error(f"oimte:invalidPropertyTypeReference",
-                                  _("The cube type %(name)s, cubeProperties/%(ra)s[%(i)s], does not specify valid propertyType reference: %(qname)s."),
-                                  xbrlObject=cubeType, name=name, ra=ra, i=i, qname=propTpQn)
-        if cubeType.baseCubeType is not None:
-            if cubeType.baseCubeType not in compMdl.namedObjects:
-                compMdl.error("oimte:invalidQNameReference",
-                          _("The cube type %(name)s, specifies base cube type %(base)s which is not defined."),
-                          xbrlObject=cubeType, name=name, base=cubeType.baseCubeType)
-            else:
-                baseCubeType = compMdl.namedObjects.get(cubeType.baseCubeType)
-                if not isinstance(baseCubeType, XbrlCubeType):
-                    compMdl.error("oimte:invalidQNameReference",
-                              _("The cube type %(name)s, specifies base cube type %(base)s which is not a cube type object."),
-                              xbrlObject=cubeType, name=name, base=cubeType.baseCubeType)
-                else:
-                    # TBD: oimte:invalidCubeTypeRestriction
-                    baseCoreDims = baseCubeType.effectivePropVal(compMdl, "coreDimensions")
-                    if baseCoreDims and (cubeType.coreDimensions - baseCoreDims):
-                        compMdl.error("oimte:coreDimensionsExpansion",
-                                  _("The cube type %(name)s, expands base cube type core dimensions by %(qnames)s."),
-                                  xbrlObject=cubeType, name=name, qnames=", ".join(str(qn) for qn in (cubeType.coreDimensions - baseCoreDims)))
-                    baseDimConstrClosed = baseCubeType.effectivePropVal(compMdl, "cubeDimensionConstraints", "closed")
-                    if cubeType.cubeDimensionConstraints:
-                        if baseDimConstrClosed == True and cubeType.cubeDimensionConstraints.closed == False:
-                            compMdl.error("oimte:invalidDimensionClosedExpansion",
-                                      _("The cube type %(name)s, must not set cubeDimensionConstraints.closed \"false\" where base cube type is \"true\"."),
-                                      xbrlObject=cubeType, name=name)
-                        baseDimConstrs = baseCubeType.effectivePropVal(compMdl, "cubeDimensionConstraints", "allowed")
-                        for i, dimConstr in enumerate(cubeType.cubeDimensionConstraints.allowed):
-                            matchingBaseDimFound = False
-                            for baseDimConst in baseDimConstrs:
-                                if ((dimConstr.dimensionName and dimConstr.dimensionName == baseDimConst.dimensionName) or
-                                    (dimConstr.dataType and dimConstr.dataType == baseDimConst.dataType)):
-                                    matchingBaseDimFound = True
-                                    if dimConstr.minDimensions and baseDimConst.minDimensions is not None and dimConstr.minDimensions < baseDimConst.minDimensions:
-                                        compMdl.error("oimte:invalidDimensionRequirementRelaxation",
-                                                  _("The cube type %(name)s, must not set cubeDimensionConstraints/allowed[%(i)s].minDimensions to %(minDimensions)s when derived base required for the dimension is %(baseMinDimensions)s."),
-                                                  xbrlObject=cubeType, name=name, i=i, minDimensions=dimConstr.minDimensions, baseMinDimensions=baseDimConst.minDimensions)
-                                    # check if a base type has a more restricted type for same dimension
-                                    if dimConstr.dataType and baseDimConst.dataType:
-                                        dataTypeObj = compMdl.namedObjects.get(dimConstr.dataType)
-                                        if isinstance(dataTypeObj, XbrlDataType) and not dataTypeObj.instanceOfType(baseDimConst.dataType, compMdl):
-                                            compMdl.error("oimte:invalidDataTypeExpansion",
-                                                      _("The cube type %(name)s, cubeDimensionConstraints/allowed[%(i)s].dataType %(dataType)s must not be an expansion of the base data type %(baseDataType)s"),
-                                                      xbrlObject=cubeType, name=name, i=i, dataType=dimConstr.dataType, baseDataType=baseDimConst.dataType)
-                                    # check properties required
-                                    if baseDimConst.domainClassProperties and baseDimConst.domainClassProperties.requiredProperties:
-                                        if dimConstr.domainClassProperties:
-                                            removedPropsReqd = baseDimConst.domainClassProperties.requiredProperties - dimConstr.domainClassProperties.requiredProperties
-                                            if removedPropsReqd:
-                                                compMdl.error("oimte:missingRequiredDimensionProperty",
-                                                          _("The cube type %(name)s, cubeDimensionConstraints/allowed[%(i)s].domainClassProperties must include all properties required by the baseCubeType, these are missing: %(domainClassProperties)s"),
-                                                          xbrlObject=cubeType, name=name, i=i, domainClassProperties=", ".join(sorted(str(p) for p in removedPropsReqd)))
-                            if baseDimConstrClosed and not matchingBaseDimFound:
-                                compMdl.error("oimte:invalidDimensionAddition",
-                                              _("The cube type %(name)s, must not set cubeDimensionConstraints/allowed[%(i)s] must not be added a closed base type"),
-                                              xbrlObject=cubeType, name=name, i=i)
-                    if cubeType.cubeNetworkConstraints and cubeType.cubeNetworkConstraints.cubeNetworks and baseCubeType.cubeNetworkConstraints:
-                        for i, cubeNtwkCnstrObj in enumerate(cubeType.cubeNetworkConstraints.cubeNetworks):
-                            matchingBaseNtwkCnstrFound = False
-                            for baseCubeNtwkCnstrObj in baseCubeType.effectivePropVal(compMdl, "cubeNetworkConstraints", "cubeNetworks") or ():
-                                if cubeNtwkCnstrObj.relationshipType == baseCubeNtwkCnstrObj.relationshipType:
-                                    matchingBaseNtwkCnstrFound = True
-                            if not matchingBaseNtwkCnstrFound:
-                                compMdl.error("oimte:invalidRelationshipExpansion",
-                                              _("The cube type %(name)s, must not set cubeNetworkConstraints/cubeNetworks[%(i)s] must not be added when base does not have that network constraint"),
-                                              xbrlObject=cubeType, name=name, i=i)
-                    if cubeType.cubeProperties:
-                        basePropertiesAllowed = baseCubeType.effectivePropVal(compMdl, "cubeProperties", "allowedProperties")
-                        basePropertiesRequired = baseCubeType.effectivePropVal(compMdl, "cubeProperties", "requiredProperties")
-                        if basePropertiesRequired:
-                            removedPropsReqd = basePropertiesRequired - cubeType.cubeProperties.requiredProperties
-                            if removedPropsReqd:
-                                compMdl.error("oimte:missingRequiredCubeProperty",
-                                              _("The cube type %(name)s, must not remove property types required by the base type: %(qnames)s"),
-                                              xbrlObject=cubeType, name=name, qnames=", ".join(sorted(str(qn) for qn in removedPropsReqd)))
-                        if basePropertiesAllowed and cubeType.cubeProperties.allowedProperties:
-                            unallowedAddedProps = cubeType.cubeProperties.allowedProperties - basePropertiesAllowed
-                            if unallowedAddedProps:
-                                compMdl.error("oimte:invalidPropertyExpansion",
-                                              _("The cube type %(name)s, must not add property types not permitted by the base type: %(qnames)s"),
-                                              xbrlObject=cubeType, name=name, qnames=", ".join(sorted(str(qn) for qn in unallowedAddedProps)))
+    validateCubeTypeFamily(compMdl, module, oimFile, **familyKwargs)
 
     # Cube Objects
     for cubeObj in module.cubes:
@@ -1057,110 +826,8 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         lblKey = (relatedName, lblObj.labelType, lblObj.language)
         mdlLvlChecks.labelsCt[lblKey].append(lblObj)
 
-    # Network Objects
-    ntwkCt = {}
-    for ntwkObj in module.networks:
-        assertObjectType(compMdl, ntwkObj, XbrlNetwork)
-        extendTargetObj = None
-        relTypeObj = None
-        if ntwkObj.extendTargetName:
-            extendTargetObj = validateQNameReference(compMdl, ntwkObj, "extendTargetName", XbrlNetwork)
-            if extendTargetObj is not None:
-                relTypeObj = validateQNameReference(compMdl, extendTargetObj, "relationshipTypeName", XbrlRelationshipType)
-                if getattr(ntwkObj, "_extendResolved", False):
-                    extendTargetObj = None # don't extend, already been extended
-                else:
-                    ntwkObj._extendResolved = True
-        elif ntwkObj.name:
-            relTypeObj = validateQNameReference(compMdl, ntwkObj, "relationshipTypeName", XbrlRelationshipType)
-        if not relTypeObj:
-            continue
-        ntwkCt = {}
-        for rootQn in ntwkObj.roots:
-            validateQNameReference(compMdl, ntwkObj, "roots", qnRef=rootQn,
-                                   undefinedMessage=_("The network %(name)s root %(qname)s must be defined in the taxonomy model."),
-                                   errorArgs={"name": ntwkObj.name, "qname": rootQn})
-            ntwkCt[rootQn] = ntwkCt.get(rootQn, 0) + 1
-        if any(ct > 1 for root, ct in ntwkCt.items()):
-            compMdl.error("oimte:duplicateItemsInSet",
-                          _("The network %(name)s has duplicated roots %(roots)s"),
-                          xbrlObject=ntwkObj, roots=", ".join(str(root) for root, ct in ntwkCt.items() if ct > 1))
-
-        ntwkCt = {}
-        sources = OrderedSet()
-        targets = OrderedSet()
-        for i, relObj in enumerate(ntwkObj.relationships):
-            assertObjectType(compMdl, relObj, XbrlRelationship)
-            if  relObj.source not in compMdl.namedObjects or relObj.target not in compMdl.namedObjects:
-                validateQNameReference(compMdl, relObj, "source", qnRef=relObj.source,
-                                       undefinedMessage=_("The network %(name)s relationship[%(nbr)s] source %(qname)s must be defined in the taxonomy model."),
-                                       errorArgs={"name": ntwkObj.name, "nbr": i, "qname": relObj.source})
-                validateQNameReference(compMdl, relObj, "target", qnRef=relObj.target,
-                                       undefinedMessage=_("The network %(name)s relationship[%(nbr)s] target %(qname)s must be defined in the taxonomy model."),
-                                       errorArgs={"name": ntwkObj.name, "nbr": i, "qname": relObj.target})
-            else:
-                sources.add(relObj.source)
-                targets.add(relObj.target)
-                if extendTargetObj is not None:
-                    extendTargetObj.relationships.add(relObj)
-            validateProperties(compMdl, oimFile, module, relObj)
-            relObjPrefLbl = validateQNameReference(compMdl, relObj, "preferredLabel", XbrlLabelType, isOptional=True)
-            relKey = (relObj.source, relObj.target, relObjPrefLbl, relObj.order)
-            ntwkCt[relKey] = ntwkCt.get(relKey, 0) + 1
-        if any(ct > 1 for relKey, ct in ntwkCt.items()):
-            compMdl.error("oimte:duplicateItemsInSet",
-                      _("The network %(name)s has duplicated relationships %(names)s"),
-                      xbrlObject=ntwkObj, name=ntwkObj.name,
-                      names=", ".join(f"{relFrom}\u2192{relTo}{f' [{str(prefLbl)}]' if prefLbl else ''} ord {str(ordr)}"
-                                      for (relFrom, relTo, prefLbl, ordr), ct in ntwkCt.items() if ct > 1))
-        ntwkObj._rootsFound = sources - targets
-        if ntwkObj.roots:
-            undeclaredRoots = ntwkObj._rootsFound - ntwkObj.roots
-            if undeclaredRoots:
-                compMdl.error("oimte:invalidNetworkRoot",
-                          _("The network %(name)s network object roots property does not include these undeclared relationship roots: %(undeclaredRoots)s"),
-                          xbrlObject=ntwkObj, name=ntwkObj.name, undeclaredRoots=", ".join(sorted(str(r) for r in undeclaredRoots)))
-            # roots MUST NOT appear as targets (spec rule, !!oimte:networkCyclic)
-            rootsAsTargets = ntwkObj.roots & targets
-            if rootsAsTargets:
-                compMdl.error("oimte:networkCyclic",
-                          _("The network %(name)s has root(s) %(roots)s appearing as relationship targets."),
-                          xbrlObject=ntwkObj, name=ntwkObj.name, roots=", ".join(sorted(str(r) for r in rootsAsTargets)))
-        else:
-            ntwkObj.roots = ntwkObj._rootsFound # not specified so use actual roots
-        validateProperties(compMdl, oimFile, module, ntwkObj)
-        del ntwkCt
-
-    # PropertyType Objects
-    for i, propTpObj in enumerate(module.propertyTypes):
-        assertObjectType(compMdl, propTpObj, XbrlPropertyType)
-        dataTypeObj = validateQNameReference(compMdl, propTpObj, "dataType", (XbrlDataType, XbrlCollectionType))
-        if not dataTypeObj:
-            continue
-        if dataTypeObj and propTpObj.enumerationDomain:
-            if dataTypeObj.xsBaseType(compMdl) != "QName":
-                compMdl.error("oimte:invalidQNameReference",
-                          _("The propertyType %(name)s dataType %(qname)s MUST be a valid dataType object in the taxonomy model"),
-                          xbrlObject=propTpObj, name=propTpObj.name, qname=propTpObj.dataType)
-            validateQNameReference(compMdl, propTpObj, "enumerationDomain", XbrlDomain)
-        for allowedObjQn in propTpObj.allowedObjects:
-            if allowedObjQn not in objectsWithProperties:
-                compMdl.error("oimte:invalidAllowedObject",
-                          _("The property %(name)s has an invalid allowed object %(allowedObj)s"),
-                          xbrlObject=propTpObj, name=propTpObj.name, allowedObj=allowedObjQn)
-
-    # RelationshipType Objects
-    for relTpObj in module.relationshipTypes:
-        assertObjectType(compMdl, relTpObj, XbrlRelationshipType)
-        for prop in ("allowedLinkProperties", "requiredLinkProperties"):
-            for propTpQn in getattr(relTpObj, prop):
-                validateQNameReference(compMdl, relTpObj, prop, XbrlPropertyType, qnRef=propTpQn)
-        if relTpObj.allowedLinkProperties:
-            reqdNotAllowed = relTpObj.requiredLinkProperties - relTpObj.allowedLinkProperties
-            if reqdNotAllowed:
-                compMdl.error("oimte:requiredPropertyNotAllowed",
-                          _("The relationshipType %(name)s has required properties which are not allowed %(propTypes)s"),
-                          xbrlObject=relTpObj, name=relTpObj.name, propTypes=", ".join(str(q) for q in reqdNotAllowed))
+    # Network, PropertyType and RelationshipType Objects
+    validateNetworkFamily(compMdl, module, oimFile, **familyKwargs)
 
     # Reference Objects
     refsWithInvalidRelName = []
