@@ -276,8 +276,7 @@ def escapedNode(
         tagName = str(elt.qname)
     s.append(tagName)
     if start or empty:
-        assert resolveHtmlUri is not None
-        if elt.localName == "object" and (value := elt.get("codebase")) is not None: # resolve codebase before other element names
+        if elt.localName == "object" and (value := elt.get("codebase")): # resolve codebase before other element names
             # 2022-09-15: not sure about this one, but seems that
             # elt.get("codebase") should be the value arg for resolveHtmlUri
             elt.set("codebase", resolveHtmlUri(elt, "codebase", value))
