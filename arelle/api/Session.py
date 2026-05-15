@@ -80,7 +80,8 @@ class Session:
 
     def get_log_messages(self) -> list[dict[str, Any]]:
         """
-        :return: Raw log records (messages) from the session.
+        Returns structured log messages from the session's log handler if it supports structured messages (e.g., StructuredMessageLogHandler).
+        :return: Structured log messages from the session.
         """
         if not self._cntlr or not self._cntlr.logHandler:
             return []
