@@ -24,7 +24,7 @@ htmlEltUriAttrs: dict[str, set[str]] = { # attributes with URI content (for rela
     "input": {"src", "usemap"},
     "ins": {"cite"},
     "img": {"src", "longdesc", "usemap"},
-    "object": {"codebase", "classid", "data", "archive", "usemap"}, # codebase must be first to reolve others
+    "object": {"codebase", "classid", "data", "archive", "usemap"}, # codebase must be first to resolve others
     "q": {"cite"},
 }
 
@@ -108,13 +108,11 @@ def resolveHtmlUri(elt: ModelObject, name: str, value: str) -> str:
     if (
         elt.localName == "object"
         and name in ("classid", "data", "archiveListElement")
-        and (base := elt.get("codebase")) is not None
+        and (base := elt.get("codebase"))
     ):
         base = base + "/"
     else:
-        base = str(
-            getattr(elt.modelDocument, "htmlBase", "")
-        )
+        base = getattr(elt.modelDocument, "htmlBase", None) or ""
 
     _uri = urljoin(base, value)
     return _uri
