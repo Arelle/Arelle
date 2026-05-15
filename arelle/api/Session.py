@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 import threading
 from types import TracebackType
-from typing import Any, BinaryIO, TypeVar
+from typing import Any, BinaryIO, TypeVar, Literal
 
 from arelle import PackageManager, PluginManager
 from arelle.CntlrCmdLine import CntlrCmdLine, createCntlrAndPreloadPlugins
@@ -75,7 +75,7 @@ class Session:
             return []
         return getattr(self._cntlr.logHandler, 'messages', [])
 
-    def get_logs(self, log_format: str, clear_logs: bool = False) -> str:
+    def get_logs(self, log_format: Literal['json', 'text', 'xml'], clear_logs: bool = False) -> str:
         """
         Retrieve logs as a string in the configured format.
         Raises a `ValueError` if the log format is not supported by the current log handler.
