@@ -78,7 +78,9 @@ class PluginValidationDataExtension(PluginData):
     fixedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn: QName
     jpcrpEsrFilingDateCoverPageQn: QName
     jpcrpFilingDateCoverPageQn: QName
+    jplvhFilingDateCoverPageQn: QName
     jpspsFilingDateCoverPageQn: QName
+    jptoiFilingDateCoverPageQn: QName
     issuedSharesTotalNumberOfSharesEtcQn: QName
     nonConsolidatedMemberQn: QName
     nonMonetaryRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn: QName
@@ -105,7 +107,10 @@ class PluginValidationDataExtension(PluginData):
     def __init__(self, name: str, validateXbrl: ValidateXbrl):
         super().__init__(name)
 
-        self.namespaces = NamespaceConfig()
+        disclosureSystemName = validateXbrl.disclosureSystem.name
+        assert disclosureSystemName is not None, \
+            f"Disclosure system is required: {disclosureSystemName}"
+        self.namespaces = NamespaceConfig(disclosureSystemName)
 
         # QNames
         self.accountingStandardsDeiQn = qname(self.namespaces.jpdei, 'AccountingStandardsDEI')
@@ -125,7 +130,9 @@ class PluginValidationDataExtension(PluginData):
         self.issuedSharesTotalNumberOfSharesEtcQn = qname(self.namespaces.jpcrp, 'IssuedSharesTotalNumberOfSharesEtcTextBlock')
         self.jpcrpEsrFilingDateCoverPageQn = qname(self.namespaces.jpcrpEsr, 'FilingDateCoverPage')
         self.jpcrpFilingDateCoverPageQn = qname(self.namespaces.jpcrp, 'FilingDateCoverPage')
+        self.jplvhFilingDateCoverPageQn = qname(self.namespaces.jplvh, 'FilingDateCoverPage')
         self.jpspsFilingDateCoverPageQn = qname(self.namespaces.jpsps, 'FilingDateCoverPage')
+        self.jptoiFilingDateCoverPageQn = qname(self.namespaces.jptoi, 'FilingDateCoverPage')
         self.nonConsolidatedMemberQn = qname(self.namespaces.jppfs, "NonConsolidatedMember")
         self.nonMonetaryRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "NonMonetaryRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficers")
         self.otherRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "OtherRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")
@@ -177,12 +184,23 @@ class PluginValidationDataExtension(PluginData):
         return bool(statement.isConsolidated == contextIsConsolidated)
 
     def _initializeDocument(self, uri: str, modelDocument: ModelDocument, modelXbrl: ModelXbrl) -> None:
-        docPath = Path(uri)
         basePath = Path(str(modelXbrl.fileSource.basefile))
-        if not docPath.is_relative_to(basePath):
+
+        def relativeToBase(path: Path) -> Path | None:
+            if path.is_relative_to(basePath):
+                return path.relative_to(basePath)
+            resolvedPath = path.resolve()
+            resolvedBasePath = basePath.resolve()
+            if resolvedPath.is_relative_to(resolvedBasePath):
+                return resolvedPath.relative_to(resolvedBasePath)
+            return None
+
+        docRelativePath = relativeToBase(Path(uri))
+        if docRelativePath is None:
             return
         controllerPluginData = ControllerPluginData.get(modelXbrl.modelManager.cntlr, self.name)
-        controllerPluginData.addUsedFilepath(docPath.relative_to(basePath))
+        controllerPluginData.addUsedFilepath(docRelativePath)
+        documentFullPath = basePath / docRelativePath
         for elt, name, value in self.getUriAttributeValues(modelDocument):
             self._uriReferences.append(UriReference(
                 attributeName=name,
@@ -190,9 +208,9 @@ class PluginValidationDataExtension(PluginData):
                 document=modelDocument,
                 element=elt,
             ))
-            fullPath = (Path(modelDocument.uri).parent / value).resolve()
-            if fullPath.is_relative_to(basePath):
-                fileSourcePath = fullPath.relative_to(basePath)
+            fullPath = Path(os.path.normpath(documentFullPath.parent / value))
+            fileSourcePath = relativeToBase(fullPath)
+            if fileSourcePath is not None:
                 controllerPluginData.addUsedFilepath(fileSourcePath)
             referenceUri = str(fullPath)
             if (
@@ -325,7 +343,7 @@ class PluginValidationDataExtension(PluginData):
         manifestInstance = self.getManifestInstance(modelXbrl)
         if manifestInstance is None:
             return None
-        if any(e is not None and e.startswith('EDINET.EC5800E') for e in modelXbrl.errors):
+        if any(e is not None and e.startswith('EDINET.EC5800E') for e in modelXbrl.errors):  # type: ignore[union-attr]
             # Manifest TOC parsing failed, so cannot determine cover items.
             return None
         assert len(manifestInstance.tocItems) == 1, _("Only one TOC item should be associated with this instance.")

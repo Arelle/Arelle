@@ -7,7 +7,7 @@ import zipfile
 from pathlib import Path
 from shutil import rmtree
 
-from tests.integration_tests.integration_test_util import get_s3_uri
+from tests.integration_tests.integration_test_util import download_from_public_s3
 from tests.integration_tests.scripts.script_util import parse_args, validate_log_file, assert_result, prepare_logfile, run_arelle_webserver
 
 errors = []
@@ -27,13 +27,12 @@ samples_zip_path = test_directory / 'samples.zip'
 samples_directory = test_directory / 'samples'
 target_path = samples_directory / "samples/src/ixds-test/document1.html"
 viewer_path = test_directory / "viewer.html"
-report_zip_url = get_s3_uri(
-    'ci/packages/IXBRLViewerSamples.zip',
-    version_id='6eS7qUUoWLeM9JSSTXOfANkHoLz1Zv5o'
-)
-
 print(f"Downloading samples: {samples_zip_path}")
-urllib.request.urlretrieve(report_zip_url, samples_zip_path)
+download_from_public_s3(
+    samples_zip_path,
+    "ci/packages/IXBRLViewerSamples.zip",
+    version_id="6eS7qUUoWLeM9JSSTXOfANkHoLz1Zv5o",
+)
 
 print(f"Extracting samples: {samples_directory}")
 with zipfile.ZipFile(samples_zip_path, "r") as zip_ref:
@@ -41,13 +40,12 @@ with zipfile.ZipFile(samples_zip_path, "r") as zip_ref:
 
 contents = ''
 port = 8100
-with run_arelle_webserver(arelle_command, port) as proc:
+with run_arelle_webserver(arelle_command, port, offline=arelle_offline) as proc:
     target_url = urllib.parse.quote_plus(str(target_path))
     url = f"http://localhost:{port}/rest/xbrl/{target_url}/open?media=xml"
     url += "&plugins=ixbrl-viewer"
     url += "&viewer_feature_review=true"
     url += f"&saveViewerDest={urllib.parse.quote_plus(str(viewer_path))}"
-    url += f"&internetConnectivity={'false' if arelle_offline else 'true'}"
     url += f"&logFile={urllib.parse.quote_plus(str(arelle_log_file))}"
     print(f"Generating IXBRL viewer: {url}")
     contents = urllib.request.urlopen(url).read()

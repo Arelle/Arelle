@@ -172,7 +172,7 @@ class PluginValidationDataExtension(PluginData):
         if isinstance(sourceDomMbr, ModelConcept) and sourceDomMbr not in membersSet:
             membersSet.add(sourceDomMbr)
             for domMbrRel in modelXbrl.relationshipSet(XbrlConst.domainMember, ELR).fromModelObject(sourceDomMbr):
-                self.addDomMbrs(modelXbrl, domMbrRel.toModelObject, domMbrRel.consecutiveLinkrole, membersSet)
+                self.addDomMbrs(modelXbrl, domMbrRel.toModelObject, domMbrRel.consecutiveLinkrole, membersSet)  # type: ignore[arg-type]
 
 
     @lru_cache(1)
@@ -189,10 +189,10 @@ class PluginValidationDataExtension(PluginData):
                 if not labelrole:
                     conceptRels[child].append(rel)
                 if child not in visited:
-                    self.checkLabels(issues, modelXbrl, child, relSet, labelrole, visited)
+                    self.checkLabels(issues, modelXbrl, child, relSet, labelrole, visited)  # type: ignore[arg-type]
         for concept, rels in conceptRels.items():
             if len(rels) > 1:
-                issues.add(concept)
+                issues.add(concept)  # type: ignore[arg-type]
         visited.remove(parent)
         return issues
 
@@ -269,7 +269,7 @@ class PluginValidationDataExtension(PluginData):
                     if elt.xmlLang is not None:
                         for rel in footnotesRelationshipSet.toModelObject(elt):
                             if rel.fromModelObject is not None:
-                                fromObj = cast(ModelObject, rel.fromModelObject)
+                                fromObj = rel.fromModelObject
                                 lang = cast(str, elt.xmlLang)
                                 factLangFootnotes[fromObj].add(lang)
                 if elt.tag == ixTupleTag:
@@ -352,12 +352,13 @@ class PluginValidationDataExtension(PluginData):
                     if elr in elrsContainingDimensionalRelationships:
                         anchorsInDimensionalElrs[elr].add(anchoringRel)
 
+                assert toObj.type.qname is not None, "toObj.type.qname is None"
                 if not (
                     # Reporting Manual 4.3.1
                     # exact data type match
                     fromObj.type.qname == toObj.type.qname
                     # extension element uses a derived type of the taxonomy element's type
-                    or toObj.type.isDerivedFrom(fromObj.type.qname)
+                    or toObj.type.isDerivedFrom(fromObj.type.qname)  # type: ignore[arg-type]
                     # extension element uses an XBRL base type of the taxonomy element's derived type
                     or (
                         toObj.type.qname.namespaceURI == XbrlConst.xbrli and
@@ -373,7 +374,7 @@ class PluginValidationDataExtension(PluginData):
             anchorsWithDomainItem=frozenset(anchorsWithDomainItem),
             extLineItemsNotAnchored=frozenset(extLineItemsNotAnchored),
             extLineItemsWronglyAnchored=frozenset(extLineItemsWronglyAnchored),
-            extConceptsNotAnchoredToSameDerivedType=frozenset(extConceptsNotAnchoredToSameDerivedType),
+            extConceptsNotAnchoredToSameDerivedType=frozenset(extConceptsNotAnchoredToSameDerivedType),  # type: ignore[arg-type]
         )
 
 
@@ -422,21 +423,21 @@ class PluginValidationDataExtension(PluginData):
             hasHypercubeRelationships = modelXbrl.relationshipSet(hasHypercubeArcrole).fromModelObjects()
             for hasHcRels in hasHypercubeRelationships.values():
                 for hasHcRel in hasHcRels:
-                    sourceConcept: ModelConcept = hasHcRel.fromModelObject
+                    sourceConcept: ModelConcept = hasHcRel.fromModelObject  # type: ignore[assignment]
                     hcPrimaryItems.add(sourceConcept)
                     # find associated primary items to source concept
                     for domMbrRel in modelXbrl.relationshipSet(XbrlConst.domainMember).fromModelObject(sourceConcept):
                         if domMbrRel.consecutiveLinkrole == hasHcRel.linkrole: # only those related to this hc
-                            self.addDomMbrs(modelXbrl, domMbrRel.toModelObject, domMbrRel.consecutiveLinkrole, hcPrimaryItems)
+                            self.addDomMbrs(modelXbrl, domMbrRel.toModelObject, domMbrRel.consecutiveLinkrole, hcPrimaryItems)  # type: ignore[arg-type]
                     primaryItems.update(hcPrimaryItems)
                     hc = hasHcRel.toModelObject
-                    for hcDimRel in modelXbrl.relationshipSet(XbrlConst.hypercubeDimension, hasHcRel.consecutiveLinkrole).fromModelObject(hc):
+                    for hcDimRel in modelXbrl.relationshipSet(XbrlConst.hypercubeDimension, hasHcRel.consecutiveLinkrole).fromModelObject(hc):  # type: ignore[arg-type]
                         dim = hcDimRel.toModelObject
                         if isinstance(dim, ModelConcept):
                             for dimDomRel in modelXbrl.relationshipSet(XbrlConst.dimensionDomain, hcDimRel.consecutiveLinkrole).fromModelObject(dim):
                                 dom = dimDomRel.toModelObject
                                 if isinstance(dom, ModelConcept):
-                                    self.addDomMbrs(modelXbrl, dom, dimDomRel.consecutiveLinkrole, hcMembers)
+                                    self.addDomMbrs(modelXbrl, dom, dimDomRel.consecutiveLinkrole, hcMembers)  # type: ignore[arg-type]
                     domainMembers.update(hcMembers)
                     if hasHcRel.linkrole in NON_DIMENSIONALIZED_LINE_ITEM_LINKROLES or hcMembers:
                         for hcPrimaryItem in hcPrimaryItems:
@@ -448,8 +449,8 @@ class PluginValidationDataExtension(PluginData):
                     hcMembers.clear()
         return DimensionalData(
             domainMembers=frozenset(domainMembers),
-            elrPrimaryItems=elrPrimaryItems,
-            primaryItemElrs=primaryItemElrs,
+            elrPrimaryItems=elrPrimaryItems,  # type: ignore[arg-type]
+            primaryItemElrs=primaryItemElrs,  # type: ignore[arg-type]
             primaryItems=frozenset(primaryItems),
         )
 

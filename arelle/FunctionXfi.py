@@ -452,11 +452,11 @@ def conceptProperty(
         modelConcept = xc.modelXbrl.qnameConcepts.get(cast(QName, qn))
         if modelConcept is not None:
             if property == "numeric":
-                return cast(bool, modelConcept.isNumeric) or cast(bool, modelConcept.isFraction)
+                return modelConcept.isNumeric or modelConcept.isFraction
             if property == "non-numeric":
                 return modelConcept.isItem and not (modelConcept.isNumeric or modelConcept.isFraction)
             if property == "fraction":
-                return cast(bool, modelConcept.isFraction)
+                return modelConcept.isFraction
     return False
 
 
@@ -982,7 +982,7 @@ def concept_data_type(
     typeQname = concept(xc, p, args).typeQname
     if typeQname is None or typeQname.localName.endswith(anonymousTypeSuffix):
         return ()
-    return cast(QName, typeQname)
+    return typeQname
 
 
 def concept_data_type_derived_from(
@@ -1015,12 +1015,12 @@ def concepts_from_local_name(
     if len(args) == 2:
         nsPattern = re.compile(stringArg(xc, args, 1, "xs:string"))
         return [
-            c.qname
+            c.qname  # type: ignore[misc]
             for c in xc.modelXbrl.nameConcepts.get(localName, ())
-            if (c.isItem or c.isTuple) and bool(nsPattern.search(c.qname.namespaceURI))
+            if (c.isItem or c.isTuple) and bool(nsPattern.search(c.qname.namespaceURI))  # type: ignore[union-attr,arg-type]
         ]
     else:
-        return [c.qname for c in xc.modelXbrl.nameConcepts.get(localName, ()) if c.isItem or c.isTuple]
+        return [c.qname for c in xc.modelXbrl.nameConcepts.get(localName, ()) if c.isItem or c.isTuple]  # type: ignore[misc]
 
 
 def concepts_from_local_name_pattern(
@@ -1034,17 +1034,17 @@ def concepts_from_local_name_pattern(
     if len(args) == 2:
         nsPattern = re.compile(stringArg(xc, args, 1, "xs:string"))
         return [
-            c.qname
+            c.qname  # type: ignore[misc]
             for c in xc.modelXbrl.qnameConcepts.values()
             if (c.isItem or c.isTuple)
-            and bool(localNamePattern.search(c.name))
-            and bool(nsPattern.search(c.qname.namespaceURI))
+            and bool(localNamePattern.search(c.name))  # type: ignore[arg-type]
+            and bool(nsPattern.search(c.qname.namespaceURI))  # type: ignore[union-attr,arg-type]
         ]
     else:
         return [
-            c.qname
+            c.qname  # type: ignore[misc]
             for c in xc.modelXbrl.qnameConcepts.values()
-            if (c.isItem or c.isTuple) and bool(localNamePattern.search(c.name))
+            if (c.isItem or c.isTuple) and bool(localNamePattern.search(c.name))  # type: ignore[arg-type]
         ]
 
 
@@ -1256,8 +1256,9 @@ def dimension_default(xc: XPathContext.XPathContext, p: OperationDef, args: XPat
             _("Argument 1 {0} is not a dimension.").format(qnDim),
         )
     for dimDefRel in xc.modelXbrl.relationshipSet(XbrlConst.dimensionDefault).fromModelObject(dimConcept):
-        dimConcept = dimDefRel.toModelObject
+        dimConcept = dimDefRel.toModelObject  # type: ignore[assignment]
         if dimConcept is not None and dimConcept.isDomainMember:
+            assert dimConcept.qname is not None
             return [dimConcept.qname]
     return []
 
@@ -1466,9 +1467,9 @@ def fact_dimension_s_equal2(xc: XPathContext.XPathContext, p: OperationDef, args
             dimValue1 = context1.dimValue(qn)  # type: ignore[no-untyped-call]
             dimValue2 = context2.dimValue(qn)  # type: ignore[no-untyped-call]
             if dimValue1 is not None and isinstance(dimValue1, ModelDimensionValue):
-                return dimValue1.isEqualTo(dimValue2, equalMode=XbrlUtil.S_EQUAL2)  # type: ignore[no-any-return]
+                return dimValue1.isEqualTo(dimValue2, equalMode=XbrlUtil.S_EQUAL2)  # type: ignore[no-any-return, no-untyped-call]
             elif dimValue2 is not None and isinstance(dimValue2, ModelDimensionValue):
-                return dimValue2.isEqualTo(dimValue1, equalMode=XbrlUtil.S_EQUAL2)  # type: ignore[no-any-return]
+                return dimValue2.isEqualTo(dimValue1, equalMode=XbrlUtil.S_EQUAL2)  # type: ignore[no-any-return, no-untyped-call]
             return dimValue1 == dimValue2
         raise XPathContext.FunctionArgType(2, "xbrl:item")
     raise XPathContext.FunctionArgType(1, "xbrl:item")
@@ -1676,13 +1677,14 @@ def concept_relationships(
             if generations > 1:
                 generations -= 1
         elif axis == "descendant":
-            rels = relationshipSet.fromModelObject(srcConcept)
+            rels = relationshipSet.fromModelObject(srcConcept)  # type: ignore[arg-type]
         elif axis == "ancestor":  # includes first pass on parents of object to get sibling
-            rels = relationshipSet.toModelObject(srcConcept)
+            rels = relationshipSet.toModelObject(srcConcept)  # type: ignore[arg-type]
         elif axis in ("sibling", "sibling-or-descendant", "sibling-or-self", "sibling-or-descendant-or-self"):
-            rels = relationshipSet.toModelObject(srcConcept)
+            rels = relationshipSet.toModelObject(srcConcept)  # type: ignore[arg-type]
             if rels:
                 relToSelf = rels[0]
+                assert relToSelf.fromModelObject is not None, "relToSelf.fromModelObject is None"
                 rels = relationshipSet.fromModelObject(relToSelf.fromModelObject)
                 if axis == "sibling-or-self":
                     return rels
@@ -1720,7 +1722,7 @@ def concept_relationships(
                         return rootQNs
                     if axis == "sibling":
                         return [c for c in rootQNs if c != qnSource]
-                    rels = relationshipSet.fromModelObject(srcConcept)
+                    rels = relationshipSet.fromModelObject(srcConcept)  # type: ignore[arg-type]
                     # get descendants
                     if generations == 0:
                         g = 0
@@ -1882,7 +1884,7 @@ def distinct_nonAbstract_parent_concepts(
                 and not toModelObject.isAbstract
             ):
                 result.add(fromModelObject.qname)
-    return result
+    return result  # type: ignore[return-value]
 
 
 def relationship_element_attribute(

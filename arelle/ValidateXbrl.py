@@ -102,11 +102,25 @@ class ValidateXbrl:
         self.validateEFMorGFMorSBRNL = self.validateEFMorGFM or self.validateSBRNL
         self.validateXmlLang = self.validateDisclosureSystem and self.disclosureSystem.xmlLangPattern
         self.validateCalcs = modelXbrl.modelManager.validateCalcs
-        self.validateUTR = (modelXbrl.modelManager.validateUtr or
-                            (self.parameters and self.parameters.get(qname("forceUtrValidation",noPrefixIsNoNamespace=True),(None,"false"))[1] == "true") or
-                            (self.validateEFM and
-                             any((concept.qname.namespaceURI in self.disclosureSystem.standardTaxonomiesDict and concept.modelDocument.inDTS)
-                                 for concept in self.modelXbrl.nameConcepts.get("UTR",()))))
+        self.validateUTR = (
+            modelXbrl.modelManager.validateUtr
+            or (
+                self.parameters
+                and self.parameters.get(qname("forceUtrValidation", noPrefixIsNoNamespace=True), (None, "false"))[1]
+                == "true"
+            )
+            or (
+                self.validateEFM
+                and any(
+                    (
+                        concept.qname is not None
+                        and concept.qname.namespaceURI in self.disclosureSystem.standardTaxonomiesDict
+                        and concept.modelDocument.inDTS
+                    )
+                    for concept in self.modelXbrl.nameConcepts.get("UTR", ())
+                )
+            )
+        )
         self.validateIXDS = False # set when any inline document found
         self.validateEnum = bool(XbrlConst.enums & modelXbrl.namespaceDocs.keys())
         self.validateDuplicateFacts = modelXbrl.modelManager.validateDuplicateFacts
@@ -133,6 +147,7 @@ class ValidateXbrl:
         # check base set cycles, dimensions
         modelXbrl.modelManager.showStatus(_("validating relationship sets"))
         for baseSetKey in modelXbrl.baseSets.keys():
+            cyclesAllowed: str | None
             arcrole, ELR, linkqname, arcqname = baseSetKey
             if arcrole.startswith("XBRL-") or ELR is None or \
                 linkqname is None or arcqname is None:
@@ -174,8 +189,9 @@ class ValidateXbrl:
                                     break
 
                             reversed_list = reversed(cycleFound[1:pathEndsAt])
+                            assert loopedModelObject is not None, "loopedModelObject is None"
                             path = str(loopedModelObject.qname) + " " + " - ".join(
-                                "{0}:{1} {2}".format(rel.modelDocument.basename, rel.sourceline, rel.toModelObject.qname)
+                                "{0}:{1} {2}".format(rel.modelDocument.basename, rel.sourceline, rel.toModelObject.qname)  # type: ignore[union-attr]
                                 for rel in reversed_list)
 
                             modelXbrl.error(cast(str, specSect),
@@ -195,13 +211,13 @@ class ValidateXbrl:
                         toConcept = modelRel.toModelObject
                         if fromConcept is not None and toConcept is not None:
                             if weight == 0:
-                                modelXbrl.error("xbrl.5.2.5.2.1:zeroWeight", # type: ignore[func-returns-value]
+                                modelXbrl.error("xbrl.5.2.5.2.1:zeroWeight",  # type: ignore[func-returns-value]
                                     _("Calculation relationship has zero weight from %(source)s to %(target)s in link role %(linkrole)s"),
                                     modelObject=modelRel,
                                     source=fromConcept.qname, target=toConcept.qname, linkrole=ELR),
                             fromBalance = fromConcept.balance
                             toBalance = toConcept.balance
-                            if fromBalance and toBalance:
+                            if fromBalance and toBalance and weight is not None:
                                 if (fromBalance == toBalance and weight < 0) or \
                                 (fromBalance != toBalance and weight > 0):
                                     modelXbrl.error("xbrl.5.1.1.2:balanceCalcWeightIllegal" +
@@ -1022,8 +1038,8 @@ class ValidateXbrl:
             relTo = rel.toModelObject
             if relTo in fromConcepts: #forms a directed cycle
                 return [cycleType,rel]
-            fromConcepts.add(relTo)
-            nextRels = relsSet.fromModelObject(relTo)
+            fromConcepts.add(relTo)  # type: ignore[arg-type]
+            nextRels = relsSet.fromModelObject(relTo)  # type: ignore[arg-type]
             foundCycle = self.fwdCycle(relsSet, nextRels, noUndirected, fromConcepts)
             if foundCycle is not None:
                 foundCycle.append(rel)
@@ -1031,7 +1047,7 @@ class ValidateXbrl:
             fromConcepts.discard(relTo)
             # look for back path in any of the ELRs visited (pass None as ELR)
             if noUndirected:
-                foundCycle = self.revCycle(relsSet, relTo, rel, fromConcepts)
+                foundCycle = self.revCycle(relsSet, relTo, rel, fromConcepts)  # type: ignore[arg-type]
                 if foundCycle is not None:
                     foundCycle.append(rel)
                     return foundCycle
@@ -1049,12 +1065,12 @@ class ValidateXbrl:
                 relFrom = rel.fromModelObject
                 if relFrom in fromConcepts:
                     return ["undirected",rel]
-                fromConcepts.add(relFrom)
-                foundCycle = self.revCycle(relsSet, relFrom, turnbackRel, fromConcepts)
+                fromConcepts.add(relFrom)  # type: ignore[arg-type]
+                foundCycle = self.revCycle(relsSet, relFrom, turnbackRel, fromConcepts)  # type: ignore[arg-type]
                 if foundCycle is not None:
                     foundCycle.append(rel)
                     return foundCycle
-                fwdRels = relsSet.fromModelObject(relFrom)
+                fwdRels = relsSet.fromModelObject(relFrom)  # type: ignore[arg-type]
                 foundCycle = self.fwdCycle(relsSet, fwdRels, True, fromConcepts, cycleType="undirected", revCycleRel=rel)
                 if foundCycle is not None:
                     foundCycle.append(rel)

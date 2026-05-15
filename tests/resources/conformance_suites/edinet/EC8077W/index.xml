@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../testcase.xsl"?>
+<testcase
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://xbrl.org/2005/conformance"
+        name="EDINET.EC8077W"
+        description="EDINET.EC8077W: For semi-annual securities reports, the financial statements must be tagged using the appropriate semi-annual role URIs that match the WhetherConsolidatedFinancialStatementsArePreparedDEI value."
+        outpath=''
+        owner="support@arelle.org"
+        xsi:schemaLocation="http://xbrl.org/2005/conformance https://www.xbrl.org/2005/conformance.xsd">
+    <variation id="invalid01" name="invalid01">
+        <description>
+            Form 4-3 semi-annual report, Japan GAAP, WhetherConsolidatedFinancialStatementsArePreparedDEI=true,
+            but consolidated financial statements are tagged using annual (rol_Consolidated*) role URIs
+            instead of the required semi-annual (rol_SemiAnnualConsolidated*) role URIs.
+            <!--Based on valid04.zip with consolidated semi-annual presentation/calculation/definition roles renamed to annual variants.-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid01.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8050W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8069W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8077W</warning>
+        </result>
+    </variation>
+    <variation id="invalid02" name="invalid02">
+        <description>
+            Form 4-3 semi-annual report, Japan GAAP, WhetherConsolidatedFinancialStatementsArePreparedDEI=false,
+            but non-consolidated financial statements are tagged using annual (rol_BalanceSheet, rol_StatementOfIncome,
+            rol_StatementOfCashFlows-indirect) role URIs instead of the required semi-annual (rol_Type1SemiAnnual*) role URIs.
+            <!--Based on valid05.zip with non-consolidated Type1 semi-annual presentation/calculation/definition roles renamed to annual variants.-->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid02.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC8043W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8045W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8069W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8077W</warning>
+        </result>
+    </variation>
+</testcase>

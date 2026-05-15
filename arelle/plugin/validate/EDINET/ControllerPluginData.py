@@ -14,7 +14,7 @@ import regex
 
 from arelle.Cntlr import Cntlr
 from arelle.FileSource import FileSource
-from arelle.ModelValue import QName, TypeXValue
+from arelle.ModelValue import QName, TypeXValue, qname
 from arelle.ModelXbrl import ModelXbrl
 from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
@@ -45,9 +45,9 @@ class ControllerPluginData(PluginData):
     _uploadContents: UploadContents | None
     _usedFilepaths: set[Path]
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, disclosureSystemName: str):
         super().__init__(name)
-        self.namespaces = NamespaceConfig()
+        self.namespaces = NamespaceConfig(disclosureSystemName)
         # Contents sourced from Section 4-1 of https://disclosure2dl.edinet-fsa.go.jp/guide/static/disclosure/download/ESE140104.pdf
         self._allowedCharacterSheetPath = Path(__file__).parent / "resources" / "allowed-character-sheet.txt"
         self._deiValues = {}
@@ -285,7 +285,11 @@ class ControllerPluginData(PluginData):
         :return:
         """
         for localName in DEI_LOCAL_NAMES:
-            for fact in modelXbrl.factsByLocalName.get(localName, set()):
+            # Some sample filings (#18) tag DEI-like concepts (`jplvh_cor:EDINETCodeDEI`) that
+            # appear to be facts we can ignore for the purposes of most DEI-related validations,
+            # So we will only consider `jpdei_cor` facts.
+            qn = qname(self.namespaces.jpdei, localName)
+            for fact in modelXbrl.factsByQname.get(qn, set()):
                 if not isValidNonNilFact(fact):
                     continue
                 self.setDeiValue(localName, fact.xValue)
@@ -311,7 +315,10 @@ class ControllerPluginData(PluginData):
     def get(cntlr: Cntlr, name: str) -> ControllerPluginData:
         controllerPluginData = cntlr.getPluginData(name)
         if controllerPluginData is None:
-            controllerPluginData = ControllerPluginData(name)
+            disclosureSystemName = cntlr.modelManager.disclosureSystem.name
+            assert disclosureSystemName is not None, \
+                f"Disclosure system is required: {disclosureSystemName}"
+            controllerPluginData = ControllerPluginData(name, disclosureSystemName)
             cntlr.setPluginData(controllerPluginData)
         assert isinstance(controllerPluginData, ControllerPluginData), "Expected ControllerPluginData instance."
         return controllerPluginData

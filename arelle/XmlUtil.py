@@ -427,7 +427,7 @@ def ancestorOrSelfAttr(element: ModelObject, attrClarkName: str) -> str | None:
 
 def childAttr(
     element: ModelObject,
-    childNamespaceURI: str,
+    childNamespaceURI: str | tuple[str, ...] | None,
     childLocalNames: str | tuple[str, ...],
     attrClarkName: str
 ) -> str | None:
@@ -649,7 +649,7 @@ def schemaBaseTypeDerivedFrom(
 
 def schemaFacets(
     element: etree._Element,
-    facetTags: list[str],
+    facetTags: list[str] | tuple[str, ...],
     facets: list[etree._Element | None] | None = None
 ) -> list[etree._Element | None]:
     if facets is None: facets = []

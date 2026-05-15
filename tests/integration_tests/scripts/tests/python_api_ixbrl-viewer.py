@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 import os
-import urllib.request
 from logging import LogRecord
 from pathlib import Path
 
@@ -10,7 +9,7 @@ from arelle.RuntimeOptions import RuntimeOptions
 # include import start
 from arelle.api.Session import Session
 # include import end
-from tests.integration_tests.integration_test_util import get_s3_uri
+from tests.integration_tests.integration_test_util import download_from_public_s3
 from tests.integration_tests.scripts.script_util import parse_args, validate_log_xml, assert_result
 
 errors = []
@@ -28,13 +27,12 @@ test_directory = Path(args.test_directory)
 samples_zip_path = test_directory / 'samples.zip'
 target_path = samples_zip_path / "samples/src/ixds-test/document1.html"
 viewer_path = test_directory / "viewer.html"
-report_zip_url = get_s3_uri(
-    'ci/packages/IXBRLViewerSamples.zip',
-    version_id='6eS7qUUoWLeM9JSSTXOfANkHoLz1Zv5o'
-)
-
 print(f"Downloading samples: {samples_zip_path}")
-urllib.request.urlretrieve(report_zip_url, samples_zip_path)
+download_from_public_s3(
+    samples_zip_path,
+    "ci/packages/IXBRLViewerSamples.zip",
+    version_id="6eS7qUUoWLeM9JSSTXOfANkHoLz1Zv5o",
+)
 
 
 class TestFilter(logging.Filter):

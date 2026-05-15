@@ -864,7 +864,7 @@ class ValidateUK:
                     self.validateUnauditedLLPFullAccounts()
                 else:
                     self.validateUnauditedSmallCompanyFullAccounts()
-        elif self.accountStatus == CONCEPT_AUDITED:
+        else:
             if self.accountsType == CONCEPT_ABRIDGED_ACCOUNTS:
                 if self.legalFormEntity == CONCEPT_LLP:
                     self.validateAuditedAbridgedLLPAccounts()

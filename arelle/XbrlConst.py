@@ -4,30 +4,19 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import os
-import warnings
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import regex as re
 
 from arelle.ModelValue import qname
 from arelle.typing import TypeGetText
+from arelle.utils.deprecation import ModuleDeprecations
 
 if TYPE_CHECKING:
     from arelle.ModelObject import ModelObject
     from arelle.ModelValue import QName
 
 _: TypeGetText
-
-# Defined early but see end of file for entries.
-_DEPRECATED: dict[str, tuple[object, str]] = {}
-
-
-def __getattr__(name: str) -> object:
-    if name in _DEPRECATED:
-        value, message = _DEPRECATED[name]
-        warnings.warn(message, DeprecationWarning, stacklevel=2)
-        return value
-    raise AttributeError(name)
 
 
 xsd = "http://www.w3.org/2001/XMLSchema"
@@ -1169,20 +1158,12 @@ lrrUnapprovedArcroles = {  # lrr entries which are not REC or ACK status
     "http://www.xbrl.org/2005/arcrole/nieRole": "NIE",
 }
 
-_DEPRECATED.update({
-    "tuple":
-        (
-            formulaTuple,
-            "XbrlConst.tuple is deprecated, use XbrlConst.formulaTuple instead."
-        ),
-    "dimStartsWith":
-        (
-            "http://xbrl.org/int/dim",
-            "XbrlConst.dimStartsWith is deprecated, use XbrlConst.isDimensionArcrole() instead."
-        ),
-    "dtrTypesStartsWith":
-        (
-            _dtrTypesStartsWith,
-            "XbrlConst.dtrTypesStartsWith is deprecated, use XbrlConst.isDtrTypeNamespace() instead."
-        )
-})
+
+_DEPRECATIONS = ModuleDeprecations(__name__)
+_DEPRECATIONS.add("tuple", formulaTuple, "use XbrlConst.formulaTuple instead.")
+_DEPRECATIONS.add("dimStartsWith", "http://xbrl.org/int/dim", "use XbrlConst.isDimensionArcrole() instead.")
+_DEPRECATIONS.add("dtrTypesStartsWith", _dtrTypesStartsWith, "use XbrlConst.isDtrTypeNamespace() instead.")
+
+
+def __getattr__(name: str) -> Any:
+    return _DEPRECATIONS.resolve(name)

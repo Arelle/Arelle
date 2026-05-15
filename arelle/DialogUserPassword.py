@@ -8,6 +8,7 @@ except ImportError:
     from ttk import Frame, Button, Label, Entry
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.UiUtil import checkbox, gridCombobox
+from arelle.WebCache import ProxyTuple
 import sys
 import regex as re
 
@@ -23,14 +24,10 @@ def askUserPassword(parent, host, realm, untilDoneEvent, result):
     untilDoneEvent.set()
 
 def askProxy(parent, priorProxySettings):
-    if isinstance(priorProxySettings,(tuple,list)) and len(priorProxySettings) == 5:
-        useOsProxy, urlAddr, urlPort, user, password = priorProxySettings
-    else:
-        useOsProxy = True
-        urlAddr = urlPort = user = password = None
-    dialog = DialogUserPassword(parent, _("Proxy Server"), urlAddr=urlAddr, urlPort=urlPort, useOsProxy=useOsProxy, user=user, password=password, showHost=False, showUrl=True, showUser=True, showRealm=False)
+    proxy = ProxyTuple.coerce(priorProxySettings) or ProxyTuple(useOsProxy=True)
+    dialog = DialogUserPassword(parent, _("Proxy Server"), urlAddr=proxy.urlAddr, urlPort=proxy.urlPort, useOsProxy=proxy.useOsProxy, user=proxy.user, password=proxy.password, showHost=False, showUrl=True, showUser=True, showRealm=False)
     if dialog.accepted:
-        return (dialog.useOsProxyCb.value, dialog.urlAddr, dialog.urlPort, dialog.user, dialog.password)
+        return ProxyTuple(dialog.useOsProxyCb.value, dialog.urlAddr, dialog.urlPort, dialog.user, dialog.password)
     return None
 
 def askSmtp(parent, priorSmtpSettings):
@@ -247,8 +244,7 @@ class DialogUserPassword(Toplevel):
     def ok(self, event=None):
         if hasattr(self, "useOsProxyCb"):
             self.useOsProxy = self.useOsProxyCb.value
-        self.urlAddr = self.urlAddrVar.get()
-        if self.urlAddr.startswith("http://"): self.urlAddr = self.ulrAddr[7:] # take of protocol part if any
+        self.urlAddr = self.urlAddrVar.get().removeprefix("https://").removeprefix("http://")
         self.urlPort = self.urlPortVar.get()
         self.user = self.userVar.get()
         self.password = self.passwordVar.get()

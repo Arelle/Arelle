@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import os
 import urllib.parse
-import urllib.request
 from pathlib import Path
 
 import regex
 import requests
 
-from tests.integration_tests.integration_test_util import get_s3_uri
+from tests.integration_tests.integration_test_util import download_from_public_s3
 from tests.integration_tests.scripts.script_util import (
     assert_result,
     parse_args,
@@ -32,13 +31,12 @@ working_directory = Path(args.working_directory)
 test_directory = Path(args.test_directory)
 report_zip_path = test_directory / 'TC2_invalid.zip'
 arelle_log_file = prepare_logfile(test_directory, this_file)
-report_zip_url = get_s3_uri(
-    'ci/packages/python_api_validate_esef.zip',
-    version_id='U3sEz.B8kjUWw0l6momz87EndK05cxFZ'
-)
-
 print(f"Downloading report: {report_zip_path}")
-urllib.request.urlretrieve(report_zip_url, report_zip_path)
+download_from_public_s3(
+    report_zip_path,
+    "ci/packages/python_api_validate_esef.zip",
+    version_id="U3sEz.B8kjUWw0l6momz87EndK05cxFZ",
+)
 
 print("Downloading packages...")
 package_assets = {
@@ -55,11 +53,10 @@ package_paths = [str(a.full_local_path) for a in package_assets]
 contents = b''
 port = 8100
 log_xml_bytes = None
-with run_arelle_webserver(arelle_command, port) as proc:
+with run_arelle_webserver(arelle_command, port, offline=arelle_offline) as proc:
     url = f"http://localhost:{port}/rest/xbrl/validation?media=xml"
     url += "&plugins=validate/ESEF"
     url += "&disclosureSystemName=esef-2024"
-    url += f"&internetConnectivity={'false' if arelle_offline else 'true'}"
     url += f"&logFile={urllib.parse.quote_plus(str(arelle_log_file))}"
     url += "&packages=" + '|'.join(urllib.parse.quote_plus(str(p)) for p in package_paths)
     url += "&parameters=authority=SE"

@@ -45,6 +45,7 @@
         </data>
         <result>
             <warning>EDINET.EC8015W</warning>
+            <warning>EDINET.EC8055W</warning>
             <warning>EDINET.EC8065W</warning>
             <warning>EDINET.EC8067W</warning>
         </result>
@@ -147,6 +148,7 @@
             <instance readMeFirst="true">valid11.zip</instance>
         </data>
         <result>
+            <warning>EDINET.EC8037W</warning>
             <warning>EDINET.EC8038W</warning>
             <warning>EDINET.EC8042W</warning>
             <warning>EDINET.EC8045W</warning>
@@ -164,6 +166,7 @@
             <instance readMeFirst="true">valid12.zip</instance>
         </data>
         <result>
+            <warning>EDINET.EC8037W</warning>
             <warning>EDINET.EC8038W</warning>
             <warning>EDINET.EC8042W</warning>
             <warning>EDINET.EC8045W</warning>
@@ -216,6 +219,7 @@
             <instance readMeFirst="true">valid21.zip</instance>
         </data>
         <result>
+            <warning>EDINET.EC8037W</warning>
             <warning>EDINET.EC8038W</warning>
             <warning>EDINET.EC8042W</warning>
             <warning>EDINET.EC8045W</warning>
@@ -233,6 +237,7 @@
             <instance readMeFirst="true">valid22.zip</instance>
         </data>
         <result>
+            <warning>EDINET.EC8037W</warning>
             <warning>EDINET.EC8038W</warning>
             <warning>EDINET.EC8042W</warning>
             <warning>EDINET.EC8045W</warning>

@@ -14,7 +14,7 @@ from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
-from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
+from ..DisclosureSystems import ALL_DISCLOSURE_SYSTEMS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
@@ -22,7 +22,7 @@ _: TypeGetText
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_frta_2_1_9(
         pluginData: PluginValidationDataExtension,
@@ -52,7 +52,7 @@ def rule_frta_2_1_9(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_frta_2_1_10(
         pluginData: PluginValidationDataExtension,
@@ -83,7 +83,7 @@ def rule_frta_2_1_10(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_frta_2_1_11(
         pluginData: PluginValidationDataExtension,
@@ -157,7 +157,7 @@ def rule_frta_2_1_11(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_frta_3_1_10(
         pluginData: PluginValidationDataExtension,
@@ -185,7 +185,7 @@ def rule_frta_3_1_10(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_frta_4_2_2(
         pluginData: PluginValidationDataExtension,
@@ -212,7 +212,7 @@ def rule_frta_4_2_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_frta_4_2_4(
         pluginData: PluginValidationDataExtension,
@@ -250,7 +250,7 @@ def rule_frta_4_2_4(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_frta_4_2_7(
         pluginData: PluginValidationDataExtension,
@@ -279,7 +279,7 @@ def rule_frta_4_2_7(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_frta_4_2_11(
         pluginData: PluginValidationDataExtension,

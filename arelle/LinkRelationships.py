@@ -112,9 +112,9 @@ class LinkRelationships:
                     if not isinstance(toResource, (ModelResourceBase, LocPrototypeBase)):
                         continue
                     toResource = cast('ModelResource | LocPrototype', toResource)
-                    fromResourceElement = fromResource.dereference()  # type: ignore [no-untyped-call]
-                    toResourceElement = toResource.dereference()  # type: ignore [no-untyped-call]
-                    modelRel = ModelRelationship(modelDocument, linkChild, fromResourceElement, toResourceElement, linkrole=linkrole)  # type: ignore [no-untyped-call]
+                    fromResourceElement = fromResource.dereference()
+                    toResourceElement = toResource.dereference()
+                    modelRel = ModelRelationship(modelDocument, linkChild, fromResourceElement, toResourceElement, linkrole=linkrole)
                     relationships.append(modelRel)
             allRelationships.append(relationships)
             relationshipsByArcrole[linkChildArcrole].append(relationships)

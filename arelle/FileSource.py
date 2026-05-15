@@ -601,7 +601,7 @@ class FileSource:
                     # Missing positional argument "fileName"
                     # Not fixing this bug as a part of this PR
                     # Also expecting second argument to be int but is str here
-                    raise ArchiveFileIOError(self, archiveFileName) from err # type: ignore[call-arg, arg-type]
+                    raise ArchiveFileIOError(self, archiveFileName) from err # type: ignore[call-arg]
             elif archiveFileSource.isEis:
                 assert self.eisDocument is not None
                 for docElt in self.eisDocument.iter(tag="{http://www.sec.gov/edgar/common}document"):

@@ -137,7 +137,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                             conceptRels = parentChildRelSet.toModelObject(modelConcept)
                             conceptLinkroles = tuple(set(rel.linkrole for rel in conceptRels))
                             conceptLinkroleRestrictedRelSet = val.modelXbrl.relationshipSet(XbrlConst.parentChild,
-                                                                                            conceptLinkroles)
+                                                                                            conceptLinkroles)  # type: ignore[arg-type]
                             # Globally, this has O(extensions*presentation) running time,
                             # which could be slow if there are many unanchored extensions.
                             # This could be improved by precomputing childrenOfNotes
@@ -199,6 +199,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                                 narrowerStr = ", ".join(sorted(t.clarkNotation for t in narrowerTypes))
                                 anchorTypeParts.append(f"Narrower: {narrowerStr}")
                             anchorTypeStr = " ".join(anchorTypeParts)
+                            assert modelConcept.typeQname is not None, "modelConcept.typeQname is None"
                             val.modelXbrl.warning(
                                 "ESEF.1.4.1.differentExtensionDataType",
                                 msg + _(" Concept: %(qname)s type: %(type)s %(anchorTypes)s"),
@@ -220,6 +221,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                                     hasStandardLabel = True
                                 else:
                                     hasNonStandardLabel = True
+                            assert label is not None, "label is None"
                             if label.role not in standardLabelRoles and not ( #not in LRR
                                 label.role in val.modelXbrl.roleTypes and val.modelXbrl.roleTypes[label.role][0].modelDocument.uri.startswith("http://www.xbrl.org/lrr")):
                                 val.modelXbrl.warning("ESEF.3.4.5.taxonomyElementLabelCustomRole",
@@ -233,7 +235,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                                 conceptsWithNoLabel.append(modelConcept)
             for modelType in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}complexType"):
                 if (isinstance(modelType,ModelType) and isExtensionObject(val, modelType) and
-                    modelType.typeDerivedFrom is not None and modelType.typeDerivedFrom.qname.namespaceURI == xbrli and
+                    modelType.typeDerivedFrom is not None and modelType.typeDerivedFrom.qname.namespaceURI == xbrli and  # type: ignore[union-attr]
                     not modelType.particlesList):
                     val.modelXbrl.error("ESEF.RTS.Annex.IV.Par.11.customDataTypeDuplicatingXbrlOrDtrEntry",
                         _("Extension taxonomy element must not define a type where one is already defined by the XBRL specifications or in the XBRL Data Types Registry: %(qname)s"),
@@ -344,6 +346,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                     for locElt in linkElt.iterchildren("{http://www.xbrl.org/2003/linkbase}loc"):
                         refObject = locElt.dereference()
                         if (isinstance(refObject, ModelConcept)
+                                and refObject.qname is not None
                                 and refObject.qname.namespaceURI in ifrsNses
                                 and refObject.qname.localName == "DisclosureOfNotesAndOtherExplanatoryInformationExplanatory"):
                             val.modelXbrl.warning(

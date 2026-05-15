@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import io
 import os
-import urllib.request
 import zipfile
 from pathlib import Path
 
@@ -10,7 +9,7 @@ import regex
 
 from arelle.RuntimeOptions import RuntimeOptions
 from arelle.api.Session import Session
-from tests.integration_tests.integration_test_util import get_s3_uri
+from tests.integration_tests.integration_test_util import download_from_public_s3
 from tests.integration_tests.scripts.script_util import parse_args, assert_result, prepare_logfile, validate_log_xml
 
 errors = []
@@ -32,13 +31,12 @@ manifest_path = report_zip_path / "manifest.xml"
 extracted_zip_path = test_directory / "extracted.zip"
 extracted_instance_path = test_directory / "tse-acedjpfr-19990-2023-06-30-01-2023-08-18_extracted.xbrl"
 extracted_final_path = report_zip_path / "tse-acedjpfr-19990-2023-06-30-01-2023-08-18_extracted.xbrl"
-report_zip_url = get_s3_uri(
-    'ci/packages/JapaneseXBRLReport.zip',
-    version_id='M7vTPhHhir1rOm7nSMPiCGcbCA0ksObh'
+print(f"Downloading report: {report_zip_path}")
+download_from_public_s3(
+    report_zip_path,
+    "ci/packages/JapaneseXBRLReport.zip",
+    version_id="M7vTPhHhir1rOm7nSMPiCGcbCA0ksObh",
 )
-
-print(f"Downloading report: {report_zip_url}")
-urllib.request.urlretrieve(report_zip_url, report_zip_path)
 
 print(f"Extracting instance: {manifest_path}")
 with io.BytesIO() as extracted_stream:

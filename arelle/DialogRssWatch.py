@@ -1,53 +1,65 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-from tkinter import Toplevel, PhotoImage, messagebox, N, S, E, W
-try:
-    from tkinter.ttk import Frame, Button
-except ImportError:
-    from ttk import Frame, Button
-import tkinter.filedialog
+from __future__ import annotations
+
 import os
+from typing import TYPE_CHECKING, Any
+
 import regex as re
+
+from tkinter import Toplevel, PhotoImage, messagebox, N, S, E, W, Event, filedialog
+from tkinter.ttk import Frame, Button
+
 from arelle.ModelValue import dateTime
 from arelle import XmlUtil
 from arelle.UiUtil import gridCell, gridCombobox, label, checkbox
 from arelle.CntlrWinTooltip import ToolTip
 from arelle.UrlUtil import isValidAbsolute
 from arelle.ValidateXbrlCalcs import ValidateCalcsMode as CalcsMode
+from arelle.typing import TypeGetText
+
+if TYPE_CHECKING:
+    from arelle.CntlrWinMain import CntlrWinMain
+
+_: TypeGetText
 
 '''
 caller checks accepted, if True, caller retrieves url
 '''
-def getOptions(mainWin):
-    dialog = DialogRssWatch(mainWin, mainWin.modelManager.rssWatchOptions)
+
+
+def getOptions(mainWin: CntlrWinMain) -> None:
+    dialog = DialogRssWatch(mainWin, mainWin.modelManager.rssWatchOptions)  # type: ignore[attr-defined]
     if dialog.accepted:
         mainWin.config["rssWatchOptions"] = dialog.options
         mainWin.saveConfig()
 
-rssFeeds = {
+
+rssFeeds: dict[str, str] = {
     "US SEC US-GAAP Filings": "http://www.sec.gov/Archives/edgar/usgaap.rss.xml",
     "US SEC Inline Filings": "https://www.sec.gov/Archives/edgar/xbrl-inline.rss.xml",
     # obsolete: "US SEC Voluntary Filings": "http://www.sec.gov/Archives/edgar/xbrlrss.xml",
     # obsolete: "US SEC Voluntary Risk/Return Filings": "http://www.sec.gov/Archives/edgar/xbrl-rr-vfp.rss.xml",
     "US SEC Mutual Fund Risk/Return Filings": "http://www.sec.gov/Archives/edgar/xbrl-rr.rss.xml",
     "US SEC All Filings": "http://www.sec.gov/Archives/edgar/xbrlrss.all.xml",
-            }
+}
 
 emailPattern = re.compile(
-      r"(^[-!#$%&'*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*"  # dot-atom
-      r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]|\\[\001-011\013\014\016-\177])*"' # quoted-string
-      r')@(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?$', re.IGNORECASE)
+    r"(^[-!#$%&'*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*"  # dot-atom
+    r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]|\\[\001-011\013\014\016-\177])*"'  # quoted-string
+    r')@(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?$', re.IGNORECASE)
 
 
 class DialogRssWatch(Toplevel):
-    def __init__(self, mainWin, options):
+    def __init__(self, mainWin: CntlrWinMain, options: dict[str, Any]) -> None:
         self.mainWin = mainWin
         parent = mainWin.parent
         super(DialogRssWatch, self).__init__(parent)
         self.parent = parent
         self.options = options
         parentGeometry = re.match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
+        assert parentGeometry is not None
         dialogX = int(parentGeometry.group(3))
         dialogY = int(parentGeometry.group(4))
         self.accepted = False
@@ -58,21 +70,21 @@ class DialogRssWatch(Toplevel):
         frame = Frame(self)
 
         # checkbox entries
-        row = 1 # row number (to allow future plugins
+        row = 1  # row number (to allow future plugins
         label(frame, 1, row, "RSS Feed:")
         feedSources = sorted(rssFeeds.keys())
-        self.cellFeed = gridCombobox(frame, 2, row, options.get("feedSource",""), values=feedSources)
+        self.cellFeed = gridCombobox(frame, 2, row, options.get("feedSource", ""), values=feedSources)
         self.cellFeed.grid(pady=2)
-        ToolTip(self.cellFeed, text=_("Select an RSS feed to process for item matching, formulas, and validations as selected below"), wraplength=240)
+        ToolTip(self.cellFeed, text=_("Select an RSS feed to process for item matching, formulas, and validations as selected below"), wraplength=240)  # type: ignore[no-untyped-call]
         row += 1
         label(frame, 1, row, "Match fact text:")
-        self.cellMatchText = gridCell(frame, 2, row, options.get("matchTextExpr",""))
-        ToolTip(self.cellMatchText, text=_("Enter a regular expression to be matched to the text of each filing instance fact item. "
+        self.cellMatchText = gridCell(frame, 2, row, options.get("matchTextExpr", ""))
+        ToolTip(self.cellMatchText, text=_("Enter a regular expression to be matched to the text of each filing instance fact item. "  # type: ignore[no-untyped-call]
                                            "Regular expressions may contain patterns to detect, such as ab.?c, for any single character between b and c, or ab.*c for any number of characters between b and c."), wraplength=240)
         row += 1
         label(frame, 1, row, "Formula file:")
-        self.cellFormulaFile = gridCell(frame,2, row, options.get("formulaFileUri",""))
-        ToolTip(self.cellFormulaFile, text=_("Select a formula linkbase to to evaluate each filing.  "
+        self.cellFormulaFile = gridCell(frame, 2, row, options.get("formulaFileUri", ""))
+        ToolTip(self.cellFormulaFile, text=_("Select a formula linkbase to to evaluate each filing.  "  # type: ignore[no-untyped-call]
                                              "The formula linkbase may contain one or more assertions, the results of which is recorded in the log file.  "
                                              "If unsuccessful assertion alerts are selected and an e-mail address provided, the recipient will be notified of filings with assertions that do not pass."), wraplength=240)
         openFileImage = PhotoImage(file=os.path.join(mainWin.imagesDir, "toolbarOpenFile.gif"))
@@ -84,52 +96,52 @@ class DialogRssWatch(Toplevel):
             pluginXbrlMethod(self, frame, row, options, mainWin, openFileImage, openDatabaseImage)
             row += 1
         label(frame, 1, row, "Log file:")
-        self.cellLogFile = gridCell(frame,2, row, options.get("logFileUri",""))
-        ToolTip(self.cellLogFile, text=_("Select a log file in which to save an activity log, including validation results, matched item text, and formula results.\n\n "
+        self.cellLogFile = gridCell(frame, 2, row, options.get("logFileUri", ""))
+        ToolTip(self.cellLogFile, text=_("Select a log file in which to save an activity log, including validation results, matched item text, and formula results.\n\n "  # type: ignore[no-untyped-call]
                                          "If file ends in .xml it is xml-formatted, otherwise it is text. "), wraplength=240)
         chooseLogFileButton = Button(frame, image=openFileImage, width=12, command=self.chooseLogFile)
         chooseLogFileButton.grid(row=row, column=3, sticky=W)
         row += 1
         label(frame, 1, row, "E-mail alerts to:")
-        self.cellEmailAddress = gridCell(frame,2, row, options.get("emailAddress",""))
-        ToolTip(self.cellEmailAddress, text=_("Specify e-mail recipient(s) for alerts per below."), wraplength=240)
+        self.cellEmailAddress = gridCell(frame, 2, row, options.get("emailAddress", ""))
+        ToolTip(self.cellEmailAddress, text=_("Specify e-mail recipient(s) for alerts per below."), wraplength=240)  # type: ignore[no-untyped-call]
         propertiesImage = PhotoImage(file=os.path.join(mainWin.imagesDir, "toolbarProperties.gif"))
         smtpSetupButton = Button(frame, image=propertiesImage, width=12, command=self.setupSmtp)
         smtpSetupButton.grid(row=row, column=3, sticky=W)
-        ToolTip(smtpSetupButton, text=_("Enter/edit settings of outgoing e-mail server (SMTP)."), wraplength=240)
+        ToolTip(smtpSetupButton, text=_("Enter/edit settings of outgoing e-mail server (SMTP)."), wraplength=240)  # type: ignore[no-untyped-call]
         row += 1
         label(frame, 1, row, "Latest pub date:")
-        pubdate = getattr(options,"latestPubDate",None)
-        self.cellLatestPubDate = gridCell(frame,2, row, str(pubdate) if pubdate else "")
-        ToolTip(self.cellLatestPubDate, text=_("Specify pub dateTime of last processed submission.  Next item to examine will be after this dateTime."), wraplength=240)
+        pubdate = getattr(options, "latestPubDate", None)
+        self.cellLatestPubDate = gridCell(frame, 2, row, str(pubdate) if pubdate else "")
+        ToolTip(self.cellLatestPubDate, text=_("Specify pub dateTime of last processed submission.  Next item to examine will be after this dateTime."), wraplength=240)  # type: ignore[no-untyped-call]
         clearImage = PhotoImage(file=os.path.join(mainWin.imagesDir, "toolbarDelete.gif"))
         clearPubDateButton = Button(frame, image=clearImage, width=12, command=self.clearPubDate)
         clearPubDateButton.grid(row=row, column=3, sticky=W)
-        ToolTip(clearPubDateButton, text=_("Clear pub dateTime so that next cycle processes all entries in RSS feed."), wraplength=240)
+        ToolTip(clearPubDateButton, text=_("Clear pub dateTime so that next cycle processes all entries in RSS feed."), wraplength=240)  # type: ignore[no-untyped-call]
         row += 1
         label(frame, 2, row, "Validate:")
         row += 1
-        self.checkboxes = (
-           checkbox(frame, 2, row,
-                    "XBRL 2.1 and Dimensions rules",
-                    "validateXbrlRules"),
-           checkbox(frame, 2, row+1,
-                    "Selected disclosure system rules",
-                    "validateDisclosureSystemRules")
+        self.checkboxes: tuple[checkbox, ...] = (
+            checkbox(frame, 2, row,
+                     "XBRL 2.1 and Dimensions rules",
+                     "validateXbrlRules"),
+            checkbox(frame, 2, row + 1,
+                     "Selected disclosure system rules",
+                     "validateDisclosureSystemRules"),
         )
         row += 2
-        self.calcModeMenu = CalcsMode.menu() # dynamic, may change after initialization if language changes
+        self.calcModeMenu: dict[str, int] = CalcsMode.menu()  # type: ignore[no-untyped-call] # dynamic, may change after initialization if language changes
         vals = list(self.calcModeMenu.keys())
-        keys = dict((v,k) for k,v in self.calcModeMenu.items())
-        self.validateCalcs = gridCombobox(frame, 2, row, keys.get(options.get("validateCalcs",0)), values=vals)
-        self.validateCalcs.grid(pady=2,padx=(44,0))
-        ToolTip(self.validateCalcs, text=_("Select calculations validation"), wraplength=240)
+        keys = dict((v, k) for k, v in self.calcModeMenu.items())
+        self.validateCalcs = gridCombobox(frame, 2, row, keys.get(options.get("validateCalcs", 0), ""), values=vals)
+        self.validateCalcs.grid(pady=2, padx=(44, 0))
+        ToolTip(self.validateCalcs, text=_("Select calculations validation"), wraplength=240)  # type: ignore[no-untyped-call]
         row += 1
         self.checkboxes += (
-           checkbox(frame, 2, row,
-                    "Formula assertions",
-                    "validateFormulaAssertions"),
-           # Note: if adding to this list keep ModelFormulaObject.FormulaOptions in sync
+            checkbox(frame, 2, row,
+                     "Formula assertions",
+                     "validateFormulaAssertions"),
+            # Note: if adding to this list keep ModelFormulaObject.FormulaOptions in sync
         )
         row += 1
         for pluginXbrlMethod in self.mainWin.plugins.hooks("DialogRssWatch.ValidateChoices"):
@@ -138,74 +150,72 @@ class DialogRssWatch(Toplevel):
         label(frame, 2, row, "Alert on:")
         row += 1
         self.checkboxes += (
-           checkbox(frame, 2, row,
-                    "Facts with matching text",
-                    "alertMatchedFactText"),
-           checkbox(frame, 2, row+1,
-                    "Unsuccessful formula assertions",
-                    "alertAssertionUnsuccessful"),
-           checkbox(frame, 2, row+2,
-                    "Validation errors (or warnings, see Formula Parameters)",
-                    "alertValiditionError"),
-           # Note: if adding to this list keep ModelFormulaObject.FormulaOptions in sync
-           )
+            checkbox(frame, 2, row,
+                     "Facts with matching text",
+                     "alertMatchedFactText"),
+            checkbox(frame, 2, row + 1,
+                     "Unsuccessful formula assertions",
+                     "alertAssertionUnsuccessful"),
+            checkbox(frame, 2, row + 2,
+                     "Validation errors (or warnings, see Formula Parameters)",
+                     "alertValiditionError"),
+            # Note: if adding to this list keep ModelFormulaObject.FormulaOptions in sync
+        )
         row += 3
 
-        mainWin.showStatus(None)
+        mainWin.showStatus("")
 
         cancelButton = Button(frame, text=_("Cancel"), width=8, command=self.close)
-        ToolTip(cancelButton, text=_("Cancel operation, discarding changes and entries"))
+        ToolTip(cancelButton, text=_("Cancel operation, discarding changes and entries"))  # type: ignore[no-untyped-call]
         okButton = Button(frame, text=_("OK"), width=8, command=self.ok)
-        ToolTip(okButton, text=_("Accept the options as entered above"))
+        ToolTip(okButton, text=_("Accept the options as entered above"))  # type: ignore[no-untyped-call]
         cancelButton.grid(row=row, column=1, columnspan=3, sticky=E, pady=3, padx=3)
         okButton.grid(row=row, column=1, columnspan=3, sticky=E, pady=3, padx=86)
 
-        frame.grid(row=0, column=0, sticky=(N,S,E,W))
+        frame.grid(row=0, column=0, sticky=(N, S, E, W))
         frame.columnconfigure(2, weight=1)
         window = self.winfo_toplevel()
         window.columnconfigure(0, weight=1)
-        self.geometry("+{0}+{1}".format(dialogX+50,dialogY+100))
-
-        #self.bind("<Return>", self.ok)
-        #self.bind("<Escape>", self.close)
-
+        self.geometry("+{0}+{1}".format(dialogX + 50, dialogY + 100))
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.grab_set()
         self.wait_window(self)
 
-    def chooseFormulaFile(self):
-        filename = tkinter.filedialog.askopenfilename(
-                            title=_("Choose formula file for RSS Watch"),
-                            initialdir=self.options.get("rssWatchFormulaFileDir","."),
-                            filetypes=[] if self.mainWin.isMac else [(_("XBRL files"), "*.*")],
-                            defaultextension=".xml",
-                            parent=self.parent)
+    def chooseFormulaFile(self) -> None:
+        filename = filedialog.askopenfilename(
+            title=_("Choose formula file for RSS Watch"),
+            initialdir=self.options.get("rssWatchFormulaFileDir", "."),
+            filetypes=[] if self.mainWin.isMac else [(_("XBRL files"), "*.*")],
+            defaultextension=".xml",
+            parent=self.parent
+        )
         if filename:
             self.options["rssWatchFormulaFileDir"] = os.path.dirname(filename)
             self.cellFormulaFile.setValue(filename)
 
-    def chooseLogFile(self):
-        filename = tkinter.filedialog.asksaveasfilename(
-                            title=_("Choose log file for RSS Watch"),
-                            initialdir=self.options.get("rssWatchLogFileDir","."),
-                            filetypes=[] if self.mainWin.isMac else [(_("Log files"), "*.*")],
-                            defaultextension=".txt",
-                            parent=self.parent)
+    def chooseLogFile(self) -> None:
+        filename = filedialog.asksaveasfilename(
+            title=_("Choose log file for RSS Watch"),
+            initialdir=self.options.get("rssWatchLogFileDir", "."),
+            filetypes=[] if self.mainWin.isMac else [(_("Log files"), "*.*")],
+            defaultextension=".txt",
+            parent=self.parent
+        )
         if filename:
             self.options["rssWatchLogFileDir"] = os.path.dirname(filename)
             self.cellLogFile.setValue(filename)
 
-    def setupSmtp(self):
+    def setupSmtp(self) -> None:
         from arelle.DialogUserPassword import askSmtp
-        smtpSettings = askSmtp(self, self.options.get("smtpEmailSettings",()))
+        smtpSettings = askSmtp(self, self.options.get("smtpEmailSettings", ()))  # type: ignore[no-untyped-call]
         if smtpSettings:
             self.options["smtpEmailSettings"] = smtpSettings
 
-    def clearPubDate(self):
+    def clearPubDate(self) -> None:
         self.cellLatestPubDate.setValue("")
 
-    def checkEntries(self):
-        errors = []
+    def checkEntries(self) -> bool:
+        errors: list[str] = []
         if not self.cellFeed.value in rssFeeds and not isValidAbsolute(self.cellFeed.value):
             errors.append(_("RSS feed field contents invalid"))
         try:
@@ -226,11 +236,12 @@ class DialogRssWatch(Toplevel):
             errors.append(_("Latest pub date field contents invalid"))
         if errors:
             messagebox.showwarning(_("Dialog validation error(s)"),
-                                "\n ".join(errors), parent=self)
+                                   "\n ".join(errors),
+                                   parent=self)
             return False
         return True
 
-    def setOptions(self):
+    def setOptions(self) -> None:
         # set formula options
         self.options["feedSource"] = self.cellFeed.value
         if self.cellFeed.value in rssFeeds:
@@ -243,20 +254,21 @@ class DialogRssWatch(Toplevel):
         self.options["emailAddress"] = self.cellEmailAddress.value
         if self.cellLatestPubDate.value:
             # need datetime.datetime base class for pickling, not ModelValue class (unpicklable)
-            self.options["latestPubDate"] = XmlUtil.datetimeValue(self.cellLatestPubDate.value)
+            self.options["latestPubDate"] = XmlUtil.datetimeValue(self.cellLatestPubDate.value)  # type: ignore[arg-type]
         else:
             self.options["latestPubDate"] = None
         for checkbox in self.checkboxes:
+            assert checkbox.attr is not None
             self.options[checkbox.attr] = checkbox.value
         self.options["validateCalcs"] = self.calcModeMenu[self.validateCalcs.value]
 
-    def ok(self, event=None):
+    def ok(self, event: Event[Any] | None = None) -> None:
         if not self.checkEntries():
             return
         self.setOptions()
         self.accepted = True
         self.close()
 
-    def close(self, event=None):
+    def close(self, event: Event[Any] | None = None) -> None:
         self.parent.focus_set()
         self.destroy()

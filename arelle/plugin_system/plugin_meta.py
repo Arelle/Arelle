@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
-class PluginHandle:
+class PluginMeta:
     aliases: frozenset[str]
     author: str
     description: str
@@ -15,7 +15,7 @@ class PluginHandle:
     file_date: str
     hook_names: frozenset[str]
     import_urls: frozenset[str]
-    imports: tuple[PluginHandle, ...]
+    imports: tuple[PluginMeta, ...]
     is_imported: bool
     license: str
     module_imports: frozenset[str]

@@ -3,6 +3,17 @@ from pathlib import PurePath, Path
 
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 
+def _merge_expected_error_maps(
+        *maps: dict[str, dict[str, int]],
+) -> dict[str, dict[str, int]]:
+    result: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    for _map in maps:
+        for test_id, errors in _map.items():
+            for k, v in errors.items():
+                result[test_id][k] += v
+    return result
+
+
 VALID_EXPECTED_ERRORS = {
     "valid/index.xml:valid01": {
         "EDINET.EC2002W": 1,
@@ -62,6 +73,20 @@ VALID_EXPECTED_ERRORS = {
         "EDINET.EC2002W": 3,
     },
 }
+
+VALID_EXPECTED_ERRORS = _merge_expected_error_maps(
+    VALID_EXPECTED_ERRORS,
+    {
+        # 2026 samples are mostly the same as 2025, so start from a copy.
+        k.replace('valid/index.xml:', 'samples/2026/index.xml:'): v
+        for k, v in VALID_EXPECTED_ERRORS.items()
+    },{
+        # 2026 sample introduced invalid `sign="-"` to a couple of facts.
+        "samples/2026/index.xml:valid05": {
+            "EDINET.EC8023W": 2,
+        },
+    }
+)
 
 INVALID_TESTCASE_PARENTS = {
     "EC1001E/index.xml:invalid01": "valid/index.xml:valid09",
@@ -184,6 +209,7 @@ INVALID_TESTCASE_PARENTS = {
     "EC8050W/index.xml:invalid01": "valid/index.xml:valid05",
     "EC8050W/index.xml:invalid02": "valid/index.xml:valid03",
     "EC8054W/index.xml:invalid01": "valid/index.xml:valid05",
+    "EC8055W/index.xml:invalid01": "valid/index.xml:valid03",
     "EC8057W/index.xml:invalid01": "valid/index.xml:valid04",
     "EC8058W/index.xml:invalid01": "valid/index.xml:valid03",
     "EC8060E/index.xml:invalid01": "valid/index.xml:valid04",
@@ -194,6 +220,17 @@ INVALID_TESTCASE_PARENTS = {
     "EC8074W/index.xml:invalid01": "valid/index.xml:valid03",
     "EC8075W/index.xml:invalid01": "valid/index.xml:valid02",
     "EC8076W/index.xml:invalid01": "valid/index.xml:valid02",
+    "EC8077W/index.xml:invalid01": "valid/index.xml:valid04",
+    "EC8077W/index.xml:invalid02": "valid/index.xml:valid05",
+}
+
+# Apply expected errors to invalid testcases based on their valid parent.
+PARENT_EXPECTED_ERRORS = {
+    invalid_id: {
+        k: v
+        for k, v in VALID_EXPECTED_ERRORS.get(valid_id, {}).items()
+    }
+    for invalid_id, valid_id in INVALID_TESTCASE_PARENTS.items()
 }
 
 ADDITIONAL_INVALID_ERRORS = {
@@ -229,20 +266,11 @@ ADDITIONAL_INVALID_ERRORS = {
     },
 }
 
-EXPECTED_ADDITIONAL_TESTCASE_ERRORS: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
-# Apply expected errors to valid testcases.
-for test_id, errors in VALID_EXPECTED_ERRORS.items():
-    for k, v in errors.items():
-        EXPECTED_ADDITIONAL_TESTCASE_ERRORS[test_id][k] += v
-# Apply expected errors to invalid testcases based on their valid parent.
-for invalid_id, valid_id in INVALID_TESTCASE_PARENTS.items():
-    for k, v in VALID_EXPECTED_ERRORS.get(valid_id, {}).items():
-        EXPECTED_ADDITIONAL_TESTCASE_ERRORS[invalid_id][k] += v
-# Apply additional expected errors to invalid testcases.
-for test_id, errors in ADDITIONAL_INVALID_ERRORS.items():
-    for k, v in errors.items():
-        EXPECTED_ADDITIONAL_TESTCASE_ERRORS[test_id][k] += v
-
+EXPECTED_ADDITIONAL_TESTCASE_ERRORS = _merge_expected_error_maps(
+    VALID_EXPECTED_ERRORS,
+    PARENT_EXPECTED_ERRORS,
+    ADDITIONAL_INVALID_ERRORS
+)
 
 config = ConformanceSuiteConfig(
     assets=[
@@ -255,9 +283,15 @@ config = ConformanceSuiteConfig(
             # with added META-INF
             public_download_url='https://www.fsa.go.jp/search/20241112/1c_Taxonomy.zip',
         ),
+        ConformanceSuiteAssetConfig.public_taxonomy_package(
+            Path('edinet-2026.zip'),
+            # with added META-INF
+            public_download_url='https://www.fsa.go.jp/search/20251111/1c_Taxonomy.zip',
+        ),
     ],
     base_taxonomy_validation='none',
-    disclosure_system='EDINET',
+    disclosure_system='EDINET-2025',
+    disclosure_system_by_prefix=[('samples/2026/', 'EDINET-2026')],
     expected_additional_testcase_errors={f"*{s}": val for s, val in EXPECTED_ADDITIONAL_TESTCASE_ERRORS.items()},
     expected_failure_ids=frozenset([]),
     info_url='https://disclosure2.edinet-fsa.go.jp/weee0020.aspx',

@@ -37,7 +37,6 @@ from arelle import (
     Cntlr,
     FileSource,
     ModelDocument,
-    PackageManager,
     PluginManager,
     ValidateDuplicateFactsConst,
     Version,
@@ -68,7 +67,7 @@ from arelle.SystemInfo import PlatformOS, getSystemInfo, getSystemWordSize, hasW
 from arelle.typing import TypeGetText
 from arelle.utils.EntryPointDetection import parseEntrypointFileInput
 from arelle.ValidateXbrlDTS import ValidateBaseTaxonomiesMode
-from arelle.WebCache import proxyTuple
+from arelle.WebCache import ProxyTuple, proxyTuple
 
 if TYPE_CHECKING:
     from bottle import Bottle # type: ignore[import-untyped]
@@ -1390,7 +1389,7 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict[str, Any]]:
         parser.exit()
     elif options.disclosureSystemName in ("help", "help-verbose"):
         text = _("Disclosure system choices: \n{0}").format(
-            " \n".join(cntlr.modelManager.disclosureSystem.dirlist(options.disclosureSystemName))  # type: ignore[no-untyped-call]
+            " \n".join(cntlr.modelManager.disclosureSystem.dirlist(options.disclosureSystemName))  # type: ignore[arg-type]
             )
         try:
             print(text)
@@ -1681,7 +1680,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 self.config["proxySettings"] = proxySettings  # type: ignore[index]
                 self.saveConfig()
                 self.addToLog(_("Proxy configuration has been set."), messageCode="info")
-            useOsProxy, urlAddr, urlPort, user, password = self.config.get("proxySettings", proxyTuple("none"))  # type: ignore[union-attr]
+            useOsProxy, urlAddr, urlPort, user, password = ProxyTuple.coerce(self.config.get("proxySettings")) or proxyTuple("none")  # type: ignore[union-attr]
             if useOsProxy:
                 self.addToLog(_("Proxy configured to use {0}.").format(
                     _("Microsoft Windows Internet Settings") if sys.platform.startswith("win")
@@ -1769,11 +1768,11 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
             if showPluginModules:
                 self.addToLog(_("Plug-in modules:"), messageCode="info")
-                for name, plugin_handle in sorted(self.plugins.get_plugin_handles().items()):
+                for name, plugin in sorted(self.plugins.get_plugins().items()):
                     self.addToLog(_("Plug-in: {0}; author: {1}; version: {2}; status: {3}; date: {4}; description: {5}; license {6}.").format(
-                        name, plugin_handle.author, plugin_handle.version, plugin_handle.status,
-                        plugin_handle.file_date, plugin_handle.description, plugin_handle.license),
-                        messageCode="info", file=plugin_handle.module_url)
+                        name, plugin.author, plugin.version, plugin.status,
+                        plugin.file_date, plugin.description, plugin.license),
+                        messageCode="info", file=plugin.module_url)
 
         if options.packages:
             self.loadPackages(options.packages, options.packageManifestName or "")
@@ -1793,18 +1792,18 @@ class CntlrCmdLine(Cntlr.Cntlr):
         self.password = options.password
         if options.disclosureSystemName:
             self.modelManager.validateDisclosureSystem = True
-            self.modelManager.disclosureSystem.select(options.disclosureSystemName)  # type: ignore[no-untyped-call]
+            self.modelManager.disclosureSystem.select(options.disclosureSystemName)
             if options.validateEFM:
                 self.addToLog(_("both --efm and --disclosureSystem validation are requested, ignoring --efm only"),
                               messageCode="info", file=options.entrypointFile)  # type: ignore[arg-type]
         elif options.validateEFM:
             self.modelManager.validateDisclosureSystem = True
-            self.modelManager.disclosureSystem.select("efm")  # type: ignore[no-untyped-call]
+            self.modelManager.disclosureSystem.select("efm")
         elif options.validateHMRC:
             self.modelManager.validateDisclosureSystem = True
-            self.modelManager.disclosureSystem.select("hmrc")  # type: ignore[no-untyped-call]
+            self.modelManager.disclosureSystem.select("hmrc")
         else:
-            self.modelManager.disclosureSystem.select(None)  # type: ignore[no-untyped-call] # just load ordinary mappings
+            self.modelManager.disclosureSystem.select(None)  # just load ordinary mappings
             self.modelManager.validateDisclosureSystem = False
         if self.modelManager.disclosureSystem.keepOpen:
             # Force keepOpen if specified by disclosure system.
@@ -1994,7 +1993,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             if filesource and filesource.isArchive:
                 filesource.select(_entrypointFile)
             else:
-                _entrypointFile = PackageManager.getInstance().mappedUrl(_entrypointFile)
+                _entrypointFile = self.packages.map(_entrypointFile)
                 filesource = FileSource.openFileSource(_entrypointFile, self, sourceZipStream)
                 if options.validate:
                     ValidateFileSource(self, filesource).validate(options.reportPackage, options.taxonomyPackage)
@@ -2108,7 +2107,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             if options.formulaAction: # don't automatically run formulas
                                 modelXbrl.hasFormulae = False
                             from arelle import Validate
-                            Validate.validate(modelXbrl)  # type: ignore[no-untyped-call]
+                            Validate.validate(modelXbrl)
                             if options.formulaAction: # restore setting
                                 modelXbrl.hasFormulae = hasFormulae
                             self.addToLog(format_string(self.modelManager.locale,
@@ -2325,11 +2324,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
                 sys.exit()
 
     def loadPackage(self, package: str, packageManifestName: str) -> None:
-        from arelle import PackageManager
-        packageInfo = PackageManager.getInstance().addPackage(self, package, packageManifestName)
-        if packageInfo:
-            self.addToLog(_("Activation of package {0} successful.").format(packageInfo.get("name")),
-                          messageCode="info", file=packageInfo.get("URL", ""))
+        packageMeta = self.packages.add(package, packageManifestName)
+        if packageMeta:
+            self.addToLog(_("Activation of package {0} successful.").format(packageMeta.name),
+                          messageCode="info", file=packageMeta.url)
         else:
             self.addToLog(_("Unable to load package \"%(name)s\". "),
                           messageCode="arelle:packageLoadingError",
@@ -2342,10 +2340,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
         :param packages: Pipe-separated list of options. See CLI documentation for 'packages'.
         :param packageManifestName: Unix shell style pattern used to find package manifest.
         """
-        from arelle import PackageManager
         savePackagesChanges = True
         showPackages = False
-        packageManager = PackageManager.getInstance()
         # For backwards compatibility, we allow '|' separated filenames/URLs
         # within a single --packages option.
         for packageCmd in [cmd for p in packages for cmd in p.split("|")]:
@@ -2355,19 +2351,19 @@ class CntlrCmdLine(Cntlr.Cntlr):
             elif cmd == "temp":
                 savePackagesChanges = False
             elif cmd.startswith("+"):
-                packageInfo = packageManager.addPackage(self, cmd[1:], packageManifestName)
-                if packageInfo:
-                    self.addToLog(_("Addition of package {0} successful.").format(packageInfo.get("name")),
-                                  messageCode="info", file=packageInfo.get("URL", ""))
+                packageMeta = self.packages.add(cmd[1:], packageManifestName)
+                if packageMeta:
+                    self.addToLog(_("Addition of package {0} successful.").format(packageMeta.name),
+                                  messageCode="info", file=packageMeta.url)
                 else:
                     self.addToLog(_("Unable to load package."), messageCode="info", file=cmd[1:])
             elif cmd.startswith("~"):
-                if packageManager.reloadPackageModule(self, cmd[1:]):
+                if self._packageManager.reloadPackageModule(self, cmd[1:]):
                     self.addToLog(_("Reload of package successful."), messageCode="info", file=cmd[1:])
                 else:
                     self.addToLog(_("Unable to reload package."), messageCode="info", file=cmd[1:])
             elif cmd.startswith("-"):
-                if packageManager.removePackageModule(self, cmd[1:]):
+                if self._packageManager.removePackageModule(self, cmd[1:]):
                     self.addToLog(_("Deletion of package successful."), messageCode="info", file=cmd[1:])
                 else:
                     self.addToLog(_("Unable to delete package."), messageCode="info", file=cmd[1:])
@@ -2378,19 +2374,19 @@ class CntlrCmdLine(Cntlr.Cntlr):
             else: # assume it is a module or package
                 savePackagesChanges = False
                 self.loadPackage(cmd, packageManifestName)
-        if packageManager.packagesConfigChanged:
-            packageManager.rebuildRemappings(self)
+        if self._packageManager.packagesConfigChanged:
+            self._packageManager.rebuildRemappings(self)
         if savePackagesChanges:
-            packageManager.save(self)
+            self._packageManager.save(self)
         else:
-            packageManager.packagesConfigChanged = False
+            self._packageManager.packagesConfigChanged = False
         if showPackages:
             self.addToLog(_("Taxonomy packages:"), messageCode="info")
-            for packageInfo in PackageManager.orderedPackagesConfig()["packages"]:
+            for packageMeta in self.packages.get_packages():
                 self.addToLog(_("Package: {0}; version: {1}; status: {2}; date: {3}; description: {4}.").format(
-                    packageInfo.get("name"), packageInfo.get("version"), packageInfo.get("status"),
-                    packageInfo.get("fileDate"), packageInfo.get("description")),
-                    messageCode="info", file=packageInfo.get("URL"))
+                    packageMeta.name, packageMeta.version, packageMeta.status,
+                    packageMeta.file_date, packageMeta.description),
+                    messageCode="info", file=packageMeta.url)
 
 if __name__ == "__main__":
     if getattr(sys, 'frozen', False):

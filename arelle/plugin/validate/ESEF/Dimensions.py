@@ -36,21 +36,22 @@ def checkFilingDimensions(
         if isinstance(sourceDomMbr, ModelConcept) and sourceDomMbr not in membersSet:
             membersSet.add(sourceDomMbr)
             for domMbrRel in val.modelXbrl.relationshipSet(XbrlConst.domainMember, ELR).fromModelObject(sourceDomMbr):
-                addDomMbrs(domMbrRel.toModelObject, domMbrRel.consecutiveLinkrole, membersSet)
+                addDomMbrs(domMbrRel.toModelObject, domMbrRel.consecutiveLinkrole, membersSet)  # type: ignore[arg-type]
 
     for hasHypercubeArcrole in (XbrlConst.all, XbrlConst.notAll):
         hasHypercubeRelationships = val.modelXbrl.relationshipSet(hasHypercubeArcrole).fromModelObjects()
 
         for hasHcRels in hasHypercubeRelationships.values():
             for hasHcRel in hasHcRels:
-                sourceConcept: ModelConcept = hasHcRel.fromModelObject
+                sourceConcept: ModelConcept = hasHcRel.fromModelObject  # type: ignore[assignment]
                 hcPrimaryItems.add(sourceConcept)
                 # find associated primary items to source concept
                 for domMbrRel in val.modelXbrl.relationshipSet(XbrlConst.domainMember).fromModelObject(sourceConcept):
                     if domMbrRel.consecutiveLinkrole == hasHcRel.linkrole: # only those related to this hc
-                        addDomMbrs(domMbrRel.toModelObject, domMbrRel.consecutiveLinkrole, hcPrimaryItems)
+                        addDomMbrs(domMbrRel.toModelObject, domMbrRel.consecutiveLinkrole, hcPrimaryItems)  # type: ignore[arg-type]
                 val.primaryItems.update(hcPrimaryItems)
                 hc = hasHcRel.toModelObject
+                assert hc is not None, "hasHcRel.toModelObject is None"
                 if hasHypercubeArcrole == XbrlConst.all:
                     if not hasHcRel.isClosed and isExtensionObject(val, hasHcRel):
                         val.modelXbrl.error("ESEF.3.4.2.openPositiveHypercubeInDefinitionLinkbase",
@@ -74,7 +75,7 @@ def checkFilingDimensions(
                         for dimDomRel in val.modelXbrl.relationshipSet(XbrlConst.dimensionDomain, hcDimRel.consecutiveLinkrole).fromModelObject(dim):
                             dom = dimDomRel.toModelObject
                             if isinstance(dom, ModelConcept):
-                                 addDomMbrs(dom, dimDomRel.consecutiveLinkrole, hcMembers)
+                                 addDomMbrs(dom, dimDomRel.consecutiveLinkrole, hcMembers)  # type: ignore[arg-type]
                 val.domainMembers.update(hcMembers)
                 if hasHcRel.linkrole in lineItemsNotQualifiedLinkroles or hcMembers:
                     for hcPrimaryItem in hcPrimaryItems:

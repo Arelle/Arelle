@@ -22,6 +22,9 @@ runs:
         REPO: ${{ inputs.repository_full_name }}
         SHA: ${{ inputs.commit_sha }}
       run: |
+        # Background GC occassionally causes shallow file conflicts during fetch, so we disable it.
+        git config gc.auto 0
+
         git config user.name "github-actions"
         git config user.email "github-actions@github.com"
         
@@ -29,7 +32,16 @@ runs:
         git fetch --deepen="$DEPTH" "https://github.com/$REPO.git" "$SHA"
 
         echo "Deepening base branch history to depth $DEPTH..."
-        git fetch --deepen="$DEPTH" origin
+        max_attempts=3
+        for ((i=1; i<=max_attempts; i++)); do
+          git fetch --deepen="$DEPTH" origin && break
+          if ((i == max_attempts)); then
+            echo "::error::Failed to deepen base branch history after $max_attempts attempts."
+            exit 1
+          fi
+          echo "Attempt $i failed, retrying..."
+          sleep 1
+        done
 
         git merge "$SHA" --no-edit || {
           echo "::error::Merge failed. Ancestor not found within $DEPTH commits or a conflict exists."

@@ -2,23 +2,27 @@ from __future__ import annotations
 
 import json
 import locale
-import os.path
-import urllib.parse
+import os
 from collections import Counter, defaultdict
 from pathlib import PurePath
-from typing import TYPE_CHECKING, cast, Any
+from typing import TYPE_CHECKING, Any, cast
 
+import boto3
 import pytest
 import regex
+from botocore import UNSIGNED
+from botocore.config import Config as BotocoreConfig
 
 from arelle import PackageManager, PluginManager
-from arelle.ModelDocumentType import ModelDocumentType
 from arelle.Cntlr import Cntlr
 from arelle.CntlrCmdLine import parseAndRun
 from arelle.FileSource import archiveFilenameParts
+from arelle.ModelDocumentType import ModelDocumentType
 
 if TYPE_CHECKING:
     from _pytest.mark import ParameterSet
+    from types_boto3_s3 import S3Client
+
     from arelle.ModelDocument import ModelDocument
 
 
@@ -67,12 +71,59 @@ def get_document_id_from_basepath(doc: ModelDocument, basepath: str) -> str:
     return PurePath(doc.filepath).relative_to(basepath).as_posix()
 
 
-def get_s3_uri(path: str, version_id: str | None = None) -> str:
-    path = urllib.parse.quote(path)
-    uri = f'https://arelle-public.s3.amazonaws.com/{path}'
-    if version_id is not None:
-        uri += f'?versionId={version_id}'
-    return uri
+_S3_BASE_CONFIG = BotocoreConfig(
+    retries={
+        "mode": "adaptive",
+        "total_max_attempts": 5,
+    }
+)
+
+
+_PRIVATE_S3_CLIENT: S3Client | None = None
+
+
+def _get_private_s3_client() -> S3Client:
+    global _PRIVATE_S3_CLIENT
+    if _PRIVATE_S3_CLIENT is None:
+        _PRIVATE_S3_CLIENT = boto3.client(
+            service_name="s3",
+            config=_S3_BASE_CONFIG,
+        )
+    return _PRIVATE_S3_CLIENT
+
+
+_PUBLIC_S3_CLIENT: S3Client | None = None
+
+
+def _get_public_s3_client() -> S3Client:
+    global _PUBLIC_S3_CLIENT
+    if _PUBLIC_S3_CLIENT is None:
+        _PUBLIC_S3_CLIENT = boto3.client(
+            service_name="s3",
+            config=_S3_BASE_CONFIG.merge(BotocoreConfig(signature_version=UNSIGNED)),
+        )
+    return _PUBLIC_S3_CLIENT
+
+
+def _download_from_s3(
+    client: S3Client,
+    bucket: str,
+    download_path: str | os.PathLike[str],
+    key: str,
+    version_id: str | None = None,
+) -> None:
+    if parent_dir := os.path.dirname(download_path):
+        os.makedirs(parent_dir, exist_ok=True)
+    extra_args = {"VersionId": version_id} if version_id else {}
+    client.download_file(bucket, Key=key, Filename=str(download_path), ExtraArgs=extra_args)
+
+
+def download_from_public_s3(download_path: str | os.PathLike[str], key: str, version_id: str | None = None) -> None:
+    _download_from_s3(_get_public_s3_client(), "arelle-public", download_path, key, version_id)
+
+
+def download_from_private_s3(download_path: str | os.PathLike[str], key: str, version_id: str | None = None) -> None:
+    _download_from_s3(_get_private_s3_client(), "arelle", download_path, key, version_id)
 
 
 def get_test_data(

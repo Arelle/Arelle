@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import os
-import urllib.request
 import zipfile
 from pathlib import Path
 from shutil import rmtree
 
 import regex
 
-from tests.integration_tests.integration_test_util import get_s3_uri
+from tests.integration_tests.integration_test_util import download_from_public_s3
 from tests.integration_tests.scripts.script_util import run_arelle, parse_args, validate_log_file, assert_result, prepare_logfile
 
 errors = []
@@ -25,13 +24,12 @@ test_directory = Path(args.test_directory)
 report_zip_path = test_directory / 'report.zip'
 report_directory = test_directory / 'report'
 report_path = report_directory / "report.xbrl"
-report_zip_url = get_s3_uri(
-    'ci/packages/duplicate_facts_deduplication.zip',
-    version_id='1NplyThuJkNOmSNITHdVuqE4MYtvDGOq'
+print(f"Downloading report: {report_zip_path}")
+download_from_public_s3(
+    report_zip_path,
+    "ci/packages/duplicate_facts_deduplication.zip",
+    version_id="1NplyThuJkNOmSNITHdVuqE4MYtvDGOq",
 )
-
-print(f"Downloading report: {report_zip_url}")
-urllib.request.urlretrieve(report_zip_url, report_zip_path)
 
 print(f"Extracting report: {report_directory}")
 with zipfile.ZipFile(report_zip_path, "r") as zip_ref:

@@ -34,7 +34,7 @@ from arelle.utils.Units import getDuplicateUnitGroups
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from ..Constants import domainItemTypeQname, JAPAN_LANGUAGE_CODES, NUMERIC_LABEL_ROLES, LC3_NAME_PATTERN, STANDARD_TAXONOMY_URL_PREFIXES
-from ..DisclosureSystems import (DISCLOSURE_SYSTEM_EDINET)
+from ..DisclosureSystems import ALL_DISCLOSURE_SYSTEMS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 from arelle.utils.validate.Facts import isValidNonNilFact
 
@@ -63,7 +63,7 @@ GFM_RECOMMENDED_NAMESPACE_PREFIXES = {
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_1_3(
         pluginData: PluginValidationDataExtension,
@@ -125,7 +125,7 @@ def rule_gfm_1_1_3(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_1_6(
         pluginData: PluginValidationDataExtension,
@@ -152,7 +152,7 @@ def rule_gfm_1_1_6(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_1_7(
         pluginData: PluginValidationDataExtension,
@@ -184,7 +184,7 @@ def rule_gfm_1_1_7(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_2_1(
         pluginData: PluginValidationDataExtension,
@@ -208,7 +208,7 @@ def rule_gfm_1_2_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_2_2(
         pluginData: PluginValidationDataExtension,
@@ -232,7 +232,7 @@ def rule_gfm_1_2_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_2_3(
         pluginData: PluginValidationDataExtension,
@@ -254,7 +254,7 @@ def rule_gfm_1_2_3(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_2_4(
         pluginData: PluginValidationDataExtension,
@@ -276,7 +276,7 @@ def rule_gfm_1_2_4(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_2_5(
         pluginData: PluginValidationDataExtension,
@@ -300,7 +300,7 @@ def rule_gfm_1_2_5(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_2_7(
         pluginData: PluginValidationDataExtension,
@@ -321,7 +321,7 @@ def rule_gfm_1_2_7(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_2_8(
         pluginData: PluginValidationDataExtension,
@@ -346,7 +346,7 @@ def rule_gfm_1_2_8(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_2_9(
         pluginData: PluginValidationDataExtension,
@@ -375,7 +375,7 @@ def rule_gfm_1_2_9(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_2_10(
         pluginData: PluginValidationDataExtension,
@@ -396,7 +396,7 @@ def rule_gfm_1_2_10(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_2_13(
         pluginData: PluginValidationDataExtension,
@@ -431,7 +431,7 @@ def rule_gfm_1_2_13(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_2_14(
         pluginData: PluginValidationDataExtension,
@@ -457,7 +457,7 @@ def rule_gfm_1_2_14(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_2_16(
         pluginData: PluginValidationDataExtension,
@@ -489,7 +489,7 @@ def rule_gfm_1_2_16(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_2_22(
         pluginData: PluginValidationDataExtension,
@@ -526,7 +526,7 @@ def rule_gfm_1_2_22(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_2_25(
         pluginData: PluginValidationDataExtension,
@@ -562,7 +562,7 @@ def rule_gfm_1_2_25(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_2_26(
         pluginData: PluginValidationDataExtension,
@@ -610,7 +610,7 @@ def rule_gfm_1_2_26(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_2_27(
         pluginData: PluginValidationDataExtension,
@@ -635,7 +635,7 @@ def rule_gfm_1_2_27(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_2_28(
         pluginData: PluginValidationDataExtension,
@@ -669,7 +669,7 @@ def rule_gfm_1_2_28(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_2_30(
         pluginData: PluginValidationDataExtension,
@@ -694,7 +694,7 @@ def rule_gfm_1_2_30(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_3_1(
         pluginData: PluginValidationDataExtension,
@@ -722,7 +722,7 @@ def rule_gfm_1_3_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_3_2(
         pluginData: PluginValidationDataExtension,
@@ -762,7 +762,7 @@ def rule_gfm_1_3_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_3_8(
         pluginData: PluginValidationDataExtension,
@@ -791,7 +791,7 @@ def rule_gfm_1_3_8(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_3_10(
         pluginData: PluginValidationDataExtension,
@@ -814,7 +814,7 @@ def rule_gfm_1_3_10(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_3_11(
         pluginData: PluginValidationDataExtension,
@@ -844,7 +844,7 @@ def rule_gfm_1_3_11(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_3_13(
         pluginData: PluginValidationDataExtension,
@@ -874,7 +874,7 @@ def rule_gfm_1_3_13(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_3_16(
         pluginData: PluginValidationDataExtension,
@@ -897,7 +897,7 @@ def rule_gfm_1_3_16(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_3_17(
         pluginData: PluginValidationDataExtension,
@@ -921,7 +921,7 @@ def rule_gfm_1_3_17(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_3_18(
         pluginData: PluginValidationDataExtension,
@@ -952,7 +952,7 @@ def rule_gfm_1_3_18(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_3_19(
         pluginData: PluginValidationDataExtension,
@@ -966,6 +966,7 @@ def rule_gfm_1_3_19(
     """
     improperlyFormattedIds = set()
     for concept in getExtensionConcepts(val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
+        assert concept.qname is not None, "concept.qname is None"
         prefix = concept.qname.prefix or ""
         name = concept.qname.localName
         requiredId = f"{prefix}_{name}"
@@ -981,7 +982,7 @@ def rule_gfm_1_3_19(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_3_20(
         pluginData: PluginValidationDataExtension,
@@ -1009,7 +1010,7 @@ def rule_gfm_1_3_20(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_3_21(
         pluginData: PluginValidationDataExtension,
@@ -1034,7 +1035,7 @@ def rule_gfm_1_3_21(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_3_22(
         pluginData: PluginValidationDataExtension,
@@ -1060,7 +1061,7 @@ def rule_gfm_1_3_22(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_3_23(
         pluginData: PluginValidationDataExtension,
@@ -1088,7 +1089,7 @@ def rule_gfm_1_3_23(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_3_25(
         pluginData: PluginValidationDataExtension,
@@ -1104,6 +1105,7 @@ def rule_gfm_1_3_25(
     and only if the name attribute ends with "Axis".
     """
     for concept in getExtensionConcepts(val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
+        assert concept.qname is not None, "concept.qname is None"
         if concept.qname.localName.endswith("Axis") != (concept.substitutionGroupQname == XbrlConst.qnXbrldtDimensionItem):
             yield Validation.warning(
                 codes='EDINET.EC5700W.GFM.1.3.25',
@@ -1115,7 +1117,7 @@ def rule_gfm_1_3_25(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_3_26(
         pluginData: PluginValidationDataExtension,
@@ -1131,6 +1133,7 @@ def rule_gfm_1_3_26(
     substitutionGroup attribute equals "xbrldt:hypercubeItem".
     """
     for concept in getExtensionConcepts(val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
+        assert concept.qname is not None, "concept.qname is None"
         if concept.qname.localName.endswith("Table") != (concept.substitutionGroupQname == XbrlConst.qnXbrldtHypercubeItem):
             yield Validation.warning(
                 codes='EDINET.EC5700W.GFM.1.3.26',
@@ -1143,7 +1146,7 @@ def rule_gfm_1_3_26(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_3_28(
         pluginData: PluginValidationDataExtension,
@@ -1156,6 +1159,7 @@ def rule_gfm_1_3_28(
     set the abstract attribute to "true".
     """
     for concept in getExtensionConcepts(val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
+        assert concept.qname is not None, "concept.qname is None"
         if concept.qname.localName.endswith("LineItems") and not concept.isAbstract:
             yield Validation.warning(
                 codes='EDINET.EC5700W.GFM.1.3.28',
@@ -1168,7 +1172,7 @@ def rule_gfm_1_3_28(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_3_29(
         pluginData: PluginValidationDataExtension,
@@ -1184,6 +1188,7 @@ def rule_gfm_1_3_29(
     if the type attribute equals "nonnum:domainItemType".
     """
     for concept in getExtensionConcepts(val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
+        assert concept.qname is not None, "concept.qname is None"
         isConceptDomain = concept.type.isDomainItemType if concept.type is not None else False
         if ((concept.qname.localName.endswith("Domain") or concept.qname.localName.endswith("Member")) != isConceptDomain):
             yield Validation.warning(
@@ -1197,7 +1202,7 @@ def rule_gfm_1_3_29(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_3_30(
         pluginData: PluginValidationDataExtension,
@@ -1224,7 +1229,7 @@ def rule_gfm_1_3_30(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_3_31(
         pluginData: PluginValidationDataExtension,
@@ -1252,7 +1257,7 @@ def rule_gfm_1_3_31(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_4_4(
         pluginData: PluginValidationDataExtension,
@@ -1284,7 +1289,7 @@ def rule_gfm_1_4_4(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_4_6(
         pluginData: PluginValidationDataExtension,
@@ -1320,7 +1325,7 @@ def rule_gfm_1_4_6(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_4_8(
         pluginData: PluginValidationDataExtension,
@@ -1352,7 +1357,7 @@ def rule_gfm_1_4_8(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_5_1(
         pluginData: PluginValidationDataExtension,
@@ -1379,6 +1384,7 @@ def rule_gfm_1_5_1(
                 labelExists = True
                 break
         if not labelExists:
+            assert concept.qname is not None, "concept.qname is None"
             yield Validation.warning(
                 codes='EDINET.EC5700W.GFM.1.5.1',
                 msg=_("The used concept of '%(concept)s' is missing a standard label in Japanese"),
@@ -1389,7 +1395,7 @@ def rule_gfm_1_5_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_5_2(
         pluginData: PluginValidationDataExtension,
@@ -1419,6 +1425,7 @@ def rule_gfm_1_5_2(
             if len(labels) > 1:
                 warningLabels.append(key)
         if len(warningLabels) > 0:
+            assert concept.qname is not None, "concept.qname is None"
             yield Validation.warning(
                 codes='EDINET.EC5700W.GFM.1.5.2',
                 msg=_("The used concept of '%(concept)s' has more than one label for the given role/lang pairs: %(pairs)s."),
@@ -1430,7 +1437,7 @@ def rule_gfm_1_5_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_5_3(
         pluginData: PluginValidationDataExtension,
@@ -1461,6 +1468,7 @@ def rule_gfm_1_5_3(
             if len([label for label in labels if label.xmlLang in JAPAN_LANGUAGE_CODES]) == 0:
                 warningRoles.append(role)
         if len(warningRoles) > 0:
+            assert concept.qname is not None, "concept.qname is None"
             yield Validation.warning(
                 codes='EDINET.EC5700W.GFM.1.5.3',
                 msg=_("The used concept of '%(concept)s' is missing a label in Japanese in the following roles: %(roles)s."),
@@ -1472,7 +1480,7 @@ def rule_gfm_1_5_3(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_5_5(
         pluginData: PluginValidationDataExtension,
@@ -1496,6 +1504,7 @@ def rule_gfm_1_5_5(
             if (label is not None and
                     not pluginData.isStandardTaxonomyUrl(label.modelDocument.uri, val.modelXbrl) and
                     label.role == XbrlConst.documentationLabel):
+                assert concept.qname is not None, "concept.qname is None"
                 yield Validation.warning(
                     codes='EDINET.EC5700W.GFM.1.5.5',
                     msg=_("The standard concept of '%(concept)s' must not have a documentation label defined."),
@@ -1506,7 +1515,7 @@ def rule_gfm_1_5_5(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_5_6(
         pluginData: PluginValidationDataExtension,
@@ -1540,7 +1549,7 @@ def rule_gfm_1_5_6(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_5_7(
         pluginData: PluginValidationDataExtension,
@@ -1582,7 +1591,7 @@ def rule_gfm_1_5_7(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_5_8(
         pluginData: PluginValidationDataExtension,
@@ -1612,7 +1621,7 @@ def rule_gfm_1_5_8(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_5_10(
         pluginData: PluginValidationDataExtension,
@@ -1646,7 +1655,7 @@ def rule_gfm_1_5_10(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_6_1(
         pluginData: PluginValidationDataExtension,
@@ -1671,7 +1680,7 @@ def rule_gfm_1_6_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_6_2(
         pluginData: PluginValidationDataExtension,
@@ -1705,7 +1714,7 @@ def rule_gfm_1_6_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_6_5(
         pluginData: PluginValidationDataExtension,
@@ -1739,7 +1748,7 @@ def rule_gfm_1_6_5(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_7_1(
         pluginData: PluginValidationDataExtension,
@@ -1764,7 +1773,7 @@ def rule_gfm_1_7_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_7_2(
         pluginData: PluginValidationDataExtension,
@@ -1790,7 +1799,7 @@ def rule_gfm_1_7_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_7_3(
         pluginData: PluginValidationDataExtension,
@@ -1823,7 +1832,7 @@ def rule_gfm_1_7_3(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_7_5(
         pluginData: PluginValidationDataExtension,
@@ -1870,7 +1879,7 @@ def rule_gfm_1_7_5(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_7_6(
         pluginData: PluginValidationDataExtension,
@@ -1904,7 +1913,7 @@ def rule_gfm_1_7_6(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_8_1(
         pluginData: PluginValidationDataExtension,
@@ -1929,7 +1938,7 @@ def rule_gfm_1_8_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_8_3(
         pluginData: PluginValidationDataExtension,
@@ -1960,7 +1969,7 @@ def rule_gfm_1_8_3(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_8_5(
         pluginData: PluginValidationDataExtension,
@@ -1989,7 +1998,7 @@ def rule_gfm_1_8_5(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_8_9(
         pluginData: PluginValidationDataExtension,
@@ -2026,8 +2035,10 @@ def rule_gfm_1_8_9(
                     dimTargetRequired = (dimELR is not None)
                     if not dimELR:
                         dimELR = elr
-                    hypercubeDimRels = val.modelXbrl.relationshipSet(XbrlConst.hypercubeDimension, dimELR).fromModelObject(toConcept)
+                    hypercubeDimRels = val.modelXbrl.relationshipSet(XbrlConst.hypercubeDimension, dimELR).fromModelObject(toConcept)  # type: ignore[arg-type]
                     if dimTargetRequired and len(hypercubeDimRels) == 0:
+                        assert fromConcept is not None, "fromConcept is None"
+                        assert toConcept is not None, "toConcept is None"
                         yield Validation.warning(
                             codes='EDINET.EC5700W.GFM.1.8.9',
                             msg=_("Add the arc related to the xbrldt:targetRole attribute or remove the attribute. "
@@ -2047,6 +2058,7 @@ def rule_gfm_1_8_9(
                             domELR = dimELR
                         dimDomRels = val.modelXbrl.relationshipSet(XbrlConst.dimensionDomain, domELR).fromModelObject(dim)
                         if domTargetRequired and len(dimDomRels) == 0:
+                            assert hypercube is not None, "hypercube is None"
                             yield Validation.warning(
                                 codes='EDINET.EC5700W.GFM.1.8.9',
                                 msg=_("Add the arc related to the xbrldt:targetRole attribute or remove the attribute. "
@@ -2064,6 +2076,8 @@ def rule_gfm_1_8_9(
                             toELR = rel.targetRole
                             if isinstance(toMbr, ModelConcept) and toELR and len(
                                     val.modelXbrl.relationshipSet(XbrlConst.domainMember, toELR).fromModelObject(toMbr)) == 0:
+                                        assert fromMbr is not None, "fromMbr is None"
+                                        assert toMbr is not None, "toMbr is None"
                                         yield Validation.warning(
                                             codes='EDINET.EC5700W.GFM.1.8.9',
                                             msg=_("Add the arc related to the xbrldt:targetRole attribute or remove the attribute. "
@@ -2077,7 +2091,7 @@ def rule_gfm_1_8_9(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_8_10(
         pluginData: PluginValidationDataExtension,
@@ -2111,7 +2125,7 @@ def rule_gfm_1_8_10(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_8_11(
         pluginData: PluginValidationDataExtension,
@@ -2138,7 +2152,7 @@ def rule_gfm_1_8_11(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_9_1(
         pluginData: PluginValidationDataExtension,
@@ -2166,7 +2180,7 @@ def rule_gfm_1_9_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_10_3(
         pluginData: PluginValidationDataExtension,
@@ -2196,7 +2210,7 @@ def rule_gfm_1_10_3(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_charsets(
         pluginData: PluginValidationDataExtension,
@@ -2271,7 +2285,7 @@ def rule_charsets(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_10_12(
         pluginData: PluginValidationDataExtension,
@@ -2304,7 +2318,7 @@ def rule_gfm_1_10_12(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_1_10_14(
         pluginData: PluginValidationDataExtension,
@@ -2335,7 +2349,7 @@ def rule_gfm_1_10_14(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_2_3_5(
         pluginData: PluginValidationDataExtension,
@@ -2376,7 +2390,7 @@ def rule_gfm_2_3_5(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_2_5_1(
         pluginData: PluginValidationDataExtension,
@@ -2398,7 +2412,7 @@ def rule_gfm_2_5_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_2_6_1(
         pluginData: PluginValidationDataExtension,
@@ -2420,7 +2434,7 @@ def rule_gfm_2_6_1(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_gfm_2_8_1(
         pluginData: PluginValidationDataExtension,

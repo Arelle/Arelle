@@ -16,7 +16,7 @@ from collections.abc import Iterable, Iterator
 
 import arelle
 from arelle import FileSource, ModelRelationshipSet, XmlUtil, ModelValue, XbrlConst, XmlValidate
-from arelle.ErrorManager import ErrorManager
+from arelle.ErrorManager import ErrorManager, ErrorsType
 from arelle.Locale import format_string
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import dateUnionEqual
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from arelle.CntlrWinMain import CntlrWinMain
     from arelle.FileSource import FileSource as FileSourceClass
     from arelle.ModelDocument import ModelDocument as ModelDocumentClass
-    from arelle.ModelDtsObject import ModelConcept, ModelType, ModelRoleType
+    from arelle.ModelDtsObject import ModelConcept, ModelType, ModelRoleType, ModelLink
     from arelle.ModelFormulaObject import ModelConsistencyAssertion, ModelCustomFunctionSignature, ModelVariableSet
     from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit, ModelDimensionValue
     from arelle.ModelManager import ModelManager
@@ -287,7 +287,7 @@ class ModelXbrl:
 
     closeFileSource: bool
     dimensionDefaultConcepts: dict[ModelConcept, ModelConcept]
-    entryLoadingUrl: str
+    entryLoadingUrl: str | None
     fileSource: FileSourceClass
     ixdsDocUrls: list[str]
     ixdsHtmlElements: list[Any]
@@ -329,7 +329,7 @@ class ModelXbrl:
         self.qnameAttributeGroups: dict[QName, Any] = {}
         self.qnameGroupDefinitions: dict[QName, Any] = {}
         self.qnameTypes: dict[QName, ModelType] = {}  # contains ModelTypes by qname key of type
-        self.baseSets: defaultdict[tuple[str, str | None, QName | None, QName | None], list[ModelObject | LinkPrototype]] = defaultdict(list)  # contains ModelLinks for keys arcrole, arcrole#linkrole
+        self.baseSets: defaultdict[tuple[str, str | None, QName | None, QName | None], list[ModelLink | LinkPrototype]] = defaultdict(list)  # contains ModelLinks for keys arcrole, arcrole#linkrole
         self.relationshipSets: dict[tuple[str] | tuple[tuple[str, ...] | str, tuple[str, ...] | str | None, QName | None, QName | None, bool], ModelRelationshipSetClass] = {}  # contains ModelRelationshipSets by bas set keys
         self.qnameDimensionDefaults: dict[QName, QName] = {}  # contains qname of dimension (index) and default member(value)
         self.facts: list[ModelFact] = []
@@ -461,7 +461,7 @@ class ModelXbrl:
         modelRoles  = self.roleTypes.get(roleURI, ())
         if modelRoles:
             _roleType: ModelRoleType = modelRoles[0]
-            return cast(str, _roleType.genLabel(lang=lang, strip=True) or _roleType.definition or self.roleUriTitle(roleURI))
+            return _roleType.genLabel(lang=lang, strip=True) or _roleType.definition or self.roleUriTitle(roleURI)
         return self.roleUriTitle(roleURI)
 
     def roleTypeName(self, roleURI: str, lang: str | None = None) -> str:
@@ -698,8 +698,8 @@ class ModelXbrl:
                 if cast('DimValuePrototype | ModelDimensionValue', dimValue).isTyped:  #Typing thinks that this can also be a QName
                     dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:typedMember",
                                               attributes=dimAttr)
-                    if isinstance(dimValue, (arelle.ModelInstanceObject.ModelDimensionValue, DimValuePrototype)) and dimValue.isTyped:
-                        XmlUtil.copyNodes(dimElt, cast(ModelObject, dimValue.typedMember))
+                    if isinstance(dimValue, (arelle.ModelInstanceObject.ModelDimensionValue, DimValuePrototype)) and dimValue.isTyped and dimValue.typedMember is not None:
+                        XmlUtil.copyNodes(dimElt, dimValue.typedMember)
                 elif dimMemberQname:
                     dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:explicitMember",
                                               attributes=dimAttr,
@@ -866,7 +866,7 @@ class ModelXbrl:
                         fbdq[NONDEFAULT].add(fact) # set of all facts that have non-default value for dimension
                         if dimValue.isExplicit:
                             fbdq[dimValue.memberQname].add(fact) # set of facts that have this dim and mem
-                        elif dimValue.isTyped:
+                        elif dimValue.isTyped and dimValue.typedMember is not None:
                             fbdq[dimValue.typedMember.textValue].add(fact) # set of facts that have this dim and mem
                     else: # default typed dimension
                         fbdq[DEFAULT].add(fact)
@@ -1196,7 +1196,7 @@ class ModelXbrl:
             return self._qnameUtrUnits
 
     @property
-    def errors(self) -> list[str | None]:
+    def errors(self) -> ErrorsType:
         return self.errorManager.errors
 
     @property

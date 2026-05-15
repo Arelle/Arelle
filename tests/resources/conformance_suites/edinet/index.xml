@@ -173,6 +173,8 @@
     <testcase uri="EC8032E/index.xml" />
     <testcase uri="EC8033W/index.xml" />
     <testcase uri="EC8034W/index.xml" />
+    <testcase uri="EC8036W/index.xml" />
+    <!-- <testcase uri="EC8037W/index.xml" /> Not necessary, valid testcases fire this warning. -->
     <testcase uri="EC8038W/index.xml" />
     <testcase uri="EC8039W/index.xml" />
     <testcase uri="EC8040W/index.xml" />
@@ -187,6 +189,7 @@
     <testcase uri="EC8049W/index.xml" />
     <testcase uri="EC8050W/index.xml" />
     <testcase uri="EC8054W/index.xml" />
+    <testcase uri="EC8055W/index.xml" />
     <testcase uri="EC8057W/index.xml" />
     <testcase uri="EC8058W/index.xml" />
     <testcase uri="EC8060E/index.xml" />
@@ -203,7 +206,9 @@
     <testcase uri="EC8073W/index.xml" />
     <testcase uri="EC8074W/index.xml" />
     <testcase uri="EC8076W/index.xml" />
+    <testcase uri="EC8077W/index.xml" />
     <!-- <testcase uri="EC8064W/index.xml" /> TODO: Relevant sample filings not provided, not found in EDINET index, not trivial to create. -->
     <testcase uri="EC8075W/index.xml" />
     <testcase uri="valid/index.xml" />
+    <testcase uri="samples/2026/index.xml" />
 </testcases>

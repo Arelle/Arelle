@@ -74,10 +74,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Optional, cast
 
 import regex as re
-from openpyxl import Workbook
-from openpyxl.cell.cell import WriteOnlyCell
-from openpyxl.styles import Alignment, Color, PatternFill, fills
-from openpyxl.worksheet.dimensions import ColumnDimension
 
 from arelle import ValidateDuplicateFacts, XbrlConst
 from arelle.ModelDocumentType import ModelDocumentType
@@ -149,6 +145,9 @@ ROLE_REFS = {
     qname("{http://www.xbrl.org/2003/linkbase}arcroleRef"),
 }
 ENTITY_NA_QNAME = ("https://xbrl.org/entities", "NA")
+FALLBACK_ENTITY_SCHEME_PREFIX = "scheme"
+FALLBACK_NAMESPACE_PREFIX = "ns"
+
 csvOpenMode = "w"
 csvOpenNewline = ""
 
@@ -156,9 +155,10 @@ OimFact = dict[str, Any]
 OimReport = dict[str, Any]
 
 class NamespacePrefixes:
-    def __init__(self, prefixesByNamespace: dict[str, str] | None = None) -> None:
+    def __init__(self, prefixesByNamespace: dict[str, str] | None = None, report: ModelXbrl | None = None) -> None:
         self._prefixesByNamespace: dict[str, str] = prefixesByNamespace or {}
         self._usedPrefixes: set[str] = set(self._prefixesByNamespace.values())
+        self._reportNsMap: dict[str, str] = {ns: p for p, ns in report.prefixedNamespaces.items()} if report else {}
 
     @property
     def namespaces(self) -> dict[str, str]:
@@ -176,18 +176,32 @@ class NamespacePrefixes:
     def getPrefix(self, namespace: str) -> str | None:
         return self._prefixesByNamespace.get(namespace)
 
-    def addNamespace(self, namespace: str, preferredPrefix: str) -> str:
-        prefix = self._prefixesByNamespace.get(namespace)
-        if prefix is not None:
-            return prefix
+    def addNamespace(self, namespace: str, preferredPrefix: str | None = None) -> str:
+        if (boundPrefix := self._prefixesByNamespace.get(namespace)) is not None:
+            return boundPrefix
 
-        prefix = reservedUriAliases.get(namespace)
-        if prefix is None:
-            prefix = preferredPrefix
-            i = 2
-            while prefix in self._usedPrefixes:
-                prefix = f"{preferredPrefix}{i}"
-                i += 1
+        if (reservedPrefix := reservedUriAliases.get(namespace)) is not None:
+            return self._bind(namespace, reservedPrefix)
+
+        if preferredPrefix is None:
+            # For example, EE2.0 fact values (expanded names) get turned in to
+            # QNames without a prefix but the report will often know the prefix
+            preferredPrefix = self._reportNsMap.get(namespace, None)
+
+        if preferredPrefix and preferredPrefix not in self._usedPrefixes:
+            chosenPrefix = preferredPrefix
+        else:
+            p = preferredPrefix if preferredPrefix else FALLBACK_NAMESPACE_PREFIX
+            n = 0
+            while (chosenPrefix := f"{p}{n}") in self._usedPrefixes:
+                n += 1
+
+        return self._bind(namespace, chosenPrefix)
+
+    def _bind(self, namespace: str, prefix: str) -> None:
+        if namespace in self._prefixesByNamespace or prefix in self._usedPrefixes:
+            raise ValueError(f"Namespace {namespace} or prefix {prefix} already in use")
+
         self._prefixesByNamespace[namespace] = prefix
         self._usedPrefixes.add(prefix)
         return prefix
@@ -213,7 +227,7 @@ def saveLoadableOIM(
         oimFile = oimFile + ".json"
         isJSON = True
 
-    namespacePrefixes = NamespacePrefixes({nsOim: "xbrl"})
+    namespacePrefixes = NamespacePrefixes({nsOim: "xbrl"}, modelXbrl)
     if extensionPrefixes:
         for extensionPrefix, extensionNamespace in extensionPrefixes.items():
             namespacePrefixes.addNamespace(extensionNamespace, extensionPrefix)
@@ -228,7 +242,17 @@ def saveLoadableOIM(
                     if qname.namespaceURI == mapNamespace:
                         prefix = mapPrefix
                         break
-            namespacePrefixes.addNamespace(qname.namespaceURI, prefix or "")
+            namespacePrefixes.addNamespace(qname.namespaceURI, prefix)
+
+    def compileQnamesForFact(fact: ModelFact) -> None:
+        compileQname(fact.qname)
+        xValue = getattr(fact, "xValue", None)
+        if isinstance(xValue, QName):
+            compileQname(xValue, fact.nsmap)
+        elif isinstance(xValue, list):
+            for q in xValue:
+                if isinstance(q, QName):
+                    compileQname(q, fact.nsmap)
 
     aspectsDefined = {qnOimConceptAspect, qnOimEntityAspect, qnOimPeriodAspect}
 
@@ -237,9 +261,9 @@ def saveLoadableOIM(
             # set-valued enumeration fact
             return " ".join([oimValue(o) for o in obj])
         if isinstance(obj, QName) and obj.namespaceURI is not None:
-            if obj.namespaceURI not in namespacePrefixes:
-                namespacePrefixes.addNamespace(obj.namespaceURI, obj.prefix or "_")
-            return f"{namespacePrefixes.getPrefix(obj.namespaceURI)}:{obj.localName}"
+            if (prefix := namespacePrefixes.getPrefix(obj.namespaceURI)) is None:
+                prefix = namespacePrefixes.addNamespace(obj.namespaceURI, obj.prefix)
+            return f"{prefix}:{obj.localName}"
         if isinstance(obj, (float, Decimal)):
             try:
                 if isinf(obj):
@@ -310,14 +334,9 @@ def saveLoadableOIM(
                 hasNumeric = True
             if concept.baseXbrliType in ("string", "normalizedString", "token") and fact.xmlLang:
                 hasLang = True
-        compileQname(fact.qname, fact.nsmap)
-        xValue = getattr(fact, "xValue", None)
-        if isinstance(xValue, QName):
-            compileQname(xValue, fact.nsmap)
-        elif isinstance(xValue, list):
-            for q in xValue:
-                if isinstance(q, QName):
-                    compileQname(q, fact.nsmap)
+
+        compileQnamesForFact(fact)
+
         unit = fact.unit
         if unit is not None:
             hasUnits = True
@@ -329,22 +348,13 @@ def saveLoadableOIM(
         )
         return
 
-    entitySchemePrefixes = {}
+    preferredEntitySchemePrefixes: dict[str, str] = {
+            "http://www.sec.gov/CIK": "cik",
+            "http://standard.iso.org/iso/17442": "lei",
+    }
     for cntx in modelXbrl.contexts.values():
-        if cntx.entityIdentifierElement is not None:
-            scheme = cntx.entityIdentifier[0]
-            if scheme not in entitySchemePrefixes:
-                if not entitySchemePrefixes:  # first one is just scheme
-                    if scheme == "http://www.sec.gov/CIK":
-                        _schemePrefix = "cik"
-                    elif scheme == "http://standard.iso.org/iso/17442":
-                        _schemePrefix = "lei"
-                    else:
-                        _schemePrefix = "scheme"
-                else:
-                    _schemePrefix = f"scheme{len(entitySchemePrefixes) + 1}"
-                namespacePrefixes.addNamespace(scheme, _schemePrefix)
-                entitySchemePrefixes[scheme] = namespacePrefixes.getPrefix(scheme)
+        if cntx.entityIdentifierElement is not None and (scheme := cntx.entityIdentifier[0]) not in namespacePrefixes:
+            namespacePrefixes.addNamespace(scheme, preferredEntitySchemePrefixes.get(scheme, FALLBACK_ENTITY_SCHEME_PREFIX))
         for dim in cntx.qnameDims.values():
             compileQname(dim.dimensionQname)
             aspectsDefined.add(dim.dimensionQname)
@@ -668,6 +678,12 @@ def saveLoadableOIM(
                 _csvInfo["file"].close()
                 _csvInfo.clear()
         elif isXL:
+            # openpyxl is an optional dependency, so import only if needed
+            from openpyxl import Workbook
+            from openpyxl.cell.cell import WriteOnlyCell
+            from openpyxl.styles import Alignment, Color, PatternFill, fills
+            from openpyxl.worksheet.dimensions import ColumnDimension
+
             headerWidths = {
                 "concept": 40,
                 "decimals": 8,
