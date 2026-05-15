@@ -17,6 +17,7 @@ from arelle.Locale import (
     availableLocales,
     availableBCP47LangTags,
     bcp47LangToPosixLocale,
+    getLanguageCodes,
     getLocale,
     _getSystem_LocaleCodes,
     _LocaleCode,
@@ -366,6 +367,29 @@ class TestPosixLocaleToBCP47Lang:
     ])
     def test_invalid_input_falls_back_to_default(self, invalid: str) -> None:
         assert posixLocaleToBCP47Lang(invalid) == 'en-GB'
+
+
+class TestGetLanguageCodes:
+    @pytest.mark.parametrize('configLang, expected', [
+        ('en-US',      ['en_US', 'en-US', 'en']),   # BCP47 with region
+        ('en_US',      ['en_US', 'en-US', 'en']),   # POSIX with region
+        ('en_US.UTF-8', ['en_US', 'en-US', 'en']), # POSIX with encoding stripped
+        ('fr',         ['fr', 'fr_FR', 'fr-FR']),   # bare lang with known default region
+        ('xx',         ['xx']),                      # bare lang with no default region
+    ])
+    def test_known_inputs(self, configLang: str, expected: list[str]) -> None:
+        assert getLanguageCodes(configLang) == expected
+
+    def test_invalid_configLang_falls_back_to_default(self) -> None:
+        """Garbage configLang should not raise — fallback returns default locale codes."""
+        result = getLanguageCodes('I am a badger')
+        assert result == getLanguageCodes(defaultLocale)
+
+    def test_none_configLang_uses_system_locale(self) -> None:
+        result = getLanguageCodes(None)
+        assert isinstance(result, list)
+        assert len(result) >= 1
+        assert all(isinstance(s, str) for s in result)
 
 
 class TestCompatibleSystemLocales:

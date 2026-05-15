@@ -201,7 +201,7 @@ def getLanguageCodes(configLang: str | None = None) -> list[str]:
     [en_US, en-US, en]
     [fr]
     """
-    lc = _LocaleCode.parse(configLang or getLanguageCode()).strip_encoding()
+    lc = _LocaleCode.parse(configLang or getLanguageCode(), fallbackToDefaultLocale=True).strip_encoding()
     if lc.region:
         return [lc.to_posix, lc.to_bcp47, lc.lang]
     if defaultRegion := defaultLocaleCodes.get(lc.lang):
