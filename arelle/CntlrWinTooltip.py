@@ -47,13 +47,12 @@ from typing import Any
 class ToolTip:
     def __init__(
         self,
-            master: tkinter.Misc,
-            text: str | None = 'Your text here',
-            delay: int = 500,
-            **opts: Any
+        master: tkinter.Misc,
+        text: str | None = 'Your text here',
+        delay: int = 500,
+        **opts: Any
     ) -> None:
         self.master = master
-        # self._opts: dict[str, str | int | None] = {
         self._opts: dict[str, Any] = {
             'anchor': 'center',
             'bd': 1,
