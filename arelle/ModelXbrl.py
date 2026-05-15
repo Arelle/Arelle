@@ -565,7 +565,7 @@ class ModelXbrl:
     def prefixedNamespaces(self) -> dict[str, str]:
         """
         Dict of prefixes for namespaces defined in DTS.
-        
+
         If a namespace has a prefix on its defining schema document, that prefix
         is used.  Otherwise, if the namespace is declared on the root element of
         the entry point, that prefix is used.
@@ -575,7 +575,7 @@ class ModelXbrl:
         that are not included in this dict.
         2. This dict can include namespaces which no facts or concepts use.
         """
-        prefixedNamespaces = {}
+        prefixedNamespaces: dict[str, str] = {}
         seen_ns = set()
         # Prefer a given namespace's self-specified prefix
         for nsDocs in self.namespaceDocs.values():
