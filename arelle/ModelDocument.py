@@ -2020,7 +2020,7 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
                 if linkrole in footnoteLinkPrototypes:
                     linkPrototype = footnoteLinkPrototypes[linkrole]
                 else:
-                    linkPrototype = LinkPrototype(modelIxdsDocument, mdlDoc.xmlRootElement, XbrlConst.qnLinkFootnoteLink, linkrole)  # type: ignore[no-untyped-call]
+                    linkPrototype = LinkPrototype(modelIxdsDocument, mdlDoc.xmlRootElement, XbrlConst.qnLinkFootnoteLink, linkrole)
                     footnoteLinkPrototypes[linkrole] = linkPrototype
                     for baseSetKey in (("XBRL-footnotes",None,None,None),
                                        ("XBRL-footnotes",linkrole,None,None),
@@ -2030,14 +2030,14 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
                         modelXbrl.baseSets[baseSetKey].append(linkPrototype)
                 # locs
                 for modelFact in footnoteRefs[footnoteID]:
-                    locPrototype = LocPrototype(modelIxdsDocument, linkPrototype, footnoteLocLabel, modelFact)  # type: ignore[no-untyped-call]
+                    locPrototype = LocPrototype(modelIxdsDocument, linkPrototype, footnoteLocLabel, modelFact)
                     linkPrototype.childElements.append(locPrototype)
                     linkPrototype.labeledResources[footnoteLocLabel].append(locPrototype)
                 # resource
                 linkPrototype.childElements.append(modelInlineFootnote)
                 linkPrototype.labeledResources[footnoteID].append(modelInlineFootnote)
                 # arc
-                linkPrototype.childElements.append(ArcPrototype(mdlDoc, linkPrototype, XbrlConst.qnLinkFootnoteArc,  # type: ignore[no-untyped-call]
+                linkPrototype.childElements.append(ArcPrototype(mdlDoc, linkPrototype, XbrlConst.qnLinkFootnoteArc,
                                                                 footnoteLocLabel, footnoteID,
                                                                 linkrole, arcrole, sourceElement=modelInlineFootnote))
 
@@ -2045,7 +2045,7 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
             if isinstance(modelInlineRel,ModelObject):
                 linkrole = modelInlineRel.get("linkRole", XbrlConst.defaultLinkRole)
                 if linkrole not in linkPrototypes:
-                    linkPrototypes[linkrole] = LinkPrototype(modelIxdsDocument, mdlDoc.xmlRootElement, XbrlConst.qnLinkFootnoteLink, linkrole, sourceElement=modelInlineRel)  # type: ignore[no-untyped-call]
+                    linkPrototypes[linkrole] = LinkPrototype(modelIxdsDocument, mdlDoc.xmlRootElement, XbrlConst.qnLinkFootnoteLink, linkrole, sourceElement=modelInlineRel)
 
 
     for htmlElement in modelXbrl.ixdsHtmlElements:
@@ -2072,7 +2072,7 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
                 for fromId in fromLabels:
                     if fromId not in linkModelLocIds[linkrole] and relHasFromFactsInTarget and fromId in factsByFactID:
                         linkModelLocIds[linkrole].add(fromId)
-                        locPrototype = LocPrototype(factsByFactID[fromId].modelDocument, linkPrototype, fromId, fromId, sourceElement=modelInlineRel)  # type: ignore[no-untyped-call]
+                        locPrototype = LocPrototype(factsByFactID[fromId].modelDocument, linkPrototype, fromId, fromId, sourceElement=modelInlineRel)
                         linkPrototype.childElements.append(locPrototype)
                         linkPrototype.labeledResources[fromId].append(locPrototype)
                 toLabels = set()
@@ -2105,8 +2105,8 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
                                 locateFactInTuple(modelInlineFact, tuplesByTupleID, modelInlineFact.modelDocument.ixNStag)
                             if modelInlineFact.get("target") == ixdsTarget:
                                 linkModelLocIds[linkrole].add(toId)
-                                locPrototype = LocPrototype(factsByFactID[toId].modelDocument, linkPrototype, toId, toId, sourceElement=modelInlineRel)  # type: ignore[no-untyped-call]
-                                toFactQnames.add(str(locPrototype.dereference().qname))  # type: ignore[no-untyped-call]
+                                locPrototype = LocPrototype(factsByFactID[toId].modelDocument, linkPrototype, toId, toId, sourceElement=modelInlineRel)
+                                toFactQnames.add(str(locPrototype.dereference().qname))
                                 linkPrototype.childElements.append(locPrototype)
                                 linkPrototype.labeledResources[toId].append(locPrototype)
                                 relHasToObjectsInTarget = True
@@ -2126,7 +2126,7 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
                                     modelObject=modelInlineRel, fromToMatchedIds=', '.join(sorted(fromToMatchedIds)))
                 for fromLabel in fromLabels:
                     for toLabel in toLabels: # toLabels is empty if no to fact or footnote is in target
-                        linkPrototype.childElements.append(ArcPrototype(modelIxdsDocument, linkPrototype, XbrlConst.qnLinkFootnoteArc,  # type: ignore[no-untyped-call]
+                        linkPrototype.childElements.append(ArcPrototype(modelIxdsDocument, linkPrototype, XbrlConst.qnLinkFootnoteArc,
                                                                         fromLabel, toLabel,
                                                                         linkrole, arcrole,
                                                                         modelInlineRel.get("order", "1"), sourceElement=modelInlineRel))
@@ -2160,7 +2160,7 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
 
     if ixdsTarget in modelXbrl.ixTargetRootElements:  # type: ignore[attr-defined]
         modelIxdsDocument.targetXbrlRootElement = modelXbrl.ixTargetRootElements[ixdsTarget]  # type: ignore[attr-defined]
-        modelIxdsDocument.targetXbrlElementTree = PrototypeElementTree(modelIxdsDocument.targetXbrlRootElement)  # type: ignore[no-untyped-call,assignment]
+        modelIxdsDocument.targetXbrlElementTree = PrototypeElementTree(modelIxdsDocument.targetXbrlRootElement)  # type: ignore[assignment]
 
     for pluginMethod in modelXbrl.modelManager.cntlr.plugins.hooks("ModelDocument.IxdsTargetDiscovered"):
         pluginMethod(modelXbrl, modelIxdsDocument)

@@ -107,14 +107,14 @@ class LinkRelationships:
             for fromResource in labeledResources[fromLabel]:
                 if not isinstance(fromResource, (ModelResourceBase, LocPrototypeBase)):
                     continue
-                fromResource = cast('ModelResource | LocPrototype', fromResource)
+                fromResourceTyped = cast('ModelResource | LocPrototype', fromResource)
                 for toResource in labeledResources[toLabel]:
                     if not isinstance(toResource, (ModelResourceBase, LocPrototypeBase)):
                         continue
-                    toResource = cast('ModelResource | LocPrototype', toResource)
-                    fromResourceElement = fromResource.dereference()
-                    toResourceElement = toResource.dereference()
-                    modelRel = ModelRelationship(modelDocument, linkChild, fromResourceElement, toResourceElement, linkrole=linkrole)
+                    toResourceTyped = cast('ModelResource | LocPrototype', toResource)
+                    fromResourceElement = fromResourceTyped.dereference()
+                    toResourceElement = toResourceTyped.dereference()
+                    modelRel = ModelRelationship(modelDocument, linkChild, fromResourceElement, toResourceElement, linkrole=linkrole)  # type: ignore[arg-type]
                     relationships.append(modelRel)
             allRelationships.append(relationships)
             relationshipsByArcrole[linkChildArcrole].append(relationships)
