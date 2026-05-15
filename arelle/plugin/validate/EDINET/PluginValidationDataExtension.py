@@ -28,7 +28,7 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.PrototypeDtsObject import LinkPrototype
 from arelle.ValidateDuplicateFacts import getDeduplicatedFacts, DeduplicationType
 from arelle.ValidateXbrl import ValidateXbrl
-from arelle.XhtmlValidate import htmlEltUriAttrs
+from arelle.XhtmlInlineUtil import htmlEltUriAttrs
 from arelle.XmlValidate import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
