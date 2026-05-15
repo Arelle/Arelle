@@ -264,7 +264,7 @@ def validateProperties(compMdl, oimFile, module, obj):
                               _("%(parentObjName)s %(parentName)s property %(name)s not an allowed property type for the object."),
                               file=oimFile, parentObjName=objType(obj), parentName=getattr(obj,"name","(n/a)"),
                               name=propTypeQn)
-            propObj._xValid, propObj._xValue = validateValue(compMdl, module, obj, propObj.value, propTypeObj.dataType, f"/properties[{i}]", "oimte:invalidPropertyValue")
+            propObj._xValid, propObj._xValue = validateValue(compMdl, module, obj, propObj.value, propTypeObj.dataType, f"/properties[{i}]", "oimte:propertyValueDataTypeMismatch")
 
             propTypeQns[propTypeQn].add(propObj._xValue)
     if any(len(vals) > 1 for qn, vals in propTypeQns.items()):
@@ -349,7 +349,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                               _("The importObjectTypes property MUST not include the label object."),
                               xbrlObject=impTxObj)
             else:
-                compMdl.error("oimte:invalidQNameReference",
+                compMdl.error("oimte:invalidImportObjectType",
                           _("The importObjectTypes property MUST specify valid OIM object types, %(qname)s is not valid."),
                           xbrlObject=impTxObj, qname=qnObjType)
         finalTxObj = compMdl.namedObjects.get(impMdlName)
@@ -400,7 +400,13 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         if cubeType.cubeDimensionConstraints:
             for i, dConstr in enumerate(cubeType.cubeDimensionConstraints.allowed):
                 if dConstr.dimensionName:
-                    validateQNameReference(compMdl, dConstr, "dimensionName", XbrlDimension)
+                    validateQNameReference(compMdl, dConstr, "dimensionName", XbrlDimension,
+                                           undefinedMsgCode="oimte:invalidDimensionConstraintDimensionName",
+                                           invalidTypeMsgCode="oimte:invalidDimensionConstraintDimensionName")
+                if dConstr.minDimensions is not None and dConstr.maxDimensions is not None and dConstr.minDimensions > dConstr.maxDimensions:
+                    compMdl.error("oimte:invalidCubeConstraints",
+                              _("The cube type %(name)s, cubeDimensionConstraints/allowed[%(i)s] minDimensions %(minDimensions)s MUST NOT be greater than maxDimensions %(maxDimensions)s."),
+                              xbrlObject=cubeType, name=name, i=i, minDimensions=dConstr.minDimensions, maxDimensions=dConstr.maxDimensions)
                 if dConstr.dimensionName in dConstrNames:
                     compMdl.error("oimte:duplicateDimension",
                               _("The cube type %(name)s, cubeDimensionConstraints/allowed[%(i)s] dimensionName %(dimName)s duplicates cubeDimensionConstraints[%(i2)s]."),
@@ -418,6 +424,12 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                               _("The cube type %(name)s, cubeDimensionConstraints/allowed[%(i)s] has a dataType which requires type must be \"typed\" but is: %(typed)s."),
                               xbrlObject=cubeType, name=name, i=i, typed=dConstr.type)
         if cubeType.cubeNetworkConstraints:
+            cnc = cubeType.cubeNetworkConstraints
+            if (getattr(cnc, "minNetworks", None) is not None and getattr(cnc, "maxNetworks", None) is not None
+                    and cnc.minNetworks > cnc.maxNetworks):
+                compMdl.error("oimte:invalidCubeConstraints",
+                          _("The cube type %(name)s, cubeNetworkConstraints minNetworks %(minNetworks)s MUST NOT be greater than maxNetworks %(maxNetworks)s."),
+                          xbrlObject=cubeType, name=name, minNetworks=cnc.minNetworks, maxNetworks=cnc.maxNetworks)
             if cubeType.cubeNetworkConstraints.cubeNetworks:
                 for cubeNtwkCnstrObj in cubeType.cubeNetworkConstraints.cubeNetworks:
                     validateQNameReference(compMdl, cubeNtwkCnstrObj, "relationshipType", XbrlRelationshipType)
@@ -668,7 +680,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             cubeDimDT = cubeDimObj.domainDataType
             if cubeDimDT:
                 domDtObj = validateQNameReference(compMdl, cubeDimObj, "domainDataType", XbrlDataType,
-                                              msgCode="oimte:invalidPropertyValue", qnRef=cubeDimDT)
+                                              msgCode="oimte:propertyValueDataTypeMismatch", qnRef=cubeDimDT)
                 if domDtObj is not None:
                     isTyped = True
                     if domClass.allowedDomainItems and cubeDimDT not in domClass.allowedDomainItems:
@@ -908,7 +920,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                   _("The domain %(name)s relationship[%(nbr)s] source, %(source)s, MUST be the entity root or an entity object in the taxonomy model."),
                                   xbrlObject=relObj, name=domObj.name, nbr=i, source=relObj.source)
                     if not isinstance(compMdl.namedObjects[relObj.target], XbrlEntity):
-                        compMdl.error("oimte:invalidDomainTarget",
+                        compMdl.error("oimte:invalidDomainRelationshipTarget",
                                   _("The domain %(name)s relationship[%(nbr)s] target, %(target)s, MUST be an entity object in the taxonomy model."),
                                   xbrlObject=relObj, name=domObj.name, nbr=i, target=relObj.target)
                 if domRtQn == unitDomainClass:
@@ -917,7 +929,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                   _("The domain %(name)s relationship[%(nbr)s] source, %(source)s, MUST be the unit root or an unit object in the taxonomy model."),
                                   xbrlObject=relObj, name=domObj.name, nbr=i, source=relObj.source)
                     if not isinstance(compMdl.namedObjects[relObj.target], XbrlUnit):
-                        compMdl.error("oimte:invalidDomainTarget",
+                        compMdl.error("oimte:invalidDomainRelationshipTarget",
                                   _("The domain %(name)s relationship[%(nbr)s] target, %(target)s, MUST be a unit object in the taxonomy model."),
                                   xbrlObject=relObj, name=domObj.name, nbr=i, target=relObj.target)
                 elif isinstance(compMdl.namedObjects[relObj.source], XbrlUnit) or isinstance(compMdl.namedObjects[relObj.target], XbrlUnit):
@@ -937,7 +949,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                   _("The domain %(name)s relationship[%(nbr)s] %(property)s, %(propQn)s MUST be only be objects in the allowedDomainItems."),
                                   xbrlObject=relObj, name=domObj.name, nbr=i, property=prop, propQn=getattr(relObj, prop))
             if isinstance(compMdl.namedObjects.get(tgt), XbrlDomainClass):
-                compMdl.error("oimte:invalidDomainClassTarget",
+                compMdl.error("oimte:invalidDomainRelationshipTarget",
                           _("The domain %(name)s relationship target %(qname)s MUST NOT be a domainClass object."),
                           xbrlObject=domObj, name=domObj.name, qname=tgt)
             elif isinstance(compMdl.namedObjects.get(tgt), XbrlDomain):
@@ -947,7 +959,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             elif extendTargetObj is not None:
                 extendTargetObj.relationships.add(relObj)
             if tgt == domRtQn:
-                compMdl.error("oimte:invalidDomainTarget",
+                compMdl.error("oimte:invalidDomainRelationshipTarget",
                           _("The domain %(name)s relationship target %(qname)s MUST NOT be the domain root object."),
                           xbrlObject=domObj, name=domObj.name, qname=tgt)
             if domRtQn == src:
@@ -956,7 +968,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             domRelCts[relKey] = domRelCts.get(relKey, 0) + 1
             domRelRoots.discard(tgt) # remove any target from roots
         if any(ct > 1 for relKey, ct in domRelCts.items()):
-            compMdl.error("oimte:duplicateObjects",
+            compMdl.error("oimte:duplicateItemsInSet",
                       _("The domain %(name)s has duplicated relationships %(names)s"),
                       xbrlObject=domObj, name=domObj.name,
                       names=", ".join(f"{relKey[0]}\u2192{relKey[1]}" for relKey, ct in domRelCts.items() if ct > 1))
@@ -1027,7 +1039,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 compMdl.error("oimte:invalidAllowedObject",
                           _("Label has disallowed related object %(relatedName)s"),
                           xbrlObject=lblObj, relatedName=relatedName)
-            lblObj._xValid, lblObj._xValue = validateValue(compMdl, module, lblObj, lblObj.value, lblTpObj.dataType, "", "oimte:invalidPropertyValue")
+            lblObj._xValid, lblObj._xValue = validateValue(compMdl, module, lblObj, lblObj.value, lblTpObj.dataType, "", "oimte:propertyValueDataTypeMismatch")
         validateProperties(compMdl, oimFile, module, lblObj)
         lblKey = (relatedName, lblObj.labelType, lblObj.language)
         mdlLvlChecks.labelsCt[lblKey].append(lblObj)
@@ -1057,7 +1069,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                    errorArgs={"name": ntwkObj.name, "qname": rootQn})
             ntwkCt[rootQn] = ntwkCt.get(rootQn, 0) + 1
         if any(ct > 1 for root, ct in ntwkCt.items()):
-            compMdl.error("oimte:duplicateObjects",
+            compMdl.error("oimte:duplicateItemsInSet",
                           _("The network %(name)s has duplicated roots %(roots)s"),
                           xbrlObject=ntwkObj, roots=", ".join(str(root) for root, ct in ntwkCt.items() if ct > 1))
 
@@ -1083,7 +1095,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             relKey = (relObj.source, relObj.target, relObjPrefLbl, relObj.order)
             ntwkCt[relKey] = ntwkCt.get(relKey, 0) + 1
         if any(ct > 1 for relKey, ct in ntwkCt.items()):
-            compMdl.error("oimte:duplicateObjects",
+            compMdl.error("oimte:duplicateItemsInSet",
                       _("The network %(name)s has duplicated relationships %(names)s"),
                       xbrlObject=ntwkObj, name=ntwkObj.name,
                       names=", ".join(f"{relFrom}\u2192{relTo}{f' [{str(prefLbl)}]' if prefLbl else ''} ord {str(ordr)}"
@@ -1095,6 +1107,12 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 compMdl.error("oimte:invalidNetworkRoot",
                           _("The network %(name)s network object roots property does not include these undeclared relationship roots: %(undeclaredRoots)s"),
                           xbrlObject=ntwkObj, name=ntwkObj.name, undeclaredRoots=", ".join(sorted(str(r) for r in undeclaredRoots)))
+            # roots MUST NOT appear as targets (spec rule, !!oimte:networkCyclic)
+            rootsAsTargets = ntwkObj.roots & targets
+            if rootsAsTargets:
+                compMdl.error("oimte:networkCyclic",
+                          _("The network %(name)s has root(s) %(roots)s appearing as relationship targets."),
+                          xbrlObject=ntwkObj, name=ntwkObj.name, roots=", ".join(sorted(str(r) for r in rootsAsTargets)))
         else:
             ntwkObj.roots = ntwkObj._rootsFound # not specified so use actual roots
         validateProperties(compMdl, oimFile, module, ntwkObj)
@@ -1124,11 +1142,12 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         for prop in ("allowedLinkProperties", "requiredLinkProperties"):
             for propTpQn in getattr(relTpObj, prop):
                 validateQNameReference(compMdl, relTpObj, prop, XbrlPropertyType, qnRef=propTpQn)
-        reqdNotAllowed = relTpObj.requiredLinkProperties - relTpObj.allowedLinkProperties
-        if reqdNotAllowed:
-            compMdl.error("oimte:invalidPropertyValue",
-                      _("The relationshipType %(name)s has an required properties which are not allowed %(propTypes)s"),
-                      xbrlObject=propTpObj, name=relTpObj.name, property=prop, propTypes=", ".join(str(q) for q in reqdNotAllowed))
+        if relTpObj.allowedLinkProperties:
+            reqdNotAllowed = relTpObj.requiredLinkProperties - relTpObj.allowedLinkProperties
+            if reqdNotAllowed:
+                compMdl.error("oimte:requiredPropertyNotAllowed",
+                          _("The relationshipType %(name)s has required properties which are not allowed %(propTypes)s"),
+                          xbrlObject=relTpObj, name=relTpObj.name, propTypes=", ".join(str(q) for q in reqdNotAllowed))
 
     # Reference Objects
     refsWithInvalidRelName = []
@@ -1231,11 +1250,20 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         dtQn = getattr(unitObj, "dataType", None)
         if dtQn:
             dtObj = validateQNameReference(compMdl, unitObj, "dataType", XbrlDataType,
-                                           msgCode="oimte:invalidDataType", qnRef=dtQn)
-            if dtObj is not None and dtObj.allowedObjects and qnXbrlUnitObj not in dtObj.allowedObjects:
-                compMdl.error("oimte:disallowedObjectDataType",
-                              _("The unit %(name)s is not allowed for dataType %(dataType)s."),
-                          xbrlObject=unitObj, name=unitObj.name, dataType=dtQn)
+                                           msgCode="oimte:invalidUnitDataType", qnRef=dtQn)
+            if dtObj is not None:
+                if dtObj.allowedObjects and qnXbrlUnitObj not in dtObj.allowedObjects:
+                    compMdl.error("oimte:disallowedObjectDataType",
+                                  _("The unit %(name)s is not allowed for dataType %(dataType)s."),
+                              xbrlObject=unitObj, name=unitObj.name, dataType=dtQn)
+                if not dtObj.isNumeric(compMdl):
+                    compMdl.error("oimte:invalidUnitDataType",
+                                  _("The unit %(name)s dataType %(dataType)s MUST be a numeric data type."),
+                                  xbrlObject=unitObj, name=unitObj.name, dataType=dtQn)
+            if dtQn.namespaceURI == "http://www.w3.org/2001/XMLSchema":
+                compMdl.error("oimte:invalidUnitDataType",
+                              _("The unit %(name)s dataType %(dataType)s MUST NOT be defined in the xs schema namespace."),
+                              xbrlObject=unitObj, name=unitObj.name, dataType=dtQn)
 
         unitObj._unitsMeasures = [parseUnitString(uStr, unitObj, module, compMdl) for uStr in unitObj.compositeUnitRepresentation]
         for uMeas in unitObj._unitsMeasures:
