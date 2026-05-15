@@ -502,48 +502,52 @@ class TestCompatibleSystemLocalesIntegration:
 
 
 class TestCandidate_LocaleCodes:
+    @staticmethod
+    def candidates(posixLocale: str) -> list[str]:
+        return list(_candidatePosixLocales(posixLocale))
+
     def test_non_default_region_adds_default_variant(self) -> None:
         """en_US should produce en_GB since default_LocaleCodes['en'] == 'GB'."""
         with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset()):
-            result = _candidatePosixLocales('en_US')
+            result = self.candidates('en_US')
         assert 'en_GB' in result
 
     def test_non_default_encoding_adds_utf8_variant(self) -> None:
         with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset()):
-            result = _candidatePosixLocales('en_US.ISO-8859-1')
+            result = self.candidates('en_US.ISO-8859-1')
         assert 'en_US.utf-8' in result
 
     def test_bare_language_no_region_variants(self) -> None:
         """Bare language 'en' has no region, so no region-swap candidates are generated."""
         with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset()):
-            result = _candidatePosixLocales('en')
+            result = self.candidates('en')
         # No computed candidates — region is None so the region != defaultRegion branch is skipped
         assert not any('_' in code for code in result)
 
     def test_unknown_language_with_region_does_not_produce_bare_lang_candidate(self) -> None:
         """A language absent from default_LocaleCodes should not generate a bare-lang candidate."""
         with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset()):
-            result = _candidatePosixLocales('xx_YY')
+            result = self.candidates('xx_YY')
         # defaultRegion is None for 'xx', so no region-swap candidate should appear
         assert 'xx' not in result
 
     def test_system_locales_come_after_computed(self) -> None:
         with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset({_LocaleCode('en', 'AU', None)})):
-            result = _candidatePosixLocales('en_US')
+            result = self.candidates('en_US')
         # en_GB is the computed default-region variant, en_AU comes from system locales
         assert result.index('en_GB') < result.index('en_AU')
 
     def test_no_duplicates(self) -> None:
         """System locales that match a computed candidate should not appear twice."""
         with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset({_LocaleCode('en', 'GB', None), _LocaleCode('en', 'AU', None)})):
-            result = _candidatePosixLocales('en_US')
+            result = self.candidates('en_US')
         assert result.count('en_GB') == 1
 
     def test_bare_language_en(self) -> None:
         """Bare 'en' generates no computed candidates but picks up system locales."""
         system = frozenset({_LocaleCode('en', 'US', None), _LocaleCode('en', 'GB', None), _LocaleCode('en', 'AU', 'UTF-8'), _LocaleCode('fr', 'FR', None)})
         with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=system):
-            result = _candidatePosixLocales('en')
+            result = self.candidates('en')
         assert 'fr_FR' not in result
         assert set(result) == {'en_US', 'en_GB', 'en_AU.UTF-8'}
 
@@ -551,13 +555,13 @@ class TestCandidate_LocaleCodes:
         """Bare 'ja' picks up all ja_* system locales."""
         system = frozenset({_LocaleCode('ja', 'JP', 'UTF-8'), _LocaleCode('ja', 'JP', 'eucJP'), _LocaleCode('en', 'US', None)})
         with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=system):
-            result = _candidatePosixLocales('ja')
+            result = self.candidates('ja')
         assert set(result) == {'ja_JP.UTF-8', 'ja_JP.eucJP'}
 
     def test_non_default_encoding_generates_utf8_and_default_region_variants(self) -> None:
         """en_US.ISO-8859-1 generates en_US.utf-8, en_GB.ISO-8859-1, and en_GB.utf-8."""
         with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset()):
-            result = _candidatePosixLocales('en_US.ISO-8859-1')
+            result = self.candidates('en_US.ISO-8859-1')
         assert 'en_US.utf-8' in result
         assert 'en_GB.ISO-8859-1' in result
         assert 'en_GB.utf-8' in result
@@ -565,7 +569,7 @@ class TestCandidate_LocaleCodes:
     def test_utf8_encoding_does_not_duplicate(self) -> None:
         """en_US.utf-8 is already the default encoding — no utf-8 variant generated."""
         with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset()):
-            result = _candidatePosixLocales('en_US.utf-8')
+            result = self.candidates('en_US.utf-8')
         assert result.count('en_US.utf-8') == 0  # input itself is not in candidates
         # Only the default-region variant is generated
         assert 'en_GB.utf-8' in result
@@ -573,7 +577,7 @@ class TestCandidate_LocaleCodes:
     def test_UTF8_case_insensitive(self) -> None:
         """en_US.UTF-8 (uppercase) is treated as default encoding."""
         with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset()):
-            result = _candidatePosixLocales('en_US.UTF-8')
+            result = self.candidates('en_US.UTF-8')
         # Should not generate en_US.utf-8 since UTF-8 is already the default
         assert 'en_US.utf-8' not in result
         assert 'en_GB.UTF-8' in result
@@ -581,7 +585,7 @@ class TestCandidate_LocaleCodes:
     def test_default_region_no_extra_candidates(self) -> None:
         """en_GB is the default region for 'en' — no region-swap candidate generated."""
         with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset()):
-            result = _candidatePosixLocales('en_GB')
+            result = self.candidates('en_GB')
         # region == defaultRegion, so no fallback to another region
         assert not any(code.startswith('en_') and 'GB' not in code for code in result)
 
@@ -590,7 +594,7 @@ class TestCandidate_LocaleCodes:
         system = frozenset({_LocaleCode('en', 'US', 'UTF-8'), _LocaleCode('en', 'US', 'ISO-8859-1'), _LocaleCode('en', 'US', 'eucJP')})
         system_posix = {lc.to_posix for lc in system}
         with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=system):
-            result = _candidatePosixLocales('en_US.ISO-8859-1')
+            result = self.candidates('en_US.ISO-8859-1')
         # Computed candidates come first, then system locales
         # Among system locales, ISO-8859-1 would match but it's excluded (already computed as en_US.utf-8 variant)
         # en_US.ISO-8859-1 is the original input (not in candidates), but system has it
@@ -604,14 +608,14 @@ class TestCandidate_LocaleCodes:
         """Candidates for 'fi' (Finnish) must not include 'fil_PH' (Filipino) system locales."""
         system = frozenset({_LocaleCode('fi', 'FI', None), _LocaleCode('fil', 'PH', None)})
         with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=system):
-            result = _candidatePosixLocales('fi_FI')
+            result = self.candidates('fi_FI')
         assert 'fil_PH' not in result
 
     def test_longer_language_code_does_not_include_prefix_locales(self) -> None:
         """Candidates for 'fil' (Filipino) must not include 'fi_FI' (Finnish) system locales."""
         system = frozenset({_LocaleCode('fi', 'FI', None), _LocaleCode('fil', 'PH', None)})
         with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=system):
-            result = _candidatePosixLocales('fil_PH')
+            result = self.candidates('fil_PH')
         assert 'fi_FI' not in result
 
 

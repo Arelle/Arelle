@@ -12,7 +12,7 @@ import ctypes
 import locale
 import sys
 import unicodedata
-from collections.abc import Callable, Generator, Mapping
+from collections.abc import Callable, Generator, Iterator, Mapping
 from decimal import Decimal
 from functools import cache
 from fractions import Fraction
@@ -232,23 +232,24 @@ def findCompatibleLocale(localeValue: str | None) -> str | None:
     return None
 
 
-def _candidatePosixLocales(posixLocale: str) -> list[str]:
+def _candidatePosixLocales(posixLocale: str) -> Iterator[str]:
     """
-    Returns a list of additional candidate POSIX locales including default region and utf-8 encoding variants.
+    Yields additional candidate POSIX locales to try when the requested locale is unavailable.
+    Yields default-encoding and default-region variants first, then compatible system locales.
     """
     lc = _LocaleCode.from_posix(posixLocale)
     defaultRegion = defaultLocaleCodes.get(lc.lang)
     not_default_encoding = lc.encoding is not None and lc.encoding.lower() != POSIX_LOCALE_DEFAULT_ENCODING
 
-    candidates: list[_LocaleCode] = []
+    primary: list[_LocaleCode] = []
     if not_default_encoding:
-        candidates.append(lc._replace(encoding=POSIX_LOCALE_DEFAULT_ENCODING))
+        primary.append(lc._replace(encoding=POSIX_LOCALE_DEFAULT_ENCODING))
     if lc.region and defaultRegion and lc.region != defaultRegion:
-        candidates.append(lc._replace(region=defaultRegion))
+        primary.append(lc._replace(region=defaultRegion))
         if not_default_encoding:
-            candidates.append(lc._replace(region=defaultRegion, encoding=POSIX_LOCALE_DEFAULT_ENCODING))
-    candidates.extend(_compatibleSystemLocales(lc, exclude=set(candidates)))
-    return [c.to_posix for c in candidates]
+            primary.append(lc._replace(region=defaultRegion, encoding=POSIX_LOCALE_DEFAULT_ENCODING))
+    yield from (c.to_posix for c in primary)
+    yield from (c.to_posix for c in _compatibleSystemLocales(lc, exclude=set(primary)))
 
 
 def _compatibleSystemLocales(lc: _LocaleCode, exclude: set[_LocaleCode]) -> list[_LocaleCode]:
