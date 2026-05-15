@@ -87,7 +87,7 @@ class ToolTip:
             if key in self._opts:
                 self._opts[key] = opts[key]
             else:
-                raise KeyError('KeyError: Unknown option: "%s"' % key)
+                raise KeyError('Unknown option: "%s"' % key)
 
     ##----these methods handle the callbacks on "<Enter>", "<Leave>" and "<Motion>"---------------##
     ##----events on the parent widget; override them if you want to change the widget's behavior--##
