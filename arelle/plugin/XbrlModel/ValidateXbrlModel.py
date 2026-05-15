@@ -344,10 +344,23 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         impMdlName = impTxObj.xbrlModelName
         for qnObjType in impTxObj.importObjectTypes:
             if qnObjType in xbrlObjectTypes:
-                if xbrlObjectTypes[qnObjType] == XbrlLabel:
+                clsForObjType = xbrlObjectTypes[qnObjType]
+                if clsForObjType == XbrlLabel:
                     compMdl.error("oimte:invalidImportObjectType",
                               _("The importObjectTypes property MUST not include the label object."),
                               xbrlObject=impTxObj)
+                elif clsForObjType == XbrlModule:
+                    compMdl.error("oimte:invalidImportObjectType",
+                              _("The importObjectTypes property MUST not include the xbrlModelObject (taxonomy root): %(qname)s."),
+                              xbrlObject=impTxObj, qname=qnObjType)
+                elif clsForObjType == XbrlFinalTaxonomy:
+                    compMdl.error("oimte:invalidImportObjectType",
+                              _("The importObjectTypes property MUST not include the finalTaxonomyObject: %(qname)s."),
+                              xbrlObject=impTxObj, qname=qnObjType)
+                elif qnObjType not in referencableObjectTypes:
+                    compMdl.error("oimte:invalidImportObjectType",
+                              _("The importObjectTypes property MUST specify a referencable taxonomy component object: %(qname)s is non-referencable."),
+                              xbrlObject=impTxObj, qname=qnObjType)
             else:
                 compMdl.error("oimte:invalidImportObjectType",
                           _("The importObjectTypes property MUST specify valid OIM object types, %(qname)s is not valid."),
