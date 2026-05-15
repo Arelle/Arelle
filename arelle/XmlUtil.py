@@ -13,9 +13,10 @@ from arelle.typing import ModelObjectBase, PrototypeElementTreeBase, PrototypeOb
 from arelle.XhtmlInlineUtil import htmlEltUriAttrs, resolveHtmlUri
 from arelle.XmlValidateConst import VALID, INVALID
 from typing import Any, TextIO, TYPE_CHECKING, cast
-from collections.abc import Callable, Collection, Sequence, Generator, Mapping
+from collections.abc import Mapping
 
 if TYPE_CHECKING:
+    from collections.abc import Generator, Iterable, Sequence
     from arelle.ModelInstanceObject import ModelContext
     from arelle.ModelInstanceObject import ModelUnit
     from arelle.ModelDocument import ModelDocument
@@ -743,14 +744,19 @@ def addChild(
     elif appendChild:
         parent.append(child)
     if attributes:
-        for name, value in (attributes.items() if isinstance(attributes, dict) else  # type: ignore[misc]
-                            attributes if len(attributes) > 0 and isinstance(attributes[0],(tuple,list)) else (attributes,)):
-            if isinstance(name,QName):
+        items: Iterable[tuple[str | QName, str]]
+        if isinstance(attributes, dict):
+            items = attributes.items()
+        elif isinstance(attributes[0], (tuple, list)):
+            items = attributes  # type: ignore[assignment]
+        else:
+            items = (cast(tuple[str | QName, str], attributes),)
+        for name, value in items:
+            if isinstance(name, QName):
                 if name.namespaceURI:
                     addQnameValue(modelDocument, name)
                 child.set(name.clarkNotation, str(value)) # ModelValue type hints
             else:
-                assert isinstance(name, str)
                 child.set(name, xsString(None, None, value) )  # type: ignore[arg-type] # FunctionXs type hints
     if text is not None:
         child.text = xsString(None, None, text)  # type: ignore[arg-type] # FunctionXs type hints
