@@ -136,7 +136,7 @@ class TestWindowsLocaleEnumeration:
     def test_enumerate_windows_locales_contains_en_US(self) -> None:
         locales = _enumerateWindowsLocales()
         assert 'en-US' in locales
-    
+
     def test_enumerate_windows_locales_contains_default_locale(self) -> None:
         locales = _enumerateWindowsLocales()
         assert defaultLocale in locales
