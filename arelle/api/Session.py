@@ -13,6 +13,7 @@ from types import TracebackType
 from typing import Any, BinaryIO, TypeVar, Literal
 
 from arelle import PackageManager, PluginManager
+from arelle.Cntlr import TypeLogFileName
 from arelle.CntlrCmdLine import CntlrCmdLine, createCntlrAndPreloadPlugins
 from arelle.FileSource import FileNamedBytesIO
 from arelle.ModelXbrl import ModelXbrl
@@ -120,7 +121,7 @@ class Session:
         responseZipStream: BinaryIO | None = None,
         logHandler: logging.Handler | None = None,
         logFilters: list[logging.Filter] | None = None,
-        logFileName: Path | str | None = None,
+        logFileName: Path | TypeLogFileName | None = None,
     ) -> bool:
         """
         Perform a run using the given options.

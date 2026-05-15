@@ -8,6 +8,7 @@ from typing import Any, Optional, Union
 
 import regex as re
 
+from arelle.Cntlr import TypeLogFileName
 from arelle.FileSource import FileNamedStringIO
 from arelle.SystemInfo import hasWebServer
 from arelle.ValidateDuplicateFactsConst import DeduplicationType
@@ -99,7 +100,7 @@ class RuntimeOptions:
     labelLang: Optional[str] = None
     labelRole: Optional[str] = None
     logCodeFilter: Optional[str] = None
-    logFile: Optional[str] = None
+    logFile: Optional[TypeLogFileName] = None
     logFileMode: Optional[str] = None
     logFormat: Optional[str] = None
     logLevel: Optional[str] = None
