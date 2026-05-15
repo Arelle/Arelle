@@ -38,13 +38,8 @@ def xhtmlValidate(modelXbrl: ModelXbrl, elt: ModelObject) -> None:
             _("Attribute class must not be empty on element ix:%(element)s"),
             modelObject=e, element=e.localName)
 
-    try:
-        if validateEntryText:
-            ValidateFilingText.validateHtmlContent(modelXbrl, elt, elt, "InlineXBRL", valHtmlContentMsgPrefix, isInline=True)
-    except XMLSyntaxError as err:
-        modelXbrl.error("html:syntaxError",
-            _("%(element)s error %(error)s"),
-            modelObject=elt, element=elt.localName.title(), error=err.msg)
+    if validateEntryText:
+        ValidateFilingText.validateHtmlContent(modelXbrl, elt, elt, "InlineXBRL", valHtmlContentMsgPrefix, isInline=True)
 
 
 def _containsNamespacedElements(elt: etree.ElementBase, namespace: str) -> bool:
