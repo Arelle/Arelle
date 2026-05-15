@@ -13,17 +13,13 @@ from typing import Any, cast, TYPE_CHECKING
 from typing_extensions import Self
 from lxml import etree
 from xml.sax import SAXParseException
-
-from arelle import (
-    PackageManager, XbrlConst, XmlUtil, UrlUtil, ValidateFilingText,
-    XhtmlValidate, XmlValidateSchema, FunctionIxt,
-    )
-
-from arelle.ModelXbrl import ModelXbrl
+from arelle import (XbrlConst, XmlUtil, UrlUtil, ValidateFilingText,
+                    XhtmlValidate, XmlValidateSchema, FunctionIxt)
 from arelle.conformance.CSVTestcaseLoader import CSVTestcaseException, loadCsvTestcase
 from arelle.FileSource import FileSource
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname, QName
+from arelle.ModelXbrl import ModelXbrl
 from arelle.ModelDtsObject import ModelLink
 from arelle.ModelInstanceObject import ModelFact, ModelContext, ModelUnit, ModelInlineFact
 from arelle.ModelObjectFactory import parser, KnownNamespacesModelObjectClassLookup, DiscoveringClassLookup
@@ -115,10 +111,11 @@ def load(modelXbrl: ModelXbrl, uri: str, base: str | None = None, referringEleme
     if modelXbrl.modelManager.skipLoading and modelXbrl.modelManager.skipLoading.match(normalizedUri):
         return None
 
+    mappedUri: str | None
     if modelXbrl.fileSource.isMappedUrl(normalizedUri):
         mappedUri = modelXbrl.fileSource.mappedUrl(normalizedUri)
-    elif PackageManager.isMappedUrl(normalizedUri):
-        mappedUri = PackageManager.mappedUrl(normalizedUri)  # type: ignore[assignment]
+    elif modelXbrl.modelManager.cntlr.packages.is_mapped(normalizedUri):
+        mappedUri = modelXbrl.modelManager.cntlr.packages.map(normalizedUri)
     else:
         mappedUri = modelXbrl.modelManager.disclosureSystem.mappedUrl(normalizedUri)
 
@@ -130,7 +127,7 @@ def load(modelXbrl: ModelXbrl, uri: str, base: str | None = None, referringEleme
     if modelXbrl.fileSource.isInArchive(mappedUri):
         filepath = mappedUri
     else:
-        filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(mappedUri, reload=reloadCache, checkModifiedTime=kwargs.get("checkModifiedTime",False))  # type: ignore[assignment]
+        filepath = modelXbrl.modelManager.cntlr.webCache.getfilename(mappedUri, reload=reloadCache, checkModifiedTime=kwargs.get("checkModifiedTime",False))
         if filepath:
             uri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(filepath)
     if filepath is None: # error such as HTTPerror is already logged
@@ -190,25 +187,25 @@ def load(modelXbrl: ModelXbrl, uri: str, base: str | None = None, referringEleme
             (isEntry and modelXbrl.modelManager.disclosureSystem.validateEntryText) or
             (modelXbrl.modelManager.disclosureSystem.validateFileText and
              not normalizedUri in modelXbrl.modelManager.disclosureSystem.standardTaxonomiesDict))):
-            file, _encoding = ValidateFilingText.checkfile(modelXbrl,filepath)  # type: ignore[no-untyped-call]
+            file, _encoding = ValidateFilingText.checkfile(modelXbrl,filepath)
         else:
-            file, _encoding = modelXbrl.fileSource.file(filepath, stripDeclaration=True)  # type: ignore[misc]
+            file, _encoding = modelXbrl.fileSource.file(filepath, stripDeclaration=True)  # type: ignore[misc,assignment]
         xmlDocument = None
         isPluginParserDocument = False
         for pluginMethod in modelXbrl.modelManager.cntlr.plugins.hooks("ModelDocument.CustomLoader"):
             modelDocument = pluginMethod(modelXbrl, file, mappedUri, filepath)
             if modelDocument is not None:
-                file.close()
+                file.close()  # type: ignore[union-attr]
                 return modelDocument
         _parser, _parserLookupName, _parserLookupClass = parser(modelXbrl,normalizedUri)
-        xmlDocument = etree.parse(file,parser=_parser,base_url=filepath)
+        xmlDocument = etree.parse(file,parser=_parser,base_url=filepath)  # type: ignore[arg-type]
         for error in _parser.error_log:
             modelXbrl.error("xmlSchema:syntax",
                     _("%(error)s, %(fileName)s, line %(line)s, column %(column)s"),
                     modelObject=(referringElement, os.path.basename(uri)),
                     fileName=os.path.basename(uri),
                     error=error.message, line=error.line, column=error.column)
-        file.close()
+        file.close()  # type: ignore[union-attr]
     except FileNotFoundError as err:
         if file:
             file.close()
@@ -386,7 +383,7 @@ def load(modelXbrl: ModelXbrl, uri: str, base: str | None = None, referringEleme
         modelDocument.parserLookupClass = _parserLookupClass
         modelDocument.xmlRootElement = modelDocument.targetXbrlRootElement = rootNode
         modelDocument.schemaLocationElements.add(rootNode)
-        modelDocument.documentEncoding = _encoding
+        modelDocument.documentEncoding = _encoding  # type: ignore[assignment]
 
         if isEntry or isDiscovered:
             modelDocument.inDTS = True
@@ -533,7 +530,7 @@ def create(modelXbrl: ModelXbrl, type: int, uri: str, schemaRefs: list[str] | No
         xmlDocument = None
     if type == Type.RSSFEED:
         from arelle.ModelRssObject import ModelRssObject
-        modelDocument = ModelRssObject(modelXbrl, type, uri, filepath, xmlDocument)  # type: ignore[no-untyped-call]
+        modelDocument = ModelRssObject(modelXbrl, type, uri, filepath, xmlDocument)
     else:
         modelDocument = ModelDocument(modelXbrl, type, normalizedUri, filepath, xmlDocument)  # type: ignore[assignment,arg-type]
     if Xml and xmlDocument:
@@ -555,7 +552,7 @@ def create(modelXbrl: ModelXbrl, type: int, uri: str, schemaRefs: list[str] | No
     if type == Type.INSTANCE and discover:
         modelDocument.instanceDiscover(modelDocument.xmlRootElement)
     elif type == Type.RSSFEED and discover:
-        modelDocument.rssFeedDiscover(modelDocument.xmlRootElement)  # type: ignore[no-untyped-call]
+        modelDocument.rssFeedDiscover(modelDocument.xmlRootElement)
     elif type == Type.SCHEMA:
         modelDocument.targetNamespace = None
         modelDocument.isQualifiedElementFormDefault = False
@@ -958,7 +955,7 @@ class ModelDocument(ModelDocumentBase):
                     modelObject=rootElement, fileName=self.basename,
                     namespace=namespace, targetNamespace=targetNamespace)
             if (self.modelXbrl.modelManager.validateDisclosureSystem and
-                self.modelXbrl.modelManager.disclosureSystem.disallowedHrefOfNamespace(self.uri, targetNamespace)):  # type: ignore[no-untyped-call]
+                self.modelXbrl.modelManager.disclosureSystem.disallowedHrefOfNamespace(self.uri, targetNamespace)):
                     self.modelXbrl.error(("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06" if self.uri.startswith("http") else "SBR.NL.2.2.0.17"),
                             _("Namespace: %(namespace)s disallowed schemaLocation %(schemaLocation)s"),
                             modelObject=rootElement, namespace=targetNamespace, schemaLocation=self.uri, url=self.uri,
@@ -1078,7 +1075,7 @@ class ModelDocument(ModelDocumentBase):
             importSchemaLocation = self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(schemaLocation, importElementBase)
             if (self.modelXbrl.modelManager.validateDisclosureSystem and
                     self.modelXbrl.modelManager.disclosureSystem.blockDisallowedReferences and
-                    self.modelXbrl.modelManager.disclosureSystem.disallowedHrefOfNamespace(importSchemaLocation, importNamespace)):  # type: ignore[no-untyped-call]
+                    self.modelXbrl.modelManager.disclosureSystem.disallowedHrefOfNamespace(importSchemaLocation, importNamespace)):
                 self.modelXbrl.error(("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06" if importSchemaLocation.startswith("http") else "SBR.NL.2.2.0.17"),
                         _("Namespace: %(namespace)s disallowed schemaLocation blocked %(schemaLocation)s"),
                         modelObject=element, namespace=importNamespace, schemaLocation=importSchemaLocation, url=importSchemaLocation,
@@ -1574,7 +1571,7 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
                 continuationElements[elt.id] = elt
         for elt in htmlElement.iterdescendants(tag=XbrlConst.qnIXbrl11Footnote.clarkNotation):
             if isinstance(elt,ModelObject):
-                modelInlineFootnotesById[elt.footnoteID] = elt  # type: ignore[attr-defined]
+                modelInlineFootnotesById[elt.footnoteID] = elt
         for elt in htmlElement.iterdescendants(tag=ixNStag + "references"):
             if isinstance(elt,ModelObject):
                 target = elt.get("target")
@@ -2015,7 +2012,7 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
                 # link
                 linkrole = modelInlineFootnote.get("footnoteLinkRole", XbrlConst.defaultLinkRole)
                 arcrole = modelInlineFootnote.get("arcrole", XbrlConst.factFootnote)
-                footnoteID = modelInlineFootnote.footnoteID or ""  # type: ignore[attr-defined]
+                footnoteID = modelInlineFootnote.footnoteID or ""
                 # check if any footnoteRef fact is in this target instance
                 if not any(modelFact.get("target") == ixdsTarget for modelFact in footnoteRefs[footnoteID]):
                     continue # skip footnote, it's not in this target document

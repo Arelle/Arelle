@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import itertools
 import json
-import urllib.request
 import zipfile
 from pathlib import Path
 from shutil import rmtree
@@ -11,7 +10,7 @@ from arelle.RuntimeOptions import RuntimeOptions
 from arelle.api.Session import Session
 from arelle.logging.handlers.StructuredMessageLogHandler import StructuredMessageLogHandler
 from arelle.plugin.validate import FERC
-from tests.integration_tests.integration_test_util import get_s3_uri
+from tests.integration_tests.integration_test_util import download_from_public_s3
 from tests.integration_tests.scripts.script_util import parse_args, prepare_logfile
 
 
@@ -28,14 +27,14 @@ cache_directory = test_directory / 'cache'
 arelle_log_file = prepare_logfile(test_directory, this_file, ext='json')
 entry_point_url = 'https://eCollection.ferc.gov/taxonomy/form60/2024-04-01/form/form60/form-60_2024-04-01.xsd'
 remove_file = cache_directory / 'http' / 'www.xbrl.org' / '2005' / 'xbrldt-2005.xsd'
-cache_zip_url = get_s3_uri(
-    'ci/caches/scripts/python_api_taxonomy_service.zip',
-    version_id='rSYFEO6UrUHEHl4zaRnFiZZKgIcDFKkY'
-)
 cache_zip_path = test_directory / 'cache.zip'
 
 print(f"Downloading cache with missing labels file: {cache_zip_path}")
-urllib.request.urlretrieve(cache_zip_url, cache_zip_path)
+download_from_public_s3(
+    cache_zip_path,
+    "ci/caches/scripts/python_api_taxonomy_service.zip",
+    version_id="rSYFEO6UrUHEHl4zaRnFiZZKgIcDFKkY",
+)
 with zipfile.ZipFile(cache_zip_path, "r") as zip_ref:
     zip_ref.extractall(cache_directory)
 

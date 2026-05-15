@@ -23,17 +23,18 @@ def dialogPackageManager(mainWin):
 
 def backgroundCheckForUpdates(cntlr):
     cntlr.showStatus(_("Checking for updates to packages")) # clear web loading status
-    packageNamesWithNewerFileDates = PackageManager.packageNamesWithNewerFileDates()
+    packageManager = PackageManager.getInstance()
+    packageNamesWithNewerFileDates = packageManager.packageNamesWithNewerFileDates()
     if packageNamesWithNewerFileDates:
         cntlr.showStatus(_("Updates are available for these packages: {0}")
                               .format(', '.join(packageNamesWithNewerFileDates)), clearAfter=5000)
     else:
         cntlr.showStatus(_("No updates found for packages."), clearAfter=5000)
     time.sleep(0.1) # Mac locks up without this, may be needed for empty ui queue?
-    cntlr.uiThreadQueue.put((DialogPackageManager, [cntlr, packageNamesWithNewerFileDates]))
+    cntlr.uiThreadQueue.put((DialogPackageManager, [cntlr, packageManager, packageNamesWithNewerFileDates]))
 
 class DialogPackageManager(Toplevel):
-    def __init__(self, mainWin, packageNamesWithNewerFileDates):
+    def __init__(self, mainWin, packageManager, packageNamesWithNewerFileDates):
         super(DialogPackageManager, self).__init__(mainWin.parent)
 
         self.ENABLE = _("Enable")
@@ -43,7 +44,7 @@ class DialogPackageManager(Toplevel):
         self.webCache = mainWin.webCache
 
         # copy plugins for temporary display
-        self._packageManager = PackageManager.getInstance()
+        self._packageManager = packageManager
         self.packagesConfig = self._packageManager.packagesConfig
         self.packagesConfigChanged = False
         self.packageNamesWithNewerFileDates = packageNamesWithNewerFileDates

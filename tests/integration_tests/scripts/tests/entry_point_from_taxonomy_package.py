@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import os
-import urllib.request
 from pathlib import Path
 
-from tests.integration_tests.integration_test_util import get_s3_uri
+from tests.integration_tests.integration_test_util import download_from_public_s3
 from tests.integration_tests.scripts.script_util import (
     assert_result,
     parse_args,
@@ -25,12 +24,8 @@ test_directory = Path(args.test_directory)
 arelle_log_file = prepare_logfile(test_directory, this_file)
 taxonomy_package_name = "entry_point_from_taxonomy_package.zip"
 taxonomy_package_path = test_directory / taxonomy_package_name
-taxonomy_package_zip_url = get_s3_uri(
-    f"ci/packages/{taxonomy_package_name}", version_id="nbaiNmQvDfvRSZzmrFRsuhH5yS2RDVk."
-)
-
 print(f"Downloading taxonomy package: {taxonomy_package_name}")
-urllib.request.urlretrieve(taxonomy_package_zip_url, taxonomy_package_path)
+download_from_public_s3(taxonomy_package_path, f"ci/packages/{taxonomy_package_name}", version_id="nbaiNmQvDfvRSZzmrFRsuhH5yS2RDVk.")
 
 entry_point = "https://arelle.org/example/example.xsd"
 print(f"Validating entry point: {entry_point}")

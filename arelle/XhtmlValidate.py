@@ -3,6 +3,8 @@ See COPYRIGHT.md for copyright information.
 
 (originally part of XmlValidate, moved to separate module)
 '''
+from typing import cast
+
 from lxml import etree
 from lxml.etree import XMLSyntaxError
 
@@ -21,7 +23,9 @@ from arelle.XhtmlInlineUtil import (
 def xhtmlValidate(modelXbrl: ModelXbrl, elt: ModelObject) -> None:
     validateEntryText = modelXbrl.modelManager.disclosureSystem.validateEntryText
     if validateEntryText:
-        valHtmlContentMsgPrefix = modelXbrl.modelManager.disclosureSystem.validationType + ".5.02.05."
+        validationType = modelXbrl.modelManager.disclosureSystem.validationType
+        assert validationType is not None, "If 'validateEntryText' is set, 'validationType' must also be set"
+        valHtmlContentMsgPrefix = validationType + ".5.02.05."
 
     inlineSchema = INLINE_1_1_SCHEMA
     if _containsNamespacedElements(elt, XbrlConst.ixbrl) and not _containsNamespacedElements(elt, XbrlConst.ixbrl11):

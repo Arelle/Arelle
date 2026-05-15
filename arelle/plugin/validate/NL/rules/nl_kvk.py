@@ -1113,6 +1113,7 @@ def rule_nl_kvk_prohibited_dimension_use(
             return
         nonDimensionalLineItems.add(startElement.qname)
         for rel in relationshipSet.fromModelObject(startElement):
+            assert rel.toModelObject is not None, "rel.toModelObject is None"
             collect(rel.toModelObject)
     collect(nonDimensionalLineItemsElement)
     invalidDimensionUseFacts = []
@@ -1543,6 +1544,8 @@ def rule_nl_kvk_4_3_1_1(
                   'Update the extension to no longer include this arcole.')
         )
     for anchor in anchorData.anchorsWithDomainItem:
+        assert anchor.fromModelObject is not None, "anchor.fromModelObject is None"
+        assert anchor.toModelObject is not None, "anchor.toModelObject is None"
         yield Validation.error(
             codes="NL.NL-KVK.4.3.1.1.unexpectedAnchoringRelationshipsDefinedUsingWiderNarrowerArcrole",
             msg=_("Anchoring relationships MUST be from and to concepts, from %(qname1)s to %(qname2)s"),
@@ -1551,6 +1554,8 @@ def rule_nl_kvk_4_3_1_1(
             qname2=anchor.toModelObject.qname
         )
     for anchor in anchorData.anchorsWithDimensionItem:
+        assert anchor.fromModelObject is not None, "anchor.fromModelObject is None"
+        assert anchor.toModelObject is not None, "anchor.toModelObject is None"
         yield Validation.error(
             codes="NL.NL-KVK.4.3.1.1.unexpectedAnchoringRelationshipsDefinedUsingWiderNarrowerArcrole",
             msg=_("Anchoring relationships MUST be from and to concepts, from %(qname1)s to %(qname2)s"),
@@ -1937,7 +1942,7 @@ def rule_nl_kvk_4_4_4_1(
     for ELR in val.modelXbrl.relationshipSet(XbrlConst.parentChild).linkRoleUris:
         relSet = val.modelXbrl.relationshipSet(XbrlConst.parentChild, ELR)
         for rootConcept in relSet.rootConcepts:
-            warnings = pluginData.checkLabels(set(), val.modelXbrl , rootConcept, relSet, None, set())
+            warnings = pluginData.checkLabels(set(), val.modelXbrl , rootConcept, relSet, None, set())  # type: ignore[arg-type]
         if len(warnings) > 0:
             yield Validation.warning(
                 codes='NL.NL-KVK.4.4.4.1.missingPreferredLabelRole',
@@ -1969,7 +1974,7 @@ def rule_nl_kvk_4_4_5_1(
             label = cast(ModelResource, labelRel.toModelObject)
             if label.role in XbrlConst.standardLabelRoles:
                 continue
-            roleType = val.modelXbrl.roleTypes.get(label.role)
+            roleType = val.modelXbrl.roleTypes.get(label.role)  # type: ignore[arg-type]
             if roleType is not None and \
                     roleType[0].modelDocument.uri.startswith("http://www.xbrl.org/lrr"):
                 continue
@@ -2016,13 +2021,13 @@ def rule_nl_kvk_4_4_5_2(
             elif labelRole == XbrlConst.standardLabel:
                 hasCoreLabel = False
                 hasExtensionLabel = False
-                for label in labels:
+                for label in labels:  # type: ignore[assignment]
                     if isExtensionUri(label.modelDocument.uri, val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
                         hasExtensionLabel = True
                     else:
                         hasCoreLabel = True
                 if hasCoreLabel and hasExtensionLabel:
-                    labels_files = ['"%s": %s' % (l.text, l.modelDocument.basename) for l in labels]
+                    labels_files = ['"%s": %s' % (l.text, l.modelDocument.basename) for l in labels]  # type: ignore[union-attr]
                     yield Validation.warning(
                         codes='NL.NL-KVK.4.4.5.2.taxonomyElementDuplicateLabels',
                         msg=_("An extension taxonomy defines a standard label for a concept "
@@ -2321,10 +2326,10 @@ def rule_nl_kvk_RTS_Annex_IV_Par_11_G4_2_2_1(
     extensionData = pluginData.getExtensionData(val.modelXbrl)
     for modelDocument, extensionDocumentData in extensionData.extensionDocuments.items():
         for modelType in modelDocument.xmlRootElement.iterdescendants(tag=XbrlConst.qnXsdComplexType.clarkNotation):
-            if isinstance(modelType, ModelType) and \
-                    modelType.typeDerivedFrom is not None and \
-                    modelType.typeDerivedFrom.qname.namespaceURI == XbrlConst.xbrli and \
-                    not modelType.particlesList:
+            if (isinstance(modelType, ModelType)
+                    and modelType.typeDerivedFrom is not None
+                    and modelType.typeDerivedFrom.qname.namespaceURI == XbrlConst.xbrli   # type: ignore[union-attr]
+                    and not modelType.particlesList):
                 errors.append(modelType)
     if len(errors) > 0:
         yield Validation.error(

@@ -125,7 +125,8 @@ jobs:
     - name: Make installer
       run: |
         $installer_version = ("${{ env.BUILD_VERSION }}" -replace '[^0-9.].*$', '' -replace '\.$', '') + ".${{ github.run_number }}"
-        makensis /INPUTCHARSET UTF8 /DINSTALLER_VERSION=$installer_version /DAPP_VERSION=${{ env.BUILD_VERSION }} installWin64.nsi
+        $size_kb = [math]::Ceiling((Get-ChildItem -Path (Resolve-Path "${{ env.BUILD_PATH }}") -Recurse -Force -File | Measure-Object -Property Length -Sum).Sum / 1KB)
+        makensis /INPUTCHARSET UTF8 /DINSTALLER_VERSION=$installer_version /DAPP_VERSION=${{ env.BUILD_VERSION }} /DAPP_INSTALL_SIZE_KB=$size_kb installWin64.nsi
     - name: Version installer
       run: mv dist\arelle-win-x64.exe ${{ steps.define-artifact-names.outputs.exe_build_artifact_path }}
     - name: Zip distribution

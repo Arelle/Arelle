@@ -1,11 +1,10 @@
 from __future__ import annotations
+
 import argparse
 import os
-import urllib.request
 import zipfile
-from pathlib import Path
 
-from tests.integration_tests.integration_test_util import get_s3_uri
+from tests.integration_tests.integration_test_util import download_from_public_s3
 
 TEMP_ZIP_NAME = '_tempcache.zip'
 
@@ -30,16 +29,8 @@ def download_and_apply_cache(name: str, cache_directory: str | None = None, vers
     :param cache_directory: Directory to unpack cache package into
     :param version_id: The S3 object version to retrieve. None for latest.
     """
-    # Download ZIP from public S3 bucket.
-    uri = get_s3_uri(
-        f'ci/caches/{name}',
-        version_id=version_id
-    )
-    try:
-        urllib.request.urlretrieve(uri, TEMP_ZIP_NAME)
-        apply_cache(TEMP_ZIP_NAME, cache_directory)
-    except Exception as exc:
-        raise Exception(f'Failed to download cache from {uri} and extract to {cache_directory}.') from exc
+    download_from_public_s3(TEMP_ZIP_NAME, f'ci/caches/{name}', version_id=version_id)
+    apply_cache(TEMP_ZIP_NAME, cache_directory)
 
 
 def download_taxonomy_package(name: str, download_path: str, version_id: str | None = None) -> None:
@@ -50,15 +41,7 @@ def download_taxonomy_package(name: str, download_path: str, version_id: str | N
     """
     if os.path.exists(download_path):
         return
-    os.makedirs(os.path.dirname(download_path), exist_ok=True)
-    uri = get_s3_uri(
-        f'ci/taxonomy_packages/{name}',
-        version_id=version_id
-    )
-    try:
-        urllib.request.urlretrieve(uri, download_path)
-    except Exception as exc:
-        raise Exception(f'Failed to download package from {uri} to {download_path}') from exc
+    download_from_public_s3(download_path, f'ci/taxonomy_packages/{name}', version_id=version_id)
 
 
 def download_program() -> None:

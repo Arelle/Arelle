@@ -12,12 +12,14 @@
     <variation id="invalid01" name="invalid01">
         <description>
             A label for 'ExecutiveOfficersMember' contains a half kana character
+            <!-- valid03.zip -->
         </description>
         <data>
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
             <warning>EDINET.EC8015W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8055W</warning> <!-- from base sample filing -->
             <warning>EDINET.EC8065W</warning> <!-- from base sample filing -->
             <warning>EDINET.EC8067W</warning> <!-- from base sample filing -->
             <warning>EDINET.EC8073W</warning>

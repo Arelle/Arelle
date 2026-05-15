@@ -639,7 +639,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
         ftLangNotUsedByTextFacts = set()
         ftLangNotUsedByTextLangs = set()
-        for f,langs in factLangFootnotes.items():
+        for f,langs in factLangFootnotes.items():  # type: ignore[assignment]
             langsNotUsedByTextFacts = langs - langsUsedByTextFacts
             if langsNotUsedByTextFacts:
                 ftLangNotUsedByTextFacts.add(f)
@@ -778,7 +778,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     if not labelrole:
                         conceptRels[child].append(rel)
                     if child not in visited:
-                        checkLabels(child, relSet, labelrole, visited)
+                        checkLabels(child, relSet, labelrole, visited)  # type: ignore[arg-type]
             for concept, rels in conceptRels.items():
                 if len(rels) > 1:
                     modelXbrl.warning("ESEF.3.4.4.missingPreferredLabelRole",
@@ -788,7 +788,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
         def checkMonetaryUnits(parent: ModelConcept, relSet: ModelRelationshipSet, visited: set[ModelConcept]) -> None:
             if parent.isMonetary:
-                for f in modelXbrl.factsByQname.get(parent.qname, set()):
+                for f in modelXbrl.factsByQname.get(parent.qname, set()):  # type: ignore[arg-type]
                     u = f.unit
                     if u is not None and u.isSingleMeasure:
                         currency = u.measures[0][0].localName
@@ -799,7 +799,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 child = rel.toModelObject
                 if child is not None:
                     if child not in visited:
-                        checkMonetaryUnits(child, relSet, visited)
+                        checkMonetaryUnits(child, relSet, visited)  # type: ignore[arg-type]
             visited.remove(parent)
 
         for ELR in modelXbrl.relationshipSet(parentChild).linkRoleUris:
@@ -808,7 +808,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             nonPfsConceptsRootInELR = set()
 
             for rootConcept in relSet.rootConcepts:
-                checkLabels(rootConcept, relSet, None, set())
+                checkLabels(rootConcept, relSet, None, set())  # type: ignore[arg-type]
                 # check for PFS element which isn't an orphan
                 if relSet.fromModelObject(rootConcept):
                     if rootConcept.qname in esefPrimaryStatementPlaceholders:
@@ -818,7 +818,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         nonPfsConceptsRootInELR.add(rootConcept)
                 # check for statement declaration of monetary concepts
                 if rootConcept.qname in esefPrimaryStatementPlaceholders:
-                    checkMonetaryUnits(rootConcept, relSet, set())
+                    checkMonetaryUnits(rootConcept, relSet, set())  # type: ignore[arg-type]
             if pfsConceptsRootInELR and (len(pfsConceptsRootInELR) + len(nonPfsConceptsRootInELR) ) > 1:
                 roots = pfsConceptsRootInELR | nonPfsConceptsRootInELR
                 modelXbrl.error("ESEF.3.4.7.singleExtendedLinkRoleUsedForAllPFSs",
@@ -887,11 +887,13 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 # I renamed i to _i to handle that.
                 _i = None # ifrs Concept
                 for c in conceptlist:
+                    assert c.qname is not None, "concept qname must be set"
                     if c.qname.namespaceURI == _ifrsNs:
                         _i = c
                         break
                 if _i is not None:
                     for c in conceptlist:
+                        assert c.qname is not None, "concept qname must be set"
                         if (c.qname.namespaceURI not in _ifrsNses
                             and c.qname.namespaceURI is not None
                             and isEsefExtensionUri(val, c.qname.namespaceURI) # may be a authority-specific duplication such as UK-FRC

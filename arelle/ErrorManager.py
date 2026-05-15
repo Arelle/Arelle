@@ -7,7 +7,7 @@ import logging
 import os
 from collections import defaultdict
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Union, cast
+from typing import TYPE_CHECKING, Any, Union, cast, TypeAlias
 
 from arelle import UrlUtil, XmlUtil, ModelValue, XbrlConst
 from arelle.FileSource import FileSource
@@ -23,11 +23,14 @@ if TYPE_CHECKING:
 LoggableValue = Union[str, dict[Any, Any], list[Any], set[Any], tuple[Any, ...]]
 EMPTY_TUPLE: EmptyTuple = ()
 
+# dict[str, tuple[int, int, int, int, int]] is come from arelle.formula.ValidateFormula.logAssertionResultCounts
+ErrorsType: TypeAlias = list[str | dict[str, tuple[int, int, int, int, int]]]
+
 
 class ErrorManager:
     logHasRelevelerPlugin: bool | None
     _errorCaptureLevel: int
-    _errors: list[str | None]
+    _errors: ErrorsType
     _logCount: dict[str, int] = {}
     _logRefFileRelUris: defaultdict[Any, dict[str, str]]
     _modelManager: ModelManager
@@ -41,7 +44,7 @@ class ErrorManager:
         self.logHasRelevelerPlugin = None
 
     @property
-    def errors(self) -> list[str | None]:
+    def errors(self) -> ErrorsType:
         return self._errors
 
     @property

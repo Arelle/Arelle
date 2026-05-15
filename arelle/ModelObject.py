@@ -2,6 +2,7 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
+import decimal
 from collections.abc import Generator
 from typing import TYPE_CHECKING, Any, cast
 from lxml import etree
@@ -14,7 +15,7 @@ from arelle.typing import ModelDocumentBase, ModelObjectBase
 if TYPE_CHECKING:
     from arelle.ModelDocument import ModelDocument
     from arelle.ModelXbrl import ModelXbrl
-    from arelle.ModelDtsObject import ModelConcept
+    from arelle.ModelDtsObject import ModelConcept, ModelType
     from arelle.ModelDtsObject import ModelLink
     from arelle.ModelDtsObject import ModelLocator
     from arelle.ModelDtsObject import ModelResource
@@ -106,6 +107,11 @@ class ModelObject(etree.ElementBase, ModelObjectBase):
     _hashSEqual: int
     _hashXpathEqual: int
     _prefixedName: str
+    _order: float
+    _orderDecimal: decimal.Decimal
+    _priority: int
+    _weight: float | None
+    _weightDecimal: decimal.Decimal | None
     sValue: TypeSValue
     xAttributes: dict[str, ModelAttribute]
     xValue: TypeXValue
@@ -114,6 +120,17 @@ class ModelObject(etree.ElementBase, ModelObjectBase):
     xlinkLabel: str
     tag: str
     targetModelXbrl: ModelXbrl
+    typeQname: QName
+    balance: str
+    periodType: str
+    xmlLang: str
+    footnoteID: str
+    role: str
+    type: ModelType
+    isAbstract: bool
+    isQualifiedForm: bool
+    isNumeric: bool
+    isDimensionItem: bool
 
     def _init(self) -> None:
         self.isChanged = False
@@ -382,7 +399,7 @@ class ModelObject(etree.ElementBase, ModelObjectBase):
         return self.stringValue
 
     @property
-    def propertyView(self) -> tuple[Any, ...]:
+    def propertyView(self) -> tuple[tuple[str, Any], ...]:
         return (("QName", self.elementQname),) + tuple(
                 (XmlUtil.clarkNotationToPrefixedName(self, _tag, isAttribute=True), _value)
                 for _tag, _value in self.items())

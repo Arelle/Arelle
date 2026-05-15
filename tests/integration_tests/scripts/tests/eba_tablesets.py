@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import html.parser
 import os
-import urllib.request
 import zipfile
 from pathlib import Path
 from shutil import rmtree
 
-from tests.integration_tests.integration_test_util import get_s3_uri
+from tests.integration_tests.integration_test_util import download_from_public_s3
 from tests.integration_tests.scripts.script_util import (
     assert_result,
     parse_args,
@@ -28,12 +27,12 @@ samples_zip_path = test_directory / "eba_samples.zip"
 samples_directory = test_directory / "eba_samples"
 target_path = samples_directory / "DUMMYLEI123456789012_GB_COREP030000_COREPLECON_2021-06-30_20201218154732000.xbrl"
 tablesets_report_path = test_directory / "index.html"
-sample_report_zip_url = get_s3_uri("ci/packages/eba-samples.zip", version_id="iDJU3nFy6_rQ289k.mosenHjUFrXCmCM")
-
-samples_url = get_s3_uri("ci/packages/eba_samples.zip", version_id="O7uYHbSYmxe_20nBhWWoXMfjGpquNMMj")
-
 print(f"Downloading EBA sample files: {samples_zip_path}")
-urllib.request.urlretrieve(samples_url, samples_zip_path)
+download_from_public_s3(
+    samples_zip_path,
+    "ci/packages/eba_samples.zip",
+    version_id="O7uYHbSYmxe_20nBhWWoXMfjGpquNMMj",
+)
 
 print(f"Extracting EBA sample files: {samples_directory}")
 with zipfile.ZipFile(samples_zip_path, "r") as zip_ref:

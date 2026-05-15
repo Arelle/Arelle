@@ -28,13 +28,14 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Characters import findProhibitedCharacters
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Document import checkDocumentEncoding
+from arelle.utils.validate.Facts import isValidNonNilFact, iterValidNonNilFactsByQname
 from arelle.utils.validate.Validation import Validation
 from arelle.utils.validate.Common import isExtensionUri
 from arelle.utils.validate.ValidationUtil import hasPresentationalConceptsWithFacts
 from ..Constants import AccountingStandard, JAPAN_LANGUAGE_CODES, REPORT_ELR_URI_PATTERN, REPORT_ELR_ID_PATTERN, STANDARD_TAXONOMY_URL_PREFIXES
 from ..ControllerPluginData import ControllerPluginData
 from ..DeiRequirements import DeiItemStatus
-from ..DisclosureSystems import DISCLOSURE_SYSTEM_EDINET
+from ..DisclosureSystems import ALL_DISCLOSURE_SYSTEMS
 from ..FilingFormat import DocumentType
 from ..FormType import FormType
 from ..PluginValidationDataExtension import PluginValidationDataExtension
@@ -46,7 +47,7 @@ _: TypeGetText
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_balances(
         pluginData: PluginValidationDataExtension,
@@ -103,7 +104,7 @@ def rule_balances(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC1057E(
         pluginData: PluginValidationDataExtension,
@@ -116,21 +117,22 @@ def rule_EC1057E(
     Ensure that there is a nonnil value disclosed for FilingDateCoverPage
     Note: This rule is only applicable to the public documents.
     """
+    filingDateQns = (
+        pluginData.jpcrpEsrFilingDateCoverPageQn,
+        pluginData.jpcrpFilingDateCoverPageQn,
+        pluginData.jplvhFilingDateCoverPageQn,
+        pluginData.jpspsFilingDateCoverPageQn,
+        pluginData.jptoiFilingDateCoverPageQn,
+    )
     facts = [
         fact
-        for qname in (
-            pluginData.jpcrpEsrFilingDateCoverPageQn,
-            pluginData.jpcrpFilingDateCoverPageQn,
-            pluginData.jpspsFilingDateCoverPageQn
-        )
-        for fact in pluginData.iterValidNonNilFacts(val.modelXbrl, qname)
+        for qn in filingDateQns
+        for fact in pluginData.iterValidNonNilFacts(val.modelXbrl, qn)
     ]
     for modelDocument in pluginData.iterCoverPages(val.modelXbrl):
         if any(fact.modelDocument == modelDocument for fact in facts):
             continue
-        if not (pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.jpcrpEsrFilingDateCoverPageQn)
-                or pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.jpcrpFilingDateCoverPageQn)
-                or pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.jpspsFilingDateCoverPageQn)):
+        if not any(pluginData.hasValidNonNilFact(val.modelXbrl, qn) for qn in filingDateQns):
             yield Validation.error(
                 codes='EDINET.EC1057E',
                 msg=_("There is no submission date ('【提出日】') on the cover page. "
@@ -142,7 +144,7 @@ def rule_EC1057E(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC5000E(
         pluginData: PluginValidationDataExtension,
@@ -167,7 +169,7 @@ def rule_EC5000E(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC5002E(
         pluginData: PluginValidationDataExtension,
@@ -210,7 +212,7 @@ def rule_EC5002E(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_calculations(
         pluginData: PluginValidationDataExtension,
@@ -257,7 +259,7 @@ def rule_calculations(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC5602R(
         pluginData: PluginValidationDataExtension,
@@ -360,7 +362,7 @@ def rule_EC5602R(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC5613E(
         pluginData: PluginValidationDataExtension,
@@ -389,7 +391,7 @@ def rule_EC5613E(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC5614E(
         pluginData: PluginValidationDataExtension,
@@ -423,7 +425,7 @@ def rule_EC5614E(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC5623W(
         pluginData: PluginValidationDataExtension,
@@ -450,7 +452,7 @@ def rule_EC5623W(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_namespace_prefixes(
         pluginData: PluginValidationDataExtension,
@@ -503,7 +505,7 @@ def rule_namespace_prefixes(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_namespace_uris(
         pluginData: PluginValidationDataExtension,
@@ -553,7 +555,7 @@ def rule_namespace_uris(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_roles(
         pluginData: PluginValidationDataExtension,
@@ -582,7 +584,7 @@ def rule_roles(
                     file=roleType.modelDocument.basename,
                     id=roleType.id
                 )
-            if not REPORT_ELR_URI_PATTERN.fullmatch(roleType.roleURI):
+            if not REPORT_ELR_URI_PATTERN.fullmatch(roleType.roleURI):  # type: ignore[arg-type]
                 yield Validation.warning(
                     codes='EDINET.EC8007W',
                     msg=_("The URI of the report's extended link role does not conform to the rules. "
@@ -595,7 +597,7 @@ def rule_roles(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8024E(
         pluginData: PluginValidationDataExtension,
@@ -630,7 +632,7 @@ def rule_EC8024E(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8027W(
         pluginData: PluginValidationDataExtension,
@@ -680,7 +682,7 @@ def rule_EC8027W(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8028W(
         pluginData: PluginValidationDataExtension,
@@ -728,7 +730,7 @@ def rule_EC8028W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8029W(
         pluginData: ControllerPluginData,
@@ -770,14 +772,14 @@ def rule_EC8029W(
                   "Element: '%(concept)s'. "
                   "Please use the element in the inline XBRL file. If it is an unnecessary "
                   "element, please delete it from the presentation link and definition link."),
-            concept=concept.qname.localName,
+            concept=concept.qname.localName,  # type: ignore[union-attr]
             modelObject=concept,
         )
 
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8030W(
         pluginData: PluginValidationDataExtension,
@@ -792,9 +794,9 @@ def rule_EC8030W(
     usedConcepts = pluginData.getUsedConcepts(val.modelXbrl)
     relSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.PRESENTATION.getArcroles()))
     for concept in usedConcepts:
-        if concept.qname.namespaceURI == pluginData.namespaces.jpdei:
+        if concept.qname.namespaceURI == pluginData.namespaces.jpdei:  # type: ignore[union-attr]
             continue
-        if concept.qname.localName.endswith('DEI'):
+        if concept.qname.localName.endswith('DEI'):  # type: ignore[union-attr]
             # Example: jpsps_cor:SecuritiesRegistrationStatementAmendmentFlagDeemedRegistrationStatementDEI
             continue
         if not relSet.contains(concept):
@@ -804,14 +806,14 @@ def rule_EC8030W(
                       "presentation linkbase. "
                       "Element: '%(concept)s'. "
                       "Please set the relevant element in the presentation linkbase."),
-                concept=concept.qname.localName,
+                concept=concept.qname.localName,  # type: ignore[union-attr]
                 modelObject=concept,
             )
 
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8031W(
         pluginData: ControllerPluginData,
@@ -901,7 +903,7 @@ def rule_EC8031W(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8034W(
         pluginData: PluginValidationDataExtension,
@@ -943,7 +945,75 @@ def rule_EC8034W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
+)
+def rule_EC8036W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8036W: The consolidated business indicators, etc. have not been detailed tagged.
+    If WhetherConsolidatedFinancialStatementsArePreparedDEI is true, there must be children of
+    the extended link role rol_BusinessResultsOfGroup.
+    """
+    if not pluginData.hasDocumentType({DocumentType.ANNUAL_SECURITIES_REPORT, DocumentType.SEMI_ANNUAL_REPORT}):
+        return
+    statementsPrepared = pluginData.getDeiValue('WhetherConsolidatedFinancialStatementsArePreparedDEI')
+    if statementsPrepared != True:
+        return
+    roleUris = ('http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_BusinessResultsOfGroup',)
+    for modelXbrl in pluginData.loadedModelXbrls:
+        if hasPresentationalConceptsWithFacts(modelXbrl, roleUris):
+            return
+    yield Validation.warning(
+        codes='EDINET.EC8036W',
+        msg=_('The consolidated business indicators, etc. have not been tagged in detail. '
+              'Please provide detailed tagging of the consolidated business indicators, etc. '
+              'If you do not provide consolidated business indicators, please confirm that '
+              'the "Consolidated Financial Statements" field in the DEI information is correct.'),
+    )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
+)
+def rule_EC8037W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8037W: The consolidated business indicators, etc. have not been detailed tagged.
+    If WhetherConsolidatedFinancialStatementsArePreparedDEI is false, there must be children of
+    the extended link role rol_BusinessResultsOfReportingCompany.
+    """
+    if not pluginData.hasDocumentType({DocumentType.ANNUAL_SECURITIES_REPORT, DocumentType.SEMI_ANNUAL_REPORT}):
+        return
+    statementsPrepared = pluginData.getDeiValue('WhetherConsolidatedFinancialStatementsArePreparedDEI')
+    if statementsPrepared != False:
+        return
+    roleUris = ('http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_BusinessResultsOfReportingCompany',)
+    for modelXbrl in pluginData.loadedModelXbrls:
+        if hasPresentationalConceptsWithFacts(modelXbrl, roleUris):
+            return
+    yield Validation.warning(
+        codes='EDINET.EC8037W',
+        msg=_('The consolidated business indicators, etc. have not been tagged in detail. '
+              'Please provide detailed tagging of the consolidated business indicators, etc. '
+              'If you do not provide consolidated business indicators, please confirm that '
+              'the "Consolidated Financial Statements" field in the DEI information is correct.'),
+    )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8038W(
         pluginData: ControllerPluginData,
@@ -978,7 +1048,7 @@ def rule_EC8038W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8039W(
         pluginData: ControllerPluginData,
@@ -1027,7 +1097,7 @@ def rule_EC8039W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8040W(
         pluginData: ControllerPluginData,
@@ -1073,7 +1143,7 @@ def rule_EC8040W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8041W(
         pluginData: ControllerPluginData,
@@ -1124,7 +1194,7 @@ def rule_EC8041W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8042W(
         pluginData: ControllerPluginData,
@@ -1173,7 +1243,7 @@ def rule_EC8042W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8043W(
         pluginData: ControllerPluginData,
@@ -1216,7 +1286,7 @@ def rule_EC8043W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8044W(
         pluginData: ControllerPluginData,
@@ -1265,7 +1335,7 @@ def rule_EC8044W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8045W(
         pluginData: ControllerPluginData,
@@ -1312,7 +1382,7 @@ def rule_EC8045W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8046W(
         pluginData: ControllerPluginData,
@@ -1354,7 +1424,7 @@ def rule_EC8046W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8047W(
         pluginData: ControllerPluginData,
@@ -1396,7 +1466,7 @@ def rule_EC8047W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8048W(
         pluginData: ControllerPluginData,
@@ -1453,7 +1523,7 @@ def rule_EC8048W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8049W(
         pluginData: ControllerPluginData,
@@ -1509,7 +1579,7 @@ def rule_EC8049W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8050W(
         pluginData: ControllerPluginData,
@@ -1686,7 +1756,61 @@ def rule_EC8050W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
+)
+def rule_EC8055W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8055W: The value of "WhetherConsolidatedFinancialStatementsArePreparedDEI"
+    in the DEI information and the tagging at the beginning of the accounting status section must be consistent.
+    """
+    deiLocalName = "WhetherConsolidatedFinancialStatementsArePreparedDEI"
+    consolidated = pluginData.getDeiValue(deiLocalName)
+    requiredFactLocalName = 'RegulationsInAccordanceWithWhichFinancialStatementsHaveBeenPreparedFinancialInformation'
+    if consolidated == True:
+        requiredFactLocalName = 'RegulationsInAccordanceWithWhichConsolidatedFinancialStatementsHaveBeenPreparedFinancialInformation'
+
+    for modelXbrl in pluginData.loadedModelXbrls:
+        for fact in modelXbrl.factsByLocalName.get(requiredFactLocalName, set()):
+            if isValidNonNilFact(fact):
+                # Expected fact (based on DEI value) is present.
+                return
+
+    roleUris = tuple(
+        f"http://disclosure.edinet-fsa.go.jp/role/jpcrp/{name}"
+        for name in (
+            "rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo32AnnualSecuritiesReport",
+            "rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo3AnnualSecuritiesReport",
+            "rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo4AnnualSecuritiesReport",
+            "rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo8AnnualSecuritiesReport",
+            "rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo9AnnualSecuritiesReport",
+        )
+    )
+    if not any(
+            hasPresentationalConceptsWithFacts(modelXbrl, roleUris)
+            for modelXbrl in pluginData.loadedModelXbrls
+    ):
+        # No fact with concept in relevant presention roles, rule is not applicable.
+        return
+
+    yield Validation.warning(
+        codes='EDINET.EC8055W',
+        msg=_('There is an inconsistency between the DEI "%(deiLocalName)s" information and the '
+              'tagging at the beginning of the accounting status. Please confirm that the '
+              'value of "Consolidated Financial Statements" in the DEI information and the '
+              'tagging at the beginning of the accounting status are correct.'),
+        deiLocalName=deiLocalName,
+    )
+
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8061W(
         pluginData: ControllerPluginData,
@@ -1732,7 +1856,7 @@ def rule_EC8061W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8063W(
         pluginData: ControllerPluginData,
@@ -1774,7 +1898,7 @@ def rule_EC8063W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8065W(
         pluginData: ControllerPluginData,
@@ -1819,7 +1943,7 @@ def rule_EC8065W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8066W(
         pluginData: ControllerPluginData,
@@ -1862,7 +1986,7 @@ def rule_EC8066W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8067W(
         pluginData: ControllerPluginData,
@@ -1906,7 +2030,7 @@ def rule_EC8067W(
 
 @validation(
     hook=ValidationHook.COMPLETE,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8068W(
         pluginData: ControllerPluginData,
@@ -1948,7 +2072,7 @@ def rule_EC8068W(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8069W(
         pluginData: PluginValidationDataExtension,
@@ -2003,7 +2127,7 @@ def rule_EC8069W(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8069W_2(
         pluginData: PluginValidationDataExtension,
@@ -2078,7 +2202,7 @@ def rule_EC8069W_2(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8070W(
         pluginData: PluginValidationDataExtension,
@@ -2120,7 +2244,7 @@ def rule_EC8070W(
     parentMember = val.modelXbrl.qnameConcepts.get(pluginData.directorsAndOtherOfficersMemberQn)
     relationships = val.modelXbrl.relationshipSet(XbrlConst.domainMember)
     directorsAndOtherOfficersMembers = {
-        rel.toModelObject.qname for rel in relationships.fromModelObject(parentMember)
+        rel.toModelObject.qname for rel in relationships.fromModelObject(parentMember)  # type: ignore[arg-type]
         if rel.toModelObject is not None
     }
     if matchingFact(facts, pluginData.directorsAndOtherOfficersAxisQn, directorsAndOtherOfficersMembers) is None:
@@ -2133,7 +2257,7 @@ def rule_EC8070W(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8073E(
         pluginData: PluginValidationDataExtension,
@@ -2172,7 +2296,7 @@ def rule_EC8073E(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8073W_EC8074W(
         pluginData: PluginValidationDataExtension,
@@ -2212,6 +2336,7 @@ def rule_EC8073W_EC8074W(
             if label.xmlLang in JAPAN_LANGUAGE_CODES:
                 illegalChars = findProhibitedCharacters(label.textValue, illegalJapaneseCharactersPattern)
                 if illegalChars:
+                    assert concept.qname is not None, "concept.qname is None"
                     yield Validation.warning(
                         codes='EDINET.EC8073W',
                         msg=_("The concept: %(concept)s has a %(role)s label which contains characters that are not "
@@ -2226,6 +2351,7 @@ def rule_EC8073W_EC8074W(
             elif label.xmlLang == 'en':
                 illegalChars = findProhibitedCharacters(label.textValue, illegalEnglishCharactersPattern)
                 if illegalChars:
+                    assert concept.qname is not None, "concept.qname is None"
                     yield Validation.warning(
                         codes='EDINET.EC8074W',
                         msg=_("The concept: %(concept)s has a %(role)s label which contains characters that are not "
@@ -2239,7 +2365,7 @@ def rule_EC8073W_EC8074W(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8075W(
         pluginData: PluginValidationDataExtension,
@@ -2261,7 +2387,7 @@ def rule_EC8075W(
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
-    disclosureSystems=[DISCLOSURE_SYSTEM_EDINET],
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
 )
 def rule_EC8076W(
         pluginData: PluginValidationDataExtension,
@@ -2279,3 +2405,89 @@ def rule_EC8076W(
                 codes='EDINET.EC8076W',
                 msg=_('"Issued Shares, Total Number of Shares, etc. [Text Block]" (IssuedSharesTotalNumberOfSharesEtcTextBlock) is not tagged.'),
             )
+
+@validation(
+    hook=ValidationHook.COMPLETE,
+    disclosureSystems=ALL_DISCLOSURE_SYSTEMS,
+)
+def rule_EC8077W(
+        pluginData: ControllerPluginData,
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    EDINET.EC8077W: The headline accounting information does not include separate tagging of first or second interim (consolidated) financial statements to align with the
+    “Consolidated or Unconsolidated” information in the DEI.
+    Please check that the value of "Whether Consolidated" in the DEI information and the separate tagging of first or second type interim (consolidated) financial statements at the top of the
+    accounting status are correct. If both are correct, please check that the value of "Accounting Standard" in the DEI information is correct.
+    """
+    prepared = None
+    formUris = tuple(
+        f"http://disclosure.edinet-fsa.go.jp/role/jpcrp/{name}"
+        for name in (
+            'rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43SemiAnnualSecuritiesReport',
+            'rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo5SemiannualSecuritiesReport',
+            'rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo52SemiannualSecuritiesReport',
+            'rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo93SemiAnnualSecuritiesReport',
+            'rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo10SemiannualSecuritiesReport',
+        )
+    )
+    for modelXbrl in pluginData.loadedModelXbrls:
+        if hasPresentationalConceptsWithFacts(modelXbrl, formUris):
+            prepared = pluginData.getDeiValue('WhetherConsolidatedFinancialStatementsArePreparedDEI')
+    if prepared is None:
+        return
+    preparedUris = (
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedBalanceSheet',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedBalanceSheet',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfIncome',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedStatementOfIncome',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfComprehensiveIncome',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedStatementOfComprehensiveIncome',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfChangesInEquity',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfChangesInNetAssets',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfCashFlows-direct',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedStatementOfCashFlows-direct',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfCashFlows-indirect',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedStatementOfCashFlows-indirect',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfFinancialPositionIFRS',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfComprehensiveIncomeSingleStatementIFRS',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfProfitOrLossIFRS',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfComprehensiveIncomeIFRS',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfChangesInEquityIFRS',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfCashFlowsIFRS',
+    )
+    notPreparedUris = (
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualBalanceSheet',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualBalanceSheet',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfIncome',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfIncomeAndRetainedEarnings',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualStatementOfIncome',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfChangesInEquity',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfChangesInNetAssets',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfMembersEquity',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfUnitholdersEquity',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfCashFlows-direct',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualStatementOfCashFlows-direct',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfCashFlows-indirect',
+        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualStatementOfCashFlows-indirect',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfFinancialPositionIFRS',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfComprehensiveIncomeSingleStatementIFRS',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfProfitOrLossIFRS',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfComprehensiveIncomeIFRS',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfChangesInEquityIFRS',
+        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfCashFlowsIFRS',
+    )
+    urisToCheck = preparedUris if prepared is True else notPreparedUris
+    for modelXbrl in pluginData.loadedModelXbrls:
+        if hasPresentationalConceptsWithFacts(modelXbrl, urisToCheck):
+            return
+    yield Validation.warning(
+        codes='EDINET.EC8077W',
+        msg=_('The headline accounting information does not include separate tagging of first or second interim (consolidated) financial statements to align with the '
+              '“Consolidated or Unconsolidated” information in the DEI. '
+              'Please check that the value of "Whether Consolidated" in the DEI information and the separate tagging of first or second type interim (consolidated) '
+              'financial statements at the top of the accounting status are correct. If both are correct, please check that the value of "Accounting Standard" in the DEI information is correct.'),
+    )

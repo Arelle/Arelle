@@ -180,10 +180,19 @@ class ModelTestcaseVariation(ModelObject):
         try:
             return self._parameters
         except AttributeError:
-            self._parameters = dict([
-                (ModelValue.qname(paramElt, paramElt.get("name")), # prefix-less parameter names take default namespace of element
-                 (ModelValue.qname(paramElt, paramElt.get("datatype")),paramElt.get("value")))
-                for paramElt in XmlUtil.descendants(self, self.namespaceURI, "parameter")])
+            self._parameters = dict(
+                [
+                    (
+                        ModelValue.qname(paramElt, paramElt.get("name")),
+                        # prefix-less parameter names take default namespace of element
+                        (
+                            ModelValue.qname(paramElt, paramElt.get("datatype")),
+                            paramElt.get("value")
+                        )
+                    )
+                    for paramElt in XmlUtil.descendants(self, self.namespaceURI, "parameter")
+                ]
+            )
             return self._parameters
 
     @property

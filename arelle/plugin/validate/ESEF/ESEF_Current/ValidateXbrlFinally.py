@@ -193,7 +193,8 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
         for nameConcepts in modelXbrl.nameConcepts.values():
             for concept in nameConcepts:
-                match = re.match("http[s]?://xbrl.ifrs.org/taxonomy/(.*)/.*", concept.qname.namespaceURI)
+                assert concept.qname is not None, "concept.qname is None"
+                match = re.match("http[s]?://xbrl.ifrs.org/taxonomy/(.*)/.*", concept.qname.namespaceURI)  # type: ignore[arg-type]
                 if match:
                     date = match.groups()[0]
                     ifrs_year = datetime.strptime(date, "%Y-%m-%d").year
@@ -790,7 +791,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
         ftLangNotUsedByTextFacts = set()
         ftLangNotUsedByTextLangs = set()
-        for f,langs in factLangFootnotes.items():
+        for f,langs in factLangFootnotes.items():  # type: ignore[assignment]
             langsNotUsedByTextFacts = langs - langsUsedByTextFacts
             if langsNotUsedByTextFacts:
                 ftLangNotUsedByTextFacts.add(f)
@@ -915,7 +916,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         if unreportedLbLocs:
             modelXbrl.warning("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
                 _("All usable concepts in extension taxonomy relationships SHOULD be applied by tagged facts: %(elements)s."),
-                modelObject=unreportedLbLocs, elements=", ".join(sorted(str(loc.dereference().qname) for loc in unreportedLbLocs)))
+                modelObject=unreportedLbLocs, elements=", ".join(sorted(str(loc.dereference().qname) for loc in unreportedLbLocs)))  # type: ignore[union-attr]
 
         anchoringToAbstractConcept = set()
         for rel in modelXbrl.relationshipSet(widerNarrower).modelRelationships:
@@ -953,7 +954,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     if not labelrole:
                         conceptRels[child].append(rel)
                     if child not in visited:
-                        checkLabels(child, relSet, labelrole, visited)
+                        checkLabels(child, relSet, labelrole, visited)  # type: ignore[arg-type]
             for concept, rels in conceptRels.items():
                 if len(rels) > 1:
                     modelXbrl.warning("ESEF.3.4.4.missingPreferredLabelRole",
@@ -963,7 +964,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
         def checkMonetaryUnits(parent: ModelConcept, relSet: ModelRelationshipSet, visited: set[ModelConcept]) -> None:
             if parent.isMonetary:
-                for f in modelXbrl.factsByQname.get(parent.qname, set()):
+                for f in modelXbrl.factsByQname.get(parent.qname, set()):  # type: ignore[arg-type]
                     u = f.unit
                     if u is not None and u.isSingleMeasure:
                         currency = u.measures[0][0].localName
@@ -974,7 +975,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 child = rel.toModelObject
                 if child is not None:
                     if child not in visited:
-                        checkMonetaryUnits(child, relSet, visited)
+                        checkMonetaryUnits(child, relSet, visited)  # type: ignore[arg-type]
             visited.remove(parent)
 
         labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
@@ -982,6 +983,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             conceptlangRoleLabels = defaultdict(list)
             labelRels = labelsRelationshipSet.fromModelObject(modelConcept)
             for labelRel in labelRels:
+                assert labelRel.toModelObject is not None, "labelRel.toModelObject is None"
                 conceptlangRoleLabels[(labelRel.toModelObject.xmlLang, labelRel.toModelObject.role)].append(labelRel.toModelObject)
             for (lang, labelrole), labels in conceptlangRoleLabels.items():
                 if isExtensionObject(val, modelConcept) and len(labels) > 1:
@@ -1010,7 +1012,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             nonPfsConceptsRootInELR = set()
 
             for rootConcept in relSet.rootConcepts:
-                checkLabels(rootConcept, relSet, None, set())
+                checkLabels(rootConcept, relSet, None, set())  # type: ignore[arg-type]
                 # check for PFS element which isn't an orphan
                 if relSet.fromModelObject(rootConcept):
                     if rootConcept.qname in esefPrimaryStatementPlaceholders:
@@ -1020,14 +1022,14 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         nonPfsConceptsRootInELR.add(rootConcept)
                 # check for statement declaration of monetary concepts
                 if rootConcept.qname in esefPrimaryStatementPlaceholders:
-                    checkMonetaryUnits(rootConcept, relSet, set())
+                    checkMonetaryUnits(rootConcept, relSet, set())  # type: ignore[arg-type]
             if pfsConceptsRootInELR and (len(pfsConceptsRootInELR) + len(nonPfsConceptsRootInELR) ) > 1:
                 roots = pfsConceptsRootInELR | nonPfsConceptsRootInELR
                 modelXbrl.error("ESEF.3.4.7.singleExtendedLinkRoleUsedForAllPFSs",
                     _("Separate Extended Link Roles are required by %(elr)s for hierarchies: %(roots)s."),
                     modelObject=roots, elr=modelXbrl.roleTypeDefinition(ELR), roots=", ".join(sorted((str(c.qname) for c in roots))))
 
-        for labelrole, concepts in missingConceptLabels.items():
+        for labelrole, concepts in missingConceptLabels.items():  # type: ignore[assignment]
             modelXbrl.warning("ESEF.3.4.5.missingLabelForRoleInReportLanguage",
                 _("Label for %(role)s role SHOULD be available in report language for concepts: %(qnames)s."),
                 modelObject=concepts, qnames=", ".join(str(c.qname) for c in concepts),
@@ -1089,11 +1091,13 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 # I renamed i to _i to handle that.
                 _i = None # ifrs Concept
                 for c in conceptlist:
+                    assert c.qname is not None, "concept qname must be set"
                     if c.qname.namespaceURI == _ifrsNs:
                         _i = c
                         break
                 if _i is not None:
                     for c in conceptlist:
+                        assert c.qname is not None, "concept qname must be set"
                         if (c.qname.namespaceURI not in _ifrsNses
                             and c.qname.namespaceURI is not None
                             and isEsefExtensionUri(val, c.qname.namespaceURI) # may be a authority-specific duplication such as UK-FRC

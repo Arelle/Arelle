@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import os
-import urllib.request
 import zipfile
 from pathlib import Path
 from shutil import rmtree
 
 import regex
 
-from tests.integration_tests.integration_test_util import get_s3_uri
+from tests.integration_tests.integration_test_util import download_from_public_s3
 from tests.integration_tests.scripts.script_util import run_arelle, parse_args, validate_log_file, assert_result, prepare_logfile
 
 errors = []
@@ -29,13 +28,12 @@ report_zip_path = test_directory / 'report.zip'
 report_directory = test_directory / 'report'
 manifest_path = report_directory / "manifest.xml"
 extracted_path = report_directory / "tse-qcedjpfr-21750-2024-06-30-01-2024-07-26_extracted.xbrl"
-report_zip_url = get_s3_uri(
-    'ci/packages/JapaneseXBRLReport.zip',
-    version_id='v.H1rasRpwFzqN.dPha4L2D_NCCXLkTv'
+print(f"Downloading report: {report_zip_path}")
+download_from_public_s3(
+    report_zip_path,
+    "ci/packages/JapaneseXBRLReport.zip",
+    version_id="v.H1rasRpwFzqN.dPha4L2D_NCCXLkTv",
 )
-
-print(f"Downloading report: {report_zip_url}")
-urllib.request.urlretrieve(report_zip_url, report_zip_path)
 
 print(f"Extracting report: {report_directory}")
 with zipfile.ZipFile(report_zip_path, "r") as zip_ref:

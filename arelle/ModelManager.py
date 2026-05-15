@@ -60,7 +60,7 @@ class ModelManager:
     def __init__(self, cntlr: Cntlr):
         self.cntlr = cntlr
         self.validateDisclosureSystem = False
-        self.disclosureSystem = DisclosureSystem.DisclosureSystem(self)  # type: ignore[no-untyped-call]
+        self.disclosureSystem = DisclosureSystem.DisclosureSystem(self)
         self.validateCalcs = 0 # ValidateXbrlCalcs.ValidateCalcsMode
         self.validateInfoset = False
         self.validateUtr = False
@@ -150,10 +150,10 @@ class ModelManager:
         if taxonomyPackages:
             resetPackageMappings = False
             for pkgUrl in taxonomyPackages:
-                if PackageManager.addPackage(self.cntlr, pkgUrl):
+                if self.cntlr.packages.add(pkgUrl):
                     resetPackageMappings = True
             if resetPackageMappings:
-                PackageManager.rebuildRemappings(self.cntlr)
+                self.cntlr.packages.rebuild()
         modelXbrl: ModelXbrl | None = None # loaded modelXbrl
         if isinstance(filesource, FileSource):
             if isinstance(filesource.url, str) and filesource.url.startswith("urn:uuid:"): # request for an open modelXbrl
@@ -208,7 +208,7 @@ class ModelManager:
         """
         try:
             if self.modelXbrl:
-                Validate.validate(self.modelXbrl)  # type: ignore[no-untyped-call]
+                Validate.validate(self.modelXbrl)
         except Exception as err:
             self.addToLog(_("[exception] Validation exception: {0} at {1}").format(
                            err,

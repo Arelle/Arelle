@@ -19,6 +19,7 @@ args = parse_args(
     arelle=False,
 )
 arelle_command = args.arelle
+arelle_offline = args.offline
 
 REJECTION_MESSAGE = "Remote URL plug-in references are not permitted via the webserver"
 
@@ -32,7 +33,7 @@ REMOTE_REJECT_CASES = [
 ]
 
 port = 8101
-with run_arelle_webserver(arelle_command, port) as proc:
+with run_arelle_webserver(arelle_command, port, offline=arelle_offline) as proc:
     base = f"http://localhost:{port}"
 
     for label, query in REMOTE_REJECT_CASES:

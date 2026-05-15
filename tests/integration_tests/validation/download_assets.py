@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import boto3
 import os
 import urllib.request
 import zipfile
 from pathlib import Path
 
 from tests.integration_tests.download_cache import apply_cache
-from tests.integration_tests.integration_test_util import get_s3_uri
+from tests.integration_tests.integration_test_util import download_from_private_s3, download_from_public_s3
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteAssetConfig, AssetType, AssetSource, CONFORMANCE_SUITE_PATH_PREFIX
 
 
@@ -50,14 +49,9 @@ def _download_private_s3_asset(asset: ConformanceSuiteAssetConfig) -> None:
     assert key is not None
     if asset.type == AssetType.CONFORMANCE_SUITE:
         key = f'conformance_suites/{key}'
-    asset.full_local_path.parent.mkdir(parents=True, exist_ok=True)
     assert 'AWS_ACCESS_KEY_ID' in os.environ.keys(), 'Must have AWS_ACCESS_KEY_ID environment variable set.'
     assert 'AWS_SECRET_ACCESS_KEY' in os.environ.keys(), 'Must have AWS_SECRET_ACCESS_KEY environment variable set.'
-    s3 = boto3.client('s3')
-    if asset.s3_version_id:
-        s3.download_file('arelle', Key=key, Filename=str(asset.full_local_path), ExtraArgs={'VersionId': asset.s3_version_id})
-    else:
-        s3.download_file('arelle', Key=key, Filename=str(asset.full_local_path))
+    download_from_private_s3(asset.full_local_path, key, version_id=asset.s3_version_id)
 
 
 def _download_public_s3_asset(asset: ConformanceSuiteAssetConfig) -> None:
@@ -72,8 +66,7 @@ def _download_public_s3_asset(asset: ConformanceSuiteAssetConfig) -> None:
         key = f'ci/caches/conformance_suites/{key}'
     elif asset.type == AssetType.TAXONOMY_PACKAGE:
         key = f'ci/taxonomy_packages/{key}'
-    uri = get_s3_uri(key, version_id=asset.s3_version_id)
-    _download_public_uri(uri, asset.full_local_path)
+    download_from_public_s3(asset.full_local_path, key, version_id=asset.s3_version_id)
 
 
 def _download_public_uri(uri: str, download_path: Path) -> None:

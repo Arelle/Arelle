@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import os
-import urllib.request
 from pathlib import Path
 
 import regex
 
 from arelle.RuntimeOptions import RuntimeOptions
 from arelle.api.Session import Session
-from tests.integration_tests.integration_test_util import get_s3_uri
+from tests.integration_tests.integration_test_util import download_from_public_s3
 from tests.integration_tests.scripts.script_util import parse_args, validate_log_xml, assert_result, prepare_logfile
 from tests.integration_tests.validation.assets import ESEF_PACKAGES
 from tests.integration_tests.validation.download_assets import download_assets
@@ -26,13 +25,12 @@ test_directory = Path(args.test_directory)
 arelle_log_file = prepare_logfile(test_directory, this_file)
 report_zip_path = test_directory / 'TC2_invalid.zip'
 target_path = report_zip_path
-report_zip_url = get_s3_uri(
-    'ci/packages/python_api_validate_esef.zip',
-    version_id='U3sEz.B8kjUWw0l6momz87EndK05cxFZ'
-)
-
 print(f"Downloading report: {report_zip_path}")
-urllib.request.urlretrieve(report_zip_url, report_zip_path)
+download_from_public_s3(
+    report_zip_path,
+    "ci/packages/python_api_validate_esef.zip",
+    version_id="U3sEz.B8kjUWw0l6momz87EndK05cxFZ",
+)
 
 print("Downloading packages...")
 package_assets = {

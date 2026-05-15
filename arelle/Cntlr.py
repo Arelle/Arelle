@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 import regex
 
-from arelle import Locale, ModelManager, PackageManager, XbrlConst
+from arelle import Locale, ModelManager, XbrlConst
 from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
 from arelle.ErrorManager import ErrorManager
 from arelle.FileSource import FileSource
@@ -33,12 +33,15 @@ from arelle.logging.handlers.LogToPrintHandler import LogToPrintHandler
 from arelle.logging.handlers.LogToXmlHandler import LogToXmlHandler
 from arelle.logging.handlers.StructuredMessageLogHandler import StructuredMessageLogHandler
 from arelle.SystemInfo import PlatformOS, getSystemWordSize, hasFileSystem, hasWebServer, isCGI, isGAE
+from arelle.packages._package_manager import PackageManager
+from arelle.packages.package_registry import PackageRegistry
 from arelle.plugin_system._plugin_manager import PluginManager
 from arelle.plugin_system.plugin_provider import PluginProvider
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from arelle.utils.validate.Validation import Validation
-from arelle.WebCache import WebCache
+from arelle.WebCache import ProxyTuple, WebCache
+from arelle.ErrorManager import ErrorsType
 
 _: TypeGetText
 
@@ -127,6 +130,7 @@ class Cntlr:
 
     """
     __version__ = "1.6.0"
+    _packageManager: PackageManager
     _pluginManager: PluginManager
     betaFeatures: dict[str, bool]
     errorManager: ErrorManager | None
@@ -135,6 +139,7 @@ class Cntlr:
     hasFileSystem: bool
     isGAE: bool
     isCGI: bool
+    packages: PackageRegistry
     systemWordSize: int
     uiLang: str
     configDir: str
@@ -288,19 +293,28 @@ class Cntlr:
         self.setUiLanguage(uiLang or self.config.get("userInterfaceLangOverride",None), fallbackToDefault=True)
         Locale.setDisableRTL(self.config.get('disableRtl', False))
 
-        self.webCache = WebCache(self, self.config.get("proxySettings"))
-
-        # start plug in server (requres web cache initialized, but not logger)
+        # Order is load-bearing:
+        # PluginManager initialization can load plugins using the WebCache, but the WebCache uses plugin hooks.
+        # We first create the PluginManager and PluginProvider so that initial plugin hook lookups in the WebCache
+        # won't find anything, but also won't crash on AttributeError. We then create the WebCache before calling
+        # PluginManager.init() so that plugin paths can be loaded via the WebCache. Lastly, we call
+        # webCache.resetProxies() to pick up plugin hook defined proxy settings that weren't available when WebCache
+        # was first created.
         from arelle.PluginManager import getInstance as _getPluginManagerInstance
         self._pluginManager = _getPluginManagerInstance()
-        self._pluginManager.init(self, loadPluginConfig=hasGui)
         self.plugins = PluginProvider(self._pluginManager)
+        self.webCache = WebCache(self, ProxyTuple.coerce(self.config.get("proxySettings")))
+        self._pluginManager.init(self, loadPluginConfig=hasGui)
+        self.webCache.resetProxies(self.webCache._httpProxyTuple)
 
         # requires plug ins initialized
         self.modelManager = ModelManager.initialize(self)
 
         # start taxonomy package server (requres web cache initialized, but not logger)
-        PackageManager.init(self, loadPackagesConfig=hasGui)
+        from arelle.PackageManager import getInstance as _getPackageManagerInstance
+        self._packageManager = _getPackageManagerInstance()
+        self._packageManager.init(self, loadPackagesConfig=hasGui)
+        self.packages = PackageRegistry(self._packageManager)
 
         self.startLogging(logFileName, logFileMode, logFileEncoding, logFormat)
         self.errorManager = ErrorManager(self.modelManager, logging._checkLevel("INCONSISTENCY")) # type: ignore[attr-defined]
@@ -330,7 +344,7 @@ class Cntlr:
         )
 
     @property
-    def errors(self) -> list[str | None]:
+    def errors(self) -> ErrorsType:
         if self.errorManager is None:
             return []
         return self.errorManager.errors
@@ -523,7 +537,7 @@ class Cntlr:
         self._pluginManager.save(self)
 
         if self.hasGui:
-            PackageManager.save(self)
+            self._packageManager.save(self)
         if saveConfig:
             self.saveConfig()
         if self.logger is not None:

@@ -162,6 +162,8 @@ def checkFilingDTS(
                                         hasLc3Match = True
                                 else:
                                     hasNonStandardLabel = True
+
+                            assert label is not None, "labelRel.toModelObject is None"
                             langRoleLabels[(label.xmlLang,label.role)].append(label)
                             if label.role not in standardLabelRoles and not ( #not in LRR
                                 label.role in val.modelXbrl.roleTypes and val.modelXbrl.roleTypes[label.role][0].modelDocument.uri.startswith("http://www.xbrl.org/lrr")):
@@ -186,7 +188,7 @@ def checkFilingDTS(
                     langRoleLabels.clear()
             for modelType in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}complexType"):
                 if (isinstance(modelType,ModelType) and isExtensionObject(val, modelType) and
-                    modelType.typeDerivedFrom is not None and modelType.typeDerivedFrom.qname.namespaceURI == xbrli and
+                    modelType.typeDerivedFrom is not None and modelType.typeDerivedFrom.qname.namespaceURI == xbrli and  # type: ignore[union-attr]
                     not modelType.particlesList):
                     val.modelXbrl.error("ESEF.RTS.Annex.IV.Par.11.customDataTypeDuplicatingXbrlOrDtrEntry",
                         _("Extension taxonomy element must not define a type where one is already defined by the XBRL specifications or in the XBRL Data Types Registry: %(qname)s"),

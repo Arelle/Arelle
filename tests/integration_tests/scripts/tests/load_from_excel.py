@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import os
-import urllib.request
 from pathlib import Path
 
-from tests.integration_tests.integration_test_util import get_s3_uri
+from tests.integration_tests.integration_test_util import download_from_public_s3
 from tests.integration_tests.scripts.script_util import (
     assert_result,
     parse_args,
@@ -28,13 +27,12 @@ test_directory = Path(args.test_directory)
 arelle_log_file = prepare_logfile(test_directory, this_file)
 
 excel_taxonomy_path = test_directory / 'XII_Taxonomy.xlsx'
-excel_taxonomy_url = get_s3_uri(
-    'ci/packages/XII_Taxonomy.xlsx',
-    version_id='c5mjDshdqpmu8CvVt37Ur9yhh06fO1BB'
+print(f"Downloading Excel file: {excel_taxonomy_path}")
+download_from_public_s3(
+    excel_taxonomy_path,
+    "ci/packages/XII_Taxonomy.xlsx",
+    version_id="c5mjDshdqpmu8CvVt37Ur9yhh06fO1BB",
 )
-
-print(f"Downloading Excel file: {excel_taxonomy_url}")
-urllib.request.urlretrieve(excel_taxonomy_url, excel_taxonomy_path)
 
 run_arelle(
     arelle_command,

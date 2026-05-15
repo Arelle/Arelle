@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 from typing import Iterator, Callable, Any
 
 from arelle.plugin_system._plugin_manager import PluginManager
-from arelle.plugin_system.plugin_handle import PluginHandle
+from arelle.plugin_system.plugin_meta import PluginMeta
 
 
 class PluginProvider:
@@ -13,8 +13,8 @@ class PluginProvider:
         self._plugin_manager = plugin_manager
 
     @staticmethod
-    def _parse_module_info(module_info: dict[str, Any]) -> PluginHandle:
-        return PluginHandle(
+    def _parse_module_info(module_info: dict[str, Any]) -> PluginMeta:
+        return PluginMeta(
             aliases=frozenset(module_info.get("aliases", set())),
             author=str(module_info.get("author", "")),
             description=str(module_info.get("description", "")),
@@ -39,7 +39,7 @@ class PluginProvider:
     def hooks(self, hook_name: str) -> Iterator[Callable[..., Any]]:
         yield from self._plugin_manager.pluginClassMethods(hook_name)
 
-    def get_plugin_handles(self) -> dict[str, PluginHandle]:
+    def get_plugins(self) -> dict[str, PluginMeta]:
         plugin_infos = {}
         for name, module_info in self._plugin_manager.pluginConfig.get("modules", {}).items():
             plugin_infos[name] = PluginProvider._parse_module_info(module_info)

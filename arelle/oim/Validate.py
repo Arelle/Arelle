@@ -116,10 +116,10 @@ def validateOIM(modelXbrl: ModelXbrl) -> None:
             if rel.arcrole != XbrlConst.factFootnote:
                 footnoteArcroles.add(rel.arcrole)
         for elr in footnoteELRs:
-            for roleType in modelXbrl.roleTypes[elr]:
+            for roleType in modelXbrl.roleTypes[elr]:  # type: ignore[index]
                 roleDefiningDocs[elr].add(roleType.modelDocument)
         for arcrole in footnoteArcroles:
-            for arcroleType in modelXbrl.arcroleTypes[arcrole]:
+            for arcroleType in modelXbrl.arcroleTypes[arcrole]:  # type: ignore[index]
                 roleDefiningDocs[arcrole].add(arcroleType.modelDocument)
         extRoles = set(role
                       for role, docs in roleDefiningDocs.items()
@@ -127,7 +127,7 @@ def validateOIM(modelXbrl: ModelXbrl) -> None:
         if extRoles:
             modelXbrl.error("xbrlxe:unsupportedExternalRoleRef",
                             _("Role and arcrole definitions MUST be in standard or schemaRef discoverable sources"),
-                            modelObject=modelXbrl, roles=", ".join(sorted(extRoles)))
+                            modelObject=modelXbrl, roles=", ".join(sorted(extRoles)))  # type: ignore[arg-type]
 
         # todo: multi-document inline instances
         for elt in modelDocument.xmlRootElement.iter(XbrlConst.qnLinkFootnote.clarkNotation, XbrlConst.qnIXbrl11Footnote.clarkNotation):

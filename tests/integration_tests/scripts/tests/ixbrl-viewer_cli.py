@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import os
-import urllib.request
 import zipfile
 
 from pathlib import Path
 from shutil import rmtree
 
-from tests.integration_tests.integration_test_util import get_s3_uri
+from tests.integration_tests.integration_test_util import download_from_public_s3
 from tests.integration_tests.scripts.script_util import run_arelle, parse_args, validate_log_file, assert_result, prepare_logfile
 
 errors = []
@@ -27,13 +26,12 @@ samples_zip_path = test_directory / 'samples.zip'
 samples_directory = test_directory / 'samples'
 target_path = samples_directory / "samples/src/ixds-test/document1.html"
 viewer_path = test_directory / "viewer.html"
-report_zip_url = get_s3_uri(
-    'ci/packages/IXBRLViewerSamples.zip',
-    version_id='6eS7qUUoWLeM9JSSTXOfANkHoLz1Zv5o'
-)
-
 print(f"Downloading samples: {samples_zip_path}")
-urllib.request.urlretrieve(report_zip_url, samples_zip_path)
+download_from_public_s3(
+    samples_zip_path,
+    "ci/packages/IXBRLViewerSamples.zip",
+    version_id="6eS7qUUoWLeM9JSSTXOfANkHoLz1Zv5o",
+)
 
 print(f"Extracting samples: {samples_directory}")
 with zipfile.ZipFile(samples_zip_path, "r") as zip_ref:
