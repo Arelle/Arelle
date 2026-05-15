@@ -135,6 +135,8 @@ class Session:
         :param sourceZipStream: Optional stream to read source data from.
         :param responseZipStream: Options stream to write response data to.
         :param logHandler: Optional log handler to use for logging.
+        :param logFilters: Log filters to apply to logger.
+        :param logFileName: Log output filepath or keyword (see "Logging" in "Python API" documentation).
         :return: True if the run was successful, False otherwise.
         """
         if isinstance(logFileName, Path):
