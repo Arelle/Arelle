@@ -40,9 +40,7 @@ class Md5Sum:
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Md5Sum):
-            if not isinstance(other, (int, str)):
-                return NotImplemented
-            other = Md5Sum(other)
+            other = Md5Sum(other)  # type: ignore[arg-type]
         return self.value == other.value
 
     def __ne__(self, other: object) -> bool:
