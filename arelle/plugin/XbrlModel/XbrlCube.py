@@ -12,7 +12,7 @@ from arelle.oim.Load import EMPTY_DICT
 from .XbrlConst import xbrl
 from .XbrlDimension import XbrlDomain
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue, DefaultFalse
+from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue, DefaultFalse, OptionalNonemptySet
 from .ModelValueMore import QNameAt, SQName
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
 from arelle.FunctionFn import true, false
@@ -125,7 +125,7 @@ class XbrlDimensionsAllowed(XbrlModelObject):
     """ Dimensions Allowed Object
         Reference: oim-taxonomy#dimensionsallowed-object
     """
-    allowed: OrderedSet[XbrlDimensionConstraint] # (optional) An ordered set of dimension constraint objects. (xbrl:dimensionConstraintObject) The dimension constraint defines the constraints on dimensions that can be included in cubes of this type.
+    allowed: OptionalNonemptySet[XbrlDimensionConstraint] # (optional) An ordered set of dimension constraint objects. (xbrl:dimensionConstraintObject) The dimension constraint defines the constraints on dimensions that can be included in cubes of this type. MUST NOT be empty if provided.
     closed: Union[bool, DefaultFalse] # (optional) If true, only dimensions listed in allowed can be used. If false, other taxonomy-defined dimensions are permitted. Defaults to false.
 
 class XbrlEndpointConstraintObject(XbrlModelObject):

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Optional, Union
 from arelle.ModelValue import QName, AnyURI
 from arelle.PythonUtil import OrderedSet
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue
+from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue, OptionalNonemptySet
 from .ModelValueMore import SQName
 from .XbrlObject import XbrlReferencableModelObject, XbrlTaxonomyTagObject
 
@@ -35,6 +35,6 @@ class XbrlReferenceType(XbrlReferencableModelObject):
     module: XbrlModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the reference type object.
     uri: Optional[AnyURI] # (optional) A uri used to identify the reference type of reference objects for backward compatability with XBRL 2.1 taxonomies.
-    allowedObjects: OrderedSet[QName] # (optional) Defines an ordered set of object types that can use the referenceType.
+    allowedObjects: OptionalNonemptySet[QName] # (optional) Defines an ordered set of object types that can use the referenceType. MUST NOT be empty if provided.
     orderedProperties: OrderedSet[QName] # (optional) Defines an ordered set of property QNames that can be used with the reference.
     requiredProperties: OrderedSet[QName] # (optional) Defines an ordered set of property QNames that must be included within a defined reference type.

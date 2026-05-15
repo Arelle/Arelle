@@ -8,7 +8,7 @@ from collections import defaultdict
 from arelle.ModelValue import QName, AnyURI
 from arelle.PythonUtil import OrderedSet
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue
+from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue, OptionalNonemptySet
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
 
 class XbrlRelationship(XbrlModelObject):
@@ -96,7 +96,7 @@ class XbrlRelationshipType(XbrlReferencableModelObject):
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the relationshipType object.
     uri: Optional[AnyURI] # (optional) The URI identifies the uri of the relationship type for historical and backward compatibility purposes.
     cycles: QName # (required) The cycles attribute indicates if the relationship when used in a hierarchy can include cycles. Possible values are any, none, and undirected. Any means cycles are allowed in the relationships, undirected means cycles are allowed, but they must be undirected, and none means cycles are not allowed in the relationships.
-    allowedLinkProperties: OrderedSet[QName] # (optional) Defines an ordered set of property QNames that can be included on the relationship type. Each property is represented as the QName defined in the propertyType object. Only properties defined in this list can be added to the specific relationship type.
+    allowedLinkProperties: OptionalNonemptySet[QName] # (optional) Defines an ordered set of property QNames that can be included on the relationship type. Each property is represented as the QName defined in the propertyType object. Only properties defined in this list can be added to the specific relationship type. MUST NOT be empty if provided.
     requiredLinkProperties: OrderedSet[QName] # (optional) Defines an ordered set of property QNames that MUST be included on the relationship type. Each property is represented as the QName defined in the propertyType object.
     sourceObjects: OrderedSet[QName] # (optional) Defines a list of source object types that can be used as the source for the relationship. The only permitted values are referenceable taxonomy objects
     targetObjects: OrderedSet[QName] # (optional) Defines a list of target object types that can be used as the source for the relationship. The only permitted values are referenceable taxonomy objects

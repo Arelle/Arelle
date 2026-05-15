@@ -2,13 +2,16 @@
 See COPYRIGHT.md for copyright information.
 '''
 from arelle.PythonUtil import OrderedSet
+from arelle.ModelValue import qname
 from .ErrorCatalog import emit_error
-from .XbrlConcept import XbrlCollectionType, XbrlDataType
-from .XbrlConst import objectsWithProperties
+from .XbrlConcept import XbrlCollectionType, XbrlDataType, XbrlConcept
+from .XbrlConst import objectsWithProperties, xbrl
 from .XbrlDimension import XbrlDomain
 from .XbrlLabel import XbrlLabelType
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
 from .XbrlProperty import XbrlPropertyType
+
+qnXbrlClassSubclass = qname(xbrl, "xbrl:class-subclass")
 
 
 def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validateQNameReference, validateProperties):
@@ -99,7 +102,7 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
                            _("The propertyType %(name)s dataType %(qname)s MUST be a valid dataType object in the taxonomy model"),
                            xbrlObject=propTpObj, name=propTpObj.name, qname=propTpObj.dataType)
             validateQNameReference(compMdl, propTpObj, "enumerationDomain", XbrlDomain)
-        for allowedObjQn in propTpObj.allowedObjects:
+        for allowedObjQn in (propTpObj.allowedObjects or ()):
             if allowedObjQn not in objectsWithProperties:
                 emit_error(compMdl, "oimte:invalidAllowedObject",
                            _("The property %(name)s has an invalid allowed object %(allowedObj)s"),
@@ -109,7 +112,7 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
     for relTpObj in module.relationshipTypes:
         assertObjectType(compMdl, relTpObj, XbrlRelationshipType)
         for prop in ("allowedLinkProperties", "requiredLinkProperties"):
-            for propTpQn in getattr(relTpObj, prop):
+            for propTpQn in (getattr(relTpObj, prop) or ()):
                 validateQNameReference(compMdl, relTpObj, prop, XbrlPropertyType, qnRef=propTpQn)
         if relTpObj.allowedLinkProperties:
             reqdNotAllowed = relTpObj.requiredLinkProperties - relTpObj.allowedLinkProperties
@@ -118,3 +121,119 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
                            _("The relationshipType %(name)s has required properties which are not allowed %(propTypes)s"),
                            xbrlObject=relTpObj, name=relTpObj.name,
                            propTypes=", ".join(str(q) for q in reqdNotAllowed))
+
+    _validateClassSubclassConsistency(compMdl, module)
+
+
+# Scalar concept properties that participate in class-subclass inheritance consistency checks
+_CLASS_SUBCLASS_SCALAR_PROPS = ("dataType", "periodType", "nillable")
+
+
+def _dataTypesRelated(compMdl, qn1, qn2):
+    """Return True if qn1 and qn2 are in the same dataType inheritance chain
+    (one is the other's baseType ancestor)."""
+    if qn1 == qn2:
+        return True
+
+    def _ancestors(start):
+        visited = set()
+        cur = start
+        while True:
+            obj = compMdl.namedObjects.get(cur)
+            base = getattr(obj, "baseType", None) if obj is not None else None
+            if base is None:
+                return
+            if base in visited:
+                return
+            visited.add(base)
+            yield base
+            cur = base
+
+    if qn2 in _ancestors(qn1):
+        return True
+    if qn1 in _ancestors(qn2):
+        return True
+    return False
+
+
+def _conceptOwnPropertyMap(concept):
+    """Return a dict {propertyQName: value} for the concept's properties list."""
+    result = {}
+    for prop in (getattr(concept, "properties", None) or ()):
+        pq = getattr(prop, "property", None)
+        if pq is not None and pq not in result:
+            result[pq] = getattr(prop, "value", None)
+    return result
+
+
+def _validateClassSubclassConsistency(compMdl, module):
+    """For each class-subclass relationship (source=subclass, target=class), ensure that scalar
+    concept properties (dataType, periodType, nillable) and named properties defined on both the
+    subclass and on any ancestor class in the inheritance chain agree. Emit
+    oimte:conflictingPropertyValues otherwise."""
+    # Collect class-subclass edges across all networks in this module
+    edges = {}  # subclass concept QName -> list of class concept QNames
+    for ntwkObj in getattr(module, "networks", ()):
+        if getattr(ntwkObj, "relationshipTypeName", None) != qnXbrlClassSubclass:
+            continue
+        for rel in getattr(ntwkObj, "relationships", ()) or ():
+            src = getattr(rel, "source", None)
+            tgt = getattr(rel, "target", None)
+            if src is None or tgt is None:
+                continue
+            edges.setdefault(src, []).append(tgt)
+    if not edges:
+        return
+
+    def _walkAncestors(start):
+        """Yield ancestor concepts (class side) of `start` in BFS order, skipping cycles."""
+        seen = {start}
+        queue = list(edges.get(start, ()))
+        while queue:
+            nextQn = queue.pop(0)
+            if nextQn in seen:
+                continue
+            seen.add(nextQn)
+            ancObj = compMdl.namedObjects.get(nextQn)
+            if ancObj is not None:
+                yield ancObj
+            queue.extend(edges.get(nextQn, ()))
+
+    for subQn in edges.keys():
+        subObj = compMdl.namedObjects.get(subQn)
+        if not isinstance(subObj, XbrlConcept):
+            continue
+        subPropMap = _conceptOwnPropertyMap(subObj)
+        # For each scalar property, find first ancestor that defines it
+        ancestorScalarDefs = {p: None for p in _CLASS_SUBCLASS_SCALAR_PROPS}
+        ancestorPropDefs = {}  # propertyQName -> (ancestorObj, value)
+        for ancObj in _walkAncestors(subQn):
+            if not isinstance(ancObj, XbrlConcept):
+                continue
+            for scalarProp in _CLASS_SUBCLASS_SCALAR_PROPS:
+                if ancestorScalarDefs[scalarProp] is None:
+                    av = getattr(ancObj, scalarProp, None)
+                    if av is not None:
+                        ancestorScalarDefs[scalarProp] = (ancObj, av)
+            for pq, pv in _conceptOwnPropertyMap(ancObj).items():
+                if pq not in ancestorPropDefs:
+                    ancestorPropDefs[pq] = (ancObj, pv)
+        # Compare scalars
+        for scalarProp in _CLASS_SUBCLASS_SCALAR_PROPS:
+            subVal = getattr(subObj, scalarProp, None)
+            anc = ancestorScalarDefs[scalarProp]
+            if subVal is not None and anc is not None and subVal != anc[1]:
+                if scalarProp == "dataType" and _dataTypesRelated(compMdl, subVal, anc[1]):
+                    continue  # subtype/supertype relationship is consistent
+                emit_error(compMdl, "oimte:conflictingPropertyValues",
+                           _("Concept %(name)s %(prop)s value %(subVal)s conflicts with inherited value %(ancVal)s from class %(ancName)s."),
+                           xbrlObject=subObj, name=subObj.name, prop=scalarProp,
+                           subVal=subVal, ancVal=anc[1], ancName=anc[0].name)
+        # Compare named properties
+        for pq, subVal in subPropMap.items():
+            anc = ancestorPropDefs.get(pq)
+            if anc is not None and subVal != anc[1]:
+                emit_error(compMdl, "oimte:conflictingPropertyValues",
+                           _("Concept %(name)s property %(prop)s value %(subVal)r conflicts with inherited value %(ancVal)r from class %(ancName)s."),
+                           xbrlObject=subObj, name=subObj.name, prop=pq,
+                           subVal=subVal, ancVal=anc[1], ancName=anc[0].name)

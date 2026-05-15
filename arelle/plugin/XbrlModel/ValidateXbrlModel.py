@@ -769,7 +769,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
     for domRtObj in module.domainClasses:
         assertObjectType(compMdl, domRtObj, XbrlDomainClass)
         name = domRtObj.name
-        for allwdDomItemQn in domRtObj.allowedDomainItems:
+        for allwdDomItemQn in (domRtObj.allowedDomainItems or ()):
             allwdDomItemObj = compMdl.namedObjects.get(allwdDomItemQn)
             if allwdDomItemQn not in (qnXbrlMemberObj, qnXbrlAbstractObj, qnXbrlConceptObj, qnXbrlEntityObj, qnXbrlUnitObj) and not isinstance(allwdDomItemObj, XbrlDataType):
                 compMdl.error("oimte:invalidPropertyValue",
@@ -905,7 +905,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
     refTpCt = {}
     for refObj in module.referenceTypes:
         assertObjectType(compMdl, refObj, XbrlReferenceType)
-        for allowedObj in refObj.allowedObjects:
+        for allowedObj in (refObj.allowedObjects or ()):
             if allowedObj not in referencableObjectTypes:
                 compMdl.error("oimte:invalidObjectType",
                           _("The referenceType %(name)s allowedObject %(allowedObject)s MUST be a referenceable taxonomy model object."),
