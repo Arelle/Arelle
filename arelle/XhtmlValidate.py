@@ -3,10 +3,11 @@ See COPYRIGHT.md for copyright information.
 
 (originally part of XmlValidate, moved to separate module)
 '''
-from typing import cast
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from lxml import etree
-from lxml.etree import XMLSyntaxError
 
 from arelle import ValidateFilingText, XbrlConst, XmlValidate
 from arelle.ModelObject import ModelObject
@@ -18,6 +19,11 @@ from arelle.XhtmlInlineUtil import (
     ixMsgCode as ixMsgCode,
     resolveHtmlUri as resolveHtmlUri,
 )
+
+if TYPE_CHECKING:
+    from arelle.typing import TypeGetText
+
+_ : TypeGetText
 
 
 def xhtmlValidate(modelXbrl: ModelXbrl, elt: ModelObject) -> None:
