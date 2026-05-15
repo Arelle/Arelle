@@ -179,7 +179,7 @@ class XbrlCubeType(XbrlReferencableModelObject):
     baseCubeType: Optional[QName] # (optional) Base cube type that the cube object is based on. Uses the QName of a cubeType object. The property only allows restriction rather than expansion of the baseCubeTape.
     coreDimensions: OrderedSet[QName] # (optional) An ordered set of core dimension QNames that are permitted to be included in the cube.
     coreDomainClasses: OrderedSet[QName] # (optional) A set of QNames that reference core domain Class objects that indicate if a domainName property is required or is optional in the definition of the cubeDimension object of a cube object. 
-    cubeDimensionConstraints: OrderedSet[XbrlDimensionsAllowed] # (optional) An object that defines constraints on taxonomy-defined dimensions that can be included in the cube.
+    cubeDimensionConstraints: Optional[XbrlDimensionsAllowed] # (optional) An object that defines constraints on taxonomy-defined dimensions that can be included in the cube.
     cubeNetworkConstraints: Optional[XbrlCubeNetwork] # (optional) An object that allows the definition of constraints on networks that can be associated with the cube using the cubeNetworks property. If not defined then any network can be associated with the cube.
     cubeProperties: Optional[XbrlCubePropertiesConstraint] # (optional) An object that defines constraints on properties that can be associated with the cube.
 

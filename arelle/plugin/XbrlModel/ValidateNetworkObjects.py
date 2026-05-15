@@ -29,6 +29,15 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
                     extendTargetObj = None  # don't extend, already been extended
                 else:
                     ntwkObj._extendResolved = True
+                    # Check for conflicting property values between extending network and target network
+                    if getattr(ntwkObj, "properties", None) and getattr(extendTargetObj, "properties", None):
+                        targetPropMap = {p.property: p.value for p in extendTargetObj.properties}
+                        for propObj in ntwkObj.properties:
+                            if propObj.property in targetPropMap and targetPropMap[propObj.property] != propObj.value:
+                                emit_error(compMdl, "oimte:conflictingPropertyValues",
+                                           _("The network %(name)s extending %(target)s defines property %(prop)s with value %(value)s conflicting with target value %(targetValue)s."),
+                                           xbrlObject=ntwkObj, name=ntwkObj.extendTargetName, target=extendTargetObj.name,
+                                           prop=propObj.property, value=propObj.value, targetValue=targetPropMap[propObj.property])
         elif ntwkObj.name:
             relTypeObj = validateQNameReference(compMdl, ntwkObj, "relationshipTypeName", XbrlRelationshipType)
         if not relTypeObj:
@@ -115,7 +124,7 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
             for propTpQn in (getattr(relTpObj, prop) or ()):
                 validateQNameReference(compMdl, relTpObj, prop, XbrlPropertyType, qnRef=propTpQn)
         if relTpObj.allowedLinkProperties:
-            reqdNotAllowed = relTpObj.requiredLinkProperties - relTpObj.allowedLinkProperties
+            reqdNotAllowed = (relTpObj.requiredLinkProperties or set()) - relTpObj.allowedLinkProperties
             if reqdNotAllowed:
                 emit_error(compMdl, "oimte:requiredPropertyNotAllowed",
                            _("The relationshipType %(name)s has required properties which are not allowed %(propTypes)s"),
