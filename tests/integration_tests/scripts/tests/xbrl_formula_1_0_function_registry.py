@@ -43,7 +43,7 @@ index_path = suite_directory / 'formula/function-registry/registry-index.xml'
 
 # Test "xbrl/90701 xfi.format-number/90701 xfi.format-number testcase.xml:V-05"
 # requires English locale.
-# 
+#
 # This used to fail on C locale but now Arelle's getLanguageCode() resolves to a
 # real locale even on C-locale (as used in GitHub CI runners), so V-05 is now
 # expected to pass.
