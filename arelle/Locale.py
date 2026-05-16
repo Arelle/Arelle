@@ -315,6 +315,7 @@ def _getNativeLocale() -> str | None:
 def getLocale() -> str | None:
     """
     Returns the user's locale as a POSIX locale string without encoding (e.g. 'en_US', 'fr_FR').
+    The POSIX and C locales are treated as unset (return None) since they have no real language.
     The result is cached after the first call.
     """
     if pythonCompatibleLocale := findCompatibleLocale(_getNativeLocale()):
