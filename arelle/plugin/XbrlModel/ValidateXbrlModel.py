@@ -28,6 +28,7 @@ from .XbrlCube import (XbrlCube, XbrlCubeType, baseCubeTypes, XbrlCubeDimension,
 from .XbrlDimension import XbrlDimension, XbrlDomain, XbrlDomainClass, XbrlMember, xbrlMemberObj
 from .XbrlEntity import XbrlEntity
 from .XbrlGroup import XbrlGroup, XbrlGroupContent
+from .XbrlLayout import XbrlLayout
 from .XbrlImportTaxonomy import XbrlImportTaxonomy, XbrlFinalTaxonomy
 from .XbrlLabel import XbrlLabel, XbrlLabelType, preferredLabel
 from .XbrlLayout import XbrlLayout, XbrlDataTable, XbrlAxis
@@ -370,11 +371,13 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             compMdl.error("oimte:cubeMissingConceptDimension",
                         _("The cubeDimensions of cube %(name)s, type %(cubeType)s, must have a concept core dimension"),
                         xbrlObject=cubeObj, name=name, cubeType=cubeType.name)
+        cubeCoreDims = cubeType.effectivePropVal(compMdl, "coreDimensions")
+        # Per spec: if coreDimensions is not specified (empty), all core dimensions are allowed.
         for prop, coreDim in (("periodDimension", periodCoreDim),
                                 ("entityDimension", entityCoreDim),
                                 ("unitDimension", unitCoreDim)):
-            if coreDim in dimQnCounts.keys() and coreDim not in cubeType.effectivePropVal(compMdl, "coreDimensions"):
-                compMdl.error("oimte:cubeDimensionNotAllowed",
+            if coreDim in dimQnCounts.keys() and cubeCoreDims and coreDim not in cubeCoreDims:
+                compMdl.error("oimte:invalidCubeCoreDimension",
                             _("The cube %(name)s, type %(cubeType)s, dimension %(dimension)s is not allowed"),
                             xbrlObject=cubeObj, name=name, cubeType=cubeType.name, dimension=coreDim)
         allowedCubeDimConstrs = cubeType.effectivePropVal(compMdl, "cubeDimensionConstraints", "allowed")
@@ -794,11 +797,11 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                errorArgs={"name": grpQn}, qnRef=grpQn)
         for relName in grpCntObj.relatedNames:
             validateQNameReference(compMdl, grpCntObj, "relatedNames",
-                                   (XbrlNetwork, XbrlCube, XbrlTableTemplate, XbrlDomain),
+                                   (XbrlNetwork, XbrlCube, XbrlTableTemplate, XbrlDomain, XbrlLayout),
                                    msgCode="oimte:invalidGroupObject",
                                    invalidTypeMsgCode="oimte:invalidGroupObject",
-                                   undefinedMessage=_("The groupContent object %(name)s relatedName %(relName)s MUST only include QNames associated with network objects, cube objects or table template objects."),
-                                   invalidTypeMessage=_("The groupContent object %(name)s relatedName %(relName)s MUST only include QNames associated with network objects, cube objects or table template objects."),
+                                   undefinedMessage=_("The groupContent object %(name)s relatedName %(relName)s MUST only include QNames associated with network objects, cube objects, table template objects or layout objects."),
+                                   invalidTypeMessage=_("The groupContent object %(name)s relatedName %(relName)s MUST only include QNames associated with network objects, cube objects, table template objects or layout objects."),
                                    errorArgs={"name": grpQn, "relName": relName}, qnRef=relName)
 
     # Label Objects
@@ -1015,7 +1018,11 @@ def validateCompletedModel(compMdl):
 
         if dateResolutionQuery:
 
-            results = searchXbrl(compMdl, dateResolutionQuery, SEARCH_FACTPOSITIONS, 5 * len(dateResolutionQuery)) # allow sufficient return scores
+            try:
+                results = searchXbrl(compMdl, dateResolutionQuery, SEARCH_FACTPOSITIONS, 5 * len(dateResolutionQuery)) # allow sufficient return scores
+            except ValueError:
+                # None of the queryAspects exist in the model's vector store; fall back to validating all facts
+                results = []
             # print(f"first search item {dtResQuery[0]} results {[(r[0],r[1].name) for r in results]}")
 
             # validate factPosition objects whose scores indicates they represent dateResolution concepts first

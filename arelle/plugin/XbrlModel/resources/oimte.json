@@ -189,11 +189,6 @@
                     },
                     {
                         "source": "oimte:OIMErrorClassDomain",
-                        "target": "oimte:invalidDomainSource",
-                        "order": 22
-                    },
-                    {
-                        "source": "oimte:OIMErrorClassDomain",
                         "target": "oimte:invalidDomainObject",
                         "order": 22.1
                     },
@@ -246,11 +241,6 @@
                         "source": "oimte:OIMErrorClassDomain",
                         "target": "oimte:invalidLanguage",
                         "order": 31
-                    },
-                    {
-                        "source": "oimte:OIMErrorClassDomain",
-                        "target": "oimte:invalidPeriodType",
-                        "order": 35
                     },
                     {
                         "source": "oimte:OIMErrorClassDomain",
@@ -957,18 +947,6 @@
                 ]
             },
             {
-                "name": "oimte:invalidPeriodType",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
                 "name": "oimte:invalidFactDimensionMember",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
@@ -1054,18 +1032,6 @@
             },
             {
                 "name": "oimte:factSourceResolutionFailed",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:invalidDomainSource",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
                 ],
@@ -1905,31 +1871,7 @@
                 ]
             },
             {
-                "name": "oimte:missingIntervalOfMeasurementForCompleteSeries",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:missingIntervalOfMeasurementForConvention",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:missingAggregationPropertyType",
+                "name": "oimte:missingDependentPropertyType",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
                 ],
@@ -1954,18 +1896,6 @@
             },
             {
                 "name": "oimte:invalidCubeNetworkRelationship",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:inconsistentProperties",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
                 ],
@@ -2014,18 +1944,6 @@
             },
             {
                 "name": "oimte:unitDataTypeUsedInDefinition",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimte:missingSQNameProperty",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
                 ],
@@ -2206,6 +2124,66 @@
             },
             {
                 "name": "oimte:invalidDimensionInTablePoint",
+                "domainClasses": [
+                    "oimte:OIMErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:networkCyclic",
+                "domainClasses": [
+                    "oimte:OIMErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidCubeType",
+                "domainClasses": [
+                    "oimte:OIMErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidRequiredLocatorProperty",
+                "domainClasses": [
+                    "oimte:OIMErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:mapTypeWithoutMapBaseType",
+                "domainClasses": [
+                    "oimte:OIMErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:referenceLanguageRedefined",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
                 ],
@@ -2467,11 +2445,6 @@
                     },
                     {
                         "source": "oimte:DomainErrors",
-                        "target": "oimte:invalidDomainSource",
-                        "order": 10
-                    },
-                    {
-                        "source": "oimte:DomainErrors",
                         "target": "oimte:invalidDomainObject",
                         "order": 10.1
                     },
@@ -2529,11 +2502,6 @@
                         "source": "oimte:DataTypeErrors",
                         "target": "oimte:disallowedObjectDataType",
                         "order": 4
-                    },
-                    {
-                        "source": "oimte:ConceptErrors",
-                        "target": "oimte:invalidPeriodType",
-                        "order": 1
                     },
                     {
                         "source": "oimte:FactErrors",
@@ -2734,6 +2702,11 @@
                         "source": "oimte:RelationshipErrors",
                         "target": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship",
                         "order": 26
+                    },
+                    {
+                        "source": "oimte:NetworkErrors",
+                        "target": "oimte:networkCyclic",
+                        "order": 1
                     }
                 ]
             },
@@ -2930,11 +2903,6 @@
                     },
                     {
                         "source": "xbrl:domainObject",
-                        "target": "oimte:invalidDomainSource",
-                        "order": 10
-                    },
-                    {
-                        "source": "xbrl:domainObject",
                         "target": "oimte:cannotExtendObject",
                         "order": 11
                     },
@@ -2982,11 +2950,6 @@
                         "source": "xbrl:collectionTypeObject",
                         "target": "oimte:duplicateItemsInCollection",
                         "order": 3
-                    },
-                    {
-                        "source": "xbrl:conceptObject",
-                        "target": "oimte:invalidPeriodType",
-                        "order": 1
                     },
                     {
                         "source": "xbrl:factObject",
@@ -3268,24 +3231,12 @@
                         "target": "oimte:missingIntervalExcluded"
                     },
                     {
-                        "source": "xbrl:cubeDimensionObject",
-                        "target": "oimte:missingIntervalOfMeasurementForCompleteSeries"
-                    },
-                    {
-                        "source": "xbrl:cubeDimensionObject",
-                        "target": "oimte:missingIntervalOfMeasurementForConvention"
-                    },
-                    {
-                        "source": "xbrl:cubeDimensionObject",
-                        "target": "oimte:missingAggregationPropertyType"
+                        "source": "xbrl:propertyTypeObject",
+                        "target": "oimte:missingDependentPropertyType"
                     },
                     {
                         "source": "xbrl:cubeTypeObject",
                         "target": "oimte:invalidCubeRelationship"
-                    },
-                    {
-                        "source": "xbrl:conceptObject",
-                        "target": "oimte:inconsistentProperties"
                     },
                     {
                         "source": "xbrl:conceptObject",
@@ -3298,10 +3249,6 @@
                     {
                         "source": "xbrl:unitObject",
                         "target": "oimte:unitDataTypeUsedInDefinition"
-                    },
-                    {
-                        "source": "xbrl:conceptObject",
-                        "target": "oimte:missingSQNameProperty"
                     },
                     {
                         "source": "xbrl:referenceObject",
@@ -3390,6 +3337,24 @@
                 "language": "en",
                 "value": "Domain Used on Period Dimension",
                 "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimte:networkCyclic",
+                "language": "en",
+                "value": "Network Cyclic",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oimte:networkCyclic",
+                "language": "en",
+                "value": "The network '{networkName}' contains a cycle, which is not permitted for relationship type '{relationshipTypeName}' (cycles='{cyclesValue}').",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oimte:networkCyclic",
+                "language": "en",
+                "value": "Raised when the relationships in a network object form a cycle that violates the cycle constraint of the relationship type. By default, networks must define directed acyclic graphs (DAGs). The 'cycles' property of the relationshipType object overrides this default: 'any' permits all cycles (but never self-loops); 'undirected' permits undirected cycles; 'none' prohibits any cycle (directed or undirected). Self-loops (source = target) are always prohibited regardless of the 'cycles' value.",
+                "labelType": "xbrl:documentation"
             },
             {
                 "relatedName": "oimte:invalidRelationshipSourceObject",
@@ -3842,18 +3807,6 @@
                 "labelType": "xbrl:errorMessage"
             },
             {
-                "relatedName": "oimte:invalidPeriodType",
-                "language": "en",
-                "value": "Invalid Period Type",
-                "labelType": "xbrl:label"
-            },
-            {
-                "relatedName": "oimte:invalidPeriodType",
-                "language": "en",
-                "value": "The period type '{periodType}' for concept '{conceptName}' is not valid.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
                 "relatedName": "oimte:factUnitDatatypeMismatch",
                 "language": "en",
                 "value": "Fact Unit Data Type Mismatch",
@@ -3983,18 +3936,6 @@
                 "relatedName": "oimte:invalidDomainRelationshipTarget",
                 "language": "en",
                 "value": "The relationship target '{targetName}' in domain '{domainName}' must be a concept, member, entity, abstract, or unit object.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
-                "relatedName": "oimte:invalidDomainSource",
-                "language": "en",
-                "value": "Invalid Domain Source",
-                "labelType": "xbrl:label"
-            },
-            {
-                "relatedName": "oimte:invalidDomainSource",
-                "language": "en",
-                "value": "The source '{sourceName}' is not valid for domain '{domainName}' with root '{domainClass}'.",
                 "labelType": "xbrl:errorMessage"
             },
             {
@@ -4826,12 +4767,6 @@
                 "labelType": "xbrl:documentation"
             },
             {
-                "relatedName": "oimte:invalidPeriodType",
-                "language": "en",
-                "value": "This error is generated when a concept has a periodType property value that is not valid. The periodType must be either 'instant', 'duration' or 'none'. This property determines the temporal characteristics of facts using this concept and is essential for proper fact validation.",
-                "labelType": "xbrl:documentation"
-            },
-            {
                 "relatedName": "oimte:invalidFactDimensionMember",
                 "language": "en",
                 "value": "This error is raised when an object used as a dimension member value on a fact is not an appropriate object type. Only member objects, entity objects, unit objects, and concept objects are permitted as dimension members on a fact. Using other object types — such as abstract objects — as dimension members is not permitted and must cause this error to be raised.",
@@ -4841,12 +4776,6 @@
                 "relatedName": "oimte:invalidDomainRelationshipTarget",
                 "language": "en",
                 "value": "This error is generated when a relationship in a domain specifies a target that is not an allowed object type. Domain relationships must target concepts, members, entities, abstracts, or units. Using other object types as relationship targets violates the domain's structural constraints.",
-                "labelType": "xbrl:documentation"
-            },
-            {
-                "relatedName": "oimte:invalidDomainSource",
-                "language": "en",
-                "value": "This error is generated when a relationship within a domain uses a source object that is not valid. The source in domain relationships must be a member of the domain and must be of an appropriate object type. Domain classes and extension targets must be properly connected through valid source objects.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -5510,58 +5439,22 @@
                 "value": "Raised when a time series dimension is missing the required excludeIntervals property."
             },
             {
-                "relatedName": "oimte:missingIntervalOfMeasurementForCompleteSeries",
+                "relatedName": "oimte:missingDependentPropertyType",
                 "language": "en",
                 "labelType": "xbrl:label",
-                "value": "Missing Interval Of Measurement For Complete Series"
+                "value": "Missing Dependent Property Type"
             },
             {
-                "relatedName": "oimte:missingIntervalOfMeasurementForCompleteSeries",
+                "relatedName": "oimte:missingDependentPropertyType",
                 "language": "en",
                 "labelType": "xbrl:errorMessage",
-                "value": "The intervalOfMeasurement property is required when completeTimeSeries is true for dimension '{dimensionName}' in cube '{cubeName}'."
+                "value": "The property '{targetPropertyName}' is required on object '{objectName}' because the property '{sourcePropertyName}' is present, as defined by the property-dependentProperty relationship."
             },
             {
-                "relatedName": "oimte:missingIntervalOfMeasurementForCompleteSeries",
+                "relatedName": "oimte:missingDependentPropertyType",
                 "language": "en",
                 "labelType": "xbrl:documentation",
-                "value": "Raised when the completeTimeSeries property is set to true but the intervalOfMeasurement property is not specified. The interval of measurement is required to determine which intervals must have facts."
-            },
-            {
-                "relatedName": "oimte:missingIntervalOfMeasurementForConvention",
-                "language": "en",
-                "labelType": "xbrl:label",
-                "value": "Missing Interval Of Measurement For Convention"
-            },
-            {
-                "relatedName": "oimte:missingIntervalOfMeasurementForConvention",
-                "language": "en",
-                "labelType": "xbrl:errorMessage",
-                "value": "The intervalOfMeasurement property is required when intervalConvention is specified for dimension '{dimensionName}' in cube '{cubeName}'."
-            },
-            {
-                "relatedName": "oimte:missingIntervalOfMeasurementForConvention",
-                "language": "en",
-                "labelType": "xbrl:documentation",
-                "value": "Raised when the intervalConvention property is specified but the intervalOfMeasurement property is not. The interval of measurement is required when specifying a convention."
-            },
-            {
-                "relatedName": "oimte:missingAggregationPropertyType",
-                "language": "en",
-                "labelType": "xbrl:label",
-                "value": "Missing Aggregation Property Type"
-            },
-            {
-                "relatedName": "oimte:missingAggregationPropertyType",
-                "language": "en",
-                "labelType": "xbrl:errorMessage",
-                "value": "The aggregation property is required for the time series dimension '{dimensionName}' in cube '{cubeName}' but was not found."
-            },
-            {
-                "relatedName": "oimte:missingAggregationPropertyType",
-                "language": "en",
-                "labelType": "xbrl:documentation",
-                "value": "Raised when a time series dimension requiring an aggregation property type does not have one defined."
+                "value": "Raised when an object carries a property that is the source of a xbrl:property-dependentProperty relationship but does not carry the corresponding target property. Where the relationship specifies an xbrl:propertyValue link property, this error is only raised when the source property value on the object matches that specified value."
             },
             {
                 "relatedName": "oimte:invalidCubeRelationship",
@@ -5598,24 +5491,6 @@
                 "language": "en",
                 "labelType": "xbrl:documentation",
                 "value": "Raised when a relationship in a cube's cubeNetworks has a source or target whose dataType, objectType, or QName does not match the endpoint constraint defined in the cubeType's cubeNetworkConstraints."
-            },
-            {
-                "relatedName": "oimte:inconsistentProperties",
-                "language": "en",
-                "labelType": "xbrl:label",
-                "value": "Inconsistent Properties"
-            },
-            {
-                "relatedName": "oimte:inconsistentProperties",
-                "language": "en",
-                "labelType": "xbrl:errorMessage",
-                "value": "The concept '{conceptName}' has properties that are inconsistent with those of its superclass '{superclassName}'."
-            },
-            {
-                "relatedName": "oimte:inconsistentProperties",
-                "language": "en",
-                "labelType": "xbrl:documentation",
-                "value": "Raised when a concept that is defined as a subclass has properties that conflict with those of its superclass. Subclass concept properties must be a subset of the superclass properties."
             },
             {
                 "relatedName": "oimte:conceptPropertiesInconsistentWithRelationship",
@@ -5663,13 +5538,13 @@
                 "relatedName": "oimte:invalidUnitDataType",
                 "language": "en",
                 "labelType": "xbrl:errorMessage",
-                "value": "Unit '{unitName}' has a dataType of '{dataType}' which is not a numeric data type. Unit data types must be derived from xs:decimal, xs:double, or xs:float."
+                "value": "Unit '{unitName}' has a dataType of '{dataType}' that is invalid for a unit object. Unit data types MUST be numeric and MUST NOT use XML Schema namespace data types (xs:*)."
             },
             {
                 "relatedName": "oimte:invalidUnitDataType",
                 "language": "en",
                 "labelType": "xbrl:documentation",
-                "value": "Raised when a unit object's dataType property does not reference a numeric data type. A unit object MUST have a dataType that is derived from xs:decimal, xs:double, or xs:float (the OIM numeric primitive types). Non-numeric types such as xs:string, xs:date, or xs:boolean are not valid unit data types."
+                "value": "Raised when a unit object's dataType property is invalid. A unit object MUST have a dataType that is numeric and MUST NOT be in the XML Schema namespace (xs:*). This includes non-numeric XML Schema types (such as xs:string, xs:date, xs:boolean) and numeric XML Schema types (such as xs:decimal, xs:double, xs:float)."
             },
             {
                 "relatedName": "oimte:invalidUnitDataType",
@@ -5694,24 +5569,6 @@
                 "language": "en",
                 "labelType": "xbrl:documentation",
                 "value": "Raised when a unit object's compositeUnitRepresentation contains a unit string representation that includes the unit's own QName (its name property). A unit MUST NOT reference itself — directly or as a component of a composite expression — in its own compositeUnitRepresentation, as this would create a circular unit definition."
-            },
-            {
-                "relatedName": "oimte:missingSQNameProperty",
-                "language": "en",
-                "labelType": "xbrl:label",
-                "value": "Missing SQName Property"
-            },
-            {
-                "relatedName": "oimte:missingSQNameProperty",
-                "language": "en",
-                "labelType": "xbrl:errorMessage",
-                "value": "Entity object '{entityName}' is missing the required SQName property."
-            },
-            {
-                "relatedName": "oimte:missingSQNameProperty",
-                "language": "en",
-                "labelType": "xbrl:documentation",
-                "value": "Raised when an entity object does not have a required SQName property. All entity objects must have a unique qualified name identifier."
             },
             {
                 "relatedName": "oimte:missingRequiredProperty",
@@ -7587,6 +7444,32 @@
                 ]
             },
             {
+                "name": "oimte:DuplicateQNamesUsedReference",
+                "relatedNames": [
+                    "oimte:duplicateObjects"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "QNAME-DuplicateQNamesUsed.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#QNAME-DuplicateQNamesUsed"
+                    }
+                ]
+            },
+            {
                 "name": "oimte:unitDataTypeUsedInDefinitionSameUnitTypeReference",
                 "relatedNames": [
                     "oimte:unitDataTypeUsedInDefinition"
@@ -7897,6 +7780,946 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DATATYPE-InvalidBaseCollectionType"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeBase64BinaryInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-base64Binary-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-base64Binary-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeBooleanInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-boolean-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-boolean-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeByteInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-byte-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-byte-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeDateInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-date-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-date-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeDateTimeInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-dateTime-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-dateTime-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeDateTimeStampInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-dateTimeStamp-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-dateTimeStamp-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeDecimalInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-decimal-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-decimal-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeDoubleInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-double-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-double-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeDurationInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-duration-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-duration-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeFloatInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-float-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-float-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeGDayInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-gDay-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-gDay-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeGMonthInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-gMonth-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-gMonth-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeGMonthDayInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-gMonthDay-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-gMonthDay-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeGYearInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-gYear-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-gYear-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeGYearMonthInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-gYearMonth-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-gYearMonth-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeHexBinaryInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-hexBinary-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-hexBinary-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeIntInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-int-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-int-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeIntegerInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-integer-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-integer-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeLanguageInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-language-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-language-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeLongInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-long-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-long-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeNameInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-Name-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-Name-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeNCNameInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-NCName-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-NCName-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeNegativeIntegerInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-negativeInteger-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-negativeInteger-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeNMTOKENInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-NMTOKEN-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-NMTOKEN-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeNonNegativeIntegerInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-nonNegativeInteger-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-nonNegativeInteger-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeNonPositiveIntegerInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-nonPositiveInteger-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-nonPositiveInteger-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeNormalizedStringInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-normalizedString-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-normalizedString-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypePositiveIntegerInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-positiveInteger-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-positiveInteger-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeShortInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-short-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-short-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeTimeInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-time-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-time-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeTokenInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-token-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-token-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeUnsignedByteInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-unsignedByte-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-unsignedByte-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeUnsignedIntInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-unsignedInt-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-unsignedInt-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeUnsignedLongInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-unsignedLong-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-unsignedLong-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeUnsignedShortInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-unsignedShort-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-unsignedShort-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:propertyValueDataTypeMismatchInvalidCalcWeightReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CALCULATION-InvalidCalcWeight.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "A summation-item relationship uses xbrl:weight with a value of '2', which does not conform to the allowed values of -1 or 1 for the xbrl:weight property data type."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidCalcWeight"
                     }
                 ]
             },
@@ -8392,6 +9215,32 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#PROPERTYTYPE-InvalidDataTypeForEnumerationDomain"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidDomainRelationshipTargetDomainClassInTaxonomyDefinedDimensionDomainReference",
+                "relatedNames": [
+                    "oimte:invalidDomainRelationshipTarget"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "DOMAIN-DomainClassInTaxonomyDefinedDimensionDomain.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAIN-DomainClassInTaxonomyDefinedDimensionDomain"
                     }
                 ]
             },
@@ -10753,6 +11602,32 @@
                 ]
             },
             {
+                "name": "oimte:invalidLEILocalNameInNetworkRelationshipReference",
+                "relatedNames": [
+                    "oimte:invalidLEILocalName"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "NETWORK-InvalidLEILocalNameInNetworkRelationship.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NAMESPACE-InvalidLEILocalName"
+                    }
+                ]
+            },
+            {
                 "name": "oimte:invalidDomainObjectUnitDomainWithConceptChildReference",
                 "relatedNames": [
                     "oimte:invalidDomainObject"
@@ -10936,6 +11811,32 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAINCLASS-DomainClassUsedAsTargetDomainRelationship"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:missingDomainClassSourceRootDoesNotMatchDomainClassReference",
+                "relatedNames": [
+                    "oimte:missingDomainClassSource"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "DOMAINCLASS-RootDoesNotMatchDomainClass.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAINCLASS-RootDoesNotMatchDomainClass"
                     }
                 ]
             },
@@ -12747,6 +13648,36 @@
                 ]
             },
             {
+                "name": "oimte:invalidCubeNetworkRelationshipMaxNetworksZeroEndpointNotCheckedReference",
+                "relatedNames": [
+                    "oimte:invalidTaxonomyDefinedDimension"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBETYPE-MaxNetworksZeroEndpointNotChecked.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "A cubeType defines maxNetworks=0 for xbrl:concept-refDimension with target.qname=xbrl:period. The cube has a xbrl:concept-refDimension network whose relationships do not target xbrl:period. No oimte:invalidCubeNetworkRelationship error should be raised because when maxNetworks=0 the endpoint constraint check does not apply."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBETYPE-MaxNetworksZeroEndpointNotChecked"
+                    }
+                ]
+            },
+            {
                 "name": "oimte:invalidTaxonomyDefinedDimensionConformanceReference",
                 "relatedNames": [
                     "oimte:invalidTaxonomyDefinedDimension"
@@ -13989,6 +14920,58 @@
                 ]
             },
             {
+                "name": "oimte:factUnitDatatypeMismatch4ConformanceReference",
+                "relatedNames": [
+                    "oimte:factUnitDatatypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACT-UnitNotDefinedForDecimal.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-UnitNotDefinedForDecimal"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factUnitDatatypeMismatch5ConformanceReference",
+                "relatedNames": [
+                    "oimte:factUnitDatatypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACT-UnitOnNonNumericFact.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-UnitOnNonNumericFact"
+                    }
+                ]
+            },
+            {
                 "name": "oimte:factMissingUnitDimensionConformanceReference",
                 "relatedNames": [
                     "oimte:factMissingUnitDimension"
@@ -14275,6 +15258,916 @@
                 ]
             },
             {
+                "name": "oimte:factValueDataTypeMismatch11ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-base64Binary-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-base64Binary-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch12ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-boolean-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-boolean-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch13ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-byte-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-byte-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch14ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-date-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-date-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch15ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-dateTime-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-dateTime-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch16ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-dateTimeStamp-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-dateTimeStamp-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch17ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-decimal-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-decimal-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch18ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-double-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-double-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch19ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-duration-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-duration-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch20ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-float-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-float-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch21ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-gDay-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-gDay-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch22ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-gMonth-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-gMonth-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch23ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-gMonthDay-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-gMonthDay-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch24ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-gYear-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-gYear-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch25ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-gYearMonth-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-gYearMonth-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch26ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-hexBinary-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-hexBinary-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch27ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-int-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-int-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch28ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-integer-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-integer-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch29ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-language-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-language-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch30ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-long-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-long-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch31ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-Name-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-Name-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch32ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-NCName-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-NCName-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch33ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-negativeInteger-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-negativeInteger-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch34ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-NMTOKEN-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-NMTOKEN-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch35ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-nonNegativeInteger-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-nonNegativeInteger-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch36ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-nonPositiveInteger-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-nonPositiveInteger-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch37ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-normalizedString-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-normalizedString-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch38ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-positiveInteger-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-positiveInteger-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch39ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-short-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-short-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch40ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-time-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-time-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch41ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-token-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-token-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch42ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-unsignedByte-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-unsignedByte-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch43ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-unsignedInt-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-unsignedInt-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch44ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-unsignedLong-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-unsignedLong-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch45ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-unsignedShort-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "2"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-unsignedShort-InvalidValue"
+                    }
+                ]
+            },
+            {
                 "name": "oimte:factValueLocatorRequiredForValueSourcesConformanceReference",
                 "relatedNames": [
                     "oimte:factValueLocatorRequiredForValueSources"
@@ -14301,6 +16194,110 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACTLOCATOR-MissingfactInterfaceName"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidConceptDataTypeConformanceReference",
+                "relatedNames": [
+                    "oimte:invalidConceptDataType"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBE-PeriodConstraintConceptNotDateType.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-PeriodConstraintConceptNotDateType"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidConceptDataTypeEndDateConformanceReference",
+                "relatedNames": [
+                    "oimte:invalidConceptDataType"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBE-PeriodConstraintConceptNotDateTypeEndDate.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-PeriodConstraintConceptNotDateTypeEndDate"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidConceptDataTypeOnOrAfterConformanceReference",
+                "relatedNames": [
+                    "oimte:invalidConceptDataType"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBE-PeriodConstraintConceptNotDateTypeOnOrAfter.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-PeriodConstraintConceptNotDateTypeOnOrAfter"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidConceptDataTypeOnOrBeforeConformanceReference",
+                "relatedNames": [
+                    "oimte:invalidConceptDataType"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBE-PeriodConstraintConceptNotDateTypeOnOrBefore.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-PeriodConstraintConceptNotDateTypeOnOrBefore"
                     }
                 ]
             },
@@ -14405,6 +16402,84 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBETYPE-RequiredCubeRelationshipWrongTargetType"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:missingDependentPropertyTypeMissingAggregationForAggregatedTimeSeriesTypeConformanceReference",
+                "relatedNames": [
+                    "oimte:missingDependentPropertyType"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBE-DependentProperty-MissingAggregationForAggregatedTimeSeriesType.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-DependentProperty-MissingAggregationForAggregatedTimeSeriesType"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:missingDependentPropertyTypeMissingIntervalOfMeasurementForCompleteTimeSeriesConformanceReference",
+                "relatedNames": [
+                    "oimte:missingDependentPropertyType"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBE-DependentProperty-MissingIntervalOfMeasurementForCompleteTimeSeries.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-DependentProperty-MissingIntervalOfMeasurementForCompleteTimeSeries"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:missingDependentPropertyTypeMissingIntervalOfMeasurementForIntervalConventionConformanceReference",
+                "relatedNames": [
+                    "oimte:missingDependentPropertyType"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBE-DependentProperty-MissingIntervalOfMeasurementForIntervalConvention.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-DependentProperty-MissingIntervalOfMeasurementForIntervalConvention"
                     }
                 ]
             },
@@ -15259,6 +17334,32 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#IMPORTTAXONOMY-SelectiveConceptImportWithOrphanedReference"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidQNameReferenceImportTaxonomyInvalidGroupObjectNoNetworkReference",
+                "relatedNames": [
+                    "oimte:invalidQNameReference"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "IMPORTTAXONOMY-InvalidGroupObjectNoNetwork.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#IMPORTTAXONOMY-InvalidGroupObjectNoNetwork"
                     }
                 ]
             },
@@ -16999,6 +19100,32 @@
                 ]
             },
             {
+                "name": "oimte:invalidUnitDataType4ConformanceReference",
+                "relatedNames": [
+                    "oimte:invalidUnitDataType"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "UNIT-InvalidUnitDataType.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#UNIT-InvalidUnitDataType"
+                    }
+                ]
+            },
+            {
                 "name": "oimte:conceptPropertiesInconsistentWithSummationItemRelationshipSpecReference",
                 "relatedNames": [
                     "oimte:conceptPropertiesInconsistentWithSummationItemRelationship"
@@ -17785,6 +19912,32 @@
                 ]
             },
             {
+                "name": "oimte:factSourceResolutionFailedInvalidSourceMappingReference",
+                "relatedNames": [
+                    "oimte:factSourceResolutionFailed"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACTLOCATOR-InvalidSourceMapping.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "The factValue exp:fv1 defines a valueSources entry with an xbrl:htmlSpanId property but no 'source' attribute. The documentInfo.sourceMappings array contains three entries (exp:htmlSource, exp:htmlSource2, exp:htmlSource3). Per the File reference resolution rules, when sourceMappings contains more than one entry and no 'source' attribute is specified, the processor MUST raise oimte:factSourceResolutionFailed."
+                    }
+                ]
+            },
+            {
                 "name": "oimte:invalidQNameFactInterfaceNameObjectTypeReference",
                 "relatedNames": [
                     "oimte:invalidObjectType"
@@ -17811,6 +19964,344 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-invalidobjecttype"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:conflictingPropertyValuesClassSubclassValidConceptInheritanceReference",
+                "relatedNames": [ "oimte:conflictingPropertyValues" ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    { "property": "xbrl:conformanceTestFileName", "value": "CLASSSUBCLASS-ValidConceptInheritance.json" },
+                    { "property": "xbrl:conformanceStatus", "value": "✅ Pass" },
+                    { "property": "xbrl:conformanceErrorsProduced", "value": "0" },
+                    { "property": "xbrl:conformanceTestDescription", "value": "exp:Cash and exp:BankDeposit are subclasses of exp:Asset via xbrl:class-subclass. All three concepts share the same dataType and periodType — no conflicting property values. The relationships are valid." }
+                ]
+            },
+            {
+                "name": "oimte:conflictingPropertyValuesClassSubclassValidSubclassMatchingPropertiesReference",
+                "relatedNames": [ "oimte:conflictingPropertyValues" ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    { "property": "xbrl:conformanceTestFileName", "value": "CLASSSUBCLASS-ValidSubclassMatchingProperties.json" },
+                    { "property": "xbrl:conformanceStatus", "value": "✅ Pass" },
+                    { "property": "xbrl:conformanceErrorsProduced", "value": "0" },
+                    { "property": "xbrl:conformanceTestDescription", "value": "exp:OperatingExpense is a subclass of exp:Expense. The subclass restates the same custom property value as the class. The subclass also adds an additional property not defined by the class. No conflict — both are valid." }
+                ]
+            },
+            {
+                "name": "oimte:conflictingPropertyValuesClassSubclassValidDomainClassSubclassReference",
+                "relatedNames": [ "oimte:conflictingPropertyValues" ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    { "property": "xbrl:conformanceTestFileName", "value": "CLASSSUBCLASS-ValidDomainClassSubclass.json" },
+                    { "property": "xbrl:conformanceStatus", "value": "✅ Pass" },
+                    { "property": "xbrl:conformanceErrorsProduced", "value": "0" },
+                    { "property": "xbrl:conformanceTestDescription", "value": "A two-level domain class chain: exp:PublicCompanyDomainClass → exp:LegalEntityDomainClass → exp:EntityDomainClass. Domain class objects are valid participants in xbrl:class-subclass relationships. No conflicting properties." }
+                ]
+            },
+            {
+                "name": "oimte:conflictingPropertyValuesClassSubclassConsistentDataTypeReference",
+                "relatedNames": [ "oimte:conflictingPropertyValues" ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    { "property": "xbrl:conformanceTestFileName", "value": "CLASSSUBCLASS-ConsistentDataType.json" },
+                    { "property": "xbrl:conformanceStatus", "value": "✅ Pass" },
+                    { "property": "xbrl:conformanceErrorsProduced", "value": "0" },
+                    { "property": "xbrl:conformanceTestDescription", "value": "exp:NominalAmount (subclass, dataType xs:decimal) is a subclass of exp:Amount (class, dataType xbrlr:monetary). Because xbrlr:monetary is derived from xs:decimal, the types are in the same type lineage — no conflict." }
+                ]
+            },
+            {
+                "name": "oimte:conflictingPropertyValuesClassSubclassMissingFooPropertyReference",
+                "relatedNames": [ "oimte:conflictingPropertyValues" ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    { "property": "xbrl:conformanceTestFileName", "value": "CLASSSUBCLASS-MissingFooProperty.json" },
+                    { "property": "xbrl:conformanceStatus", "value": "✅ Pass" },
+                    { "property": "xbrl:conformanceErrorsProduced", "value": "0" },
+                    { "property": "xbrl:conformanceTestDescription", "value": "exp:SpecificRevenue (subclass) defines a definitional property exp:fooProperty not defined on the class exp:Revenue. A subclass may add additional properties not defined by the class — this is not a conflict." }
+                ]
+            },
+            {
+                "name": "oimte:conflictingPropertyValuesClassSubclassConflictingFooPropertyDepthReference",
+                "relatedNames": [ "oimte:conflictingPropertyValues" ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    { "property": "xbrl:conformanceTestFileName", "value": "CLASSSUBCLASS-ConflictingFooPropertyDepth.json" },
+                    { "property": "xbrl:conformanceStatus", "value": "❌ Fail" },
+                    { "property": "xbrl:conformanceErrorsProduced", "value": "1" },
+                    { "property": "xbrl:conformanceTestDescription", "value": "exp:SpecificRevenue defines exp:fooProperty as 'foobar'. Its direct class exp:Revenue has no explicit fooProperty, but inherits 'barfoo' from exp:RevenueSubSpecific. Inheritance is transitive — the class effective value is 'barfoo', which conflicts with the subclass's 'foobar'. The processor must raise oimte:conflictingPropertyValues." }
+                ]
+            },
+            {
+                "name": "oimte:conflictingPropertyValuesClassSubclassConflictingDataTypeReference",
+                "relatedNames": [ "oimte:conflictingPropertyValues" ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    { "property": "xbrl:conformanceTestFileName", "value": "CLASSSUBCLASS-ConflictingDataType.json" },
+                    { "property": "xbrl:conformanceStatus", "value": "❌ Fail" },
+                    { "property": "xbrl:conformanceErrorsProduced", "value": "1" },
+                    { "property": "xbrl:conformanceTestDescription", "value": "exp:NominalAmount (subclass) has dataType xs:string but its class exp:Amount has dataType xbrlr:monetary. xs:string and xbrlr:monetary are not in the same type lineage — the processor must raise oimte:conflictingPropertyValues." }
+                ]
+            },
+            {
+                "name": "oimte:conflictingPropertyValuesClassSubclassConflictingPeriodTypeReference",
+                "relatedNames": [ "oimte:conflictingPropertyValues" ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    { "property": "xbrl:conformanceTestFileName", "value": "CLASSSUBCLASS-ConflictingPeriodType.json" },
+                    { "property": "xbrl:conformanceStatus", "value": "❌ Fail" },
+                    { "property": "xbrl:conformanceErrorsProduced", "value": "1" },
+                    { "property": "xbrl:conformanceTestDescription", "value": "exp:InventoryMovement (subclass) has periodType 'duration' but its class exp:Inventory has periodType 'instant'. Conflicting periodType values are not permitted between a class and its subclass — the processor must raise oimte:conflictingPropertyValues." }
+                ]
+            },
+            {
+                "name": "oimte:conflictingPropertyValuesClassSubclassConflictingBalanceReference",
+                "relatedNames": [ "oimte:conflictingPropertyValues" ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    { "property": "xbrl:conformanceTestFileName", "value": "CLASSSUBCLASS-ConflictingBalance.json" },
+                    { "property": "xbrl:conformanceStatus", "value": "❌ Fail" },
+                    { "property": "xbrl:conformanceErrorsProduced", "value": "1" },
+                    { "property": "xbrl:conformanceTestDescription", "value": "exp:SpecificRevenue (subclass) defines xbrla:balance as 'debit' but its class exp:Revenue defines xbrla:balance as 'credit'. Because xbrla:balance has definitional=true, conflicting values between class and subclass must raise oimte:conflictingPropertyValues." }
+                ]
+            },
+            {
+                "name": "oimte:conflictingPropertyValuesClassSubclassConflictingNillableReference",
+                "relatedNames": [ "oimte:conflictingPropertyValues" ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    { "property": "xbrl:conformanceTestFileName", "value": "CLASSSUBCLASS-ConflictingNillable.json" },
+                    { "property": "xbrl:conformanceStatus", "value": "❌ Fail" },
+                    { "property": "xbrl:conformanceErrorsProduced", "value": "1" },
+                    { "property": "xbrl:conformanceTestDescription", "value": "exp:CurrentAsset (subclass) defines nillable=true but its class exp:Asset defines nillable=false. The subclass widens the null-value space permitted by the class — the processor must raise oimte:conflictingPropertyValues." }
+                ]
+            },
+            {
+                "name": "oimte:conflictingPropertyValuesClassSubclassConflictingFooPropertyReference",
+                "relatedNames": [ "oimte:conflictingPropertyValues" ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    { "property": "xbrl:conformanceTestFileName", "value": "CLASSSUBCLASS-ConflictingFooProperty.json" },
+                    { "property": "xbrl:conformanceStatus", "value": "❌ Fail" },
+                    { "property": "xbrl:conformanceErrorsProduced", "value": "1" },
+                    { "property": "xbrl:conformanceTestDescription", "value": "exp:SpecificRevenue (subclass) defines definitional property exp:fooProperty as 'barfoo' but its class exp:Revenue defines the same property as 'foobar'. Conflicting values for a definitional property must raise oimte:conflictingPropertyValues." }
+                ]
+            },
+            {
+                "name": "oimte:importedTaxonomyDefinedForCompiledTaxonomyReference",
+                "relatedNames": [
+                    "oimte:importedTaxonomyDefinedForCompiledTaxonomy"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "IMPORTTAXONOMY-CompiledModelWithImports.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "A model with modelForm 'compiled' defines an importedTaxonomies array, which is not permitted. Compiled models are fully self-contained and cannot import from external taxonomy modules."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#IMPORTTAXONOMY-CompiledModelWithImports"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:networkCyclicRootIsChildReference",
+                "relatedNames": [
+                    "oimte:networkCyclic"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "NETWORK-RootIsChild.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "exp:NodeA is declared as a root of exp:TestNetwork but also appears as a target in a relationship within the same network. A declared root MUST NOT appear as a target in any relationship in the same network."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NETWORK-RootIsChild"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:networkCyclicSelfLoopReference",
+                "relatedNames": [
+                    "oimte:networkCyclic"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "NETWORK-SelfLoop.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "exp:NodeA has a self-referential relationship where source = target, forming a self-loop. Self-loops are always prohibited regardless of the cycles property value on the relationship type."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NETWORK-SelfLoop"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:networkCyclicThreeNodesReference",
+                "relatedNames": [
+                    "oimte:networkCyclic"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "NETWORK-CyclicThreeNodes.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "Relationships form a directed 3-node cycle: exp:NodeA -> exp:NodeB -> exp:NodeC -> exp:NodeA. The relationship type xbrl:parent-child requires a DAG so any directed cycle must raise oimte:networkCyclic."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NETWORK-CyclicThreeNodes"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:networkCyclicCyclesAnyThreeNodesReference",
+                "relatedNames": [
+                    "oimte:networkCyclic"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "NETWORK-CyclesAnyThreeNodes.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "✅ Pass"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "0"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "Relationships form a directed 3-node cycle exp:NodeA -> exp:NodeB -> exp:NodeC -> exp:NodeA. The relationship type exp:cyclicRel has cycles=any so directed cycles are explicitly permitted. No oimte:networkCyclic error should be raised."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NETWORK-CyclesAnyThreeNodes"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:networkCyclicSelfLoopCyclesAnyReference",
+                "relatedNames": [
+                    "oimte:networkCyclic"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "NETWORK-SelfLoopCyclesAny.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:conformanceTestDescription",
+                        "value": "exp:NodeA has a self-referential relationship (source = target) even though the relationship type exp:cyclicRel has cycles=any. Self-loops are always prohibited regardless of the cycles property value; cycles=any permits genuine multi-node cycles only."
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NETWORK-SelfLoopCyclesAny"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:networkCyclicRootOfNetworkDoesNotMatchActualRootReference",
+                "relatedNames": [
+                    "oimte:networkCyclic"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "NETWORK-RootOfNetworkDoesNotMatchActualRoot.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NETWORK-RootOfNetworkDoesNotMatchActualRoot"
                     }
                 ]
             }

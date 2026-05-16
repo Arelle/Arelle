@@ -86,7 +86,7 @@ class XbrlDataTable(XbrlReferencableModelObject):
     zAxis: Optional[XbrlAxis] # (optional) An axis object that identifies an ordered set of axis and the behaviour of the dimension when mapped to the Z axis of the table.
     tablePoints: OrderedSet[XbrlTablePoint] # (optional) Array of tablePoint objects that map dimension member pairs to specific grid cells.
 
-class XbrlLayout(XbrlModelObject):
+class XbrlLayout(XbrlReferencableModelObject):
     txmyMdl: XbrlModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the layout object.
     tableConstruction: Optional[str] # (optional) Specifies how multiple tables in the dataTables array should be joined together.

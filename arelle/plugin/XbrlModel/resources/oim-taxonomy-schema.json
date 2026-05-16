@@ -95,6 +95,10 @@
                       "excludeLabels": {
                         "type": "boolean"
                       },
+                      "excludeGroupContents": {
+                        "type": "boolean",
+                        "description": "If set to true, all groupContent objects from the imported model are excluded from the compiled XBRL Model. Default is false."
+                      },
                       "removeOrphanedReferenceQNames": {
                         "type": "boolean",
                         "description": "If true, any relatedNames entries in an imported reference object that refer to objects no longer present in the compiled model are silently removed from the relatedNames set. Defaults to false."
@@ -377,14 +381,14 @@
                   "type": "object",
                       "properties": {
                         "name": { "$ref": "#/definitions/QName" },
-                        "root": { "$ref": "#/definitions/domainClassQName" },
+                        "root": { "$ref": "#/definitions/SQName" },
                         "relationships": {
                           "type": "array",
                           "items": {
                             "type": "object",
                             "properties": {
-                              "source": { "$ref": "#/definitions/QName" },
-                              "target": { "$ref": "#/definitions/QName" },
+                              "source": { "$ref": "#/definitions/SQName" },
+                              "target": { "$ref": "#/definitions/SQName" },
                               "order": {
                                 "type": "number"
                               },
@@ -457,7 +461,7 @@
                         "relationshipTypeName": { "$ref": "#/definitions/relationshipTypeQName" },
                         "roots": {
                           "type": "array",
-                          "items": { "$ref": "#/definitions/QName" },
+                          "items": { "$ref": "#/definitions/SQName" },
                           "uniqueItems": true
                         },
                         "relationships": {
@@ -465,8 +469,8 @@
                           "items": {
                             "type": "object",
                             "properties": {
-                              "source": { "$ref": "#/definitions/QName" },
-                              "target": { "$ref": "#/definitions/QName" },
+                              "source": { "$ref": "#/definitions/SQName" },
+                              "target": { "$ref": "#/definitions/SQName" },
                               "order": {
                                 "type": "number"
                               },
@@ -585,6 +589,10 @@
                         "type": "array",
                         "items": { "$ref": "#/definitions/QName" },
                         "uniqueItems": true
+                      },
+                      "order": {
+                        "type": "number",
+                        "description": "The display order of this groupContent entry relative to other entries with the same groupName. Lower values are presented first."
                       }
                     },
                     "required": ["groupName", "relatedNames"],
@@ -685,7 +693,7 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "relatedName": { "$ref": "#/definitions/QName" },
+                      "relatedName": { "$ref": "#/definitions/SQName" },
                       "labelType": { "$ref": "#/definitions/labelTypeQName" },
                       "language": {
                         "type": "string",
@@ -1611,12 +1619,16 @@
                           "$ref": "#/definitions/QName",
                           "description": "The domain class that the implied object belongs to."
                         },
+                        "objectType": {
+                          "$ref": "#/definitions/QName",
+                          "description": "The object type that the implied object represents."
+                        },
                         "localNameConstraint": {
                           "$ref": "#/definitions/QName",
                           "description": "Optional QName representing constraints on the local-name, such as the Luhn mod-97-10 algorithm for the LEI."
                         }
                       },
-                      "required": ["name", "namespace", "domainClass"],
+                      "required": ["name", "namespace", "domainClass", "objectType"],
                       "additionalProperties": false
                     },
                     "uniqueItems": true
