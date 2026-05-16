@@ -197,7 +197,7 @@ def validate_log_text(
         matches = regex.findall(pattern, logs)
         actual_count = len(matches)
         if actual_count != expected_count:
-            results.append(f'Expected {expected_count} occurrence(s) of "{pattern}" but found {actual_count}.')
+            results.append(f'Expected {expected_count} occurrence(s) of "{pattern.pattern}" but found {actual_count}.')
     return results
 
 
@@ -225,7 +225,7 @@ def validate_log_tree(
         for pattern, expected_count in expected_results[level].items():
             actual_count = actual_results[level][pattern]
             if actual_count != expected_count:
-                results.append(f'Expected {expected_count} occurrence(s) of {level} "{pattern}" but found {actual_count}.')
+                results.append(f'Expected {expected_count} occurrence(s) of {level} "{pattern.pattern}" but found {actual_count}.')
     return results
 
 
