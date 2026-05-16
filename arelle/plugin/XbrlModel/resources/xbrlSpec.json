@@ -1124,13 +1124,13 @@
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:XBRL21XML",
-                "value": "XBRL 2.1 XML Fact Map"
+                "relatedName": "xbrl:xBRL-XML",
+                "value": "xBRL-XML Fact Map"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:XBRL21XML",
+                "relatedName": "xbrl:xBRL-XML",
                 "value": "Standard fact map for mapping facts from traditional XBRL 2.1 XML format to the XBRL model format. This map handles the transformation of XML-based XBRL v2.1 instance documents into the Open Information Model structure."
             },
             {
@@ -1463,7 +1463,7 @@
             },
             {
                 "name": "xbrl:weight",
-                "dataType": "xs:integer",
+                "dataType": "xbrlr:weightType",
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:relationshipObject"
@@ -1587,6 +1587,14 @@
                 "name": "xbrl:defaultLanguage",
                 "dataType": "xbrlr:languageType",
                 "allowedObjects": ["xbrl:xbrlModelObject"]
+            },
+            {
+                "name": "xbrl:propertyValue",
+                "dataType": "xs:anySimpleType",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:relationshipObject"
+                ]
             },
             {
                 "name": "xbrl:factLocation",
@@ -1994,8 +2002,9 @@
                 "targetObjects" : ["xbrl:factObject"]
             },
             {
-                "name": "xbrl:property-requiredProperty",
-                "cycles" : "none",
+                "name": "xbrl:property-dependentProperty",
+                "cycles": "none",
+                "allowedLinkProperties": ["xbrl:propertyValue"],
                 "sourceObjects": ["xbrl:propertyTypeObject"],
                 "targetObjects": ["xbrl:propertyTypeObject"]
             }
@@ -2005,7 +2014,7 @@
                 "name":"xbrl:OIM-JSON"
             },
             {
-                "name":"xbrl:XBRL21XML"
+                "name":"xbrl:xBRL-XML"
             }
         ],
         "networks": [
@@ -2026,7 +2035,8 @@
             {
                 "name": "xbrl:LegalEntityIdentifier",
                 "namespace" : "http://standards.iso.org/iso/17442",
-                "domainClass": "xbrl:entityDomain"
+                "domainClass": "xbrl:entityDomain",
+                "objectType": "xbrl:entityObject"
             }
         ]
     }

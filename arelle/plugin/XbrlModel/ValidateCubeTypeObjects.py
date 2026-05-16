@@ -34,13 +34,14 @@ def validateCubeTypeFamily(compMdl, module, oimFile, *, assertObjectType, valida
                                _("The cube type %(name)s, cubeDimensionConstraints/allowed[%(i)s] minDimensions %(minDimensions)s MUST NOT be greater than maxDimensions %(maxDimensions)s."),
                                xbrlObject=cubeType, name=name, i=i,
                                minDimensions=dConstr.minDimensions, maxDimensions=dConstr.maxDimensions)
-                if dConstr.dimensionName in dConstrNames:
-                    emit_error(compMdl, "oimte:duplicateDimension",
-                               _("The cube type %(name)s, cubeDimensionConstraints/allowed[%(i)s] dimensionName %(dimName)s duplicates cubeDimensionConstraints[%(i2)s]."),
-                               xbrlObject=cubeType, name=name, i=i,
-                               dimName=dConstr.dimensionName, i2=dConstrNames[dConstr.dimensionName])
-                else:
-                    dConstrNames[dConstr.dimensionName] = i
+                if dConstr.dimensionName is not None:
+                    if dConstr.dimensionName in dConstrNames:
+                        emit_error(compMdl, "oimte:duplicateDimension",
+                                   _("The cube type %(name)s, cubeDimensionConstraints/allowed[%(i)s] dimensionName %(dimName)s duplicates cubeDimensionConstraints[%(i2)s]."),
+                                   xbrlObject=cubeType, name=name, i=i,
+                                   dimName=dConstr.dimensionName, i2=dConstrNames[dConstr.dimensionName])
+                    else:
+                        dConstrNames[dConstr.dimensionName] = i
                 if dConstr.dataType:
                     dtObj = validateQNameReference(compMdl, dConstr, "dataType", XbrlDataType)
                     if dtObj and dtObj.allowedObjects and qnXbrlDimensionObj not in dtObj.allowedObjects:

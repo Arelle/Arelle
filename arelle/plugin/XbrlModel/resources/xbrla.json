@@ -236,9 +236,13 @@
                             {
                                 "type": "typed",
                                 "dataType": "xs:token",
-                                "minDimensions": 1,
+                                "minDimensions": 0,
                                 "maxDimensions":1
-
+                            },
+                            {
+                                "type": "explicit",
+                                "minDimensions": 0,
+                                "maxDimensions":1
                             }
                         ],
                         "closed": true
@@ -364,10 +368,21 @@
         "networks": [
             {
                 "name": "xbrla:dependentPropertiesNetwork",
-                "relationshipTypeName": "xbrl:property-requiredProperty",
+                "relationshipTypeName": "xbrl:property-dependentProperty",
+                "roots": ["xbrla:intervalConvention", "xbrla:timeSeriesType", "xbrla:completeTimeSeries"],
                 "relationships": [
                     {
                         "source": "xbrla:intervalConvention",
+                        "target": "xbrla:intervalOfMeasurement"
+                    },
+                    {
+                        "source": "xbrla:timeSeriesType",
+                        "properties": [{"property": "xbrl:propertyValue", "value": "Aggregated"}],
+                        "target": "xbrl:aggregation"
+                    },
+                    {
+                        "source": "xbrla:completeTimeSeries",
+                        "properties": [{"property": "xbrl:propertyValue", "value": "true"}],
                         "target": "xbrla:intervalOfMeasurement"
                     }
                 ]

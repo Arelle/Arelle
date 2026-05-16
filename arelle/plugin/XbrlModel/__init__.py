@@ -18,8 +18,8 @@ For XBRL 2.1 XML schema validation purposes, saves schema files in directory if
 
 from typing import TYPE_CHECKING, cast, GenericAlias, Union, _GenericAlias, _UnionGenericAlias, get_origin, ClassVar, ForwardRef, get_args, Dict
 import os, io, json, cbor2, sys, time, traceback, inspect
-#JSON_SCHEMA_VALIDATOR = "jsonschema" # select one of below JSON schema validator libraries (seriously different performance)
-JSON_SCHEMA_VALIDATOR = "fastjsonschema"
+JSON_SCHEMA_VALIDATOR = "jsonschema" # select one of below JSON schema validator libraries (seriously different performance)
+#JSON_SCHEMA_VALIDATOR = "fastjsonschema"
 if JSON_SCHEMA_VALIDATOR == "jsonschema": # slow and thorough
     import jsonschema
     # finds all errors in source object
@@ -58,7 +58,7 @@ from .XbrlLayout import XbrlLayout
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
 from .XbrlProperty import XbrlProperty, XbrlPropertyType
 from .XbrlReference import XbrlReference, XbrlReferenceType
-from .XbrlReport import XbrlReport, XbrlFact, XbrlFootnote, XbrlFactSource, XbrlFactMap
+from .XbrlReport import XbrlReport, XbrlFact, XbrlFootnote, XbrlFactSource, XbrlFactMap, XbrlTableTemplate
 from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
 from .XbrlModel import XbrlCompiledModel, castToXbrlCompiledModel
@@ -637,7 +637,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                 for propName in unexpectedJsonProps:
                     jsonEltsNotInObjClass.append(f"{'/'.join(pathParts + [propName])}={jsonObj.get(propName,'(absent)')}")
             if (isinstance(newObj, XbrlReferencableModelObject) or # most referencable taxonomy objects
-                (isinstance(newObj, (XbrlFact, XbrlFootnote, XbrlFactSource, XbrlFactMap)) and isinstance(oimParentObj, XbrlModule))): # taxonomy-owned fact
+                (isinstance(newObj, (XbrlFact, XbrlFootnote, XbrlFactSource, XbrlFactMap, XbrlTableTemplate)) and isinstance(oimParentObj, XbrlModule))): # taxonomy-owned fact / table template
                 if keyValue is not None: # otherwise expect some error occured above
                     if keyValue in xbrlCompMdl.namedObjects:
                         namedObjectDuplicates[keyValue].add(newObj)

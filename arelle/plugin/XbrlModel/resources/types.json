@@ -26,6 +26,11 @@
                 "enumeration": ["debit", "credit"],
                 "allowedObjects": ["xbrl:propertyObject"]
             },
+            {   "name": "xbrlr:weightType",
+                "baseType": "xs:decimal",
+                "enumeration": [ "1", "-1" ],
+                "allowedObjects": ["xbrl:propertyObject"]
+            },
             {
                 "name": "xbrlr:nilReasonType",
                 "baseType": "xs:string",
@@ -349,7 +354,8 @@
                 "unitType" : {
                 "dataTypeNumerator": "xbrlr:monetary",
                 "dataTypeDenominator": "xbrlr:sharesType"  
-                }
+                },
+                "allowedObjects": ["xbrl:conceptObject", "xbrl:unitObject"]
             },
             {
                 "name" : "xbrlr:dateTime",
@@ -364,7 +370,8 @@
             },
             {
                 "name" : "xbrlr:ghgEmissions",
-                "baseType" : "xs:decimal"
+                "baseType" : "xs:decimal",
+                "allowedObjects": ["xbrl:conceptObject", "xbrl:unitObject"]
             },
             {
                 "name" : "xbrlr:energyPerMonetary",
@@ -372,7 +379,8 @@
                 "unitType" : {
                 "dataTypeNumerator": "xbrlr:energy",
                 "dataTypeDenominator": "xbrlr:monetary"
-                }
+                },
+                "allowedObjects": ["xbrl:conceptObject", "xbrl:unitObject"]
             },
             {
                 "name" : "xbrlr:ghgEmissionsPerMonetary",
@@ -380,7 +388,8 @@
                 "unitType" : {
                 "dataTypeNumerator": "xbrlr:ghgEmissions",
                 "dataTypeDenominator": "xbrlr:monetary"
-                }
+                },
+                "allowedObjects": ["xbrl:conceptObject", "xbrl:unitObject"]
             },
             {
                 "name" : "xbrlr:volumePerMonetary",
@@ -388,7 +397,8 @@
                 "unitType" : {
                 "dataTypeNumerator": "xbrlr:volume",
                 "dataTypeDenominator": "xbrlr:monetary"
-                }
+                },
+                "allowedObjects": ["xbrl:conceptObject", "xbrl:unitObject"]
             }
             ,
             {
