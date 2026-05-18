@@ -160,7 +160,6 @@ module = [
     'arelle.DialogPluginManager',
     'arelle.DialogURL',
     'arelle.DialogUserPassword',
-    'arelle.HashUtil',
     'arelle.InstanceAspectsEvaluator',
     'arelle.ModelFormulaObject',
     'arelle.ModelInstanceObject',
