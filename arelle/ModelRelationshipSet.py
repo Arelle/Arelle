@@ -60,7 +60,7 @@ def ineffectiveArcs(
                 toLabel = linkChild.get("{http://www.w3.org/1999/xlink}to")
                 for fromResource in modelLink.labeledResources[fromLabel]:  # type: ignore[index]
                     for toResource in modelLink.labeledResources[toLabel]:  # type: ignore[index]
-                        modelRel = ModelRelationship(modelLink.modelDocument, linkChild, fromResource.dereference(), toResource.dereference(), linkrole=modelLinkrole)  # type: ignore[union-attr,arg-type]
+                        modelRel = ModelRelationship(modelLink.modelDocument, linkChild, fromResource.dereference(), toResource.dereference(), linkrole=modelLinkrole)  # type: ignore[attr-defined,arg-type]
                         hashEquivalentRels[modelRel.equivalenceHash].append(modelRel)
     # determine ineffective relationships
     ineffectives: list[ModelRelationship] = []

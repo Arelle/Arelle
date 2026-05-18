@@ -813,7 +813,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
 
         nonStdFootnoteElts: list[_Element] = list()
         for modelLink in modelXbrl.baseSets[("XBRL-footnotes",None,None,None)]:
-            for uncast_elt in modelLink.iterchildren():
+            for uncast_elt in modelLink.iterchildren():  # type: ignore[assignment]
                 elt = cast(Any, uncast_elt)
 
                 if isinstance(elt, (_Comment, _ElementTree, _Entity, _ProcessingInstruction)):

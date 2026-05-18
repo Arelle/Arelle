@@ -167,7 +167,6 @@ module = [
     'arelle.ModelTestcaseObject',
     'arelle.ModelVersObject',
     'arelle.ModelVersReport',
-    'arelle.PrototypeDtsObject',
     'arelle.PrototypeInstanceObject',
     'arelle.rendering.RenderingEvaluator',
     'arelle.rendering.RenderingLayout',
