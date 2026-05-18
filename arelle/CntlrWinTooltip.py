@@ -34,78 +34,102 @@ motion() :          is called when the mouse pointer moves inside the parent wid
                     tooltip has shown up to continually update the coordinates of the tooltip window
 coords() :          calculates the screen coordinates of the tooltip window
 create_contents() : creates the contents of the tooltip window (by default a Tkinter.Label)
+
+See COPYRIGHT.md for copyright information.
 '''
 # Ideas gleaned from PySol
+from __future__ import annotations
 
 import tkinter
+from typing import Any
+
 
 class ToolTip:
-    def __init__(self, master, text='Your text here', delay=500, **opts):
+    def __init__(
+        self,
+        master: tkinter.Misc,
+        text: str | None = 'Your text here',
+        delay: int = 500,
+        **opts: Any
+    ) -> None:
         self.master = master
-        self._opts = {'anchor':'center', 'bd':1, 'bg':'lightyellow', 'delay':delay, 'fg':'black',
-                      'follow_mouse':0, 'font':None, 'justify':'left', 'padx':4, 'pady':2,
-                      'relief':'solid', 'state':'normal', 'text':text, 'textvariable':None,
-                      'width':0, 'wraplength':150}
+        self._opts: dict[str, Any] = {
+            'anchor': 'center',
+            'bd': 1,
+            'bg': 'lightyellow',
+            'delay': delay,
+            'fg': 'black',
+            'follow_mouse': 0,
+            'font': None,
+            'justify': 'left',
+            'padx': 4,
+            'pady': 2,
+            'relief': 'solid',
+            'state': 'normal',
+            'text': text,
+            'textvariable': None,
+            'width': 0,
+            'wraplength': 150,
+        }
         self.configure(**opts)
-        self._tipwindow = None
-        self._id = None
-        self._id1 = self.master.bind("<Enter>", self.enter, '+')
-        self._id2 = self.master.bind("<Leave>", self.leave, '+')
-        self._id3 = self.master.bind("<ButtonPress>", self.leave, '+')
+        self._tipwindow: tkinter.Toplevel | None = None
+        self._id: str | None = None
+        self._id1 = self.master.bind("<Enter>", self.enter, "+")
+        self._id2 = self.master.bind("<Leave>", self.leave, "+")
+        self._id3 = self.master.bind("<ButtonPress>", self.leave, "+")
         self._follow_mouse = 0
-        if self._opts['follow_mouse']:
-            self._id4 = self.master.bind("<Motion>", self.motion, '+')
+        if self._opts["follow_mouse"]:
+            self._id4 = self.master.bind("<Motion>", self.motion, "+")
             self._follow_mouse = 1
 
-    def configure(self, **opts):
+    def configure(self, **opts: Any) -> None:
         for key in opts:
             if key in self._opts:
                 self._opts[key] = opts[key]
             else:
-                KeyError = 'KeyError: Unknown option: "%s"' %key
-                raise KeyError
+                raise KeyError('Unknown option: "%s"' % key)
 
     ##----these methods handle the callbacks on "<Enter>", "<Leave>" and "<Motion>"---------------##
     ##----events on the parent widget; override them if you want to change the widget's behavior--##
 
-    def enter(self, event=None):
+    def enter(self, event: tkinter.Event[Any] | None = None) -> None:
         self._schedule()
 
-    def leave(self, event=None):
+    def leave(self, event: tkinter.Event[Any] | None = None) -> None:
         self._unschedule()
         self._hide()
 
-    def motion(self, event=None):
+    def motion(self, event: tkinter.Event[Any] | None = None) -> None:
         if self._tipwindow and self._follow_mouse:
             x, y = self.coords()
             self._tipwindow.wm_geometry("+%d+%d" % (x, y))
 
     ##------the methods that do the work:---------------------------------------------------------##
 
-    def _schedule(self):
+    def _schedule(self) -> None:
         self._unschedule()
-        if self._opts['state'] == 'disabled':
+        if self._opts["state"] == "disabled":
             return
-        self._id = self.master.after(self._opts['delay'], self._show)
+        self._id = self.master.after(self._opts["delay"], self._show)
 
-    def _unschedule(self):
+    def _unschedule(self) -> None:
         id = self._id
         self._id = None
         if id:
             self.master.after_cancel(id)
 
-    def _show(self):
-        if self._opts['state'] == 'disabled':
+    def _show(self) -> None:
+        if self._opts["state"] == "disabled":
             self._unschedule()
             return
         if not self._tipwindow:
             self._tipwindow = tw = tkinter.Toplevel(self.master)
             # hide the window until we know the geometry
             tw.withdraw()
-            tw.wm_overrideredirect(1)
+            tw.wm_overrideredirect(True)
 
-            if tw.tk.call("tk", "windowingsystem") == 'aqua':
-                tw.tk.call("::tk::unsupported::MacWindowStyle", "style", tw._w, "help", "none")
+            if tw.tk.call("tk", "windowingsystem") == "aqua":
+                tw.tk.call("::tk::unsupported::MacWindowStyle", "style", tw._w, "help", "none")  # type: ignore[attr-defined]
 
             self.create_contents()
             tw.update_idletasks()
@@ -113,7 +137,7 @@ class ToolTip:
             tw.wm_geometry("+%d+%d" % (x, y))
             tw.deiconify()
 
-    def _hide(self):
+    def _hide(self) -> None:
         tw = self._tipwindow
         self._tipwindow = None
         if tw:
@@ -121,13 +145,14 @@ class ToolTip:
 
     ##----these methods might be overridden in derived classes:----------------------------------##
 
-    def coords(self):
+    def coords(self) -> tuple[int, int]:
         # The tip window must be completely outside the master widget;
         # otherwise when the mouse enters the tip window we get
         # a leave event and it disappears, and then we get an enter
         # event and it reappears, and so on forever :-(
         # or we take care that the mouse pointer is always outside the tipwindow :-)
         tw = self._tipwindow
+        assert tw is not None
         twx, twy = tw.winfo_reqwidth(), tw.winfo_reqheight()
         w, h = tw.winfo_screenwidth(), tw.winfo_screenheight()
         # calculate the y coordinate:
@@ -149,16 +174,16 @@ class ToolTip:
             x = w - twx
         return x, y
 
-    def create_contents(self):
+    def create_contents(self) -> None:
         opts = self._opts.copy()
         for opt in ('delay', 'follow_mouse', 'state'):
             del opts[opt]
         label = tkinter.Label(self._tipwindow, **opts)
         label.pack()
 
-##---------demo code-----------------------------------##
 
-def demo():
+##---------demo code-----------------------------------##
+def demo() -> None:
     root = tkinter.Tk(className='ToolTip-demo')
     l = tkinter.Listbox(root)
     l.insert('end', "I'm a listbox")
@@ -168,6 +193,7 @@ def demo():
     b.pack(side='bottom')
     t2 = ToolTip(b, text='Enough of this')
     root.mainloop()
+
 
 if __name__ == '__main__':
     demo()
