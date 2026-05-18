@@ -1,9 +1,9 @@
 flake8==7.3.0
 flake8-noqa==1.5.0
 
-mypy==2.0.0
+mypy==2.1.0
 
-types-boto3[s3]==1.43.6
+types-boto3[s3]==1.43.9
 types-lxml==2026.2.16
 types-openpyxl==3.1.5.20260508
 types-PyMySQL==1.1.0.20260508
@@ -11,7 +11,7 @@ types-python-dateutil==2.9.0.20260508
 types-pytz==2026.2.0.20260506
 types-pywin32==311.0.0.20260508
 types-regex==2026.5.9.20260510
-types-requests==2.33.0.20260508
+types-requests==2.33.0.20260513
 types-simplejson==3.20.0.20260508
 types-ujson==5.10.0.20250822
 types-waitress==3.0.1.20260508
