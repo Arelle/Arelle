@@ -54,7 +54,7 @@ cxFrozen = getattr(sys, 'frozen', False)
 
 TypeLogFileName = Union[
     str,
-    Literal['logToBuffer', 'logToPrint', 'logToStdErr' 'logToStructuredMessage']
+    Literal["logToBuffer", "logToPrint", "logToStdErr", "logToStructuredMessage"]
 ]
 
 

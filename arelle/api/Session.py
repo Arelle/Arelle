@@ -87,7 +87,7 @@ class Session:
             return []
         return getattr(self._cntlr.logHandler, 'messages', [])
 
-    def get_logs(self, log_format: Literal['json', 'text', 'xml'], clear_logs: bool = False) -> str:
+    def get_logs(self, log_format: Literal["json", "text", "xml"], clear_logs: bool = False) -> str:
         """
         Retrieve logs as a string in the configured format.
         Raises a `ValueError` if the log format is not supported by the current log handler.
