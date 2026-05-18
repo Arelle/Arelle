@@ -40,7 +40,7 @@ class PrototypeObject(PrototypeObjectBase):
     def get(self, key: str, default: str | None = None) -> str | None:
         return self.attributes.get(key, default)
 
-    def itersiblings(self, **kwargs: Any) -> Iterator[ModelObject]:
+    def itersiblings(self, **kwargs: Any) -> Iterator[ModelObject | PrototypeObject]:
         """Method proxy for itersiblings() of lxml arc element"""
         return self.sourceElement.itersiblings(**kwargs) if self.sourceElement is not None else iter(())
 
@@ -48,10 +48,10 @@ class PrototypeObject(PrototypeObjectBase):
         """(_ElementBase) -- Method proxy for getparent() of lxml arc element"""
         return self.sourceElement.getparent() if self.sourceElement is not None else None
 
-    def iterchildren(self) -> Iterator[ModelObject]:
+    def iterchildren(self) -> Iterator[ModelObject | PrototypeObject]:
         yield from ()  # no children
 
-    def iterdescendants(self) -> Iterator[ModelObject]:
+    def iterdescendants(self) -> Iterator[ModelObject | PrototypeObject]:
         for elt in self.iterchildren():
             yield elt
             for e in elt.iterdescendants():
@@ -76,7 +76,7 @@ class LinkPrototype(PrototypeObject, LinkRelationships):  # behaves like a Model
         self.localName: str = qname.localName
         self.role: str | None = role
         # children are arc and loc elements or prototypes
-        self.childElements: list[ModelObject] = []
+        self.childElements: list[ModelObject | PrototypeObject] = []
         self.text: str | None = None
         self.textValue: str | None = None
         self.attributes = {"{http://www.w3.org/1999/xlink}type": "extended"}
@@ -88,13 +88,13 @@ class LinkPrototype(PrototypeObject, LinkRelationships):  # behaves like a Model
     def clear(self) -> None:
         self.__dict__.clear()  # dereference here, not an lxml object, don't use superclass clear()
 
-    def __iter__(self) -> Iterator[ModelObject]:
+    def __iter__(self) -> Iterator[ModelObject | PrototypeObject]:
         return iter(self.childElements)
 
     def getparent(self) -> ModelObject | PrototypeObject | None:
         return self._parent
 
-    def iterchildren(self) -> Iterator[ModelObject]:
+    def iterchildren(self) -> Iterator[ModelObject | PrototypeObject]:
         return iter(self.childElements)
 
 

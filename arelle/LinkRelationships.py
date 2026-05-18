@@ -118,7 +118,7 @@ class LinkRelationships:
                     relationships.append(modelRel)
             allRelationships.append(relationships)
             relationshipsByArcrole[linkChildArcrole].append(relationships)
-            relationshipsByArcroleArcqname[linkChildArcrole][linkChild.qname].append(relationships)
+            relationshipsByArcroleArcqname[linkChildArcrole][linkChild.qname].append(relationships)  # type: ignore[union-attr]
 
         self._relationships = tuple(chain.from_iterable(allRelationships))
         self._relationshipsByArcrole = {
