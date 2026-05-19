@@ -39,6 +39,18 @@ def resolveFact(txmyMdl, txmyObj, fact):
     def error(code, msg, **kwargs):
         emit_error(txmyMdl, code, msg, xbrlObject=fact, name=getattr(fact, "name", None), **kwargs)
 
+    # Extension facts (extendTargetName) inherit dimensions from the target fact
+    extendTargetName = getattr(fact, 'extendTargetName', None)
+    if extendTargetName is not None:
+        targetFact = txmyMdl.namedObjects.get(extendTargetName)
+        if targetFact is not None and not getattr(targetFact, 'isExtensible', True):
+            txmyMdl.error("oimte:cannotExtendObject",
+                          _("Fact %(target)s is not extensible (isExtensible=false) and cannot be extended."),
+                          xbrlObject=fact, name=extendTargetName, target=extendTargetName)
+        return  # extension facts inherit dimensions; skip further resolution
+    if getattr(fact, 'factDimensions', None) is None:
+        return  # skip facts without dimensions
+
     name = fact.name
     cQn = fact.factDimensions.get(conceptCoreDim)
     if isinstance(cQn, str) and ":" in cQn:
@@ -183,18 +195,36 @@ def validateFactPosition(txmyMdl, fact):
         per = fact.factDimensions[periodCoreDim]
         if isinstance(per, str):
             if not periodPattern.match(per):
-                error("oimce:invalidPeriodRepresentation",
-                              _("The fact %(name)s, concept %(element)s has a lexically invalid period dateTime %(periodError)s"),
+                error("oime:invalidPeriodDimension",
+                              _("The fact %(name)s, concept %(element)s has a lexically invalid period %(periodError)s"),
                               element=cQn, periodError=per)
                 return
             _start, _sep, _end = per.rpartition('/')
-            if ((cObj.periodType == "duration" and (not _start or _start == _end)) or
+            _hasTime = 'T' in (_start or _end or '')  # only treat start==end as error at datetime precision
+            if cObj.periodType == "none":
+                # periodType=none facts MUST NOT have a period dimension
+                error("oime:invalidPeriodDimension",
+                              _("The fact %(name)s has concept %(element)s with periodType 'none' but includes a period dimension %(period)s."),
+                              element=cQn, period=per)
+                return
+            elif ((cObj.periodType == "duration" and (not _start or (_hasTime and _start == _end))) or
                   (cObj.periodType == "instant" and _start and _start != _end)):
                 error("oime:invalidPeriodDimension",
                               _("Invalid period for %(periodType)s fact %(name)s period %(period)s."),
                                                             periodType=cObj.periodType, period=per)
                 return # skip creating fact because context would be bad
-            per = fact.factDimensions["_periodValue"] = timeInterval(per)
+            elif cObj.periodType == "duration" and _start and _start > _end:
+                error("oime:invalidPeriodDimension",
+                              _("Duration period for fact %(name)s has start %(start)s after end %(end)s."),
+                              start=_start, end=_end)
+                return
+            try:
+                per = fact.factDimensions["_periodValue"] = timeInterval(per)
+            except Exception:
+                error("oime:invalidPeriodDimension",
+                              _("The fact %(name)s has an unparseable period value %(period)s."),
+                              period=per)
+                return
     elif cObj.periodType != "none":
         error("oime:missingPeriodDimension",
                        _("Missing period for %(periodType)s fact %(name)s."),

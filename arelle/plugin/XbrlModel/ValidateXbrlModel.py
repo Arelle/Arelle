@@ -660,7 +660,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                           _("Cube %(name)s periodConstraints property MUST only be used where the dimensionName property has a QName value of xbrl:period, not %(qname)s."),
                           xbrlObject=cubeObj, name=name, qname=dimName)
             if dimName == conceptCoreDim:
-                hasConcpeptDimension = True
+                hasConceptDimension = True
             if dimName == conceptCoreDim and hasValidDomainName:
                 for relObj in compMdl.namedObjects[cubeDimObj.domainName].relationships:
                     if not isinstance(compMdl.namedObjects.get(relObj.source,None), (XbrlConcept, XbrlAbstract)) and relObj.source != conceptDomainClass:
@@ -776,10 +776,11 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                             if dtResObj.value:
                                 dtResObj._valueValid, dtResObj._valueValue = validateValue(compMdl, module, cubeObj, dtResObj.value, "XBRLI_DATEUNION", f"/cubeDimensions[{iCubeDim}]/periodConstraints[{iPerConst}]/{dtResProp}/value", "oimte:invalidPeriodRepresentation")
 
-        if not hasConcpeptDimension:
+        # Extension cubes inherit concept dimension from target; only check non-extension cubes
+        if not hasConceptDimension and not getattr(cubeObj, 'extendTargetName', None):
                 compMdl.error("oimte:cubeMissingConceptDimension",
-                          _("Cube %(name)s is missing a concept dimension."),
-                          xbrlObject=(cubeObj,cubeDimObj), name=name)
+                          _("The cubeDimensions of cube %(name)s, type %(cubeType)s, must have a concept core dimension"),
+                          xbrlObject=cubeObj, name=name, cubeType=getattr(cubeType,'name',None))
 
         coreDomainClassByDimension = {
             conceptCoreDim: conceptDomainClass,
