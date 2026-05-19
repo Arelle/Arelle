@@ -294,7 +294,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                     elif p_last == "language" and " does not match " in msg:
                         errCode = "oimte:invalidLanguage"
                     elif p_last == "coreDimensions" and "unique elements" in msg:
-                        errCode = "oimte:duplicateCoreDimension"
+                        errCode = "oimte:duplicateItemsInSet"
                     elif p_beforeLast == "dimensions" and " valid under each of {'required': ['domainClass']}, {'required': ['domainDataType']}" in msg:
                         errCode = "oimte:invalidDimensionObject"
                     else:
@@ -331,7 +331,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                 elif p_last == "language" and " must match " in msg:
                     errCode = "oimte:invalidLanguage"
                 elif p_last == "coreDimensions" and " unique items" in msg:
-                    errCode = "oimte:duplicateCoreDimension"
+                    errCode = "oimte:duplicateItemsInSet"
                 elif p_beforeLast == "dimensions" and isinstance(ex.rule_definition, list) and all(k == "required" for o in ex.rule_definition for k in o.keys()):
                     errCode = "oimte:invalidDimensionObject"
                 else:

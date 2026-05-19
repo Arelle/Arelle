@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 from .ErrorCatalog import emit_error
 from .XbrlConcept import XbrlDataType
 from .XbrlConst import qnXbrlDimensionObj
-from .XbrlCube import XbrlCubeType, coreDimensions
+from .XbrlCube import XbrlCubeType, coreDimensions, conceptDomainClass, entityDomainClass, unitDomainClass
 from .XbrlDimension import XbrlDimension
 from .XbrlModule import referencableObjectTypes
 from .XbrlNetwork import XbrlRelationshipType
@@ -22,13 +22,25 @@ def validateCubeTypeFamily(compMdl, module, oimFile, *, assertObjectType, valida
                        _("The cube type %(name)s, specifies QNames which are not core dimensions: %(qnames)s."),
                        xbrlObject=cubeType, name=name,
                        qnames=", ".join(str(qn) for qn in (cubeType.coreDimensions - coreDimensions)))
+
+        validCoreDomainClasses = {conceptDomainClass, entityDomainClass, unitDomainClass}
+        for coreDomClass in cubeType.coreDomainClasses:
+            if coreDomClass not in validCoreDomainClasses:
+                emit_error(compMdl, "oimte:invalidCoreDomainClass",
+                           _("The cube type %(name)s coreDomainClasses contains invalid core domain class %(domainClass)s."),
+                           xbrlObject=cubeType, name=name, domainClass=coreDomClass)
+
         dConstrNames = {}
         if cubeType.cubeDimensionConstraints:
-            for i, dConstr in enumerate(cubeType.cubeDimensionConstraints.allowed):
+            for i, dConstr in enumerate(cubeType.cubeDimensionConstraints.allowed or ()):
                 if dConstr.dimensionName:
                     validateQNameReference(compMdl, dConstr, "dimensionName", XbrlDimension,
                                            undefinedMsgCode="oimte:invalidDimensionConstraintDimensionName",
                                            invalidTypeMsgCode="oimte:invalidDimensionConstraintDimensionName")
+                    if dConstr.dimensionName in coreDimensions:
+                        emit_error(compMdl, "oimte:invalidDimensionConstraintDimensionName",
+                                   _("The cube type %(name)s, cubeDimensionConstraints/allowed[%(i)s] dimensionName %(dimName)s MUST NOT be a core dimension."),
+                                   xbrlObject=cubeType, name=name, i=i, dimName=dConstr.dimensionName)
                 if dConstr.minDimensions is not None and dConstr.maxDimensions is not None and dConstr.minDimensions > dConstr.maxDimensions:
                     emit_error(compMdl, "oimte:invalidCubeConstraints",
                                _("The cube type %(name)s, cubeDimensionConstraints/allowed[%(i)s] minDimensions %(minDimensions)s MUST NOT be greater than maxDimensions %(maxDimensions)s."),
@@ -43,7 +55,8 @@ def validateCubeTypeFamily(compMdl, module, oimFile, *, assertObjectType, valida
                     else:
                         dConstrNames[dConstr.dimensionName] = i
                 if dConstr.dataType:
-                    dtObj = validateQNameReference(compMdl, dConstr, "dataType", XbrlDataType)
+                    dtObj = validateQNameReference(compMdl, dConstr, "dataType", XbrlDataType,
+                                                  invalidTypeMsgCode="oimte:invalidObjectType")
                     if dtObj and dtObj.allowedObjects and qnXbrlDimensionObj not in dtObj.allowedObjects:
                         emit_error(compMdl, "oimte:unallowedDataTypeObject",
                                    _("The cube type %(name)s, cubeDimensionConstraints/allowed[%(i)s] dataType %(dataType)s is not allowed on a dimension object."),
@@ -54,32 +67,46 @@ def validateCubeTypeFamily(compMdl, module, oimFile, *, assertObjectType, valida
                                xbrlObject=cubeType, name=name, i=i, typed=dConstr.type)
         if cubeType.cubeNetworkConstraints:
             cnc = cubeType.cubeNetworkConstraints
-            if (getattr(cnc, "minNetworks", None) is not None and getattr(cnc, "maxNetworks", None) is not None
-                    and cnc.minNetworks > cnc.maxNetworks):
-                emit_error(compMdl, "oimte:invalidCubeConstraints",
-                           _("The cube type %(name)s, cubeNetworkConstraints minNetworks %(minNetworks)s MUST NOT be greater than maxNetworks %(maxNetworks)s."),
-                           xbrlObject=cubeType, name=name,
-                           minNetworks=cnc.minNetworks, maxNetworks=cnc.maxNetworks)
             if cubeType.cubeNetworkConstraints.cubeNetworks:
                 for cubeNtwkCnstrObj in cubeType.cubeNetworkConstraints.cubeNetworks:
-                    validateQNameReference(compMdl, cubeNtwkCnstrObj, "relationshipType", XbrlRelationshipType)
+                    validateQNameReference(compMdl, cubeNtwkCnstrObj, "relationshipType", XbrlRelationshipType,
+                                           invalidTypeMsgCode="oimte:invalidObjectType")
+                    if (cubeNtwkCnstrObj.minNetworks is not None and cubeNtwkCnstrObj.maxNetworks is not None and
+                            cubeNtwkCnstrObj.minNetworks > cubeNtwkCnstrObj.maxNetworks):
+                        emit_error(compMdl, "oimte:invalidCubeConstraints",
+                                   _("The cube type %(name)s, cubeNetworkConstraints/cubeNetworks relationshipType %(relType)s has minNetworks %(minNetworks)s greater than maxNetworks %(maxNetworks)s."),
+                                   xbrlObject=cubeType, name=name, relType=cubeNtwkCnstrObj.relationshipType,
+                                   minNetworks=cubeNtwkCnstrObj.minNetworks, maxNetworks=cubeNtwkCnstrObj.maxNetworks)
                     for endPtCnstrObj in (cubeNtwkCnstrObj.source, cubeNtwkCnstrObj.target):
                         if endPtCnstrObj is not None:
                             if endPtCnstrObj.qname:
                                 validateQNameReference(compMdl, endPtCnstrObj, "qname", None)
-                            if endPtCnstrObj.objectType and endPtCnstrObj.objectType not in referencableObjectTypes:
-                                emit_error(compMdl, "oimte:invalidObjectTypeReference",
-                                           _("The cube type %(name)s, cubeNetworkConstraints/cubeNetworks/relationshipType %(relType)s, end point constraint object does not specify a referencable model component object type: %(objType)s."),
-                                           xbrlObject=cubeType, name=name,
-                                           relType=cubeNtwkCnstrObj.relationshipType, objType=endPtCnstrObj.objectType)
+                            if endPtCnstrObj.objectType:
+                                if endPtCnstrObj.objectType not in referencableObjectTypes:
+                                    if compMdl.namedObjects.get(endPtCnstrObj.objectType) is None:
+                                        emit_error(compMdl, "oimte:invalidQNameReference",
+                                                   _("The cube type %(name)s, cubeNetworkConstraints/cubeNetworks/relationshipType %(relType)s endpoint objectType %(objType)s is not defined."),
+                                                   xbrlObject=cubeType, name=name,
+                                                   relType=cubeNtwkCnstrObj.relationshipType, objType=endPtCnstrObj.objectType)
+                                    else:
+                                        emit_error(compMdl, "oimte:invalidObjectType",
+                                                   _("The cube type %(name)s, cubeNetworkConstraints/cubeNetworks/relationshipType %(relType)s endpoint objectType %(objType)s is not a referencable model component object type."),
+                                                   xbrlObject=cubeType, name=name,
+                                                   relType=cubeNtwkCnstrObj.relationshipType, objType=endPtCnstrObj.objectType)
                             if endPtCnstrObj.dataType:
-                                validateQNameReference(compMdl, endPtCnstrObj, "dataType", XbrlDataType)
+                                validateQNameReference(compMdl, endPtCnstrObj, "dataType", XbrlDataType,
+                                                       invalidTypeMsgCode="oimte:invalidObjectType")
         if cubeType.cubeProperties:
             for ra in ("requiredProperties", "allowedProperties"):
                 for i, propTpQn in enumerate(getattr(cubeType.cubeProperties, ra)):
-                    if not isinstance(compMdl.namedObjects.get(propTpQn), XbrlPropertyType):
-                        emit_error(compMdl, "oimte:invalidPropertyTypeReference",
-                                   _("The cube type %(name)s, cubeProperties/%(ra)s[%(i)s], does not specify valid propertyType reference: %(qname)s."),
+                    propTypeObj = compMdl.namedObjects.get(propTpQn)
+                    if propTypeObj is None:
+                        emit_error(compMdl, "oimte:invalidQNameReference",
+                                   _("The cube type %(name)s, cubeProperties/%(ra)s[%(i)s], references undefined propertyType %(qname)s."),
+                                   xbrlObject=cubeType, name=name, ra=ra, i=i, qname=propTpQn)
+                    elif not isinstance(propTypeObj, XbrlPropertyType):
+                        emit_error(compMdl, "oimte:invalidObjectType",
+                                   _("The cube type %(name)s, cubeProperties/%(ra)s[%(i)s], references %(qname)s which is not a propertyType object."),
                                    xbrlObject=cubeType, name=name, ra=ra, i=i, qname=propTpQn)
         if cubeType.baseCubeType is not None:
             if cubeType.baseCubeType not in compMdl.namedObjects:
@@ -89,7 +116,7 @@ def validateCubeTypeFamily(compMdl, module, oimFile, *, assertObjectType, valida
             else:
                 baseCubeType = compMdl.namedObjects.get(cubeType.baseCubeType)
                 if not isinstance(baseCubeType, XbrlCubeType):
-                    emit_error(compMdl, "oimte:invalidQNameReference",
+                    emit_error(compMdl, "oimte:invalidObjectType",
                                _("The cube type %(name)s, specifies base cube type %(base)s which is not a cube type object."),
                                xbrlObject=cubeType, name=name, base=cubeType.baseCubeType)
                 else:
@@ -105,14 +132,19 @@ def validateCubeTypeFamily(compMdl, module, oimFile, *, assertObjectType, valida
                             emit_error(compMdl, "oimte:invalidDimensionClosedExpansion",
                                        _("The cube type %(name)s, must not set cubeDimensionConstraints.closed \"false\" where base cube type is \"true\"."),
                                        xbrlObject=cubeType, name=name)
-                        baseDimConstrs = baseCubeType.effectivePropVal(compMdl, "cubeDimensionConstraints", "allowed")
-                        for i, dimConstr in enumerate(cubeType.cubeDimensionConstraints.allowed):
+                        baseDimConstrs = baseCubeType.effectivePropVal(compMdl, "cubeDimensionConstraints", "allowed") or ()
+                        for i, dimConstr in enumerate(cubeType.cubeDimensionConstraints.allowed or ()): 
                             matchingBaseDimFound = False
+                            matchedBaseDimConst = None
                             for baseDimConst in baseDimConstrs:
                                 if ((dimConstr.dimensionName and dimConstr.dimensionName == baseDimConst.dimensionName) or
-                                    (dimConstr.dataType and dimConstr.dataType == baseDimConst.dataType)):
+                                    (dimConstr.dataType and baseDimConst.dataType and dimConstr.dataType == baseDimConst.dataType) or
+                                    (dimConstr.type == "typed" and baseDimConst.type == "typed" and
+                                     not dimConstr.dimensionName and not baseDimConst.dimensionName and
+                                     not dimConstr.dataType and not baseDimConst.dataType)):
                                     matchingBaseDimFound = True
-                                    if dimConstr.minDimensions and baseDimConst.minDimensions is not None and dimConstr.minDimensions < baseDimConst.minDimensions:
+                                    matchedBaseDimConst = baseDimConst
+                                    if dimConstr.minDimensions is not None and baseDimConst.minDimensions is not None and dimConstr.minDimensions < baseDimConst.minDimensions:
                                         emit_error(compMdl, "oimte:invalidDimensionRequirementRelaxation",
                                                    _("The cube type %(name)s, must not set cubeDimensionConstraints/allowed[%(i)s].minDimensions to %(minDimensions)s when derived base required for the dimension is %(baseMinDimensions)s."),
                                                    xbrlObject=cubeType, name=name, i=i,
@@ -132,16 +164,54 @@ def validateCubeTypeFamily(compMdl, module, oimFile, *, assertObjectType, valida
                                                            _("The cube type %(name)s, cubeDimensionConstraints/allowed[%(i)s].domainClassProperties must include all properties required by the baseCubeType, these are missing: %(domainClassProperties)s"),
                                                            xbrlObject=cubeType, name=name, i=i,
                                                            domainClassProperties=", ".join(sorted(str(p) for p in removedPropsReqd)))
+                            if not matchingBaseDimFound and dimConstr.type == "typed" and not dimConstr.dimensionName:
+                                baseTypedUnnamed = [b for b in baseDimConstrs if b.type == "typed" and not b.dimensionName]
+                                if len(baseTypedUnnamed) == 1:
+                                    matchedBaseDimConst = baseTypedUnnamed[0]
+                                    matchingBaseDimFound = True
+                                    if dimConstr.dataType and matchedBaseDimConst.dataType:
+                                        dataTypeObj = compMdl.namedObjects.get(dimConstr.dataType)
+                                        if isinstance(dataTypeObj, XbrlDataType) and not dataTypeObj.instanceOfType(matchedBaseDimConst.dataType, compMdl):
+                                            emit_error(compMdl, "oimte:invalidDataTypeExpansion",
+                                                       _("The cube type %(name)s, cubeDimensionConstraints/allowed[%(i)s].dataType %(dataType)s must not be an expansion of the base data type %(baseDataType)s"),
+                                                       xbrlObject=cubeType, name=name, i=i,
+                                                       dataType=dimConstr.dataType, baseDataType=matchedBaseDimConst.dataType)
                             if baseDimConstrClosed and not matchingBaseDimFound:
                                 emit_error(compMdl, "oimte:invalidDimensionAddition",
                                            _("The cube type %(name)s, must not set cubeDimensionConstraints/allowed[%(i)s] must not be added a closed base type"),
                                            xbrlObject=cubeType, name=name, i=i)
+                    if cubeType.cubeNetworkConstraints and baseCubeType.cubeNetworkConstraints:
+                        baseNtwkClosed = baseCubeType.effectivePropVal(compMdl, "cubeNetworkConstraints", "closed")
+                        if baseNtwkClosed == True and cubeType.cubeNetworkConstraints.closed == False:
+                            emit_error(compMdl, "oimte:invalidNetworkClosedExpansion",
+                                       _("The cube type %(name)s, must not set cubeNetworkConstraints.closed \"false\" where base cube type is \"true\"."),
+                                       xbrlObject=cubeType, name=name)
                     if cubeType.cubeNetworkConstraints and cubeType.cubeNetworkConstraints.cubeNetworks and baseCubeType.cubeNetworkConstraints:
+                        
                         for i, cubeNtwkCnstrObj in enumerate(cubeType.cubeNetworkConstraints.cubeNetworks):
                             matchingBaseNtwkCnstrFound = False
                             for baseCubeNtwkCnstrObj in baseCubeType.effectivePropVal(compMdl, "cubeNetworkConstraints", "cubeNetworks") or ():
                                 if cubeNtwkCnstrObj.relationshipType == baseCubeNtwkCnstrObj.relationshipType:
                                     matchingBaseNtwkCnstrFound = True
+                                    if (cubeNtwkCnstrObj.minNetworks is not None and baseCubeNtwkCnstrObj.minNetworks is not None and
+                                            cubeNtwkCnstrObj.minNetworks < baseCubeNtwkCnstrObj.minNetworks):
+                                        emit_error(compMdl, "oimte:invalidRelationshipConstraintRelaxation",
+                                                   _("The cube type %(name)s, must not relax cubeNetworkConstraints/cubeNetworks[%(i)s].minNetworks below base value."),
+                                                   xbrlObject=cubeType, name=name, i=i)
+                                    if (cubeNtwkCnstrObj.source and baseCubeNtwkCnstrObj.source and
+                                            (cubeNtwkCnstrObj.source.qname != baseCubeNtwkCnstrObj.source.qname or
+                                             cubeNtwkCnstrObj.source.objectType != baseCubeNtwkCnstrObj.source.objectType or
+                                             cubeNtwkCnstrObj.source.dataType != baseCubeNtwkCnstrObj.source.dataType)):
+                                        emit_error(compMdl, "oimte:invalidRelationshipConstraintRelaxation",
+                                                   _("The cube type %(name)s, must not relax cubeNetworkConstraints/cubeNetworks[%(i)s].source constraint from base cube type."),
+                                                   xbrlObject=cubeType, name=name, i=i)
+                                    if (cubeNtwkCnstrObj.target and baseCubeNtwkCnstrObj.target and
+                                            (cubeNtwkCnstrObj.target.qname != baseCubeNtwkCnstrObj.target.qname or
+                                             cubeNtwkCnstrObj.target.objectType != baseCubeNtwkCnstrObj.target.objectType or
+                                             cubeNtwkCnstrObj.target.dataType != baseCubeNtwkCnstrObj.target.dataType)):
+                                        emit_error(compMdl, "oimte:invalidRelationshipConstraintRelaxation",
+                                                   _("The cube type %(name)s, must not relax cubeNetworkConstraints/cubeNetworks[%(i)s].target constraint from base cube type."),
+                                                   xbrlObject=cubeType, name=name, i=i)
                             if not matchingBaseNtwkCnstrFound:
                                 emit_error(compMdl, "oimte:invalidRelationshipExpansion",
                                            _("The cube type %(name)s, must not set cubeNetworkConstraints/cubeNetworks[%(i)s] must not be added when base does not have that network constraint"),
@@ -152,7 +222,7 @@ def validateCubeTypeFamily(compMdl, module, oimFile, *, assertObjectType, valida
                         if basePropertiesRequired:
                             removedPropsReqd = basePropertiesRequired - cubeType.cubeProperties.requiredProperties
                             if removedPropsReqd:
-                                emit_error(compMdl, "oimte:missingRequiredCubeProperty",
+                                emit_error(compMdl, "oimte:invalidPropertyRequirementRelaxation",
                                            _("The cube type %(name)s, must not remove property types required by the base type: %(qnames)s"),
                                            xbrlObject=cubeType, name=name,
                                            qnames=", ".join(sorted(str(qn) for qn in removedPropsReqd)))
