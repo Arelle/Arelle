@@ -44,10 +44,16 @@ def resolveFact(txmyMdl, txmyObj, fact):
     if isinstance(cQn, str) and ":" in cQn:
         cQn = fact.factDimensions[conceptCoreDim] = qname(cQn, txmyObj._prefixNamespaces)
     cObj = txmyMdl.namedObjects.get(cQn)
-    if cObj is None or not isinstance(cObj, XbrlConcept):
+    if cObj is None:
         txmyMdl.error("oimte:missingConceptDimension",
                       _("The concept core dimension MUST be present on fact: %(name)s and must be a taxonomy concept."),
                       xbrlObject=fact, name=fact.name)
+        fact._xValid = False
+        return
+    if not isinstance(cObj, XbrlConcept):
+        txmyMdl.error("oimte:invalidObjectType",
+                      _("The concept core dimension on fact %(name)s MUST reference a concept object, not %(objectType)s."),
+                      xbrlObject=fact, name=fact.name, objectType=type(cObj).__name__)
         fact._xValid = False
         return
     cDataType = txmyMdl.namedObjects.get(cObj.dataType)
