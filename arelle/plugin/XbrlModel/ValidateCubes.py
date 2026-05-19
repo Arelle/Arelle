@@ -5,6 +5,7 @@ See COPYRIGHT.md for copyright information.
 from arelle.ModelValue import qname, QName
 from .XbrlCube import XbrlCube, conceptCoreDim, periodCoreDim, entityCoreDim, unitCoreDim
 from .XbrlDimension import XbrlDimension
+from .XbrlReport import XbrlFact
 from .VectorSearch import buildXbrlVectors, searchXbrl, searchXbrlBatchTopk, SEARCH_CUBES, SEARCH_FACTPOSITIONS, SEARCH_BOTH
 from arelle.XmlValidateConst import VALID, INVALID
 
@@ -135,6 +136,8 @@ def validateCubes(compMdl, factspace):
 def validateCompleteCube(compMdl, cubeObj):
     # replace with vectorized search
     factspaces = getattr(cubeObj, "_factspaces", None)
+    if not any(True for _ in compMdl.filterNamedObjects(XbrlFact)):
+        return
     if not factspaces:
         compMdl.error("oimte:factMissingFromCube",
                      _("The complete cube %(name)s has no facts."),
