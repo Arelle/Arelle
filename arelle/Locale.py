@@ -143,6 +143,14 @@ class _LocaleCode(NamedTuple):
             return self.lang + BCP47_LANGUAGE_REGION_SEPARATOR + self.region
         return self.lang
 
+    @property
+    def encoding_lc(self) -> str:
+        """
+        Return the encoding in lowercase, defaulting to
+        POSIX_LOCALE_DEFAULT_ENCODING if encoding is None.
+        """
+        return self.encoding.lower() if self.encoding else POSIX_LOCALE_DEFAULT_ENCODING
+
     def strip_encoding(self) -> _LocaleCode:
         """Return a copy with encoding set to None."""
         return self._replace(encoding=None)
@@ -239,7 +247,7 @@ def _candidatePosixLocales(posixLocale: str) -> Iterator[str]:
     """
     lc = _LocaleCode.from_posix(posixLocale)
     defaultRegion = defaultLocaleCodes.get(lc.lang)
-    not_default_encoding = lc.encoding is not None and lc.encoding.lower() != POSIX_LOCALE_DEFAULT_ENCODING
+    not_default_encoding = lc.encoding_lc != POSIX_LOCALE_DEFAULT_ENCODING
 
     primary: list[_LocaleCode] = []
     if not_default_encoding:
@@ -269,8 +277,7 @@ def _compatibleSystemLocales(lc: _LocaleCode, exclude: set[_LocaleCode]) -> list
 
     def _sortKey(candidate: _LocaleCode) -> tuple[bool, bool, str]:
         region_match = lc.region is None or candidate.region == lc.region
-        encoding_match = (candidate.encoding is None and lc.encoding is None) or \
-                     (candidate.encoding == (lc.encoding or POSIX_LOCALE_DEFAULT_ENCODING))
+        encoding_match = candidate.encoding_lc == lc.encoding_lc
         return (not region_match, not encoding_match, candidate.to_posix)
 
     return sorted(matches, key=_sortKey)

@@ -22,6 +22,7 @@ from arelle.Locale import (
     _getSystem_LocaleCodes,
     _LocaleCode,
     posixLocaleToBCP47Lang,
+    POSIX_LOCALE_DEFAULT_ENCODING,
 )
 from arelle.PythonUtil import tryRunCommand
 from arelle.XbrlConst import defaultLocale
@@ -267,6 +268,15 @@ class Test_LocaleCode:
         lc = _LocaleCode('en', 'US', None)
         assert lc.strip_encoding() == lc
 
+    @pytest.mark.parametrize('lc, expected', [
+        (_LocaleCode('en', 'US', 'ISO-8859-1'), 'iso-8859-1'),
+        (_LocaleCode('en', 'US', 'iso-8859-1'), 'iso-8859-1'),
+        (_LocaleCode('en', 'US', 'Iso-8859-1'), 'iso-8859-1'),
+        (_LocaleCode('en', 'US', None), POSIX_LOCALE_DEFAULT_ENCODING),
+    ])
+    def test_encoding_lc(self, lc: _LocaleCode, expected: str) -> None:
+        assert lc.encoding_lc == expected
+
     @pytest.mark.parametrize('invalid', [
         'I am a badger',
         '',
@@ -279,6 +289,10 @@ class Test_LocaleCode:
     def test_parse_invalid_raises(self, invalid: str) -> None:
         with pytest.raises(ValueError):
             _LocaleCode.parse(invalid)
+
+
+def test_posix_locale_default_encoding_is_lowercase() -> None:
+    assert POSIX_LOCALE_DEFAULT_ENCODING == POSIX_LOCALE_DEFAULT_ENCODING.lower()
 
 
 class TestBcp47LangToPosixLocale:
