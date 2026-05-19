@@ -122,7 +122,10 @@ def validateCubes(compMdl, factspace):
     """
     # find likely cubes
     cubeFitQuery = [(dimQn, value) for dimQn,value in factspace.factDimensions.items() if isinstance(dimQn, QName)]
-    results = searchXbrl(compMdl, cubeFitQuery, SEARCH_CUBES, 50) # allow sufficient return scores
+    try:
+        results = searchXbrl(compMdl, cubeFitQuery, SEARCH_CUBES, 50) # allow sufficient return scores
+    except (ValueError, KeyError):
+        results = []  # fall back when queryAspects don't exist in vectorized model
     print(f"Cube fit scores for factspace {factspace.name} {[(r[0],r[1].name) for r in results]}")
 
     usableCubes = []
