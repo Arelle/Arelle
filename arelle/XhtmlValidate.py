@@ -34,7 +34,7 @@ def xhtmlValidate(modelXbrl: ModelXbrl, elt: ModelObject) -> None:
         valHtmlContentMsgPrefix = validationType + ".5.02.05."
 
     inlineSchema = INLINE_1_1_SCHEMA
-    if _containsNamespacedElements(elt, XbrlConst.ixbrl) and not _containsNamespacedElements(elt, XbrlConst.ixbrl11):
+    if containsNamespacedElements(elt, XbrlConst.ixbrl) and not containsNamespacedElements(elt, XbrlConst.ixbrl11):
         inlineSchema = INLINE_1_0_SCHEMA
     XmlValidate.lxmlSchemaValidate(elt.modelDocument, inlineSchema)
 
@@ -48,5 +48,5 @@ def xhtmlValidate(modelXbrl: ModelXbrl, elt: ModelObject) -> None:
         ValidateFilingText.validateHtmlContent(modelXbrl, elt, elt, "InlineXBRL", valHtmlContentMsgPrefix, isInline=True)
 
 
-def _containsNamespacedElements(elt: etree.ElementBase, namespace: str) -> bool:
+def containsNamespacedElements(elt: etree.ElementBase, namespace: str) -> bool:
     return elt.getroottree().find(".//ns:*", {"ns": namespace}) is not None
