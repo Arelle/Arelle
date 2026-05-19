@@ -24,7 +24,7 @@ htmlEltUriAttrs: dict[str, set[str]] = { # attributes with URI content (for rela
     "input": {"src", "usemap"},
     "ins": {"cite"},
     "img": {"src", "longdesc", "usemap"},
-    "object": {"codebase", "classid", "data", "archive", "usemap"}, # codebase must be first to resolve others
+    "object": {"codebase", "classid", "data", "archive", "usemap"},
     "q": {"cite"},
 }
 
