@@ -264,7 +264,6 @@ def escapedNode(
     if elt.namespaceURI in ixbrlAll:
         return ''  # do not yield XML for nested facts
     if ixResolveUris:
-        assert isinstance(htmlEltUriAttrs, dict)
         uriAttrs = htmlEltUriAttrs.get(elt.qname.localName, ())
     else:
         uriAttrs = ()
