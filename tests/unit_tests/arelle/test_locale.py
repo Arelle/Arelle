@@ -1,5 +1,5 @@
 from __future__ import annotations
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 from typing import Any
 import locale
 import sys
@@ -393,98 +393,132 @@ class TestGetLanguageCodes:
 
 
 class TestCompatibleSystemLocales:
-    def test_filters_by_language(self) -> None:
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset({_LocaleCode('en', 'US', None), _LocaleCode('fr', 'FR', None), _LocaleCode('de', 'DE', None)})):
-            result = _compatibleSystemLocales(_LocaleCode('en', 'US', None), exclude=set())
+    @pytest.fixture
+    def compatible_locales(self) -> Callable[..., list[_LocaleCode]]:
+        def _call(lc: _LocaleCode, *, system_locales: list[_LocaleCode], exclude: set[_LocaleCode] | None = None) -> list[_LocaleCode]:
+            with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset(system_locales)):
+                return _compatibleSystemLocales(lc, exclude=exclude or set())
+        return _call
+
+    def test_filters_by_language(self, compatible_locales) -> None:
+        result = compatible_locales(
+            _LocaleCode('en', 'US', None),
+            system_locales=[_LocaleCode('en', 'US', None), _LocaleCode('fr', 'FR', None), _LocaleCode('de', 'DE', None)],
+        )
         assert result == [_LocaleCode('en', 'US', None)]
 
-    def test_excludes_already_listed(self) -> None:
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset({_LocaleCode('en', 'US', None), _LocaleCode('en', 'GB', None)})):
-            result = _compatibleSystemLocales(_LocaleCode('en', 'US', None), exclude={_LocaleCode('en', 'US', None)})
+    def test_excludes_already_listed(self, compatible_locales) -> None:
+        result = compatible_locales(
+            _LocaleCode('en', 'US', None),
+            system_locales=[_LocaleCode('en', 'US', None), _LocaleCode('en', 'GB', None)],
+            exclude={_LocaleCode('en', 'US', None)},
+        )
         assert _LocaleCode('en', 'US', None) not in result
         assert _LocaleCode('en', 'GB', None) in result
 
-    def test_matches_bare_language(self) -> None:
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset({_LocaleCode('en', None, None), _LocaleCode('fr', None, None)})):
-            result = _compatibleSystemLocales(_LocaleCode('en', None, None), exclude=set())
+    def test_matches_bare_language(self, compatible_locales) -> None:
+        result = compatible_locales(
+            _LocaleCode('en', None, None),
+            system_locales=[_LocaleCode('en', None, None), _LocaleCode('fr', None, None)],
+        )
         assert result == [_LocaleCode('en', None, None)]
 
-    def test_no_false_prefix_match(self) -> None:
+    def test_no_false_prefix_match(self, compatible_locales) -> None:
         """'english' should not match language 'en' — parsed lang field must equal 'en' exactly."""
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset({_LocaleCode('english', None, None), _LocaleCode('eno', None, None)})):
-            result = _compatibleSystemLocales(_LocaleCode('en', None, None), exclude=set())
+        result = compatible_locales(
+            _LocaleCode('en', None, None),
+            system_locales=[_LocaleCode('english', None, None), _LocaleCode('eno', None, None)],
+        )
         assert result == []
 
-    def test_language_prefix_does_not_match_longer_language_code(self) -> None:
+    def test_language_prefix_does_not_match_longer_language_code(self, compatible_locales) -> None:
         """'fi' (Finnish) must not match 'fil_PH' (Filipino) even though 'fil' starts with 'fi'."""
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset({_LocaleCode('fi', 'FI', None), _LocaleCode('fil', 'PH', None)})):
-            result = _compatibleSystemLocales(_LocaleCode('fi', 'FI', None), exclude=set())
+        result = compatible_locales(
+            _LocaleCode('fi', 'FI', None),
+            system_locales=[_LocaleCode('fi', 'FI', None), _LocaleCode('fil', 'PH', None)],
+        )
         assert _LocaleCode('fil', 'PH', None) not in result
         assert _LocaleCode('fi', 'FI', None) in result
 
-    def test_longer_language_code_does_not_match_prefix(self) -> None:
+    def test_longer_language_code_does_not_match_prefix(self, compatible_locales) -> None:
         """'fil' (Filipino) must not match 'fi_FI' (Finnish) even though 'fil' starts with 'fi'."""
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset({_LocaleCode('fi', 'FI', None), _LocaleCode('fil', 'PH', None)})):
-            result = _compatibleSystemLocales(_LocaleCode('fil', 'PH', None), exclude=set())
+        result = compatible_locales(
+            _LocaleCode('fil', 'PH', None),
+            system_locales=[_LocaleCode('fi', 'FI', None), _LocaleCode('fil', 'PH', None)],
+        )
         assert _LocaleCode('fi', 'FI', None) not in result
         assert _LocaleCode('fil', 'PH', None) in result
 
-    def test_sort_prefers_matching_region(self) -> None:
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset({_LocaleCode('en', 'US', None), _LocaleCode('en', 'GB', None), _LocaleCode('en', 'AU', None)})):
-            result = _compatibleSystemLocales(_LocaleCode('en', 'US', None), exclude=set())
+    def test_sort_prefers_matching_region(self, compatible_locales) -> None:
+        result = compatible_locales(
+            _LocaleCode('en', 'US', None),
+            system_locales=[_LocaleCode('en', 'US', None), _LocaleCode('en', 'GB', None), _LocaleCode('en', 'AU', None)],
+        )
         assert result[0] == _LocaleCode('en', 'US', None)
 
-    def test_sort_prefers_matching_encoding(self) -> None:
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset({_LocaleCode('en', 'US', 'UTF-8'), _LocaleCode('en', 'US', 'ISO-8859-1')})):
-            result = _compatibleSystemLocales(_LocaleCode('en', 'US', 'UTF-8'), exclude=set())
+    def test_sort_prefers_matching_encoding(self, compatible_locales) -> None:
+        result = compatible_locales(
+            _LocaleCode('en', 'US', 'UTF-8'),
+            system_locales=[_LocaleCode('en', 'US', 'UTF-8'), _LocaleCode('en', 'US', 'ISO-8859-1')],
+        )
         assert result[0] == _LocaleCode('en', 'US', 'UTF-8')
 
-    def test_empty_system_locales(self) -> None:
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset()):
-            result = _compatibleSystemLocales(_LocaleCode('en', 'US', None), exclude=set())
+    def test_empty_system_locales(self, compatible_locales) -> None:
+        result = compatible_locales(_LocaleCode('en', 'US', None), system_locales=[])
         assert result == []
 
-    def test_bare_language_matches_all_regions(self) -> None:
+    def test_bare_language_matches_all_regions(self, compatible_locales) -> None:
         """Bare 'en' with no region matches en_US, en_GB, en_AU etc."""
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset({_LocaleCode('en', 'US', None), _LocaleCode('en', 'GB', None), _LocaleCode('en', 'AU', None), _LocaleCode('fr', 'FR', None)})):
-            result = _compatibleSystemLocales(_LocaleCode('en', None, None), exclude=set())
+        result = compatible_locales(
+            _LocaleCode('en', None, None),
+            system_locales=[_LocaleCode('en', 'US', None), _LocaleCode('en', 'GB', None), _LocaleCode('en', 'AU', None), _LocaleCode('fr', 'FR', None)],
+        )
         assert set(result) == {_LocaleCode('en', 'US', None), _LocaleCode('en', 'GB', None), _LocaleCode('en', 'AU', None)}
 
-    def test_bare_language_matches_encoding_variants(self) -> None:
+    def test_bare_language_matches_encoding_variants(self, compatible_locales) -> None:
         """Bare 'ja' matches ja_JP.UTF-8, ja_JP.eucJP etc."""
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset({_LocaleCode('ja', 'JP', 'UTF-8'), _LocaleCode('ja', 'JP', 'eucJP'), _LocaleCode('en', 'US', None)})):
-            result = _compatibleSystemLocales(_LocaleCode('ja', None, None), exclude=set())
+        result = compatible_locales(
+            _LocaleCode('ja', None, None),
+            system_locales=[_LocaleCode('ja', 'JP', 'UTF-8'), _LocaleCode('ja', 'JP', 'eucJP'), _LocaleCode('en', 'US', None)],
+        )
         assert set(result) == {_LocaleCode('ja', 'JP', 'UTF-8'), _LocaleCode('ja', 'JP', 'eucJP')}
 
-    def test_bare_language_with_encoding_dot_separator(self) -> None:
+    def test_bare_language_with_encoding_dot_separator(self, compatible_locales) -> None:
         """Bare 'en' matches en.UTF-8 (dot separator at lang_len)."""
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset({_LocaleCode('en', None, 'UTF-8'), _LocaleCode('en', 'US', None)})):
-            result = _compatibleSystemLocales(_LocaleCode('en', None, None), exclude=set())
+        result = compatible_locales(
+            _LocaleCode('en', None, None),
+            system_locales=[_LocaleCode('en', None, 'UTF-8'), _LocaleCode('en', 'US', None)],
+        )
         assert set(result) == {_LocaleCode('en', None, 'UTF-8'), _LocaleCode('en', 'US', None)}
 
-    def test_sort_encoding_no_encoding_requested_prefers_no_encoding(self) -> None:
+    def test_sort_encoding_no_encoding_requested_prefers_no_encoding(self, compatible_locales) -> None:
         """When no encoding requested, locales without encoding sort first."""
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset({_LocaleCode('en', 'US', None), _LocaleCode('en', 'US', 'UTF-8'), _LocaleCode('en', 'US', 'ISO-8859-1')})):
-            result = _compatibleSystemLocales(_LocaleCode('en', 'US', None), exclude=set())
+        result = compatible_locales(
+            _LocaleCode('en', 'US', None),
+            system_locales=[_LocaleCode('en', 'US', None), _LocaleCode('en', 'US', 'UTF-8'), _LocaleCode('en', 'US', 'ISO-8859-1')],
+        )
         assert result[0] == _LocaleCode('en', 'US', None)
 
-    def test_sort_non_utf8_encoding_requested(self) -> None:
+    def test_sort_non_utf8_encoding_requested(self, compatible_locales) -> None:
         """When ISO-8859-1 is requested, that encoding sorts first."""
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset({_LocaleCode('en', 'US', 'UTF-8'), _LocaleCode('en', 'US', 'ISO-8859-1')})):
-            result = _compatibleSystemLocales(_LocaleCode('en', 'US', 'ISO-8859-1'), exclude=set())
+        result = compatible_locales(
+            _LocaleCode('en', 'US', 'ISO-8859-1'),
+            system_locales=[_LocaleCode('en', 'US', 'UTF-8'), _LocaleCode('en', 'US', 'ISO-8859-1')],
+        )
         assert result[0] == _LocaleCode('en', 'US', 'ISO-8859-1')
 
-    def test_all_encoding_variants_included(self) -> None:
+    def test_all_encoding_variants_included(self, compatible_locales) -> None:
         """All encoding variants of the language are included, not just the requested one."""
-        system = frozenset({_LocaleCode('en', 'US', 'UTF-8'), _LocaleCode('en', 'US', 'ISO-8859-1'), _LocaleCode('en', 'US', 'eucJP')})
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=system):
-            result = _compatibleSystemLocales(_LocaleCode('en', 'US', 'UTF-8'), exclude=set())
-        assert set(result) == system
+        system = [_LocaleCode('en', 'US', 'UTF-8'), _LocaleCode('en', 'US', 'ISO-8859-1'), _LocaleCode('en', 'US', 'eucJP')]
+        result = compatible_locales(_LocaleCode('en', 'US', 'UTF-8'), system_locales=system)
+        assert set(result) == set(system)
 
-    def test_bare_language_sorts_before_regionalized_when_no_region(self) -> None:
+    def test_bare_language_sorts_before_regionalized_when_no_region(self, compatible_locales) -> None:
         """When region=None, bare 'en' should sort before 'en_US' / 'en_GB'."""
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset({_LocaleCode('en', None, None), _LocaleCode('en', 'US', None), _LocaleCode('en', 'GB', None)})):
-            result = _compatibleSystemLocales(_LocaleCode('en', None, None), exclude=set())
+        result = compatible_locales(
+            _LocaleCode('en', None, None),
+            system_locales=[_LocaleCode('en', None, None), _LocaleCode('en', 'US', None), _LocaleCode('en', 'GB', None)],
+        )
         assert result[0] == _LocaleCode('en', None, None)
 
 
@@ -526,99 +560,92 @@ class TestCompatibleSystemLocalesIntegration:
 
 
 class TestCandidate_LocaleCodes:
-    @staticmethod
-    def candidates(posixLocale: str) -> list[str]:
-        return list(_candidatePosixLocales(posixLocale))
+    @pytest.fixture
+    def candidates(self) -> Callable[..., list[str]]:
+        def _call(posix_locale: str, *, system_locales: list[_LocaleCode] | None = None) -> list[str]:
+            with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset(system_locales or [])):
+                return list(_candidatePosixLocales(posix_locale))
+        return _call
 
-    def test_non_default_region_adds_default_variant(self) -> None:
+    def test_non_default_region_adds_default_variant(self, candidates) -> None:
         """en_US should produce en_GB since default_LocaleCodes['en'] == 'GB'."""
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset()):
-            result = self.candidates('en_US')
+        result = candidates('en_US')
         assert 'en_GB' in result
 
-    def test_non_default_encoding_adds_utf8_variant(self) -> None:
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset()):
-            result = self.candidates('en_US.ISO-8859-1')
+    def test_non_default_encoding_adds_utf8_variant(self, candidates) -> None:
+        result = candidates('en_US.ISO-8859-1')
         assert 'en_US.utf-8' in result
 
-    def test_bare_language_no_region_variants(self) -> None:
+    def test_bare_language_no_region_variants(self, candidates) -> None:
         """Bare language 'en' has no region, so no region-swap candidates are generated."""
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset()):
-            result = self.candidates('en')
+        result = candidates('en')
         # No computed candidates — region is None so the region != defaultRegion branch is skipped
         assert not any('_' in code for code in result)
 
-    def test_unknown_language_with_region_does_not_produce_bare_lang_candidate(self) -> None:
+    def test_unknown_language_with_region_does_not_produce_bare_lang_candidate(self, candidates) -> None:
         """A language absent from default_LocaleCodes should not generate a bare-lang candidate."""
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset()):
-            result = self.candidates('xx_YY')
+        result = candidates('xx_YY')
         # defaultRegion is None for 'xx', so no region-swap candidate should appear
         assert 'xx' not in result
 
-    def test_system_locales_come_after_computed(self) -> None:
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset({_LocaleCode('en', 'AU', None)})):
-            result = self.candidates('en_US')
+    def test_system_locales_come_after_computed(self, candidates) -> None:
+        result = candidates('en_US', system_locales=[_LocaleCode('en', 'AU', None)])
         # en_GB is the computed default-region variant, en_AU comes from system locales
         assert result.index('en_GB') < result.index('en_AU')
 
-    def test_no_duplicates(self) -> None:
+    def test_no_duplicates(self, candidates) -> None:
         """System locales that match a computed candidate should not appear twice."""
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset({_LocaleCode('en', 'GB', None), _LocaleCode('en', 'AU', None)})):
-            result = self.candidates('en_US')
+        result = candidates('en_US', system_locales=[_LocaleCode('en', 'GB', None), _LocaleCode('en', 'AU', None)])
         assert result.count('en_GB') == 1
 
-    def test_bare_language_en(self) -> None:
+    def test_bare_language_en(self, candidates) -> None:
         """Bare 'en' generates no computed candidates but picks up system locales."""
-        system = frozenset({_LocaleCode('en', 'US', None), _LocaleCode('en', 'GB', None), _LocaleCode('en', 'AU', 'UTF-8'), _LocaleCode('fr', 'FR', None)})
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=system):
-            result = self.candidates('en')
+        result = candidates('en', system_locales=[
+            _LocaleCode('en', 'US', None), _LocaleCode('en', 'GB', None),
+            _LocaleCode('en', 'AU', 'UTF-8'), _LocaleCode('fr', 'FR', None),
+        ])
         assert 'fr_FR' not in result
         assert set(result) == {'en_US', 'en_GB', 'en_AU.UTF-8'}
 
-    def test_bare_language_ja(self) -> None:
+    def test_bare_language_ja(self, candidates) -> None:
         """Bare 'ja' picks up all ja_* system locales."""
-        system = frozenset({_LocaleCode('ja', 'JP', 'UTF-8'), _LocaleCode('ja', 'JP', 'eucJP'), _LocaleCode('en', 'US', None)})
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=system):
-            result = self.candidates('ja')
+        result = candidates('ja', system_locales=[
+            _LocaleCode('ja', 'JP', 'UTF-8'), _LocaleCode('ja', 'JP', 'eucJP'), _LocaleCode('en', 'US', None),
+        ])
         assert set(result) == {'ja_JP.UTF-8', 'ja_JP.eucJP'}
 
-    def test_non_default_encoding_generates_utf8_and_default_region_variants(self) -> None:
+    def test_non_default_encoding_generates_utf8_and_default_region_variants(self, candidates) -> None:
         """en_US.ISO-8859-1 generates en_US.utf-8, en_GB.ISO-8859-1, and en_GB.utf-8."""
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset()):
-            result = self.candidates('en_US.ISO-8859-1')
+        result = candidates('en_US.ISO-8859-1')
         assert 'en_US.utf-8' in result
         assert 'en_GB.ISO-8859-1' in result
         assert 'en_GB.utf-8' in result
 
-    def test_utf8_encoding_does_not_duplicate(self) -> None:
+    def test_utf8_encoding_does_not_duplicate(self, candidates) -> None:
         """en_US.utf-8 is already the default encoding — no utf-8 variant generated."""
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset()):
-            result = self.candidates('en_US.utf-8')
+        result = candidates('en_US.utf-8')
         assert result.count('en_US.utf-8') == 0  # input itself is not in candidates
         # Only the default-region variant is generated
         assert 'en_GB.utf-8' in result
 
-    def test_UTF8_case_insensitive(self) -> None:
+    def test_UTF8_case_insensitive(self, candidates) -> None:
         """en_US.UTF-8 (uppercase) is treated as default encoding."""
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset()):
-            result = self.candidates('en_US.UTF-8')
+        result = candidates('en_US.UTF-8')
         # Should not generate en_US.utf-8 since UTF-8 is already the default
         assert 'en_US.utf-8' not in result
         assert 'en_GB.UTF-8' in result
 
-    def test_default_region_no_extra_candidates(self) -> None:
+    def test_default_region_no_extra_candidates(self, candidates) -> None:
         """en_GB is the default region for 'en' — no region-swap candidate generated."""
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=frozenset()):
-            result = self.candidates('en_GB')
+        result = candidates('en_GB')
         # region == defaultRegion, so no fallback to another region
         assert not any(code.startswith('en_') and 'GB' not in code for code in result)
 
-    def test_system_encoding_variants_sorted_by_relevance(self) -> None:
+    def test_system_encoding_variants_sorted_by_relevance(self, candidates) -> None:
         """System locales with matching encoding sort before non-matching."""
-        system = frozenset({_LocaleCode('en', 'US', 'UTF-8'), _LocaleCode('en', 'US', 'ISO-8859-1'), _LocaleCode('en', 'US', 'eucJP')})
+        system = [_LocaleCode('en', 'US', 'UTF-8'), _LocaleCode('en', 'US', 'ISO-8859-1'), _LocaleCode('en', 'US', 'eucJP')]
         system_posix = {lc.to_posix for lc in system}
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=system):
-            result = self.candidates('en_US.ISO-8859-1')
+        result = candidates('en_US.ISO-8859-1', system_locales=system)
         # Computed candidates come first, then system locales
         # Among system locales, ISO-8859-1 would match but it's excluded (already computed as en_US.utf-8 variant)
         # en_US.ISO-8859-1 is the original input (not in candidates), but system has it
@@ -628,18 +655,14 @@ class TestCandidate_LocaleCodes:
         utf8_idx = [i for i, c in enumerate(system_portion) if 'UTF-8' in c]
         assert iso_idx[0] < utf8_idx[0]
 
-    def test_language_prefix_does_not_include_longer_language_code(self) -> None:
+    def test_language_prefix_does_not_include_longer_language_code(self, candidates) -> None:
         """Candidates for 'fi' (Finnish) must not include 'fil_PH' (Filipino) system locales."""
-        system = frozenset({_LocaleCode('fi', 'FI', None), _LocaleCode('fil', 'PH', None)})
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=system):
-            result = self.candidates('fi_FI')
+        result = candidates('fi_FI', system_locales=[_LocaleCode('fi', 'FI', None), _LocaleCode('fil', 'PH', None)])
         assert 'fil_PH' not in result
 
-    def test_longer_language_code_does_not_include_prefix_locales(self) -> None:
+    def test_longer_language_code_does_not_include_prefix_locales(self, candidates) -> None:
         """Candidates for 'fil' (Filipino) must not include 'fi_FI' (Finnish) system locales."""
-        system = frozenset({_LocaleCode('fi', 'FI', None), _LocaleCode('fil', 'PH', None)})
-        with patch.object(LocaleModule, '_getSystem_LocaleCodes', return_value=system):
-            result = self.candidates('fil_PH')
+        result = candidates('fil_PH', system_locales=[_LocaleCode('fi', 'FI', None), _LocaleCode('fil', 'PH', None)])
         assert 'fi_FI' not in result
 
 
