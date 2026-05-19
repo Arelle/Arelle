@@ -5,16 +5,20 @@ The `arelle.api` module is the supported method for integrating Arelle into othe
 """
 from __future__ import annotations
 
+from pathlib import Path
+
 import logging
 import threading
 from types import TracebackType
-from typing import Any, BinaryIO, TypeVar
+from typing import Any, BinaryIO, TypeVar, Literal
 
 from arelle import PackageManager, PluginManager
+from arelle.Cntlr import TypeLogFileName
 from arelle.CntlrCmdLine import CntlrCmdLine, createCntlrAndPreloadPlugins
 from arelle.FileSource import FileNamedBytesIO
 from arelle.ModelXbrl import ModelXbrl
 from arelle.RuntimeOptions import RuntimeOptions
+from arelle.logging.handlers.LogToXmlHandler import LogToXmlHandler
 
 _session_lock = threading.Lock()
 
@@ -60,6 +64,13 @@ class Session:
     ) -> None:
         self.close()
 
+    def clear_logs(self) -> None:
+        """
+        Clears the log buffer (if the current log handler supports buffering, e.g., LogToXmlHandler).
+        """
+        if self._cntlr and isinstance(self._cntlr.logHandler, LogToXmlHandler):
+            self._cntlr.logHandler.clearLogBuffer()
+
     def close(self) -> None:
         with _session_lock:
             self._check_thread()
@@ -69,13 +80,14 @@ class Session:
 
     def get_log_messages(self) -> list[dict[str, Any]]:
         """
-        :return: Raw log records (messages) from the session.
+        Returns structured log messages from the session's log handler if it supports structured messages (e.g., StructuredMessageLogHandler).
+        :return: Structured log messages from the session.
         """
         if not self._cntlr or not self._cntlr.logHandler:
             return []
         return getattr(self._cntlr.logHandler, 'messages', [])
 
-    def get_logs(self, log_format: str, clear_logs: bool = False) -> str:
+    def get_logs(self, log_format: Literal["json", "text", "xml"], clear_logs: bool = False) -> str:
         """
         Retrieve logs as a string in the configured format.
         Raises a `ValueError` if the log format is not supported by the current log handler.
@@ -110,7 +122,7 @@ class Session:
         responseZipStream: BinaryIO | None = None,
         logHandler: logging.Handler | None = None,
         logFilters: list[logging.Filter] | None = None,
-        logFileName: str | None = None,
+        logFileName: Path | TypeLogFileName | None = None,
     ) -> bool:
         """
         Perform a run using the given options.
@@ -124,8 +136,12 @@ class Session:
         :param sourceZipStream: Optional stream to read source data from.
         :param responseZipStream: Options stream to write response data to.
         :param logHandler: Optional log handler to use for logging.
+        :param logFilters: Log filters to apply to logger.
+        :param logFileName: Log output filepath or keyword (see "Logging" in "Python API" documentation).
         :return: True if the run was successful, False otherwise.
         """
+        if isinstance(logFileName, Path):
+            logFileName = str(logFileName)
         with _session_lock:
             self._check_thread()
             PackageManager.getInstance().close()

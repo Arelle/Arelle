@@ -18,7 +18,7 @@ import os
 import subprocess
 import sys
 import tempfile
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, cast, Union, Literal
 
 import regex
 
@@ -51,6 +51,11 @@ if TYPE_CHECKING:
 osPrcs: Any = None
 LOG_TEXT_MAX_LENGTH = 32767
 cxFrozen = getattr(sys, 'frozen', False)
+
+TypeLogFileName = Union[
+    str,
+    Literal["logToBuffer", "logToPrint", "logToStdErr", "logToStructuredMessage"]
+]
 
 
 def resourcesDir() -> str:
@@ -162,7 +167,7 @@ class Cntlr:
     def __init__(
         self,
         hasGui: bool = False,
-        logFileName: str | None = None,
+        logFileName: TypeLogFileName | None = None,
         logFileMode: str | None = None,
         logFileEncoding: str | None = None,
         logFormat: str | None = None,
@@ -387,7 +392,7 @@ class Cntlr:
 
     def startLogging(
         self,
-        logFileName: str | None = None,
+        logFileName: TypeLogFileName | None = None,
         logFileMode: str | None = None,
         logFileEncoding:str | None = None,
         logFormat: str | None = None,

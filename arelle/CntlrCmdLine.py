@@ -28,6 +28,8 @@ from typing import Any, TYPE_CHECKING, cast
 import regex as re
 from lxml import etree
 
+from arelle.Cntlr import TypeLogFileName
+
 try:
     import win32file, win32api, win32process, pywintypes
 except ImportError: # win32 not installed
@@ -1585,7 +1587,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
     def __init__(
             self,
-            logFileName: str | None = None,
+            logFileName: TypeLogFileName | None = None,
             uiLang: str | None = None,
             disable_persistent_config: bool = False
         ) -> None:

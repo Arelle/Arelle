@@ -29,6 +29,7 @@ autodoc2_packages = [
         "exclude_dirs": ["resources"],
     }
 ]
+autodoc2_hidden_objects = ["private", "dunder"]
 autodoc2_render_plugin = "myst"
 suppress_warnings = [
     "autodoc2.dup_item", # bottle and tkinter warnings
