@@ -172,7 +172,6 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument, checkedModelDocume
                 else:
                     hrefedElt = hrefedDoc.xmlRootElement
 
-            assert hrefedElt is not None, "hrefedElt is None"
             if hrefId:  #check scheme regardless of whether document loaded
                 # check all xpointer schemes
                 for scheme, path in XmlUtil.xpointerSchemes(hrefId):
@@ -190,7 +189,7 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument, checkedModelDocume
                             elementHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
             # check href'ed target if a linkbaseRef
             if hrefElt.namespaceURI == XbrlConst.link:
-                if hrefElt.localName == "linkbaseRef":
+                if hrefedElt is not None and hrefElt.localName == "linkbaseRef":
                     # check linkbaseRef target
                     if (hrefedDoc is None or
                         hrefedDoc.type < ModelDocumentType.firstXBRLtype or  # range of doc types that can have linkbase
@@ -222,7 +221,7 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument, checkedModelDocume
                                         modelObject=hrefElt,
                                         linkbaseHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"),
                                         role=role, link=linkNode.prefixedName)
-                elif hrefElt.localName == "schemaRef":
+                elif hrefedElt is not None and hrefElt.localName == "schemaRef":
                     # check schemaRef target
                     if (hrefedDoc.type != ModelDocumentType.SCHEMA or
                         hrefedElt.namespaceURI != XbrlConst.xsd or hrefedElt.localName != "schema"):
@@ -233,8 +232,7 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument, checkedModelDocume
                 elif hrefElt.localName == "loc":
                     linkElt = hrefElt.getparent()
 
-                    assert linkElt is not None, "linkElt is None"
-                    if linkElt.namespaceURI ==  XbrlConst.link:
+                    if linkElt is not None and linkElt.namespaceURI ==  XbrlConst.link:
                         acceptableTarget = False
                         hrefEltKey = linkElt.localName
                         if hrefElt in val.remoteResourceLocElements:
@@ -248,7 +246,7 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument, checkedModelDocume
                                    "definitionLink":("{http://www.w3.org/2001/XMLSchema}element",),
                                    "presentationLink":("{http://www.w3.org/2001/XMLSchema}element",),
                                    "footnoteLink":("XBRL-item-or-tuple",) }[hrefEltKey]:
-                            if tgtTag == "XBRL-item-or-tuple":
+                            if hrefedElt is not None and tgtTag == "XBRL-item-or-tuple":
                                 concept = val.modelXbrl.qnameConcepts.get(qname(hrefedElt))
                                 acceptableTarget =  isinstance(concept, ModelDtsObject.ModelConcept) and \
                                                     (concept.isItem or concept.isTuple)
@@ -275,7 +273,7 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument, checkedModelDocume
                                                     "presentationLink": "concept",
                                                     "footnoteLink": "item or tuple" }[hrefEltKey],
                                  messageCodes=("xbrl.5.2.2.1:labelLinkLocTarget", "xbrl.5.2.3.1:referenceLinkLocTarget", "xbrl.5.2.5.1:calculationLinkLocTarget", "xbrl.5.2.6.1:definitionLinkLocTarget", "xbrl.5.2.4.1:presentationLinkLocTarget", "xbrl.4.11.1.1:footnoteLinkLocTarget"))
-                        if isInstance and not XmlUtil.isDescendantOf(hrefedElt, modelDocument.xmlRootElement):
+                        if hrefedElt is not None and isInstance and not XmlUtil.isDescendantOf(hrefedElt, modelDocument.xmlRootElement):
                             val.modelXbrl.error("xbrl.4.11.1.1:instanceLoc",
                                 _("Instance loc's href %(locHref)s not an element in same instance"),
                                  modelObject=hrefElt, locHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
@@ -909,7 +907,7 @@ def checkElements(val: ValidateXbrl, modelDocument: ModelDocument, parent: _Elem
                     targetRole = elt.get("{http://xbrl.org/2005/xbrldt}targetRole")
                     if not XbrlConst.isStandardRole(targetRole) and \
                        elt.qname == XbrlConst.qnLinkDefinitionArc and \
-                       (val.roleRefURIs and targetRole not in val.roleRefURIs):
+                       targetRole not in val.roleRefURIs:  # type: ignore[operator]
                         val.modelXbrl.error("xbrldte:TargetRoleNotResolvedError",
                             _("TargetRole %(targetRole)s is missing a roleRef"),
                             modelObject=elt, element=elt.qname, targetRole=targetRole)
