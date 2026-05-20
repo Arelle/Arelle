@@ -314,7 +314,7 @@ def pyObjectSize(obj: Any, seen: set[int] | None = None) -> int:
 def tryRunCommand(*args: str) -> str | None:
     """
     Tries to return the results of the provided command.
-    Returns stdout or None if the command exists with a non-zero code.
+    Returns stdout or None if the command exits with a non-zero code.
     """
     try:
         return subprocess.run(
