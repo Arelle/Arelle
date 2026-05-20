@@ -2,6 +2,7 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
+
 import datetime
 import regex as re
 from lxml import etree
@@ -9,11 +10,13 @@ from lxml import etree
 from arelle.XbrlConst import ixbrlAll, qnLinkFootnote, xhtml, xml, xsd
 from arelle.ModelValue import qname, QName, tzinfoStr
 from arelle.typing import ModelObjectBase, PrototypeElementTreeBase, PrototypeObjectBase
+from arelle.XhtmlInlineUtil import htmlEltUriAttrs, resolveHtmlUri
 from arelle.XmlValidateConst import VALID, INVALID
 from typing import Any, TextIO, TYPE_CHECKING, cast
-from collections.abc import Callable, Collection, Sequence, Generator, Mapping
+from collections.abc import Mapping
 
 if TYPE_CHECKING:
+    from collections.abc import Generator, Iterable, Sequence
     from arelle.ModelInstanceObject import ModelContext
     from arelle.ModelInstanceObject import ModelUnit
     from arelle.ModelDocument import ModelDocument
@@ -21,8 +24,6 @@ if TYPE_CHECKING:
     from arelle.PrototypeDtsObject import PrototypeElementTree, PrototypeObject
 
 
-htmlEltUriAttrs: dict[str, Collection[str]] | None = None
-resolveHtmlUri: Callable[[ModelObject, str | bytes | None, str | bytes | None], str] | None = None
 datetimePattern = re.compile(r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})(\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*|"
                              r"\s*([0-9]{4})-([0-9]{2})-([0-9]{2})(Z|[+-][0-9]{2}:[0-9]{2})?\s*")
 xmlDeclarationPattern = re.compile(r"(\s+)?(<\?xml[^><\?]*\?>)", re.DOTALL)
@@ -32,6 +33,7 @@ xmlnsStripPattern = re.compile(r'\s*xmlns(:[\w.-]+)?="[^"]*"')
 
 _consecutiveSpacePattern = re.compile(r" {2,}")
 _replaceWhitespaceTable = str.maketrans("\t\n\r", " " * 3)
+_ESCAPE_TEXT_TABLE = str.maketrans({'&': '&amp;', '<': '&lt;', '>': '&gt;'})
 
 
 class XmlDeclarationLocationException(Exception):
@@ -185,11 +187,11 @@ def textNotStripped(element: ModelObject | PrototypeObject | None) -> str:
         return ""
     return element.textValue  # allows embedded comment nodes, returns '' if None
 
+_SELF_CLOSING_TAGS = frozenset({'area', 'base', 'basefont', 'br', 'col', 'frame', 'hr', 'img',
+                                'input', 'isindex', 'link', 'meta', 'param'})
+
 def selfClosable(elt: ModelObject) -> bool:
-    return elt.qname.localName in (
-        'area', 'base', 'basefont', 'br', 'col', 'frame', 'hr', 'img',
-        'input', 'isindex', 'link', 'meta', 'param'
-    )
+    return elt.qname.localName in _SELF_CLOSING_TAGS
 
 # ixEscape can be None, "html" (xhtml namespace becomes default), "xhtml", or "xml"
 def innerText(
@@ -230,9 +232,6 @@ def innerTextNodes(
     ixContinuation: bool,
     ixResolveUris: bool
 ) -> Generator[str, None, None]:
-    global htmlEltUriAttrs, resolveHtmlUri
-    if htmlEltUriAttrs is None:
-        from arelle.XhtmlValidate import htmlEltUriAttrs, resolveHtmlUri
     while element is not None:
         if element.text:
             yield escapedText(element.text) if ixEscape else element.text
@@ -265,7 +264,6 @@ def escapedNode(
     if elt.namespaceURI in ixbrlAll:
         return ''  # do not yield XML for nested facts
     if ixResolveUris:
-        assert isinstance(htmlEltUriAttrs, dict)
         uriAttrs = htmlEltUriAttrs.get(elt.qname.localName, ())
     else:
         uriAttrs = ()
@@ -278,12 +276,11 @@ def escapedNode(
         tagName = str(elt.qname)
     s.append(tagName)
     if start or empty:
-        assert resolveHtmlUri is not None
-        if elt.localName == "object" and elt.get("codebase"): # resolve codebase before other element names
+        if elt.localName == "object" and (value := elt.get("codebase")): # resolve codebase before other element names
             # 2022-09-15: not sure about this one, but seems that
             # elt.get("codebase") should be the value arg for resolveHtmlUri
-            elt.set("codebase", resolveHtmlUri(elt, "codebase", elt.get("codebase")))
-        for n,v in sorted(elt.items(), key=lambda item: item[0]):
+            elt.set("codebase", resolveHtmlUri(elt, "codebase", value))
+        for n, v in sorted(elt.items(), key=lambda item: item[0]):
             if n in uriAttrs:
                 v = resolveHtmlUri(elt, n, v).replace(" ", "%20") # %20 replacement needed for conformance test passing
             s.append(' {0}="{1}"'.format(qname(elt, n),
@@ -297,11 +294,7 @@ def escapedNode(
     return ''.join(s)
 
 def escapedText(text: str) -> str:
-    return ''.join("&amp;" if c == "&"
-                   else "&lt;" if c == "<"
-                   else "&gt;" if c == ">"
-                   else c
-                   for c in text)
+    return text.translate(_ESCAPE_TEXT_TABLE)
 
 
 def replaceWhitespace(s: str) -> str:
@@ -750,14 +743,19 @@ def addChild(
     elif appendChild:
         parent.append(child)
     if attributes:
-        for name, value in (attributes.items() if isinstance(attributes, dict) else  # type: ignore[str-unpack]
-                            attributes if len(attributes) > 0 and isinstance(attributes[0],(tuple,list)) else (attributes,)):
-            if isinstance(name,QName):
+        items: Iterable[tuple[str | QName, str]]
+        if isinstance(attributes, dict):
+            items = attributes.items()
+        elif isinstance(attributes[0], (tuple, list)):
+            items = attributes  # type: ignore[assignment]
+        else:
+            items = (cast(tuple[str | QName, str], attributes),)
+        for name, value in items:
+            if isinstance(name, QName):
                 if name.namespaceURI:
                     addQnameValue(modelDocument, name)
                 child.set(name.clarkNotation, str(value)) # ModelValue type hints
             else:
-                assert isinstance(name, str)
                 child.set(name, xsString(None, None, value) )  # type: ignore[arg-type] # FunctionXs type hints
     if text is not None:
         child.text = xsString(None, None, text)  # type: ignore[arg-type] # FunctionXs type hints

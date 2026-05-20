@@ -11,7 +11,7 @@ from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelRelationshipSet import baseSetRelationship
 from arelle.ModelObject import ModelObject, ModelComment
 from arelle.ModelValue import qname
-from arelle.XhtmlValidate import ixMsgCode
+from arelle.XhtmlInlineUtil import ixMsgCode
 from lxml import etree
 from collections import defaultdict, deque
 import regex as re

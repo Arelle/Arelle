@@ -25,7 +25,7 @@ from arelle.ModelInstanceObject import ModelFact, ModelContext, ModelUnit, Model
 from arelle.ModelObjectFactory import parser, KnownNamespacesModelObjectClassLookup, DiscoveringClassLookup
 from arelle.PrototypeDtsObject import LinkPrototype, LocPrototype, ArcPrototype, DocumentPrototype, PrototypeElementTree
 from arelle.PythonUtil import OrderedDefaultDict, isLegacyAbs, normalizeSpace
-from arelle.XhtmlValidate import ixMsgCode
+from arelle.XhtmlInlineUtil import ixMsgCode
 from arelle.XmlValidateConst import VALID
 from arelle.XmlValidate import validate as xmlValidate, lxmlSchemaValidate
 from arelle.ModelTestcaseObject import ModelTestcaseVariation

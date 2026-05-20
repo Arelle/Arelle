@@ -1,21 +1,16 @@
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname
 from arelle.XmlUtil import (
     escapedNode,
+    escapedText,
     collapseWhitespace,
     replaceWhitespace,
 )
-from arelle.XhtmlValidate import (
-    htmlEltUriAttrs,
-    resolveHtmlUri,
-)
 
 
-@patch('arelle.XmlUtil.htmlEltUriAttrs', new=htmlEltUriAttrs)
-@patch('arelle.XmlUtil.resolveHtmlUri', new=resolveHtmlUri)
 def test_opaque_uris_not_path_normed():
     uri = 'data:image/png;base64,iVBORw0K//a'
     elt_attrs = {'src': uri}
@@ -86,3 +81,26 @@ COLLAPSE_WHITESPACE_TESTS = [
 def test_collapseWhitespace(value, expected):
     result = collapseWhitespace(value)
     assert result == expected
+
+
+ESCAPED_TEXT_TESTS = [
+    ("", ""),
+    ("hello", "hello"),
+    ("a & b", "a &amp; b"),
+    ("<tag>", "&lt;tag&gt;"),
+    ("1 < 2 & 3 > 0", "1 &lt; 2 &amp; 3 &gt; 0"),
+    ("&amp;", "&amp;amp;"),
+    ("<<>>&&", "&lt;&lt;&gt;&gt;&amp;&amp;"),
+    ("no special chars", "no special chars"),
+    ('quotes "are" fine', 'quotes "are" fine'),
+    ("apostrophe's ok", "apostrophe's ok"),
+    ("a&b<c>d", "a&amp;b&lt;c&gt;d"),
+    ("&<>", "&amp;&lt;&gt;"),
+    (" & ", " &amp; "),
+    ("\n&\t<\r>", "\n&amp;\t&lt;\r&gt;"),
+]
+
+
+@pytest.mark.parametrize("value, expected", ESCAPED_TEXT_TESTS)
+def test_escapedText(value, expected):
+    assert escapedText(value) == expected

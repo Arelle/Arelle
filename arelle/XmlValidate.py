@@ -157,7 +157,7 @@ def validate(
     global ModelInlineValueObject, ixMsgCode
     if ModelInlineValueObject is None:
         from arelle.ModelInstanceObject import ModelInlineValueObject
-        from arelle.XhtmlValidate import ixMsgCode
+        from arelle.XhtmlInlineUtil import ixMsgCode
     assert ModelInlineValueObject is not None
     assert ixMsgCode is not None
     isIxFact = isinstance(elt, ModelInlineValueObject)

@@ -3,88 +3,28 @@ See COPYRIGHT.md for copyright information.
 
 (originally part of XmlValidate, moved to separate module)
 '''
-from typing import cast
+from __future__ import annotations
 
-from arelle import XbrlConst, XmlUtil, XmlValidate, ValidateFilingText, UrlUtil
-from arelle.ModelXbrl import ModelXbrl
-from arelle.ModelObject import ModelObject
+from typing import TYPE_CHECKING
+
 from lxml import etree
-import os
-from urllib.parse import urljoin
 
-from arelle.typing import TypeGetText
+from arelle import ValidateFilingText, XbrlConst, XmlValidate
+from arelle.ModelObject import ModelObject
+from arelle.ModelXbrl import ModelXbrl
+from arelle.XhtmlInlineUtil import (
+    INLINE_1_0_SCHEMA,
+    INLINE_1_1_SCHEMA,
+    htmlEltUriAttrs as htmlEltUriAttrs,
+    ixMsgCode as ixMsgCode,
+    resolveHtmlUri as resolveHtmlUri,
+)
 
-_: TypeGetText
+if TYPE_CHECKING:
+    from arelle.typing import TypeGetText
 
-htmlEltUriAttrs = { # attributes with URI content (for relative correction and %20 canonicalization
-    "a": {"href"},
-    "area": {"href"},
-    "blockquote": {"cite"},
-    "del": {"cite"},
-    "form": {"action"},
-    "input": {"src", "usemap"},
-    "ins": {"cite"},
-    "img": {"src", "longdesc", "usemap"},
-    "object": ("codebase", "classid", "data", "archive", "usemap"), # codebase must be first to reolve others
-    "q": {"cite"},
-    }
+_ : TypeGetText
 
-ixSect = {
-    XbrlConst.ixbrl: {
-        "footnote": {"constraint": "ix10.5.1.1", "validation": "ix10.5.1.2"},
-        "fraction": {"constraint": "ix10.6.1.1", "validation": "ix10.6.1.2"},
-        "denominator": {"constraint": "ix10.6.1.1", "validation": "ix10.6.1.2"},
-        "numerator": {"constraint": "ix10.6.1.1", "validation": "ix10.6.1.2"},
-        "header": {"constraint": "ix10.7.1.1", "non-validatable": "ix10.7.1.2", "validation": "ix10.7.1.3"},
-        "hidden": {"constraint": "ix10.8.1.1", "validation": "ix10.8.1.2"},
-        "nonFraction": {"constraint": "ix10.9.1.1", "validation": "ix10.9.1.2"},
-        "nonNumeric": {"constraint": "ix10.10.1.1", "validation": "ix10.10.1.2"},
-        "references": {"constraint": "ix10.11.1.1", "validation": "ix10.11.1.2"},
-        "resources": {"constraint": "ix10.12.1.1", "validation": "ix10.12.1.2"},
-        "tuple": {"constraint": "ix10.13.1.1", "validation": "ix10.13.1.2"},
-        "other": {"constraint": "ix10", "validation": "ix10"}},
-    XbrlConst.ixbrl11: {
-        "continuation": {"constraint": "ix11.4.1.1", "validation": "ix11.4.1.2"},
-        "exclude": {"constraint": "ix11.5.1.1", "validation": "ix11.5.1.2"},
-        "footnote": {"constraint": "ix11.6.1.1", "validation": "ix11.6.1.2"},
-        "fraction": {"constraint": "ix11.7.1.2", "validation": "ix11.7.1.3"},
-        "denominator": {"constraint": "ix11.7.1.1", "validation": "ix11.7.1.3"},
-        "numerator": {"constraint": "ix11.7.1.1", "validation": "ix11.7.1.3"},
-        "header": {"constraint": "ix11.8.1.1", "non-validatable": "ix11.8.1.2", "validation": "ix11.8.1.3"},
-        "hidden": {"constraint": "ix11.9.1.1", "validation": "ix11.9.1.2"},
-        "nonFraction": {"constraint": "ix11.10.1.1", "validation": "ix11.10.1.2"},
-        "nonNumeric": {"constraint": "ix11.11.1.1", "validation": "ix11.11.1.2"},
-        "references": {"constraint": "ix11.12.1.1", "validation": "ix11.12.1.2"},
-        "relationship": {"constraint": "ix11.13.1.1", "validation": "ix11.13.1.2"},
-        "resources": {"constraint": "ix11.14.1.1", "validation": "ix11.14.1.2"},
-        "tuple": {"constraint": "ix11.15.1.1", "validation": "ix11.15.1.2"},
-        "other": {"constraint": "ix11", "validation": "ix11"}}
-    }
-
-INLINE_1_0_SCHEMA = "http://www.xbrl.org/2008/inlineXBRL/xhtml-inlinexbrl-1_0.xsd"
-INLINE_1_1_SCHEMA = "http://www.xbrl.org/2013/inlineXBRL/xhtml-inlinexbrl-1_1.xsd"
-
-
-def ixMsgCode(
-        codeName: str,
-        elt: ModelObject | None = None,
-        sect: str = "constraint",
-        ns: str | None = None,
-        name: str | None = None
-    ) -> str:
-    if elt is None:
-        if ns is None: ns = XbrlConst.ixbrl11
-        if name is None: name = "other"
-    else:
-        if ns is None and elt.namespaceURI in XbrlConst.ixbrlAll:
-            ns = elt.namespaceURI
-        else:
-            ns = getattr(elt.modelDocument, "ixNS", XbrlConst.ixbrl11)
-        if name is None:
-            name = elt.localName
-            if name in ("context", "unit"):
-                name = "resources"
-    return "{}:{}".format(ixSect[ns].get(name,"other")[sect], codeName)  # type: ignore[index]
 
 def xhtmlValidate(modelXbrl: ModelXbrl, elt: ModelObject) -> None:
     validateEntryText = modelXbrl.modelManager.disclosureSystem.validateEntryText
@@ -110,14 +50,3 @@ def xhtmlValidate(modelXbrl: ModelXbrl, elt: ModelObject) -> None:
 
 def containsNamespacedElements(elt: etree.ElementBase, namespace: str) -> bool:
     return elt.getroottree().find(".//ns:*", {"ns": namespace}) is not None
-
-
-def resolveHtmlUri(elt: ModelObject, name: str, value: str) -> str:
-    if name == "archive": # URILIST
-        return " ".join(resolveHtmlUri(elt, "archiveListElement", v) for v in value.split(" "))
-    if elt.localName == "object" and name in ("classid", "data", "archiveListElement") and elt.get("codebase"):
-        base = elt.get("codebase") + "/"   # type: ignore[operator]
-    else:
-        base = getattr(elt.modelDocument, "htmlBase", "") # None if no htmlBase, empty string if it's not set
-    _uri = urljoin(base, value)
-    return _uri

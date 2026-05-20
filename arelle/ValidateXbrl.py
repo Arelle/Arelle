@@ -19,7 +19,7 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrlCalcs import inferredDecimals
 from arelle.XbrlConst import (ixbrlAll, dtrNoDecimalsItemTypes, dtrPrefixedContentItemTypes, dtrPrefixedContentTypes,
                               dtrSQNameItemTypes, dtrSQNameTypes,  dtrSQNamesItemTypes, dtrSQNamesTypes, baseXbrliTypes)
-from arelle.XhtmlValidate import ixMsgCode
+from arelle.XhtmlInlineUtil import ixMsgCode
 from arelle.XmlValidateConst import VALID
 from collections import defaultdict
 from arelle.oim.Validate import validateOIM
