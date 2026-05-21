@@ -327,7 +327,7 @@ class Cntlr:
     def validation(self, val: Validation, fileSource: FileSource | None = None) -> None:
         """Same as `error`, but parameters passed in from Validation object
         """
-        self.error(codes=val.codes, msg=val.msg, level=val.level.name, fileSource=fileSource, **val.args)
+        self.error(codes=val.codes, msg=val.msg, level=val.level.value, fileSource=fileSource, **val.args)
 
     def error(self, codes: Any, msg: str, level: str = "ERROR", fileSource: FileSource | None = None, **args: Any) -> None:
         if self.logger is None or self.errorManager is None:
