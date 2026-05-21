@@ -27,7 +27,7 @@ class ValidateFileSource:
                 codes = [val.codes] if isinstance(val.codes, str) else val.codes
                 for code in codes:
                     self._cntrl.error(
-                        level=val.level.name,
+                        level=val.level.value,
                         codes=code,
                         msg=val.msg,
                         fileSource=self._filesource,
