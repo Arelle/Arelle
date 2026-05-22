@@ -1067,7 +1067,7 @@ class ModelXbrl:
     def validation(self, val: Validation) -> None:
         """Same as log, but parameters passed in from Validation object
         """
-        self.log(level=val.level.name, codes=val.codes, msg=val.msg, **val.args)
+        self.log(level=val.level.value, codes=val.codes, msg=val.msg, **val.args)
 
     def log(self, level: str, codes: Any, msg: str, **args: Any) -> None:
         """Same as error(), but level passed in as argument

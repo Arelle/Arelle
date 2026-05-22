@@ -80,7 +80,7 @@ def validateImageAndLog(
         args = validation.args.copy()
         if cssSelectors:
             args["cssSelectors"] = cssSelectors
-        modelXbrl.log(level=validation.level.name, codes=validation.codes, msg=validation.msg, **args)
+        modelXbrl.log(level=validation.level.value, codes=validation.codes, msg=validation.msg, **args)
 
 # check image contents against mime/file ext and for Steganography
 def validateImage(

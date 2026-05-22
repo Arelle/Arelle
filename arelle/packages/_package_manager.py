@@ -488,7 +488,7 @@ class PackageManager:
         for validator in TAXONOMY_PACKAGE_ABORTING_VALIDATIONS:
             if validation := validator(TAXONOMY_PACKAGE_TYPE, filesource):
                 cntlr.error(
-                    level=validation.level.name,
+                    level=validation.level.value,
                     codes=validation.codes,
                     msg=validation.msg,
                     fileSource=filesource,
@@ -502,7 +502,7 @@ class PackageManager:
         for validator in TAXONOMY_PACKAGE_NON_ABORTING_VALIDATIONS:
             if validation := validator(TAXONOMY_PACKAGE_TYPE, filesource):
                 cntlr.error(
-                    level=validation.level.name,
+                    level=validation.level.value,
                     codes=validation.codes,
                     msg=validation.msg,
                     fileSource=filesource,
