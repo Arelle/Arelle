@@ -15,18 +15,7 @@ from .XbrlUnit import  parseUnitString
 class XbrlFactValueSource(XbrlObject):
     """ Fact Value Source Object
         Reference: oim-taxonomy#factvaluesource-object"""
-    source: Optional[QName] # (optional) entifies the source of the document file using a QName that represents a file such as a pdf file or html file. If no source is provided the document file encapsulating the taxonomy (report) object is implied. If the model is external to the source file then the sourceMapping property of the documentInfo object is used to associate the model with a document file. A value only needs to be provided if there is more than one source file used to represent fact values.
-    medium: Optional[str] # (optional) The document medium, which may be implied when the taxonomy (report) object is encapsulated in a document file: html, pdf, tabular.
-    id: Optional[str] # (optional for HTML only) The HTML element containing mapped (inner) text content. May be an id such as #elt1, to identify inner text of that element, if present (else ineffective and contributes nothing to the value).
-    formField: Optional[str] # (optional for PDF only) The field name of a PDF form field. Identifies that field contents (if any) or default (if any) contribute to the value.
-    page: Optional[int] # (required for PDF non-form text only) The page number.
-    mcid: Optional[str] # (optional for PDF non-form structure text identified by mcid)
-    elementId: Optional[str] # (optional for PDF non-form text identified by structure element Id)
-    tabularPath: Optional[str] # (optional for tabular sources to identify a tabular path (e.g. RevenueByRegion!row[@Year=2024 and @Region='NA']/Revenue). See Appendix I for the tabularPath grammar.
-    transformation: Optional[QName] # (optional for html/pdf) identifes a transformation for the document file text, such as conversion from dates in some locale format. Not relevant for workbook cells with number or date formats specified.
-    scale: Optional[int] # (optional) identifies a power of 10 to multiply source text number (such as when in billions in the source document_
-    sign: Optional[str] # (optional) identifies a sign when not part of transformation of value. Not relevant for workbook cells with number or date formats specified.
-    escape: Union[bool, DefaultFalse] # (optional) If the escape attribute is true then value is the escaped representation for media with markup, e.g. html or pdf, otherwise the concatenation in document order of all descendant text content. If no value is provided the attribute defaults to false.
+    properties: OrderedSet[XbrlProperty] # (required) A set of property objects used to specify the interface properties defined by the locatorType for the fact source.
 
 class XbrlFactValueAnchor(XbrlObject):
     """ Fact Value Anchor Object
@@ -49,6 +38,13 @@ class XbrlFactValue(XbrlObject):
     value: Optional[Any] # (required if valueSources not provided) The value of the fact. This can be a numeric value, a string, or any other type of value that is valid for the fact.
     decimals: Optional[int] # An integer providing the value of the {decimals} property, or absent if the value is infinitely precise or not applicable (for nil or non-numeric facts).
     language: Optional[str] # (optional) The language of the fact value, specified using the BCP 47 standard language code (e.g., "en" for English, "fr" for French).
+    factInterfaceName: Optional[QName] # (optional) identifies the factLocatorType object that is used to identify the location of the value in the source.
+    source: Optional[QName] # (optional) entifies the source of the document file using a QName that represents a file such as a pdf file or html file. If no source is provided the document file encapsulating the taxonomy (report) object is implied. If the model is external to the source file then the sourceMapping property of the documentInfo object is used to associate the model with a document file. A value only needs to be provided if there is more than one source file used to represent fact values.
+    transformation: Optional[QName] # (optional for html/pdf) identifes a transformation for the document file text, such as conversion from dates in some locale format. Not relevant for workbook cells with number or date formats specified.
+    scale: Optional[int] # (optional) identifies a power of 10 to multiply source text number (such as when in billions in the source document_
+    sign: Optional[str] # (optional) identifies a sign when not part of transformation of value. Not relevant for workbook cells with number or date formats specified.
+    escape: Union[bool, DefaultFalse] # (optional) If the escape attribute is true then value is the escaped representation for media with markup, e.g. html or pdf, otherwise the concatenation in document order of all descendant text content. If no value is provided the attribute defaults to false.
+
     valueSources: OrderedSet[XbrlFactValueSource] # (required if value not provided) An ordered set of factValueSource objects that identify where the values are obtained from content of an embedding or accompanying document file (html, pdf or tabular).
     valueAnchors: OrderedSet[XbrlFactValueAnchor] # (optional if valueSources not provided) An ordered set of factAnchor objects that identify corresponding content of an embedding document file (html, pdf or tabular) for cases where the value is provided in the value property instead of obtained from the content of document file. For example, non-transformable values, such as a QName value, may correspond to prose text in the document file. Used by tools to highlight and detect mouse-over correspondence between fact values and document text.
 
