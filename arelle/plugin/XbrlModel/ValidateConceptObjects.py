@@ -51,6 +51,12 @@ def validateConceptFamily(compMdl, module, oimFile, *, assertObjectType, validat
     for collObj in module.collectionTypes:
         assertObjectType(compMdl, collObj, XbrlCollectionType)
         validateQNameReference(compMdl, collObj, "dataType", XbrlDataType)
+        minItems = getattr(collObj, "minItems", None)
+        maxItems = getattr(collObj, "maxItems", None)
+        if minItems is not None and maxItems is not None and maxItems < minItems:
+            emit_error(compMdl, "oimte:invalidCollectionType",
+                       _("CollectionType %(name)s has maxItems %(maxItems)s less than minItems %(minItems)s."),
+                       xbrlObject=collObj, name=collObj.name, minItems=minItems, maxItems=maxItems)
         validateProperties(compMdl, oimFile, module, collObj)
 
 
