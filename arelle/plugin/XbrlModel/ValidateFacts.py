@@ -259,26 +259,32 @@ def validateFactPosition(txmyMdl, fact):
               _("Factspace %(name)s is not dimensionally valid in any cube."))
     else:
         for cubeObj in matchedCubes:
-            cellKeys = getattr(cubeObj, "_cellKeys", None)
-            if cellKeys is None:
-                cellKeys = cubeObj._cellKeys = set()
+            cellFacts = getattr(cubeObj, "_cellFacts", None)
+            if cellFacts is None:
+                cellFacts = cubeObj._cellFacts = {}
             # cell signature = the cube's dimension values from this fact.
-            # Many facts may collapse to the same cell, so set size is bounded
-            # by the cube's cell space, not by the fact count.
+            # Many facts may collapse to the same cell; we retain per-cell
+            # references to fact (and each of its factValues) so that the
+            # cube-completion pass can perform duplicate-fact validation.
             cellKey = tuple(
                 (cubeDimObj.dimensionName, fact.factDimensions.get(cubeDimObj.dimensionName))
                 for cubeDimObj in cubeObj.cubeDimensions
             )
-            cellKeys.add(cellKey)
+            bucket = cellFacts.setdefault(cellKey, [])
+            for fv in (fact.factValues or ()):
+                bucket.append((fact, fv))
 
 
 def validateCompleteReportCubes(txmyMdl):
     """Validate complete cubes after facts have been matched to their effective cubes."""
-    from .ValidateCubes import validateCompleteCube
+    from .ValidateCubes import validateCompleteCube, validateCubeDuplicates
 
     for cubeObj in txmyMdl.filterNamedObjects(XbrlCube):
         if txmyMdl.effectiveRequiredCubes(cubeObj):
             validateCompleteCube(txmyMdl, cubeObj)
+        # Duplicate-fact validation applies to every cube (not just required
+        # cubes) per oim-taxonomy "Duplicate fact validation".
+        validateCubeDuplicates(txmyMdl, cubeObj)
 
 def validateTable(table, reportQn, reportObj, txmyMdl):
     """ Validate table definition.
