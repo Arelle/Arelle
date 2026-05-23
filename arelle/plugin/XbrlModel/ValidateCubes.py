@@ -34,74 +34,30 @@ def matchFactToCube(compMdl, factspace, cubeObj):
         dimName = cubeDimObj.dimensionName
         if dimName in coreToFactDim:
             mems = cubeDimObj.allowedMembers(compMdl)
-            if mems and factspace.factDimensions.get(dimName) not in mems:
+            factDimVal = factspace.factDimensions.get(dimName)
+            # Entity (and other core) dimension values may still be carried as
+            # strings (e.g. "exp:ExampleCo") rather than resolved QNames, while
+            # `mems` is a set of QName objects. Resolve on the fly so that
+            # matching does not spuriously fail.
+            if (mems and not isinstance(factDimVal, QName) and isinstance(factDimVal, str)
+                    and ":" in factDimVal):
+                resolved = qname(factDimVal, getattr(factspace.parent, "_prefixNamespaces", None))
+                if resolved is not None:
+                    factDimVal = resolved
+            if mems and factDimVal not in mems:
                 hasDims = False # skip this cube
                 break
         elif dimName == periodCoreDim:
             factPerVal = factspace.factDimensions.get("_periodValue")
             if factPerVal is None and not cubeDimObj.allowDomainFacts:
                 continue # skip forever/missing period and not allowDomainFacts
-            # No periodConstraints means the dim accepts any period
-            if not cubeDimObj.periodConstraints:
-                continue
-            hasAnyPerMatch = False
-            for perConstObj in cubeDimObj.periodConstraints:
-                #if perConstObj.conceptName:
-                #
-                # context = get facts
-                # periodType filter: instant constraint only accepts instant
-                # facts; duration constraint only accepts duration facts.
-                pType = getattr(perConstObj, "periodType", None)
-                if pType == "instant" and not factPerVal.isInstant:
-                    continue
-                if pType == "duration" and not factPerVal.isDuration:
-                    continue
-                timeSpan = getattr(perConstObj, "_timeSpanValue", None)
-                #if ((perConstObj.periodType == "none" and timeSpan is not None) or
-                #    (perConstObj.periodType == "instant" != timeSpan.isInstant)):
-                #    continue # skip this perCnstrt
-                if (timeSpan is not None and
-                    (factPerVal.start is None or factPerVal.end is None or
-                    factPerVal.start + timeSpan != factPerVal.end)):
-                    continue # skip this perCnstrt
-                if perConstObj.periodPatternMatch(factPerVal) == False:
-                    continue # skip this perCnstrt
-                hasPerMatch = True
-                for dtResProp in ("monthDay", "endDate", "startDate", "onOrAfter", "onOrBefore"):
-                    dtResObj = getattr(perConstObj, dtResProp, None)
-                    if dtResObj is None:
-                        continue # date resolution not specified -> no constraint
-                    resPerVals = ()
-                    if getattr(dtResObj, "_valueValid", 0) == VALID:
-                        resPerVals = (dtResObj._valueValue,)
-                    elif dtResObj.conceptName:
-                        resPerVals = set(f.factDimensions.get("_periodValue")
-                                        for f in compMdl.filterNamedObjects(XbrlFact)
-                                        if f.factDimensions.get(conceptCoreDim) == dtResObj.conceptName
-                                           and "_periodValue" in f.factDimensions)
-                    elif dtResObj.context:
-                        resPerVals = set(
-                            (f.factDimensions["_periodValue"].end
-                             if dtResObj.context.atSuffix == "end"
-                             else f.factDimensions["_periodValue"].start)
-                            for f in compMdl.filterNamedObjects(XbrlFact)
-                            if "_periodValue" in f.factDimensions)
-                    if getattr(dtResObj, "_timeShiftValid", 0) == VALID:
-                        timeShift = dtResObj._timeShiftValue
-                        resPerVals = set(r + timeShift for r in resPerVals)
-                    if ((dtResProp == "monthDay" and not any(r.month == factPerVal.end.month and r.day == factPerVal.end.day for r in resPerVals)) or
-                        (dtResProp == "endDate" and not any(r == factPerVal.end for r in resPerVals)) or
-                         (dtResProp == "startDate" and not any(r == factPerVal.start for r in resPerVals)) or
-                         (dtResProp == "onOrAfter" and not any(r >= factPerVal.start for r in resPerVals)) or
-                         (dtResProp == "onOrBefore" and not any(r <= factPerVal.end for r in resPerVals))):
-                        hasPerMatch = False
-                        break
-                if hasPerMatch:
-                    hasAnyPerMatch = True
-                    break # one matching constraint is enough
-            if not hasAnyPerMatch:
-                hasDims = False # skip this cube
-                break
+            # periodConstraints are content selectors (they filter facts INTO
+            # the cube for query/reporting views) and do NOT gate dimensional
+            # validity. A fact whose period does not satisfy a periodConstraint
+            # still shares the cube's dimensional space for purposes of
+            # oimte:noFactSpaceForFact. See oim-taxonomy spec
+            # "Period constraint object" section.
+            continue
         elif dimName not in factspace.factDimensions:
             if not cubeDimObj.allowDomainFacts:
                 hasDims = False # skip this cube
@@ -152,11 +108,117 @@ def validateCubes(compMdl, factspace):
 
 def validateCompleteCube(compMdl, cubeObj):
     # replace with vectorized search
-    cellKeys = getattr(cubeObj, "_cellKeys", None)
+    cellFacts = getattr(cubeObj, "_cellFacts", None)
     if not any(True for _ in compMdl.filterNamedObjects(XbrlFact)):
         return
-    if not cellKeys:
+    if not cellFacts:
         compMdl.error("oimte:factMissingFromCube",
                      _("The complete cube %(name)s has no facts."),
                       xbrlObject=cubeObj, name=cubeObj.name)
+
+
+def _effectiveDuplicatePolicy(compMdl, cubeObj):
+    """Resolve the effective duplicate-fact policy for a cube.
+
+    Precedence: cubeObj.duplicateFactsInCube overrides the owning module's
+    duplicateFactsInModel; when neither is set the OIM Taxonomy default is
+    'inconsistent duplicates'.
+    """
+    pol = getattr(cubeObj, "duplicateFactsInCube", None)
+    if pol:
+        return pol
+    for mod in getattr(compMdl, "xbrlModels", {}).values():
+        modPol = getattr(mod, "duplicateFactsInModel", None)
+        if modPol:
+            return modPol
+    return "inconsistent duplicates"
+
+
+def _roundToDecimals(value, decimals):
+    """Round a numeric value to the precision indicated by an OIM decimals
+    integer (positive -> right of decimal point, negative -> left).
+    Returns None when value cannot be converted to float.
+    """
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return None
+    if decimals is None:
+        return v
+    try:
+        d = int(decimals)
+    except (TypeError, ValueError):
+        return v
+    return round(v, d)
+
+
+def _isConsistentValuePair(v1, d1, v2, d2):
+    """Two numeric fact values are consistent duplicates when their values,
+    rounded to the lower precision of the two, are equal.
+    """
+    if d1 is None and d2 is None:
+        return v1 == v2
+    if d1 is None:
+        lower = d2
+    elif d2 is None:
+        lower = d1
+    else:
+        lower = min(int(d1), int(d2))
+    r1 = _roundToDecimals(v1, lower)
+    r2 = _roundToDecimals(v2, lower)
+    if r1 is None or r2 is None:
+        return v1 == v2
+    return r1 == r2
+
+
+def validateCubeDuplicates(compMdl, cubeObj):
+    """Emit oime:disallowedDuplicateFacts when facts collapsing to the same
+    cube cell violate the effective duplicate policy.
+    """
+    cellFacts = getattr(cubeObj, "_cellFacts", None)
+    if not cellFacts:
+        return
+    policy = _effectiveDuplicatePolicy(compMdl, cubeObj)
+    if policy == "inconsistent duplicates":
+        return  # default: any duplicates allowed
+    for cellKey, entries in cellFacts.items():
+        if len(entries) < 2:
+            continue
+        # Determine whether this group of duplicates violates the policy.
+        violates = False
+        if policy == "no duplicates":
+            violates = True
+        else:
+            # Compare every pair against the policy.
+            for i in range(len(entries)):
+                _f1, fv1 = entries[i]
+                v1 = getattr(fv1, "value", None)
+                d1 = getattr(fv1, "decimals", None)
+                for j in range(i + 1, len(entries)):
+                    _f2, fv2 = entries[j]
+                    v2 = getattr(fv2, "value", None)
+                    d2 = getattr(fv2, "decimals", None)
+                    if policy == "complete duplicates":
+                        # Require value AND decimals match
+                        if v1 != v2 or d1 != d2:
+                            violates = True
+                            break
+                    elif policy == "consistent duplicates":
+                        # Require values consistent at lower precision; allow
+                        # complete duplicates (subset) too.
+                        if not _isConsistentValuePair(v1, d1, v2, d2):
+                            violates = True
+                            break
+                if violates:
+                    break
+        if violates:
+            factNames = sorted({getattr(f, "name", None) for f, _fv in entries})
+            compMdl.error(
+                "oime:disallowedDuplicateFacts",
+                _("Cube %(cube)s with duplicateFacts policy '%(policy)s' has prohibited "
+                  "duplicate facts %(facts)s at cell %(cell)s."),
+                xbrlObject=cubeObj,
+                cube=cubeObj.name, policy=policy,
+                facts=", ".join(str(n) for n in factNames if n is not None),
+                cell=str(cellKey))
 

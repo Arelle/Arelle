@@ -1327,3 +1327,6 @@ def validateCompletedModel(compMdl):
     for cubeObj in compMdl.filterNamedObjects(XbrlCube):
         if compMdl.effectiveRequiredCubes(cubeObj):
             validateCompleteCube(compMdl, cubeObj)
+        # Duplicate-fact validation applies to every cube.
+        from .ValidateCubes import validateCubeDuplicates
+        validateCubeDuplicates(compMdl, cubeObj)
