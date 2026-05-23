@@ -1,0 +1,294 @@
+"""
+See COPYRIGHT.md for copyright information.
+
+Fact ingestion pipeline.
+
+Introduces three abstractions used by validation, vector search, cube assignment,
+and (in later steps) lazy / streaming fact ingestion from CSV, xBRL-XML, HTML
+and PDF value sources:
+
+- `FactSourceLoader` Protocol: each implementation knows how to enumerate
+  XbrlFact objects from a single origin (literal `factObject` entries on a
+  module, a CSV table, an inline-HTML resolver, a PDF resolver, ...).
+
+- `FactSink`: consumes XbrlFact objects one at a time. Currently drives
+  per-fact resolution + cube position validation. Future steps will add
+  batched VectorSearch encoding and bounded buffering for incremental
+  processing of multi-GB sources without materializing all facts.
+
+- Loader registry: backends register themselves under a key (the template
+  class of the factMap, or an explicit media type) so that lazy
+  `XbrlFactSource` resolution picks the right reader.
+
+This module deliberately makes NO assumptions about ownership. The OIM-taxonomy
+spec places facts directly on `XbrlModule`; the legacy `XbrlReport` object has
+been removed.
+"""
+from __future__ import annotations
+
+from typing import Iterator, Iterable, Protocol, Optional, Callable, Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .XbrlFact import XbrlFact, XbrlFactSource
+    from .XbrlModule import XbrlModule
+    from .XbrlModel import XbrlCompiledModel
+
+
+# --------------------------------------------------------------------
+# Streaming threshold (CLI configurable)
+# --------------------------------------------------------------------
+
+# Default fact-count above which a producer SHOULD stream rather than
+# materialize. Set via --xbrlModelStreamThreshold or via
+# `compMdl.xbrlModelStreamThreshold`. The OIM spec exposes
+# `factSourceMetadata.factCount` (when present) which is preferred over
+# this default when deciding per-source whether to enforce streaming.
+DEFAULT_STREAM_THRESHOLD = 50_000
+
+
+def streamThresholdFor(compMdl: "XbrlCompiledModel") -> int:
+    return int(getattr(compMdl, "xbrlModelStreamThreshold", DEFAULT_STREAM_THRESHOLD) or DEFAULT_STREAM_THRESHOLD)
+
+
+# --------------------------------------------------------------------
+# Loader protocol + registry
+# --------------------------------------------------------------------
+
+class FactSourceLoader(Protocol):
+    """Yields XbrlFact objects from a single origin."""
+    mediaType: str
+
+    def facts(self) -> Iterator["XbrlFact"]:
+        ...
+
+
+# Registry mapping a key (template class, or an explicit string media type)
+# to a factory callable. The factory is invoked as
+# `factory(factSource, module, compMdl) -> FactSourceLoader`. Loaders register
+# themselves at import time via `registerFactSourceLoader`.
+_LOADER_FACTORIES: dict[Any, Callable[..., FactSourceLoader]] = {}
+
+
+def registerFactSourceLoader(key: Any, factory: Callable[..., FactSourceLoader]) -> None:
+    """Register a loader factory under a key (template class, or media type)."""
+    _LOADER_FACTORIES[key] = factory
+
+
+def resolveFactSourceLoader(factSource: "XbrlFactSource", module: "XbrlModule",
+                            compMdl: "XbrlCompiledModel") -> Optional[FactSourceLoader]:
+    """Locate and instantiate a loader for the given factSource, or return None.
+
+    Resolution order:
+      1. By template class of the `XbrlFactMap.templateName` target
+         (`XbrlTableTemplate` for CSV, `XbrlXMLTemplateMap` for xBRL-XML,
+         `XbrlJSONTemplateMap` for JSON, etc.)
+      2. By an explicit `mediaType` string registered against the factSource's
+         locator.
+
+    Returns `None` if no loader is registered (caller may emit a diagnostic).
+    """
+    factMap = compMdl.namedObjects.get(getattr(factSource, "factMapName", None))
+    template = compMdl.namedObjects.get(getattr(factMap, "templateName", None)) if factMap is not None else None
+    if template is not None:
+        factory = _LOADER_FACTORIES.get(type(template))
+        if factory is not None:
+            return factory(factSource, module, compMdl)
+    return None
+
+
+# --------------------------------------------------------------------
+# Concrete loaders
+# --------------------------------------------------------------------
+
+class InlineFactsLoader:
+    """Yields literal `factObject` facts authored directly on an XbrlModule."""
+    mediaType = "application/oim-taxonomy+json"
+
+    def __init__(self, module: "XbrlModule") -> None:
+        self.module = module
+
+    def facts(self) -> Iterator["XbrlFact"]:
+        yield from (self.module.facts or ())
+
+
+class LazyFactSourceLoader:
+    """Wraps an `XbrlFactSource` and defers backend resolution + open() to the
+    first `facts()` iteration.
+
+    This is what makes multi-GB CSV/XML companion files safe: nothing is
+    opened or read at taxonomy-load time. Validation passes that don't iterate
+    facts (e.g. taxonomy-only schema export) pay zero IO cost.
+    """
+    mediaType = "deferred"
+
+    def __init__(self, factSource: "XbrlFactSource", module: "XbrlModule",
+                 compMdl: "XbrlCompiledModel") -> None:
+        self.factSource = factSource
+        self.module = module
+        self.compMdl = compMdl
+        self._backend: Optional[FactSourceLoader] = None
+        self._resolved = False
+
+    def _resolve(self) -> Optional[FactSourceLoader]:
+        if not self._resolved:
+            self._backend = resolveFactSourceLoader(self.factSource, self.module, self.compMdl)
+            if self._backend is None:
+                self.compMdl.error(
+                    "arelle:noFactSourceLoader",
+                    _("No FactSourceLoader registered for factSource %(name)s (factMap %(map)s). "
+                      "The fact source will be skipped."),
+                    xbrlObject=self.factSource,
+                    name=getattr(self.factSource, "name", None),
+                    map=getattr(self.factSource, "factMapName", None),
+                )
+            self._resolved = True
+        return self._backend
+
+    def shouldStream(self) -> bool:
+        """Return True if this source's declared factCount exceeds the threshold."""
+        metadata = getattr(self.factSource, "metadata", None)
+        declared = getattr(metadata, "factCount", None) if metadata is not None else None
+        if declared is None:
+            return False
+        return declared > streamThresholdFor(self.compMdl)
+
+    def facts(self) -> Iterator["XbrlFact"]:
+        backend = self._resolve()
+        if backend is None:
+            return
+        yield from backend.facts()
+
+
+# --------------------------------------------------------------------
+# Module-level enumeration
+# --------------------------------------------------------------------
+
+def moduleLoaders(module: "XbrlModule",
+                  compMdl: Optional["XbrlCompiledModel"] = None) -> Iterable[FactSourceLoader]:
+    """Return the set of FactSourceLoaders applicable to a module.
+
+    Always yields the inline loader (for literal `factObject` facts) plus one
+    `LazyFactSourceLoader` per declared `XbrlFactSource` on the module. The
+    lazy loaders do not touch external files until iterated.
+    """
+    if getattr(module, "facts", None):
+        yield InlineFactsLoader(module)
+    if compMdl is not None:
+        for factSource in (getattr(module, "factSources", None) or ()):
+            yield LazyFactSourceLoader(factSource, module, compMdl)
+
+
+# --------------------------------------------------------------------
+# Sink
+# --------------------------------------------------------------------
+
+class FactSink:
+    """Consumes XbrlFact objects and drives validation work for each.
+
+    The sink is intentionally small: callers add side effects (cube assignment,
+    vector indexing, completeness tracking) by passing callbacks rather than
+    subclassing. This keeps the streaming path explicit and avoids growing a
+    framework prematurely.
+    """
+
+    def __init__(
+        self,
+        compMdl: "XbrlCompiledModel",
+        resolveFact,
+        validateFactPosition,
+        skipConcepts: Optional[set] = None,
+        callResolveFact: bool = False,
+    ) -> None:
+        self.compMdl = compMdl
+        self._resolveFact = resolveFact
+        self._validateFactPosition = validateFactPosition
+        self._skipConcepts = skipConcepts or set()
+        self._callResolveFact = callResolveFact
+        self.factCount = 0
+
+    def accept(self, fact: "XbrlFact") -> None:
+        from .XbrlCube import conceptCoreDim  # local import: cube module not needed at plugin import time
+        conceptQn = (fact.factDimensions or {}).get(conceptCoreDim) if getattr(fact, "factDimensions", None) else None
+        if conceptQn in self._skipConcepts:
+            return
+        if self._callResolveFact:
+            module = getattr(fact, "parent", self.compMdl)
+            self._resolveFact(self.compMdl, module, fact)
+        self._validateFactPosition(self.compMdl, fact)
+        self.factCount += 1
+
+
+def iterModuleFacts(compMdl: "XbrlCompiledModel") -> Iterator["XbrlFact"]:
+    """Yield every fact reachable through every module's loaders, lazily."""
+    for module in compMdl.xbrlModels.values():
+        for loader in moduleLoaders(module, compMdl):
+            yield from loader.facts()
+
+
+# --------------------------------------------------------------------
+# Backend: CSV loader (streaming, registered for XbrlTableTemplate)
+# --------------------------------------------------------------------
+
+class CsvFactsLoader:
+    """Streams XbrlFact objects out of a CSV-backed `XbrlFactSource`.
+
+    Delegates to `LoadCsvTable.csvTableRowFacts`, which is itself a generator
+    that consumes the CSV row-at-a-time. The loader thereby preserves the
+    streaming guarantee: only one CSV row's worth of facts is live in
+    Python-side memory at a time (modulo the consumer's own buffering).
+
+    Note: full ingestion of `XbrlFactSource` from CSV is not yet exercised by
+    the conformance suite. This loader is the wiring point; per-source
+    table resolution will be filled in alongside step 6 (HTML resolver), at
+    which time the locator-property registry pattern can be reused.
+    """
+    mediaType = "text/csv"
+
+    def __init__(self, factSource: "XbrlFactSource", module: "XbrlModule",
+                 compMdl: "XbrlCompiledModel") -> None:
+        self.factSource = factSource
+        self.module = module
+        self.compMdl = compMdl
+
+    def facts(self) -> Iterator["XbrlFact"]:
+        from .LoadCsvTable import csvTableRowFacts
+        # The XbrlFactSource references a factMap whose templateName is an
+        # XbrlTableTemplate. The concrete `table` object (with `.url`,
+        # `.parameters`, `.template`, `.optional`, `.name`) is expected to be
+        # discoverable on the factSource via a tableSource attribute; until
+        # the spec wires that explicitly we read it from `factSource.tableSource`
+        # and skip with a diagnostic if absent.
+        table = getattr(self.factSource, "tableSource", None)
+        if table is None:
+            self.compMdl.warning(
+                "arelle:csvFactSourceNotResolved",
+                _("XbrlFactSource %(name)s declares a CSV factMap but no resolvable tableSource; "
+                  "CSV ingestion skipped."),
+                xbrlObject=self.factSource,
+                name=getattr(self.factSource, "name", None),
+            )
+            return
+        for _rowIndex, rowFactObjs in csvTableRowFacts(
+            table,
+            self.compMdl,
+            self.compMdl.error,
+            self.compMdl.warning,
+            self.module,
+        ):
+            yield from rowFactObjs
+
+
+def _registerBuiltinLoaders() -> None:
+    """Register backend loaders against their template classes.
+
+    Done lazily to avoid import cycles (XbrlReport imports module types that
+    transitively reach back here).
+    """
+    try:
+        from .XbrlFact import XbrlTableTemplate
+    except Exception:
+        return
+    registerFactSourceLoader(XbrlTableTemplate, CsvFactsLoader)
+
+
+_registerBuiltinLoaders()

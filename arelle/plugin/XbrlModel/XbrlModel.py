@@ -16,7 +16,7 @@ from .XbrlDimension import XbrlDomain
 from .XbrlGroup import XbrlGroupContent
 from .XbrlNetwork import XbrlNetwork
 from .XbrlReference import XbrlReference
-from .XbrlReport import XbrlFact, XbrlFootnote, XbrlReport
+from .XbrlFact import XbrlFact, XbrlFootnote
 from .XbrlTypes import XbrlModuleType, XbrlLayoutType, QNameKeyType, XbrlLabelType, XbrlPropertyType
 from .XbrlObject import XbrlObject, XbrlReferencableModelObject, XbrlTaxonomyTagObject, XbrlReportObject
 
@@ -28,7 +28,6 @@ def castToXbrlCompiledModel(modelXbrl, isReport=False):
         modelXbrl.xbrlObjects: list[XbrlObject] = []
         modelXbrl.namedObjects: OrderedDict[QNameKeyType, XbrlReferencableModelObject] = OrderedDict() # not visible metadata
         modelXbrl.tagObjects: defaultdict[QName, list[XbrlReferencableModelObject]] = defaultdict(list) # labels and references
-        modelXbrl.reports: OrderedDict[QNameKeyType, XbrlReport] = OrderedDict()
         modelXbrl.dateResolutionConceptNames: OrderedSet[QName] = OrderedSet()
         modelXbrl._effectiveRelationshipSetCache = {}
         modelXbrl._effectiveReferenceRelatedNamesCache = {}
@@ -50,7 +49,6 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
     # objects only present for XbrlReports
     factspaces: dict[str, XbrlFact] # constant factspaces in taxonomy
     footnotes: dict[str, XbrlFootnote] # constant footnotes in taxonomy
-    reports: OrderedDict[QNameKeyType, XbrlReport] = OrderedDict()
 
     @classmethod
     def propertyNameTypes(cls):
@@ -348,13 +346,6 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
                         (not _type or _type == obj._type) and
                         (not _lang or not obj.language or _lang.startswith(obj.language) or obj.language.startswith(lang))):
                         yield obj
-        elif issubclass(_class, XbrlReportObject) and isinstance(self, (XbrlCompiledModel, XbrlReport)): # report facts
-            if issubclass(_class, XbrlReport):
-                objs = self.reports.values()
-            else:
-                facts = getattr(self, "facts", EMPTY_DICT).values()
-            for obj in objs:
-                yield obj
 
     def error(self, *args, **kwargs):
         if "xbrlObject" in kwargs:

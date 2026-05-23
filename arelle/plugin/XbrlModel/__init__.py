@@ -17,7 +17,7 @@ For XBRL 2.1 XML schema validation purposes, saves schema files in directory if
 """
 
 from typing import TYPE_CHECKING, cast, GenericAlias, Union, _GenericAlias, _UnionGenericAlias, get_origin, ClassVar, ForwardRef, get_args, Dict
-import os, io, json, cbor2, sys, time, traceback, inspect
+import os, io, json, cbor2, sys, time, traceback, inspect, types
 JSON_SCHEMA_VALIDATOR = "jsonschema" # select one of below JSON schema validator libraries (seriously different performance)
 #JSON_SCHEMA_VALIDATOR = "fastjsonschema"
 if JSON_SCHEMA_VALIDATOR == "jsonschema": # slow and thorough
@@ -58,16 +58,16 @@ from .XbrlLayout import XbrlLayout
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
 from .XbrlProperty import XbrlProperty, XbrlPropertyType
 from .XbrlReference import XbrlReference, XbrlReferenceType
-from .XbrlReport import XbrlReport, XbrlFact, XbrlFootnote, XbrlFactSource, XbrlFactMap, XbrlTableTemplate
+from .XbrlFact import XbrlFact, XbrlFootnote, XbrlFactSource, XbrlFactMap, XbrlTableTemplate
 from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
 from .XbrlModel import XbrlCompiledModel, castToXbrlCompiledModel
 from .XbrlModule import XbrlModule, xbrlObjectTypes
 from .XbrlObject import XbrlObject, XbrlReferencableModelObject, XbrlTaxonomyTagObject, XbrlObjectType
-from .XbrlTypes import (XbrlTaxonomyModelType, XbrlModuleType, XbrlLayoutType, XbrlReportType, XbrlUnitTypeType,
+from .XbrlTypes import (XbrlTaxonomyModelType, XbrlModuleType, XbrlLayoutType, XbrlUnitTypeType,
                         QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse, DefaultZero, DefaultOne, OptionalList, OptionalNonemptySet)
 from .ValidateXbrlModel import validateCompiledModel
-from .ValidateReport import validateReport, validateDateResolutionConceptFacts
+from .ValidateFacts import validateDateResolutionConceptFacts, validateCompleteReportCubes
 from .SelectImportedObjects import selectImportedObjects
 from .ModelValueMore import SQName, QNameAt
 from .ViewXbrlTaxonomyObject import viewXbrlTaxonomyObject
@@ -96,7 +96,6 @@ xbrlTypeAliasClass = {
     XbrlPropertyType: XbrlProperty,
     XbrlTaxonomyModelType: XbrlCompiledModel,
     XbrlModuleType: XbrlModule,
-    XbrlReportType: XbrlModule,
     XbrlUnitTypeType: XbrlUnitType
     }
 
@@ -726,12 +725,35 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         newModule = createModelObjects("xbrlModel", moduleFileObj["xbrlModel"], xbrlCompMdl, ["", "xbrlModel"])
         modelXbrl.profileActivity(f"Create taxonomy objects from {moduleFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
         newModule._prefixNamespaces = prefixNamespaces
-        if isReport:
-            newReport = createModelObjects("report", moduleFileObj["report"], xbrlCompMdl, ["", "report"])
-            newReport._prefixNamespaces = prefixNamespaces
-            newReport._url = moduleFile
-            modelXbrl.profileActivity(f"Create report objects from {moduleFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
+        # Step 8: well-known prefixes from previously-loaded baked-in modules
+        # (e.g. iso4217, utr) are made available as fallbacks for QName lookup
+        # in this module. The user's explicit declarations always win, so we
+        # only add prefixes that the user did not declare. This matches the
+        # OIM spec expectation that standard unit/datatype registries can be
+        # referenced without being repeated in every taxonomy module's
+        # documentInfo.namespaces.
+        for _otherModule in xbrlCompMdl.xbrlModels.values():
+            if _otherModule is newModule:
+                continue
+            for _pfx, _ns in (getattr(_otherModule, "_prefixNamespaces", None) or {}).items():
+                if _pfx and _ns and _pfx not in prefixNamespaces:
+                    prefixNamespaces[_pfx] = _ns
         newModule._lastMdlObjIndex = len(xbrlCompMdl.xbrlObjects) - 1
+        # Parse documentInfo.sourceMappings into a lightweight list of mapping
+        # objects accessible via module._sourceMappings for FactValueResolver
+        # (step 6 -- HTML / PDF locator-property registry).
+        sourceMappingsRaw = documentInfo.get("sourceMappings") or ()
+        parsedSourceMappings = []
+        for _m in sourceMappingsRaw:
+            if not isinstance(_m, dict):
+                continue
+            _ns = types.SimpleNamespace(
+                sourceName=qname(_m.get("sourceName"), prefixNamespaces) if _m.get("sourceName") else None,
+                url=_m.get("url"),
+                factInterfaceName=qname(_m.get("factInterfaceName"), prefixNamespaces) if _m.get("factInterfaceName") else None,
+            )
+            parsedSourceMappings.append(_ns)
+        newModule._sourceMappings = parsedSourceMappings
         schemaDoc._txmyModule = newModule
 
 
@@ -821,9 +843,8 @@ def xbrlModelValidator(val, parameters):
         from .VectorSearch import buildXbrlVectors
         buildXbrlVectors(val.modelXbrl)
 
-        # validate facts whose values represent dateResolution concepts first
-        for reportQn, reportObj in val.modelXbrl.reports.items():
-            validateReport(reportQn, reportObj, val.modelXbrl)
+        # Cube completeness checks (facts are owned by XbrlModule; XbrlReport has been removed)
+        validateCompleteReportCubes(val.modelXbrl)
     except Exception as ex:
         val.modelXbrl.error("arelleOIMloader:error",
                 "Error while validating, error %(errorType)s %(error)s\n traceback %(traceback)s",
@@ -887,6 +908,13 @@ def optionsExtender(parser, *args, **kwargs):
                       action="store",
                       dest="saveXMLSchemaFiles",
                       help=_("Save OIM taxonomy namespaces to xsd files in specified directory."))
+    parser.add_option("--xbrlModelStreamThreshold",
+                      action="store",
+                      type="int",
+                      dest="xbrlModelStreamThreshold",
+                      help=_("Fact count above which an XbrlFactSource MUST stream rather than "
+                             "materialize. Default 50000. Overridden per-source by "
+                             "factSourceMetadata.factCount when present."))
 
 def filingStart(self, options, *args, **kwargs):
     #global saveOIMTaxonomySchemaFiles
@@ -901,18 +929,20 @@ def xbrlModelLoaded(cntlr, options, xbrlCompMdl, *args, **kwargs):
     if not isinstance(xbrlCompMdl, XbrlCompiledModel):
         return
 
+    # Stash streaming threshold from CLI option for FactPipeline consumers.
+    if options is not None and getattr(options, "xbrlModelStreamThreshold", None) is not None:
+        xbrlCompMdl.xbrlModelStreamThreshold = options.xbrlModelStreamThreshold
+
     xbrlCompMdl.groupContents = defaultdict(OrderedSet)
     for txmy in xbrlCompMdl.xbrlModels.values():
         for grpCnts in txmy.groupContents:
             for relName in getattr(grpCnts, "relatedNames", ()): # if object was invalid there are no attributes, e.g. bad QNames
                 xbrlCompMdl.groupContents[grpCnts.groupName].add(relName)
 
-    # load CSV tables
-    for reportQn, reportObj in xbrlCompMdl.reports.items():
-        for table in reportObj.tables.values():
-            for rowIndex, rowFacts in csvTableRowFacts(table, xbrlCompMdl, xbrlCompMdl.error, xbrlCompMdl.warning, reportObj._url):
-                for fact in rowFacts:
-                    reportObj.facts[fact.name] = fact
+    # load CSV tables: XbrlReport has been removed; tableTemplates and facts live on XbrlModule.
+    # NOTE: the legacy report-based CSV loop iterated `reportObj.tables.values()` which has never
+    # been populated since the spec changed. This is a placeholder for the streaming CSV pipeline
+    # introduced in subsequent refactor steps.
 
 
     # save schema files if specified by command line option or formula parameter
@@ -935,8 +965,6 @@ def xbrlModelViews(cntlr, xbrlCompMdl):
     xbrlModelLoaded(cntlr, None, xbrlCompMdl)
     if isinstance(xbrlCompMdl, XbrlCompiledModel):
         initialViews = []
-        if getattr(xbrlCompMdl, "reports", ()): # has instance facts
-            initialViews.append( (XbrlReport, cntlr.tabWinTopRt, "Reports") )
         initialViews.extend(((XbrlConcept, cntlr.tabWinBtm, "XBRL Concepts"),
                              (XbrlGroup, cntlr.tabWinTopRt, "XBRL Groups"),
                              (XbrlNetwork, cntlr.tabWinTopRt, "XBRL Networks"),

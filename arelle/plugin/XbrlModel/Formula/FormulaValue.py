@@ -17,7 +17,7 @@ from typing import Any, Dict, FrozenSet, List, Optional, Tuple, TYPE_CHECKING
 from arelle.ModelValue import QName
 
 if TYPE_CHECKING:
-    from arelle.plugin.XbrlModel.XbrlReport import XbrlFact
+    from arelle.plugin.XbrlModel.XbrlFact import XbrlFact
     from arelle.plugin.XbrlModel.XbrlConcept import XbrlConcept
     from arelle.plugin.XbrlModel.XbrlCube import XbrlCube
     from arelle.plugin.XbrlModel.XbrlNetwork import XbrlNetwork

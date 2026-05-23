@@ -50,7 +50,7 @@ from ..VectorSearch import (
 from .FormulaValue import AlignmentKey, alignmentKeyOf
 
 if TYPE_CHECKING:
-    from arelle.plugin.XbrlModel.XbrlReport import XbrlFact
+    from arelle.plugin.XbrlModel.XbrlFact import XbrlFact
 
 
 # ---------------------------------------------------------------------------

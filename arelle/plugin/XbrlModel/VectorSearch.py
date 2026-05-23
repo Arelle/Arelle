@@ -41,21 +41,47 @@ Notes on multi-query design
 
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Literal
+from typing import Dict, List, Tuple, Literal, Any, Iterable, TYPE_CHECKING
 from ordered_set import OrderedSet
 import math
+import logging
 
 import numpy as np
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
+
+# --------------------------------------------------------------------
+# Optional torch dependency (graceful degradation)
+# --------------------------------------------------------------------
+# Building / searching vectors requires PyTorch (and on Apple Silicon, an
+# MPS-capable build). When torch is not importable -- e.g. minimal CI
+# environments, embedded deployments, or platforms where the user
+# explicitly does not want a multi-hundred-MB dependency -- the plugin
+# MUST still load and validate. Callers that need vector results catch
+# ValueError already; we surface the missing-torch case the same way.
+#
+# `HAS_TORCH` lets the FactSink decide whether to buffer facts for batched
+# encoding (`addFactsBatch`) or skip vector work entirely.
+
+try:
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+    HAS_TORCH = True
+except ImportError:  # pragma: no cover - exercised on torch-less installs
+    torch = None  # type: ignore[assignment]
+    nn = None  # type: ignore[assignment]
+    F = None  # type: ignore[assignment]
+    HAS_TORCH = False
+    logging.getLogger("arelle.XbrlModel.VectorSearch").info(
+        "PyTorch not available; XbrlModel vector search disabled. "
+        "Cube fit scoring will fall back to exhaustive dimensional matching."
+    )
 
 from arelle.ModelValue import QName
 from arelle.XmlValidate import VALID
 
 from .XbrlCube import XbrlCube
 from .XbrlObject import XbrlReferencableModelObject, XbrlReportObject
-from .XbrlReport import XbrlFact
+from .XbrlFact import XbrlFact
 from .XbrlModule import referencableObjectTypes
 
 SEARCH_CUBES = 1
@@ -66,39 +92,22 @@ SEARCH_BOTH = 3
 # Device selection
 # --------------------------------------------------------------------
 
-def bestDevice() -> torch.device:
-    """
-    Decide where all heavy tensor work will run.
+def bestDevice():
+    """Pick a torch device. Returns None when torch is unavailable.
 
     Priority:
       1. CUDA  (NVIDIA GPUs on Windows/Linux)
       2. MPS   (Apple Silicon GPUs via Metal on macOS)
       3. CPU   (fallback)
-
-    All tensors that matter (embeddings, fact/taxonomy vectors,
-    cosine similarity search) are created on this device so that:
-      - matrix multiplications and embedding lookups are GPU-accelerated
-        when hardware is available.
-      - code remains portable with a single path.
-
-    One CUDA or one Apple Silicon GPU is chosen, no device index, list of devices, or replication.
-
-    For XBRL workloads, typical facts per filing (such as SEC) is 1k – 50k, typical dimensions is small,
-    and typical embedding dims are 32–256 (this may change for large N-CSRs).
-
-    A single modern GPU (or Apple M-series GPU) can do millions of exact similarity checks per millisecond.
-
-    Batched queries run in parallel on one GPU, not across GPUs.  The GPU parallelizes across facts,
-    across queries and across vector dimensions - within one GPU only.  This is exactly what
-    is needed for correctness and simplicity.  Multi-GPU would provide benefit only when indexing
-    across millions of filings at once.
-
     """
+    if not HAS_TORCH:
+        return None
     if torch.cuda.is_available():
         return torch.device("cuda")
     if torch.backends.mps.is_available():
         return torch.device("mps")
     return torch.device("cpu")
+
 
 DEVICE_DESCRIPTION = {
     "cuda": "NVIDIA GPUs",
@@ -174,7 +183,13 @@ def buildXbrlVocab(txmyMdl: XbrlCompiledModel, valueTokensOffset: int) -> Tuple[
 # Embedding model
 # --------------------------------------------------------------------
 
-class XBRLEmbedder(nn.Module):
+# `nn.Module` only exists when torch imported successfully. Pick a base
+# class up front so the class statement parses either way; callers must
+# still check `HAS_TORCH` before instantiation.
+_EmbedderBase = nn.Module if HAS_TORCH else object
+
+
+class XBRLEmbedder(_EmbedderBase):
     """
     Wraps a single nn.Embedding used for all XBRL tokens.
 
@@ -184,7 +199,9 @@ class XBRLEmbedder(nn.Module):
       - All token → vector operations happen on that device.
       - The model is intentionally simple; training can be layered on later.
     """
-    def __init__(self, vocab_size: int, embedDim: int, device: torch.device):
+    def __init__(self, vocab_size: int, embedDim: int, device):
+        if not HAS_TORCH:
+            raise RuntimeError("XBRLEmbedder requires PyTorch")
         super().__init__()
         # GPU/CPU: embedding table lives where we send the module
         self.embedding = nn.Embedding(vocab_size, embedDim)
@@ -286,7 +303,19 @@ def buildXbrlVectors(
       - CUDA → GPU kernels
       - MPS  → Metal on Apple Silicon
       - CPU  → vectorized CPU ops
+
+    Graceful degradation: when PyTorch is not installed this function is a
+    no-op. `txmyMdl._xbrlEmbedder` / `_xbrlVectorStore` remain unset; callers
+    that try to search will get a ValueError (already caught by ValidateCubes)
+    and fall back to exhaustive dimensional matching.
     """
+    if not HAS_TORCH:
+        txmyMdl.info(
+            "arelle:oimModelVectorSearchDisabled",
+            _("PyTorch not available; XbrlModel vector search disabled."),
+        )
+        return
+
     # Device decision is centralized here
     device = bestDevice() if device_hint is None else torch.device(device_hint)
     # print("Using device:", device)
@@ -388,11 +417,21 @@ def mapQueryAspects(
                 elif qa1 in store.valueTokens:
                     v = ( d, qa1 )
                 else:
+                    # No registered (dim, value) token: fall back to bare
+                    # dimension presence so open cubes (whose vectors only
+                    # carry the dimension token `d`) can still match.
+                    aspectIds.append( d )
                     continue
                 if v in store.valueTokens:
                     v = store.valueTokens.index( v ) + store.valueTokensOffset
                 else:
+                    aspectIds.append( d )
                     continue
+                # Emit both: (dim,value) for constrained cubes and `d` for
+                # open cubes that only encode dimension presence.
+                aspectIds.append( v )
+                aspectIds.append( d )
+                continue
             else:
                 v = d
             aspectIds.append( v )
@@ -422,7 +461,15 @@ def searchXbrl(
       - Complexity is O(N * D), but on CUDA/MPS that's extremely fast for the
         XBRL scales we care about (thousands to low hundreds of thousands).
       - No approximate index, no risk of "missing" nearest neighbors.
+
+    Graceful degradation: when torch is unavailable (or the vector store was
+    never built), this raises ValueError -- which existing call sites already
+    catch and treat as "no candidate cubes".
     """
+    if not HAS_TORCH:
+        raise ValueError("Vector search unavailable: PyTorch not installed.")
+    if not hasattr(txmyMdl, "_xbrlEmbedder") or not hasattr(txmyMdl, "_xbrlVectorStore"):
+        raise ValueError("Vector search unavailable: store not built for this model.")
     embedder = txmyMdl._xbrlEmbedder
     store = txmyMdl._xbrlVectorStore
 
@@ -743,3 +790,80 @@ def pairwiseAlignmentScores(
     A single high-throughput device matmul on CUDA / MPS / CPU.
     """
     return matA @ matB.to(matA.device).T   # (N_A, N_B)
+
+
+# --------------------------------------------------------------------
+# Streaming-ingestion API: addFactsBatch
+# --------------------------------------------------------------------
+
+def addFactsBatch(txmyMdl, facts: "Iterable[XbrlFact]", batchSize: int = 4096) -> int:
+    """Encode a batch of `XbrlFact` objects into the model's vector store
+    incrementally, in fixed-size chunks.
+
+    The streaming-ingestion pipeline (`FactPipeline.FactSink`) buffers facts
+    as they arrive from each `FactSourceLoader`. When the buffer reaches
+    `batchSize`, the sink flushes via this function -- letting on-device
+    matmul / embedding lookups amortize fixed overheads across many facts
+    rather than encoding one fact at a time.
+
+    Returns the number of facts actually added (skipping facts whose
+    `_xValid < VALID`). When PyTorch is unavailable this is a no-op
+    returning 0.
+
+    The vector store must already exist (created lazily by `buildXbrlVectors`).
+    Bridges that want to ingest facts before any vector store exists must
+    call `buildXbrlVectors(txmyMdl)` first; this avoids surprising IO cost
+    from a no-op path.
+    """
+    if not HAS_TORCH:
+        return 0
+    store = getattr(txmyMdl, "_xbrlVectorStore", None)
+    embedder = getattr(txmyMdl, "_xbrlEmbedder", None)
+    if store is None or embedder is None:
+        return 0
+
+    valueTokens = store.valueTokens
+    valueTokensOffset = store.valueTokensOffset
+    added = 0
+    chunkVecs: List["torch.Tensor"] = []
+    chunkObjs: List[int] = []
+
+    def _flush():
+        nonlocal chunkVecs, chunkObjs
+        if not chunkVecs:
+            return
+        newVecs = l2NormalizeRows(torch.stack(chunkVecs, dim=0))
+        if store.factVecs is None:
+            store.factVecs = newVecs
+        else:
+            store.factVecs = torch.cat([store.factVecs, newVecs], dim=0)
+        store.factObjsList.extend(chunkObjs)
+        chunkVecs = []
+        chunkObjs = []
+
+    for fact in facts:
+        if getattr(fact, "_xValid", VALID) < VALID:
+            continue
+        tokens: List[int] = []
+        for qn, value in fact.factDimensions.items():
+            dimObj = txmyMdl.namedObjects.get(qn)
+            if dimObj is None:
+                continue
+            d = dimObj.xbrlMdlObjIndex
+            if isinstance(value, QName) and value in txmyMdl.namedObjects:
+                m = txmyMdl.namedObjects[value].xbrlMdlObjIndex
+            else:
+                m = value
+            v = (d, m)
+            t = valueTokens.add(v) + valueTokensOffset
+            tokens.append(t)
+            tokens.append(d)
+        if not tokens:
+            continue
+        chunkVecs.append(embedder.combine(tokens))
+        chunkObjs.append(fact.xbrlMdlObjIndex)
+        added += 1
+        if len(chunkVecs) >= batchSize:
+            _flush()
+    _flush()
+    return added

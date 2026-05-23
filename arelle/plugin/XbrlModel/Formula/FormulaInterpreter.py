@@ -209,7 +209,7 @@ def _findFactsByLocalName(globalCtx: FormulaGlobalContext, localName: str) -> Li
     Wildcard concept lookup: find all facts whose concept QName has the
     given localName in any namespace.
     """
-    from arelle.plugin.XbrlModel.XbrlReport import XbrlFact
+    from arelle.plugin.XbrlModel.XbrlFact import XbrlFact
     from arelle.XmlValidate import VALID
     from arelle.ModelValue import qname as mkQn
 
