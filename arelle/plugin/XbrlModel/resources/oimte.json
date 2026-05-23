@@ -2147,18 +2147,6 @@
                 ]
             },
             {
-                "name": "oimte:invalidCubeType",
-                "domainClasses": [
-                    "oimte:OIMErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
                 "name": "oimte:invalidRequiredLocatorProperty",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
@@ -2184,6 +2172,18 @@
             },
             {
                 "name": "oimte:referenceLanguageRedefined",
+                "domainClasses": [
+                    "oimte:OIMErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:namespaceInModelNotInDocumentNamespace",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
                 ],
@@ -8694,6 +8694,32 @@
                 ]
             },
             {
+                "name": "oimte:propertyValueDataTypeMismatchSimpleTypeAnyURIInvalidPropertyValueReference",
+                "relatedNames": [
+                    "oimte:propertyValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-anyURI-InvalidPropertyValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-anyURI-InvalidPropertyValue"
+                    }
+                ]
+            },
+            {
                 "name": "oimte:propertyValueDataTypeMismatchInvalidCalcWeightReference",
                 "relatedNames": [
                     "oimte:propertyValueDataTypeMismatch"
@@ -9110,6 +9136,32 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#TABLETEMPLATE-ExtendClosedTableTemplate"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidColumnNameReference",
+                "relatedNames": [
+                    "oimte:invalidColumnName"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "TABLETEMPLATE-InvalidColumnName.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#TABLETEMPLATE-InvalidColumnName"
                     }
                 ]
             },
@@ -9609,6 +9661,32 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-ExcludeCubeDoesNotExist"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidObjectTypeDomainClassUsedAsDomainOnDimensionReference",
+                "relatedNames": [
+                    "oimte:invalidObjectType"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CUBE-DomainClassUsedAsDomainOnDimension.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-DomainClassUsedAsDomainOnDDimension"
                     }
                 ]
             },
@@ -16168,6 +16246,58 @@
                 ]
             },
             {
+                "name": "oimte:factValueDataTypeMismatch46ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-anyURI-InvalidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "4"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-anyURI-InvalidValue"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:factValueDataTypeMismatch47ConformanceReference",
+                "relatedNames": [
+                    "oimte:factValueDataTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "SIMPLETYPE-anyURI-ValidValue.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "✅ Pass"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "0"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#SIMPLETYPE-anyURI-ValidValue"
+                    }
+                ]
+            },
+            {
                 "name": "oimte:factValueLocatorRequiredForValueSourcesConformanceReference",
                 "relatedNames": [
                     "oimte:factValueLocatorRequiredForValueSources"
@@ -18748,6 +18878,214 @@
                 ]
             },
             {
+                "name": "oimte:conceptPropertiesInconsistentWithRelationshipInstantInflowValidReference",
+                "relatedNames": [
+                    "oimte:conceptPropertiesInconsistentWithRelationship"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FLOW-InstantInflow-Valid.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "✅ Pass"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "0"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FLOW-InstantInflow-Valid"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:conceptPropertiesInconsistentWithRelationshipInstantInflowInvalidReference",
+                "relatedNames": [
+                    "oimte:conceptPropertiesInconsistentWithRelationship"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FLOW-InstantInflow-Invalid.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FLOW-InstantInflow-Invalid"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:conceptPropertiesInconsistentWithRelationshipInstantOutflowValidReference",
+                "relatedNames": [
+                    "oimte:conceptPropertiesInconsistentWithRelationship"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FLOW-InstantOutflow-Valid.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "✅ Pass"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "0"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FLOW-InstantOutflow-Valid"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:conceptPropertiesInconsistentWithRelationshipInstantOutflowInvalidReference",
+                "relatedNames": [
+                    "oimte:conceptPropertiesInconsistentWithRelationship"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FLOW-InstantOutflow-Invalid.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FLOW-InstantOutflow-Invalid"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:conceptPropertiesInconsistentWithRelationshipInstantAccrualValidReference",
+                "relatedNames": [
+                    "oimte:conceptPropertiesInconsistentWithRelationship"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FLOW-InstantAccrual-Valid.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "✅ Pass"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "0"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FLOW-InstantAccrual-Valid"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:conceptPropertiesInconsistentWithRelationshipInstantAccrualInvalidReference",
+                "relatedNames": [
+                    "oimte:conceptPropertiesInconsistentWithRelationship"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FLOW-InstantAccrual-Invalid.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FLOW-InstantAccrual-Invalid"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:conceptPropertiesInconsistentWithRelationshipInstantContraValidReference",
+                "relatedNames": [
+                    "oimte:conceptPropertiesInconsistentWithRelationship"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FLOW-InstantContra-Valid.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "✅ Pass"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "0"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FLOW-InstantContra-Valid"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:conceptPropertiesInconsistentWithRelationshipInstantContraInvalidReference",
+                "relatedNames": [
+                    "oimte:conceptPropertiesInconsistentWithRelationship"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FLOW-InstantContra-Invalid.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "3"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FLOW-InstantContra-Invalid"
+                    }
+                ]
+            },
+            {
                 "name": "oimte:conceptPropertiesInconsistentWithSummationItemRelationshipReference",
                 "relatedNames": [
                     "oimte:conceptPropertiesInconsistentWithSummationItemRelationship"
@@ -20302,6 +20640,32 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NETWORK-RootOfNetworkDoesNotMatchActualRoot"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:namespaceInModelNotInDocumentNamespaceInvalidChangeFactMapExternalFileReference",
+                "relatedNames": [
+                    "oimte:namespaceInModelNotInDocumentNamespace"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACTSET-InvalidChangeFactMapExternalFile.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACTSET-InvalidFactIdentifierNamespace"
                     }
                 ]
             }
