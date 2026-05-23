@@ -172,6 +172,44 @@ def validateValue(compMdl, module, obj, value, dataTypeQn, pathElt, msgCode):
     """
     if isinstance(dataTypeQn, QName):
         dataTypeObj = compMdl.namedObjects.get(dataTypeQn)
+        if isinstance(dataTypeObj, XbrlCollectionType):
+            if not isinstance(value, list):
+                return (INVALID, None)
+
+            minItems = getattr(dataTypeObj, "minItems", None)
+            maxItems = getattr(dataTypeObj, "maxItems", None)
+            itemCount = len(value)
+            if ((minItems is not None and itemCount < minItems) or
+                (maxItems is not None and itemCount > maxItems)):
+                emit_error(compMdl, "oimte:invalidNumberOfItemsInCollection",
+                           _("Value has %(itemCount)s item(s) but collectionType %(collectionType)s allows minItems %(minItems)s and maxItems %(maxItems)s."),
+                           xbrlObject=obj, collectionType=dataTypeObj.name,
+                           itemCount=itemCount, minItems=minItems, maxItems=maxItems)
+                return (INVALID, None)
+
+            if getattr(dataTypeObj, "uniqueValues", True):
+                uniqueValues = set()
+                hasDuplicate = False
+                for item in value:
+                    key = item if isinstance(item, (str, int, float, bool, Decimal, type(None), QName)) else repr(item)
+                    if key in uniqueValues:
+                        hasDuplicate = True
+                        break
+                    uniqueValues.add(key)
+                if hasDuplicate:
+                    emit_error(compMdl, "oimte:duplicateItemsInCollection",
+                               _("CollectionType %(collectionType)s requires unique values but duplicate items were found."),
+                               xbrlObject=obj, collectionType=dataTypeObj.name)
+                    return (INVALID, None)
+
+            validatedItems = []
+            for i, item in enumerate(value):
+                itemValid, itemXValue = validateValue(compMdl, module, obj, item, dataTypeObj.dataType, f"{pathElt}[{i}]", msgCode)
+                if itemValid != VALID:
+                    return (INVALID, None)
+                validatedItems.append(itemXValue)
+            return (VALID, validatedItems)
+
         if not isinstance(dataTypeObj, XbrlDataType): # validity checked in owner object validations
             return (NONE, None)
         dataTypeLn = dataTypeObj.xsBaseType(compMdl)
