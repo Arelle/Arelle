@@ -14,14 +14,15 @@ from arelle.ModelValue import qname
 from .XbrlConcept import XbrlConcept
 from .XbrlCube import coreDimensionsByLocalname
 from .XbrlDimension import XbrlDimension
-from .XbrlReport import XbrlFact, XbrlTableTemplate
+from .XbrlFact import XbrlFact, XbrlTableTemplate
 
 # Load CSV Table
 columnProperties = {"comment", "decimals", "dimensions", "propertyGroups", "parameterURL", "propertiesFrom"}
 
 
-def csvTableRowFacts(table, txmyMdl, error, warning, reportUrl): # yields facts by row in table
-    prefixNamespaces = table.report._prefixNamespaces
+def csvTableRowFacts(table, txmyMdl, error, warning, module, reportUrl=None): # yields facts by row in table
+    # Owner of namespace prefix bindings is the module (legacy XbrlReport has been removed).
+    prefixNamespaces = module._prefixNamespaces
     url = txmyMdl.modelManager.cntlr.webCache.normalizeUrl(table.url, reportUrl)
     if not txmyMdl.fileSource.exists(url):
         if not table.optional:
@@ -404,7 +405,7 @@ def csvTableRowFacts(table, txmyMdl, error, warning, reportUrl): # yields facts 
                                   table=tableId, row=rowIndex+1, column=colName, decimals=dimValue, url=tableUrl, source=dimSource)
                 factPositionObj = XbrlFact(xbrlMdlObjIndex=len(txmyMdl.xbrlObjects))
                 txmyMdl.xbrlObjects.append(factPositionObj)
-                factPositionObj.report = table.report
+                factPositionObj.parent = module
                 factPositionObj.name = qname(factId, prefixNamespaces)
                 factPositionObj.value = fact.get("value")
                 factPositionObj.decimals = None

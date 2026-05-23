@@ -47,7 +47,7 @@ class XbrlPeriodConstraint(XbrlModelObject):
     def periodPatternMatch(self, perVal):
         if not self.periodPattern or not self._periodPatternDict:
             return None # no period pattern check
-        m = periodConstraintPeriodPattern.match(perVal)
+        m = periodConstraintPeriodPattern.match(str(perVal) if perVal is not None else "")
         if not m:
             return False # period not processable to match, fail constraint
         perValDict = m.groupdict()

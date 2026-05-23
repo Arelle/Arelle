@@ -11,7 +11,6 @@ XbrlDataTableType: TypeAlias = "XbrlDataTable"
 XbrlPropertyType: TypeAlias = "XbrlProperty"
 XbrlTaxonomyModelType: TypeAlias = "XbrlCompiledModel"
 XbrlModuleType: TypeAlias = "XbrlModule"
-XbrlReportType: TypeAlias = "XbrlReport"
 XbrlUnitTypeType: TypeAlias = "XbrlUnitType"
 
 class QNameKeyType(QName): # a QName which is also the primary key for parent collection object

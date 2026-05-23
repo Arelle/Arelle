@@ -7,7 +7,7 @@ from collections import defaultdict, OrderedDict
 from decimal import Decimal
 from arelle.ModelValue import QName, AnyURI
 from arelle.PythonUtil import OrderedSet
-from .XbrlTypes import XbrlTaxonomyModelType,XbrlModuleType, XbrlReportType, QNameKeyType, DefaultFalse, DefaultTrue, OptionalList
+from .XbrlTypes import XbrlTaxonomyModelType,XbrlModuleType, QNameKeyType, DefaultFalse, DefaultTrue, OptionalList
 from .XbrlObject import XbrlObject, XbrlReportObject
 from .XbrlProperty import XbrlProperty
 from .XbrlUnit import  parseUnitString
@@ -52,7 +52,7 @@ class XbrlFact(XbrlReportObject):
     """ Fact Object
         Reference: oim-taxonomy#fact-object
     """
-    parent: Union[XbrlReportType,XbrlModuleType]  # facts in taxonomy module are owned by the txmyMdl
+    parent: XbrlModuleType  # facts in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (equired if no extendTargetName) The name is a QName that uniquely identifies the factspace object.
     factValues: OrderedSet[XbrlFactValue]
     factDimensions: Dict[QName, Any] # (required) A dimensions object with properties corresponding to the members of the {dimensions} property.
@@ -65,7 +65,7 @@ class XbrlFootnote(XbrlReportObject):
     """ Footnote Object
         Reference: oim-taxonomy#footnote-object
     """
-    parent: Union[XbrlReportType,XbrlModuleType]  # facts in taxonomy module are owned by the txmyMdl
+    parent: XbrlModuleType  # facts in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the abstract object.
     relatedNames: OrderedSet[QName] # (required) QNames of the fact objects associated with this footnote.
     content: Optional[str] # (required) The content of the footnote.
@@ -110,7 +110,7 @@ class XbrlFactSource(XbrlReportObject):
     """ Fact Source Object
         Reference: oim-taxonomy#factsource-object
     """
-    parent: Union[XbrlReportType,XbrlModuleType]  # table templates in taxonomy module are owned by the txmyMdl
+    parent: XbrlModuleType  # table templates in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the factSource object.
     factMapName: QName # (required) The fact map name is a QName that references a factMap object defined in the taxonomy model.
     cubeName: Optional[QName] # (optional) A QName that references a cube object defined in the taxonomy model. If provided, the fact source object only applies to the facts with this cube. If not provided, the fact source object applies to all facts in the report.
@@ -124,7 +124,7 @@ class XbrlTableTemplate(XbrlReportObject):
     """ Table Template Object
         Reference: oim-taxonomy#tabletemplate-object
     """
-    parent: Union[XbrlReportType,XbrlModuleType]  # table templates in taxonomy module are owned by the txmyMdl
+    parent: XbrlModuleType  # table templates in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the tableTemplate object.
     rowIdColumn: Optional[str] # (optional) An identifier specifying the name of the row ID column.
     columns: dict # (required) A columns object. (See xbrl-csv specification)
@@ -137,14 +137,14 @@ class XbrlJSONTemplateMap(XbrlReportObject):
     """ JSON Template Map Object
         Reference: oim-taxonomy#jsontemplatemap-object
     """
-    parent: Union[XbrlReportType,XbrlModuleType]  # table templates in taxonomy module are owned by the txmyMdl
+    parent: XbrlModuleType  # table templates in taxonomy module are owned by the txmyMdl
     name: Optional[QNameKeyType] # (optional) The QName that identifies the JSON template map object.
     factDimensions: dict[QName, Any] # (required) A factDimensions object that defines map dimensions.
     valuePath: str # (required) A JSONPath expression that identifies the location of the fact values in the JSON data.
     decimals: Optional[int] # (optional) A decimals value.
 
 class XbrlXMLTemplateMap(XbrlReportObject):
-    parent: Union[XbrlReportType,XbrlModuleType]  # table templates in taxonomy module are owned by the txmyMdl
+    parent: XbrlModuleType  # table templates in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The QName that identifies the XML template map object.
     factDimensions: dict[QName, Any] # (required) A factDimensions object that defines map dimensions.
     valuePath: str # (required) A JSONPath expression that identifies the location of the fact values in the JSON data.
@@ -152,36 +152,16 @@ class XbrlXMLTemplateMap(XbrlReportObject):
     namespaceMap: Optional[XbrlNamespaceMap] # (optional) A namespace mapping object that defines the namespace prefixes used in the XPath expression.
 
 class XbrlFactMap(XbrlReportObject):
-    parent: Union[XbrlReportType,XbrlModuleType]  # table templates in taxonomy module are owned by the txmyMdl
+    parent: XbrlModuleType  # table templates in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the fact map object.
     templateName: Optional[QName] # (optional) A QName that references a tableTemplate, jsonTemplateMap or xmlTemplateMap object defined in the taxonomy model. If provided, the fact map object only applies to the facts with this template. If not provided, the fact map object applies to all facts in the report.
 
 class XbrlFactLocatorType(XbrlReportObject):
-    parent: Union[XbrlReportType,XbrlModuleType]  # fact locator types in taxonomy module are owned by the txmyMdl
+    parent: XbrlModuleType  # fact locator types in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The name is a QName that uniquely identifies this locator type.
     sourceMediaType: str # (optional) Advisory MIME type or media format hint (e.g. text/html, application/pdf, text/csv). Informational only; does not restrict which source documents a locator of this type may reference.
     requiredProperties: OrderedSet[QName] # (optional) A set of property QNames that MUST be present on any factValueSource object using this type.
     allowedProperties: OrderedSet[QName] # (optional) A set of property QNames that MAY be present on any factValueSource object using this type. If not provided, there are no restrictions on the properties that may be used with this locator type.
 
-class XbrlReport(XbrlReportObject):
-    txmyMdl: XbrlTaxonomyModelType
-    name: QNameKeyType # (required) The name is a QName that uniquely identifies the abstract object.
-    factPositions: OrderedDict[QNameKeyType, XbrlFact]
-    footnotes: OrderedDict[QNameKeyType, XbrlFootnote]
-    factSources: OrderedSet[XbrlFactSource] # (optional) ordered set of tableTemplate objects.
-
-    @property
-    def factsByName(self):
-        try:
-            return self._factPositionsByName
-        except AttributeError:
-            self._factsByName = fbn = defaultdict(OrderedSet)
-            for fact in self.facts:
-                fbn[fact.name].add(fact)
-            return self._factsByName
-
-XbrlFact._propertyMap[XbrlReport] = {
-    # mapping for OIM report facts parented by XbrlReport object
-    "name": "id", # name may be id in source input
-    "factDimensions": "dimensions" # factDimensions may be dimensions in source input
-}
+# XbrlReport object has been removed: facts, footnotes, factSources, tableTemplates etc.
+# are owned directly by XbrlModule per the current oim-taxonomy specification.

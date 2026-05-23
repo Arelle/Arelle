@@ -271,7 +271,7 @@ def _cubeProp(cube, propName: str, args, ctx) -> FormulaValue:
         dims = getattr(cube, "cubeDimensions", None) or []
         return _wrapSet(getattr(d, "dimensionName", None) for d in dims)
     if propName == "facts":
-        from arelle.plugin.XbrlModel.XbrlReport import XbrlFact
+        from arelle.plugin.XbrlModel.XbrlFact import XbrlFact
         from arelle.ModelValue import qname as mkQn
         cubeDimQn = mkQn("https://xbrl.org/2021", "cube")
         cubeQn = getattr(cube, "name", None)

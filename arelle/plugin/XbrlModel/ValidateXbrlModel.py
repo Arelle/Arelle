@@ -36,7 +36,7 @@ from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
 from .XbrlObject import XbrlReferencableModelObject
 from .XbrlProperty import XbrlPropertyType
 from .XbrlReference import XbrlReference, XbrlReferenceType
-from .XbrlReport import XbrlFact, XbrlFootnote, XbrlTableTemplate
+from .XbrlFact import XbrlFact, XbrlFootnote, XbrlTableTemplate
 from .XbrlModule import XbrlModule, XbrlModelType, xbrlObjectTypes, referencableObjectTypes, xbrlObjectQNames
 from .XbrlUnit import XbrlUnit, parseUnitString
 from .XbrlConst import qnXsQName, qnXsDate, qnXsDateTime, qnXsDuration, objectsWithProperties
@@ -1246,7 +1246,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
     if module.facts:
         global resolveFact, validateFactPosition
         if resolveFact is None:
-            from .ValidateReport import resolveFact, validateFactPosition
+            from .ValidateFacts import resolveFact, validateFactPosition
         for factPosition in module.facts:
             resolveFact(compMdl, module, factPosition)
 
@@ -1277,12 +1277,18 @@ def validateCompletedModel(compMdl):
     """ Validate the completed model, including validating facts and complete cubes.
         This should be called after all models have been loaded and all references resolved.
     """
+    from .FactPipeline import FactSink, iterModuleFacts
+
     # Facts in taxonomy
     if any(module.facts for module in compMdl.xbrlModels.values()):
 
         # build search vocabulary to support cube construction (after date resolution concepts validated)
         from .VectorSearch import buildXbrlVectors, searchXbrl, searchXbrlBatchTopk, SEARCH_CUBES, SEARCH_FACTPOSITIONS, SEARCH_BOTH
         buildXbrlVectors(compMdl)
+
+        global resolveFact, validateFactPosition
+        if resolveFact is None:
+            from .ValidateFacts import resolveFact, validateFactPosition
 
         dateResolutionQuery = [(conceptCoreDim, qn) for qn in compMdl.dateResolutionConceptNames]
 
@@ -1306,14 +1312,16 @@ def validateCompletedModel(compMdl):
                         validateFactPosition(compMdl, f)
                         compMdl.dateResolutionConceptFacts[conceptQn].append(f)
 
-            # validate facts not of date resolution objects
-            for f in compMdl.filterNamedObjects(XbrlFact):
-                if f.factDimensions.get(conceptCoreDim) not in compMdl.dateResolutionConceptNames:
-                    validateFactPosition(compMdl, f)
+            # validate remaining facts through the streaming sink, skipping the date-resolution concepts
+            sink = FactSink(compMdl, resolveFact, validateFactPosition,
+                            skipConcepts=set(compMdl.dateResolutionConceptNames))
+            for f in iterModuleFacts(compMdl):
+                sink.accept(f)
         else:
-            # validate all facts
-            for f in compMdl.filterNamedObjects(XbrlFact):
-                validateFactPosition(compMdl, f)
+            # validate all facts through the streaming sink
+            sink = FactSink(compMdl, resolveFact, validateFactPosition)
+            for f in iterModuleFacts(compMdl):
+                sink.accept(f)
 
     # check complete cubes
     for cubeObj in compMdl.filterNamedObjects(XbrlCube):

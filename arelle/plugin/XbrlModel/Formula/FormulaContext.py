@@ -95,7 +95,7 @@ class FormulaGlobalContext:
         Results are cached per QName.
         """
         if conceptQn not in self.factCache:
-            from arelle.plugin.XbrlModel.XbrlReport import XbrlFact
+            from arelle.plugin.XbrlModel.XbrlFact import XbrlFact
             from arelle.XmlValidate import VALID
             from arelle.ModelValue import qname as mkQn
 

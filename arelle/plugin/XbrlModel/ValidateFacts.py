@@ -13,7 +13,7 @@ from .XbrlConst import unsupportedTypedDimensionDataTypes
 from .XbrlConcept import XbrlConcept, XbrlDataType
 from .XbrlCube import XbrlCube, conceptCoreDim, languageCoreDim, periodCoreDim, unitCoreDim, coreDimensions
 from .XbrlDimension import XbrlDimension, XbrlMember
-from .XbrlReport import XbrlFact, XbrlTableTemplate
+from .XbrlFact import XbrlFact, XbrlTableTemplate
 from .XbrlUnit import parseUnitString, XbrlUnit
 from .ValidateXbrlModel import validateValue
 from .ValidateCubes import validateCubes
@@ -73,9 +73,29 @@ def resolveFact(txmyMdl, txmyObj, fact):
         # presume this error would have been reported on validating loaded taxonomy model
         return
     for factValue in fact.factValues:
-        _valid, _value = validateValue(txmyMdl, txmyObj, factValue, factValue.value, cDataType, f"/value", "oimte:factValueDataTypeMismatch")
-        factValue._xValid = _valid
-        factValue._xValue = _value
+        # Step 6: factValue may carry its value either literally (`value` set) or
+        # externally via `valueSources` pointing into an HTML/PDF/tabular source.
+        # When valueSources are present, validate the locator-property structure
+        # (and report `oimte:factValueLocatorRequiredForValueSources`,
+        # `oimte:missingRequiredProperty`, `oimte:disallowedObjectProperty`,
+        # `oimte:invalidQNameReference` / `oimte:invalidObjectType` as needed)
+        # and attempt resolution. When the source document isn't currently
+        # accessible the resolution is treated as deferred and we skip data-type
+        # validation of the unresolved value -- structural errors have already
+        # been emitted.
+        deferred = False
+        resolvedText = None
+        if getattr(factValue, "valueSources", None):
+            from .FactValueResolver import validateAndResolveValueSources
+            deferred, resolvedText = validateAndResolveValueSources(txmyMdl, fact, factValue)
+        if deferred and factValue.value is None:
+            factValue._xValid = VALID
+            factValue._xValue = resolvedText
+        else:
+            valueToValidate = factValue.value if factValue.value is not None else resolvedText
+            _valid, _value = validateValue(txmyMdl, txmyObj, factValue, valueToValidate, cDataType, f"/value", "oimte:factValueDataTypeMismatch")
+            factValue._xValid = _valid
+            factValue._xValue = _value
         if factValue.language and cObj.isOimTextFactType(txmyMdl):
             if not factValue.language.islower():
                 txmyMdl.error("xbrlje:invalidLanguageCodeCase",
@@ -187,7 +207,9 @@ def validateFactPosition(txmyMdl, fact):
     if cObj is None or not isinstance(cObj, XbrlConcept):
         return
 
-    fact._cubes = None # cubes which fact complies with
+    # cubes which fact complies with -- intentionally NOT retained on the fact.
+    # The cube list is consumed immediately to update per-cube cell-coverage
+    # state, then discarded. This keeps memory at O(cells) rather than O(facts).
 
     # if period is provided statically, validate and then fit to cubes.
 
@@ -231,15 +253,23 @@ def validateFactPosition(txmyMdl, fact):
                        periodType=cObj.periodType)
 
     # find cubes which fact is valid for
-    fact._cubes = validateCubes(txmyMdl, fact)
-    if not fact._cubes:
+    matchedCubes = validateCubes(txmyMdl, fact)
+    if not matchedCubes:
         error("oimte:noFactSpaceForFact",
               _("Factspace %(name)s is not dimensionally valid in any cube."))
     else:
-        for cubeObj in fact._cubes:
-            if not hasattr(cubeObj, "_factspaces"):
-                cubeObj._factspaces = set()
-            cubeObj._factspaces.add(fact)
+        for cubeObj in matchedCubes:
+            cellKeys = getattr(cubeObj, "_cellKeys", None)
+            if cellKeys is None:
+                cellKeys = cubeObj._cellKeys = set()
+            # cell signature = the cube's dimension values from this fact.
+            # Many facts may collapse to the same cell, so set size is bounded
+            # by the cube's cell space, not by the fact count.
+            cellKey = tuple(
+                (cubeDimObj.dimensionName, fact.factDimensions.get(cubeDimObj.dimensionName))
+                for cubeDimObj in cubeObj.cubeDimensions
+            )
+            cellKeys.add(cellKey)
 
 
 def validateCompleteReportCubes(txmyMdl):
@@ -275,15 +305,8 @@ def validateDateResolutionConceptFacts(txmyMdl):
             resolveFact(txmyMdl, getattr(f, "parent", txmyMdl), f)
             validateFactPosition(txmyMdl, f)
 
-def validateReport(reportQn, reportObj, txmyMdl):
-    """ Validate report facts and tables. """
-    for table in reportObj.tables.values():
-        validateTable(table, reportQn, reportObj, txmyMdl)
-    # validate facts not involved in dateResolution
-    for qn, f in reportObj.facts.items():
-        if qn not in txmyMdl.dateResolutionConceptNames:
-            # check for possible cubes using vector search
-            resolveFact(txmyMdl, reportObj, f)
-            validateFactPosition(txmyMdl, f)
-    validateCompleteReportCubes(txmyMdl)
+# NOTE: The legacy `validateReport(reportQn, reportObj, txmyMdl)` function has been
+# removed along with the XbrlReport object. Cube completeness is now invoked directly
+# via `validateCompleteReportCubes(txmyMdl)`. The per-fact resolution loop will be
+# reintroduced in the streaming fact-pipeline refactor (step 2).
 

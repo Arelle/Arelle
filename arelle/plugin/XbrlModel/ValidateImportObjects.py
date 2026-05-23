@@ -7,7 +7,7 @@ from .XbrlImportTaxonomy import XbrlImportTaxonomy, XbrlFinalTaxonomy
 from .XbrlLabel import XbrlLabel
 from .XbrlModule import XbrlModule, xbrlObjectTypes, xbrlObjectQNames, referencableObjectTypes
 from .XbrlObject import XbrlReferencableModelObject
-from .XbrlReport import XbrlFact, XbrlFootnote
+from .XbrlFact import XbrlFact, XbrlFootnote
 
 
 def validateImportFamily(compMdl, module, oimFile, *, assertObjectType, validateQNameReference, validateProperties):

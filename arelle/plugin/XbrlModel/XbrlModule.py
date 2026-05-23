@@ -20,7 +20,7 @@ from .XbrlLabel import XbrlLabel, XbrlLabelType
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType, XbrlRelationshipConstraint
 from .XbrlProperty import XbrlProperty, XbrlPropertyType
 from .XbrlReference import XbrlReference, XbrlReferenceType
-from .XbrlReport import XbrlFact, XbrlFactLocatorType, XbrlFactValueAnchor, XbrlFactValueSource, XbrlFootnote, XbrlJSONTemplateMap, XbrlTableTemplate, XbrlFactSource, XbrlFactMap, XbrlXMLTemplateMap
+from .XbrlFact import XbrlFact, XbrlFactLocatorType, XbrlFactValueAnchor, XbrlFactValueSource, XbrlFootnote, XbrlJSONTemplateMap, XbrlTableTemplate, XbrlFactSource, XbrlFactMap, XbrlXMLTemplateMap
 from .XbrlModel import XbrlCompiledModel
 from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit

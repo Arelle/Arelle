@@ -5,7 +5,7 @@ See COPYRIGHT.md for copyright information.
 from arelle.ModelValue import qname, QName
 from .XbrlCube import XbrlCube, conceptCoreDim, periodCoreDim, entityCoreDim, unitCoreDim
 from .XbrlDimension import XbrlDimension
-from .XbrlReport import XbrlFact
+from .XbrlFact import XbrlFact
 from .VectorSearch import buildXbrlVectors, searchXbrl, searchXbrlBatchTopk, SEARCH_CUBES, SEARCH_FACTPOSITIONS, SEARCH_BOTH
 from arelle.XmlValidateConst import VALID, INVALID
 
@@ -41,11 +41,21 @@ def matchFactToCube(compMdl, factspace, cubeObj):
             factPerVal = factspace.factDimensions.get("_periodValue")
             if factPerVal is None and not cubeDimObj.allowDomainFacts:
                 continue # skip forever/missing period and not allowDomainFacts
-            hasAnyPerMatch = True
+            # No periodConstraints means the dim accepts any period
+            if not cubeDimObj.periodConstraints:
+                continue
+            hasAnyPerMatch = False
             for perConstObj in cubeDimObj.periodConstraints:
                 #if perConstObj.conceptName:
                 #
                 # context = get facts
+                # periodType filter: instant constraint only accepts instant
+                # facts; duration constraint only accepts duration facts.
+                pType = getattr(perConstObj, "periodType", None)
+                if pType == "instant" and not factPerVal.isInstant:
+                    continue
+                if pType == "duration" and not factPerVal.isDuration:
+                    continue
                 timeSpan = getattr(perConstObj, "_timeSpanValue", None)
                 #if ((perConstObj.periodType == "none" and timeSpan is not None) or
                 #    (perConstObj.periodType == "instant" != timeSpan.isInstant)):
@@ -59,18 +69,23 @@ def matchFactToCube(compMdl, factspace, cubeObj):
                 hasPerMatch = True
                 for dtResProp in ("monthDay", "endDate", "startDate", "onOrAfter", "onOrBefore"):
                     dtResObj = getattr(perConstObj, dtResProp, None)
+                    if dtResObj is None:
+                        continue # date resolution not specified -> no constraint
                     resPerVals = ()
-                    if dtResObj is not None:
-                        if getattr(dtResObj, "_valueValid", 0) == VALID:
-                            resPerVal = (dtResObj._valueValue,)
-                        elif dtResObj.conceptName:
-                            resPerVal = set(f.dimensions.get("_periodValue")
-                                            for f in compMdl.factsByName.get(dtResObj.conceptName, ())
-                                            if "_periodValue" in f.dimensions)
-                        elif dtResObj.context:
-                            resPerVal = set(f.dimensions.get("_periodValue")[dtResObj.context.atSuffix == "end"]
-                                            for f in compMdl.factsByName.get(dtResObj.conceptName, ())
-                                            if "_periodValue" in f.dimensions)
+                    if getattr(dtResObj, "_valueValid", 0) == VALID:
+                        resPerVals = (dtResObj._valueValue,)
+                    elif dtResObj.conceptName:
+                        resPerVals = set(f.factDimensions.get("_periodValue")
+                                        for f in compMdl.filterNamedObjects(XbrlFact)
+                                        if f.factDimensions.get(conceptCoreDim) == dtResObj.conceptName
+                                           and "_periodValue" in f.factDimensions)
+                    elif dtResObj.context:
+                        resPerVals = set(
+                            (f.factDimensions["_periodValue"].end
+                             if dtResObj.context.atSuffix == "end"
+                             else f.factDimensions["_periodValue"].start)
+                            for f in compMdl.filterNamedObjects(XbrlFact)
+                            if "_periodValue" in f.factDimensions)
                     if getattr(dtResObj, "_timeShiftValid", 0) == VALID:
                         timeShift = dtResObj._timeShiftValue
                         resPerVals = set(r + timeShift for r in resPerVals)
@@ -81,9 +96,9 @@ def matchFactToCube(compMdl, factspace, cubeObj):
                          (dtResProp == "onOrBefore" and not any(r <= factPerVal.end for r in resPerVals))):
                         hasPerMatch = False
                         break
-                if not hasPerMatch:
-                    hasAnyPerMatch = False
-                    break
+                if hasPerMatch:
+                    hasAnyPerMatch = True
+                    break # one matching constraint is enough
             if not hasAnyPerMatch:
                 hasDims = False # skip this cube
                 break
@@ -126,7 +141,6 @@ def validateCubes(compMdl, factspace):
         results = searchXbrl(compMdl, cubeFitQuery, SEARCH_CUBES, 50) # allow sufficient return scores
     except (ValueError, KeyError):
         results = []  # fall back when queryAspects don't exist in vectorized model
-    print(f"Cube fit scores for factspace {factspace.name} {[(r[0],r[1].name) for r in results]}")
 
     usableCubes = []
     for score, cubeObj in results:
@@ -138,10 +152,10 @@ def validateCubes(compMdl, factspace):
 
 def validateCompleteCube(compMdl, cubeObj):
     # replace with vectorized search
-    factspaces = getattr(cubeObj, "_factspaces", None)
+    cellKeys = getattr(cubeObj, "_cellKeys", None)
     if not any(True for _ in compMdl.filterNamedObjects(XbrlFact)):
         return
-    if not factspaces:
+    if not cellKeys:
         compMdl.error("oimte:factMissingFromCube",
                      _("The complete cube %(name)s has no facts."),
                       xbrlObject=cubeObj, name=cubeObj.name)
