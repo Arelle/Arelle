@@ -31,12 +31,6 @@
                 "enumeration": [ "1", "-1" ],
                 "allowedObjects": ["xbrl:propertyObject"]
             },
-            {
-                "name": "xbrlr:nilReasonType",
-                "baseType": "xs:string",
-                "enumeration": ["unknown", "unavailable", "immaterial", "withheld", "confidential", "redacted", "notApplicable", "pending", "notRequired", "other"],
-                "openEnumeration": true
-            },
             {   "name": "xbrlr:periodType",
                 "baseType": "xs:string",
                 "enumeration": ["instant", "duration", "none"]
@@ -522,6 +516,12 @@
                 "dataType": "xs:string",
                 "uniqueValues": true,
                 "orderedValues": false
+            },
+            {
+                "name": "xbrlr:stringCollection",
+                "dataType": "xs:string",
+                "minItems": 1,
+                "orderedValues": true
             }
         ],
         "labels": [
@@ -529,7 +529,7 @@
                 "relatedName" : "xbrlr:periodString",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
-                "value" : "The period dimension takes a value that is a time interval, which may be zero-length (i.e. an instant). This type defines a standard period string representation which can be used to express such values.The period string representation is obtained as follows: If the value is a non-zero length interval, then the representation is a pair of ISO 8601 date-time values, separated by the / character; Otherwise, the value is a single ISO 8601 date-time value. The date-time values used in this representation MUST be valid according to the xs:dateTime datatype and MUST be in the canonical lexical representation. The error code oimce:invalidPeriodRepresentation MUST be raised for values that are required to be a period string representation and which do not conform to the above format. It should be noted that unlike the xbrlr:dateUnion type used in xBRL-XML, the xs:dateTime datatype used here does not allow the time component to be omitted."
+                "value" : "The period dimension takes a value that is a time interval, which may be zero-length (i.e. an instant). This type defines a standard period string representation which can be used to express such values.The period string representation is obtained as follows: If the value is a non-zero length interval, then the representation is a pair of ISO 8601 date-time values, separated by the / character; Otherwise, the value is a single ISO 8601 date-time value. The date-time values used in this representation MUST be valid according to the xs:dateTime datatype and MUST be in the canonical lexical representation. The error code oimce:invalidPeriodRepresentation MUST be raised for values that are required to be a period string representation and which do not conform to the above format. It should be noted that unlike the xbrli:dateUnion type used in xBRL-XML, the xs:dateTime datatype used here does not allow the time component to be omitted."
             },
             {
                 "relatedName" : "xbrlr:startEndDates",

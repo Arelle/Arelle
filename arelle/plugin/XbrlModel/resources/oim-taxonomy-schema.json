@@ -930,7 +930,7 @@
                               "description": "The new namespace that the fromNamespace is being redirected to."
                             }
                           },
-                          "required": ["fromNamespace", "toNamespace"],
+                          "required": ["toNamespace"],
                           "additionalProperties": false
                         },
                         "uniqueItems": true
@@ -954,7 +954,12 @@
                             "items": { "$ref": "#/definitions/propertyObject"},
                             "description": "Additional properties associated with the factSource.",
                             "uniqueItems": true
-                        }
+                        },
+                      "factIdentifierNamespace": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "A URI that identifies the namespace to use for generated fact and factValue object QNames. The URI must correspond to a declared prefix in documentInfo.namespaces."
+                      }
                     },
                     "dependencies": {
                       "factNames": {

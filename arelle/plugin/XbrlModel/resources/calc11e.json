@@ -339,6 +339,58 @@
                 ]
             },
             {
+                "name": "calc11e:inconsistentCalculationUsingRoundingValidChangeFactMapExternalFileReference",
+                "relatedNames": [
+                    "calc11e:inconsistentCalculationUsingRounding"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACTSET-ValidChangeFactMapExternalFile.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidSummationValue"
+                    }
+                ]
+            },
+            {
+                "name": "calc11e:inconsistentCalculationUsingRoundingValidChangeFactMapExternalFileReference2",
+                "relatedNames": [
+                    "calc11e:inconsistentCalculationUsingRounding"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACTSET-ValidChangeFactMapPrefPrefixExternalFile.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidSummationValue"
+                    }
+                ]
+            },
+            {
                 "name": "calc11e:inconsistentCalculationUsingRoundingExternalFileReference",
                 "relatedNames": [
                     "calc11e:inconsistentCalculationUsingRounding"
@@ -401,6 +453,32 @@
                     {
                         "property": "xbrl:conformanceTestFileName",
                         "value": "FACTSET-ValidFactMapWithFootnoteURL.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidSummationValue"
+                    }
+                ]
+            },
+            {
+                "name": "calc11e:inconsistentCalculationUsingRoundingInvalidChangeFactMapExternalFileReference",
+                "relatedNames": [
+                    "calc11e:inconsistentCalculationUsingRounding"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACTSET-InvalidChangeFactMapExternalFile.json"
                     },
                     {
                         "property": "xbrl:conformanceStatus",
