@@ -332,9 +332,10 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
                             xbrlObj,
                             err, traceback.format_tb(sys.exc_info()[2])))
 
-    # dts-wide object accumulator properties
+    # DTS-wide object enumerators. For network-specific selection by arcrole or
+    # role URI, prefer filterNetworks() over the generic filterNamedObjects().
     def filterNamedObjects(self, _class, _type=None, _lang=None):
-        if (issubclass(_class, XbrlReferencableModelObject) or # taxpmp,u-pwmed referemcab;e pbkect
+        if (issubclass(_class, XbrlReferencableModelObject) or
             (issubclass(_class, (XbrlFact,XbrlFootnote)) and isinstance(self, XbrlCompiledModel))):  # taxonomy-owned fact
             for obj in self.namedObjects.values():
                 if isinstance(obj, _class):
@@ -346,6 +347,40 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
                         (not _type or _type == obj._type) and
                         (not _lang or not obj.language or _lang.startswith(obj.language) or obj.language.startswith(lang))):
                         yield obj
+
+    def filterNetworks(self, arcrole=None, role=None):
+        """Yield XbrlNetwork objects optionally filtered by arcrole and/or role.
+
+        arcrole: may be a QName (matched against relationshipTypeName by exact
+            equality, or — for the Xule shorthand convention — by localName),
+            a non-empty string equal to a relationship type local-name shorthand
+            (e.g. "parent-child"), or a full arcrole URI string matched against
+            XbrlRelationshipType.uri.
+        role: a string compared to each network's roleUri (XbrlGroup.groupURI).
+        """
+        arcQn = arcrole if isinstance(arcrole, QName) else None
+        arcStr = arcrole if isinstance(arcrole, str) and arcrole else None
+        roleStr = role if isinstance(role, str) and role else None
+        for n in self.filterNamedObjects(XbrlNetwork):
+            if arcQn is not None:
+                rtn = getattr(n, "relationshipTypeName", None)
+                if rtn != arcQn:
+                    # shorthand: also accept by localName alone
+                    if getattr(rtn, "localName", None) != arcQn.localName:
+                        continue
+            elif arcStr is not None:
+                rtn = getattr(n, "relationshipTypeName", None)
+                if rtn is None:
+                    continue
+                # match by local-name shorthand or by full arcrole URI
+                if arcStr != getattr(rtn, "localName", None):
+                    rt = n.relationshipType
+                    if rt is None or getattr(rt, "uri", None) != arcStr:
+                        continue
+            if roleStr is not None and n.roleUri != roleStr:
+                continue
+            yield n
+
 
     def error(self, *args, **kwargs):
         if "xbrlObject" in kwargs:

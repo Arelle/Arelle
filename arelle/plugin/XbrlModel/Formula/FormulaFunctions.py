@@ -1241,7 +1241,8 @@ def _fn_join(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValu
             f"The first argument of function 'join' must be set, list, dictionary, found '{source.type.name.lower()}'."
         )
     items = _unwrapCollection(source)
-    return FormulaValue(FormulaValueType.STRING, sep.join(str(i.value) for i in items))
+    from .FormulaInterpreter import _formatValue as _fmt
+    return FormulaValue(FormulaValueType.STRING, sep.join(_fmt(i) for i in items))
 
 
 def _fn_dict(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
@@ -1563,6 +1564,200 @@ def _fn_model(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaVal
     return FormulaValue(FormulaValueType.TAXONOMY, ctx.txmyMdl)
 
 
+# ---------------------------------------------------------------------------
+# Taxonomy / network / relationship helper stubs
+#
+# Many Xule built-in taxonomy functions are implemented here as thin shims
+# that delegate to the equivalent property handler on the first argument
+# (so e.g. ``entry-point($T)`` is equivalent to ``$T.entry-point``). They
+# also validate argument arity and type so the spec's error wording is
+# reproduced for the conformance suite.
+# ---------------------------------------------------------------------------
+
+_TYPE_LABEL = {
+    FormulaValueType.TAXONOMY: "taxonomy",
+    FormulaValueType.CUBE: "cube",
+    FormulaValueType.NETWORK: "network",
+    FormulaValueType.FACT: "fact",
+    FormulaValueType.CONCEPT: "concept",
+    FormulaValueType.STRING: "string",
+    FormulaValueType.SET: "set",
+    FormulaValueType.LIST: "list",
+    FormulaValueType.DICT: "dictionary",
+    FormulaValueType.QNAME: "qname",
+    FormulaValueType.PART: "reference-part",
+    FormulaValueType.LABEL: "label",
+    FormulaValueType.REFERENCE: "reference",
+    FormulaValueType.DATA_TYPE: "data-type",
+    FormulaValueType.NONE: "none",
+}
+
+
+def _typeLabel(fv: FormulaValue) -> str:
+    return _TYPE_LABEL.get(fv.type, fv.type.name.lower())
+
+
+def _requireFirstArgType(funcName: str, args: List[FormulaValue], allowed: List[FormulaValueType]) -> FormulaValue:
+    """Validate that args[0] is one of the allowed types; raise spec-formatted
+    errors if not. Returns args[0] when valid."""
+    if not args:
+        raise FormulaRuntimeError(
+            f"The {funcName!r} function must have at least one argument, found none."
+        )
+    a = args[0]
+    if a.type not in allowed:
+        names = ", ".join(_TYPE_LABEL.get(t, t.name.lower()) for t in allowed)
+        raise FormulaRuntimeError(
+            f"The first argument of function {funcName!r} must be {names}, found '{_typeLabel(a)}'."
+        )
+    return a
+
+
+def _delegateProp(funcName: str, propName: str, allowed: List[FormulaValueType]):
+    """Make a function that validates arg-0 type then delegates to a property."""
+    from .FormulaProperties import getProperty as _gp
+    def _fn(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+        first = _requireFirstArgType(funcName, args, allowed)
+        return _gp(first, propName, args[1:], ctx)
+    return _fn
+
+
+_TAXONOMY_ONLY = [FormulaValueType.TAXONOMY]
+_FACT_CUBE_TAX = [FormulaValueType.FACT, FormulaValueType.CUBE, FormulaValueType.TAXONOMY]
+_TAX_OR_NETWORK = [FormulaValueType.TAXONOMY, FormulaValueType.NETWORK]
+_CUBE_ONLY = [FormulaValueType.CUBE]
+_NETWORK_ONLY = [FormulaValueType.NETWORK]
+
+
+def _fn_rel_stub(funcName: str, allowed: List[str]):
+    """For relationship-typed functions: we have no RELATIONSHIP type,
+    so always raise the spec-format type-mismatch error."""
+    def _fn(args, ctx):
+        if not args:
+            raise FormulaRuntimeError(
+                f"The {funcName!r} function must have at least one argument, found none."
+            )
+        names = ", ".join(allowed)
+        raise FormulaRuntimeError(
+            f"The first argument of function {funcName!r} must be {names}, found '{_typeLabel(args[0])}'."
+        )
+    return _fn
+
+
+def _fn_entryPoint(args, ctx):
+    return _delegateProp("entry-point", "entry-point", _TAXONOMY_ONLY)(args, ctx)
+
+
+def _fn_entryPointNamespace(args, ctx):
+    return _delegateProp("entry-point-namespace", "entry-point-namespace", _TAXONOMY_ONLY)(args, ctx)
+
+
+def _fn_dimensions(args, ctx):
+    return _delegateProp("dimensions", "dimensions", _FACT_CUBE_TAX)(args, ctx)
+
+
+def _fn_dimensionsTyped(args, ctx):
+    return _delegateProp("dimensions-typed", "dimensions-typed", _FACT_CUBE_TAX)(args, ctx)
+
+
+def _fn_dimensionsExplicit(args, ctx):
+    return _delegateProp("dimensions-explicit", "dimensions-explicit", _FACT_CUBE_TAX)(args, ctx)
+
+
+def _fn_concepts(args, ctx):
+    return _delegateProp("concepts", "concepts", _TAX_OR_NETWORK)(args, ctx)
+
+
+def _fn_conceptNames(args, ctx):
+    return _delegateProp("concept-names", "concept-names", _TAX_OR_NETWORK)(args, ctx)
+
+
+def _fn_primaryConcepts(args, ctx):
+    return _delegateProp("primary-concepts", "primary-concepts", _CUBE_ONLY)(args, ctx)
+
+
+def _fn_cubeConcept(args, ctx):
+    return _delegateProp("cube-concept", "cube-concept", _CUBE_ONLY)(args, ctx)
+
+
+def _fn_drsRole(args, ctx):
+    return _delegateProp("drs-role", "drs-role", _CUBE_ONLY)(args, ctx)
+
+
+def _fn_networks(args, ctx):
+    return _delegateProp("networks", "networks", _TAXONOMY_ONLY)(args, ctx)
+
+
+def _fn_network(args, ctx):
+    return _delegateProp("network", "network", _TAXONOMY_ONLY)(args, ctx)
+
+
+def _fn_source(args, ctx):
+    return _fn_rel_stub("source", ["relationship"])(args, ctx)
+
+
+def _fn_sourceName(args, ctx):
+    return _fn_rel_stub("source-name", ["relationship"])(args, ctx)
+
+
+def _fn_target(args, ctx):
+    return _fn_rel_stub("target", ["relationship"])(args, ctx)
+
+
+def _fn_targetName(args, ctx):
+    return _fn_rel_stub("target-name", ["relationship"])(args, ctx)
+
+
+def _fn_order(args, ctx):
+    return _fn_rel_stub("order", ["relationship", "reference-part"])(args, ctx)
+
+
+def _fn_preferredLabel(args, ctx):
+    return _fn_rel_stub("preferred-label", ["relationship"])(args, ctx)
+
+
+def _fn_arcrole(args, ctx):
+    return _delegateProp("arcrole", "arcrole", _NETWORK_ONLY)(args, ctx)
+
+
+def _fn_arcroleUri(args, ctx):
+    return _delegateProp("arcrole-uri", "arcrole-uri", _NETWORK_ONLY)(args, ctx)
+
+
+def _fn_arcroleDescription(args, ctx):
+    return _delegateProp("arcrole-description", "arcrole-description", _NETWORK_ONLY)(args, ctx)
+
+
+def _fn_linkName(args, ctx):
+    return _delegateProp("link-name", "link-name", _NETWORK_ONLY)(args, ctx)
+
+
+def _fn_arcName(args, ctx):
+    return _delegateProp("arc-name", "arc-name", _NETWORK_ONLY)(args, ctx)
+
+
+def _fn_namespaces(args, ctx):
+    return _delegateProp("namespaces", "namespaces", _TAXONOMY_ONLY)(args, ctx)
+
+
+def _fn_dtsDocumentLocations(args, ctx):
+    return _delegateProp("dts-document-locations", "dts-document-locations", _TAXONOMY_ONLY)(args, ctx)
+
+
+def _fn_role(args, ctx):
+    return _delegateProp("role", "role", _NETWORK_ONLY)(args, ctx)
+
+
+def _fn_qnameFn(args, ctx):
+    """qname(namespace, local-name) -> QName."""
+    if len(args) < 2:
+        raise FormulaRuntimeError("The 'qname' function must have two arguments, found %d." % len(args))
+    ns = args[0].value if args[0].type == FormulaValueType.STRING else str(args[0].value)
+    ln = args[1].value if args[1].type == FormulaValueType.STRING else str(args[1].value)
+    return FormulaValue(FormulaValueType.QNAME, makeQName(ns, ln))
+
+
+
 def _fn_unit(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
     """
     unit(qname [, denominator-qname-or-list]) → unit value.
@@ -1688,6 +1883,34 @@ BUILTIN_FUNCTIONS: Dict[str, Callable] = {
     "model":            _fn_model,
     "unit":             _fn_unit,
     "clark":            _fn_clark,
+    # Taxonomy / network / relationship helpers
+    "entry-point":              _fn_entryPoint,
+    "entry-point-namespace":    _fn_entryPointNamespace,
+    "dimensions":               _fn_dimensions,
+    "dimensions-typed":         _fn_dimensionsTyped,
+    "dimensions-explicit":      _fn_dimensionsExplicit,
+    "concepts":                 _fn_concepts,
+    "concept-names":            _fn_conceptNames,
+    "primary-concepts":         _fn_primaryConcepts,
+    "cube-concept":             _fn_cubeConcept,
+    "drs-role":                 _fn_drsRole,
+    "networks":                 _fn_networks,
+    "network":                  _fn_network,
+    "source":                   _fn_source,
+    "source-name":              _fn_sourceName,
+    "target":                   _fn_target,
+    "target-name":              _fn_targetName,
+    "order":                    _fn_order,
+    "arcrole":                  _fn_arcrole,
+    "arcrole-uri":              _fn_arcroleUri,
+    "arcrole-description":      _fn_arcroleDescription,
+    "link-name":                _fn_linkName,
+    "arc-name":                 _fn_arcName,
+    "preferred-label":          _fn_preferredLabel,
+    "namespaces":               _fn_namespaces,
+    "dts-document-locations":   _fn_dtsDocumentLocations,
+    "role":                     _fn_role,
+    "qname":                    _fn_qnameFn,
 }
 
 

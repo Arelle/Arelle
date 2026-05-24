@@ -86,6 +86,7 @@ def _buildGrammar():
     versionKw       = CaselessKeyword("version")
     messageKw       = CaselessKeyword("message")
     severityKw      = CaselessKeyword("severity")
+    filterKw        = CaselessKeyword("filter")
     returnKw        = CaselessKeyword("returns")
     forKw           = CaselessKeyword("for")
     inKw            = CaselessKeyword("in")
@@ -288,7 +289,7 @@ def _buildGrammar():
         | nilsKw | nonilsKw | coveredKw | uncoveredKw
         | coveredDimsKw | nilDefaultKw | asKw
         | errorKw | warningKw | okKw | passKw
-        | whereKw | returnKw
+        | whereKw | returnKw | filterKw
         | declKeywords
     )
     funcCall = Group(
@@ -358,6 +359,19 @@ def _buildGrammar():
         + blockExpr.setResultsName("body")
     ).setResultsName("forExpr")
 
+    # ---- Filter expression ----
+    #   filter '(' collExpr ')' [ 'where' predExpr ] [ 'returns' bodyExpr ]
+    # Iterates `collExpr` binding implicit `$item` for each element; emits a
+    # set containing either `$item` (when no returns) or the body result.
+    filterExpr = Group(
+        Suppress(filterKw)
+        + Suppress(Literal("("))
+        + blockExpr.setResultsName("collection")
+        + Suppress(Literal(")"))
+        + Opt(Suppress(whereKw) + blockExpr.setResultsName("whereExpr"))
+        + Opt(Suppress(returnKw) + blockExpr.setResultsName("returnExpr"))
+    ).setResultsName("filterExpr")
+
     # ---- Parenthesised expression ----
     parenExpr = Suppress(Literal("(")) + blockExpr + Suppress(Literal(")"))
 
@@ -366,6 +380,7 @@ def _buildGrammar():
         factQuery
         | ifExpr
         | forExpr
+        | filterExpr
         | funcCall
         | varRef
         | setLiteral

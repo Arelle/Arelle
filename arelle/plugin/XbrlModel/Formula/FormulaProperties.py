@@ -268,72 +268,213 @@ def _objectDocumentLocation(obj) -> Optional[str]:
     return None
 
 
+def _resolveLabelTypeUri(lt, ctx) -> Optional[str]:
+    """Resolve an XBRL labelType QName to its canonical role URI.
+
+    Tries the loaded taxonomy's namedObjects first, then falls back to
+    well-known mappings for standard XBRL label roles.
+    """
+    if not isinstance(lt, QName):
+        return None
+    if ctx is not None and ctx.txmyMdl is not None:
+        ltObj = ctx.txmyMdl.namedObjects.get(lt)
+        u = getattr(ltObj, "uri", None)
+        if u:
+            return str(u)
+    if lt.namespaceURI in (
+        "http://www.xbrl.org/2003/instance",
+        "https://xbrl.org/2025",
+        "https://xbrl.org/2021",
+    ):
+        return f"http://www.xbrl.org/2003/role/{lt.localName}"
+    return None
+
+
 def _conceptLabel(concept, propName: str, args, ctx) -> FormulaValue:
     """Return a label (or set of all labels) for the concept.
 
-    `.label` → preferred std label (string).
-    `.label(roleUri)` → label with the given role.
-    `.labels` / `.all-labels` → set of label strings.
+    `.label` -> preferred std label (wrapped LABEL).
+    `.label(roleUri)` -> label with the given role.
+    `.labels` / `.all-labels` -> set of LABEL values.
     """
-    from arelle import XbrlConst
     from arelle.ModelValue import qname as mkQn
     compMdl = getattr(concept, "xbrlCompMdl", None)
     qn = getattr(concept, "name", None)
     if compMdl is None or qn is None:
         return NONE_VALUE
+    tagObjs = compMdl.tagObjects.get(qn, ()) if hasattr(compMdl, "tagObjects") else ()
+    labelObjs = [t for t in tagObjs if hasattr(t, "labelType")]
     if propName in ("labels", "all-labels"):
-        tagObjs = compMdl.tagObjects.get(qn, ()) if hasattr(compMdl, "tagObjects") else ()
-        out = []
-        for t in tagObjs:
-            if hasattr(t, "labelType") and hasattr(t, "value"):
-                out.append(t.value)
-        return _wrapSet(out)
+        return FormulaValue(FormulaValueType.SET, OrderedSet(
+            FormulaValue(FormulaValueType.LABEL, t) for t in labelObjs))
     # .label or .label(roleUri)
-    role = None
+    roleArg = None
     if args:
         rv = args[0].value
-        if isinstance(rv, str):
-            role = mkQn(rv) if False else None  # role is a URI; pass through
-            roleArg = rv
-        else:
-            roleArg = str(rv) if rv is not None else None
-    else:
-        roleArg = None
-    # labelValue takes labelType as a QName; std label role is XbrlConst.qnStdLabel
+        roleArg = rv if isinstance(rv, str) else (str(rv) if rv is not None else None)
     try:
         from arelle.XbrlConst import qnStdLabel
     except Exception:
         qnStdLabel = None
-    labelType = qnStdLabel
-    if roleArg:
-        # role is a URI string; look up matching tag object directly
-        for t in compMdl.tagObjects.get(qn, ()) if hasattr(compMdl, "tagObjects") else ():
-            lt = getattr(t, "labelType", None)
-            if isinstance(lt, QName) and (str(lt) == roleArg or
-                                          getattr(lt, "namespaceURI", "") == roleArg):
-                if hasattr(t, "value"):
-                    return _wrap(t.value, FormulaValueType.STRING)
-        return NONE_VALUE
-    try:
-        v = compMdl.labelValue(qn, labelType)
-        return _wrap(v, FormulaValueType.STRING) if v is not None else NONE_VALUE
-    except Exception:
-        return NONE_VALUE
+    target = qnStdLabel
+    STD_LABEL_URI = "http://www.xbrl.org/2003/role/label"
+    for t in labelObjs:
+        lt = getattr(t, "labelType", None)
+        ltUri = _resolveLabelTypeUri(lt, ctx)
+        if roleArg:
+            if ltUri and ltUri == roleArg:
+                return FormulaValue(FormulaValueType.LABEL, t)
+        else:
+            if ltUri == STD_LABEL_URI:
+                return FormulaValue(FormulaValueType.LABEL, t)
+            if lt == target:
+                return FormulaValue(FormulaValueType.LABEL, t)
+    # Fallback: first label
+    if not roleArg and labelObjs:
+        return FormulaValue(FormulaValueType.LABEL, labelObjs[0])
+    return NONE_VALUE
 
 
 def _conceptReferences(concept, args, ctx) -> FormulaValue:
+    refs = _conceptReferenceObjects(concept, ctx)
+    return FormulaValue(FormulaValueType.SET, OrderedSet(
+        FormulaValue(FormulaValueType.REFERENCE, r) for r in refs))
+
+
+def _conceptReferenceObjects(concept, ctx):
+    """Return the underlying XbrlReference tag objects for the concept."""
     compMdl = getattr(concept, "xbrlCompMdl", None)
     qn = getattr(concept, "name", None)
     if compMdl is None or qn is None:
-        return _wrapSet(())
+        return []
     refs = []
     if hasattr(compMdl, "tagObjects"):
         for t in compMdl.tagObjects.get(qn, ()):
             if hasattr(t, "referenceType"):
                 refs.append(t)
-    # No dedicated REFERENCE value type yet — fall back to a set of string
-    # representations so simple aggregate ops (count, exists) still work.
-    return _wrapSet(str(getattr(r, "referenceType", r)) for r in refs)
+    return refs
+
+
+# ---------------------------------------------------------------------------
+# Label / Reference / DataType / Part / Role / Namespace property handlers
+# ---------------------------------------------------------------------------
+
+def _labelProp(label, propName: str, args, ctx) -> FormulaValue:
+    if propName == "text":
+        return _wrap(getattr(label, "value", None), FormulaValueType.STRING)
+    if propName == "role":
+        rt = getattr(label, "labelType", None)
+        uri = _resolveLabelTypeUri(rt, ctx)
+        if uri:
+            return _wrap(uri, FormulaValueType.STRING)
+        return _wrap(str(rt) if rt is not None else None, FormulaValueType.STRING)
+    if propName in ("lang", "language"):
+        return _wrap(getattr(label, "language", None), FormulaValueType.STRING)
+    if propName == "concept":
+        rn = getattr(label, "relatedName", None)
+        if rn is not None and ctx.txmyMdl is not None:
+            obj = ctx.txmyMdl.namedObjects.get(rn)
+            if obj is not None:
+                return FormulaValue(FormulaValueType.CONCEPT, obj)
+        return NONE_VALUE
+    raise FormulaRuntimeError(f"Property {propName!r} is not a property of a 'label'.")
+
+
+def _referenceProp(ref, propName: str, args, ctx) -> FormulaValue:
+    if propName == "parts":
+        parts = list(getattr(ref, "properties", ()) or ())
+        # Return as ordered list of PART values (sets lose order)
+        return FormulaValue(FormulaValueType.LIST,
+                            [FormulaValue(FormulaValueType.PART, p) for p in parts])
+    if propName == "role":
+        rt = getattr(ref, "referenceType", None)
+        return FormulaValue(FormulaValueType.ROLE, rt) if rt is not None else NONE_VALUE
+    if propName == "concept":
+        rn = getattr(ref, "relatedName", None) or getattr(ref, "name", None)
+        if rn is not None and ctx.txmyMdl is not None:
+            obj = ctx.txmyMdl.namedObjects.get(rn)
+            if obj is not None:
+                return FormulaValue(FormulaValueType.CONCEPT, obj)
+        return NONE_VALUE
+    if propName == "part-by-name":
+        if not args or args[0].type != FormulaValueType.QNAME:
+            raise FormulaRuntimeError("part-by-name() requires a QName argument")
+        target = args[0].value
+        for p in getattr(ref, "properties", ()) or ():
+            pq = getattr(p, "property", None)
+            if pq == target:
+                return FormulaValue(FormulaValueType.PART, p)
+        return NONE_VALUE
+    raise FormulaRuntimeError(f"Property {propName!r} is not a property of a 'reference'.")
+
+
+def _partProp(part, propName: str, args, ctx) -> FormulaValue:
+    if propName == "name":
+        pq = getattr(part, "property", None)
+        if isinstance(pq, QName):
+            return FormulaValue(FormulaValueType.QNAME, pq)
+        return NONE_VALUE
+    if propName == "part-value":
+        return _wrap(getattr(part, "value", None))
+    if propName == "local-name":
+        pq = getattr(part, "property", None)
+        if isinstance(pq, QName):
+            return _wrap(pq.localName, FormulaValueType.STRING)
+        return NONE_VALUE
+    if propName == "namespace-uri":
+        pq = getattr(part, "property", None)
+        if isinstance(pq, QName):
+            return _wrap(pq.namespaceURI, FormulaValueType.STRING)
+        return NONE_VALUE
+    if propName == "order":
+        return _wrap(getattr(part, "order", None))
+    raise FormulaRuntimeError(f"Property {propName!r} is not a property of a 'part'.")
+
+
+def _roleProp(role, propName: str, args, ctx) -> FormulaValue:
+    # role is typically a QName for OIM
+    if propName == "uri":
+        if isinstance(role, QName):
+            uri = (role.namespaceURI or "")
+            # roleType QName uses namespaceURI as the role URI base
+            if role.localName:
+                uri = uri + ("/" if uri and not uri.endswith("/") else "") + role.localName
+            return _wrap(uri or str(role), FormulaValueType.STRING)
+        return _wrap(str(role), FormulaValueType.STRING)
+    if propName == "description":
+        return _wrap(str(role), FormulaValueType.STRING)
+    raise FormulaRuntimeError(f"Property {propName!r} is not a property of a 'role'.")
+
+
+def _namespaceProp(ns, propName: str, args, ctx) -> FormulaValue:
+    if propName == "uri":
+        return _wrap(ns if isinstance(ns, str) else str(ns), FormulaValueType.STRING)
+    raise FormulaRuntimeError(f"Property {propName!r} is not a property of a 'namespace'.")
+
+
+def _dataTypeProp(dt, propName: str, args, ctx) -> FormulaValue:
+    if propName == "name":
+        return _wrap(getattr(dt, "name", None), FormulaValueType.QNAME)
+    if propName == "base-type":
+        bt = getattr(dt, "baseType", None)
+        if bt is None:
+            return NONE_VALUE
+        btObj = ctx.txmyMdl.namedObjects.get(bt)
+        if btObj is not None:
+            return FormulaValue(FormulaValueType.DATA_TYPE, btObj)
+        return _wrap(bt, FormulaValueType.QNAME)
+    if propName == "enumerations":
+        return _wrapSet(getattr(dt, "enumeration", None) or ())
+    if propName == "has-enumerations":
+        e = getattr(dt, "enumeration", None) or ()
+        return _wrap(len(e) > 0, FormulaValueType.BOOLEAN)
+    if propName in ("local-name", "namespace-uri"):
+        nm = getattr(dt, "name", None)
+        if isinstance(nm, QName):
+            return _wrap(nm.localName if propName == "local-name" else nm.namespaceURI,
+                         FormulaValueType.STRING)
+        return NONE_VALUE
+    raise FormulaRuntimeError(f"Property {propName!r} is not a property of a 'type'.")
 
 
 def _conceptEnumerations(concept, ctx):
@@ -421,6 +562,31 @@ def _conceptProp(concept, propName: str, args, ctx) -> FormulaValue:
             return _wrap("{" + (qn.namespaceURI or "") + "}" + qn.localName,
                          FormulaValueType.STRING)
         return NONE_VALUE
+    if propName in ("data-type", "base-type"):
+        # Resolve the dataType (or derived base) to the XbrlDataType object
+        # so chained `.enumerations`, `.has-enumerations`, etc. work.
+        from XbrlModel.XbrlConcept import XbrlDataType
+        dtQn = getattr(concept, "dataType", None)
+        if dtQn is None:
+            return NONE_VALUE
+        dt = ctx.txmyMdl.namedObjects.get(dtQn)
+        if propName == "base-type":
+            # Walk to the root XSD baseType
+            seen = set()
+            while isinstance(dt, XbrlDataType):
+                bt = getattr(dt, "baseType", None)
+                if bt is None or bt in seen:
+                    break
+                seen.add(bt)
+                btObj = ctx.txmyMdl.namedObjects.get(bt)
+                if not isinstance(btObj, XbrlDataType):
+                    break
+                dt = btObj
+        if isinstance(dt, XbrlDataType):
+            return FormulaValue(FormulaValueType.DATA_TYPE, dt)
+        if dtQn is not None:
+            return FormulaValue(FormulaValueType.QNAME, dtQn)
+        return NONE_VALUE
     if propName in ("label", "all-labels", "labels"):
         return _conceptLabel(concept, propName, args, ctx)
     if propName in ("references", "all-references"):
@@ -489,7 +655,19 @@ def _conceptProp(concept, propName: str, args, ctx) -> FormulaValue:
             return NONE_VALUE
         return _wrap(raw, vtype) if vtype else FormulaValue.fromScalar(raw)
 
-    raise FormulaRuntimeError(f"Unknown concept property {propName!r}")
+    # Concept-defined properties that the OIM model doesn't represent as
+    # first-class accessors; spec wants a 'is not a property' error rather
+    # than 'unknown'.
+    if propName in ("relationships", "attribute"):
+        if propName == "attribute" and args:
+            argVal = args[0]
+            if argVal.type != FormulaValueType.QNAME:
+                raise FormulaRuntimeError(
+                    f"The argument for the 'attribute' property must be a qname, "
+                    f"found '{argVal.type.name.lower()}'")
+        raise FormulaRuntimeError(
+            f"Property {propName!r} is not a property of a 'concept'.")
+    raise FormulaRuntimeError(f"{propName!r} is not a valid property.")
 
 
 # ---------------------------------------------------------------------------
@@ -521,7 +699,12 @@ def _taxonomyProp(txmy, propName: str, args, ctx) -> FormulaValue:
             FormulaValue.fromScalar(d.name) for d in objs if hasattr(d, "name")
         ))
     if propName == "networks":
-        objs = list(txmy.filterNamedObjects(XbrlNetwork))
+        # networks($T)                       -> all networks
+        # networks($T, arcrole)              -> filter by arcrole (QName, shorthand, or arcrole URI)
+        # networks($T, arcrole, roleUri)     -> additionally filter by role URI
+        arcArg = args[0].value if args else None
+        roleArg = args[1].value if len(args) > 1 else None
+        objs = list(txmy.filterNetworks(arcrole=arcArg, role=roleArg))
         return FormulaValue(FormulaValueType.SET, OrderedSet(
             FormulaValue(FormulaValueType.NETWORK, n) for n in objs
         ))
@@ -564,7 +747,11 @@ def _taxonomyProp(txmy, propName: str, args, ctx) -> FormulaValue:
     if propName == "networks":
         return _taxonomyProp(txmy, "networks", args, ctx)
 
-    raise FormulaRuntimeError(f"Unknown taxonomy property {propName!r}")
+    raise FormulaRuntimeError(f"{propName!r} is not a valid property.")
+
+
+# (was: Unknown taxonomy property)
+_TXMY_INVALID_PROP_MARKER = None
 
 
 # ---------------------------------------------------------------------------
@@ -687,6 +874,24 @@ def getProperty(
     if obj.type == FormulaValueType.CONCEPT:
         return _conceptProp(obj.value, propName, args, ctx)
 
+    if obj.type == FormulaValueType.LABEL:
+        return _labelProp(obj.value, propName, args, ctx)
+
+    if obj.type == FormulaValueType.REFERENCE:
+        return _referenceProp(obj.value, propName, args, ctx)
+
+    if obj.type == FormulaValueType.DATA_TYPE:
+        return _dataTypeProp(obj.value, propName, args, ctx)
+
+    if obj.type == FormulaValueType.PART:
+        return _partProp(obj.value, propName, args, ctx)
+
+    if obj.type == FormulaValueType.ROLE:
+        return _roleProp(obj.value, propName, args, ctx)
+
+    if obj.type == FormulaValueType.NAMESPACE:
+        return _namespaceProp(obj.value, propName, args, ctx)
+
     if obj.type == FormulaValueType.TAXONOMY:
         return _taxonomyProp(obj.value, propName, args, ctx)
 
@@ -763,7 +968,7 @@ def getProperty(
             return callFunction("time-span", [obj], ctx)
         if propName in ("day", "month", "year", "days", "start", "end"):
             raise FormulaRuntimeError(f"Property '{propName}' is not a property of a 'string'.")
-        raise FormulaRuntimeError(f"Unknown string property {propName!r}")
+        raise FormulaRuntimeError(f"Property '{propName}' is not a property of a 'string'.")
 
     # QName properties
     if obj.type == FormulaValueType.QNAME:
