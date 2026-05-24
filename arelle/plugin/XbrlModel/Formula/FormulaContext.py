@@ -20,7 +20,7 @@ from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from arelle.ModelValue import QName
 
-from .FormulaValue import FormulaValue, AlignmentKey, NONE_VALUE
+from .FormulaValue import FormulaValue, FormulaValueType, AlignmentKey, NONE_VALUE
 from .FormulaRuleSet import FormulaRuleSet
 
 if TYPE_CHECKING:
@@ -218,6 +218,14 @@ class FormulaRuleContext:
         # Built-in $rule-value
         if name == "rule-value" and self.ruleValue is not None:
             return self.ruleValue
+        # Conventional auto-bindings used by reference Xule fixtures:
+        # $INSTANCE, $INSTANCE1, $INSTANCE2, ... all alias the currently
+        # loaded model.  This allows test rulesets to write
+        # `@model = $INSTANCE1` as a no-op filter against the current
+        # single-instance evaluator without requiring the test harness to
+        # bind them explicitly.
+        if name == "INSTANCE" or (name.startswith("INSTANCE") and name[8:].isdigit()):
+            return FormulaValue(FormulaValueType.TAXONOMY, self.globalCtx.txmyMdl)
         return NONE_VALUE
 
     def childContext(self) -> "FormulaRuleContext":
