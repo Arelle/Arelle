@@ -81,13 +81,30 @@ and **assert rules**.
 
 ### Namespace declarations
 
+All three syntactic forms are accepted (per `formula.md`):
+
 ```xule
 namespace gaap <https://xbrl.fasb.org/us-gaap/2024>
-namespace ifrs  <https://xbrl.ifrs.org/taxonomy/2023>
+namespace ifrs = "https://xbrl.ifrs.org/taxonomy/2023"
+namespace "http://default.example.com/ns"          // default namespace
 ```
 
 Namespaces declared here are merged with any namespaces already known to
 the loaded taxonomy.
+
+`namespace-group NAME = expr` declarations are parsed and silently absorbed
+(xule extension, no semantics in this interpreter).
+
+### `output-attribute` declarations
+
+```xule
+output-attribute file-content
+output-attribute file-location
+```
+
+Declared output attributes are accepted at the top of a ruleset and recorded
+on the rule set object (no semantic effect today; reserved for future CSV /
+JSON output assignment).
 
 ### Constants
 
@@ -134,23 +151,71 @@ assert CheckRatio
 message "Net income ratio {$ni / $rev} is below threshold {$threshold}"
 ```
 
-### Fact filters
+### Fact queries (factsets)
 
-Dimension equality filters can be applied inside `[…]`:
+Three bracket forms are supported, matching the OIM Formula 1.0 spec:
+
+| Form | Meaning |
+|------|---------|
+| `{ … }` | Curly factset — match by the listed aspects only; taxonomy-defined dimensions are not constrained. |
+| `[ … ]` | Square factset — like curly, but additionally **excludes** facts that carry any taxonomy-defined dimension not listed in the filter set. |
+| `@QName` (bare) | Shortcut for `{@concept = QName}`. |
+
+A factset body is a (possibly empty) sequence of **modifiers** followed by
+**dimension filters** and an optional `where` clause:
 
 ```xule
-@us-gaap:Revenue[xbrl:period == duration('2024-01-01', '2024-12-31')]
+{ covered nonils                       // modifiers
+  @concept = us-gaap:Assets            // dim filters
+  @srt:ProductOrServiceAxis = *
+  @us-gaap:Revenues as $rev            // filter alias
+  where $fact.decimals > -7 }          // post-filter on each fact
 ```
+
+**Modifiers** (recognised keywords): `covered`, `uncovered`, `nils`,
+`nonils`, `nildefault`, `covered-dims`.
+
+**Dimension filter syntax** (per filter):
+
+```
+@[@]DimQName[.prop[.prop ...]]  [ (= | != | in | not in) (value | *) ]  [ as $alias ]
+```
+
+Examples:
+
+```xule
+@us-gaap:Assets                                  // shortcut: @concept = us-gaap:Assets
+@srt:ProductOrServiceAxis = *                    // any value present
+@concept.balance = 'debit'                       // property chain on a dim
+@unit.numerator = unit(iso4217:USD)              // typed core-dim chain
+@cube.name = 'StatementOfFinancialPosition'      // pseudo aspect 'cube'
+@srt:ProductOrServiceAxis in list(srt:GoldMember, srt:CopperInConcentratesMember)
+```
+
+Pseudo aspects recognised: `model`, `cube`, `dimensions`, `language`.
+The `model` aspect is a no-op for the single-instance evaluator (any
+value accepted).
 
 ### Property access
 
 ```xule
-$fact.period
-$fact.entity
+$fact.period                       // core period aspect
+$fact.entity.name.local-name       // chained: entity QName → local-name
+$fact.unit.numerator               // simple unit numerator QName
+$fact.unit.numerator.local-name
+$fact.is-fact                      // BOOLEAN; valid on every value
+$fact.id                           // the OIM fact id
+$fact.instance                     // the containing instance/model
+$fact.cubes                        // SET of cubes the fact participates in
+$fact.aspects                      // DICT of core aspect → value
+$fact.namespace-map                // DICT of prefix → namespace URI
 $concept.data-type
 $taxonomy.concepts
 $cube.facts
 ```
+
+Collection projection: `factList.propName` projects the property over each
+element of a list or set of facts (e.g. `list({…}).decimals`).
 
 ### Built-in functions (selection)
 
@@ -161,8 +226,14 @@ $cube.facts
 | Collections | `list`, `set`, `first`, `last`, `index`, `contains`, `sort`, `union`, `intersect`, `difference` |
 | Strings | `string`, `concat`, `substring`, `string-length`, `contains-string`, `starts-with`, `ends-with` |
 | Math | `abs`, `round`, `floor`, `ceiling`, `power` |
-| Taxonomy | `taxonomy([uri])` |
+| Taxonomy | `taxonomy([uri])`, `instance([uri])`, `model([uri])` |
+| Aspect ctors | `unit(qname [, denom])` |
 | Alignment | `alignment()` — returns current dimensional context as a dict |
+
+In the single-instance evaluator, `instance(uri)` and `model(uri)` both
+return the currently-loaded XBRL instance/model — the optional URI argument
+is accepted but ignored (multi-instance loading is reserved for a future
+pass).
 
 ### For loops
 
@@ -194,6 +265,7 @@ if $x > 0 then $x else -$x
 | `--formula-align-threshold FLOAT` | `0.999` | Cosine similarity cutoff for GPU alignment. |
 | `--formula-embed-dim INT` | `64` | Embedding dimension for VectorSearch. |
 | `--formula-output-file PATH` | *(none)* | Write JSON results to this file. |
+| `--formula-default-namespace URI` | *(none)* | Override the rule set's default namespace. Unqualified concept references (`@Assets`) resolve against this URI, taking precedence over any `namespace "URI"` default declared in `.xule` sources. Use this when a test ruleset was written against an older taxonomy version than the filing under test. |
 
 ---
 
@@ -228,8 +300,11 @@ Defines the value type system used throughout the interpreter.
 
 - `FormulaValueType` enum: `NONE`, `SKIP`, `BOOLEAN`, `INTEGER`, `FLOAT`,
   `DECIMAL`, `STRING`, `QNAME`, `DATE`, `DATETIME`, `DURATION`, `FACT`,
-  `FACT_SET`, `CONCEPT`, `CUBE`, `NETWORK`, `TAXONOMY`, `SET`, `LIST`,
-  `DICT`, `SEVERITY`.
+  `FACT_SET`, `CONCEPT`, `CUBE`, `NETWORK`, `TAXONOMY`, `ENTITY`,
+  `UNIT_VALUE`, `SET`, `LIST`, `DICT`, `SEVERITY`.
+  `ENTITY` and `UNIT_VALUE` wrap the raw fact-dimension value for the
+  `xbrl:entity` and `xbrl:unit` core aspects so that `.name`, `.scheme`,
+  `.numerator`, `.denominator`, etc. property chains work uniformly.
 - `FormulaValue` dataclass: `.type`, `.value`, `.alignment`, `.tagBindings`.
   Constructors: `fromFact()`, `fromScalar()`, `none()`, `skip()`.
 - `AlignmentKey = FrozenSet[Tuple[QName, Any]]` — immutable key for a fact's
@@ -327,7 +402,9 @@ Provides `.propertyName` access on `FormulaValue` objects.
 
 | Object type | Supported properties |
 |-------------|---------------------|
-| `FACT` | `period`, `entity`, `unit`, `concept`, `dimensions`, `value`, `decimals`, `name`, `is-nil`, `dimension(qn)` |
+| `FACT` | `period`, `entity`, `unit`, `concept`, `dimensions`, `value`, `decimals`, `name`, `is-nil`, `is-fact`, `id`, `instance`, `cubes`, `aspects`, `namespace-map`, `footnotes`, `dimension(qn)` |
+| `ENTITY` | `name`, `scheme`, `identifier`, `local-name`, `namespace-uri` |
+| `UNIT_VALUE` | `numerator`, `denominator` |
 | `CONCEPT` | `name`, `local-name`, `namespace-uri`, `data-type`, `base-type`, `period-type`, `balance`, `is-abstract`, `is-numeric`, `is-monetary`, `nillable`, `substitution`, `labels`, `all-references` |
 | `TAXONOMY` | `concepts`, `concept-names`, `cubes`, `dimensions`, `networks`, `namespaces`, `entry-point`, `uri`, `concept(qn)`, `cube(qn, role)` |
 | `CUBE` | `cube-concept`, `dimensions`, `facts` |
@@ -490,33 +567,66 @@ add a branch in `getProperty()`.
 
 ## Testing
 
-The reference `.xule` test files are in:
+The reference `.xule` test files live alongside the OIM Formula spec:
 
 ```
 oim/specifications/oim-taxonomy/Formula/base/
+├── factFunctions.xule          // FACT* fact-query tests
+├── factFilters.xule
+├── collectionFunctions.xule
+├── stringFunctions.xule
+├── numericalFunctions.xule
+├── dateFunctions.xule
+├── messages.xule
+├── constants.xule              // shared $INSTANCE1, $US-GAAP-2020 …
+├── namespace.xule              // shared `namespace …` declarations
+├── functions.xule              // shared user-defined functions
+└── base-taxonomy-2020.xule
 ```
 
-They cover: basic math operators, fact filters, fact alignment, taxonomy
-navigation, string functions, set operations, and more.
+The individual fixture files typically depend on shared declarations from
+`constants.xule`, `namespace.xule`, and `functions.xule`, so those must be
+included in the same ruleset run.
 
-Run the parser against a test file:
+### Running a single fixture from the CLI
+
+```sh
+python arelleCmdLine.py \
+    --plugin 'XbrlModel|XbrlModel/Formula' \
+    --formula-ruleset oim/specifications/oim-taxonomy/Formula/base/namespace.xule \
+    --formula-ruleset oim/specifications/oim-taxonomy/Formula/base/constants.xule \
+    --formula-ruleset oim/specifications/oim-taxonomy/Formula/base/factFunctions.xule \
+    --formula-output-file /tmp/formula-results.out \
+    --file oim/specifications/oim-taxonomy/examples/aapl-10K-20250927-factset.json \
+    --validate
+```
+
+`--formula-ruleset` may be repeated to merge several files into one rule
+set.  Results are written both to the Arelle log and (if specified) to the
+`--formula-output-file` JSON file.
+
+### Parsing only (no evaluation)
 
 ```python
 from arelle.plugin.XbrlModel.Formula.FormulaParser import parseFormulaFile
-ruleSet = parseFormulaFile("path/to/basicMathOperators.xule")
-print(ruleSet.outputRules)
+ruleSet = parseFormulaFile("oim/specifications/oim-taxonomy/Formula/base/factFunctions.xule")
+print(len(ruleSet.outputRules), "output rules parsed")
 ```
 
-Run all rules against an OIM filing (Python):
+### Programmatic end-to-end run
 
 ```python
 from arelle.plugin.XbrlModel.Formula.FormulaRuleSet import loadRuleSet
 from arelle.plugin.XbrlModel.Formula.FormulaContext import FormulaGlobalContext
 from arelle.plugin.XbrlModel.Formula.FormulaInterpreter import evaluateRuleSet
 
-ruleSet = loadRuleSet(["rules.xule"])
+ruleSet = loadRuleSet([
+    "namespace.xule", "constants.xule", "factFunctions.xule",
+])
 ctx = FormulaGlobalContext(ruleSet, txmyMdl)
 evaluateRuleSet(ctx)
+for r in ctx.results:
+    print(r["ruleName"], r["message"])
 ```
 
 Clear the rule-set cache between test runs:

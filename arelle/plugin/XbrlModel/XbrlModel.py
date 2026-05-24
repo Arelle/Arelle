@@ -206,7 +206,7 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
         extendTargetName = getattr(obj, "extendTargetName", None)
         if extendTargetName is not None:
             targetObj = self.namedObjects.get(extendTargetName)
-            if isinstance(obj, XbrlDomain) and isinstance(targetObj, XbrlDomain) and not getattr(targetObj, "completeDomain", False):
+            if isinstance(obj, XbrlDomain) and isinstance(targetObj, XbrlDomain) and getattr(targetObj, "isExtensible", True):
                 baseSet = self._effectiveRelationshipSet(targetObj, visiting)
                 relationships.update(baseSet["relationships"])
                 explicitRoots.update(baseSet["roots"])

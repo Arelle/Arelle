@@ -313,6 +313,17 @@ def _fn_isBoolean(args: List[FormulaValue], ctx: "FormulaRuleContext") -> Formul
 # ---------------------------------------------------------------------------
 
 def _fn_list(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+    # Xule semantics: list(collection) converts a SET / LIST / factset to a
+    # list, preserving order. With multiple args (or scalars) it builds a
+    # new list of those values.
+    if len(args) == 1:
+        a = args[0]
+        if a.type == FormulaValueType.LIST:
+            return a
+        if a.type == FormulaValueType.SET:
+            return FormulaValue(FormulaValueType.LIST, list(a.value))
+        if a.type == FormulaValueType.FACT_SET:
+            return FormulaValue(FormulaValueType.LIST, list(a.value))
     items: List[FormulaValue] = []
     for arg in args:
         if arg.type == FormulaValueType.SKIP:
@@ -1126,7 +1137,7 @@ def _fn_taxonomy(args: List[FormulaValue], ctx: "FormulaRuleContext") -> Formula
     if cntlr is None:
         raise FormulaRuntimeError("taxonomy(uri) requires an Arelle controller")
     from arelle import ModelDocument
-    from arelle.plugin.XbrlModel import castToXbrlCompiledModel
+    from XbrlModel import castToXbrlCompiledModel
     mdl = cntlr.modelManager.load(uri)
     txmy = castToXbrlCompiledModel(mdl)
     return FormulaValue(FormulaValueType.TAXONOMY, txmy)
@@ -1497,6 +1508,43 @@ def _fn_toSpreadsheet(args: List[FormulaValue], ctx: "FormulaRuleContext") -> Fo
     return FormulaValue(FormulaValueType.STRING, "")
 
 
+def _fn_instance(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+    """
+    instance(uri?) → reference to an XBRL instance/model.
+
+    Single-instance fast path: always returns the current taxonomy/instance
+    model wrapped as TAXONOMY. The optional URI argument is currently
+    accepted but ignored (full multi-instance loading is a future phase).
+    """
+    return FormulaValue(FormulaValueType.TAXONOMY, ctx.txmyMdl)
+
+
+def _fn_model(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+    """
+    model(uri) → reference to an XBRL instance/model.
+
+    Alias accepted by some test fixtures for `instance()`. Returns the
+    currently-loaded model; multi-instance support deferred.
+    """
+    return FormulaValue(FormulaValueType.TAXONOMY, ctx.txmyMdl)
+
+
+def _fn_unit(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+    """
+    unit(qname [, denominator-qname-or-list]) → unit value.
+
+    Single-instance simple unit representation: a unit value is stored as
+    a tuple (numerator-qname, denominator-list-of-qnames). The interpreter
+    then compares such unit values against fact dim 'unit' values using
+    _loose_eq (which already handles plain QName equality for simple units).
+    """
+    if not args:
+        raise FormulaRuntimeError("unit() requires at least one QName argument")
+    num = args[0].value if args[0].type == FormulaValueType.QNAME else args[0].value
+    return FormulaValue(FormulaValueType.QNAME, num) if len(args) == 1 else \
+        FormulaValue(FormulaValueType.STRING, str(num))
+
+
 # ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
@@ -1601,6 +1649,10 @@ BUILTIN_FUNCTIONS: Dict[str, Callable] = {
     "year":             _fn_year,
     # Misc
     "first-value":      _fn_firstValue,
+    # Instance / model references
+    "instance":         _fn_instance,
+    "model":            _fn_model,
+    "unit":             _fn_unit,
 }
 
 

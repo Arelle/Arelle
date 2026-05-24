@@ -109,6 +109,9 @@ def _buildGrammar():
     warningKw       = CaselessKeyword("warning")
     okKw            = CaselessKeyword("ok")
     passKw          = CaselessKeyword("pass")
+    asKw            = CaselessKeyword("as")
+    nilDefaultKw    = CaselessKeyword("nildefault")
+    coveredDimsKw   = CaselessKeyword("covered-dims")
 
     declKeywords = (assertKw | outputKw | namespaceKw | constantKw | functionKw | versionKw)
 
@@ -179,30 +182,98 @@ def _buildGrammar():
     tagOp   = Suppress(Literal("#"))
     tagName = simpleName
 
-    # ---- Fact query:  @QName[filters] #tag ----
-    # Dimension filter:  dim=value  or  dim!=value  etc.
+    # ---- Fact query (formula.md section "Fact Queries") ----
+    #
+    # Grammar (spec):
+    #   factQuery := '{' factQueryBody '}'           # taxonomy-defined dims included
+    #              | '[' factQueryBody ']'           # taxonomy-defined dims excluded
+    #              | factQueryBody                    # bare form (must start with @ / @@)
+    #   factQueryBody := modifier* dimFilter* ['where' blockExpr]
+    #   modifier := 'covered' | 'covered-dims' | 'uncovered'
+    #             | 'nils' | 'nonils' | 'nildefault'
+    #   dimFilter := ('@@' | '@') dimensionName? [op valueExpr] ['as' '$' name]
+    #   dimensionName := qnameExpr ('.' simpleName ['(' args ')'])*
+    #   op := '=' | '!=' | 'in' | 'not in'
+    #   valueExpr := '*' | atom            (wildcard or any expression)
+    #
+    # Notes:
+    # - Filters are whitespace-separated inside the brackets (NOT comma).
+    # - '@QName' is shorthand for '@concept = QName'.
+    # - '@dim' with no operator removes the dim from alignment (still selects).
+    # - '@@' = filter and preserve dim alignment; '@' = filter and cover dim.
+
+    _atSign     = Literal("@@") | Literal("@")
+    _dimQName   = Group(qnameExpr).setResultsName("dimQName")
+    # dimension-name: qname plus optional .propName(args)* chain (e.g. concept.balance)
+    _dimNameSegment = Group(
+        Suppress(Literal("."))
+        + simpleName.setResultsName("propName")
+        + Opt(
+            Suppress(Literal("("))
+            + Opt(Group(delimited_list(blockExpr)).setResultsName("propArgs"))
+            + Suppress(Literal(")"))
+        )
+    )
+    _dimName    = Group(
+        qnameExpr.setResultsName("qname")
+        + Group(ZeroOrMore(_dimNameSegment)).setResultsName("propChain")
+    ).setResultsName("dimName")
+
+    _filterOp   = (Literal("!=") | Literal("=") | notInKw | inKw).setResultsName("op")
+    _wildcard   = Literal("*").setResultsName("wildcard")
+    _filterValue = (_wildcard | expr).setResultsName("value")
+
+    _aliasClause = Group(
+        Suppress(asKw) + Suppress(Literal("$")) + simpleName.setResultsName("aliasName")
+    ).setResultsName("alias")
+
     dimFilter = Group(
-        qnameExpr.setResultsName("dim")
-        + one_of("== != <= < >= > =").setResultsName("op")
-        + expr.setResultsName("value")
+        _atSign.setResultsName("atSign")
+        + Opt(_dimName)
+        + Opt(_filterOp + _filterValue)
+        + Opt(_aliasClause)
+    ).setResultsName("dimFilter", listAllMatches=True)
+
+    factQueryModifier = Group(
+        (coveredDimsKw | coveredKw | uncoveredKw
+         | nilDefaultKw | nilsKw | nonilsKw).setResultsName("kw")
+    ).setResultsName("modifier", listAllMatches=True)
+
+    factQueryWhere = Group(
+        Suppress(whereKw)
+        + blockExpr.setResultsName("cond")
+    ).setResultsName("fqWhere")
+
+    # body matches only when non-empty (otherwise {} / [] are set/list literals)
+    factQueryBody = (
+        Group(OneOrMore(factQueryModifier)).setResultsName("modifiers")
+        + Group(ZeroOrMore(dimFilter)).setResultsName("filters")
+        + Opt(factQueryWhere)
+    ) | (
+        Group(Empty()).setResultsName("modifiers")
+        + Group(OneOrMore(dimFilter)).setResultsName("filters")
+        + Opt(factQueryWhere)
     )
-    factFilters = (
+
+    _fqCurly = Group(
+        Suppress(Literal("{"))
+        + factQueryBody
+        + Suppress(Literal("}"))
+    ).setResultsName("fqCurly")
+    _fqSquare = Group(
         Suppress(Literal("["))
-        + Group(delimited_list(dimFilter, delim=",")).setResultsName("filters")
+        + factQueryBody
         + Suppress(Literal("]"))
-    )
-    nilsFlag = Group(nilsKw | nonilsKw).setResultsName("nilsFlag")
-    coveredFlag = Group(coveredKw | uncoveredKw).setResultsName("coveredFlag")
+    ).setResultsName("fqSquare")
+    # Bare form: must start with @ or @@ (otherwise ambiguous with arithmetic);
+    # at least one dimFilter required.
+    _fqBare = Group(
+        Group(Empty()).setResultsName("modifiers")
+        + Group(OneOrMore(dimFilter)).setResultsName("filters")
+    ).setResultsName("fqBare")
 
     factQuery = Group(
-        Opt(nilsFlag)
-        + Opt(coveredFlag)
-        + Suppress(Literal("@@") | Literal("@"))
-        + qnameExpr.setResultsName("concept")
-        + Opt(factFilters)
-        + Opt(tagOp + tagName.setResultsName("tag"))
-        + Opt(nilsFlag)
-        + Opt(coveredFlag)
+        (_fqCurly | _fqSquare | _fqBare)
     ).setResultsName("factQuery")
 
     # ---- Function call ----
@@ -211,6 +282,7 @@ def _buildGrammar():
         ifKw | thenKw | elseKw | forKw | inKw | andKw | orKw | notKw
         | trueKw | falseKw | noneKw | skipKw
         | nilsKw | nonilsKw | coveredKw | uncoveredKw
+        | coveredDimsKw | nilDefaultKw | asKw
         | errorKw | warningKw | okKw | passKw
         | whereKw | returnKw
         | declKeywords
@@ -395,6 +467,11 @@ def _buildGrammar():
     ).setResultsName("constantDecl").addParseAction(_tagStatement("constantDecl"))
 
     # ---- Namespace declaration ----
+    # Forms:
+    #   namespace <URI>                     (default namespace)
+    #   namespace prefix <URI>
+    #   namespace prefix = "URI"
+    #   namespace "URI"                     (default namespace, quoted)
     uriLiteral = (
         QuotedString("<", endQuoteChar=">")
         | QuotedString("'")
@@ -402,9 +479,34 @@ def _buildGrammar():
     )
     namespaceDecl = Group(
         Suppress(namespaceKw)
-        + ncName.setResultsName("prefix")
-        + uriLiteral.setResultsName("uri")
+        + (
+            (ncName.setResultsName("prefix")
+                + Opt(Suppress(Literal("=")))
+                + uriLiteral.setResultsName("uri"))
+            | uriLiteral.setResultsName("uri")
+        )
     ).setResultsName("namespaceDecl").addParseAction(_tagStatement("namespaceDecl"))
+
+    # ---- Output attribute declaration (per formula.md §1676) ----
+    # Form:  output-attribute NAME
+    # Stored as a namespace-like no-op for now; the interpreter will simply
+    # surface attribute values when output rules assign them.
+    outputAttributeKw = CaselessKeyword("output-attribute")
+    outputAttributeDecl = Group(
+        Suppress(outputAttributeKw)
+        + simpleName.setResultsName("attrName")
+    ).setResultsName("outputAttributeDecl").addParseAction(_tagStatement("outputAttributeDecl"))
+
+    # ---- Namespace-group declaration (xule extension, accepted as no-op) ----
+    # Form:  namespace-group NAME = <expr>
+    # We absorb the RHS as a single expression so it doesn't break parsing.
+    namespaceGroupKw = CaselessKeyword("namespace-group")
+    namespaceGroupDecl = Group(
+        Suppress(namespaceGroupKw)
+        + simpleName.setResultsName("groupName")
+        + Suppress(Literal("="))
+        + expr.setResultsName("groupExpr")
+    ).setResultsName("namespaceGroupDecl").addParseAction(_tagStatement("namespaceGroupDecl"))
 
     # ---- Version declaration ----
     versionDecl = Group(
@@ -428,6 +530,8 @@ def _buildGrammar():
     # ---- Top-level program ----
     statement = (
         namespaceDecl
+        | namespaceGroupDecl
+        | outputAttributeDecl
         | versionDecl
         | constantDecl
         | outputRule
@@ -540,10 +644,20 @@ def parseFormulaString(source: str, fileName: str = "<string>") -> FormulaRuleSe
 # ---------------------------------------------------------------------------
 
 def _buildRuleSet(parseRes: dict, filePath: str) -> FormulaRuleSet:
+    from pyparsing import ParseResults
+
     def _normalizeNode(node):
         # pyparsing + as_dict can leave one-element list wrappers around
         # parse-action dict nodes (notably blockExpr). Strip those wrappers
-        # so the interpreter sees stable dict AST nodes.
+        # so the interpreter sees stable dict AST nodes. Also unwrap nested
+        # ParseResults objects that as_dict() didn't recursively convert.
+        if isinstance(node, ParseResults):
+            d = node.as_dict()
+            if d:
+                # named results → dict
+                return _normalizeNode(d)
+            # positional → list
+            return [_normalizeNode(n) for n in node]
         if isinstance(node, list):
             if len(node) == 1:
                 return _normalizeNode(node[0])
@@ -562,12 +676,26 @@ def _buildRuleSet(parseRes: dict, filePath: str) -> FormulaRuleSet:
 
         if key is None:
             wrappedKey = next(iter(item), None)
-            if wrappedKey in {"namespaceDecl", "constantDecl", "outputRule", "assertRule", "funcDecl", "versionDecl"}:
+            if wrappedKey in {"namespaceDecl", "constantDecl", "outputRule", "assertRule",
+                              "funcDecl", "versionDecl", "outputAttributeDecl",
+                              "namespaceGroupDecl"}:
                 key = wrappedKey
                 node = item[wrappedKey]
 
         if key == "namespaceDecl":
-            ruleSet.namespaces[node["prefix"]] = node["uri"]
+            # Accept "namespace URI" (default ns) and "namespace prefix URI"
+            prefix = node.get("prefix") or ""
+            uri = node.get("uri")
+            if uri is not None:
+                ruleSet.namespaces[prefix] = uri
+
+        elif key == "outputAttributeDecl":
+            # No-op declaration: register attribute name for later output rules.
+            attrs = getattr(ruleSet, "outputAttributes", None)
+            if attrs is None:
+                ruleSet.outputAttributes = []
+                attrs = ruleSet.outputAttributes
+            attrs.append(node.get("attrName"))
 
         elif key == "constantDecl":
             ruleSet.constants.append(ConstantDecl(name=node["name"], expr=_normalizeNode(node["expr"])))

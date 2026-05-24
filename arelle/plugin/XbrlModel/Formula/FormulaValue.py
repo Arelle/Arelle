@@ -17,11 +17,11 @@ from typing import Any, Dict, FrozenSet, List, Optional, Tuple, TYPE_CHECKING
 from arelle.ModelValue import QName
 
 if TYPE_CHECKING:
-    from arelle.plugin.XbrlModel.XbrlFact import XbrlFact
-    from arelle.plugin.XbrlModel.XbrlConcept import XbrlConcept
-    from arelle.plugin.XbrlModel.XbrlCube import XbrlCube
-    from arelle.plugin.XbrlModel.XbrlNetwork import XbrlNetwork
-    from arelle.plugin.XbrlModel.XbrlModel import XbrlCompiledModel
+    from XbrlModel.XbrlFact import XbrlFact
+    from XbrlModel.XbrlConcept import XbrlConcept
+    from XbrlModel.XbrlCube import XbrlCube
+    from XbrlModel.XbrlNetwork import XbrlNetwork
+    from XbrlModel.XbrlModel import XbrlCompiledModel
 
 
 # ---------------------------------------------------------------------------
@@ -46,6 +46,8 @@ class FormulaValueType(Enum):
     CUBE = auto()           # XbrlCube
     NETWORK = auto()        # XbrlNetwork
     TAXONOMY = auto()       # XbrlCompiledModel
+    ENTITY = auto()         # entity aspect value (wraps QName: scheme=ns, id=local)
+    UNIT_VALUE = auto()     # unit aspect value (tuple (numerator-qns, denominator-qns))
     SET = auto()            # frozenset[FormulaValue]
     LIST = auto()           # list[FormulaValue]
     DICT = auto()           # dict[FormulaValue, FormulaValue]
@@ -76,9 +78,9 @@ def alignmentKeyOf(fact: "XbrlFact", conceptDimQn: Optional[QName] = None) -> Al
         QName of the concept dimension (e.g. xbrl:concept).  If None, defaults
         to a well-known value.
     """
-    from arelle.ModelValue import qname as makeQName
     if conceptDimQn is None:
-        conceptDimQn = makeQName("https://xbrl.org/2021", "concept")
+        from XbrlModel.XbrlCube import conceptCoreDim
+        conceptDimQn = conceptCoreDim
 
     items: List[Tuple[QName, Any]] = []
     for dimQn, value in fact.factDimensions.items():

@@ -929,14 +929,14 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             if extendTargetObj is not None:
                 if getattr(domObj, "_extendResolved", False):
                     extendTargetObj = None # don't extend, already been extended
-                elif extendTargetObj.completeDomain:
+                elif not getattr(extendTargetObj, "isExtensible", True):
                     compMdl.error("oimte:cannotExtendCompleteDomain",
                             _("The domain %(name)s cannot be extended because it is a completeDomain."),
                             xbrlObject=domObj, name=extendTargetObj.name)
                     continue
                 else:
                     domObj._extendResolved = True
-                    extendedDomClassQn = extendTargetObj.domainClass
+                    extendedDomClassQn = getattr(extendTargetObj, "root", None)
         elif not domObj.name:
             compMdl.error("oimte:missingRequiredProperty",
                       _("The domain object MUST have either a name or an extendTargetName, not neither."),

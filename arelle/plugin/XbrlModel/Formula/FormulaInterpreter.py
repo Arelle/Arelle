@@ -150,12 +150,27 @@ class _FactQuerySlot:
 
 
 def _collectFactQueries(node: Any, slots: List[_FactQuerySlot]) -> None:
-    """Recursively walk the AST and collect all factQuery nodes into slots."""
+    """
+    Walk the AST and collect factQuery nodes that should drive rule iteration.
+
+    In the new spec-aligned factQuery grammar, queries are evaluated inline
+    as collections (LIST of FACT) and do not drive alignment iteration.
+    This collector therefore returns no slots for the new shape; the rule
+    body is evaluated once and each factQuery returns its full result set.
+    Kept for backward compatibility with any legacy AST shape that may have
+    surfaced a `concept` field directly under `factQuery`.
+    """
     if not isinstance(node, dict):
         return
     if node.get("exprName") == "factQuery" or "factQuery" in node:
         fqNode = node.get("factQuery", node)
-        concept = fqNode.get("concept", {})
+        # New shape: fqCurly / fqSquare / fqBare wrappers → do NOT add slot.
+        if isinstance(fqNode, dict) and any(
+            k in fqNode for k in ("fqCurly", "fqSquare", "fqBare")
+        ):
+            return
+        # Legacy shape (no longer produced by the grammar): preserve behavior.
+        concept = fqNode.get("concept", {}) if isinstance(fqNode, dict) else {}
         slot = _FactQuerySlot(
             prefix=concept.get("prefix", "*"),
             localName=concept.get("localName", ""),
@@ -209,11 +224,10 @@ def _findFactsByLocalName(globalCtx: FormulaGlobalContext, localName: str) -> Li
     Wildcard concept lookup: find all facts whose concept QName has the
     given localName in any namespace.
     """
-    from arelle.plugin.XbrlModel.XbrlFact import XbrlFact
-    from arelle.XmlValidate import VALID
-    from arelle.ModelValue import qname as mkQn
+    from XbrlModel.XbrlFact import XbrlFact
+    from XbrlModel.XbrlCube import conceptCoreDim as conceptDimQn
+    from arelle.XmlValidateConst import VALID
 
-    conceptDimQn = mkQn("https://xbrl.org/2021", "concept")
     return [
         obj for obj in globalCtx.txmyMdl.filterNamedObjects(XbrlFact)
         if (getattr(obj, "_xValid", VALID) >= VALID
@@ -655,108 +669,505 @@ def _evalQName(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
 
 def _evalFactQuery(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
     """
-    Evaluate a single @Concept fact query in the current iteration context.
+    Evaluate a factQuery node (spec-aligned grammar) and return a FormulaValue.
 
-    In the alignment model, fact queries inside an expression are evaluated
-    against the already-bound facts (from the rule's iteration setup).  If
-    a matching fact was pre-bound by the interpreter (via a tag), return it.
-    If not found among bindings, perform a live lookup and return the first
-    matching fact or none.
+    The AST shape is::
+
+        node == {"fqCurly"|"fqSquare"|"fqBare": {
+            "modifiers": [{"kw": "covered"|"covered-dims"|"nils"|"nonils"|...}, ...],
+            "filters":   [{"atSign": "@"|"@@",
+                           "dimName": {"qname": {...}, "propChain": [...]},
+                           "op": "="|"!="|"in"|"not in",
+                           "value": <expr>|"*",
+                           "wildcard": "*",  # if value was '*'
+                           "alias": {"aliasName": str}}, ...],
+            "fqWhere":   {"cond": <expr>},  # optional
+        }}
+
+    Bracket semantics (per formula.md "Square and Curly Bracket Control"):
+      - {} / bare : taxonomy-defined dimensions allowed (default).
+      - []        : only facts with NO taxonomy-defined dimensions
+                    other than those explicitly named in filters.
+
+    Returns a LIST FormulaValue of FACT values (possibly empty).
     """
-    concept = node.get("concept", {})
-    prefix    = concept.get("prefix", "*")
-    localName = concept.get("localName", "")
-    tag       = node.get("tag")
+    # Unwrap bracket form
+    body = None
+    bracket = None
+    for k in ("fqCurly", "fqSquare", "fqBare"):
+        if k in node:
+            body = node[k]
+            bracket = k
+            break
+    if body is None:
+        # Legacy shape — degrade to empty list to avoid crashing.
+        return FormulaValue(FormulaValueType.LIST, [])
 
-    # If this fact was pre-bound to a tag in the current iteration, return it
-    if tag and tag in ctx.variables:
-        return ctx.variables[tag]
+    excludeTaxDims = (bracket == "fqSquare")
 
-    # Live lookup: find facts matching the concept (and optional dimension filters)
-    try:
-        qn = ctx.globalCtx.resolveQName(prefix, localName)
-    except KeyError:
-        return NONE_VALUE
+    # ---- Parse modifiers ----
+    modifiersRaw = body.get("modifiers", [])
+    if isinstance(modifiersRaw, dict):
+        modifiersRaw = modifiersRaw.get("modifier", [])
+    if isinstance(modifiersRaw, dict):
+        modifiersRaw = [modifiersRaw]
+    elif not isinstance(modifiersRaw, list):
+        modifiersRaw = []
+    modKws = {
+        (m.get("kw") if isinstance(m, dict) else str(m)).lower()
+        for m in modifiersRaw if m
+    }
+    # covered / covered-dims / uncovered are alignment hints — single-instance
+    # interpreter currently returns the full collection unconditionally.
+    nilsMode = None
+    if "nils" in modKws:        nilsMode = "nils"
+    elif "nonils" in modKws:    nilsMode = "nonils"
+    elif "nildefault" in modKws: nilsMode = "nildefault"
 
-    facts = ctx.globalCtx.factsForConcept(qn)
+    # ---- Parse filters ----
+    filtersRaw = body.get("filters", [])
+    if isinstance(filtersRaw, dict):
+        filtersRaw = filtersRaw.get("dimFilter", [])
+    if isinstance(filtersRaw, dict):
+        filtersRaw = [filtersRaw]
+    elif not isinstance(filtersRaw, list):
+        filtersRaw = []
 
-    # Apply dimension filters from the query: @Concept[dim==value]
-    filters = node.get("filters", [])
-    if filters and isinstance(filters, (list,)):
-        facts = _applyFactFilters(facts, filters, ctx)
+    parsedFilters = [_parseDimFilter(f, ctx) for f in filtersRaw if isinstance(f, dict)]
+    namedDims = {pf["dimQn"] for pf in parsedFilters if pf.get("dimQn") is not None}
 
-    # Nils handling
-    nilsFlag = node.get("nilsFlag")
-    if nilsFlag:
-        nilsStr = nilsFlag.get("value", "") if isinstance(nilsFlag, dict) else str(nilsFlag)
-        if nilsStr == "nonils":
-            facts = [f for f in facts if not _isNil(f)]
-        elif nilsStr == "nils":
-            facts = [f for f in facts if _isNil(f)]
+    # ---- Fact source: concept-indexed shortcut when a concept filter is present ----
+    from XbrlModel.XbrlFact import XbrlFact
+    from XbrlModel.XbrlCube import conceptCoreDim as conceptDimQn
 
-    if not facts:
-        coveredFlag = node.get("coveredFlag")
-        coveredValue = coveredFlag.get("value", "") if isinstance(coveredFlag, dict) else coveredFlag
-        if str(coveredValue).lower() == "covered":
-            coveredNone = FormulaValue(FormulaValueType.NONE, None)
-            setattr(coveredNone, "_coveredMissing", True)
-            return coveredNone
-        raise FormulaIterationStop()
+    conceptFilter = next(
+        (pf for pf in parsedFilters
+         if pf.get("kind") == "concept" and pf.get("op") in ("=", "==") and pf.get("isQName")),
+        None,
+    )
 
-    # In a non-iteration context return all matching facts as a set
-    fact_values = [FormulaValue.fromFact(f) for f in facts]
-    if len(fact_values) == 1:
-        fv = fact_values[0]
-        if tag:
-            ctx.bindVariable(tag, fv)
-        return fv
+    if conceptFilter is not None:
+        conceptQn = conceptFilter["expected"]
+        if isinstance(conceptQn, QName):
+            seedFacts = ctx.globalCtx.factsForConcept(conceptQn)
+        else:
+            seedFacts = []
+    else:
+        # Full scan of all non-footnote facts.
+        seedFacts = [
+            f for f in ctx.globalCtx.txmyMdl.filterNamedObjects(XbrlFact)
+            if getattr(f, "factDimensions", None)
+        ]
 
-    # Multiple facts — return as a list; the rule iteration will align them
-    result = FormulaValue(FormulaValueType.LIST, fact_values)
-    if tag:
-        ctx.bindVariable(tag, result)
-    return result
+    # ---- Apply filters ----
+    matched: List[Any] = []
+    whereCond = body.get("fqWhere", {}).get("cond") if isinstance(body.get("fqWhere"), dict) else None
+
+    for fact in seedFacts:
+        # Exclude footnote facts (concept name 'note' per spec)
+        conceptVal = fact.factDimensions.get(conceptDimQn)
+        if isinstance(conceptVal, QName) and conceptVal.localName == "note":
+            continue
+
+        # Nils handling
+        if nilsMode == "nonils" and _isNil(fact):
+            continue
+        if nilsMode == "nils" and not _isNil(fact):
+            continue
+
+        # Apply dimension filters
+        ok = True
+        aliasBindings: Dict[str, Any] = {}
+        for pf in parsedFilters:
+            if not _factMatchesFilter(fact, pf, ctx):
+                ok = False
+                break
+            alias = pf.get("alias")
+            if alias and pf.get("dimQn") is not None:
+                aliasBindings[alias] = fact.factDimensions.get(pf["dimQn"])
+        if not ok:
+            continue
+
+        # Square-bracket exclusion: reject facts carrying taxonomy-defined
+        # dimensions that were not explicitly named in filters.
+        if excludeTaxDims:
+            hasUnnamedTaxDim = any(
+                (dimQn not in namedDims) and not _isCoreDimQn(dimQn)
+                for dimQn in fact.factDimensions
+            )
+            if hasUnnamedTaxDim:
+                continue
+
+        # Where clause (evaluate with $fact + aliases bound)
+        if whereCond is not None:
+            savedFact = ctx.variables.get("fact")
+            savedAliases = {k: ctx.variables.get(k) for k in aliasBindings}
+            ctx.bindVariable("fact", FormulaValue.fromFact(fact))
+            for k, v in aliasBindings.items():
+                ctx.bindVariable(k, FormulaValue.fromScalar(v))
+            try:
+                cond = evaluateExpr(whereCond, ctx)
+            except (FormulaIterationStop, FormulaSkip):
+                cond = FALSE_VALUE
+            finally:
+                if savedFact is None:
+                    ctx.variables.pop("fact", None)
+                else:
+                    ctx.variables["fact"] = savedFact
+                for k, v in savedAliases.items():
+                    if v is None:
+                        ctx.variables.pop(k, None)
+                    else:
+                        ctx.variables[k] = v
+            if not (cond.type == FormulaValueType.BOOLEAN and cond.value):
+                continue
+
+        matched.append(fact)
+
+    return FormulaValue(
+        FormulaValueType.LIST,
+        [FormulaValue.fromFact(f) for f in matched],
+    )
 
 
-def _isNil(fact) -> bool:
-    if fact.factValues:
-        fv = next(iter(fact.factValues))
-        return fv.value is None
+# ---- Core dim QNames (formula.md "core dimensions") -----------------------
+
+_CORE_DIM_LOCALS = frozenset((
+    "concept", "period", "entity", "unit", "language", "noteId",
+))
+_CORE_DIM_NS = "https://xbrl.org/2025"
+
+def _isCoreDimQn(qn) -> bool:
+    if not isinstance(qn, QName):
+        return False
+    return qn.namespaceURI == _CORE_DIM_NS and qn.localName in _CORE_DIM_LOCALS
+
+
+_coreDimQnCache: Dict[str, QName] = {}
+
+def _coreDimQn(localName: str) -> QName:
+    qn = _coreDimQnCache.get(localName)
+    if qn is None:
+        from arelle.ModelValue import qname as mkQn
+        qn = mkQn(_CORE_DIM_NS, localName)
+        _coreDimQnCache[localName] = qn
+    return qn
+
+
+# ---- dimFilter parsing -----------------------------------------------------
+
+# Special pseudo-dimension names (not core, but recognised in filters)
+_PSEUDO_DIMS = frozenset(("cube", "model", "dimensions", "language"))
+
+
+def _parseDimFilter(filt: dict, ctx: FormulaRuleContext) -> dict:
+    """
+    Convert a raw dimFilter AST node into a normalized dict::
+
+        {"kind": "concept"|"core"|"taxDim"|"pseudo"|"any",
+         "dimQn": QName|None,         # actual dim QName (None for @ alone)
+         "atSign": "@"|"@@",
+         "propChain": [str, ...],     # e.g. ['balance'] for @concept.balance
+         "op": "="|"!="|"in"|"not in"|None,
+         "value": <FormulaValue>|None,
+         "expected": <raw value>,     # unwrapped value for fast compare
+         "isWildcard": bool,
+         "isNone": bool,
+         "isQName": bool,
+         "alias": str|None}
+    """
+    out = {
+        "atSign":     filt.get("atSign", "@"),
+        "kind":       "any",
+        "dimQn":      None,
+        "propChain":  [],
+        "op":         None,
+        "value":      None,
+        "expected":   None,
+        "isWildcard": False,
+        "isNone":     False,
+        "isQName":    False,
+        "alias":      None,
+    }
+
+    # ---- Dimension name + property chain ----
+    dimName = filt.get("dimName")
+    if isinstance(dimName, dict):
+        qnNode = dimName.get("qname", {})
+        prefix = qnNode.get("prefix", "*") if isinstance(qnNode, dict) else "*"
+        localName = qnNode.get("localName", "") if isinstance(qnNode, dict) else str(qnNode)
+        propChainRaw = dimName.get("propChain", [])
+        if isinstance(propChainRaw, dict):
+            propChainRaw = [propChainRaw]
+        elif not isinstance(propChainRaw, list):
+            propChainRaw = []
+        propChain = [p.get("propName") for p in propChainRaw
+                     if isinstance(p, dict) and p.get("propName")]
+        out["propChain"] = propChain
+
+        # Classify the dim
+        if prefix in ("*", None) and localName == "concept":
+            out["kind"] = "concept"
+            out["dimQn"] = _coreDimQn("concept")
+        elif prefix in ("*", None) and localName == "period":
+            out["kind"] = "core"
+            out["dimQn"] = _coreDimQn("period")
+        elif prefix in ("*", None) and localName == "entity":
+            out["kind"] = "core"
+            out["dimQn"] = _coreDimQn("entity")
+        elif prefix in ("*", None) and localName == "unit":
+            out["kind"] = "core"
+            out["dimQn"] = _coreDimQn("unit")
+        elif prefix in ("*", None) and localName == "language":
+            out["kind"] = "core"
+            out["dimQn"] = _coreDimQn("language")
+        elif prefix in ("*", None) and localName in _PSEUDO_DIMS:
+            out["kind"] = "pseudo"
+            out["pseudoName"] = localName
+        else:
+            # Either a typed core dim with propChain, or a taxonomy-defined dim
+            try:
+                qn = ctx.globalCtx.resolveQName(prefix, localName)
+            except KeyError:
+                from arelle.ModelValue import qname as mkQn
+                qn = mkQn("", localName)
+            out["dimQn"] = qn
+            if _isCoreDimQn(qn):
+                out["kind"] = "core"
+            else:
+                # Treat as shortcut: @QName  ==>  @concept = QName
+                if not filt.get("op") and not propChain:
+                    out["kind"]     = "concept"
+                    out["dimQn"]    = _coreDimQn("concept")
+                    out["op"]       = "="
+                    out["value"]    = FormulaValue(FormulaValueType.QNAME, qn)
+                    out["expected"] = qn
+                    out["isQName"]  = True
+                else:
+                    out["kind"] = "taxDim"
+    else:
+        # @ alone — match every fact, no constraint
+        out["kind"] = "any"
+
+    # ---- Operator + value ----
+    if out["value"] is None and filt.get("op"):
+        out["op"] = filt.get("op")
+        if filt.get("wildcard") == "*":
+            out["isWildcard"] = True
+        else:
+            valNode = filt.get("value")
+            if valNode is not None:
+                fv = evaluateExpr(valNode, ctx)
+                out["value"] = fv
+                if fv.type == FormulaValueType.NONE:
+                    out["isNone"] = True
+                elif fv.type == FormulaValueType.QNAME:
+                    out["expected"] = fv.value
+                    out["isQName"] = True
+                else:
+                    out["expected"] = fv.value
+
+    # ---- Alias ----
+    aliasNode = filt.get("alias")
+    if isinstance(aliasNode, dict):
+        out["alias"] = aliasNode.get("aliasName")
+
+    return out
+
+
+def _factMatchesFilter(fact, pf: dict, ctx: FormulaRuleContext) -> bool:
+    """Test a single fact against a parsed dimFilter."""
+    kind = pf["kind"]
+
+    # @ alone — accept any fact
+    if kind == "any":
+        return True
+
+    # @model — instance filter; single-instance interpreter treats as no-op
+    # (any non-* value is accepted as the current model).
+    if kind == "pseudo" and pf.get("pseudoName") == "model":
+        return True
+
+    # @cube — fact must appear in some cube; @cube.name / @cube.drs-role refine
+    if kind == "pseudo" and pf.get("pseudoName") == "cube":
+        return _factMatchesCubeFilter(fact, pf, ctx)
+
+    # @dimensions — taxonomy-defined dim dictionary filter (not yet impl)
+    if kind == "pseudo" and pf.get("pseudoName") == "dimensions":
+        return _factMatchesDimsFilter(fact, pf, ctx)
+
+    dimQn = pf.get("dimQn")
+    if dimQn is None:
+        return True
+    factDimVal = fact.factDimensions.get(dimQn)
+
+    # Optional property chain: e.g. @concept.balance — resolve fact's dim value
+    # to the object (concept) then apply property chain.
+    if pf["propChain"]:
+        # Wrap the fact's dim value into a FormulaValue of the appropriate
+        # type so that property dispatch (getProperty) works correctly.
+        target = factDimVal
+        if target is None:
+            return False
+        if dimQn.localName == "concept" and isinstance(factDimVal, QName):
+            obj = ctx.globalCtx.txmyMdl.namedObjects.get(factDimVal)
+            cur = FormulaValue(FormulaValueType.CONCEPT, obj) if obj is not None \
+                else FormulaValue(FormulaValueType.QNAME, factDimVal)
+        elif dimQn.localName == "entity":
+            cur = FormulaValue(FormulaValueType.ENTITY, factDimVal)
+        elif dimQn.localName == "unit":
+            cur = FormulaValue(FormulaValueType.UNIT_VALUE, factDimVal)
+        else:
+            cur = target if isinstance(target, FormulaValue) else FormulaValue.fromScalar(target)
+        try:
+            for prop in pf["propChain"]:
+                cur = getProperty(cur, prop, [], ctx)
+        except FormulaRuntimeError:
+            return False
+        factDimVal = cur.value if isinstance(cur, FormulaValue) else cur
+
+    op = pf["op"]
+
+    # No operator — dim present in alignment (any value accepted)
+    if op is None:
+        return factDimVal is not None
+
+    if pf["isWildcard"]:
+        # "= *" means dim is present with any value
+        if op in ("=", "=="):
+            return factDimVal is not None
+        if op == "!=":
+            return factDimVal is None
+        return False
+
+    if pf["isNone"] or (pf["value"] is not None and pf["value"].type == FormulaValueType.NONE):
+        if op in ("=", "=="):
+            return factDimVal is None
+        if op == "!=":
+            return factDimVal is not None
+        return False
+
+    expected = pf["expected"]
+
+    # 'in' / 'not in' against list/set
+    if op in ("in", "not in"):
+        if pf["value"] is not None and pf["value"].type in (FormulaValueType.LIST, FormulaValueType.SET):
+            items = [
+                (i.value if isinstance(i, FormulaValue) else i)
+                for i in pf["value"].value
+            ]
+            match = any(_loose_eq(factDimVal, e) for e in items)
+            return match if op == "in" else not match
+        # scalar — fall through to == / !=
+        match = _loose_eq(factDimVal, expected)
+        return match if op == "in" else not match
+
+    if op in ("=", "=="):
+        return _loose_eq(factDimVal, expected)
+    if op == "!=":
+        return not _loose_eq(factDimVal, expected)
+
+    # Numeric comparisons (rare in dim filters but supported)
+    return _compareValues(factDimVal, op, expected)
+
+
+def _loose_eq(actual, expected) -> bool:
+    """Equality that handles QName ↔ string-form and date ↔ InstantValue."""
+    if actual == expected:
+        return True
+    # QName vs "prefix:local" string
+    if isinstance(actual, QName) and isinstance(expected, str):
+        if ":" in expected:
+            _, _, local = expected.rpartition(":")
+            return actual.localName == local
+        return actual.localName == expected
+    if isinstance(expected, QName) and isinstance(actual, str):
+        return _loose_eq(expected, actual)
+    # InstantValue vs date
+    if isinstance(actual, InstantValue) and hasattr(expected, "dt"):
+        return actual.dt == expected.dt
+    if hasattr(actual, "dt") and hasattr(expected, "dt"):
+        return actual.dt == expected.dt
     return False
 
 
-def _applyFactFilters(facts: List, filters: List, ctx: FormulaRuleContext) -> List:
-    """Filter a list of facts by dimension equality constraints."""
+def _factMatchesCubeFilter(fact, pf: dict, ctx: FormulaRuleContext) -> bool:
+    """`@cube`, `@cube = *`, `@cube = none`, `@cube.name = X`, `@cube.drs-role = R`."""
+    from XbrlModel.XbrlCube import XbrlCube
+    from XbrlModel.XbrlFact import XbrlFact  # noqa
     from arelle.ModelValue import qname as mkQn
-    conceptDimQn = mkQn("https://xbrl.org/2021", "concept")
 
-    result = []
-    for fact in facts:
-        match = True
-        for filt in filters:
-            if not isinstance(filt, dict):
-                continue
-            dim_node = filt.get("dim", {})
-            op       = filt.get("op", "==")
-            val_node = filt.get("value")
+    cubeDimQn = mkQn("https://xbrl.org/2025", "cube")
+    factCubeNames = fact.factDimensions.get(cubeDimQn)
+    if factCubeNames is None:
+        # Fall back: scan cubes' _cellFacts (populated by ValidateFacts) to
+        # determine cube membership.
+        cubeNames = []
+        for cube in ctx.globalCtx.txmyMdl.filterNamedObjects(XbrlCube):
+            cellFacts = getattr(cube, "_cellFacts", None)
+            if cellFacts:
+                for cellEntries in cellFacts.values():
+                    if any(f is fact for f, _ in cellEntries):
+                        cubeNames.append(getattr(cube, "name", None))
+                        break
+        factCubeQns = [n for n in cubeNames if n is not None]
+    elif isinstance(factCubeNames, (list, tuple, set)):
+        factCubeQns = list(factCubeNames)
+    else:
+        factCubeQns = [factCubeNames]
 
-            try:
-                prefix    = dim_node.get("prefix", "*") if isinstance(dim_node, dict) else "*"
-                localName = dim_node.get("localName", "") if isinstance(dim_node, dict) else str(dim_node)
-                dimQn = ctx.globalCtx.resolveQName(prefix, localName)
-            except KeyError:
-                match = False
-                break
+    op = pf["op"]
+    if op is None:
+        return bool(factCubeQns)
+    if pf["isWildcard"]:
+        return bool(factCubeQns) if op in ("=", "==") else not factCubeQns
+    if pf["isNone"]:
+        return (not factCubeQns) if op in ("=", "==") else bool(factCubeQns)
 
-            factDimVal = fact.factDimensions.get(dimQn)
-            expectedVal = evaluateExpr(val_node, ctx).value if val_node else None
+    # @cube.name = X  or  @cube.drs-role = R
+    propChain = pf["propChain"]
+    expected = pf["expected"]
+    for cubeQn in factCubeQns:
+        cube = ctx.globalCtx.txmyMdl.namedObjects.get(cubeQn) if isinstance(cubeQn, QName) else None
+        if not propChain:
+            # @cube = SomeConcept
+            if _loose_eq(cubeQn, expected):
+                return op in ("=", "==")
+        else:
+            val = None
+            if propChain[0] == "name":
+                val = getattr(cube, "name", None) if cube else cubeQn
+            elif propChain[0] in ("drs-role", "drsRole", "role"):
+                val = getattr(cube, "drsRole", None) if cube else None
+            if val is not None and _loose_eq(val, expected):
+                return op in ("=", "==")
+    return op == "!="
 
-            if not _compareValues(factDimVal, op, expectedVal):
-                match = False
-                break
-        if match:
-            result.append(fact)
-    return result
+
+def _factMatchesDimsFilter(fact, pf: dict, ctx: FormulaRuleContext) -> bool:
+    """`@dimensions = $dict`, `@dimensions = *`, `@dimensions = none`."""
+    taxDims = {
+        qn: v for qn, v in fact.factDimensions.items()
+        if not _isCoreDimQn(qn)
+    }
+    op = pf["op"]
+    if op is None:
+        return True  # take dim dictionary out of alignment, no filter
+    if pf["isWildcard"]:
+        return bool(taxDims) if op in ("=", "==") else not taxDims
+    if pf["isNone"]:
+        return (not taxDims) if op in ("=", "==") else bool(taxDims)
+    if pf["value"] is not None and pf["value"].type == FormulaValueType.DICT:
+        expectedDims = {
+            (k.value if isinstance(k, FormulaValue) else k):
+            (v.value if isinstance(v, FormulaValue) else v)
+            for k, v in pf["value"].value.items()
+        }
+        if op in ("=", "=="):
+            return taxDims == expectedDims
+        if op == "!=":
+            return taxDims != expectedDims
+    return False
 
 
 def _compareValues(actual: Any, op: str, expected: Any) -> bool:
@@ -773,6 +1184,13 @@ def _compareValues(actual: Any, op: str, expected: Any) -> bool:
         if op == ">=": return a >= e
     except (InvalidOperation, TypeError):
         pass
+    return False
+
+
+def _isNil(fact) -> bool:
+    if getattr(fact, "factValues", None):
+        fv = next(iter(fact.factValues))
+        return fv.value is None
     return False
 
 
@@ -830,6 +1248,13 @@ def _evalAtomWithProps(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
 def _evalFuncCall(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
     funcName = node.get("funcName", "")
     rawArgs  = node.get("args", [])
+    # Normalisation: pyparsing's Group(delimited_list(...)) collapses a
+    # single-element list to the element itself in some pyparsing versions.
+    # Make sure rawArgs is always a list of expression nodes.
+    if isinstance(rawArgs, dict):
+        rawArgs = [rawArgs]
+    elif rawArgs is None:
+        rawArgs = []
     args = [evaluateExpr(a, ctx) for a in rawArgs]
     return callFunction(funcName, args, ctx)
 
