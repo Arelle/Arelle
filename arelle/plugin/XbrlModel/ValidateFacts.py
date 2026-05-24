@@ -96,6 +96,13 @@ def resolveFact(txmyMdl, txmyObj, fact):
             _valid, _value = validateValue(txmyMdl, txmyObj, factValue, valueToValidate, cDataType, f"/value", "oimte:factValueDataTypeMismatch")
             factValue._xValid = _valid
             factValue._xValue = _value
+        # When the factValue's text came from a valueSource (rather than a
+        # literal `value` field), mirror the resolved/transformed text into
+        # `factValue.value` so downstream consumers (e.g. Formula's
+        # FormulaValue.fromFact) that read `.value` see the same value they
+        # would for a literally-specified fact.
+        if factValue.value is None and resolvedText is not None:
+            factValue.value = resolvedText
         if factValue.language and cObj.isOimTextFactType(txmyMdl):
             if not factValue.language.islower():
                 txmyMdl.error("xbrlje:invalidLanguageCodeCase",

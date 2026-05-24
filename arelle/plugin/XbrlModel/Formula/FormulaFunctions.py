@@ -338,6 +338,21 @@ def _fn_list(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValu
 
 
 def _fn_set(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+    # Xule semantics: when called with a single LIST argument, `set(list)`
+    # converts the list to a set (i.e. unwraps the list elements and
+    # deduplicates). For any other argument shape (single SET, single
+    # scalar, or multiple args) the arguments are taken as the set's
+    # individual elements -- so `set(set_value)` is a 1-element set
+    # containing the inner set, and `set(a, b, c)` is the 3-element set.
+    if len(args) == 1 and args[0].type == FormulaValueType.LIST:
+        items = [
+            v for v in args[0].value
+            if not (isinstance(v, FormulaValue)
+                    and (v.type == FormulaValueType.SKIP
+                         or (v.type == FormulaValueType.NONE
+                             and getattr(v, "_coveredMissing", False))))
+        ]
+        return FormulaValue(FormulaValueType.SET, OrderedSet(items))
     filtered = [a for a in args if a.type != FormulaValueType.SKIP and not (a.type == FormulaValueType.NONE and getattr(a, "_coveredMissing", False))]
     return FormulaValue(FormulaValueType.SET, OrderedSet(filtered))
 

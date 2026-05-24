@@ -18,8 +18,8 @@ For XBRL 2.1 XML schema validation purposes, saves schema files in directory if
 
 from typing import TYPE_CHECKING, cast, GenericAlias, Union, _GenericAlias, _UnionGenericAlias, get_origin, ClassVar, ForwardRef, get_args, Dict
 import os, io, json, cbor2, sys, time, traceback, inspect, types
-JSON_SCHEMA_VALIDATOR = "jsonschema" # select one of below JSON schema validator libraries (seriously different performance)
-#JSON_SCHEMA_VALIDATOR = "fastjsonschema"
+#JSON_SCHEMA_VALIDATOR = "jsonschema" # select one of below JSON schema validator libraries (seriously different performance)
+JSON_SCHEMA_VALIDATOR = "fastjsonschema"
 if JSON_SCHEMA_VALIDATOR == "jsonschema": # slow and thorough
     import jsonschema
     # finds all errors in source object
@@ -747,9 +747,16 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         for _m in sourceMappingsRaw:
             if not isinstance(_m, dict):
                 continue
+            _rawUrl = _m.get("url")
+            _absUrl = _rawUrl
+            if _rawUrl:
+                try:
+                    _absUrl = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(_rawUrl, moduleFileName)
+                except Exception:
+                    _absUrl = _rawUrl
             _ns = types.SimpleNamespace(
                 sourceName=qname(_m.get("sourceName"), prefixNamespaces) if _m.get("sourceName") else None,
-                url=_m.get("url"),
+                url=_absUrl,
                 factInterfaceName=qname(_m.get("factInterfaceName"), prefixNamespaces) if _m.get("factInterfaceName") else None,
             )
             parsedSourceMappings.append(_ns)
