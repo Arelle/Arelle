@@ -1169,12 +1169,30 @@ def _fn_alignment(args: List[FormulaValue], ctx: "FormulaRuleContext") -> Formul
     Returns the current alignment key as a dict, allowing rules to access
     individual dimension values from the current iteration's aligned facts.
     """
-    if ctx.alignment is None:
-        return FormulaValue(FormulaValueType.DICT, {})
+    if len(args) != 0:
+        raise FormulaRuntimeError(
+            f"The 'alignment' function must have only 0 argument, found {len(args)}."
+        )
+    if ctx.alignment is None or not ctx.alignment:
+        return NONE_VALUE
     result = {}
     for dimQn, value in ctx.alignment:
         result[FormulaValue(FormulaValueType.QNAME, dimQn)] = FormulaValue.fromScalar(value)
     return FormulaValue(FormulaValueType.DICT, result)
+
+
+def _fn_rule_name(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+    """rule-name() → string. Returns the current rule's name, including the
+    rule-suffix (joined by '.') when one is in effect for this iteration."""
+    if len(args) != 0:
+        raise FormulaRuntimeError(
+            f"The 'rule-name' function must have only 0 argument, found {len(args)}."
+        )
+    name = getattr(ctx, "ruleName", None) or ""
+    suffix = getattr(ctx, "ruleSuffix", None)
+    if suffix:
+        return FormulaValue(FormulaValueType.STRING, f"{name}.{suffix}")
+    return FormulaValue(FormulaValueType.STRING, name)
 
 
 # ---------------------------------------------------------------------------
@@ -1867,11 +1885,9 @@ BUILTIN_FUNCTIONS: Dict[str, Callable] = {
     # Taxonomy / model
     "taxonomy":         _fn_taxonomy,
     # Alignment
-    "alignment":        _fn_alignment,
-    # Date/time
+    "alignment":        _fn_alignment,    # Date/time
     "date":             _fn_date,
-    "duration":         _fn_duration,
-    "forever":          _fn_forever,
+    "duration":         _fn_duration,    "forever":          _fn_forever,
     "time-span":        _fn_timeSpan,
     "day":              _fn_day,
     "month":            _fn_month,
@@ -1911,6 +1927,7 @@ BUILTIN_FUNCTIONS: Dict[str, Callable] = {
     "dts-document-locations":   _fn_dtsDocumentLocations,
     "role":                     _fn_role,
     "qname":                    _fn_qnameFn,
+    "rule-name":                _fn_rule_name,
 }
 
 

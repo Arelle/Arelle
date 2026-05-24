@@ -117,6 +117,7 @@ def evaluateRule(rule, globalCtx: FormulaGlobalContext) -> None:
     if not slots:
         # No fact queries — evaluate the expression once, no alignment needed
         ruleCtx = FormulaRuleContext(globalCtx)
+        ruleCtx.ruleName = rule.name
         _runRuleIteration(rule, ruleCtx, globalCtx, boundFacts=[])
         return
 
@@ -131,6 +132,7 @@ def evaluateRule(rule, globalCtx: FormulaGlobalContext) -> None:
     # Align fact groups using VectorSearch (GPU) or exact fallback
     for factGroup in _alignedGroups(globalCtx, factSets):
         ruleCtx = FormulaRuleContext(globalCtx)
+        ruleCtx.ruleName = rule.name
         _runRuleIteration(rule, ruleCtx, globalCtx, boundFacts=list(zip(slots, factGroup)))
 
 
@@ -262,6 +264,21 @@ def _runRuleIteration(rule, ruleCtx: FormulaRuleContext,
         if slot.tag:
             ruleCtx.bindVariable(slot.tag, factVal)
 
+    # Evaluate the rule-suffix clause (if any) so rule-name() can see it.
+    suffixExpr = getattr(rule, "suffixExpr", None)
+    if suffixExpr is not None:
+        try:
+            sv = evaluateExpr(suffixExpr, ruleCtx)
+            if sv.type == FormulaValueType.STRING:
+                ruleCtx.ruleSuffix = str(sv.value)
+            elif sv.type != FormulaValueType.NONE and sv.type != FormulaValueType.SKIP:
+                ruleCtx.ruleSuffix = _formatValue(sv)
+        except (FormulaRuntimeError, FormulaIterationStop, FormulaSkip):
+            ruleCtx.ruleSuffix = None
+    emittedName = rule.name
+    if ruleCtx.ruleSuffix:
+        emittedName = f"{rule.name}.{ruleCtx.ruleSuffix}"
+
     # Evaluate the rule body expression
     try:
         result = evaluateExpr(rule.expr, ruleCtx)
@@ -277,16 +294,28 @@ def _runRuleIteration(rule, ruleCtx: FormulaRuleContext,
         from .FormulaRuleSet import OutputRule
         if isinstance(rule, OutputRule):
             globalCtx.addResult(
-                ruleName=rule.name,
+                ruleName=emittedName,
                 ruleType="output",
                 severity=rule.severity or "info",
-                message=f"Output {rule.name!r}: Evaluation error: {exc}",
+                message=f"Output {emittedName!r}: Evaluation error: {exc}",
                 alignment=ruleCtx.alignment,
                 factObj=boundFacts[0][1] if boundFacts else None,
             )
         return
 
     if result.isSkip:
+        # For Output rules emit "skip" so conformance tests that expect a
+        # skipped output can match. Assertions remain silent.
+        from .FormulaRuleSet import OutputRule
+        if isinstance(rule, OutputRule):
+            globalCtx.addResult(
+                ruleName=emittedName,
+                ruleType="output",
+                severity=rule.severity or "info",
+                message=f"Output {emittedName!r}: skip",
+                alignment=ruleCtx.alignment,
+                factObj=boundFacts[0][1] if boundFacts else None,
+            )
         return
 
     ruleCtx.ruleValue = result
@@ -300,7 +329,7 @@ def _runRuleIteration(rule, ruleCtx: FormulaRuleContext,
         passed = _isTruthy(result)
         if not passed:
             globalCtx.addResult(
-                ruleName=rule.name,
+                ruleName=emittedName,
                 ruleType="assert",
                 severity=rule.severity or "error",
                 message=message,
@@ -310,7 +339,7 @@ def _runRuleIteration(rule, ruleCtx: FormulaRuleContext,
     else:
         # Output: always emit
         globalCtx.addResult(
-            ruleName=rule.name,
+            ruleName=emittedName,
             ruleType="output",
             severity=rule.severity or "info",
             message=message,
@@ -413,6 +442,22 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
 
     exprName = node.get("exprName", "")
 
+    # ---- Atom-with-props short-circuit ----
+    # When pyparsing has flattened an ``atomWithProps`` envelope into a dict
+    # carrying both the base atom (e.g. ``qname``, ``funcCall``, ``base``)
+    # AND a non-empty ``props._chain``, we MUST dispatch to the chain
+    # evaluator BEFORE the literal/qname/funcCall short-circuits below —
+    # otherwise the accessor chain (e.g. ``Assets._type``) is silently
+    # dropped and the base value alone is returned.
+    propsField = node.get("props")
+    if propsField and isinstance(propsField, dict) and "_chain" in propsField:
+        chain = propsField.get("_chain") or []
+        if isinstance(chain, dict):
+            chain = [chain]
+        if chain:
+            nonProp = {k: v for k, v in node.items() if k not in ("props",)}
+            return _evalAtomWithProps({"base": nonProp, "props": propsField}, ctx)
+
     # ---- Literals ----
     if exprName == "integer" or "integer" in node:
         inner = node.get("integer", node)
@@ -476,6 +521,20 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
         ):
             nonProp = {k: v for k, v in node.items() if k not in ("props",)}
             return _evalAtomWithProps({"base": nonProp, "props": propsField}, ctx)
+        # No accessor chain: if the node carries a bare ``base`` (e.g. a
+        # numeric/bool literal flattened by pyparsing), evaluate it directly.
+        # Otherwise the per-base-type dispatch below would miss it and we'd
+        # fall through to NONE_VALUE — breaking e.g. ``list(...)[3]`` where
+        # the index expression is just a literal int.
+        if not chain and "base" in node and not any(
+            k in node for k in (
+                "funcCall", "factQuery", "varRef", "qname", "ifExpr",
+                "forExpr", "filterExpr", "setLiteral", "listLiteral",
+                "boolean", "none", "skip", "severity", "string",
+                "integer", "float",
+            )
+        ):
+            return evaluateExpr(node["base"], ctx)
 
     # ---- Variable reference ----
     if exprName == "varRef" or "varRef" in node:
@@ -710,7 +769,7 @@ def _formatValue(val: FormulaValue) -> str:
         n = getattr(val.value, "name", val.value)
         return str(n)
     if val.type == FormulaValueType.NONE:
-        return "none"
+        return "None"
     if val.type == FormulaValueType.SKIP:
         return "skip"
     if val.type == FormulaValueType.BOOLEAN:
@@ -1803,6 +1862,11 @@ def _evalIf(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
     # none/skip condition propagates as skip
     if cond.type in (FormulaValueType.NONE, FormulaValueType.SKIP):
         return SKIP_VALUE
+    # An empty fact query / collection as the condition is treated as
+    # "no value" → skip (matches Xule semantics where bare fact queries
+    # in a boolean context skip when no facts match).
+    if cond.type in (FormulaValueType.LIST, FormulaValueType.SET) and not cond.value:
+        return SKIP_VALUE
     # non-boolean condition is an evaluation error
     if cond.type != FormulaValueType.BOOLEAN:
         raise FormulaRuntimeError(
@@ -1950,12 +2014,16 @@ def _evalListLiteral(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
 # ---------------------------------------------------------------------------
 
 def _buildMessage(rule, result: FormulaValue, ctx: FormulaRuleContext) -> str:
+    name = rule.name
+    suffix = getattr(ctx, "ruleSuffix", None)
+    if suffix:
+        name = f"{name}.{suffix}"
     if rule.messageExpr is None:
         # Default message
         from .FormulaRuleSet import AssertRule
         if isinstance(rule, AssertRule):
-            return f"Assertion {rule.name!r} failed"
-        return f"Output {rule.name!r}: {_formatValue(result)}"
+            return f"Assertion {name!r} failed"
+        return f"Output {name!r}: {_formatValue(result)}"
     try:
         msgVal = _evalString(rule.messageExpr, ctx)
         return msgVal.value

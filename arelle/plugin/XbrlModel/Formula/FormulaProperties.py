@@ -366,7 +366,9 @@ def _labelProp(label, propName: str, args, ctx) -> FormulaValue:
         rt = getattr(label, "labelType", None)
         uri = _resolveLabelTypeUri(rt, ctx)
         if uri:
-            return _wrap(uri, FormulaValueType.STRING)
+            # Return a ROLE value so chained ._type / .uri work as expected.
+            from types import SimpleNamespace
+            return FormulaValue(FormulaValueType.ROLE, SimpleNamespace(uri=uri))
         return _wrap(str(rt) if rt is not None else None, FormulaValueType.STRING)
     if propName in ("lang", "language"):
         return _wrap(getattr(label, "language", None), FormulaValueType.STRING)
@@ -788,6 +790,43 @@ def _cubeProp(cube, propName: str, args, ctx) -> FormulaValue:
 # Public dispatch entry point
 # ---------------------------------------------------------------------------
 
+
+_TYPE_NAMES = {
+    FormulaValueType.NONE:       "none",
+    FormulaValueType.SKIP:       "skip",
+    FormulaValueType.BOOLEAN:    "boolean",
+    FormulaValueType.INTEGER:    "int",
+    FormulaValueType.FLOAT:      "float",
+    FormulaValueType.DECIMAL:    "decimal",
+    FormulaValueType.STRING:     "string",
+    FormulaValueType.QNAME:      "qname",
+    FormulaValueType.DATE:       "instant",
+    FormulaValueType.DATETIME:   "instant",
+    FormulaValueType.DURATION:   "duration",
+    FormulaValueType.FACT:       "fact",
+    FormulaValueType.CONCEPT:    "concept",
+    FormulaValueType.CUBE:       "cube",
+    FormulaValueType.NETWORK:    "network",
+    FormulaValueType.TAXONOMY:   "taxonomy",
+    FormulaValueType.ENTITY:     "entity",
+    FormulaValueType.UNIT_VALUE: "unit",
+    FormulaValueType.SET:        "set",
+    FormulaValueType.LIST:       "list",
+    FormulaValueType.DICT:       "dictionary",
+    FormulaValueType.SEVERITY:   "severity",
+    FormulaValueType.LABEL:      "label",
+    FormulaValueType.REFERENCE:  "reference",
+    FormulaValueType.DATA_TYPE:  "data-type",
+    FormulaValueType.PART:       "reference-part",
+    FormulaValueType.ROLE:       "role",
+    FormulaValueType.NAMESPACE:  "namespace",
+}
+
+
+def _typeNameOf(fv: FormulaValue) -> str:
+    return _TYPE_NAMES.get(fv.type, fv.type.name.lower())
+
+
 def getProperty(
     obj: FormulaValue,
     propName: str,
@@ -808,6 +847,10 @@ def getProperty(
             FormulaValueType.BOOLEAN,
             obj.type == FormulaValueType.FACT,
         )
+
+    # ---- _type: returns the spec-format type name for any value ----
+    if propName == "_type":
+        return FormulaValue(FormulaValueType.STRING, _typeNameOf(obj))
 
     if obj.type == FormulaValueType.FACT:
         handler = FACT_PROPS.get(propName)
@@ -1037,8 +1080,6 @@ def getProperty(
         if isinstance(value, TimeSpanValue):
             if propName == "days":
                 return FormulaValue(FormulaValueType.FLOAT, value.delta.total_seconds() / 86400.0)
-            if propName == "_type":
-                return FormulaValue(FormulaValueType.STRING, "time-period")
         raise FormulaRuntimeError(f"Unknown duration property {propName!r}")
 
     # Set/list properties
