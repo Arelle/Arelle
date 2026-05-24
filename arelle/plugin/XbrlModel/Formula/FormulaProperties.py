@@ -231,6 +231,8 @@ _CONCEPT_PROP_NAMES = {
     "name", "local-name", "namespace-uri", "data-type", "base-type",
     "period-type", "balance", "is-abstract", "is-numeric", "is-monetary",
     "nillable", "substitution", "labels", "all-references",
+    "clark", "label", "all-labels", "references", "has-enumerations",
+    "enumerations", "document-location",
 }
 
 # Xule allows property names in camelCase as aliases to the kebab-case
@@ -254,6 +256,139 @@ _PROP_NAME_ALIASES = {
 # ---------------------------------------------------------------------------
 # Concept properties
 # ---------------------------------------------------------------------------
+
+def _objectDocumentLocation(obj) -> Optional[str]:
+    mod = getattr(obj, "module", None)
+    if mod is None:
+        return None
+    for attr in ("documentUri", "documentURI", "uri", "url", "href", "location"):
+        v = getattr(mod, attr, None)
+        if v:
+            return str(v)
+    return None
+
+
+def _conceptLabel(concept, propName: str, args, ctx) -> FormulaValue:
+    """Return a label (or set of all labels) for the concept.
+
+    `.label` → preferred std label (string).
+    `.label(roleUri)` → label with the given role.
+    `.labels` / `.all-labels` → set of label strings.
+    """
+    from arelle import XbrlConst
+    from arelle.ModelValue import qname as mkQn
+    compMdl = getattr(concept, "xbrlCompMdl", None)
+    qn = getattr(concept, "name", None)
+    if compMdl is None or qn is None:
+        return NONE_VALUE
+    if propName in ("labels", "all-labels"):
+        tagObjs = compMdl.tagObjects.get(qn, ()) if hasattr(compMdl, "tagObjects") else ()
+        out = []
+        for t in tagObjs:
+            if hasattr(t, "labelType") and hasattr(t, "value"):
+                out.append(t.value)
+        return _wrapSet(out)
+    # .label or .label(roleUri)
+    role = None
+    if args:
+        rv = args[0].value
+        if isinstance(rv, str):
+            role = mkQn(rv) if False else None  # role is a URI; pass through
+            roleArg = rv
+        else:
+            roleArg = str(rv) if rv is not None else None
+    else:
+        roleArg = None
+    # labelValue takes labelType as a QName; std label role is XbrlConst.qnStdLabel
+    try:
+        from arelle.XbrlConst import qnStdLabel
+    except Exception:
+        qnStdLabel = None
+    labelType = qnStdLabel
+    if roleArg:
+        # role is a URI string; look up matching tag object directly
+        for t in compMdl.tagObjects.get(qn, ()) if hasattr(compMdl, "tagObjects") else ():
+            lt = getattr(t, "labelType", None)
+            if isinstance(lt, QName) and (str(lt) == roleArg or
+                                          getattr(lt, "namespaceURI", "") == roleArg):
+                if hasattr(t, "value"):
+                    return _wrap(t.value, FormulaValueType.STRING)
+        return NONE_VALUE
+    try:
+        v = compMdl.labelValue(qn, labelType)
+        return _wrap(v, FormulaValueType.STRING) if v is not None else NONE_VALUE
+    except Exception:
+        return NONE_VALUE
+
+
+def _conceptReferences(concept, args, ctx) -> FormulaValue:
+    compMdl = getattr(concept, "xbrlCompMdl", None)
+    qn = getattr(concept, "name", None)
+    if compMdl is None or qn is None:
+        return _wrapSet(())
+    refs = []
+    if hasattr(compMdl, "tagObjects"):
+        for t in compMdl.tagObjects.get(qn, ()):
+            if hasattr(t, "referenceType"):
+                refs.append(t)
+    # No dedicated REFERENCE value type yet — fall back to a set of string
+    # representations so simple aggregate ops (count, exists) still work.
+    return _wrapSet(str(getattr(r, "referenceType", r)) for r in refs)
+
+
+def _conceptEnumerations(concept, ctx):
+    from XbrlModel.XbrlConcept import XbrlDataType
+    dt = ctx.txmyMdl.namedObjects.get(getattr(concept, "dataType", None))
+    if isinstance(dt, XbrlDataType):
+        return list(getattr(dt, "enumeration", None) or ())
+    return None
+
+
+def _conceptIsMonetary(concept, ctx) -> bool:
+    from XbrlModel.XbrlConcept import XbrlDataType
+    dt = ctx.txmyMdl.namedObjects.get(getattr(concept, "dataType", None))
+    seen = set()
+    while isinstance(dt, XbrlDataType):
+        nm = getattr(dt, "name", None)
+        if nm in seen:
+            break
+        seen.add(nm)
+        if isinstance(nm, QName) and "monetary" in nm.localName.lower():
+            return True
+        bt = getattr(dt, "baseType", None)
+        if isinstance(bt, QName) and "monetary" in bt.localName.lower():
+            return True
+        if bt is None:
+            break
+        dt = ctx.txmyMdl.namedObjects.get(bt)
+    return False
+
+
+def _conceptIsType(concept, target, ctx) -> bool:
+    from XbrlModel.XbrlConcept import XbrlDataType
+    if not isinstance(target, QName):
+        raise FormulaRuntimeError(
+            f"is-type() argument must be a QName, got {type(target).__name__}")
+    dtQn = getattr(concept, "dataType", None)
+    if dtQn == target:
+        return True
+    dt = ctx.txmyMdl.namedObjects.get(dtQn)
+    seen = set()
+    while isinstance(dt, XbrlDataType):
+        nm = getattr(dt, "name", None)
+        if nm == target:
+            return True
+        if nm in seen:
+            break
+        seen.add(nm)
+        bt = getattr(dt, "baseType", None)
+        if bt == target:
+            return True
+        if bt is None:
+            break
+        dt = ctx.txmyMdl.namedObjects.get(bt)
+    return False
+
 
 def _conceptProp(concept, propName: str, args, ctx) -> FormulaValue:
     attr_map = {
@@ -280,12 +415,62 @@ def _conceptProp(concept, propName: str, args, ctx) -> FormulaValue:
         if isinstance(qn, QName):
             return _wrap(qn.namespaceURI, FormulaValueType.STRING)
         return NONE_VALUE
-    if propName == "labels":
-        labels = getattr(concept, "labels", None) or []
-        return _wrapSet(labels)
+    if propName == "clark":
+        qn = getattr(concept, "name", None)
+        if isinstance(qn, QName):
+            return _wrap("{" + (qn.namespaceURI or "") + "}" + qn.localName,
+                         FormulaValueType.STRING)
+        return NONE_VALUE
+    if propName in ("label", "all-labels", "labels"):
+        return _conceptLabel(concept, propName, args, ctx)
+    if propName in ("references", "all-references"):
+        return _conceptReferences(concept, args, ctx)
+    if propName == "has-enumerations":
+        return _wrap(_conceptEnumerations(concept, ctx) is not None and
+                     len(_conceptEnumerations(concept, ctx)) > 0,
+                     FormulaValueType.BOOLEAN)
+    if propName == "enumerations":
+        enums = _conceptEnumerations(concept, ctx)
+        return _wrapSet(enums or ())
+    if propName == "document-location":
+        loc = _objectDocumentLocation(concept)
+        return _wrap(loc, FormulaValueType.STRING) if loc else NONE_VALUE
+    if propName == "is-type":
+        if not args:
+            raise FormulaRuntimeError("is-type() requires a QName argument")
+        target = args[0].value
+        return _wrap(_conceptIsType(concept, target, ctx), FormulaValueType.BOOLEAN)
+    if propName == "is-monetary":
+        return _wrap(_conceptIsMonetary(concept, ctx), FormulaValueType.BOOLEAN)
+    if propName == "is-numeric":
+        try:
+            return _wrap(bool(concept.isNumeric(ctx.txmyMdl)), FormulaValueType.BOOLEAN)
+        except Exception:
+            return _wrap(False, FormulaValueType.BOOLEAN)
+    if propName == "is-abstract":
+        # OIM XbrlConcept has no Python `abstract` attribute; default False,
+        # but honour a properties entry with localName=='abstract' if present.
+        for prop in getattr(concept, "properties", None) or ():
+            pq = getattr(prop, "property", None)
+            if isinstance(pq, QName) and pq.localName == "abstract":
+                v = getattr(prop, "value", None)
+                return _wrap(str(v).lower() in ("true", "1"), FormulaValueType.BOOLEAN)
+        return _wrap(False, FormulaValueType.BOOLEAN)
+    if propName == "substitution":
+        for prop in getattr(concept, "properties", None) or ():
+            pq = getattr(prop, "property", None)
+            if isinstance(pq, QName) and pq.localName == "substitutionGroup":
+                v = getattr(prop, "value", None)
+                if isinstance(v, QName):
+                    return _wrap(v, FormulaValueType.QNAME)
+                # may be a string like 'xbrli:item'
+                return _wrap(v)
+        # Default substitution group for an item-type concept is xbrli:item
+        from arelle.ModelValue import qname as mkQn
+        return _wrap(mkQn("http://www.xbrl.org/2003/instance", "xbrli:item"),
+                     FormulaValueType.QNAME)
     if propName == "all-references":
-        refs = getattr(concept, "references", None) or []
-        return _wrapSet(refs)
+        return _conceptReferences(concept, args, ctx)
     if propName == "balance":
         # Stored as a property with QName 'xbrla:balance' on the concept.
         for prop in getattr(concept, "properties", None) or ():
@@ -355,6 +540,15 @@ def _taxonomyProp(txmy, propName: str, args, ctx) -> FormulaValue:
             obj = txmy.namedObjects.get(qn)
             if obj is not None:
                 return FormulaValue(FormulaValueType.CONCEPT, obj)
+            # Fallback: match by local name across the loaded taxonomy
+            # (rule sets often pin a default namespace to a specific
+            # us-gaap year, but the model loaded at runtime may use a
+            # different year's namespace).
+            ln = qn.localName
+            for c in txmy.filterNamedObjects(XbrlConcept):
+                cn = getattr(c, "name", None)
+                if isinstance(cn, QName) and cn.localName == ln:
+                    return FormulaValue(FormulaValueType.CONCEPT, c)
         return NONE_VALUE
     # cube(qname, role) function
     if propName == "cube":
