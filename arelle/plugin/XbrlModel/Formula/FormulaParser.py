@@ -34,7 +34,7 @@ from typing import Any
 
 from pyparsing import (
     CaselessKeyword, Combine, Empty, Forward, Group, Literal,
-    OneOrMore, Opt, OpAssoc, ParserElement, Regex, Suppress, Word,
+    OneOrMore, Opt, OpAssoc, ParserElement, ParseResults, Regex, Suppress, Word,
     ZeroOrMore, alphanums, alphas, c_style_comment, delimited_list,
     line_end, one_of, printables, pyparsing_common, infix_notation,
     QuotedString, CharsNotIn, SkipTo
@@ -382,9 +382,50 @@ def _buildGrammar():
     )
 
     # ---- Property chain on any atom ----
+    # The inner Group below is wrapped with a parse action that converts the
+    # accumulated propAccess/indexAccess matches into an explicit list. This
+    # is necessary because pyparsing's ``as_dict()`` would otherwise collapse
+    # multiple ``.propAccess`` children to only the last one, silently losing
+    # earlier links in chains like ``foo.bar.baz``.
+    def _propsToList(toks):
+        # toks is a ParseResults whose [0] is the inner Group of accessors.
+        inner = toks[0] if len(toks) > 0 else None
+        if inner is None:
+            return [{"_chain": []}]
+
+        def _accessorToDict(node):
+            if not isinstance(node, ParseResults):
+                return node
+            d = node.as_dict() or {}
+            # propArgs is a Group(delimited_list(blockExpr)); pyparsing's
+            # as_dict() collapses a single-element delimited_list to the
+            # element's dict instead of a list. Recover the positional list
+            # so the interpreter can iterate args uniformly.
+            if "propArgs" in node:
+                argsGroup = node.get("propArgs")
+                if isinstance(argsGroup, ParseResults):
+                    d["propArgs"] = [
+                        a.as_dict() if isinstance(a, ParseResults) else a
+                        for a in argsGroup
+                    ]
+            if "indexExpr" in node:
+                ix = node.get("indexExpr")
+                if isinstance(ix, ParseResults):
+                    d["indexExpr"] = ix.as_dict() or list(ix)
+            return d
+
+        items = [_accessorToDict(child) for child in inner]
+        # Wrap in a marker dict so as_dict on the parent atomWithProps Group
+        # reports the props field as ``{'_chain': [...]}`` rather than
+        # collapsing the multiple propAccess names down to one. The
+        # interpreter unwraps the marker.
+        return [{"_chain": items}]
+
+    _propsGroup = Group(ZeroOrMore(propAccess | indexAccess)).setParseAction(_propsToList)
+
     atomWithProps = Group(
         atom.setResultsName("base")
-        + Group(ZeroOrMore(propAccess | indexAccess)).setResultsName("props")
+        + _propsGroup.setResultsName("props")
     ).setResultsName("atomWithProps")
 
     # ---- Infix expression grammar (precedence via infix_notation) ----

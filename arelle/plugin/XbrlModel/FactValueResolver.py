@@ -91,6 +91,42 @@ def applyTransformation(transformQn: Optional[QName], text: str) -> str:
         return text
 
 
+def _applyScaleAndSign(text: Optional[str],
+                       scale: Optional[int],
+                       sign: Optional[str]) -> Optional[str]:
+    """Apply ``factValue.scale`` (power of 10) and ``factValue.sign`` to a
+    post-transformation numeric string. Returns ``text`` unchanged when both
+    are absent or when ``text`` is not numeric.
+
+    Per spec these adjustments are properties of ``valueSources`` resolution
+    only (html / pdf / tabular) -- they are NOT applied to literal
+    ``factValue.value`` strings.
+    """
+    if text is None:
+        return text
+    hasScale = scale not in (None, 0)
+    flipSign = (sign == "-")
+    if not hasScale and not flipSign:
+        return text
+    from decimal import Decimal, InvalidOperation
+    try:
+        d = Decimal(str(text))
+    except (InvalidOperation, ValueError, TypeError):
+        return text
+    if hasScale:
+        try:
+            d = d * (Decimal(10) ** int(scale))
+        except (InvalidOperation, ValueError, TypeError):
+            return text
+    if flipSign:
+        d = -d
+    # Normalize away exponent for integral magnitudes (e.g. 359241 * 10^6 ->
+    # "359241000000" rather than "3.59241E+11").
+    if d == d.to_integral_value():
+        d = d.quantize(Decimal(1))
+    return format(d, "f")
+
+
 # --------------------------------------------------------------------
 # Media-type resolver registry
 # --------------------------------------------------------------------
@@ -382,8 +418,16 @@ def validateAndResolveValueSources(
                 text = None
             if text is not None:
                 # Apply factValue.transformation (reuses the ixt registry from
-                # arelle.FunctionIxt -- same functions used by legacy iXBRL).
+                # arelle.FunctionIxt -- same functions used by legacy iXBRL),
+                # then apply scale (power of 10) and sign. Per spec these
+                # adjustments apply only to values sourced from html/pdf/etc.
+                # via valueSources -- not to literal factValue.value.
                 resolvedText = applyTransformation(transformQn, text)
+                resolvedText = _applyScaleAndSign(
+                    resolvedText,
+                    getattr(factValue, "scale", None),
+                    getattr(factValue, "sign", None),
+                )
                 deferred = False
 
     return deferred, resolvedText
@@ -470,7 +514,10 @@ def _resolveHtmlValueSource(source, locatorType, factValue, fact, compMdl) -> Op
     except ImportError:
         return None
     try:
-        f, _enc = compMdl.fileSource.file(url, binary=False)
+        # lxml.html.fromstring rejects unicode strings that carry an XML
+        # encoding declaration, so always read the source as bytes.
+        result = compMdl.fileSource.file(url, binary=True)
+        f = result[0]
         try:
             content = f.read()
         finally:

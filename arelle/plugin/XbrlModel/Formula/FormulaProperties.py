@@ -225,6 +225,32 @@ FACT_PROPS: Dict[str, Callable] = {
 }
 
 
+# Property names recognised on a single CONCEPT, used to decide whether to
+# project an accessor across a set/list of concepts.
+_CONCEPT_PROP_NAMES = {
+    "name", "local-name", "namespace-uri", "data-type", "base-type",
+    "period-type", "balance", "is-abstract", "is-numeric", "is-monetary",
+    "nillable", "substitution", "labels", "all-references",
+}
+
+# Xule allows property names in camelCase as aliases to the kebab-case
+# canonical form. This is applied at dispatch time.
+_PROP_NAME_ALIASES = {
+    "periodType": "period-type",
+    "dataType": "data-type",
+    "baseType": "base-type",
+    "localName": "local-name",
+    "namespaceUri": "namespace-uri",
+    "isAbstract": "is-abstract",
+    "isNumeric": "is-numeric",
+    "isMonetary": "is-monetary",
+    "isNil": "is-nil",
+    "isFact": "is-fact",
+    "allReferences": "all-references",
+    "cubeConcept": "cube-concept",
+}
+
+
 # ---------------------------------------------------------------------------
 # Concept properties
 # ---------------------------------------------------------------------------
@@ -260,6 +286,13 @@ def _conceptProp(concept, propName: str, args, ctx) -> FormulaValue:
     if propName == "all-references":
         refs = getattr(concept, "references", None) or []
         return _wrapSet(refs)
+    if propName == "balance":
+        # Stored as a property with QName 'xbrla:balance' on the concept.
+        for prop in getattr(concept, "properties", None) or ():
+            pq = getattr(prop, "property", None)
+            if isinstance(pq, QName) and pq.localName == "balance":
+                return _wrap(getattr(prop, "value", None), FormulaValueType.STRING)
+        return NONE_VALUE
 
     if propName in attr_map:
         spec = attr_map[propName]
@@ -385,6 +418,9 @@ def getProperty(
 
     Equivalent to `obj.propName` or `obj.propName(args)` in Xule.
     """
+    # Xule allows property names in camelCase as aliases to the
+    # kebab-case canonical form (e.g. periodType -> period-type).
+    propName = _PROP_NAME_ALIASES.get(propName, propName)
     # ---- is-fact: defined on every value type ----
     if propName == "is-fact":
         return FormulaValue(
@@ -396,6 +432,12 @@ def getProperty(
         handler = FACT_PROPS.get(propName)
         if handler:
             return handler(obj.value, args, ctx)
+        # Fall back: treat the fact as its underlying scalar value so that
+        # property access yields the proper "Property X is not a property of Y"
+        # error (rather than a generic "Unknown fact property X").
+        underlying = _factPropValue(obj.value, [], ctx)
+        if underlying.type != FormulaValueType.NONE and underlying.type != FormulaValueType.FACT:
+            return getProperty(underlying, propName, args, ctx)
         raise FormulaRuntimeError(f"Unknown fact property {propName!r}")
 
     if obj.type == FormulaValueType.ENTITY:
@@ -615,6 +657,16 @@ def getProperty(
             if obj.type == FormulaValueType.SET:
                 return FormulaValue(FormulaValueType.SET, OrderedSet(projected))
             return FormulaValue(FormulaValueType.LIST, projected)
+        # Per-element projection for CONCEPT items (e.g. .balance, .name,
+        # .period-type after applying ``.concept`` to a fact collection).
+        if (items_list
+            and all(isinstance(it, FormulaValue) and it.type == FormulaValueType.CONCEPT
+                    for it in items_list)
+            and propName in _CONCEPT_PROP_NAMES):
+            projected = [getProperty(it, propName, args, ctx) for it in items_list]
+            if obj.type == FormulaValueType.SET:
+                return FormulaValue(FormulaValueType.SET, OrderedSet(projected))
+            return FormulaValue(FormulaValueType.LIST, projected)
         if propName == "index":
             if len(args) != 1:
                 raise FormulaRuntimeError(f"Property 'index' must have 1 arguments. Found {len(args)}.")
@@ -701,6 +753,14 @@ def getProperty(
             if propName in ("abs", "avg") and len(args) != 0:
                 raise FormulaRuntimeError(f"Property '{propName}' must have 0 arguments. Found {len(args)}.")
             return callFunction(propName, [obj] + list(args), ctx)
+        # Fallback: project the property over each item. Per-item getProperty
+        # will raise the proper "Property X is not a property of Y" error
+        # when the projected property is invalid for that item's type.
+        if items_list and all(isinstance(it, FormulaValue) for it in items_list):
+            projected = [getProperty(it, propName, args, ctx) for it in items_list]
+            if obj.type == FormulaValueType.SET:
+                return FormulaValue(FormulaValueType.SET, OrderedSet(projected))
+            return FormulaValue(FormulaValueType.LIST, projected)
         raise FormulaRuntimeError(f"Unknown collection property {propName!r}")
 
     if obj.type == FormulaValueType.DICT:

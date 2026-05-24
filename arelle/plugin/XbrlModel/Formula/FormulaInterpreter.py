@@ -434,6 +434,25 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
     if exprName == "qname" or "qname" in node:
         return _evalQName(node.get("qname", node), ctx)
 
+    # An ``atomWithProps`` whose base happens to be a funcCall / factQuery /
+    # varRef / qname can be flattened by pyparsing into a dict that carries
+    # both ``base`` (or the inner node like ``funcCall``) AND ``props`` at
+    # the top level, with no ``atomWithProps`` envelope. Detect that shape
+    # before the per-base-type dispatch below so the accessor chain (e.g.
+    # ``set(...).concept.balance`` or ``$a.concept.name``) is actually
+    # applied to the base value instead of being silently dropped.
+    propsField = node.get("props")
+    if propsField and isinstance(propsField, dict) and "_chain" in propsField:
+        chain = propsField.get("_chain") or []
+        if isinstance(chain, dict):
+            chain = [chain]
+        if chain and (
+            "base" in node or "funcCall" in node or "factQuery" in node
+            or "varRef" in node or "qname" in node
+        ):
+            nonProp = {k: v for k, v in node.items() if k not in ("props",)}
+            return _evalAtomWithProps({"base": nonProp, "props": propsField}, ctx)
+
     # ---- Variable reference ----
     if exprName == "varRef" or "varRef" in node:
         inner = node.get("varRef", node)
@@ -501,6 +520,12 @@ def _evalString(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
       - 'interp': embedded expression inside { }
     """
     parts_node = node.get("stringParts") or node.get("parts") or []
+    if isinstance(parts_node, dict):
+        # A single-part string is collapsed by as_dict() to a bare dict
+        # (e.g. ``{'text': 'asc'}``); promote it back to a one-element list
+        # so the loop below treats it as a string fragment instead of
+        # iterating its dict keys.
+        parts_node = [parts_node]
     segments: List[str] = []
     for part in parts_node:
         if not isinstance(part, dict):
@@ -750,6 +775,13 @@ def _evalFactQuery(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
         conceptQn = conceptFilter["expected"]
         if isinstance(conceptQn, QName):
             seedFacts = ctx.globalCtx.factsForConcept(conceptQn)
+            # Fallback: `@LocalName` shortcut resolved via default namespace
+            # may not match facts authored in a different taxonomy version
+            # namespace -- retry by local name.
+            if not seedFacts and conceptFilter.get("isDefaultNsShortcut"):
+                seedFacts = _findFactsByLocalName(
+                    ctx.globalCtx, conceptFilter.get("localName") or conceptQn.localName
+                )
         else:
             seedFacts = []
     else:
@@ -946,6 +978,15 @@ def _parseDimFilter(filt: dict, ctx: FormulaRuleContext) -> dict:
                     out["value"]    = FormulaValue(FormulaValueType.QNAME, qn)
                     out["expected"] = qn
                     out["isQName"]  = True
+                    # When the bare-prefix shortcut (`@Assets`) resolved via
+                    # the rule set's default namespace (or with no namespace
+                    # at all), allow a local-name fallback if no facts use
+                    # that exact namespace -- conformance fixtures rely on
+                    # `@Assets` matching `us-gaap:Assets` etc. across
+                    # taxonomy version namespaces.
+                    if prefix in ("*", None):
+                        out["isDefaultNsShortcut"] = True
+                        out["localName"] = localName
                 else:
                     out["kind"] = "taxDim"
     else:
@@ -1066,7 +1107,17 @@ def _factMatchesFilter(fact, pf: dict, ctx: FormulaRuleContext) -> bool:
         return match if op == "in" else not match
 
     if op in ("=", "=="):
-        return _loose_eq(factDimVal, expected)
+        if _loose_eq(factDimVal, expected):
+            return True
+        # `@LocalName` shortcut resolved via default namespace: accept any
+        # fact whose concept QName has the same local name regardless of
+        # namespace, to span taxonomy version namespaces.
+        if (pf.get("isDefaultNsShortcut")
+                and isinstance(factDimVal, QName)
+                and isinstance(expected, QName)
+                and factDimVal.localName == expected.localName):
+            return True
+        return False
     if op == "!=":
         return not _loose_eq(factDimVal, expected)
 
@@ -1218,7 +1269,18 @@ def _evalAtomWithProps(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
     if isinstance(props, ParseResults):
         props = list(props)
     elif isinstance(props, dict):
-        props = [props]
+        # The parser wraps the accessor chain in {"_chain": [...]} so that
+        # pyparsing's as_dict() doesn't collapse multiple propAccess entries
+        # to only the last one. The buildRuleSet ``_normalizeNode`` may then
+        # peel a single-element list, so the unwrapped value can be either
+        # a list of accessor dicts or a single accessor dict.
+        if "_chain" in props:
+            chain = props.get("_chain") or []
+            if isinstance(chain, dict):
+                chain = [chain]
+            props = list(chain)
+        else:
+            props = [props]
 
     for propNode in props:
         if isinstance(propNode, ParseResults):
@@ -1239,6 +1301,14 @@ def _evalAtomWithProps(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
             continue
         propName = inner.get("propName", "")
         rawArgs  = inner.get("propArgs", [])
+        # propArgs is a Group(delimited_list(blockExpr)); when there is a
+        # single argument, as_dict/_normalizeNode peel it to a bare dict
+        # (the lone blockExpr). Promote that to a one-element list so we
+        # don't accidentally iterate the dict's keys as separate arguments.
+        if isinstance(rawArgs, dict):
+            rawArgs = [rawArgs]
+        elif isinstance(rawArgs, ParseResults):
+            rawArgs = list(rawArgs)
         args = [evaluateExpr(a, ctx) for a in rawArgs] if rawArgs else []
         base = getProperty(base, propName, args, ctx)
     return base
