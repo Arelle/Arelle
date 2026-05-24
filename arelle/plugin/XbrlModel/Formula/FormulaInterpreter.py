@@ -767,7 +767,8 @@ def _evalFactQuery(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
 
     conceptFilter = next(
         (pf for pf in parsedFilters
-         if pf.get("kind") == "concept" and pf.get("op") in ("=", "==") and pf.get("isQName")),
+         if pf.get("kind") == "concept" and pf.get("op") in ("=", "==")
+         and pf.get("isQName") and not pf.get("propChain")),
         None,
     )
 
@@ -785,10 +786,13 @@ def _evalFactQuery(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
         else:
             seedFacts = []
     else:
-        # Full scan of all non-footnote facts.
+        # Full scan of all non-footnote facts. Only valid facts participate
+        # in factsets (mirrors ``factsForConcept``).
+        from arelle.XmlValidateConst import VALID
         seedFacts = [
             f for f in ctx.globalCtx.txmyMdl.filterNamedObjects(XbrlFact)
             if getattr(f, "factDimensions", None)
+            and getattr(f, "_xValid", VALID) >= VALID
         ]
 
     # ---- Apply filters ----
