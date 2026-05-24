@@ -86,6 +86,8 @@ def _buildGrammar():
     versionKw       = CaselessKeyword("version")
     messageKw       = CaselessKeyword("message")
     severityKw      = CaselessKeyword("severity")
+    ruleSuffixKw    = CaselessKeyword("rule-suffix")
+    ruleFocusKw     = CaselessKeyword("rule-focus")
     filterKw        = CaselessKeyword("filter")
     returnKw        = CaselessKeyword("returns")
     forKw           = CaselessKeyword("for")
@@ -469,7 +471,7 @@ def _buildGrammar():
         + expr.setResultsName("valueExpr")
     ).addParseAction(_mkAssign)
 
-    blockStmt = (~(declKeywords | elseKw) + (assignExpr | expr))
+    blockStmt = (~(declKeywords | elseKw | ruleSuffixKw | ruleFocusKw) + (assignExpr | expr))
     blockExpr <<= Group(
         Group(
             OneOrMore(blockStmt + Opt(Suppress(Literal(";"))))
@@ -488,6 +490,21 @@ def _buildGrammar():
         + severityLiteral.setResultsName("severity")
     ).setResultsName("severity")
 
+    # ---- Rule-suffix clause ----
+    # Form:  rule-suffix <stringExpr>
+    # The evaluated string is appended (with '.') to the emitted rule name
+    # and reported by the rule-name() builtin.
+    ruleSuffixClause = Group(
+        Suppress(ruleSuffixKw)
+        + blockExpr.setResultsName("suffixExpr")
+    ).setResultsName("ruleSuffix")
+
+    # ---- Rule-focus clause (accepted, currently a no-op) ----
+    ruleFocusClause = Group(
+        Suppress(ruleFocusKw)
+        + blockExpr.setResultsName("focusExpr")
+    ).setResultsName("ruleFocus")
+
     # ---- Where clause ----
     whereClause = Group(
         Suppress(whereKw)
@@ -505,6 +522,8 @@ def _buildGrammar():
         + Opt(whereClause)
         + Opt(messageClause)
         + Opt(severityClause)
+        + Opt(ruleSuffixClause)
+        + Opt(ruleFocusClause)
     ).setResultsName("outputRule").addParseAction(_tagStatement("outputRule"))
 
     # ---- Assert rule ----
@@ -515,6 +534,8 @@ def _buildGrammar():
         + Opt(whereClause)
         + Opt(messageClause)
         + Opt(severityClause)
+        + Opt(ruleSuffixClause)
+        + Opt(ruleFocusClause)
     ).setResultsName("assertRule").addParseAction(_tagStatement("assertRule"))
 
     # ---- Constant declaration ----
@@ -766,6 +787,7 @@ def _buildRuleSet(parseRes: dict, filePath: str) -> FormulaRuleSet:
                 expr=_normalizeNode(node["expr"]),
                 messageExpr=_normalizeNode(node.get("message", {}).get("msgExpr")),
                 severity=node.get("severity", {}).get("severity", {}).get("value", "info"),
+                suffixExpr=_normalizeNode(node.get("ruleSuffix", {}).get("suffixExpr")),
             )
             ruleSet.outputRules[rule.name] = rule
 
@@ -775,6 +797,7 @@ def _buildRuleSet(parseRes: dict, filePath: str) -> FormulaRuleSet:
                 expr=_normalizeNode(node["expr"]),
                 messageExpr=_normalizeNode(node.get("message", {}).get("msgExpr")),
                 severity=node.get("severity", {}).get("severity", {}).get("value", "error"),
+                suffixExpr=_normalizeNode(node.get("ruleSuffix", {}).get("suffixExpr")),
             )
             ruleSet.assertRules[rule.name] = rule
 

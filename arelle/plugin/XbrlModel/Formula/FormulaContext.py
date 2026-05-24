@@ -196,6 +196,8 @@ class FormulaRuleContext:
         self.variables:  Dict[str, FormulaValue] = {}
         self.alignment:  Optional[AlignmentKey] = None
         self.ruleValue:  Optional[FormulaValue] = None
+        self.ruleName:   Optional[str] = None
+        self.ruleSuffix: Optional[str] = None
 
     # Delegation helpers
     @property
@@ -233,4 +235,6 @@ class FormulaRuleContext:
         child = FormulaRuleContext(self.globalCtx)
         child.variables = dict(self.variables)
         child.alignment = self.alignment
+        child.ruleName = self.ruleName
+        child.ruleSuffix = self.ruleSuffix
         return child
