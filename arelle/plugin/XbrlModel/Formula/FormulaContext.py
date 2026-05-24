@@ -24,7 +24,7 @@ from .FormulaValue import FormulaValue, AlignmentKey, NONE_VALUE
 from .FormulaRuleSet import FormulaRuleSet
 
 if TYPE_CHECKING:
-    from arelle.plugin.XbrlModel.XbrlModel import XbrlCompiledModel
+    from XbrlModel.XbrlModel import XbrlCompiledModel
 
 
 # ---------------------------------------------------------------------------
@@ -67,10 +67,26 @@ class FormulaGlobalContext:
         self.cntlr      = cntlr
         self.options    = options
 
-        # Namespace prefix map: start from rule set, override with model if available
-        self.namespaces: Dict[str, str] = dict(ruleSet.namespaces)
+        # Namespace prefix map: start from the model (so taxonomy-declared
+        # prefixes are visible), then overlay the rule-set declarations so
+        # rule-author intent wins. In particular the rule set's default
+        # namespace (key "") must not be clobbered by the model.
+        self.namespaces: Dict[str, str] = {}
         if hasattr(txmyMdl, "namespaces"):
             self.namespaces.update(txmyMdl.namespaces)
+        self.namespaces.update(ruleSet.namespaces)
+        # CLI / parameter override for the default namespace (key ""), used by
+        # --formula-default-namespace to re-aim unqualified concept refs at the
+        # filing's taxonomy version when the rule set's bare `namespace "URI"`
+        # was written for a different version.
+        if options:
+            defaultNsOverride = (
+                options.get("formulaDefaultNamespace")
+                if isinstance(options, dict)
+                else getattr(options, "formulaDefaultNamespace", None)
+            )
+            if defaultNsOverride:
+                self.namespaces[""] = defaultNsOverride
 
         self.constants: Dict[str, FormulaValue] = {}
         self.factCache: Dict[QName, List] = {}    # QName → list[XbrlFact]
@@ -95,11 +111,10 @@ class FormulaGlobalContext:
         Results are cached per QName.
         """
         if conceptQn not in self.factCache:
-            from arelle.plugin.XbrlModel.XbrlFact import XbrlFact
-            from arelle.XmlValidate import VALID
-            from arelle.ModelValue import qname as mkQn
+            from XbrlModel.XbrlFact import XbrlFact
+            from XbrlModel.XbrlCube import conceptCoreDim as conceptDimQn
+            from arelle.XmlValidateConst import VALID
 
-            conceptDimQn = mkQn("https://xbrl.org/2021", "concept")
             matching = [
                 obj for obj in self.txmyMdl.filterNamedObjects(XbrlFact)
                 if (getattr(obj, "_xValid", VALID) >= VALID
@@ -111,12 +126,18 @@ class FormulaGlobalContext:
     def resolveQName(self, prefix: str, localName: str) -> QName:
         """
         Build a QName from prefix + localName using the current namespace map.
-        A prefix of '*' is treated as 'match any namespace' (returns a bare
-        local-name QName with empty namespace — callers must handle wildcard).
+
+        Resolution order when no prefix is supplied (`""` or `"*"`):
+          1. The rule set's default namespace (`namespaces[""]`), if declared
+             via a bare `namespace "URI"` form.
+          2. Otherwise return a bare-namespace QName so callers can fall back
+             to a local-name-only search across the loaded model.
         """
         from arelle.ModelValue import qname as mkQn
-        if prefix == "*" or prefix == "":
-            # Wildcard: attempt to find any concept with this localName
+        if prefix in ("", "*", None):
+            defaultUri = self.namespaces.get("")
+            if defaultUri:
+                return mkQn(defaultUri, localName)
             return mkQn("", localName)
         uri = self.namespaces.get(prefix)
         if uri is None:

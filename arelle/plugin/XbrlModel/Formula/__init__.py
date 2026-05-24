@@ -28,11 +28,20 @@ from __future__ import annotations
 import os
 from typing import Any, List, Optional
 
-parameterNames = ("formulaRulesets", "formulaAlignThreshold", "formulaEmbedDim", "formulaOutputFile")
+parameterNames = ("formulaRulesets", "formulaAlignThreshold", "formulaEmbedDim", "formulaOutputFile", "formulaDefaultNamespace")
 
 # ---------------------------------------------------------------------------
 # Arelle plugin hook: command-line options
 # ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Arelle plugin hook: command-line options
+# ---------------------------------------------------------------------------
+
+def cmdLineUtilityRun(cntlr, options, *args, **kwargs):
+    """Stash CLI options on the cntlr so post-load hooks can read them."""
+    setattr(cntlr, "_xbrlmodelFormulaOptions", options)
+
 
 def cmdLineOptionExtender(parser, *args, **kwargs):
     """Add formula-specific CLI options."""
@@ -69,6 +78,17 @@ def cmdLineOptionExtender(parser, *args, **kwargs):
         default=None,
         help="Write formula results to this JSON file in addition to Arelle logging.",
     )
+    parser.add_option(
+        "--formula-default-namespace",
+        action="store",
+        dest="formulaDefaultNamespace",
+        default=None,
+        help="Override the rule set's default namespace URI. Unqualified concept "
+             "references (e.g. @Assets) will be resolved against this URI, "
+             "taking precedence over any `namespace \"URI\"` default declared "
+             "in the .xule sources. Useful when the test ruleset was written "
+             "against an older taxonomy version than the filing under test.",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -86,17 +106,38 @@ def validateFinished(val, *args, **kwargs):
     options   = {}
     cntlr     = getattr(val, "cntlr", None) or getattr(modelXbrl, "modelManager", None)
 
+    # Pull from formula parameters (when invoked from a testcase)
     if val.parameters:
         for paramQName, p in val.parameters.items():
             if paramQName.localName in parameterNames and p and len(p) == 2 and p[1] not in ("null", "None", None):
                 options[paramQName.localName] = p[1]
-    rulesetPaths: List[str] = options.get("formulaRulesets", "").split("|")
+
+    # Also pull from CLI options on the cntlr (when invoked from --formula-ruleset)
+    cliOpts = None
+    cntlrObj = getattr(modelXbrl, "modelManager", None)
+    cntlrObj = getattr(cntlrObj, "cntlr", None) if cntlrObj is not None else None
+    if cntlrObj is not None:
+        cliOpts = getattr(cntlrObj, "_xbrlmodelFormulaOptions", None) \
+                  or getattr(cntlrObj, "options", None)
+    if cliOpts is not None:
+        cliRulesets = getattr(cliOpts, "formulaRulesets", None)
+        if cliRulesets:
+            existing = options.get("formulaRulesets", "")
+            joined = "|".join([p for p in [existing] + list(cliRulesets) if p])
+            options["formulaRulesets"] = joined
+        for opt in ("formulaAlignThreshold", "formulaEmbedDim", "formulaOutputFile",
+                    "formulaDefaultNamespace"):
+            val_ = getattr(cliOpts, opt, None)
+            if val_ is not None and opt not in options:
+                options[opt] = val_
+
+    rulesetPaths: List[str] = [p for p in options.get("formulaRulesets", "").split("|") if p]
     if not rulesetPaths:
         return   # nothing to do
 
     # Obtain the OIM compiled model from the Arelle model
     try:
-        from arelle.plugin.XbrlModel import castToXbrlCompiledModel
+        from XbrlModel import castToXbrlCompiledModel
         txmyMdl = castToXbrlCompiledModel(modelXbrl)
     except Exception as exc:
         _log(cntlr, "WARNING", "formula:modelCast",
@@ -158,7 +199,7 @@ def _ensureVectorSearch(txmyMdl, options, cntlr) -> None:
         return   # already built
 
     try:
-        from arelle.plugin.XbrlModel.VectorSearch import buildXbrlVectors
+        from XbrlModel.VectorSearch import buildXbrlVectors
         embedDim = options.get("formulaEmbedDim", 64) or 64
         if isinstance(embedDim, str):
             embedDim = int(embedDim)
@@ -216,6 +257,7 @@ __pluginInfo__ = {
     "author":       "Herm Fischer",
     "import":       [],
     "CntlrCmdLine.Options": cmdLineOptionExtender,
+    "CntlrCmdLine.Utility.Run": cmdLineUtilityRun,
     "Validate.Finally":     validateFinished,
     "TestcaseVariation.Read": testcaseVariationRead,
 }

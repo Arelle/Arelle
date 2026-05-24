@@ -34,7 +34,7 @@ def resolveFact(txmyMdl, txmyObj, fact):
     """
     # resolve QNames and other container-dependent values in fact
     if not hasattr(fact, "_xValid"):
-        fact._xValid = True
+        fact._xValid = VALID
 
     def error(code, msg, **kwargs):
         emit_error(txmyMdl, code, msg, xbrlObject=fact, name=getattr(fact, "name", None), **kwargs)
@@ -60,13 +60,13 @@ def resolveFact(txmyMdl, txmyObj, fact):
         txmyMdl.error("oimte:missingConceptDimension",
                       _("The concept core dimension MUST be present on fact: %(name)s and must be a taxonomy concept."),
                       xbrlObject=fact, name=fact.name)
-        fact._xValid = False
+        fact._xValid = INVALID
         return
     if not isinstance(cObj, XbrlConcept):
         txmyMdl.error("oimte:invalidObjectType",
                       _("The concept core dimension on fact %(name)s MUST reference a concept object, not %(objectType)s."),
                       xbrlObject=fact, name=fact.name, objectType=type(cObj).__name__)
-        fact._xValid = False
+        fact._xValid = INVALID
         return
     cDataType = txmyMdl.namedObjects.get(cObj.dataType)
     if cDataType is None or not isinstance(cDataType, XbrlDataType):
@@ -112,19 +112,19 @@ def resolveFact(txmyMdl, txmyObj, fact):
                 txmyMdl.error("oime:illegalPureUnit",
                               _("Unit MUST NOT have single numerator measure xbrli:pure with no denominators: %(unit)s"),
                               xbrlObject=fact, unit=uStr)
-                fact._xValid = False
+                fact._xValid = INVALID
             elif not UnitPattern.match( PrefixedQName.sub(UnitPrefixedQNameSubstitutionChar, uStr) ):
                 txmyMdl.error("oimce:invalidUnitStringRepresentation",
                               _("Unit string representation is lexically invalid, %(unit)s, fact id %(name)s"),
                               xbrlObject=fact, unit=uStr)
-                fact._xValid = False
+                fact._xValid = INVALID
             else:
                 fact.factDimensions[unitCoreDim] = parseUnitString(uStr, fact, txmyObj, txmyMdl)
         else:
             txmyMdl.error("oime:misplacedUnitDimension",
                           _("The unit core dimension MUST NOT be present on non-numeric facts: %(concept)s, unit %(unit)s."),
                           xbrlObject=fact, concept=cQn, unit=uStr)
-            fact._xValid = False
+            fact._xValid = INVALID
     updateDimVals = {} # compiled values
     for dimName, dimVal in fact.factDimensions.items():
         if not isinstance(dimName, QName):
@@ -132,7 +132,7 @@ def resolveFact(txmyMdl, txmyObj, fact):
                 txmyMdl.error("oime:unknownDimension",
                               _("Factspace %(name)s taxonomy-defined dimension QName not be resolved with available DTS: %(qname)s."),
                               xbrlObject=fact, qname=dimName)
-                fact._xValid = False
+                fact._xValid = INVALID
         '''
         if isinstance(dimName, QName):
             dimObj = txmyMdl.namedObjects.get(dimName)
@@ -174,8 +174,8 @@ def resolveFact(txmyMdl, txmyObj, fact):
                     #                  xbrlObject=obj, type=dimConcept.typedDomainElement.baseXsdType, concept=dimConcept, value=dimVal)
                     if initialValidation:
                         _valid, _value = validateValue(txmyMdl, txmyObj, dimObj, dimVal, domDataTypeObj, f"/value", "oime:invalidDimensionValue")
-                        if _valid < VALID and fact._valid >= VALID:
-                            fact._valid = _valid # invalidate dimensionally invalid fact
+                        if _valid < VALID and fact._xValid >= VALID:
+                            fact._xValid = _valid # invalidate dimensionally invalid fact
                         if _valid >= VALID:
                             updateDimVals[dimName] = _value
             elif dimName == unitCoreDim:

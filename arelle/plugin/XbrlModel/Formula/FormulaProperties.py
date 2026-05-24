@@ -62,23 +62,31 @@ def _wrapSet(items) -> FormulaValue:
 def _factPropPeriod(fact, args, ctx):
     dims = fact.factDimensions
     from arelle.ModelValue import qname as mkQn
-    periodQn = mkQn("https://xbrl.org/2021", "period")
+    periodQn = mkQn("https://xbrl.org/2025", "period")
     period = dims.get(periodQn)
     return _wrap(period)
 
 def _factPropEntity(fact, args, ctx):
     from arelle.ModelValue import qname as mkQn
-    entityQn = mkQn("https://xbrl.org/2021", "entity")
-    return _wrap(fact.factDimensions.get(entityQn))
+    entityQn = mkQn("https://xbrl.org/2025", "entity")
+    ev = fact.factDimensions.get(entityQn)
+    if ev is None:
+        return NONE_VALUE
+    # Wrap as ENTITY so .name / .local-name / .namespace-uri chains work.
+    return FormulaValue(FormulaValueType.ENTITY, ev)
 
 def _factPropUnit(fact, args, ctx):
     from arelle.ModelValue import qname as mkQn
-    unitQn = mkQn("https://xbrl.org/2021", "unit")
-    return _wrap(fact.factDimensions.get(unitQn))
+    unitQn = mkQn("https://xbrl.org/2025", "unit")
+    uv = fact.factDimensions.get(unitQn)
+    if uv is None:
+        return NONE_VALUE
+    # Wrap as UNIT_VALUE so .numerator / .denominator chains work.
+    return FormulaValue(FormulaValueType.UNIT_VALUE, uv)
 
 def _factPropConcept(fact, args, ctx):
     from arelle.ModelValue import qname as mkQn
-    conceptQn = mkQn("https://xbrl.org/2021", "concept")
+    conceptQn = mkQn("https://xbrl.org/2025", "concept")
     qn = fact.factDimensions.get(conceptQn)
     if qn is None:
         return NONE_VALUE
@@ -126,17 +134,94 @@ def _factPropDimension(fact, args, ctx):
         raise FormulaRuntimeError("fact.dimension() argument must be a QName")
     return FormulaValue.fromScalar(fact.factDimensions.get(dimQn))
 
+def _factPropIsFact(fact, args, ctx):
+    return FormulaValue(FormulaValueType.BOOLEAN, True)
+
+def _factPropId(fact, args, ctx):
+    # Prefer an explicit id attribute on the fact (set during OIM load), else
+    # fall back to a stable derived id (the fact's local QName).
+    fid = getattr(fact, "id", None)
+    if fid is None:
+        if fact.factValues:
+            fid = getattr(next(iter(fact.factValues)), "id", None)
+    if fid is None:
+        nm = getattr(fact, "name", None)
+        if isinstance(nm, QName):
+            fid = nm.localName
+    return _wrap(fid, FormulaValueType.STRING) if fid is not None else NONE_VALUE
+
+def _factPropInstance(fact, args, ctx):
+    txmyMdl = getattr(fact, "parent", None) or ctx.txmyMdl
+    return FormulaValue(FormulaValueType.TAXONOMY, txmyMdl)
+
+def _factPropCubes(fact, args, ctx):
+    from XbrlModel.XbrlCube import XbrlCube
+    from arelle.ModelValue import qname as mkQn
+    txmy = ctx.txmyMdl
+    cubeDimQn = mkQn("https://xbrl.org/2025", "cube")
+    factCubeNames = fact.factDimensions.get(cubeDimQn)
+    cubes = []
+    if factCubeNames is not None:
+        names = factCubeNames if isinstance(factCubeNames, (list, tuple, set)) else [factCubeNames]
+        for n in names:
+            obj = txmy.namedObjects.get(n) if isinstance(n, QName) else None
+            if isinstance(obj, XbrlCube):
+                cubes.append(obj)
+    else:
+        # Fallback: scan cubes for membership via _cellFacts populated by ValidateFacts.
+        for cube in txmy.filterNamedObjects(XbrlCube):
+            cellFacts = getattr(cube, "_cellFacts", None) or {}
+            for cellEntries in cellFacts.values():
+                if any(f is fact for f, _ in cellEntries):
+                    cubes.append(cube)
+                    break
+    return FormulaValue(FormulaValueType.SET, OrderedSet(
+        FormulaValue(FormulaValueType.CUBE, c) for c in cubes
+    ))
+
+def _factPropAspects(fact, args, ctx):
+    from arelle.ModelValue import qname as mkQn
+    coreLocals = ("concept", "period", "entity", "unit", "language")
+    coreNs = "https://xbrl.org/2025"
+    aspects = {}
+    for k, v in fact.factDimensions.items():
+        if isinstance(k, QName) and k.namespaceURI == coreNs and k.localName in coreLocals:
+            aspects[FormulaValue(FormulaValueType.QNAME, k)] = FormulaValue.fromScalar(v)
+    return FormulaValue(FormulaValueType.DICT, aspects)
+
+def _factPropNamespaceMap(fact, args, ctx):
+    nsMap = {}
+    # Try fact.parent (factspace / module) for _prefixNamespaces, else txmyMdl
+    src = getattr(fact, "parent", None)
+    nsm = getattr(src, "_prefixNamespaces", None) if src is not None else None
+    if not nsm:
+        nsm = getattr(ctx.txmyMdl, "_prefixNamespaces", None) or {}
+    for prefix, uri in nsm.items():
+        nsMap[_wrap(prefix or "None", FormulaValueType.STRING)] = _wrap(uri, FormulaValueType.STRING)
+    return FormulaValue(FormulaValueType.DICT, nsMap)
+
+def _factPropFootnotes(fact, args, ctx):
+    # Footnote retrieval not yet implemented; return empty set.
+    return FormulaValue(FormulaValueType.SET, OrderedSet())
+
 FACT_PROPS: Dict[str, Callable] = {
-    "period":       _factPropPeriod,
-    "entity":       _factPropEntity,
-    "unit":         _factPropUnit,
-    "concept":      _factPropConcept,
-    "dimensions":   _factPropDimensions,
-    "value":        _factPropValue,
-    "decimals":     _factPropDecimals,
-    "name":         _factPropName,
-    "is-nil":       _factPropIsNil,
-    "dimension":    _factPropDimension,
+    "period":         _factPropPeriod,
+    "entity":         _factPropEntity,
+    "unit":           _factPropUnit,
+    "concept":        _factPropConcept,
+    "dimensions":     _factPropDimensions,
+    "value":          _factPropValue,
+    "decimals":       _factPropDecimals,
+    "name":           _factPropName,
+    "is-nil":         _factPropIsNil,
+    "is-fact":        _factPropIsFact,
+    "dimension":      _factPropDimension,
+    "id":             _factPropId,
+    "instance":       _factPropInstance,
+    "cubes":          _factPropCubes,
+    "aspects":        _factPropAspects,
+    "namespace-map":  _factPropNamespaceMap,
+    "footnotes":      _factPropFootnotes,
 }
 
 
@@ -194,10 +279,10 @@ def _conceptProp(concept, propName: str, args, ctx) -> FormulaValue:
 # ---------------------------------------------------------------------------
 
 def _taxonomyProp(txmy, propName: str, args, ctx) -> FormulaValue:
-    from arelle.plugin.XbrlModel.XbrlConcept import XbrlConcept
-    from arelle.plugin.XbrlModel.XbrlCube import XbrlCube
-    from arelle.plugin.XbrlModel.XbrlDimension import XbrlDimension
-    from arelle.plugin.XbrlModel.XbrlNetwork import XbrlNetwork
+    from XbrlModel.XbrlConcept import XbrlConcept
+    from XbrlModel.XbrlCube import XbrlCube
+    from XbrlModel.XbrlDimension import XbrlDimension
+    from XbrlModel.XbrlNetwork import XbrlNetwork
 
     if propName == "concepts":
         objs = list(txmy.filterNamedObjects(XbrlConcept))
@@ -244,7 +329,7 @@ def _taxonomyProp(txmy, propName: str, args, ctx) -> FormulaValue:
             raise FormulaRuntimeError("taxonomy.cube() requires arguments")
         qn = args[0].value
         # simplified — return first cube with matching concept
-        from arelle.plugin.XbrlModel.XbrlCube import XbrlCube
+        from XbrlModel.XbrlCube import XbrlCube
         for cube in txmy.filterNamedObjects(XbrlCube):
             if getattr(cube, "name", None) == qn:
                 return FormulaValue(FormulaValueType.CUBE, cube)
@@ -271,9 +356,9 @@ def _cubeProp(cube, propName: str, args, ctx) -> FormulaValue:
         dims = getattr(cube, "cubeDimensions", None) or []
         return _wrapSet(getattr(d, "dimensionName", None) for d in dims)
     if propName == "facts":
-        from arelle.plugin.XbrlModel.XbrlFact import XbrlFact
+        from XbrlModel.XbrlFact import XbrlFact
         from arelle.ModelValue import qname as mkQn
-        cubeDimQn = mkQn("https://xbrl.org/2021", "cube")
+        cubeDimQn = mkQn("https://xbrl.org/2025", "cube")
         cubeQn = getattr(cube, "name", None)
         facts = [
             f for f in ctx.txmyMdl.filterNamedObjects(XbrlFact)
@@ -300,11 +385,68 @@ def getProperty(
 
     Equivalent to `obj.propName` or `obj.propName(args)` in Xule.
     """
+    # ---- is-fact: defined on every value type ----
+    if propName == "is-fact":
+        return FormulaValue(
+            FormulaValueType.BOOLEAN,
+            obj.type == FormulaValueType.FACT,
+        )
+
     if obj.type == FormulaValueType.FACT:
         handler = FACT_PROPS.get(propName)
         if handler:
             return handler(obj.value, args, ctx)
         raise FormulaRuntimeError(f"Unknown fact property {propName!r}")
+
+    if obj.type == FormulaValueType.ENTITY:
+        ev = obj.value
+        if propName == "name":
+            # The entity "name" in xule is a QName whose ns=scheme, local=identifier.
+            if isinstance(ev, QName):
+                return FormulaValue(FormulaValueType.QNAME, ev)
+            return NONE_VALUE
+        if propName == "scheme":
+            if isinstance(ev, QName):
+                return FormulaValue(FormulaValueType.STRING, ev.namespaceURI)
+            return NONE_VALUE
+        if propName == "identifier" or propName == "id":
+            if isinstance(ev, QName):
+                return FormulaValue(FormulaValueType.STRING, ev.localName)
+            return NONE_VALUE
+        if propName == "local-name":
+            if isinstance(ev, QName):
+                return FormulaValue(FormulaValueType.STRING, ev.localName)
+            return NONE_VALUE
+        if propName == "namespace-uri":
+            if isinstance(ev, QName):
+                return FormulaValue(FormulaValueType.STRING, ev.namespaceURI)
+            return NONE_VALUE
+        raise FormulaRuntimeError(f"Unknown entity property {propName!r}")
+
+    if obj.type == FormulaValueType.UNIT_VALUE:
+        uv = obj.value
+        # Normalise: simple unit may be a single QName; full form is (mulQns, divQns)
+        if isinstance(uv, QName):
+            mulQns, divQns = (uv,), ()
+        elif isinstance(uv, tuple) and len(uv) == 2:
+            mulQns, divQns = uv
+        else:
+            mulQns, divQns = (), ()
+        if propName == "numerator":
+            # Single numerator → return the QName directly so chained
+            # .local-name / .namespace-uri work as the tests expect.
+            if len(mulQns) == 1:
+                return FormulaValue(FormulaValueType.QNAME, mulQns[0])
+            return FormulaValue(FormulaValueType.LIST, [
+                FormulaValue(FormulaValueType.QNAME, q) for q in mulQns
+            ])
+        if propName == "denominator":
+            if len(divQns) == 1:
+                return FormulaValue(FormulaValueType.QNAME, divQns[0])
+            return FormulaValue(FormulaValueType.LIST, [
+                FormulaValue(FormulaValueType.QNAME, q) for q in divQns
+            ])
+        raise FormulaRuntimeError(f"Unknown unit property {propName!r}")
 
     if obj.type == FormulaValueType.CONCEPT:
         return _conceptProp(obj.value, propName, args, ctx)
@@ -461,6 +603,18 @@ def getProperty(
     # Set/list properties
     if obj.type in (FormulaValueType.SET, FormulaValueType.LIST):
         coll = obj.value
+        items_list = list(coll)
+        # Generic per-element projection when collection contains FACT values
+        # and the property is a fact-specific property (e.g. .decimals, .concept,
+        # .cubes, .footnotes, .entity, ...).
+        if (items_list
+            and all(isinstance(it, FormulaValue) and it.type == FormulaValueType.FACT
+                    for it in items_list)
+            and (propName in FACT_PROPS or propName == "is-fact")):
+            projected = [getProperty(it, propName, args, ctx) for it in items_list]
+            if obj.type == FormulaValueType.SET:
+                return FormulaValue(FormulaValueType.SET, OrderedSet(projected))
+            return FormulaValue(FormulaValueType.LIST, projected)
         if propName == "index":
             if len(args) != 1:
                 raise FormulaRuntimeError(f"Property 'index' must have 1 arguments. Found {len(args)}.")

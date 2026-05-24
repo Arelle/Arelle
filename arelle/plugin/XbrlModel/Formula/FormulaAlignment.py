@@ -43,21 +43,21 @@ import torch
 from arelle.ModelValue import QName
 from arelle.XmlValidate import VALID
 
-from ..VectorSearch import (
+from XbrlModel.VectorSearch import (
     XBRLEmbedder, XBRLVectorStore, XbrlCompiledModel,
     buildAlignmentVectors, pairwiseAlignmentScores,
 )
 from .FormulaValue import AlignmentKey, alignmentKeyOf
 
 if TYPE_CHECKING:
-    from arelle.plugin.XbrlModel.XbrlFact import XbrlFact
+    from XbrlModel.XbrlFact import XbrlFact
 
 
 # ---------------------------------------------------------------------------
 # Alignment index: per-fact non-concept embedding
 # ---------------------------------------------------------------------------
 
-CONCEPT_DIM_NS  = "https://xbrl.org/2021"
+CONCEPT_DIM_NS  = "https://xbrl.org/2025"
 CONCEPT_DIM_LN  = "concept"
 
 
