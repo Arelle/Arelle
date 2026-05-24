@@ -52,6 +52,12 @@ class FormulaValueType(Enum):
     LIST = auto()           # list[FormulaValue]
     DICT = auto()           # dict[FormulaValue, FormulaValue]
     SEVERITY = auto()       # error | warning | ok | pass
+    LABEL = auto()          # XbrlLabel tag object
+    REFERENCE = auto()      # XbrlReference tag object
+    DATA_TYPE = auto()      # XbrlDataType object
+    PART = auto()           # XbrlProperty (reference part)
+    ROLE = auto()           # role URI wrapper (object with .uri / .description)
+    NAMESPACE = auto()      # namespace URI wrapper (object with .uri / .prefix)
 
 
 # ---------------------------------------------------------------------------

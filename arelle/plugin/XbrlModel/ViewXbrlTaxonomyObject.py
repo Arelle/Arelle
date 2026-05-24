@@ -113,7 +113,11 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
             (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl,
              XbrlConst.xbrldt,
              XbrlConst.xhtml))
-        for obj in self.xbrlCompMdl.filterNamedObjects(self.objClass, role, lang): # this is a yield generator
+        if self.objClass is XbrlNetwork:
+            objs = self.xbrlCompMdl.filterNetworks()
+        else:
+            objs = self.xbrlCompMdl.filterNamedObjects(self.objClass, role, lang)
+        for obj in objs: # this is a yield generator
             if isinstance(obj, XbrlFact):
                 self.viewProps("", nodeNum, obj, False)
                 nodeNum += 1

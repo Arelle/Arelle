@@ -11,6 +11,9 @@ from .XbrlProperty import XbrlProperty
 from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue, OptionalNonemptySet
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
 
+if TYPE_CHECKING:
+    from .XbrlGroup import XbrlGroup
+
 class XbrlRelationship(XbrlModelObject):
     """ Relationship Object
         Reference: oim-taxonomy#relationship-object
@@ -87,6 +90,57 @@ class XbrlNetwork(XbrlReferencableModelObject, XbrlRelationshipSet):
     extendTargetName: Optional[QName] # (required if no name) Names the network object that the defined network relationships should be appended to. The items in the network with this property are appended to the end of the relationships or roots defined in the target network object. This property cannot be used in conjunction with the relationshipTypeName and name property.
     isExtensible: Union[bool, DefaultTrue] # (optional) If set to false, the network is non-extensible and no importing taxonomy may augment it using extendTargetName. If set to true or omitted, the network may be extended. The default value is true.
     properties: OrderedSet[XbrlProperty] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.
+
+    @property
+    def relationshipType(self) -> Optional["XbrlRelationshipType"]:
+        """The XbrlRelationshipType object referenced by relationshipTypeName, or None."""
+        rtn = getattr(self, "relationshipTypeName", None)
+        mdl = self.xbrlCompMdl
+        if rtn is None or mdl is None:
+            return None
+        obj = mdl.namedObjects.get(rtn)
+        return obj if isinstance(obj, XbrlRelationshipType) else None
+
+    @property
+    def arcroleUri(self) -> Optional[str]:
+        """The arcrole URI for this network's relationship type (from the
+        XbrlRelationshipType.uri), or None when unavailable.
+        """
+        rt = self.relationshipType
+        return getattr(rt, "uri", None) if rt is not None else None
+
+    @property
+    def group(self) -> Optional["XbrlGroup"]:
+        """The XbrlGroup whose groupContents includes this network, or None.
+
+        Walks the compiled model's XbrlGroupContent objects looking for one
+        whose relatedNames contains this network's name, then resolves the
+        groupContent's groupName to its XbrlGroup.
+        """
+        nm = getattr(self, "name", None)
+        mdl = self.xbrlCompMdl
+        if nm is None or mdl is None:
+            return None
+        # Lazily cache reverse index { networkName : XbrlGroup } on the model.
+        cache = getattr(mdl, "_networkGroupIndex", None)
+        if cache is None:
+            cache = {}
+            for mod in getattr(mdl, "xbrlModels", {}).values():
+                for gc in getattr(mod, "groupContents", ()) or ():
+                    gName = getattr(gc, "groupName", None)
+                    grp = mdl.namedObjects.get(gName) if gName is not None else None
+                    for relName in getattr(gc, "relatedNames", ()) or ():
+                        cache.setdefault(relName, grp)
+            mdl._networkGroupIndex = cache
+        return cache.get(nm)
+
+    @property
+    def roleUri(self) -> Optional[str]:
+        """The role URI (XbrlGroup.groupURI) of the group that contains this
+        network, or None when the network is not assigned to a group with a URI.
+        """
+        g = self.group
+        return getattr(g, "groupURI", None) if g is not None else None
 
 class XbrlRelationshipConstraint(XbrlModelObject):
     constraint: str # (required) The constraint is a string that defines the constraint on the relationship type. The constraint is defined using a string representation.

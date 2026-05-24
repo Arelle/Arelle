@@ -272,6 +272,18 @@ def _runRuleIteration(rule, ruleCtx: FormulaRuleContext,
     except FormulaRuntimeError as exc:
         globalCtx.log("WARNING", f"formula:eval:{rule.name}",
                       f"Runtime error in rule {rule.name!r}: {exc}")
+        # For Output rules emit the error text so conformance tests that
+        # expect "Evaluation error: ..." can match. Assertions abort silently.
+        from .FormulaRuleSet import OutputRule
+        if isinstance(rule, OutputRule):
+            globalCtx.addResult(
+                ruleName=rule.name,
+                ruleType="output",
+                severity=rule.severity or "info",
+                message=f"Output {rule.name!r}: Evaluation error: {exc}",
+                alignment=ruleCtx.alignment,
+                factObj=boundFacts[0][1] if boundFacts else None,
+            )
         return
 
     if result.isSkip:
@@ -350,6 +362,7 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
             baseNode = None
             for namedKey in (
                 "funcCall", "varRef", "factQuery", "ifExpr", "forExpr",
+                "filterExpr",
                 "setLiteral", "listLiteral", "boolean", "none", "skip",
                 "severity", "string", "qname",
             ):
@@ -428,6 +441,17 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
         return FormulaValue(FormulaValueType.SEVERITY, inner.get("value", "error"))
 
     if exprName == "string" or "string" in node:
+        # If the node also has a chained property access, hand off to the
+        # atomWithProps dispatcher (see below) so e.g. ``'cat'.entry-point``
+        # raises a proper "Property X is not a property of a 'string'." error.
+        propsField = node.get("props")
+        if propsField and isinstance(propsField, dict) and "_chain" in propsField:
+            chain = propsField.get("_chain") or []
+            if isinstance(chain, dict):
+                chain = [chain]
+            if chain:
+                nonProp = {k: v for k, v in node.items() if k not in ("props",)}
+                return _evalAtomWithProps({"base": nonProp, "props": propsField}, ctx)
         return _evalString(node.get("string", node), ctx)
 
     # ---- QName literal (bare identifier used as qname) ----
@@ -485,6 +509,10 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
     # ---- For loop ----
     if exprName == "forExpr" or "forExpr" in node:
         return _evalFor(node.get("forExpr", node), ctx)
+
+    # ---- Filter expression ----
+    if exprName == "filterExpr" or "filterExpr" in node:
+        return _evalFilter(node.get("filterExpr", node), ctx)
 
     # ---- Assignment / block expression ----
     if exprName == "assignExpr" or "assignExpr" in node:
@@ -611,12 +639,76 @@ def _formatCollectionItem(val: FormulaValue) -> str:
     return _formatValue(val)
 
 
+def _formatLabel(label) -> str:
+    """Format an XbrlLabel as '(roleUri) (lang) value' (Xule convention)."""
+    from arelle.ModelValue import QName as _QN
+    rt = getattr(label, "labelType", None)
+    roleUri = None
+    # Try to resolve labelType QName -> URI via the taxonomy model
+    if isinstance(rt, _QN):
+        # walk through the label's module to find the taxonomy
+        mod = getattr(label, "module", None)
+        txmy = getattr(mod, "taxonomy", None) if mod is not None else None
+        no = getattr(txmy, "namedObjects", None) if txmy is not None else None
+        if no is not None:
+            obj = no.get(rt)
+            roleUri = getattr(obj, "uri", None)
+        # Fall back to well-known XBRL standard label-type URIs
+        if roleUri is None and getattr(rt, "namespaceURI", None) in (
+            "http://www.xbrl.org/2003/instance",
+            "https://xbrl.org/2025",
+            "https://xbrl.org/2021",
+        ):
+            roleUri = f"http://www.xbrl.org/2003/role/{rt.localName}"
+    if roleUri is None:
+        roleUri = str(rt) if rt is not None else ""
+    lang = getattr(label, "language", "") or ""
+    value = getattr(label, "value", "") or ""
+    return f"({roleUri}) ({lang}) {value}"
+
+
+def _formatReference(ref) -> str:
+    """Format an XbrlReference for output."""
+    rt = getattr(ref, "referenceType", None)
+    parts = getattr(ref, "properties", ()) or ()
+    pieces = []
+    for p in parts:
+        pq = getattr(p, "property", None)
+        pv = getattr(p, "value", "")
+        pn = getattr(pq, "localName", None) if pq is not None else None
+        if pn is None:
+            pn = str(pq) if pq is not None else "?"
+        pieces.append(f"{pn}: {pv}")
+    return f"reference[{rt}, {', '.join(pieces)}]"
+
+
+def _formatPart(part) -> str:
+    pq = getattr(part, "property", None)
+    pv = getattr(part, "value", "")
+    return f"{pq}: {pv}"
+
+
 def _formatValue(val: FormulaValue) -> str:
     if val.type == FormulaValueType.FACT:
         if val.value.factValues:
             fv = next(iter(val.value.factValues))
             return str(fv.value) if fv.value is not None else ""
         return ""
+    if val.type == FormulaValueType.LABEL:
+        return _formatLabel(val.value)
+    if val.type == FormulaValueType.REFERENCE:
+        return _formatReference(val.value)
+    if val.type == FormulaValueType.PART:
+        return _formatPart(val.value)
+    if val.type == FormulaValueType.ROLE:
+        # roles formatted as their URI when available; fall back to QName/str
+        u = getattr(val.value, "uri", None)
+        return str(u) if u else str(val.value)
+    if val.type == FormulaValueType.NAMESPACE:
+        return str(getattr(val.value, "uri", val.value))
+    if val.type == FormulaValueType.DATA_TYPE:
+        n = getattr(val.value, "name", val.value)
+        return str(n)
     if val.type == FormulaValueType.NONE:
         return "none"
     if val.type == FormulaValueType.SKIP:
@@ -1746,6 +1838,41 @@ def _evalFor(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
     resultVal = FormulaValue(FormulaValueType.LIST, results)
     setattr(resultVal, "_forResult", True)
     return resultVal
+
+
+def _evalFilter(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
+    """Evaluate a `filter (coll) [where pred] [returns body]` expression.
+
+    Iterates `coll`, binds implicit `$item` to each element, applies the
+    optional `where` predicate, and emits a set whose members are either
+    `$item` (no `returns`) or the result of the `returns` body.
+    """
+    collection = evaluateExpr(node.get("collection"), ctx)
+    whereExpr = node.get("whereExpr")
+    returnExpr = node.get("returnExpr")
+    if collection.type not in (FormulaValueType.SET, FormulaValueType.LIST):
+        # Filtering a single value: treat as 1-element collection
+        if collection.type == FormulaValueType.NONE:
+            return FormulaValue(FormulaValueType.SET, OrderedSet())
+        items = [collection]
+    else:
+        items = _unwrapColl(collection)
+    out = []
+    for item in items:
+        childCtx = ctx.childContext()
+        childCtx.bindVariable("item", item)
+        if whereExpr is not None:
+            pred = evaluateExpr(whereExpr, childCtx)
+            if not _isTruthy(pred):
+                continue
+        if returnExpr is not None:
+            val = evaluateExpr(returnExpr, childCtx)
+            if val.isSkip:
+                continue
+            out.append(val)
+        else:
+            out.append(item)
+    return FormulaValue(FormulaValueType.SET, OrderedSet(out))
 
 
 def _evalAssign(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
