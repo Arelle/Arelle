@@ -1534,6 +1534,25 @@ def _fn_instance(args: List[FormulaValue], ctx: "FormulaRuleContext") -> Formula
     return FormulaValue(FormulaValueType.TAXONOMY, ctx.txmyMdl)
 
 
+def _fn_clark(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+    """clark(qname-or-concept) → Clark-notation string '{ns}local'."""
+    if not args:
+        raise FormulaRuntimeError("clark() requires one argument")
+    a = args[0]
+    if a.type == FormulaValueType.NONE:
+        return NONE_VALUE
+    v = a.value
+    qn = None
+    if a.type == FormulaValueType.QNAME:
+        qn = v
+    elif a.type == FormulaValueType.CONCEPT:
+        qn = getattr(v, "name", None)
+    if not isinstance(qn, QName):
+        raise FormulaRuntimeError("clark() argument must be a QName or concept")
+    return FormulaValue(FormulaValueType.STRING,
+                        "{" + (qn.namespaceURI or "") + "}" + qn.localName)
+
+
 def _fn_model(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
     """
     model(uri) → reference to an XBRL instance/model.
@@ -1668,6 +1687,7 @@ BUILTIN_FUNCTIONS: Dict[str, Callable] = {
     "instance":         _fn_instance,
     "model":            _fn_model,
     "unit":             _fn_unit,
+    "clark":            _fn_clark,
 }
 
 
