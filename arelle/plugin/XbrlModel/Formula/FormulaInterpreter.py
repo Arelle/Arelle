@@ -790,9 +790,12 @@ def _evalFactQuery(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
 
         # Square-bracket exclusion: reject facts carrying taxonomy-defined
         # dimensions that were not explicitly named in filters.
+        # Skip non-QName keys (internal/private slots like '_periodValue').
         if excludeTaxDims:
             hasUnnamedTaxDim = any(
-                (dimQn not in namedDims) and not _isCoreDimQn(dimQn)
+                isinstance(dimQn, QName)
+                and (dimQn not in namedDims)
+                and not _isCoreDimQn(dimQn)
                 for dimQn in fact.factDimensions
             )
             if hasUnnamedTaxDim:
