@@ -189,19 +189,19 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument, checkedModelDocume
                             elementHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
             # check href'ed target if a linkbaseRef
             if hrefElt.namespaceURI == XbrlConst.link:
-                if hrefedElt is not None and hrefElt.localName == "linkbaseRef":
+                if hrefElt.localName == "linkbaseRef":
                     # check linkbaseRef target
                     if (hrefedDoc is None or
                         hrefedDoc.type < ModelDocumentType.firstXBRLtype or  # range of doc types that can have linkbase
                         hrefedDoc.type > ModelDocumentType.lastXBRLtype or
-                        hrefedElt.namespaceURI != XbrlConst.link or hrefedElt.localName != "linkbase"):
+                        hrefedElt.namespaceURI != XbrlConst.link or hrefedElt.localName != "linkbase"):  # type: ignore[union-attr]
                         val.modelXbrl.error("xbrl.4.3.2:linkbaseRefHref",
                             _("LinkbaseRef %(linkbaseHref)s does not identify an link:linkbase element"),
                             modelObject=(hrefElt, hrefedDoc),
                             linkbaseHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
                     elif hrefElt.get("{http://www.w3.org/1999/xlink}role") is not None:
                         role = hrefElt.get("{http://www.w3.org/1999/xlink}role")
-                        for linkNode in hrefedElt.iterchildren():
+                        for linkNode in hrefedElt.iterchildren():  # type: ignore[union-attr]
                             if (isinstance(linkNode,ModelObject) and
                                 linkNode.get("{http://www.w3.org/1999/xlink}type") == "extended"):
                                 ln = linkNode.localName
@@ -1124,7 +1124,7 @@ def checkElements(val: ValidateXbrl, modelDocument: ModelDocument, parent: _Elem
                     if elt.get("priority") is not None:
                         priority = elt.get("priority")
                         try:
-                            if priority and int(priority) >= 10:
+                            if int(priority) >= 10:  # type: ignore[arg-type]
                                 val.modelXbrl.error(("EFM.6.09.09", "GFM.1.04.08"),
                                     _("Arc from %(xlinkFrom)s to %(xlinkTo)s priority %(priority)s must be less than 10"),
                                     modelObject=elt,
