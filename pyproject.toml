@@ -176,7 +176,6 @@ module = [
     'arelle.UITkTable',
     'arelle.ValidateInfoset',
     'arelle.ValidateVersReport',
-    'arelle.ValidateXbrlCalcs',
     'arelle.ValidateXbrlDTS',
     'arelle.ValidateXbrlDimensions',
     'arelle.Version',

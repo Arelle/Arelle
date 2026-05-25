@@ -4,27 +4,33 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 from collections import defaultdict, OrderedDict
 from math import (log10, isnan, isinf, fabs, floor, pow)
-import decimal
-from typing import TYPE_CHECKING, Iterable
+from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN, ROUND_HALF_UP, ROUND_DOWN
+from typing import TYPE_CHECKING, Iterable, TypeAlias
 from regex import compile as re_compile
 import hashlib
 from arelle import Locale, XbrlConst, XbrlUtil
+from arelle.ModelDtsObject import ModelRelationship, ModelConcept
 from arelle.ModelObject import ObjectPropertyViewWrapper
+from arelle.ModelValue import TypeXValue
 from arelle.PythonUtil import flattenSequence, strTruncate
-from arelle.XmlValidateConst import UNVALIDATED, VALID
+from arelle.typing import TypeGetText
+from arelle.XmlValidateConst import VALID
 from arelle.utils.Contexts import partitionModelXbrlContexts
 from arelle.utils.Units import partitionModelXbrlUnits
 from arelle.utils.validate.Validation import Validation
 
 if TYPE_CHECKING:
-    from _decimal import Decimal
-    from arelle.ModelInstanceObject import ModelFact
-    from arelle.ModelValue import TypeXValue
+    from decimal import _DecimalNew
+    from arelle.ModelInstanceObject import ModelFact, ModelUnit, ModelContext
+    from arelle.ModelXbrl import ModelXbrl
+    from arelle.ModelObject import ModelObject
 else:
     ModelFact = None # circular import with ModelInstanceObject
 
+_: TypeGetText
 
-def init(): # prevent circular imports
+
+def init() -> None: # prevent circular imports
     global ModelFact
     if ModelFact is None:
         from arelle.ModelInstanceObject import ModelFact
@@ -38,7 +44,7 @@ class ValidateCalcsMode:
     TRUNCATION = 5                  # calculations 1.1 truncation mode
 
     @staticmethod
-    def label(enum): # must be dynamic using language choice when selecting enum choice
+    def label(enum: int) -> str | None: # must be dynamic using language choice when selecting enum choice
         if enum == ValidateCalcsMode.NONE:
             return  _("No calculations linkbase checks")
         if enum == ValidateCalcsMode.XBRL_v2_1_INFER_PRECISION:
@@ -51,9 +57,10 @@ class ValidateCalcsMode:
             return  _("Calculations 1.1 round-to-nearest mode")
         if enum == ValidateCalcsMode.TRUNCATION:
             return  _("Calculations 1.1 truncation mode")
+        return None
 
     @staticmethod
-    def menu(): # must be dynamic class method to map to current language choice
+    def menu() -> OrderedDict[str, int]: # must be dynamic class method to map to current language choice
         return OrderedDict((
             (_("No calculation checks"), ValidateCalcsMode.NONE),
             # omit pre-2010 spec v2.1 mode, XBRL_v2_1_INFER_PRECISION
@@ -78,26 +85,34 @@ oimXbrlxeBlockingErrorCodes = {
         "xbrlxe:unsupportedZeroPrecisionFact"
         }
 numberPattern = re_compile("[-+]?[0]*([1-9]?[0-9]*)([.])?(0*)([1-9]?[0-9]*)?([eE])?([-+]?[0-9]*)?")
-ZERO = decimal.Decimal(0)
-ONE = decimal.Decimal(1)
-TWO = decimal.Decimal(2)
-TEN = decimal.Decimal(10)
-NaN = decimal.Decimal("NaN")
+ZERO = Decimal(0)
+ONE = Decimal(1)
+TWO = Decimal(2)
+TEN = Decimal(10)
+NaN = Decimal("NaN")
 floatNaN = float("NaN")
 floatINF = float("INF")
 INCONSISTENT = "*inconsistent*" # singleton
 NIL_FACT_SET = "*nilFactSet*" # singleton
 # RANGE values are (lower, upper, incl Lower bound, incl upper bound)
 ZERO_RANGE = (0,0,True,True)
-EMPTY_SET = set()
-def rangeToStr(a, b, inclA, inclB) -> str:
+EMPTY_SET: set[str] = set()
+
+
+def rangeToStr(a: Decimal | str, b: Decimal | str, inclA: bool, inclB: bool) -> str:
     return {True:"[", False: "("}[inclA] + f"{a}, {b}" + {True:"]", False: ")"}[inclB]
 
-def validate(modelXbrl, validateCalcs) -> Iterable[Validation]:
+
+def validate(modelXbrl: ModelXbrl, validateCalcs: int) -> Iterable[Validation]:
     yield from ValidateXbrlCalcs(modelXbrl, validateCalcs).validate()
 
+
+FactsType: TypeAlias = defaultdict[tuple[ModelConcept, "ModelObject", int, "ModelUnit"], list[ModelFact]]
+ConceptType: TypeAlias = defaultdict[ModelConcept, set[tuple["ModelObject", int, "ModelUnit"]]]
+
+
 class ValidateXbrlCalcs:
-    def __init__(self, modelXbrl, validateCalcs):
+    def __init__(self, modelXbrl: ModelXbrl, validateCalcs: int) -> None:
         self.modelXbrl = modelXbrl
         self.inferDecimals = validateCalcs != ValidateCalcsMode.XBRL_v2_1_INFER_PRECISION
         self.deDuplicate = validateCalcs == ValidateCalcsMode.XBRL_v2_1_DEDUPLICATE
@@ -105,21 +120,21 @@ class ValidateXbrlCalcs:
         self.calc11 = validateCalcs in (ValidateCalcsMode.ROUND_TO_NEAREST, ValidateCalcsMode.TRUNCATION)
         self.calc11t = validateCalcs == ValidateCalcsMode.TRUNCATION
         self.calc11suffix = "Truncation" if self.calc11t else "Rounding"
-        self.mapContext = {}
-        self.mapUnit = {}
-        self.sumFacts = defaultdict(list)
-        self.sumConceptBindKeys = defaultdict(set)
-        self.itemFacts = defaultdict(list)
-        self.itemConceptBindKeys = defaultdict(set)
-        self.duplicateKeyFacts = {}
-        self.duplicatedFacts = set()
-        self.calc11KeyFacts = defaultdict(list) # calc 11 reported facts by calcKey (concept, ancestor, contextHash, unit)
-        self.consistentDupFacts = set() # when deDuplicating, holds the less-precise of v-equal dups
-        self.esAlFacts = defaultdict(list)
-        self.esAlConceptBindKeys = defaultdict(set)
-        self.conceptsInEssencesAlias = set()
-        self.requiresElementFacts = defaultdict(list)
-        self.conceptsInRequiresElement = set()
+        self.mapContext: dict[ModelContext, ModelContext] = {}
+        self.mapUnit: dict[ModelUnit, ModelUnit] = {}
+        self.sumFacts: FactsType = defaultdict(list)
+        self.sumConceptBindKeys: ConceptType = defaultdict(set)
+        self.itemFacts: FactsType = defaultdict(list)
+        self.itemConceptBindKeys: ConceptType = defaultdict(set)
+        self.duplicateKeyFacts: dict[tuple[ModelConcept, ModelObject, int, ModelUnit], ModelFact] = {}
+        self.duplicatedFacts: set[ModelFact] = set()
+        self.calc11KeyFacts: FactsType = defaultdict(list)
+        self.consistentDupFacts: set[ModelFact] = set()
+        self.esAlFacts: defaultdict[tuple[ModelConcept, ModelObject, int], list[ModelFact]] = defaultdict(list)
+        self.esAlConceptBindKeys: defaultdict[ModelConcept, set[tuple[ModelObject, int]]] = defaultdict(set)
+        self.conceptsInEssencesAlias: set[ModelConcept] = set()
+        self.requiresElementFacts: defaultdict[ModelConcept, list[ModelFact]] = defaultdict(list)
+        self.conceptsInRequiresElement: set[ModelConcept] = set()
 
     def validate(self) -> Iterable[Validation]:
         # note that calc linkbase checks need to be performed even if no facts in instance (e.g., to detect duplicate relationships)
@@ -127,7 +142,7 @@ class ValidateXbrlCalcs:
         xbrl21 = self.xbrl21
         calc11 = self.calc11 # round or truncate
         calc11t = self.calc11t # truncate
-        sumConceptItemRels = defaultdict(dict) # for calc11 dup sum-item detection
+        sumConceptItemRels: defaultdict[ModelObject, dict[ModelObject, ModelRelationship]] = defaultdict(dict) # for calc11 dup sum-item detection
 
         if xbrl21:
             if not self.modelXbrl.contexts and not self.modelXbrl.facts:
@@ -184,10 +199,11 @@ class ValidateXbrlCalcs:
                 for modelRel in modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname).modelRelationships:
                     for concept in (modelRel.fromModelObject, modelRel.toModelObject):
                         if concept is not None and concept.qname is not None:
-                            conceptsSet.add(concept)
+                            conceptsSet.add(concept)  # type: ignore[arg-type]
             modelXbrl.profileActivity("... identify requires-element and esseance-aliased concepts", minTimeToShow=1.0)
 
-        self.bindFacts(modelXbrl.facts,[modelXbrl.modelDocument.xmlRootElement])
+        assert modelXbrl.modelDocument is not  None, "modelXbrl.modelDocument is None"
+        self.bindFacts(modelXbrl.facts, [modelXbrl.modelDocument.xmlRootElement])
         modelXbrl.profileActivity("... bind facts", minTimeToShow=1.0)
 
         allArcroles = flattenSequence(
@@ -214,12 +230,12 @@ class ValidateXbrlCalcs:
                 for sumConcept, modelRels in fromRelationships.items():
                     sumBindingKeys = self.sumConceptBindKeys[sumConcept]
                     dupBindingKeys = set()
-                    boundSumKeys = set()
+                    boundSumKeys: set[tuple[ModelObject, int, ModelUnit]] = set()
                     # determine boundSums
                     for modelRel in modelRels:
                         itemConcept = modelRel.toModelObject
                         if itemConcept is not None and itemConcept.qname is not None:
-                            itemBindingKeys = self.itemConceptBindKeys[itemConcept]
+                            itemBindingKeys = self.itemConceptBindKeys[itemConcept]  # type: ignore[index]
                             boundSumKeys |= sumBindingKeys & itemBindingKeys
                             if calc11:
                                 siRels = sumConceptItemRels[sumConcept]
@@ -229,15 +245,15 @@ class ValidateXbrlCalcs:
                                         modelObject=(siRels[itemConcept], modelRel), linkrole=modelRel.linkrole,
                                         sumConcept=sumConcept.qname, itemConcept=itemConcept.qname)
                                 siRels[itemConcept] = modelRel
-                                if not sumConcept.isDecimal or not itemConcept.isDecimal:
+                                if not sumConcept.isDecimal or not itemConcept.isDecimal:  # type: ignore[attr-defined]
                                     yield Validation.error('calc11e:nonDecimalItemNode',
                                         _("The source and target of a Calculations v1.1 relationship MUST both be decimal concepts: %(sumConcept)s, %(itemConcept)s, link role %(linkrole)s"),
                                         modelObject=(sumConcept, itemConcept, modelRel), linkrole=modelRel.linkrole,
                                         sumConcept=sumConcept.qname, itemConcept=itemConcept.qname)
 
                     # add up rounded items
-                    boundSums = defaultdict(decimal.Decimal) # sum of facts meeting factKey
-                    boundIntervals = {} # interval sum of facts meeting factKey
+                    boundSums: defaultdict[tuple[ModelObject, int, ModelUnit], Decimal] = defaultdict(Decimal) # sum of facts meeting factKey
+                    boundIntervals: dict[tuple[ModelObject, int, ModelObject], tuple[Decimal, Decimal, bool, bool]] = {} # interval sum of facts meeting factKey
                     blockedIntervals = set() # bind Keys for summations which have an inconsistency
                     boundSummationItems = defaultdict(list) # corresponding fact refs for messages
                     boundIntervalItems = defaultdict(list) # corresponding fact refs for messages
@@ -249,7 +265,7 @@ class ValidateXbrlCalcs:
                         for itemBindKey in boundSumKeys:
                             ancestor, contextHash, unit = itemBindKey
                             factKey = (itemConcept, ancestor, contextHash, unit)
-                            _itemFacts = self.itemFacts.get(factKey,())
+                            _itemFacts = self.itemFacts.get(factKey, ())  # type: ignore[arg-type]
                             if xbrl21:
                                 for fact in _itemFacts:
                                     if not fact.isNil:
@@ -257,8 +273,8 @@ class ValidateXbrlCalcs:
                                             dupBindingKeys.add(itemBindKey)
                                         elif fact not in self.consistentDupFacts:
                                             roundedValue = roundFact(fact, self.inferDecimals)
-                                            boundSums[itemBindKey] += roundedValue * w
-                                            boundSummationItems[itemBindKey].append(wrappedFactWithWeight(fact,w,roundedValue))
+                                            boundSums[itemBindKey] += roundedValue * w  # type: ignore[operator]
+                                            boundSummationItems[itemBindKey].append(wrappedFactWithWeight(fact,w,roundedValue))  # type: ignore[arg-type]
                             if calc11 and _itemFacts:
                                 validation, (y1, y2, iY1, iY2) = self.consistentFactValueInterval(_itemFacts, calc11t)
                                 if validation is not None:
@@ -267,18 +283,18 @@ class ValidateXbrlCalcs:
                                     blockedIntervals.add(itemBindKey)
                                 elif y1 is not NIL_FACT_SET:
                                     x1, x2, iX1, iX2 = boundIntervals.get(itemBindKey, ZERO_RANGE)
-                                    y1 *= w
-                                    y2 *= w
-                                    if y2 < y1:
+                                    y1 *= w  # type: ignore[operator]
+                                    y2 *= w  # type: ignore[operator]
+                                    if y2 < y1:  # type: ignore[operator]
                                         y1, y2 = y2, y1
-                                    boundIntervals[itemBindKey] = (x1 + y1, x2 + y2, iX1 and iY1, iX2 and iY2)
+                                    boundIntervals[itemBindKey] = (x1 + y1, x2 + y2, iX1 and iY1, iX2 and iY2)  # type: ignore[operator,assignment]
                                     boundIntervalItems[itemBindKey].extend(_itemFacts)
                     for sumBindKey in boundSumKeys:
                         ancestor, contextHash, unit = sumBindKey
                         factKey = (sumConcept, ancestor, contextHash, unit)
                         if factKey not in self.sumFacts:
                             continue
-                        sumFacts = self.sumFacts[factKey]
+                        sumFacts = self.sumFacts[factKey]  # type: ignore[index]
                         if xbrl21:
                             for fact in sumFacts:
                                 if fact.isNil:
@@ -290,9 +306,10 @@ class ValidateXbrlCalcs:
                                       and not (len(sumFacts) > 1 and not self.deDuplicate)): # don't bind if sum duplicated without dedup option
                                     roundedSum = roundFact(fact, self.inferDecimals)
                                     roundedItemsSum = roundFact(fact, self.inferDecimals, vDecimal=boundSums[sumBindKey])
-                                    if roundedItemsSum  != roundFact(fact, self.inferDecimals):
+                                    if roundedItemsSum != roundFact(fact, self.inferDecimals):
                                         d = inferredDecimals(fact)
-                                        if isnan(d) or isinf(d): d = 4
+                                        if isnan(d) or isinf(d):
+                                            d = 4
                                         _boundSummationItems = boundSummationItems[sumBindKey]
                                         unreportedContribingItemQnames = [] # list the missing/unreported contributors in relationship order
                                         for modelRel in modelRels:
@@ -305,8 +322,8 @@ class ValidateXbrlCalcs:
                                             modelObject=wrappedSummationAndItems(fact, roundedSum, _boundSummationItems),
                                             concept=sumConcept.qname, linkrole=ELR,
                                             linkroleDefinition=modelXbrl.roleTypeDefinition(ELR),
-                                            reportedSum=Locale.format_decimal(modelXbrl.locale, roundedSum, 1, max(d,0)),
-                                            computedSum=Locale.format_decimal(modelXbrl.locale, roundedItemsSum, 1, max(d,0)),
+                                            reportedSum=Locale.format_decimal(modelXbrl.locale, roundedSum, 1, max(d,0)),  # type: ignore[arg-type]
+                                            computedSum=Locale.format_decimal(modelXbrl.locale, roundedItemsSum, 1, max(d,0)),  # type: ignore[arg-type]
                                             contextID=fact.context.id, unitID=fact.unit.id if fact.unit is not None else "(none)",
                                             unreportedContributors=", ".join(unreportedContribingItemQnames) or "none")
                                         del unreportedContribingItemQnames[:]
@@ -316,17 +333,17 @@ class ValidateXbrlCalcs:
                                 yield validation
                             if s1 is not INCONSISTENT and s1 is not NIL_FACT_SET and sumBindKey not in blockedIntervals and sumBindKey in boundIntervals:
                                 x1, x2, inclx1, inclx2 = boundIntervals[sumBindKey]
-                                a = max(s1, x1)
-                                b = min(s2, x2)
+                                a = max(s1, x1)  # type: ignore[type-var]
+                                b = min(s2, x2)  # type: ignore[type-var]
                                 inclA = incls1 | inclx1
                                 inclB = incls2 | inclx2
-                                if (a == b and not (inclA and inclB)) or (a > b):
+                                if (a == b and not (inclA and inclB)) or (a > b):  # type: ignore[operator]
                                     yield Validation.inconsistency("calc11e:inconsistentCalculationUsing" + self.calc11suffix,
                                         _("Calculation inconsistent from %(concept)s in link role %(linkrole)s reported sum %(reportedSum)s computed sum %(computedSum)s context %(contextID)s unit %(unitID)s"),
                                         modelObject=sumFacts + boundIntervalItems[sumBindKey],
                                         concept=sumConcept.qname, linkrole=ELR,
                                         linkroleDefinition=modelXbrl.roleTypeDefinition(ELR),
-                                        reportedSum=rangeToStr(s1,s2,incls1,incls2),
+                                        reportedSum=rangeToStr(s1,s2,incls1,incls2),  # type: ignore[arg-type]
                                         computedSum=rangeToStr(x1,x2,inclx1,inclx2),
                                         contextID=sumFacts[0].context.id, unitID=sumFacts[0].unit.id if sumFacts[0].unit is not None else "(none)")
                     boundSummationItems.clear() # dereference facts in list
@@ -335,22 +352,22 @@ class ValidateXbrlCalcs:
                 for modelRel in relsSet.modelRelationships:
                     essenceConcept = modelRel.fromModelObject
                     aliasConcept = modelRel.toModelObject
-                    essenceBindingKeys = self.esAlConceptBindKeys[essenceConcept]
-                    aliasBindingKeys = self.esAlConceptBindKeys[aliasConcept]
+                    essenceBindingKeys = self.esAlConceptBindKeys[essenceConcept]  # type: ignore[index]
+                    aliasBindingKeys = self.esAlConceptBindKeys[aliasConcept]  # type: ignore[index]
                     for esAlBindKey in essenceBindingKeys & aliasBindingKeys:
                         ancestor, contextHash = esAlBindKey
                         essenceFactsKey = (essenceConcept, ancestor, contextHash)
                         aliasFactsKey = (aliasConcept, ancestor, contextHash)
                         if essenceFactsKey in self.esAlFacts and aliasFactsKey in self.esAlFacts:
-                            for eF in self.esAlFacts[essenceFactsKey]:
-                                for aF in self.esAlFacts[aliasFactsKey]:
+                            for eF in self.esAlFacts[essenceFactsKey]:  # type: ignore[index]
+                                for aF in self.esAlFacts[aliasFactsKey]:  # type: ignore[index]
                                     essenceUnit = self.mapUnit.get(eF.unit,eF.unit)
                                     aliasUnit = self.mapUnit.get(aF.unit,aF.unit)
                                     if essenceUnit != aliasUnit:
                                         yield Validation.inconsistency("xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency",
                                             _("Essence-Alias inconsistent units from %(essenceConcept)s to %(aliasConcept)s in link role %(linkrole)s context %(contextID)s"),
                                             modelObject=(modelRel, eF, aF),
-                                            essenceConcept=essenceConcept.qname, aliasConcept=aliasConcept.qname,
+                                            essenceConcept=essenceConcept.qname, aliasConcept=aliasConcept.qname,  # type: ignore[union-attr]
                                             linkrole=ELR,
                                             linkroleDefinition=modelXbrl.roleTypeDefinition(ELR),
                                             contextID=eF.context.id)
@@ -358,7 +375,7 @@ class ValidateXbrlCalcs:
                                         yield Validation.inconsistency("xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency",
                                             _("Essence-Alias inconsistent value from %(essenceConcept)s to %(aliasConcept)s in link role %(linkrole)s context %(contextID)s"),
                                             modelObject=(modelRel, eF, aF),
-                                            essenceConcept=essenceConcept.qname, aliasConcept=aliasConcept.qname,
+                                            essenceConcept=essenceConcept.qname, aliasConcept=aliasConcept.qname,  # type: ignore[union-attr]
                                             linkrole=ELR,
                                             linkroleDefinition=modelXbrl.roleTypeDefinition(ELR),
                                             contextID=eF.context.id)
@@ -371,13 +388,13 @@ class ValidateXbrlCalcs:
                             yield Validation.inconsistency("xbrl.5.2.6.2.4:requiresElementInconsistency",
                                 _("Requires-Element %(requiringConcept)s missing required fact for %(requiredConcept)s in link role %(linkrole)s"),
                                 modelObject=sourceConcept,
-                                requiringConcept=sourceConcept.qname, requiredConcept=requiredConcept.qname,
+                                requiringConcept=sourceConcept.qname, requiredConcept=requiredConcept.qname,  # type: ignore[union-attr]
                                 linkrole=ELR,
                                 linkroleDefinition=modelXbrl.roleTypeDefinition(ELR))
         modelXbrl.profileActivity("... find inconsistencies", minTimeToShow=1.0)
         modelXbrl.profileActivity() # reset
 
-    def bindFacts(self, facts, ancestors):
+    def bindFacts(self, facts: Iterable[ModelFact], ancestors: list[ModelObject]) -> None:
         for f in facts:
             concept = f.concept
             if concept is not None and f.xValid >= VALID:
@@ -390,14 +407,14 @@ class ValidateXbrlCalcs:
                         contextHash = context.contextNonDimAwareHash if context is not None else hash(None)
                         unit = self.mapUnit.get(f.unit,f.unit)
                         calcKey = (concept, ancestor, contextHash, unit)
-                        self.itemFacts[calcKey].append(f)
-                        bindKey = (ancestor, contextHash, unit)
+                        self.itemFacts[calcKey].append(f)  # type: ignore[index]
+                        bindKey: tuple[ModelObject, int, ModelUnit] = (ancestor, contextHash, unit)  # type: ignore[assignment]
                         self.itemConceptBindKeys[concept].add(bindKey)
-                    self.sumFacts[calcKey].append(f) # sum only for immediate parent
+                    self.sumFacts[calcKey].append(f)  # type: ignore[index] # sum only for immediate parent
                     self.sumConceptBindKeys[concept].add(bindKey)
                     # calcKey is the last ancestor added (immediate parent of fact)
                     if self.xbrl21 and not f.isNil:
-                        fDup = self.duplicateKeyFacts.setdefault(calcKey, f)
+                        fDup = self.duplicateKeyFacts.setdefault(calcKey, f)  # type: ignore[arg-type]
                         if fDup is not f:
                             if self.deDuplicate: # add lesser precision fact to consistentDupFacts
                                 if self.inferDecimals:
@@ -415,7 +432,7 @@ class ValidateXbrlCalcs:
                                     roundValue(fDup.value,precision=pMin,decimals=dMin)):
                                     # consistent duplicate, f more precise than fDup, replace fDup with f
                                     if fIsMorePrecise: # works for inf and integer mixtures
-                                        self.duplicateKeyFacts[calcKey] = f
+                                        self.duplicateKeyFacts[calcKey] = f  # type: ignore[index]
                                         self.consistentDupFacts.add(fDup)
                                     else: # fDup is more precise or equally precise
                                         self.consistentDupFacts.add(f)
@@ -426,7 +443,7 @@ class ValidateXbrlCalcs:
                                 self.duplicatedFacts.add(f)
                                 self.duplicatedFacts.add(fDup)
                     if self.calc11:
-                        self.calc11KeyFacts[calcKey].append(f)
+                        self.calc11KeyFacts[calcKey].append(f)  # type: ignore[index]
                 elif concept.isTuple and not f.isNil and not self.calc11:
                     self.bindFacts(f.modelTupleFacts, ancestors + [f])
 
@@ -437,13 +454,20 @@ class ValidateXbrlCalcs:
                     contextHash = context.contextNonDimAwareHash if context is not None else hash(None)
                     esAlKey = (concept, ancestor, contextHash)
                     self.esAlFacts[esAlKey].append(f)
-                    bindKey = (ancestor, contextHash)
-                    self.esAlConceptBindKeys[concept].add(bindKey)
+                    esAlBindKey = (ancestor, contextHash)
+                    self.esAlConceptBindKeys[concept].add(esAlBindKey)
                 # index facts by their requires element usage
                 if concept in self.conceptsInRequiresElement:
                     self.requiresElementFacts[concept].append(f)
 
-    def consistentFactValueInterval(self, fList, truncate=False) -> tuple[Validation | None, tuple[decimal.Decimal | str, decimal.Decimal | str, bool, bool]]:
+    def consistentFactValueInterval(
+            self,
+            fList: list[ModelFact],
+            truncate: bool = False
+        ) -> tuple[
+        Validation | None,
+        tuple[str | Decimal | None, str | Decimal | None, bool, bool]
+    ]:
         _excessDigitFacts = []
         if any(f.isNil for f in fList):
             if all(f.isNil for f in fList):
@@ -452,28 +476,28 @@ class ValidateXbrlCalcs:
         else: # not all have same decimals
             a = b = None
             inclA = inclB = _inConsistent = False
-            decVals = {}
+            decVals: dict[float | int, TypeXValue] = {}
             for f in fList:
                 _v = f.xValue
-                if isnan(_v):
+                if isnan(_v):  # type: ignore[arg-type]
                     if len(fList) > 1:
                         _inConsistent = True
                     break
                 _d = inferredDecimals(f)
-                if insignificantDigits(_v, decimals=_d):
+                if insignificantDigits(_v, decimals=_d):  # type: ignore[arg-type]
                     _excessDigitFacts.append(f)
                 elif _d in decVals:
                     _inConsistent |= _v != decVals[_d]
                 else:
                     decVals[_d] = _v
-                    _a, _b, _inclA, _inclB = rangeValue(_v, _d, truncate=truncate)
+                    _a, _b, _inclA, _inclB = rangeValue(_v, _d, truncate=truncate)  # type: ignore[arg-type]
                     if a is None or _a >= a:
                         a = _a
                         inclA |= _inclA
                     if b is None or _b <= b:
                         b = _b
                         inclB |= _inclB
-            _inConsistent = (a == b and not(inclA and inclB)) or (a > b)
+            _inConsistent = (a == b and not(inclA and inclB)) or (a > b)  # type: ignore[operator]
         if _excessDigitFacts:
             return Validation.inconsistency("calc11e:excessDigits",
                 _("Calculations check stopped for excess digits in fact values %(element)s: %(values)s, %(contextIDs)s."),
@@ -491,13 +515,13 @@ class ValidateXbrlCalcs:
             ), (INCONSISTENT, INCONSISTENT,True,True)
         return None, (a, b, inclA, inclB)
 
-def roundFact(fact, inferDecimals=False, vDecimal=None):
+def roundFact(fact: ModelFact, inferDecimals: bool = False, vDecimal: Decimal | None = None) -> Decimal:
     if vDecimal is None:
         vStr = fact.value
         try:
-            vDecimal = decimal.Decimal(vStr)
+            vDecimal = Decimal(vStr)
             vFloatFact = float(vStr)
-        except (decimal.InvalidOperation, ValueError): # would have been a schema error reported earlier
+        except (InvalidOperation, ValueError): # would have been a schema error reported earlier
             vDecimal = NaN
             vFloatFact = floatNaN
     else: #only vFloat is defined, may not need vStr unless inferring precision from decimals
@@ -526,7 +550,7 @@ def roundFact(fact, inferDecimals=False, vDecimal=None):
                 #if trunc(fmod(vFloat * (10 ** d),2)) != 0:
                 #    vFloat += 10 ** (-d - 1) * (1.0 if vFloat > 0 else -1.0)
                 #vRounded = round(vFloat, d)
-                vRounded = decimalRound(vDecimal,d,decimal.ROUND_HALF_EVEN)
+                vRounded = decimalRound(vDecimal, d, ROUND_HALF_EVEN)
         elif dStr:
             d = int(dStr)
             # defeat binary rounding to nearest even
@@ -534,7 +558,7 @@ def roundFact(fact, inferDecimals=False, vDecimal=None):
             #    vFloat += 10 ** (-d - 1) * (-1.0 if vFloat > 0 else 1.0)
             #vRounded = round(vFloat, d)
             #vRounded = round(vFloat,d)
-            vRounded = decimalRound(vDecimal,d,decimal.ROUND_HALF_EVEN)
+            vRounded = decimalRound(vDecimal, d, ROUND_HALF_EVEN)
         else: # no information available to do rounding (other errors xbrl.4.6.3 error)
             vRounded = vDecimal
     else: # infer precision
@@ -556,27 +580,24 @@ def roundFact(fact, inferDecimals=False, vDecimal=None):
         elif vDecimal == 0:
             vRounded = vDecimal
         elif p is not None:  # round per 4.6.7.1, half-up
-            vAbs = vDecimal.copy_abs()
-            log = vAbs.log10()
+            vAbs = vDecimal.copy_abs()  # type: ignore[assignment]
+            log = vAbs.log10()  # type: ignore[attr-defined]
             # defeat rounding to nearest even
             d = p - int(log) - (1 if vAbs >= 1 else 0)
-            #if trunc(fmod(vFloat * (10 ** d),2)) != 0:
-            #    vFloat += 10 ** (-d - 1) * (1.0 if vFloat > 0 else -1.0)
-            #vRounded = round(vFloat, d)
-            vRounded = decimalRound(vDecimal,d,decimal.ROUND_HALF_UP)
+            vRounded = decimalRound(vDecimal, d, ROUND_HALF_UP)
         else: # no information available to do rounding (other errors xbrl.4.6.3 error)
             vRounded = vDecimal
     return vRounded
 
-def decimalRound(x, d, rounding):
+def decimalRound(x: Decimal, d: int | float, rounding: str) -> Decimal:
     if x.is_normal() and -28 <= d <= 28: # prevent exception with excessive quantization digits
         if d >= 0:
-            return x.quantize(ONE.scaleb(-d),rounding)
+            return x.quantize(ONE.scaleb(int(-d)),rounding)
         else: # quantize only seems to work on fractional part, convert integer to fraction at scaled point
-            return x.scaleb(d).quantize(ONE,rounding) * (TEN ** decimal.Decimal(-d)) # multiply by power of 10 to prevent scaleb scientific notatino
+            return x.scaleb(d).quantize(ONE,rounding) * (TEN ** Decimal(-d))  # type: ignore[arg-type] # multiply by power of 10 to prevent scaleb scientific notatino
     return x # infinite, NaN, zero, or excessive decimal digits ( > 28 )
 
-def inferredPrecision(fact):
+def inferredPrecision(fact: ModelFact) -> float | int:
     vStr = fact.value
     dStr = fact.decimals
     pStr = fact.precision
@@ -629,9 +650,9 @@ def inferredDecimals(fact: ModelFact) -> float | int:
         pass
     return floatNaN
 
-def roundValue(value, precision=None, decimals=None, scale=None):
+def roundValue(value: str | Decimal, precision: int | float | str | None = None, decimals: int | float | str | None = None, scale: str | None = None) -> Decimal:
     try:
-        vDecimal = decimal.Decimal(value)
+        vDecimal = Decimal(value)
         if scale:
             iScale = int(scale)
             vDecimal = vDecimal.scaleb(iScale)
@@ -639,7 +660,7 @@ def roundValue(value, precision=None, decimals=None, scale=None):
             vFloat = float(value)
             if scale:
                 vFloat = pow(vFloat, iScale)
-    except (decimal.InvalidOperation, ValueError, TypeError): # would have been a schema error reported earlier  None gives Type Error (e.g., xsi:nil)
+    except (InvalidOperation, ValueError, TypeError): # would have been a schema error reported earlier  None gives Type Error (e.g., xsi:nil)
         return NaN
     if precision is not None:
         if not isinstance(precision, (int,float)):
@@ -660,7 +681,7 @@ def roundValue(value, precision=None, decimals=None, scale=None):
             vAbs = fabs(vFloat)
             log = log10(vAbs)
             d = precision - int(log) - (1 if vAbs >= 1 else 0)
-            vRounded = decimalRound(vDecimal,d,decimal.ROUND_HALF_UP)
+            vRounded = decimalRound(vDecimal, d, ROUND_HALF_UP)
     elif decimals is not None:
         if not isinstance(decimals, (int,float)):
             if decimals == "INF":
@@ -675,21 +696,21 @@ def roundValue(value, precision=None, decimals=None, scale=None):
         elif isnan(decimals):
             vRounded = NaN
         else:
-            vRounded = decimalRound(vDecimal,decimals,decimal.ROUND_HALF_EVEN)
+            vRounded = decimalRound(vDecimal, decimals, ROUND_HALF_EVEN)
     else:
         vRounded = vDecimal
     return vRounded
 
-def rangeValue(value, decimals=None, truncate=False) -> tuple[decimal.Decimal, decimal.Decimal, bool, bool]:
+def rangeValue(value: _DecimalNew | ModelFact | list[ModelFact], decimals: int | float | str | None = None, truncate: bool = False) -> tuple[Decimal, Decimal, bool, bool]:
     if isinstance(value, list):
         if len(value) == 1 and isinstance(value[0], ModelFact):
-            return rangeValue(value[0].xValue, inferredDecimals(value[0]), truncate=truncate)
+            return rangeValue(value[0].xValue, inferredDecimals(value[0]), truncate=truncate)  # type: ignore[arg-type]
         # return intersection of fact value ranges
     if isinstance(value, ModelFact):
-        return rangeValue(value.xValue, inferredDecimals(value), truncate=truncate)
+        return rangeValue(value.xValue, inferredDecimals(value), truncate=truncate)  # type: ignore[arg-type]
     try:
-        vDecimal = decimal.Decimal(value)
-    except (decimal.InvalidOperation, ValueError): # would have been a schema error reported earlier
+        vDecimal = Decimal(value)  # type: ignore[arg-type]
+    except (InvalidOperation, ValueError): # would have been a schema error reported earlier
         return (NaN, NaN, True, True)
     if decimals is not None and decimals != "INF":
         if not isinstance(decimals, (int,float)):
@@ -698,7 +719,7 @@ def rangeValue(value, decimals=None, truncate=False) -> tuple[decimal.Decimal, d
             except ValueError: # would be a schema error
                 decimals = floatNaN
         if not (isinf(decimals) or isnan(decimals)):
-            dd = (TEN**(decimal.Decimal(decimals).quantize(ONE,decimal.ROUND_DOWN)*-ONE))
+            dd = (TEN ** (Decimal(decimals).quantize(ONE, ROUND_DOWN) * -ONE))
             if not truncate:
                 dd /= TWO
                 return (vDecimal - dd, vDecimal + dd, True, True)
@@ -712,12 +733,13 @@ def rangeValue(value, decimals=None, truncate=False) -> tuple[decimal.Decimal, d
 
 
 def insignificantDigits(
-        value: TypeXValue,
-        decimals: int | float | Decimal | str) -> tuple[Decimal, Decimal] | None:
+        value: _DecimalNew,
+        decimals: int | float | Decimal | str
+    ) -> tuple[Decimal, Decimal] | None:
     # Normalize value
     try:
-        valueDecimal = decimal.Decimal(value)
-    except (decimal.InvalidOperation, ValueError):  # would have been a schema error reported earlier
+        valueDecimal = Decimal(value)
+    except (InvalidOperation, ValueError):  # would have been a schema error reported earlier
         return None
     if not valueDecimal.is_normal():  # prevent exception with excessive quantization digits
         return None
@@ -733,12 +755,12 @@ def insignificantDigits(
     if isinf(decimals) or isnan(decimals) or decimals <= -28:  # prevent exception with excessive quantization digits
         return None
     if decimals > 0:
-        divisor = ONE.scaleb(-decimals)  # fractional scaling doesn't produce scientific notation
+        divisor = ONE.scaleb(-decimals)  # type: ignore[arg-type] # fractional scaling doesn't produce scientific notation
     else:  # extra quantize step to prevent scientific notation for decimal number
-        divisor = ONE.scaleb(-decimals).quantize(ONE, decimal.ROUND_HALF_UP) # should never round
+        divisor = ONE.scaleb(-decimals).quantize(ONE, ROUND_HALF_UP)  # type: ignore[arg-type] # should never round
     try:
         quotient, insignificant = divmod(valueDecimal, divisor)
-    except decimal.InvalidOperation:
+    except InvalidOperation:
         return None
     if insignificant:
         significant = quotient * divisor
@@ -746,10 +768,10 @@ def insignificantDigits(
     return None
 
 
-def wrappedFactWithWeight(fact, weight, roundedValue):
+def wrappedFactWithWeight(fact: ModelFact, weight: Decimal, roundedValue: Decimal) -> ObjectPropertyViewWrapper:
     return ObjectPropertyViewWrapper(fact, ( ("weight", weight), ("roundedValue", roundedValue)) )
 
-def wrappedSummationAndItems(fact, roundedSum, boundSummationItems):
+def wrappedSummationAndItems(fact: ModelFact, roundedSum: Decimal, boundSummationItems: list[ObjectPropertyViewWrapper]) -> list[ObjectPropertyViewWrapper]:
     # need hash of facts and their values from boundSummationItems
     ''' ARELLE-281, replace: faster python-based hash (replace with hashlib for fewer collisions)
     itemValuesHash = hash( tuple(( hash(b.modelObject.qname), hash(b.extraProperties[1][1]) )
@@ -761,13 +783,13 @@ def wrappedSummationAndItems(fact, roundedSum, boundSummationItems):
     sha256 = hashlib.sha256()
     # items hash: sort by qname so we don't care about reordering of summation terms in linkbase updates
     for b in sorted(boundSummationItems, key=lambda b: b.modelObject.qname):
-        sha256.update(b.modelObject.qname.namespaceURI.encode('utf-8','replace')) #qname of erroneous submission may not be utf-8 perfectly encodable
+        sha256.update(b.modelObject.qname.namespaceURI.encode('utf-8','replace'))  # type: ignore[union-attr] #qname of erroneous submission may not be utf-8 perfectly encodable
         sha256.update(b.modelObject.qname.localName.encode('utf-8','replace'))
         sha256.update(str(b.extraProperties[1][1]).encode('utf-8','replace'))
     itemValuesHash = sha256.hexdigest()
     # summation value hash
     sha256 = hashlib.sha256()
-    sha256.update(fact.qname.namespaceURI.encode('utf-8','replace'))
+    sha256.update(fact.qname.namespaceURI.encode('utf-8','replace'))  # type: ignore[union-attr]
     sha256.update(fact.qname.localName.encode('utf-8','replace'))
     sha256.update(str(roundedSum).encode('utf-8','replace'))
     sumValueHash = sha256.hexdigest()
