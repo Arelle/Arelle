@@ -478,7 +478,7 @@ def rule_namespace_prefixes(
             patterns = pathInfo.reportFolderType.prefixPatterns
             if len(patterns) == 0:
                 continue # No patterns to check against
-            match = any(pattern.fullmatch(prefix) for pattern in patterns)
+            match = any(pattern.fullmatch(prefix) for pattern in patterns)  # type: ignore[arg-type]
             if match:
                 continue # Valid namespace URI
             if pathInfo.reportFolderType == ReportFolderType.AUDIT_DOC:

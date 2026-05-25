@@ -561,7 +561,7 @@ class PluginValidationDataExtension(PluginData):
             for elt in rootElt.iterdescendants(XbrlConst.qnLinkLinkbaseRef.clarkNotation):
                 uri = elt.attrib.get(XbrlConst.qnXlinkHref.clarkNotation)
                 role = elt.attrib.get(XbrlConst.qnXlinkRole.clarkNotation)
-                if not role == linkbaseType.getRefUri() or isExtensionUri(uri, modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
+                if not role == linkbaseType.getRefUri() or isExtensionUri(uri, modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):  # type: ignore[arg-type]
                     continue
                 elts.append(elt)
         return elts

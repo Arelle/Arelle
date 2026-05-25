@@ -656,7 +656,7 @@ class ModelDocument(ModelDocumentBase):
     # before lxml parses the document making the lxml DocInfo encoding unreliable.
     documentEncoding: str
     entrypoint: dict[str, Any] | None
-    xmlRootElement: Any
+    xmlRootElement: ModelObject
     targetXbrlRootElement: ModelObject
     parser: etree.XMLParser[etree._Element]
     parserLookupName: KnownNamespacesModelObjectClassLookup
@@ -856,14 +856,14 @@ class ModelDocument(ModelDocumentBase):
             initialComment = ''
             node = self.xmlRootElement
             while node.getprevious() is not None:
-                node = node.getprevious()
+                node = node.getprevious()  # type: ignore[assignment]
                 if isinstance(node, etree._Comment):
                     initialComment = node.text + '\n' + initialComment
             if initialComment:
                 self._creationSoftwareComment: str | None = initialComment
             else:
                 self._creationSoftwareComment = None
-                for i, node in enumerate(cast(etree._ElementTree, self.xmlDocument).iter()):
+                for i, node in enumerate(cast(etree._ElementTree, self.xmlDocument).iter()):  # type: ignore[assignment]
                     if isinstance(node, etree._Comment):
                         self._creationSoftwareComment = node.text
                     if i > 10:  # give up, no heading comment
@@ -938,7 +938,7 @@ class ModelDocument(ModelDocumentBase):
             self._processingInstructions: list[etree._ProcessingInstruction] = []
             node = self.xmlRootElement
             while node.getprevious() is not None:
-                node = node.getprevious()
+                node = node.getprevious()  # type: ignore[assignment]
                 if isinstance(node, etree._ProcessingInstruction):
                     self._processingInstructions.append(node)
             return self._processingInstructions

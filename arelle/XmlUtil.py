@@ -879,7 +879,7 @@ def addProcessingInstruction(
     else: # can go after elements
         parent.append(child)
 
-def addQnameValue(modelDocument: ModelDocument, qnameValue: QName | str) -> str:
+def addQnameValue(modelDocument: ModelDocument | ModelObject, qnameValue: QName | str) -> str:
     if not isinstance(qnameValue, QName):
         return qnameValue # may be just a string
     if hasattr(modelDocument, "modelDocument"):
@@ -899,7 +899,7 @@ def addQnameValue(modelDocument: ModelDocument, qnameValue: QName | str) -> str:
             break   # ok to use this prefix
         prefix = "{0}_{1}".format(qnameValue.prefix if qnameValue.prefix else '', dupNum)
         dupNum += 1
-    setXmlns(modelDocument, prefix, ns)
+    setXmlns(modelDocument, prefix, ns)  # type: ignore[arg-type]
     return f'{prefix}:{qnameValue.localName}' if prefix else qnameValue.localName
 
 

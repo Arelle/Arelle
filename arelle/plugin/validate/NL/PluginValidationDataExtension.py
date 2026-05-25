@@ -567,7 +567,7 @@ class PluginValidationDataExtension(PluginData):
                             prohibitedArcFroms[arcElt.get(XbrlConst.qnXlinkFrom.clarkNotation)].append(arcElt)
                             prohibitedArcTos[arcElt.get(XbrlConst.qnXlinkTo.clarkNotation)].append(arcElt)
                     for locElt in linkElt.iterchildren(XbrlConst.qnLinkLoc.clarkNotation):
-                        if isExtensionUri(locElt.get(XbrlConst.qnXlinkHref.clarkNotation), modelDocument.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
+                        if isExtensionUri(locElt.get(XbrlConst.qnXlinkHref.clarkNotation), modelDocument.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):  # type: ignore[arg-type]
                             continue
                         prohibitingArcs = prohibitedArcTos.get(locElt.get(XbrlConst.qnXlinkLabel.clarkNotation))
                         if prohibitingArcs:
@@ -575,15 +575,15 @@ class PluginValidationDataExtension(PluginData):
                         prohibitingArcs = prohibitedArcFroms.get(locElt.get(XbrlConst.qnXlinkLabel.clarkNotation))
                         if prohibitingArcs:
                             prohibitingLabelElements.extend(prohibitingArcs)
-                            prohibitedBaseConcepts.append(locElt.dereference())
+                            prohibitedBaseConcepts.append(locElt.dereference())  # type: ignore[attr-defined]
 
                 linkbases.append(LinkbaseData(
-                    arcs=arcs,
+                    arcs=arcs,  # type: ignore[arg-type]
                     basename=modelDocument.basename,
                     element=linkElt,
                     linkbaseType=linkbaseType,
                     prohibitedBaseConcepts=prohibitedBaseConcepts,
-                    prohibitingLabelElements=prohibitingLabelElements,
+                    prohibitingLabelElements=prohibitingLabelElements,  # type: ignore[arg-type]
                 ))
         return linkbases
 

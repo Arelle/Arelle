@@ -365,7 +365,7 @@ class ModelObject(etree.ElementBase, ModelObjectBase):
                 for docModelObject in doc.xmlRootElement.iter():
                     if docModelObject == xpointedElement:
                         doc.idObjects[id] = docModelObject # cache for reuse
-                        return cast(ModelObject, docModelObject)
+                        return docModelObject
         return None
 
     def genLabel(

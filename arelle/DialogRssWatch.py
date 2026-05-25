@@ -130,7 +130,7 @@ class DialogRssWatch(Toplevel):
                      "validateDisclosureSystemRules"),
         )
         row += 2
-        self.calcModeMenu: dict[str, int] = CalcsMode.menu()  # type: ignore[no-untyped-call] # dynamic, may change after initialization if language changes
+        self.calcModeMenu: dict[str, int] = CalcsMode.menu()  # dynamic, may change after initialization if language changes
         vals = list(self.calcModeMenu.keys())
         keys = dict((v, k) for k, v in self.calcModeMenu.items())
         self.validateCalcs = gridCombobox(frame, 2, row, keys.get(options.get("validateCalcs", 0), ""), values=vals)

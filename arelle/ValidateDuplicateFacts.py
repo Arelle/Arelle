@@ -296,7 +296,7 @@ class DuplicateFactSet:
         assert fact in self.facts, "Attempted to get range for fact not in set"
         assert fact.isNumeric, "Attempted to get range for non-numeric fact"
         if fact not in self._ranges:
-            lower, upper, __, __ = rangeValue(fact.xValue, self.getDecimals(fact))
+            lower, upper, __, __ = rangeValue(fact.xValue, self.getDecimals(fact))  # type: ignore[arg-type]
             self._ranges[fact] = lower, upper
         return self._ranges[fact]
 
