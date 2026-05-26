@@ -281,7 +281,7 @@ def evaluateVariableBindings(xpCtx, varSet, uncoveredAspectFacts):
                 for vb in xpCtx.varBindings.values():
                     if not vb.isFallback:
                         if vb.isBindAsSequence:
-                            if isinstance(vb.yieldedEvaluation, list):
+                            if isinstance(vb.yieldedEvaluation, (list, tuple)):
                                 _modelObjects.extend(vb.yieldedEvaluation)
                         elif vb.yieldedFact is not None:
                             _modelObjects.append(vb.yieldedFact)
@@ -327,7 +327,7 @@ def evaluateVariableBindings(xpCtx, varSet, uncoveredAspectFacts):
                         )
                     else:
                         if vb.isBindAsSequence:
-                            if isinstance(vb.yieldedEvaluation, list):
+                            if isinstance(vb.yieldedEvaluation, (list, tuple)):
                                 _modelObjects.extend(vb.yieldedEvaluation)
                         elif vb.yieldedFact is not None:
                             _modelObjects.append(vb.yieldedFact)
