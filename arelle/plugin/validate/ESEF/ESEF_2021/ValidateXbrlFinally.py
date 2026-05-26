@@ -430,8 +430,8 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         for ixElt in ixHiddenElt.iterdescendants(tag=tag):
                             if (getattr(ixElt, "xValid", 0) >= VALID  # may not be validated
                                 ): # add future "and" conditions on elements which can be in hidden
-                                if (ixElt.concept.baseXsdType not in untransformableTypes and
-                                    not ixElt.isNil):
+                                if (ixElt.concept.baseXsdType not in untransformableTypes and  # type: ignore[union-attr]
+                                    not ixElt.isNil):  # type: ignore[union-attr]
                                     eligibleForTransformHiddenFacts.append(ixElt)
                                 elif ixElt.id is None:
                                     requiredToDisplayFacts.append(ixElt)
@@ -446,7 +446,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 if ixElt not in ixHiddenFacts:
                                     modelXbrl.error("ESEF.2.5.4.displayNoneUsedToHideTaggedFacts",
                                         _('CSS MUST not be used to hide tagged facts, e.g. by applying display:none style. Concept "%(concept)s", value: %(value)s - line %(sourceline)s'),
-                                        modelObject=ixElt, concept=ixElt.concept.label(), sourceline=ixElt.sourceline, value=ixElt.effectiveValue)
+                                        modelObject=ixElt, concept=ixElt.concept.label(), sourceline=ixElt.sourceline, value=ixElt.effectiveValue)  # type: ignore[union-attr]
                 del ixHiddenFacts
 
                 firstIxdsDoc = False
@@ -476,7 +476,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             for hiddenEltId, ixElt in hiddenEltIds.items():
                 if (hiddenEltId not in presentedHiddenEltIds and
                     getattr(ixElt, "xValid", 0) >= VALID and # may not be validated
-                    (ixElt.concept.baseXsdType in untransformableTypes or ixElt.isNil)):
+                    (ixElt.concept.baseXsdType in untransformableTypes or ixElt.isNil)):  # type: ignore[union-attr]
                     requiredToDisplayFacts.append(ixElt)
             if requiredToDisplayFacts:
                 modelXbrl.error("ESEF.2.4.1.factInHiddenSectionNotInReport",

@@ -234,7 +234,7 @@ def checkSVGContent(
         elt = svgDoc.xmlRootElement
     else:
         _parser, _, _ = parser(modelXbrl, baseURI)
-        elt = XML(data, parser=_parser)
+        elt = XML(data, parser=_parser)  # type: ignore[assignment]
     yield from checkSVGContentElt(elt, baseURI, modelXbrl, imgElts, params, val)
 
 

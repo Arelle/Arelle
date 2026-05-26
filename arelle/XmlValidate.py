@@ -763,7 +763,7 @@ def lxmlSchemaValidate(modelDocument: ModelDocument, extraSchema : str | None = 
             if ns in modelXbrl.namespaceDocs:
                 xsdTree = modelXbrl.namespaceDocs[ns][0].xmlRootElement.getroottree()
             else:
-                xsdTree = url = None
+                xsdTree = url = None  # type: ignore[assignment]
 
                 if extraSchema:
                     url = extraSchema
@@ -776,7 +776,7 @@ def lxmlSchemaValidate(modelDocument: ModelDocument, extraSchema : str | None = 
                                 break
                 if url:
                     try:
-                        xsdTree = etree.parse(url,parser=lxmlResolvingParser(cntlr, modelXbrl))
+                        xsdTree = etree.parse(url, parser=lxmlResolvingParser(cntlr, modelXbrl))  # type: ignore[arg-type]
                     except (EnvironmentError, KeyError, UnicodeDecodeError) as err:
                         msgCode = "arelle.schemaFileError"
                         cntlr.addToLog(_("XML schema validation error: %(error)s"),
@@ -800,7 +800,7 @@ def lxmlSchemaValidate(modelDocument: ModelDocument, extraSchema : str | None = 
                 if not any(s in e.message for s in (": The QName value", "is not a valid value of the atomic type 'xs:QName'")):
                     # do newer lxml validations have QName whitespace collapsing issue?
                     userFriendlyElementPath = ''
-                    errorElements = docTree.xpath(e.path, namespaces=nsmap)
+                    errorElements = docTree.xpath(e.path, namespaces=nsmap)  # type: ignore[arg-type]
                     if len(errorElements) == 1:
                         userFriendlyElementPath = docTree.getelementpath(errorElements[0])
                         for prefix, namespace in docTree.getroot().nsmap.items():

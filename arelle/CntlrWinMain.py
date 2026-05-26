@@ -1510,7 +1510,7 @@ class CntlrWinMain(Cntlr.Cntlr):
             if valType == ModelDocument.Type.VERSIONINGREPORT:
                 v = _("Validate versioning report")
             else:
-                c = "\n" + CalcsMode.label(self.modelManager.validateCalcs)
+                c = "\n" + CalcsMode.label(self.modelManager.validateCalcs)  # type: ignore[operator]
                 if self.modelManager.validateUtr:
                     u = _("\nCheck unit type registry")
                 else:

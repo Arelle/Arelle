@@ -592,7 +592,7 @@ def rule_gfm_1_2_26(
         ):
             continue
         try:
-            insignificance = insignificantDigits(fact.xValue, decimals=fact.decimals)
+            insignificance = insignificantDigits(fact.xValue, decimals=fact.decimals)  # type: ignore[arg-type]
             if insignificance is not None:
                 errors.append(fact)
         except (ValueError,TypeError):
@@ -1311,7 +1311,7 @@ def rule_gfm_1_4_6(
         for elt in rootElt.iter(XbrlConst.qnLinkArcroleRef.clarkNotation):
             refUri = elt.get("arcroleURI")
             hrefAttr = elt.get(XbrlConst.qnXlinkHref.clarkNotation)
-            hrefUri, hrefId = UrlUtil.splitDecodeFragment(hrefAttr)
+            hrefUri, hrefId = UrlUtil.splitDecodeFragment(hrefAttr)  # type: ignore[arg-type]
             if hrefUri not in val.disclosureSystem.standardTaxonomiesDict:
                 yield Validation.warning(
                     codes='EDINET.EC5700W.GFM.1.4.6',

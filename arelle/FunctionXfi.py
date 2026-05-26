@@ -410,7 +410,7 @@ def infer_precision_decimals(
     if modelConcept.isFraction:
         return "INF"
     if modelConcept.isNumeric:
-        infer_precision = inferredPrecision(modelItem) if attrName == "precision" else inferredDecimals(modelItem)  # type: ignore[no-untyped-call]
+        infer_precision = inferredPrecision(modelItem) if attrName == "precision" else inferredDecimals(modelItem)
         if isinf(infer_precision):
             return "INF"
         if isnan(infer_precision):

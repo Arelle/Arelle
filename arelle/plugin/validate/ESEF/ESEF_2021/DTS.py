@@ -308,7 +308,7 @@ def checkFilingDTS(
                         prohibitingArcs = prohibitedArcFroms.get(locElt.get("{http://www.w3.org/1999/xlink}label"))
                         if prohibitingArcs and not ((href := locElt.get("{http://www.w3.org/1999/xlink}href")) and isEsefExtensionUri(val, href)):
                             prohibitingLbElts.extend(prohibitingArcs)
-                            prohibitedBaseConcepts.append(locElt.dereference())
+                            prohibitedBaseConcepts.append(locElt.dereference())  # type: ignore[attr-defined]
                     del prohibitedArcFroms, prohibitedArcTos # dereference
             for disallowedArcrole, arcs in disallowedArcroles.items():
                 val.modelXbrl.error("ESEF.RTS.Annex.IV.disallowedDefinitionArcrole",

@@ -78,7 +78,7 @@ class ModelManager:
         self.validateDuplicateFacts = ValidateDuplicateFactsConst.DuplicateType.NONE
         self.validateXmlOim = False
         self.setLocale()
-        ValidateXbrlCalcs.init()  # type: ignore[no-untyped-call] # required due to circular dependencies in module
+        ValidateXbrlCalcs.init()  # required due to circular dependencies in module
 
     def shutdown(self) -> None:
         self.status = "shutdown"
