@@ -22,7 +22,7 @@ import os, io, json, cbor2, sys, time, traceback, inspect, types
 JSON_SCHEMA_VALIDATOR = "fastjsonschema"
 if JSON_SCHEMA_VALIDATOR == "jsonschema": # slow and thorough
     import jsonschema
-    # finds all errors in source object
+    # finds all errors in source object but can be very slow on complex schemas like ours, especially with many errors
     jsonSchemaLoaderMethod = jsonschema.Draft7Validator
 elif JSON_SCHEMA_VALIDATOR == "fastjsonschema": # may be faster if it works on our schemas
     import fastjsonschema
