@@ -221,10 +221,10 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument, checkedModelDocume
                                         modelObject=hrefElt,
                                         linkbaseHref=hrefElt.get("{http://www.w3.org/1999/xlink}href"),
                                         role=role, link=linkNode.prefixedName)
-                elif hrefedElt is not None and hrefElt.localName == "schemaRef":
+                elif hrefElt.localName == "schemaRef":
                     # check schemaRef target
                     if (hrefedDoc.type != ModelDocumentType.SCHEMA or
-                        hrefedElt.namespaceURI != XbrlConst.xsd or hrefedElt.localName != "schema"):
+                        hrefedElt.namespaceURI != XbrlConst.xsd or hrefedElt.localName != "schema"):  # type: ignore[union-attr]
                         val.modelXbrl.error("xbrl.4.2.2:schemaRefHref",
                             _("SchemaRef %(schemaRef)s does not identify an xsd:schema element"),
                             modelObject=hrefElt, schemaRef=hrefElt.get("{http://www.w3.org/1999/xlink}href"))
@@ -407,14 +407,13 @@ def checkElements(val: ValidateXbrl, modelDocument: ModelDocument, parent: _Elem
                             _("Element %(element)s attribute %(attribute)s '%(value)s' is not an NCname"),
                             modelObject=elt, element=elt.prefixedName, attribute=name, value=attrValue)
                     '''
-                    assert _valueItems is not None, "_valueItems is None"
-                    if name == "id" or (isinstance(elt, ModelDtsObject.ModelConcept) and (elt.isItem or elt.isTuple)):
-                        if attrValue in _valueItems:
+                    if _valueItems is not None and name == "id" or (isinstance(elt, ModelDtsObject.ModelConcept) and (elt.isItem or elt.isTuple)):
+                        if attrValue in _valueItems:  # type: ignore[operator]
                             # 2.1 spec @id validation refers to http://www.w3.org/TR/REC-xml#NT-TokenizedType
                             # TODO: this check should not test inline elements, those should be in ModelDocument inlineIxdsDiscover using ixdsEltById
                             val.modelXbrl.error(errCode,
                                 _("Element %(element)s %(attribute)s %(value)s is duplicated"),
-                                modelObject=(elt,_valueItems[attrValue]), element=elt.prefixedName, attribute=name, value=attrValue,
+                                modelObject=(elt, _valueItems[attrValue]), element=elt.prefixedName, attribute=name, value=attrValue,  # type: ignore[index]
                                 messageCodes=("xml.3.3.1:idMustBeUnique", "xbrl.5.1.1:conceptName"))
                         else:
                             _valueItems[attrValue] = elt  # type: ignore[index]
@@ -1160,7 +1159,7 @@ def checkElements(val: ValidateXbrl, modelDocument: ModelDocument, parent: _Elem
                                     conceptTo=arcToConceptQname(elt))
                             try:
                                 weightAttr = elt.get("weight")
-                                if weightAttr and not float(weightAttr) in (1, -1):
+                                if float(weightAttr) in (1, -1):  # type: ignore[operator,arg-type]
                                     val.modelXbrl.error(("EFM.6.14.02", "GFM.1.07.02"),
                                         _("CalculationArc from %(xlinkFrom)s to %(xlinkTo)s weight %(weight)s must be 1 or -1"),
                                         modelObject=elt,
