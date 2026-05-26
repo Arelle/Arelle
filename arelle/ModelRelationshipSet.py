@@ -272,7 +272,7 @@ class ModelRelationshipSet:
             self.modelRelationshipsTo = modelRelationshipsTo
         return modelRelationshipsTo
 
-    def fromModelObjects(self) -> dict[Any, list[ModelRelationship]]:
+    def fromModelObjects(self) -> dict[ModelObject, list[ModelRelationship]]:
         return self.loadModelRelationshipsFrom()
 
     def fromModelObject(self, modelFrom: ModelObject) -> list[ModelRelationship]:
@@ -280,7 +280,7 @@ class ModelRelationshipSet:
             modelFrom = self.modelXbrl.qnameConcepts.get(modelFrom.qname, None)  # type: ignore[union-attr,assignment]
         return self.loadModelRelationshipsFrom().get(modelFrom, [])
 
-    def toModelObjects(self) -> dict[Any, list[ModelRelationship]]:
+    def toModelObjects(self) -> dict[ModelObject, list[ModelRelationship]]:
         return self.loadModelRelationshipsTo()
 
     def toModelObject(self, modelTo: ModelObject) -> list[ModelRelationship]:

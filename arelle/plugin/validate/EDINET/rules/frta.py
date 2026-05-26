@@ -116,7 +116,7 @@ def rule_frta_2_1_11(
                 continue
             if not modelLabel.xmlLang:
                 continue
-            labelGroupsByLang[modelLabel.xmlLang][modelLabel.role][modelLabel.textValue].add(concept)
+            labelGroupsByLang[modelLabel.xmlLang][modelLabel.role][modelLabel.textValue].add(concept)  # type: ignore[arg-type]
     for lang, labelGroupsByRole in labelGroupsByLang.items():
         duplicateLabelsByRole = defaultdict(list)
         conceptsWithVerboseLabel = {

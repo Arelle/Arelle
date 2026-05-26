@@ -2123,7 +2123,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             from arelle.formula import ValidateFormula
                             startedAt = time.time()
                             if not options.validate:
-                                ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)  # type: ignore[no-untyped-call]
+                                ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
                             # setup fresh parameters from formula optoins
                             modelXbrl.parameters = fo.typedParameters(modelXbrl.prefixedNamespaces)  # type: ignore[no-untyped-call]
                             ValidateFormula.validate(modelXbrl, compileOnly=(options.formulaAction != "run"))

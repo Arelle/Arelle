@@ -1180,14 +1180,14 @@ def filter_member_DRS_selection(
     if memConcept is None or not memConcept.isDomainMember or not dimConcept.isDimensionItem:
         # not an error, just don't find anything
         return ()
-    for hcELR, hcRels in priItemElrHcRels(xc, priItemConcept, linkroleURI).items():  # type: ignore[no-untyped-call]
+    for hcELR, hcRels in priItemElrHcRels(xc, priItemConcept, linkroleURI).items():
         if not linkroleURI or linkroleURI == hcELR:
             for hasHcRel in hcRels:
                 hcConcept = hasHcRel.toModelObject
                 if hasHcRel.arcrole == XbrlConst.all:
                     dimELR = hasHcRel.targetRole or hcELR
                     for hcDimRel in xc.modelXbrl.relationshipSet(XbrlConst.hypercubeDimension, dimELR).fromModelObject(
-                        hcConcept
+                        hcConcept  # type: ignore[arg-type]
                     ):
                         if dimConcept == hcDimRel.toModelObject:
                             filter_member_DRS_members(
