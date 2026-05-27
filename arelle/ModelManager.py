@@ -56,6 +56,7 @@ class ModelManager:
     formulaOptions: FormulaOptions
     locale: LocaleDict
     modelXbrl: ModelXbrl | None
+    rssWatchOptions: dict[str, Any]
 
     def __init__(self, cntlr: Cntlr):
         self.cntlr = cntlr

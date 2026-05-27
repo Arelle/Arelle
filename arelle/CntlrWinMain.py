@@ -274,7 +274,7 @@ class CntlrWinMain(Cntlr.Cntlr):
         rssWatchMenu.add_command(label=_("Stop"), underline=0, command=lambda: self.rssWatchControl(stop=True))
 
         toolsMenu.add_cascade(label=_("RSS Watch"), menu=rssWatchMenu, underline=0)
-        self.modelManager.rssWatchOptions = self.config.setdefault("rssWatchOptions", {})  # type: ignore[attr-defined]
+        self.modelManager.rssWatchOptions = self.config.setdefault("rssWatchOptions", {})
 
         toolsMenu.add_cascade(label=_("Internet"), menu=cacheMenu, underline=0)
         self.webCache.workOffline  = self.config.setdefault("workOffline",False)
@@ -1445,7 +1445,7 @@ class CntlrWinMain(Cntlr.Cntlr):
     def rssWatchControl(self, start: bool = False, stop: bool = False, close: bool = False) -> bool | None:
         from arelle.ModelDocument import Type
         from arelle import WatchRss
-        if not self.modelManager.rssWatchOptions.get("feedSourceUri"):  # type: ignore[attr-defined]
+        if not self.modelManager.rssWatchOptions.get("feedSourceUri"):
             tkinter.messagebox.showwarning(_("RSS Watch Control Error"),
                                 _("RSS Feed is not set up, please select options and select feed"),
                                 parent=self.parent)
@@ -1453,20 +1453,20 @@ class CntlrWinMain(Cntlr.Cntlr):
         rssModelXbrl = None
         for loadedModelXbrl in self.modelManager.loadedModelXbrls:
             if (loadedModelXbrl.modelDocument.type == Type.RSSFEED and  # type: ignore[union-attr]
-                loadedModelXbrl.modelDocument.uri == self.modelManager.rssWatchOptions.get("feedSourceUri")):  # type: ignore[attr-defined,union-attr]
+                loadedModelXbrl.modelDocument.uri == self.modelManager.rssWatchOptions.get("feedSourceUri")):  # type: ignore[union-attr]
                 rssModelXbrl = loadedModelXbrl
                 break
         #not loaded
         if start:
             if not rssModelXbrl:
-                rssModelXbrl = self.modelManager.create(Type.RSSFEED, self.modelManager.rssWatchOptions.get("feedSourceUri"))  # type: ignore[attr-defined]
+                rssModelXbrl = self.modelManager.create(Type.RSSFEED, self.modelManager.rssWatchOptions.get("feedSourceUri"))
                 self.showLoadedXbrl(rssModelXbrl, False)
             if not hasattr(rssModelXbrl,"watchRss"):
                 WatchRss.initializeWatcher(rssModelXbrl)
-            rssModelXbrl.watchRss.start()  # type: ignore[attr-defined]
+            rssModelXbrl.watchRss.start()
         elif stop:
-            if rssModelXbrl and rssModelXbrl.watchRss:  # type: ignore[attr-defined]
-                rssModelXbrl.watchRss.stop()  # type: ignore[attr-defined]
+            if rssModelXbrl and rssModelXbrl.watchRss:
+                rssModelXbrl.watchRss.stop()
         return None
 
     # for ui thread option updating
@@ -1476,8 +1476,8 @@ class CntlrWinMain(Cntlr.Cntlr):
     # ui thread addToLog
     def uiRssWatchUpdateOption(self, latestPubDate: Any) -> None:
         if latestPubDate:
-            self.modelManager.rssWatchOptions["latestPubDate"] = latestPubDate  # type: ignore[attr-defined]
-        self.config["rssWatchOptions"] = self.modelManager.rssWatchOptions  # type: ignore[attr-defined]
+            self.modelManager.rssWatchOptions["latestPubDate"] = latestPubDate
+        self.config["rssWatchOptions"] = self.modelManager.rssWatchOptions
         self.saveConfig()
 
     def languagesDialog(self, *args: Any) -> None:

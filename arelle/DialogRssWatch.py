@@ -30,7 +30,7 @@ caller checks accepted, if True, caller retrieves url
 
 
 def getOptions(mainWin: CntlrWinMain) -> None:
-    dialog = DialogRssWatch(mainWin, mainWin.modelManager.rssWatchOptions)  # type: ignore[attr-defined]
+    dialog = DialogRssWatch(mainWin, mainWin.modelManager.rssWatchOptions)
     if dialog.accepted:
         mainWin.config["rssWatchOptions"] = dialog.options
         mainWin.saveConfig()
