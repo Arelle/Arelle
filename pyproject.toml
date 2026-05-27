@@ -215,7 +215,6 @@ module = [
     'arelle.ViewWinTupleGrid',
     'arelle.ViewWinVersReport',
     'arelle.ViewWinXml',
-    'arelle.WatchRss',
     'arelle.XmlValidateParticles',
     'arelle.archive.CustomLogger',
     'arelle.archive.LoadEFMvalidate',
