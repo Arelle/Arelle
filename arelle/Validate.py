@@ -236,7 +236,7 @@ class Validate:
                 self.validateTestcase(doc)  # testcases doc's are sorted by their uri (file names), e.g., for formula
         elif hasattr(testcase, "testcaseVariations"):
             testcaseVariations = []
-            for testcaseVariation in testcaseVariationsByTarget(testcase.testcaseVariations):  # type: ignore[no-untyped-call]
+            for testcaseVariation in testcaseVariationsByTarget(testcase.testcaseVariations):
                 if self.filterTestcaseVariation(testcaseVariation):
                     testcaseVariations.append(testcaseVariation)
                 else:
@@ -293,7 +293,7 @@ class Validate:
                 inputDTSes=inputDTSes,
                 errorCaptureLevel=errorCaptureLevel,
                 baseForElement=baseForElement,
-                parameters=parameters,
+                parameters=parameters,  # type: ignore[arg-type]
             ))
         validateInputDTS = False
         for modelXbrl in loadedModels:
@@ -316,7 +316,7 @@ class Validate:
                 else:
                     modelXbrl.error("arelle:notLoaded",
                             _("Variation %(id)s %(name)s input DTSes not loaded, unable to generate versioning report: %(file)s"),
-                            modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, file=os.path.basename(readMeFirstUri))
+                            modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, file=os.path.basename(readMeFirstUri))  # type: ignore[type-var]
                     modelTestcaseVariation.status = "failed"
             elif resultIsTaxonomyPackage:
                 self.determineTestStatus(modelTestcaseVariation, modelXbrl.errors)
@@ -324,7 +324,7 @@ class Validate:
             elif inputDTSes:
                 validateInputDTS = True
         if validateInputDTS:
-            self._testcaseValidateInputDTS(testcase, modelTestcaseVariation, errorCaptureLevel, parameters, inputDTSes, baseForElement, resultIsXbrlInstance)
+            self._testcaseValidateInputDTS(testcase, modelTestcaseVariation, errorCaptureLevel, parameters, inputDTSes, baseForElement, resultIsXbrlInstance)  # type: ignore[arg-type]
         # update ui thread via modelManager (running in background here)
         self.modelXbrl.modelManager.viewModelObject(self.modelXbrl, modelTestcaseVariation.objectId())
         self.modelXbrl.modelManager.cntlr.testcaseVariationReset()
@@ -335,13 +335,13 @@ class Validate:
         testcase: ModelDocument,
         modelTestcaseVariation: ModelTestcaseVariation,
         index: int,
-        readMeFirstUri: str | tuple[str, str],
+        readMeFirstUri: str | tuple[str | QName, str],
         resultIsVersioningReport: bool,
         resultIsTaxonomyPackage: bool,
         inputDTSes: dict[str | None, list[ModelXbrl]],
         errorCaptureLevel: int,
         baseForElement: str,
-        parameters: dict[str | QName, tuple[QName | None, Any]],
+        parameters: dict[str | QName | None, tuple[QName | None, Any]],
     ) -> list[ModelXbrl]:
         preLoadingErrors: list[str] = [] # accumulate pre-loading errors, such as during taxonomy package loading
         loadedModels: list[ModelXbrl] = []
@@ -362,7 +362,7 @@ class Validate:
             dtsName = None
         if resultIsVersioningReport and dtsName: # build multi-schemaRef containing document
             if dtsName in inputDTSes:
-                dtsName = inputDTSes[dtsName]  # type: ignore[assignment]
+                dtsName = inputDTSes[dtsName]  # type: ignore[assignment, index]
             else:
                 modelXbrl = modelXbrlCreate(self.modelXbrl.modelManager,
                                 Type.DTSENTRIES,
@@ -535,10 +535,10 @@ class Validate:
             elif testcase.type == Type.REGISTRYTESTCASE:
                 self.instValidator.validate(model)  # required to set up dimensions, etc
                 self.instValidator.executeCallTest(model, modelTestcaseVariation.id,
-                            modelTestcaseVariation.cfcnCall, modelTestcaseVariation.cfcnTest)
+                            modelTestcaseVariation.cfcnCall, modelTestcaseVariation.cfcnTest)  # type: ignore[arg-type]
                 self.instValidator.close()
             else:
-                inputDTSes[dtsName].append(model)
+                inputDTSes[dtsName].append(model)  # type: ignore[index]
                 # validate except for formulas
                 _hasFormulae = model.hasFormulae
                 model.hasFormulae = False
@@ -648,7 +648,7 @@ class Validate:
             for pluginXbrlMethod in modelXbrl.modelManager.cntlr.plugins.hooks("Validate.Infoset"):
                 pluginXbrlMethod(modelXbrl, modelTestcaseVariation.resultInfosetUri)
             infoset = modelXbrlLoad(self.modelXbrl.modelManager,
-                                        modelTestcaseVariation.resultInfosetUri,
+                                        modelTestcaseVariation.resultInfosetUri,  # type: ignore[arg-type]
                                         _("loading result infoset"),
                                         base=baseForElement,
                                         useFileSource=self.useFileSource,
@@ -657,7 +657,7 @@ class Validate:
                 modelXbrl.error("arelle:notLoaded",
                     _("Variation %(id)s %(name)s result infoset not loaded: %(file)s"),
                     modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name,
-                    file=os.path.basename(modelTestcaseVariation.resultXbrlInstanceUri))
+                    file=os.path.basename(modelTestcaseVariation.resultXbrlInstanceUri))  # type: ignore[type-var]
                 modelTestcaseVariation.status = "result infoset not loadable"
             else:   # check infoset
                 ValidateInfoset.validate(self.instValidator, modelXbrl, infoset)  # type: ignore[no-untyped-call]
@@ -752,7 +752,7 @@ class Validate:
                 expected = []
             elif isinstance(expected, list):
                 expected = expected.copy()
-            expected.extend(userExpectedErrors)
+            expected.extend(userExpectedErrors)  # type: ignore[union-attr, arg-type]
             if expectedCount is not None:
                 expectedCount += len(userExpectedErrors)
         if matchAllExpected:
@@ -775,7 +775,7 @@ class Validate:
             elif not expected:
                 _expectedList = []
             else:
-                _expectedList = [expected]
+                _expectedList = [expected]  # type: ignore[list-item]
             if expectedWarnings:
                 _expectedList.extend(expectedWarnings)
                 if expectedCount is not None:
@@ -783,7 +783,7 @@ class Validate:
                 else:
                     expectedCount = len(expectedWarnings)
             if not isinstance(expected, list):
-                expected = [expected]
+                expected = [expected]  # type: ignore[list-item]
             for testErr in _errors:
                 if isinstance(testErr, str) and testErr.startswith(("ESEF.", "NL.NL-KVK")): # compared as list of strings to QName localname
                     testErrSuffix = testErr.rpartition(".")[2]
@@ -840,9 +840,9 @@ class Validate:
                 if modelTestcaseVariation.assertions:
                     priorAsserResults = modelTestcaseVariation.assertions
                     _expected = expected[0] if isinstance(expected, list) else expected
-                    if len(priorAsserResults) == len(_expected) and all(
+                    if len(priorAsserResults) == len(_expected) and all(  # type: ignore[arg-type]
                             k in priorAsserResults and counts == priorAsserResults[k][:len(counts)]
-                            for k, counts in _expected.items()):
+                            for k, counts in _expected.items()):  # type: ignore[union-attr]
                         status = "pass" # passing was previously successful and no further errors
                 elif (isinstance(expected,dict) and # no assertions fired, are all the expected zero counts?
                       all(countSatisfied == 0 and countNotSatisfied == 0 for countSatisfied, countNotSatisfied in expected.values())):
