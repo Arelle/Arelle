@@ -551,6 +551,7 @@ class Cntlr:
                 self.logHandler.close()
             except Exception: # fails on some earlier pythons (3.1)
                 traceback.print_exc()
+            self.logger.removeHandler(self.logHandler)
 
     def saveConfig(self) -> None:
         """Save user preferences configuration (in json configuration file)."""
