@@ -18,6 +18,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import traceback
 from typing import TYPE_CHECKING, Any, cast, Union, Literal
 
 import regex
@@ -549,7 +550,8 @@ class Cntlr:
             try:
                 self.logHandler.close()
             except Exception: # fails on some earlier pythons (3.1)
-                pass
+                traceback.print_exc()
+            self.logger.removeHandler(self.logHandler)
 
     def saveConfig(self) -> None:
         """Save user preferences configuration (in json configuration file)."""
