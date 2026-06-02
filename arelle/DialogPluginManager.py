@@ -6,43 +6,48 @@ based on pull request 4
 '''
 from __future__ import annotations
 
-from importlib.metadata import EntryPoint
-from tkinter import Toplevel, font, messagebox, VERTICAL, HORIZONTAL, N, S, E, W
+from tkinter import Event, Toplevel, font, messagebox, VERTICAL, HORIZONTAL, N, S, E, W
 from tkinter.constants import DISABLED, ACTIVE
+from tkinter.ttk import Treeview, Scrollbar, Frame, Label, Button
+from typing import TYPE_CHECKING, Any
 
 from arelle.plugin_system.entry_point_ref import EntryPointRef
 
-try:
-    from tkinter.ttk import Treeview, Scrollbar, Frame, Label, Button
-except ImportError:
-    from ttk import Treeview, Scrollbar, Frame, Label, Button
 from arelle import PluginManager, DialogURL, DialogOpenArchive
 from arelle.CntlrWinTooltip import ToolTip
+from arelle.typing import TypeGetText
 import os, time
 import regex as re
-EMPTYLIST = []
+
+_: TypeGetText
+
+if TYPE_CHECKING:
+    from arelle.CntlrWinMain import CntlrWinMain
+    from arelle.plugin_system._plugin_manager import PluginManager as PluginManagerClass
+
+EMPTYLIST: list[Any] = []
 GROUPSEP = '\x01d'
 
-def dialogPluginManager(mainWin):
+def dialogPluginManager(mainWin: CntlrWinMain) -> None:
     # check for updates in background
     import threading
     thread = threading.Thread(target=lambda cntlr=mainWin: backgroundCheckForUpdates(cntlr))
     thread.daemon = True
     thread.start()
 
-def backgroundCheckForUpdates(cntlr):
+def backgroundCheckForUpdates(cntlr: CntlrWinMain) -> None:
     cntlr.showStatus(_("Checking for updates to plug-ins")) # clear web loading status
     modulesWithNewerFileDates = PluginManager.getInstance().modulesWithNewerFileDates()
     if modulesWithNewerFileDates:
         cntlr.showStatus(_("Updates are available for these plug-ins: {0}")
-                              .format(', '.join(modulesWithNewerFileDates)), clearAfter=5000)
+                              .format(", ".join(modulesWithNewerFileDates)), clearAfter=5000)
     else:
         cntlr.showStatus(_("No updates found for plug-ins."), clearAfter=5000)
     time.sleep(0.1) # Mac locks up without this, may be needed for empty ui queue?
     cntlr.uiThreadQueue.put((DialogPluginManager, [cntlr, modulesWithNewerFileDates]))
 
 class DialogPluginManager(Toplevel):
-    def __init__(self, mainWin, modulesWithNewerFileDates):
+    def __init__(self, mainWin: CntlrWinMain, modulesWithNewerFileDates: set[str]) -> None:
         super(DialogPluginManager, self).__init__(mainWin.parent)
 
         self.ENABLE = _("Enable")
@@ -51,17 +56,18 @@ class DialogPluginManager(Toplevel):
         self.cntlr = mainWin
 
         # copy plugins for temporary display
-        self._pluginManager = PluginManager.getInstance()
-        self.pluginConfig = self._pluginManager.pluginConfig
-        self.pluginConfigChanged = False
-        self.uiClassMethodsChanged = False
-        self.modelClassesChanged = False
-        self.customTransformsChanged = False
-        self.disclosureSystemTypesChanged = False
-        self.hostSystemFeaturesChanged = False
-        self.modulesWithNewerFileDates = modulesWithNewerFileDates
+        self._pluginManager: PluginManagerClass = PluginManager.getInstance()
+        self.pluginConfig: dict[str, Any] = self._pluginManager.pluginConfig
+        self.pluginConfigChanged: bool = False
+        self.uiClassMethodsChanged: bool = False
+        self.modelClassesChanged: bool = False
+        self.customTransformsChanged: bool = False
+        self.disclosureSystemTypesChanged: bool = False
+        self.hostSystemFeaturesChanged: bool = False
+        self.modulesWithNewerFileDates: set[str] = modulesWithNewerFileDates
 
         parentGeometry = re.match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", self.parent.geometry())
+        assert parentGeometry is not None
         dialogX = int(parentGeometry.group(3))
         dialogY = int(parentGeometry.group(4))
 
@@ -227,14 +233,14 @@ class DialogPluginManager(Toplevel):
         self.grab_set()
         self.wait_window(self)
 
-    def loadTreeViews(self):
-        self.selectedModule = None
+    def loadTreeViews(self) -> None:
+        self.selectedModule: str | None = None
 
         # clear previous treeview entries
         for previousNode in self.modulesView.get_children(""):
             self.modulesView.delete(previousNode)
 
-        def loadSubtree(parentNode, moduleItems):
+        def loadSubtree(parentNode: str, moduleItems: dict[str, Any] | list[Any]) -> None:
             for moduleItem in sorted(moduleItems, key=lambda item: item[0]):
                 moduleInfo = moduleItem[1]
                 if parentNode or not moduleInfo.get("isImported"):
@@ -252,7 +258,7 @@ class DialogPluginManager(Toplevel):
                     self.modulesView.set(node, "descr", moduleInfo.get("description"))
                     self.modulesView.set(node, "license", moduleInfo.get("license"))
                     if moduleInfo.get("imports"):
-                        loadSubtree(node, [(importModuleInfo["name"],importModuleInfo)
+                        loadSubtree(node, [(importModuleInfo["name"], importModuleInfo)
                                            for importModuleInfo in moduleInfo["imports"]])
 
         loadSubtree("", self.pluginConfig.get("modules", {}).items())
@@ -268,7 +274,7 @@ class DialogPluginManager(Toplevel):
 
         self.moduleSelect()  # clear out prior selection
 
-    def ok(self, event=None):
+    def ok(self, event: Event[Any] | None = None) -> None:
         # check for orphaned classes (for which there is no longer a corresponding module)
         _moduleNames = self.pluginConfig.get("modules", {}).keys()
         _orphanedClassNames = set()
@@ -317,11 +323,11 @@ class DialogPluginManager(Toplevel):
                 self.cntlr.uiThreadQueue.put((self.cntlr.quit, [None, True]))
         self.close()
 
-    def close(self, event=None):
+    def close(self, event: Event[Any] | None = None) -> None:
         self.parent.focus_set()
         self.destroy()
 
-    def moduleSelect(self, *args):
+    def moduleSelect(self, *args: Any) -> None:
         node = (self.modulesView.selection() or (None,))[0]
         if node:
             node = node.rpartition(GROUPSEP)[2] # drop leading path names for module name
@@ -381,10 +387,11 @@ class DialogPluginManager(Toplevel):
             self.moduleRemoveButton.config(state=DISABLED)
 
     @staticmethod
-    def _choiceSortOrder(entryPointRef: EntryPointRef):
+    def _choiceSortOrder(entryPointRef: EntryPointRef) -> str:
         moduleInfoMap = entryPointRef.moduleInfo
-        key = moduleInfoMap["name"]
-        group = {
+        assert moduleInfoMap is not None
+        key: str = moduleInfoMap["name"]
+        group: str | None = {
             "ixbrl-viewer": "1",  # pip installed Arelle viewer
             "iXBRLViewerPlugin": "2",  # git clone installed Arelle viewer
             "EDGAR": "3",
@@ -398,10 +405,11 @@ class DialogPluginManager(Toplevel):
                 group = "7"
             else:
                 group = "8"
+        assert group is not None
         return group + key.lower()
 
     @staticmethod
-    def _generateChoiceTuples(entryPointRefs: list[EntryPointRef]):
+    def _generateChoiceTuples(entryPointRefs: list[EntryPointRef]) -> list[tuple[Any, ...]]:
         """
         Generate list of choice tuples from list of entry point refs.
         :param entryPointRefs: List of entry point refs to convert to choice tuples.
@@ -410,6 +418,7 @@ class DialogPluginManager(Toplevel):
         choiceTuples = []
         for entryPointRef in sorted(entryPointRefs, key=DialogPluginManager._choiceSortOrder):
             moduleInfo = entryPointRef.moduleInfo
+            assert moduleInfo is not None
             name = moduleInfo.get("name")
             path = moduleInfo.get("path")
             description = moduleInfo.get("description")
@@ -421,45 +430,40 @@ class DialogPluginManager(Toplevel):
             choiceTuples.append(choiceTuple)
         return choiceTuples
 
-    def selectLocally(self):
+    def selectLocally(self) -> None:
         entryPointRefs = EntryPointRef.discoverAll()
         choiceTuples = self._generateChoiceTuples(entryPointRefs)
 
-        selectedPath = DialogOpenArchive.selectPlugin(self, choiceTuples)
+        selectedPath = DialogOpenArchive.selectPlugin(self, choiceTuples)  # type: ignore[no-untyped-call]
         if selectedPath:
             if selectedPath.startswith(self.cntlr.pluginDir):
                 selectedPath = selectedPath[len(self.cntlr.pluginDir)+1:]
             moduleInfo = self._pluginManager.moduleModuleInfo(moduleURL=selectedPath)
             self.loadFoundModuleInfo(moduleInfo, selectedPath)
 
-    def browseLocally(self):
+    def browseLocally(self) -> None:
         initialdir = self.cntlr.pluginDir # default plugin directory
         if not self.cntlr.isMac: # can't navigate within app easily, always start in default directory
             initialdir = self.cntlr.config.setdefault("pluginOpenDir", initialdir)
         filename = self.cntlr.uiFileDialog("open",
-                                           parent=self,
+                                           parent=self,  # type: ignore[arg-type]
                                            title=_("Choose plug-in module file"),
                                            initialdir=initialdir,
                                            filetypes=[(_("Python files"), "*.py")],
                                            defaultextension=".py")
         if filename:
-            # check if a package is selected (any file in a directory containing an __init__.py
-            #if (os.path.basename(filename) == "__init__.py" and os.path.isdir(os.path.dirname(filename)) and
-            #    os.path.isfile(filename)):
-            #    filename = os.path.dirname(filename) # refer to the package instead
             self.cntlr.config["pluginOpenDir"] = os.path.dirname(filename)
             moduleInfo = self._pluginManager.moduleModuleInfo(moduleURL=filename)
             self.loadFoundModuleInfo(moduleInfo, filename)
 
-
-    def findOnWeb(self):
-        url = DialogURL.askURL(self)
+    def findOnWeb(self) -> None:
+        url = DialogURL.askURL(self)  # type: ignore[no-untyped-call]
         if url:  # url is the in-cache or local file
             moduleInfo = self._pluginManager.moduleModuleInfo(moduleURL=url)
             self.cntlr.showStatus("") # clear web loading status
             self.loadFoundModuleInfo(moduleInfo, url)
 
-    def loadFoundModuleInfo(self, moduleInfo, url):
+    def loadFoundModuleInfo(self, moduleInfo: dict[str, Any] | None, url: str) -> None:
         if moduleInfo and moduleInfo.get("name"):
             self.addPluginConfigModuleInfo(moduleInfo)
             self.loadTreeViews()
@@ -469,7 +473,7 @@ class DialogPluginManager(Toplevel):
                                    .format(url),
                                    parent=self)
 
-    def checkIfImported(self, moduleInfo):
+    def checkIfImported(self, moduleInfo: dict[str, Any]) -> bool:
         if moduleInfo.get("isImported"):
             messagebox.showwarning(_("Plug-in is imported by a parent plug-in.  "),
                                    _("Plug-in has a parent, please request operation on the parent: \n\n{0}")
@@ -478,7 +482,7 @@ class DialogPluginManager(Toplevel):
             return True
         return False
 
-    def checkClassMethodsChanged(self, moduleInfo):
+    def checkClassMethodsChanged(self, moduleInfo: dict[str, Any]) -> None:
         for classMethod in moduleInfo["classMethods"]:
             if classMethod.startswith("CntlrWinMain.Menu"):
                 self.uiClassMethodsChanged = True  # may require reloading UI
@@ -491,12 +495,12 @@ class DialogPluginManager(Toplevel):
             elif classMethod.startswith("Proxy."):
                 self.hostSystemFeaturesChanged = True # system features (e.g., proxy) changed
 
-    def removePluginConfigModuleInfo(self, name):
+    def removePluginConfigModuleInfo(self, name: str) -> None:
         moduleInfo = self.pluginConfig["modules"].get(name)
         if moduleInfo:
             if self.checkIfImported(moduleInfo):
                 return;
-            def _removePluginConfigModuleInfo(moduleInfo):
+            def _removePluginConfigModuleInfo(moduleInfo: dict[str, Any]) -> None:
                 _name = moduleInfo.get("name")
                 if _name:
                     self.checkClassMethodsChanged(moduleInfo)
@@ -514,12 +518,12 @@ class DialogPluginManager(Toplevel):
                 self.pluginConfig["classes"].clear() # clean orphan classes
             self.pluginConfigChanged = True
 
-    def addPluginConfigModuleInfo(self, moduleInfo):
+    def addPluginConfigModuleInfo(self, moduleInfo: dict[str, Any]) -> None:
         if self.checkIfImported(moduleInfo):
             return;
         name = moduleInfo.get("name")
-        self.removePluginConfigModuleInfo(name)  # remove any prior entry for this module
-        def _addPlugin(moduleInfo):
+        self.removePluginConfigModuleInfo(name)  # type: ignore[arg-type] # remove any prior entry for this module
+        def _addPlugin(moduleInfo: dict[str, Any]) -> None:
             _name = moduleInfo.get("name")
             if _name:
                 self.modulesWithNewerFileDates.discard(_name) # no longer has an update available
@@ -535,12 +539,13 @@ class DialogPluginManager(Toplevel):
         _addPlugin(moduleInfo)
         self.pluginConfigChanged = True
 
-    def moduleEnable(self):
+    def moduleEnable(self) -> None:
         if self.selectedModule in self.pluginConfig["modules"]:
             moduleInfo = self.pluginConfig["modules"][self.selectedModule]
             if self.checkIfImported(moduleInfo):
-                return;
-            def _moduleEnable(moduleInfo):
+                return
+
+            def _moduleEnable(moduleInfo: dict[str, Any]) -> None:
                 if self.moduleEnableButton['text'] == self.ENABLE:
                     moduleInfo["status"] = "enabled"
                 elif self.moduleEnableButton['text'] == self.DISABLE:
@@ -558,14 +563,14 @@ class DialogPluginManager(Toplevel):
             self.pluginConfigChanged = True
             self.loadTreeViews()
 
-    def moduleReload(self):
+    def moduleReload(self) -> None:
         if self.selectedModule in self.pluginConfig["modules"]:
             url = self.pluginConfig["modules"][self.selectedModule].get("moduleURL")
             if url:
                 moduleInfo = self._pluginManager.moduleModuleInfo(moduleURL=url, reload=True)
                 if moduleInfo:
                     if self.checkIfImported(moduleInfo):
-                        return;
+                        return
                     self.addPluginConfigModuleInfo(moduleInfo)
                     self.loadTreeViews()
                     self.cntlr.showStatus(_("{0} reloaded").format(moduleInfo["name"]), clearAfter=5000)
@@ -575,23 +580,23 @@ class DialogPluginManager(Toplevel):
                                            .format(url),
                                            parent=self)
 
-    def moduleRemove(self):
-        if self.selectedModule in self.pluginConfig["modules"]:
+    def moduleRemove(self) -> None:
+        if self.selectedModule and self.selectedModule in self.pluginConfig["modules"]:
             self.removePluginConfigModuleInfo(self.selectedModule)
             self.pluginConfigChanged = True
             self.loadTreeViews()
 
-    def enableAll(self):
+    def enableAll(self) -> None:
         self.enableDisableAll(True)
 
-    def disableAll(self):
+    def disableAll(self) -> None:
         self.enableDisableAll(False)
 
-    def enableDisableAll(self, doEnable):
+    def enableDisableAll(self, doEnable: bool) -> None:
         for module in self.pluginConfig["modules"]:
             moduleInfo = self.pluginConfig["modules"][module]
             if not moduleInfo.get("isImported"):
-                def _enableDisableAll(moduleInfo):
+                def _enableDisableAll(moduleInfo: dict[str, Any]) -> None:
                     if doEnable:
                         moduleInfo["status"] = "enabled"
                     else:

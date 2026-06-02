@@ -157,7 +157,6 @@ module = [
     'arelle.DialogNewFactItem',
     'arelle.DialogOpenArchive',
     'arelle.DialogPackageManager',
-    'arelle.DialogPluginManager',
     'arelle.DialogURL',
     'arelle.DialogUserPassword',
     'arelle.InstanceAspectsEvaluator',
