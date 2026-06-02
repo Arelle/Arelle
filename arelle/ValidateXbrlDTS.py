@@ -1159,7 +1159,7 @@ def checkElements(val: ValidateXbrl, modelDocument: ModelDocument, parent: _Elem
                                     conceptTo=arcToConceptQname(elt))
                             try:
                                 weightAttr = elt.get("weight")
-                                if float(weightAttr) in (1, -1):  # type: ignore[operator,arg-type]
+                                if not float(weightAttr) in (1, -1):  # type: ignore[operator,arg-type]
                                     val.modelXbrl.error(("EFM.6.14.02", "GFM.1.07.02"),
                                         _("CalculationArc from %(xlinkFrom)s to %(xlinkTo)s weight %(weight)s must be 1 or -1"),
                                         modelObject=elt,
