@@ -185,7 +185,7 @@ def get_test_data(
                     else:
                         for error in mv.expected or []:
                             expected_results["ERROR"][str(error)] += 1
-                        for error in mv.userExpectedErrors:
+                        for error in mv.userExpectedErrors:  # type: ignore[assignment]
                             expected_results["ERROR"][str(error)] += 1
                         if mv.modelXbrl is not None and mv.modelXbrl.modelManager.formulaOptions.testcaseResultsCaptureWarnings:
                             for warning in mv.expectedWarnings or []:

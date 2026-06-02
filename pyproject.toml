@@ -164,7 +164,6 @@ module = [
     'arelle.ModelFormulaObject',
     'arelle.ModelInstanceObject',
     'arelle.ModelRenderingObject',
-    'arelle.ModelTestcaseObject',
     'arelle.ModelVersObject',
     'arelle.ModelVersReport',
     'arelle.PrototypeInstanceObject',
