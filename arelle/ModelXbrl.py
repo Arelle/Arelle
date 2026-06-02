@@ -42,6 +42,7 @@ if TYPE_CHECKING:
     from arelle.oim.csv.context import XbrlCsvLoadingContext
     from arelle.typing import TypeGetText, LocaleDict
     from arelle.ValidateUtr import UtrEntry
+    from arelle.WatchRss import WatchRss
 
     _: TypeGetText  # Handle gettext
 else:
@@ -299,6 +300,7 @@ class ModelXbrl:
     targetRelationships: set[ModelObject]
     qnameDimensionContextElement: dict[QName, str]
     xbrlCsvLoadingContext: XbrlCsvLoadingContext | None
+    watchRss: WatchRss
     _factsByDimQname: dict[QName, dict[QName | str | None, set[ModelFact]]]
     _factsByQname: dict[QName, set[ModelFact]]
     _factsByDatatype: dict[bool | tuple[bool, QName], set[ModelFact]]
