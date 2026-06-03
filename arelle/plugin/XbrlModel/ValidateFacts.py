@@ -274,7 +274,7 @@ def validateFactPosition(txmyMdl, fact):
             # references to fact (and each of its factValues) so that the
             # cube-completion pass can perform duplicate-fact validation.
             cellKey = tuple(
-                (cubeDimObj.dimensionName, fact.factDimensions.get(cubeDimObj.dimensionName))
+                (cubeDimObj.dimension, fact.factDimensions.get(cubeDimObj.dimension))
                 for cubeDimObj in cubeObj.cubeDimensions
             )
             bucket = cellFacts.setdefault(cellKey, [])

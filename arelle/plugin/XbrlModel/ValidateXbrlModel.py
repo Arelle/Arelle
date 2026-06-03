@@ -476,8 +476,8 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
 
         dimQnCounts = {}
         for cubeDimObj in cubeObj.cubeDimensions:
-            dimQn = cubeDimObj.dimensionName
-            dimObj = validateQNameReference(compMdl, cubeDimObj, "dimensionName", XbrlDimension,
+            dimQn = cubeDimObj.dimension
+            dimObj = validateQNameReference(compMdl, cubeDimObj, "dimension", XbrlDimension,
                                             invalidTypeMsgCode="oimte:invalidObjectType")
             if dimObj:
                 # specific cubeType dimension property validations
@@ -625,8 +625,8 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         timeSeriesTaxonomyDims = []
         for iCubeDim, cubeDimObj in enumerate(cubeObj.cubeDimensions):
             assertObjectType(compMdl, cubeDimObj, XbrlCubeDimension)
-            dimName = cubeDimObj.dimensionName
-            dimObj = validateQNameReference(compMdl, cubeDimObj, "dimensionName", XbrlDimension,
+            dimName = cubeDimObj.dimension
+            dimObj = validateQNameReference(compMdl, cubeDimObj, "dimension", XbrlDimension,
                                             invalidTypeMsgCode="oimte:invalidObjectType")
             if dimObj is None:
                 continue # not worth going further with this cube dimension
@@ -664,7 +664,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                         compMdl.error("oimte:missingRequiredDimensionProperty",
                                       _("Cube %(name)s taxonomy-defined dimension %(dimensionName)s domainClass %(domainClass)s is missing required properties %(requiredProperties)s."),
                                       xbrlObject=(cubeObj, cubeDimObj, dimObj), name=name,
-                                      dimensionName=cubeDimObj.dimensionName, domainClass=domClass.name,
+                                      dimensionName=cubeDimObj.dimension, domainClass=domClass.name,
                                       requiredProperties=", ".join(str(p) for p in missingReqProps))
             if domClass.allowedDomainItems and all(
                     isinstance(compMdl.namedObjects.get(dt), XbrlDataType)
@@ -691,7 +691,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                       _("Cube %(name)s dimension %(dimensionName)s domainDataType %(dataType)s MUST not be used on a concept dimension."),
                                       xbrlObject=cubeObj, name=name, dimensionName=dimName, dataType=cubeDimDT)
             hasValidDomainName = False
-            if cubeDimObj.domainName:
+            if cubeDimObj.domain:
                 if isTyped:
                     if dimName == periodCoreDim:
                         compMdl.error("oimte:domainUsedOnPeriodDimension",
@@ -701,7 +701,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                         compMdl.error("oimte:invalidCubeDimensionDomainName",
                                   _("Cube %(name)s dimension %(dimensionName)s domain objects MUST NOT be defined with a typed domainClass object."),
                                   xbrlObject=cubeObj, name=name, dimensionName=dimName)
-                cubeDomObj = compMdl.namedObjects.get(cubeDimObj.domainName)
+                cubeDomObj = compMdl.namedObjects.get(cubeDimObj.domain)
                 if isinstance(cubeDomObj, XbrlDomain):
                     hasValidDomainName = True
                 else:
@@ -712,7 +712,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                     else:
                         compMdl.error("oimte:invalidCubeDimensionDomainName",
                                   _("Cube %(name)s domainName property MUST identify a domain object: %(domainName)s."),
-                                  xbrlObject=cubeObj, name=name, domainName=cubeDimObj.domainName)
+                                  xbrlObject=cubeObj, name=name, domainName=cubeDimObj.domain)
             if cubeDimObj.periodConstraints and dimName != periodCoreDim:
                 compMdl.error("oimte:invalidPeriodConstraintDimension",
                           _("Cube %(name)s periodConstraints property MUST only be used where the dimensionName property has a QName value of xbrl:period, not %(qname)s."),
@@ -720,25 +720,25 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             if dimName == conceptCoreDim:
                 hasConceptDimension = True
             if dimName == conceptCoreDim and hasValidDomainName:
-                for relObj in compMdl.namedObjects[cubeDimObj.domainName].relationships:
+                for relObj in compMdl.namedObjects[cubeDimObj.domain].relationships:
                     if not isinstance(compMdl.namedObjects.get(relObj.source,None), (XbrlConcept, XbrlHeading)) and relObj.source != conceptDomainClass:
                         compMdl.error("oimte:invalidRelationshipSourceObject",
                                   _("Cube %(name)s conceptConstraints domain relationships must be from concepts, source: %(source)s."),
                                   xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName, source=relObj.source)
                     if isinstance(compMdl.namedObjects.get(relObj.target,None), XbrlConcept):
                         conceptDataTypeQNs.add(compMdl.namedObjects[relObj.target].dataType)
-                if cubeDimObj.allowDomainFacts:
+                if cubeDimObj.optional:
                     compMdl.error("oimte:invalidAllowDomainFactsPropertyOnConceptDimension",
                               _("Cube %(name)s conceptConstraints property MUST NOT specify allowDomainFacts."),
                               xbrlObject=(cubeObj,cubeDimObj), name=name)
             if dimName == entityCoreDim and hasValidDomainName:
-                for relObj in compMdl.namedObjects[cubeDimObj.domainName].relationships:
+                for relObj in compMdl.namedObjects[cubeDimObj.domain].relationships:
                     if not isinstance(compMdl.namedObjects.get(relObj.source,None), XbrlEntity) and relObj.source != entityDomainClass:
                         compMdl.error("oimte:invalidRelationshipSourceObject",
                                   _("Cube %(name)s entityConstraints domain relationships must be from entities, source: %(source)s."),
                                   xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName, source=relObj.source)
             if dimName == unitCoreDim and hasValidDomainName:
-                for relObj in compMdl.namedObjects[cubeDimObj.domainName].relationships:
+                for relObj in compMdl.namedObjects[cubeDimObj.domain].relationships:
                     if not isinstance(compMdl.namedObjects.get(relObj.source,None), XbrlUnit) and relObj.source != unitDomainClass:
                         compMdl.error("oimte:invalidRelationshipSourceObject",
                                   _("Cube %(name)s unitConstraints domain relationships must be from units, source: %(source)s."),
@@ -746,11 +746,11 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             if dimName in (periodCoreDim, languageCoreDim) and hasValidDomainName:
                 compMdl.error("oimte:invalidCubeDimensionProperty",
                           _("Cube %(name)s dimension %(qname)s must not specify domain %(domain)s."),
-                          xbrlObject=(cubeObj,cubeDimObj,dimObj), name=name, qname=dimName, domain=cubeDimObj.domainName)
+                          xbrlObject=(cubeObj,cubeDimObj,dimObj), name=name, qname=dimName, domain=cubeDimObj.domain)
             if dimName not in coreDimensions and isinstance(compMdl.namedObjects.get(dimName), XbrlDimension):
                 timeSeriesTaxonomyDims.append((cubeDimObj, dimObj, isTyped, cubeDimDT, domClass))
                 if not isTyped: # explicit
-                    domObj = compMdl.namedObjects.get(cubeDimObj.domainName)
+                    domObj = compMdl.namedObjects.get(cubeDimObj.domain)
                     if isinstance(domObj, XbrlDomain):
                         for relObj in domObj.relationships:
                             if not isinstance(compMdl.namedObjects.get(getattr(relObj, "target", None),None), (XbrlConcept, XbrlHeading, XbrlUnit, XbrlMember)):
@@ -847,11 +847,11 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         }
         coreDomainClasses = set(cubeType.effectivePropVal(compMdl, "coreDomainClasses"))
         if coreDomainClasses:
-            cubeDimByName = {cd.dimensionName: cd for cd in cubeObj.cubeDimensions}
+            cubeDimByName = {cd.dimension: cd for cd in cubeObj.cubeDimensions}
             for reqDim, reqDomClass in coreDomainClassByDimension.items():
                 if reqDomClass in coreDomainClasses:
                     cubeDimObj = cubeDimByName.get(reqDim)
-                    if cubeDimObj is not None and not cubeDimObj.domainName:
+                    if cubeDimObj is not None and not cubeDimObj.domain:
                         compMdl.error("oimte:missingCoreDomainNameFromCubeDimension",
                                       _("Cube %(name)s dimension %(dimensionName)s MUST specify domainName because cubeType %(cubeType)s requires coreDomainClass %(domainClass)s."),
                                       xbrlObject=(cubeObj, cubeDimObj), name=name, dimensionName=reqDim, cubeType=cubeType.name, domainClass=reqDomClass)
@@ -865,7 +865,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 else:
                     compMdl.error("oimte:invalidTaxonomyDefinedDimension",
                                   _("Timeseries cube %(name)s taxonomy-defined dimension %(dimensionName)s MUST be typed xs:dateTime."),
-                                  xbrlObject=(cubeObj, cubeDimObj, dimObj), name=name, dimensionName=cubeDimObj.dimensionName)
+                                  xbrlObject=(cubeObj, cubeDimObj, dimObj), name=name, dimensionName=cubeDimObj.dimension)
             if len(typedDateTimeDims) != 1:
                 compMdl.error("oimte:invalidTaxonomyDefinedDimension",
                               _("Timeseries cube %(name)s MUST have exactly one typed taxonomy-defined dimension."),
@@ -875,7 +875,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 for cubeDimObj, dimObj, _isTyped, _cubeDimDT, domClass in timeSeriesTaxonomyDims:
                     matchedConstr = None
                     for dimConstr in allowedCubeDimConstrs:
-                        if dimConstr.dimensionName and dimConstr.dimensionName != cubeDimObj.dimensionName:
+                        if dimConstr.dimensionName and dimConstr.dimensionName != cubeDimObj.dimension:
                             continue
                         if dimConstr.type:
                             isTypedConstr = dimConstr.type == "typed"
@@ -892,7 +892,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                     if matchedConstr is None:
                         compMdl.error("oimte:invalidTaxonomyDefinedDimension",
                                       _("Cube %(name)s taxonomy-defined dimension %(dimensionName)s does not satisfy cubeType constraints."),
-                                      xbrlObject=(cubeObj, cubeDimObj, dimObj), name=name, dimensionName=cubeDimObj.dimensionName)
+                                      xbrlObject=(cubeObj, cubeDimObj, dimObj), name=name, dimensionName=cubeDimObj.dimension)
                     else:
                         reqProps = getattr(getattr(matchedConstr, "domainClassProperties", None), "requiredProperties", None)
                         if reqProps:
@@ -902,7 +902,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                 compMdl.error("oimte:missingRequiredDimensionProperty",
                                               _("Cube %(name)s taxonomy-defined dimension %(dimensionName)s domainClass %(domainClass)s is missing required properties %(requiredProperties)s."),
                                               xbrlObject=(cubeObj, cubeDimObj, dimObj), name=name,
-                                              dimensionName=cubeDimObj.dimensionName, domainClass=domClass.name,
+                                              dimensionName=cubeDimObj.dimension, domainClass=domClass.name,
                                               requiredProperties=", ".join(str(p) for p in missingReqProps))
 
         for unitDataTypeQN in unitDataTypeQNs:

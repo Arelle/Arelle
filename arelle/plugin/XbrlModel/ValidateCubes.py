@@ -31,7 +31,7 @@ def matchFactToCube(compMdl, factspace, cubeObj):
     hasCoreDims = True
     hasDims = True
     for cubeDimObj in cubeObj.cubeDimensions:
-        dimName = cubeDimObj.dimensionName
+        dimName = cubeDimObj.dimension
         if dimName in coreToFactDim:
             mems = cubeDimObj.allowedMembers(compMdl)
             factDimVal = factspace.factDimensions.get(dimName)
@@ -49,7 +49,7 @@ def matchFactToCube(compMdl, factspace, cubeObj):
                 break
         elif dimName == periodCoreDim:
             factPerVal = factspace.factDimensions.get("_periodValue")
-            if factPerVal is None and not cubeDimObj.allowDomainFacts:
+            if factPerVal is None and not cubeDimObj.optional:
                 continue # skip forever/missing period and not allowDomainFacts
             # periodConstraints are content selectors (they filter facts INTO
             # the cube for query/reporting views) and do NOT gate dimensional
@@ -59,7 +59,7 @@ def matchFactToCube(compMdl, factspace, cubeObj):
             # "Period constraint object" section.
             continue
         elif dimName not in factspace.factDimensions:
-            if not cubeDimObj.allowDomainFacts:
+            if not cubeDimObj.optional:
                 hasDims = False # skip this cube
                 break
         else: # taxonomy defined dim
