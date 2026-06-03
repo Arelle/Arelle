@@ -185,7 +185,7 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
         for cubeDim in obj.cubeDimensions:
             node = self.viewProps(parentNode, nodeNum, cubeDim)
             nodeNum += 1
-            domName = getattr(cubeDim, "domainName", None)
+            domName = getattr(cubeDim, "domain", None)
             if domName:
                 domObj = self.xbrlCompMdl.namedObjects.get(domName)
                 if domObj is not None:
