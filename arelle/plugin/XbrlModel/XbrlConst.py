@@ -39,7 +39,8 @@ qnXsDateTime = qname(xsd, "xs:dateTime")
 qnXsDuration = qname(xsd, "xs:duration")
 qnXsQName = qname(xsd, "xs:QName")
 
-qnXbrlHeadingObj = qname(xbrl, "xbrl:abstractObject")
+# OIM taxonomy model renamed abstractObject -> headingObject.
+qnXbrlHeadingObj = qname(xbrl, "xbrl:headingObject")
 qnXbrlConceptObj = qname(xbrl, "xbrl:conceptObject")
 qnXbrlDimensionObj = qname(xbrl, "xbrl:dimensionObject")
 qnXbrlEntityObj = qname(xbrl, "xbrl:entityObject")

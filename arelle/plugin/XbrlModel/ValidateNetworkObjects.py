@@ -2,7 +2,7 @@
 See COPYRIGHT.md for copyright information.
 '''
 from arelle.PythonUtil import OrderedSet
-from arelle.ModelValue import qname
+from arelle.ModelValue import QName, qname
 from .ErrorCatalog import emit_error
 from .XbrlConcept import XbrlCollectionType, XbrlDataType, XbrlConcept
 from .XbrlConst import objectsWithProperties, xbrl
@@ -12,6 +12,27 @@ from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
 from .XbrlProperty import XbrlPropertyType
 
 qnXbrlClassSubclass = qname(xbrl, "xbrl:class-subclass")
+
+
+def _qname_key(value):
+    if isinstance(value, QName):
+        return (value.namespaceURI, value.localName)
+    if isinstance(value, str):
+        qn = qname(value, {"xbrl": xbrl})
+        if isinstance(qn, QName):
+            return (qn.namespaceURI, qn.localName)
+    return None
+
+
+_OBJECTS_WITH_PROPERTIES_KEYS = {
+    _qname_key(qn) for qn in objectsWithProperties if _qname_key(qn) is not None
+}
+
+
+def _is_allowed_property_object_qname(value):
+    if value in objectsWithProperties:
+        return True
+    return _qname_key(value) in _OBJECTS_WITH_PROPERTIES_KEYS
 
 
 def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validateQNameReference, validateProperties):
@@ -112,7 +133,7 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
                            xbrlObject=propTpObj, name=propTpObj.name, qname=propTpObj.dataType)
             validateQNameReference(compMdl, propTpObj, "enumerationDomain", XbrlDomain)
         for allowedObjQn in (propTpObj.allowedObjects or ()):
-            if allowedObjQn not in objectsWithProperties:
+            if not _is_allowed_property_object_qname(allowedObjQn):
                 emit_error(compMdl, "oimte:invalidAllowedObject",
                            _("The property %(name)s has an invalid allowed object %(allowedObj)s"),
                            xbrlObject=propTpObj, name=propTpObj.name, allowedObj=allowedObjQn)
