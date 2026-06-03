@@ -7,6 +7,7 @@ import math
 from typing import Any, TYPE_CHECKING, cast
 from arelle import (XmlUtil, XbrlUtil, XbrlConst,
                     ValidateXbrlCalcs, ValidateXbrlDimensions, ValidateXbrlDTS, ValidateUtr, ValidateDuplicateFacts)
+from arelle.PrototypeDtsObject import PrototypeObject
 from arelle.PythonUtil import strTruncate
 from arelle.formula import ValidateFormula
 from arelle.ModelDocumentType import ModelDocumentType
@@ -75,6 +76,35 @@ class ValidateXbrl:
     priorFormulaOptionsRunIDs: str | None
     primaryItems: set[Any]
     remoteResourceLocElements: set[ModelObject]
+    # Attributes set dynamically during DTS validation (arelle/ValidateXbrlDTS.py)
+    annotationsCount: int
+    arcroleRefURIs: dict[str, str | ModelObject | PrototypeObject] | None
+    conceptNames: dict[str, Any] | None
+    containsRelationship: bool
+    documentTypeEncoding: str
+    elementIDs: dict[str, ModelObject] | None
+    extendedElementName: QName | None
+    hasAbstractItem: bool
+    hasContextFragment: bool
+    hasDimension: bool
+    hasDomain: bool
+    hasEnumeration: bool
+    hasHypercube: bool
+    hasLinkPart: bool
+    hasLinkRole: bool
+    hasNonAbstractElement: bool
+    hasNonAbstraceElement: bool  # historical typo retained for compatibility
+    hasTuple: bool
+    hasType: bool
+    inSchemaTop: bool
+    ixdsTuples: dict[str, ModelObject]
+    metaContentTypeEncoding: str
+    referencedNamespaces: set[str]
+    roleRefURIs: dict[str, str | ModelObject | PrototypeObject] | None
+    schemaArcroleTypes: dict[str, Any]
+    schemaRoleTypes: dict[str, Any]
+    typedDomainQnames: set[QName]
+    valUsedPrefixes: set[str]
 
     def __init__(self, testModelXbrl: ModelXbrl) -> None:
         self.testModelXbrl = testModelXbrl
