@@ -10,10 +10,10 @@ from .XbrlProperty import XbrlProperty
 from .XbrlTypes import XbrlModuleType, QNameKeyType
 from .XbrlObject import XbrlReferencableModelObject
 
-class XbrlAbstract(XbrlReferencableModelObject):
-    """ Abstract Object
-        Reference: oim-taxonomy.md#abstract-object
+class XbrlHeading(XbrlReferencableModelObject):
+    """ Heading Object
+        Reference: oim-taxonomy.md#heading-object
     """
     module: XbrlModuleType
-    name: QNameKeyType # (required) The name is a QName that uniquely identifies the abstract object.
+    name: QNameKeyType # (required) The name is a QName that uniquely identifies the heading object.
     properties: OrderedSet[XbrlProperty] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.

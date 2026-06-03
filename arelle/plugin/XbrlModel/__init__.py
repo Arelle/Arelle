@@ -45,7 +45,7 @@ from arelle import ModelDocument, PackageManager, UrlUtil, XmlValidate
 
 # XbrlObject modules contain nested XbrlOBjects and their type objects
 
-from .XbrlAbstract import XbrlAbstract
+from .XbrlHeading import XbrlHeading
 from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlUnitType
 from .XbrlConst import qnErrorQname
 from .XbrlCube import (XbrlCube, XbrlCubeDimension, XbrlPeriodConstraint, XbrlDateResolution,
@@ -980,7 +980,7 @@ def xbrlModelViews(cntlr, xbrlCompMdl):
         if any(xbrlCompMdl.filterNamedObjects(XbrlFact)):
             initialViews.append( (XbrlFact, cntlr.tabWinTopRt, "Taxonomy Facts") )
         initialViews = tuple(initialViews)
-        additionalViews = ((XbrlAbstract, cntlr.tabWinBtm, "XBRL Abstracts"),
+        additionalViews = ((XbrlHeading, cntlr.tabWinBtm, "XBRL Headings"),
                            (XbrlCubeType, cntlr.tabWinBtm, "XBRL Cube Types"),
                            (XbrlDataType, cntlr.tabWinBtm, "XBRL Data Types"),
                            (XbrlEntity, cntlr.tabWinBtm, "XBRL Entities"),

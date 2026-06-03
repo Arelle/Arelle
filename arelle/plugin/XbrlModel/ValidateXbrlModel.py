@@ -13,9 +13,9 @@ from arelle.XbrlConst import isNumericXsdType
 from arelle.PythonUtil import attrdict, OrderedSet
 from arelle.oim.Load import EMPTY_DICT, csvPeriod
 from .ValidateCubes import validateCompleteCube
-from .XbrlAbstract import XbrlAbstract
+from .XbrlHeading import XbrlHeading
 from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlCollectionType, XbrlUnitType
-from .XbrlConst import (xbrl, qnXbrlReferenceObj, qnXbrlLabelObj, qnXbrlAbstractObj, qnXbrlConceptObj,
+from .XbrlConst import (xbrl, qnXbrlReferenceObj, qnXbrlLabelObj, qnXbrlHeadingObj, qnXbrlConceptObj,
                         qnXbrlMemberObj, qnXbrlEntityObj, qnXbrlUnitObj, qnXbrlImportTaxonomyObj,
                         qnXbrliCollection, reservedPrefixNamespaces, qnXbrlLabelObj, qnXbrlPropertyObj,
                         qnXbrlDimensionObj)
@@ -701,7 +701,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 hasConceptDimension = True
             if dimName == conceptCoreDim and hasValidDomainName:
                 for relObj in compMdl.namedObjects[cubeDimObj.domainName].relationships:
-                    if not isinstance(compMdl.namedObjects.get(relObj.source,None), (XbrlConcept, XbrlAbstract)) and relObj.source != conceptDomainClass:
+                    if not isinstance(compMdl.namedObjects.get(relObj.source,None), (XbrlConcept, XbrlHeading)) and relObj.source != conceptDomainClass:
                         compMdl.error("oimte:invalidRelationshipSourceObject",
                                   _("Cube %(name)s conceptConstraints domain relationships must be from concepts, source: %(source)s."),
                                   xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName, source=relObj.source)
@@ -733,7 +733,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                     domObj = compMdl.namedObjects.get(cubeDimObj.domainName)
                     if isinstance(domObj, XbrlDomain):
                         for relObj in domObj.relationships:
-                            if not isinstance(compMdl.namedObjects.get(getattr(relObj, "target", None),None), (XbrlConcept, XbrlAbstract, XbrlUnit, XbrlMember)):
+                            if not isinstance(compMdl.namedObjects.get(getattr(relObj, "target", None),None), (XbrlConcept, XbrlHeading, XbrlUnit, XbrlMember)):
                                 compMdl.error("oimte:invalidDomainRelationshipTarget",
                                           _("Cube %(name)s explicit dimension domain relationships must be to members."),
                                           xbrlObject=(cubeObj,dimObj,relObj), name=name, qname=dimName)
@@ -965,7 +965,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                            errorArgs={"name": domObj.name, "nbr": i, "target": tgt})
             else:
                 if domRtQn == conceptDomainClass:
-                    if relObj.source != domRtQn and not isinstance(compMdl.namedObjects[relObj.source], (XbrlConcept, XbrlAbstract)):
+                    if relObj.source != domRtQn and not isinstance(compMdl.namedObjects[relObj.source], (XbrlConcept, XbrlHeading)):
                         compMdl.error("oimte:invalidDomainSource",
                                   _("The domain %(name)s relationship[%(nbr)s] source, %(source)s MUST be a concept object in the taxonomy model."),
                                   xbrlObject=relObj, name=domObj.name, nbr=i, source=relObj.source)
@@ -1044,7 +1044,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         name = domRtObj.name
         for allwdDomItemQn in (domRtObj.allowedDomainItems or ()):
             allwdDomItemObj = compMdl.namedObjects.get(allwdDomItemQn)
-            if allwdDomItemQn not in (qnXbrlMemberObj, qnXbrlAbstractObj, qnXbrlConceptObj, qnXbrlEntityObj, qnXbrlUnitObj) and not isinstance(allwdDomItemObj, XbrlDataType):
+            if allwdDomItemQn not in (qnXbrlMemberObj, qnXbrlHeadingObj, qnXbrlConceptObj, qnXbrlEntityObj, qnXbrlUnitObj) and not isinstance(allwdDomItemObj, XbrlDataType):
                 compMdl.error("oimte:invalidPropertyValue",
                   _("DomainClass %(name)s allowedDomainItem must be a member, xbrl object, or a dataType object %(allowedDomainItem)s."),
                   xbrlObject=domRtObj, name=name, allowedDomainItem=allwdDomItemQn)

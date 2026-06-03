@@ -7,9 +7,11 @@ from arelle.XbrlConst import xsd
 
 # MERGE TO arelle.XbrlConst when promoting plugin to infrastructure
 
-oimTaxonomyDocTypePattern = re.compile(r"\s*\{.*\"documentType\"\s*:\s*\"https://xbrl.org/[0-9]{4}/model\"", flags=re.DOTALL)
+oimTaxonomyDocTypePattern = re.compile(r"\s*\{.*\"documentType\"\s*:\s*\"https://xbrl.org/[0-9]{4}/(?:module|compiled|archive)\"", flags=re.DOTALL)
 oimTaxonomyDocTypes = (
-        "https://xbrl.org/2026/model",
+        "https://xbrl.org/2026/module",
+        "https://xbrl.org/2026/compiled",
+        "https://xbrl.org/2026/archive",
     )
 
 xbrl = "https://xbrl.org/2025"
@@ -37,7 +39,7 @@ qnXsDateTime = qname(xsd, "xs:dateTime")
 qnXsDuration = qname(xsd, "xs:duration")
 qnXsQName = qname(xsd, "xs:QName")
 
-qnXbrlAbstractObj = qname(xbrl, "xbrl:abstractObject")
+qnXbrlHeadingObj = qname(xbrl, "xbrl:abstractObject")
 qnXbrlConceptObj = qname(xbrl, "xbrl:conceptObject")
 qnXbrlDimensionObj = qname(xbrl, "xbrl:dimensionObject")
 qnXbrlEntityObj = qname(xbrl, "xbrl:entityObject")
@@ -56,8 +58,8 @@ qnErrorQname = qname(None, "InvalidQName")
 
 objectsWithProperties = {
     qname(xbrl, "xbrl:xbrlModelObject"),
-    qnXbrlConceptObj,
-    qnXbrlAbstractObj,
+    qnXbrlConceptObj,   
+    qnXbrlHeadingObj,
     qname(xbrl, "xbrl:cubeObject"),
     qname(xbrl, "xbrl:dimensionObject"),
     qname(xbrl, "xbrl:domainObject"),

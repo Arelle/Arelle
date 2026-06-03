@@ -1,6 +1,6 @@
 {
     "documentInfo": {
-        "documentType": "https://xbrl.org/2026/model",
+        "documentType": "https://xbrl.org/2026/module",
         "documentNamespace": "https://xbrl.org/2026/model/meta",
         "namespaces": {
             "xbrl": "https://xbrl.org/2025",
@@ -232,15 +232,15 @@
                 ]
             },
             {
-                "name": "xbrl:abstractObject",
+                "name": "xbrl:headingObject",
                 "properties": [
                     {
-                        "name": "xbrl:abstractObjectName",
+                        "name": "xbrl:headingObjectName",
                         "dataType": "xs:QName",
                         "required": true
                     },
                     {
-                        "name": "xbrl:abstractObjectProperties",
+                        "name": "xbrl:headingObjectProperties",
                         "dataType": "xbrl:orderedSet",
                         "setContents": "xbrl:propertyObject",
                         "required": false
@@ -595,7 +595,7 @@
                         "required": false
                     },
                     {
-                        "name": "xbrl:cubeDimensionObjectAllowDomainFacts",
+                        "name": "xbrl:cubeDimensionObjectOptional",
                         "dataType": "xs:boolean",
                         "required": false
                     },

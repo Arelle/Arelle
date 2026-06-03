@@ -9,7 +9,11 @@
         "properties": {
           "documentType": {
             "type": "string",
-            "enum": ["https://xbrl.org/2026/model"]
+            "enum": [
+              "https://xbrl.org/2026/archive",
+              "https://xbrl.org/2026/compiled",
+              "https://xbrl.org/2026/module"
+            ]
           },
           "namespaces": {
             "type": "object",
@@ -170,7 +174,7 @@
                     },
                     "uniqueItems": true
                 },
-                "abstracts": {
+                "headings": {
                     "type": "array",
                     "items": {
                         "type": "object",
@@ -179,7 +183,7 @@
                              "properties": {
                                 "type": "array",
                                  "items": { "$ref": "#/definitions/propertyObject"},
-                                  "description": "Additional properties associated with the abstract.",
+                                  "description": "Additional properties associated with the heading.",
                                   "uniqueItems": true
                               }
                         },
@@ -194,6 +198,11 @@
                         "type": "object",
                         "properties": {
                             "name": { "$ref": "#/definitions/QName" },
+                            "extendTargetName": { "$ref": "#/definitions/QName" },
+                            "isExtensible": {
+                                "type": "boolean",
+                                "description": "Indicates whether the member can be extended by an importing taxonomy. Defaults to true (extensible). Set to false to prevent any importing taxonomy from augmenting this member."
+                            },
                             "domainClasses": {
                                 "type": "array",
                                 "items": { "$ref": "#/definitions/domainClassQName" },
@@ -207,7 +216,13 @@
                                   "uniqueItems": true
                               }
                         },
-                        "required": ["name"],
+                        "oneOf": [
+                            { "required": ["name"] },
+                            { "required": ["extendTargetName"] }
+                        ],
+                        "not": {
+                            "required": ["name", "extendTargetName"]
+                        },
                          "additionalProperties": false
                     },
                     "uniqueItems": true
@@ -252,8 +267,8 @@
                         "items": {
                           "type": "object",
                           "properties": {
-                            "dimensionName": { "$ref": "#/definitions/dimensionQName" },
-                            "domainName": { "$ref": "#/definitions/domainQName" },
+                            "dimension": { "$ref": "#/definitions/dimensionQName" },
+                            "domain": { "$ref": "#/definitions/domainQName" },
                             "domainDataType" : { "$ref": "#/definitions/dataTypeQName" },
                             
                             "typedSort": {
@@ -261,7 +276,7 @@
                               "enum": ["asc", "desc"],
                               "description": "Sort order for typed dimension (asc or desc)."
                             },
-                            "allowDomainFacts": {
+                            "optional": {
                               "type": "boolean",
                               "description": "If facts not identified with the dimension are included in the cube."
                             },
@@ -295,7 +310,7 @@
                               }
                             }
                           },
-                          "required": ["dimensionName"],
+                          "required": ["dimension"],
                           "additionalProperties": false
                         },
                         "minItems": 1,
@@ -1332,7 +1347,7 @@
                           "type": "array",
                           "items": { "$ref": "#/definitions/domainClassQName" },
                           "uniqueItems": true,
-                          "description": "Array of QNames referencing core domain class objects that indicate whether the domainName property is required in the cubeDimension object. Valid values are xbrl:conceptDomain, xbrl:entityDomain, and xbrl:unitDomain. If specified, the domainName property in cubeDimension becomes required for the referenced domain classes."
+                          "description": "Array of QNames referencing core domain class objects that indicate whether the domain property is required in the cubeDimension object. Valid values are xbrl:conceptDomain, xbrl:entityDomain, and xbrl:unitDomain. If specified, the domain property in cubeDimension becomes required for the referenced domain classes."
                         },
                         "cubeDimensionConstraints": {
                           "type": "object",
@@ -1526,6 +1541,10 @@
                             "description": "Ordered set of QNames of objects that can use this datatype.",
                             "items": { "$ref": "#/definitions/QName" },
                             "uniqueItems": true
+                          },
+                          "checksumAlgorithm": {
+                            "$ref": "#/definitions/QName",
+                            "description": "Optional QName that MUST resolve to a xbrl:memberObject identifying a checksum algorithm used to validate string values or the local-name portion of QName-based values (e.g. xbrl:luhnMod97-10 for ISO 17442 LEI validation)."
                           }
                         },
                         "required": ["name", "baseType"],
@@ -1628,9 +1647,9 @@
                           "$ref": "#/definitions/QName",
                           "description": "The object type that the implied object represents."
                         },
-                        "localNameConstraint": {
-                          "$ref": "#/definitions/QName",
-                          "description": "Optional QName representing constraints on the local-name, such as the Luhn mod-97-10 algorithm for the LEI."
+                        "dataType": {
+                          "$ref": "#/definitions/dataTypeQName",
+                          "description": "Optional QName referencing a dataType or collectionType object that constrains the data type of the implied object's local name."
                         }
                       },
                       "required": ["name", "namespace", "domainClass", "objectType"],

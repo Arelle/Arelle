@@ -1,7 +1,7 @@
 {
     "$schema": "../oim-taxonomy-schema.json",
     "documentInfo": {
-        "documentType": "https://xbrl.org/2026/model",
+        "documentType": "https://xbrl.org/2026/module",
         "namespaces": {
             "xbrl": "https://xbrl.org/2025",
             "xbrlr":"https://xbrl.org/2025/report",
@@ -36,7 +36,7 @@
                 "name" : "xbrl:taxonomy",
                 "allowedObjects": [
                     "xbrl:conceptObject",
-                    "xbrl:abstractObject",
+                    "xbrl:headingObject",
                     "xbrl:memberObject",
                     "xbrl:cubeObject",
                     "xbrl:dimensionObject",
@@ -100,7 +100,7 @@
         "domainClasses": [
             {
                 "name": "xbrl:conceptDomain",
-                "allowedDomainItems" : ["xbrl:conceptObject", "xbrl:abstractObject"]
+                "allowedDomainItems" : ["xbrl:conceptObject", "xbrl:headingObject"]
             },
             {
                 "name": "xbrl:periodDomain",
@@ -122,6 +122,10 @@
             },
             {
                 "name": "xbrl:nilReasonDomainClass",
+                "allowedDomainItems": ["xbrl:memberObject"]
+            },
+            {
+                "name": "xbrl:checksumAlgorithmDomainClass",
                 "allowedDomainItems": ["xbrl:memberObject"]
             }
 
@@ -470,6 +474,12 @@
                 "language": "en",
                 "relatedName": "xbrl:label",
                 "value": "Standard Label"
+            },
+            {
+                "labelType": "xbrl:iconLabel",
+                "language": "en",
+                "relatedName": "xbrl:nilReasonDomainClass",
+                "value": "∅"
             },
             {
                 "labelType": "xbrl:documentation",
@@ -1057,7 +1067,7 @@
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:abstractObject",
+                "relatedName": "xbrl:headingObject",
                 "value": "Abstract Object"
             },
             {
@@ -1461,6 +1471,126 @@
                 "language": "en",
                 "relatedName": "xbrl:conformanceErrorsProduced",
                 "value": "Errors Produced"
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:unknownNilReason",
+                "value": "Unknown"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:unknownNilReason",
+                "value": "The value is nil for an unknown reason."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:unavailableNilReason",
+                "value": "Unavailable"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:unavailableNilReason",
+                "value": "The value is nil because the information is unavailable, for example because it has not yet been collected or computed."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:withheldNilReason",
+                "value": "Withheld"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:withheldNilReason",
+                "value": "The value is nil because the reporting entity has chosen not to disclose it, even though it is known."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:immaterialNilReason",
+                "value": "Immaterial"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:immaterialNilReason",
+                "value": "The value is nil because it is considered immaterial or insignificant in the context of the report."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:confidentialNilReason",
+                "value": "Confidential"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:confidentialNilReason",
+                "value": "The value is nil because it is confidential and cannot be disclosed in this report."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:redactedNilReason",
+                "value": "Redacted"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:redactedNilReason",
+                "value": "The value has been intentionally removed or obscured from the report, for example for legal or regulatory reasons."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:notApplicableNilReason",
+                "value": "Not Applicable"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:notApplicableNilReason",
+                "value": "The concept does not apply to the reporting entity or reporting period, so no value exists."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:pendingNilReason",
+                "value": "Pending"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:pendingNilReason",
+                "value": "The value is nil because it is not yet finalised and is expected to be provided in a future report."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:notRequiredNilReason",
+                "value": "Not Required"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:notRequiredNilReason",
+                "value": "The value is nil because the applicable reporting rules do not require it to be disclosed in this context."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "relatedName": "xbrl:otherNilReason",
+                "value": "Other"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "relatedName": "xbrl:otherNilReason",
+                "value": "The value is nil for a reason not covered by the other nil reason members."
             }
         ],
         "namespacePrefixes": [
@@ -1526,6 +1656,14 @@
                 ]
             },
             {
+                "name" : "xbrl:referenceCubeName",
+                "dataType": "xs:QName",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:relationshipObject"
+                ]
+            },
+            {
                 "name":"xbrl:preferredLabel",
                 "dataType": "xs:QName",
                 "definitional": false,
@@ -1540,8 +1678,7 @@
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
-            }
-            ,
+            },
             {
                 "name": "xbrl:traitLinkType",
                 "dataType": "xs:QName",
@@ -1555,7 +1692,7 @@
                 "dataType": "xs:QName",
                 "definitional": false,
                 "allowedObjects": [
-                    "xbrl:abstractObject"
+                    "xbrl:headingObject"
                 ]
             },
             {
@@ -1892,7 +2029,7 @@
                 "targetObjects" : [
                             "xbrl:xbrlModelObject",
                             "xbrl:conceptObject",
-                            "xbrl:abstractObject",
+                            "xbrl:headingObject",
                             "xbrl:memberObject",
                             "xbrl:dimensionObject",
                             "xbrl:entityObject",
@@ -1910,6 +2047,7 @@
                 "name": "xbrl:concept-refDimension",
                 "uri": "http://xbrl.org/oim/concept-refDimension",
                 "cycles" : "undirected",
+                "allowedLinkProperties" : ["xbrl:referenceCubeName"],
                 "sourceObjects" : ["xbrl:conceptObject"],
                 "targetObjects" : ["xbrl:dimensionObject"]
             },
@@ -1941,7 +2079,7 @@
                 "uri": "http://www.xbrl.org/2009/arcrole/dep-concept-deprecatedConcept",
                 "cycles" : "undirected",
                  "sourceObjects" : ["xbrl:conceptObject",
-                    "xbrl:abstractObject",
+                    "xbrl:headingObject",
                     "xbrl:memberObject", 
                     "xbrl:domainObject",
                     "xbrl:domainClassObject", 
@@ -1949,7 +2087,7 @@
                     "xbrl:cubeObject"
                 ],
                 "targetObjects" : ["xbrl:conceptObject", 
-                    "xbrl:abstractObject",
+                    "xbrl:headingObject",
                     "xbrl:memberObject", 
                     "xbrl:domainObject",
                     "xbrl:domainClassObject", 
@@ -2047,7 +2185,15 @@
                 "name": "xbrl:LegalEntityIdentifier",
                 "namespace" : "http://standards.iso.org/iso/17442",
                 "domainClass": "xbrl:entityDomain",
-                "objectType": "xbrl:entityObject"
+                "objectType": "xbrl:entityObject",
+                "dataType": "xbrl:LEICdataType"
+            }
+        ],
+        "dataTypes": [
+            {
+                "name": "xbrl:LEICdataType",
+                "baseType": "xs:QName",
+                "checksumAlgorithm": "xbrl:luhnMod97-10"
             }
         ],
         "domains": [
@@ -2138,6 +2284,10 @@
             {
                 "name": "xbrl:otherNilReason",
                 "domainClasses": ["xbrl:nilReasonDomainClass"]
+            },
+            {
+                "name": "xbrl:luhnMod97-10",
+                "domainClasses": ["xbrl:checksumAlgorithmDomainClass"]
             }
         ]
     }
