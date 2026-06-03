@@ -49,6 +49,8 @@ class XbrlMember(XbrlReferencableModelObject):
     """
     module: XbrlModuleType
     name: QNameKeyType # (required) Optional[The]name Optional[is]a Optional[QName]that Optional[uniquely]identifies Optional[the]member object.
+    extendTargetName: Optional[QName] # (required if no name) Names the member object that this member extends.
+    isExtensible: Union[bool, DefaultTrue] # (optional) If false, importing taxonomies MUST NOT extend this member.
     domainClasses: OrderedSet[QName] # (optional) The domain classes are used to group members based on shared characteristics. The member inherits properties from the domain classes it belongs to.
     properties: OrderedSet[XbrlProperty] # (optional) Optional[an]ordered Optional[set]of Optional[property]objects Optional[used]to Optional[specify]additional Optional[properties]associated Optional[with]the Optional[member]object Optional[using]the Optional[property]object. Optional[Only]immutable Optional[properties]as Optional[defined]in Optional[the]propertyType Optional[object]can Optional[be]added Optional[to]a member.
 

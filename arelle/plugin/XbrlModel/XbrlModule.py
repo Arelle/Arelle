@@ -55,7 +55,7 @@ class XbrlImpliedObject(XbrlReferencableModelObject):
     namespace: AnyURI # (required) This is the namespace URI that defines the implied object namespace. Any QName with this namespace is considered to resolve to an implied object of the type defined by this implied object definition.
     domainClass: QName # (required) The domain class that the implied object belongs to. This is a QName that identifies the domain class within the XBRL model.
     objectType: QName # (required) The object type that the implied object represents. This is a QName that identifies the object type within the XBRL model.
-    localNameConstraint: Optional[QName] # (optional) A QName that represents contraints on the local-name such as the Luhn mod-97-10 algorithm for the LEI, defined as a data type object.
+    dataType: Optional[QName] # (optional) QName referencing a dataType or collectionType that constrains the local-name portion of implied QNames.
 
 class XbrlModule(XbrlModelObject):
     """ XBRL Module Object
