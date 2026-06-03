@@ -3,7 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 
 from .ErrorCatalog import emit_error
-from .XbrlAbstract import XbrlAbstract
+from .XbrlHeading import XbrlHeading
 from .XbrlConcept import XbrlCollectionType, XbrlConcept, XbrlDataType, XbrlUnitType
 from .XbrlConst import qnXbrlConceptObj
 from .XbrlDimension import XbrlDomain
@@ -12,13 +12,13 @@ from .XbrlDimension import XbrlDomain
 def validateConceptFamily(compMdl, module, oimFile, *, assertObjectType, validateQNameReference, validateProperties):
     """Validate the object family centered on XbrlConcept.py.
 
-    This groups abstracts, concepts, datatypes, and collection types together so
+    This groups headings, concepts, datatypes, and collection types together so
     refactoring can follow the object-family structure used by the error catalog.
     """
 
-    for absObj in module.abstracts:
-        assertObjectType(compMdl, absObj, XbrlAbstract)
-        validateProperties(compMdl, oimFile, module, absObj)
+    for heading in module.headings:
+        assertObjectType(compMdl, heading, XbrlHeading)
+        validateProperties(compMdl, oimFile, module, heading)
 
     for cncpt in module.concepts:
         assertObjectType(compMdl, cncpt, XbrlConcept)

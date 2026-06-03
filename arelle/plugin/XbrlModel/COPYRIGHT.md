@@ -11,3 +11,5 @@ Unless required by applicable law or agreed to in writing, software distributed
 under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
+
+This project implements publicly available specifications and standards. AI-assisted tools may be used to help develop software, tests, and documentation; however, project maintainers are responsible for the final design, implementation, validation, and acceptance of contributed content.

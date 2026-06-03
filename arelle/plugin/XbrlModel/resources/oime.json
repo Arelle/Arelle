@@ -1,7 +1,7 @@
 {
     "$schema": "../oim-taxonomy-schema.json",
     "documentInfo": {
-        "documentType": "https://xbrl.org/2026/model",
+        "documentType": "https://xbrl.org/2026/module",
         "namespaces": {
             "oime": "http://www.xbrl.org/2021/oim/error",
             "xbrl": "https://xbrl.org/2025",
@@ -111,7 +111,7 @@
                 ]
             }
         ],
-        "abstracts": [
+        "headings": [
             {
                 "name": "oime:JSONErrors"
             },

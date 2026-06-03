@@ -1,7 +1,7 @@
 {
     "$schema": "../oim-taxonomy-schema.json",
     "documentInfo": {
-        "documentType": "https://xbrl.org/2026/model",
+        "documentType": "https://xbrl.org/2026/module",
         "namespaces": {
             "specDoc": "https://xbrl.org/2025/oimtaxonomy/documentation",
             "oime": "http://www.xbrl.org/2021/oim/error",
@@ -186,7 +186,7 @@
                     },
                     {
                         "source": "xbrl:xbrlModelObject",
-                        "target": "xbrl:abstractObject",
+                        "target": "xbrl:headingObject",
                         "order": 11
                     },
                     {

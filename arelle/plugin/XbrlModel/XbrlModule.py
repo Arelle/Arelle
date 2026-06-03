@@ -10,7 +10,7 @@ from arelle.PythonUtil import OrderedSet
 from .ModelValueMore import SQName
 from .XbrlImportTaxonomy import XbrlImportTaxonomy, XbrlFinalTaxonomy
 from .XbrlProperty import XbrlProperty
-from .XbrlAbstract import XbrlAbstract
+from .XbrlHeading import XbrlHeading
 from .XbrlConcept import XbrlCollectionType, XbrlConcept, XbrlDataType, XbrlUnitType
 from .XbrlCube import XbrlCube, XbrlCubeType, XbrlCubeDimension, XbrlPeriodConstraint, XbrlDateResolution
 from .XbrlDimension import XbrlDimension, XbrlDomain, XbrlDomainClass, XbrlMember
@@ -68,7 +68,6 @@ class XbrlModule(XbrlModelObject):
     modelForm: Optional[str] # (optional) Indicates if the model is a compiled or is modularized. If no value is provided the model defaults to module. Possible values are compiled, module
     modelType: Optional[QName]
     duplicateFactsInModel: Optional[str] # (optional) A string value that indicates if the model validates duplicate facts. It can be one of the following: no duplicates, complete duplicates,consistent duplicates, or inconsistent duplicates. If no string value is provided the default value is inconsistent duplicates. The value of duplicateFactsInModel sets the default value of duplicateFactsInCube. The value of duplicateFactsInCube has precedence over duplicateFactsInModel
-    abstracts: OrderedSet[XbrlAbstract] # ordered set of abstract objects.
     concepts: OrderedSet[XbrlConcept] # ordered set of concept objects.
     collectionTypes: OrderedSet[XbrlCollectionType] # ordered set of collectionType objects.
     cubes: OrderedSet[XbrlCube] # ordered set of cube objects.
@@ -87,6 +86,7 @@ class XbrlModule(XbrlModelObject):
     groups: OrderedSet[XbrlGroup] #  (optional) ordered set of group objects.
     groupContents: OrderedSet[XbrlGroupContent] # ordered set of groupContent objects that link a group QName to a list of network or cube objects.
     groupTree: Optional[XbrlGroupTree] # (optional) A groupTree object that defines the hierarchical organization of groups within the taxonomy. Unlike groupContents which links groups to networks and cubes, groupTree organizes the groups themselves into a tree structure. The taxonomy serves as the root by being referenced as the source in top-level relationships. Only one groupTree object is allowed per taxonomy.
+    headings: OrderedSet[XbrlHeading] # ordered set of heading objects.
     jsonTemplateMaps: OrderedSet[XbrlJSONTemplateMap] # (optional) ordered set of JSON template map objects that define mappings from taxonomy objects to JSON templates for rendering in user interfaces or forms.
     labels: OrderedSet[XbrlLabel] # (optional) ordered set of label objects.
     layouts: OrderedSet[XbrlLayout] # (optional) A layout object that defines the layout of a data structure that conforms with a XBRL model. The layout object is used to define how facts in a model or are rendered in a form or user interface.
@@ -115,7 +115,7 @@ referencableObjectTypes = {
         qname("{https://xbrl.org/2025}xbrl:xbrlModelObject"): XbrlModule,
         qname("{https://xbrl.org/2025}xbrl:conceptObject"): XbrlConcept,
         qname("{https://xbrl.org/2025}xbrl:collectionTypeObject"): XbrlCollectionType,
-        qname("{https://xbrl.org/2025}xbrl:abstractObject"): XbrlAbstract,
+        qname("{https://xbrl.org/2025}xbrl:headingObject"): XbrlHeading,
         qname("{https://xbrl.org/2025}xbrl:cubeObject"): XbrlCube,
         qname("{https://xbrl.org/2025}xbrl:dimensionObject"): XbrlDimension,
         qname("{https://xbrl.org/2025}xbrl:domainObject"): XbrlDomain,

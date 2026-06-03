@@ -17,7 +17,7 @@ from arelle.ModelValue import qname, QName, timeInterval
 from arelle.PythonUtil import  OrderedSet
 from arelle.XmlUtil import addChild
 from .ViewXbrlTaxonomyObject import ViewXbrlTxmyObj
-from .XbrlAbstract import XbrlAbstract
+from .XbrlHeading import XbrlHeading
 from .XbrlConcept import XbrlConcept
 from .XbrlConst import qnBuiltInCoreObjectsTaxonomy, xbrl
 from .XbrlDimension import XbrlDimension, XbrlMember
@@ -27,7 +27,7 @@ from .XbrlModule import XbrlModule
 from .XbrlTypes import QNameKeyType, XbrlModuleType, DefaultTrue, DefaultFalse, DefaultZero
 
 CLASSES_SAVEABLE_TO_XML_SCHEMA = OrderedSet((
-    XbrlAbstract,
+    XbrlHeading,
     XbrlConcept,
     XbrlDimension,
     XbrlMember))
@@ -59,7 +59,7 @@ def saveXmlSchema(cntlr, txmyMdl, saveXMLSchemaFiles):
         Called from xbrlModelLoaded when --saveXMLSchemaFiles provides a directory path to save XML schema files,
         or when the formula parameter saveXMLSchemaFiles is provided with a directory path to save XML schema files.
 
-        The taxonomy model is scanned for objects of type XbrlAbstract, XbrlConcept, XbrlDimension, and XbrlMember
+        The taxonomy model is scanned for objects of type XbrlHeading, XbrlConcept, XbrlDimension, and XbrlMember
         which have an equivalent feature in XBRL 2.1 with XBRL Dimensions (xBRL-XML).
 
         Formula parameters:
@@ -137,13 +137,13 @@ def saveXmlSchema(cntlr, txmyMdl, saveXMLSchemaFiles):
                 if obj.name.namespaceURI == nsURI:
                     attributes = {"id": f"{obj.name.prefix}_{obj.name.localName}",
                                   "name": obj.name.localName}
-                    if objClass == XbrlAbstract:
+                    if objClass == XbrlHeading:
                         attributes["abstract"] = True
                         conceptElt = addChild(schemaElt,
                                               QN_ELEMENT,
                                               attributes=attributes)
-                    elif objClass in (XbrlAbstract, XbrlConcept, XbrlMember):
-                        if objClass in (XbrlAbstract, XbrlMember):
+                    elif objClass in (XbrlHeading, XbrlConcept, XbrlMember):
+                        if objClass in (XbrlHeading, XbrlMember):
                             attributes["abstract"] = "true"
                         if getattr(obj, "nillable", None):
                             attributes["nillable"] = "true"
