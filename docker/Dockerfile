@@ -17,6 +17,16 @@ RUN pip install --upgrade pip \
 COPY arelleCmdLine.py .
 COPY arelle ./arelle
 
+## Generate version file if version is provided
+ARG ARELLE_VERSION=""
+COPY requirements-versioning.txt .
+COPY pyproject.toml .
+RUN if [ -n "$ARELLE_VERSION" ]; then \
+      pip install --no-cache-dir -r requirements-versioning.txt \
+      && SETUPTOOLS_SCM_PRETEND_VERSION="$ARELLE_VERSION" \
+         python -m setuptools_scm --force-write-version-files; \
+    fi
+
 ## Install plugin requirements when building with EDGAR or XULE plugins
 ARG INCLUDE_EDGAR=""
 ARG EDGAR_REF=""
