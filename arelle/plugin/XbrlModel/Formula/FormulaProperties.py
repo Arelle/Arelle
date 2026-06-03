@@ -229,7 +229,7 @@ FACT_PROPS: Dict[str, Callable] = {
 # project an accessor across a set/list of concepts.
 _CONCEPT_PROP_NAMES = {
     "name", "local-name", "namespace-uri", "data-type", "base-type",
-    "period-type", "balance", "is-abstract", "is-numeric", "is-monetary",
+    "period-type", "balance", "is-heading", "is-numeric", "is-monetary",
     "nillable", "substitution", "labels", "all-references",
     "clark", "label", "all-labels", "references", "has-enumerations",
     "enumerations", "document-location",
@@ -243,7 +243,7 @@ _PROP_NAME_ALIASES = {
     "baseType": "base-type",
     "localName": "local-name",
     "namespaceUri": "namespace-uri",
-    "isAbstract": "is-abstract",
+    "isHeading": "is-heading",
     "isNumeric": "is-numeric",
     "isMonetary": "is-monetary",
     "isNil": "is-nil",
@@ -542,7 +542,7 @@ def _conceptProp(concept, propName: str, args, ctx) -> FormulaValue:
         "base-type":      ("baseType",     None),
         "period-type":    ("periodType",   FormulaValueType.STRING),
         "balance":        ("balance",      FormulaValueType.STRING),
-        "is-abstract":    ("isAbstract",   FormulaValueType.BOOLEAN),
+        "is-heading":     None,
         "is-numeric":     ("isNumeric",    FormulaValueType.BOOLEAN),
         "is-monetary":    ("isMonetary",   FormulaValueType.BOOLEAN),
         "nillable":       ("nillable",     FormulaValueType.BOOLEAN),
@@ -615,12 +615,14 @@ def _conceptProp(concept, propName: str, args, ctx) -> FormulaValue:
             return _wrap(bool(concept.isNumeric(ctx.txmyMdl)), FormulaValueType.BOOLEAN)
         except Exception:
             return _wrap(False, FormulaValueType.BOOLEAN)
-    if propName == "is-abstract":
-        # OIM XbrlConcept has no Python `abstract` attribute; default False,
-        # but honour a properties entry with localName=='abstract' if present.
+    if propName == "is-heading":
+        # OIM models headings as first-class heading objects.
+        # Concept objects are not headings by default, but allow an explicit
+        # heading marker as a concept property for compatibility with
+        # extension taxonomies.
         for prop in getattr(concept, "properties", None) or ():
             pq = getattr(prop, "property", None)
-            if isinstance(pq, QName) and pq.localName == "abstract":
+            if isinstance(pq, QName) and pq.localName == "heading":
                 v = getattr(prop, "value", None)
                 return _wrap(str(v).lower() in ("true", "1"), FormulaValueType.BOOLEAN)
         return _wrap(False, FormulaValueType.BOOLEAN)
@@ -680,6 +682,7 @@ def _taxonomyProp(txmy, propName: str, args, ctx) -> FormulaValue:
     from XbrlModel.XbrlConcept import XbrlConcept
     from XbrlModel.XbrlCube import XbrlCube
     from XbrlModel.XbrlDimension import XbrlDimension
+    from XbrlModel.XbrlHeading import XbrlHeading
     from XbrlModel.XbrlNetwork import XbrlNetwork
 
     if propName == "concepts":
@@ -690,6 +693,11 @@ def _taxonomyProp(txmy, propName: str, args, ctx) -> FormulaValue:
     if propName == "concept-names":
         objs = list(txmy.filterNamedObjects(XbrlConcept))
         return _wrapSet(c.name for c in objs if hasattr(c, "name"))
+    if propName == "headings":
+        objs = list(txmy.filterNamedObjects(XbrlHeading))
+        # Return heading QNames so list/set operations and name-based comparisons
+        # behave consistently with other *-names style accessors.
+        return _wrapSet(h.name for h in objs if hasattr(h, "name"))
     if propName == "cubes":
         objs = list(txmy.filterNamedObjects(XbrlCube))
         return FormulaValue(FormulaValueType.SET, OrderedSet(
