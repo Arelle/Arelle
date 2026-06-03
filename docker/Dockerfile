@@ -65,7 +65,8 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 ## Copy python dependencies and application code
-COPY --from=builder /usr/src/app /usr/src/app
+COPY --from=builder /usr/src/app/arelle /usr/src/app/arelle
+COPY --from=builder /usr/src/app/arelleCmdLine.py /usr/src/app/arelleCmdLine.py
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
