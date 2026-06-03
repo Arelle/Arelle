@@ -90,6 +90,7 @@ class XbrlDataType(XbrlReferencableModelObject):
     patterns: set[str] # (optional) Defines a string as a single regex expressions. At least one of the regex patterns must match. (Uses XML regex)
     unitType: Optional[XbrlUnitType] # (optional) Defines a unitType object For example xbrli:flow has unit datatypes of xbrli:volume and xbrli:time
     allowedObjects: OptionalNonemptySet[QName] # (optional) Set of object type QNames that the data type can be used with. If no value is provided the property can be used with any object. The value provided is a set of model component objects. MUST NOT be empty if provided.
+    checksumAlgorithm: Optional[QName] # (optional) QName of a member object that defines checksum validation semantics for string/QName local-name values.
 
     def xsBaseType(self, compMdl, visitedTypes=None): # find base types thru dataType hierarchy
         """(str) -- returns the base XSD type name if this is an XSD-based type, otherwise None"""

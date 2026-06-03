@@ -118,6 +118,7 @@ class XbrlFactSource(XbrlReportObject):
     factNames: Optional[OrderedSet[QName]] # (optional) An ordered set of QNames that reference fact objects defined in the taxonomy model. If provided, the factSource object only applies to the facts with these names. If not provided, the factSource object applies to all facts in the report.
     hash: Optional[str] # (optional) A hash value that can be used to verify the integrity of the data source. The specific hashing algorithm used is not defined in the specification and may be determined by the implementation.
     metadata: Optional[XbrlFactSourceMetadata] # (optional) A metadata object that can contain any additional information about the fact source. The structure and content of the metadata object is not defined in the specification and may be determined by the implementation.
+    factIdentifierNamespace: Optional[AnyURI] # (optional) Namespace URI used for generated fact/factValue object names derived from this source.
     properties: OrderedSet[XbrlProperty] # (optional) an ordered set of property objects used to specify additional properties associated with the factSource using the property object.
 
 class XbrlTableTemplate(XbrlReportObject):
