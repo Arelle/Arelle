@@ -405,7 +405,7 @@ Provides `.propertyName` access on `FormulaValue` objects.
 | `FACT` | `period`, `entity`, `unit`, `concept`, `dimensions`, `value`, `decimals`, `name`, `is-nil`, `is-fact`, `id`, `instance`, `cubes`, `aspects`, `namespace-map`, `footnotes`, `dimension(qn)` |
 | `ENTITY` | `name`, `scheme`, `identifier`, `local-name`, `namespace-uri` |
 | `UNIT_VALUE` | `numerator`, `denominator` |
-| `CONCEPT` | `name`, `local-name`, `namespace-uri`, `data-type`, `base-type`, `period-type`, `balance`, `is-abstract`, `is-numeric`, `is-monetary`, `nillable`, `substitution`, `labels`, `all-references` |
+| `CONCEPT` | `name`, `local-name`, `namespace-uri`, `data-type`, `base-type`, `period-type`, `balance`, `is-heading`, `is-numeric`, `is-monetary`, `nillable`, `substitution`, `labels`, `all-references` |
 | `TAXONOMY` | `concepts`, `concept-names`, `cubes`, `dimensions`, `networks`, `namespaces`, `entry-point`, `uri`, `concept(qn)`, `cube(qn, role)` |
 | `CUBE` | `cube-concept`, `dimensions`, `facts` |
 | `STRING` | `length`, `upper-case`, `lower-case`, `trim` |
