@@ -50,6 +50,23 @@ from .ErrorCatalog import emit_error, get_error_catalog
 resolveFact = validateFactPosition = None
 
 perCnstrtFmtStartEndPattern = re.compile(r".*@(start|end)")
+
+
+def _qname_key(value):
+    if isinstance(value, QName):
+        return (value.namespaceURI, value.localName)
+    return None
+
+
+def _qname_in_set(value, candidates):
+    if value in candidates:
+        return True
+    value_key = _qname_key(value)
+    if value_key is None:
+        return False
+    return any(_qname_key(candidate) == value_key for candidate in candidates)
+
+
 def validateCompiledModel(compMdl):
     """Validate the compiled model as a whole, after all modules have been validated and combined into the compiled model.
         This is for checks that require the whole model to be available, such as checking for duplicate labels across modules.
@@ -302,7 +319,7 @@ def validateProperties(compMdl, oimFile, module, obj):
                           name=propTypeQn, propertyType=propTypeQn)
         else: # have property type object
             if propTypeObj.allowedObjects:
-                if xbrlObjectQNames.get(type(obj)) not in propTypeObj.allowedObjects:
+                if not _qname_in_set(xbrlObjectQNames.get(type(obj)), propTypeObj.allowedObjects):
                     compMdl.error("oimte:disallowedObjectProperty",
                               _("%(parentObjName)s %(parentName)s property %(name)s not an allowed property type for the object."),
                               file=oimFile, parentObjName=objType(obj), parentName=getattr(obj,"name","(n/a)"),
@@ -506,7 +523,8 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                             xbrlObject=cubeObj, name=name, cubeType=cubeType.name, dimension=coreDim)
         allowedCubeDimConstrs = cubeType.effectivePropVal(compMdl, "cubeDimensionConstraints", "allowed")
         cubeDimsClosed = cubeType.effectivePropVal(compMdl, "cubeDimensionConstraints", "closed")
-        txmyDefDimsQNs = set(dim for dim in dimQnCounts.keys() if dim.namespaceURI != xbrl)
+        # Invalid test cases may carry unresolved dimension names (None); skip them here and let QName-reference checks report errors.
+        txmyDefDimsQNs = set(dim for dim in dimQnCounts.keys() if isinstance(dim, QName) and dim.namespaceURI != xbrl)
         if cubeDimsClosed and not allowedCubeDimConstrs:
             if txmyDefDimsQNs:
                 compMdl.error("oimte:cubeDimensionNotAllowed",
@@ -521,16 +539,18 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             matchedDimQNs = set()
             for allwdDimConstr in allowedCubeDimConstrs:
                 matchedDim = None
+                if allwdDimConstr is None:
+                    continue
                 for dim in txmyDefDims:
-                    if ((not allwdDimConstr.dimensionName or dim.name == allwdDimConstr.dimensionName)):
+                    if (not getattr(allwdDimConstr, "dimensionName", None) or dim.name == allwdDimConstr.dimensionName):
                         matchedDim = dim
                         matchedDimQNs.add(dim.name)
                         break
-                if not matchedDim and allwdDimConstr.required:
+                if not matchedDim and getattr(allwdDimConstr, "required", False):
                     compMdl.error("oimte:requiredCubeDimensionalSpaceMissingFromCube",
                                 _("The cube %(name)s, type %(cubeType)s, taxonomy defined dimensions %(dimension)s is missing"),
                                 xbrlObject=cubeObj, name=name, cubeType=cubeType.name,
-                                dimension=', '.join(str(getattr(allwdDim,p)) for p in ("dimensionName", "dimensionType", "dimensionDataType") if getattr(allwdDim,p)))
+                                dimension=', '.join(str(getattr(allwdDimConstr, p)) for p in ("dimensionName", "dimensionType", "dimensionDataType") if getattr(allwdDimConstr, p, None)))
             disallowedDims = txmyDefDimsQNs - matchedDimQNs
             if cubeDimsClosed and disallowedDims:
                 compMdl.error("oimte:invalidTaxonomyDefinedDimension",
@@ -998,7 +1018,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                   _("The domain %(name)s relationship[%(nbr)s] %(property)s, %(propQn)s MUST be not be a member object in the taxonomy model."),
                                   xbrlObject=relObj, name=domObj.name, nbr=i, property=prop, propQn=getattr(relObj, prop))
                     if domRtObj and domRtObj.allowedDomainItems and (
-                        xbrlObjectQNames.get(type(obj)) not in domRtObj.allowedDomainItems
+                        not _qname_in_set(xbrlObjectQNames.get(type(obj)), domRtObj.allowedDomainItems)
                         and (prop != "source" and obj != domRtObj)):
                         compMdl.error("oimte:invalidDomainObject",
                                   _("The domain %(name)s relationship[%(nbr)s] %(property)s, %(propQn)s MUST be only be objects in the allowedDomainItems."),
@@ -1042,9 +1062,10 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
     for domRtObj in module.domainClasses:
         assertObjectType(compMdl, domRtObj, XbrlDomainClass)
         name = domRtObj.name
+        allowed_domain_object_qnames = (qnXbrlMemberObj, qnXbrlHeadingObj, qnXbrlConceptObj, qnXbrlEntityObj, qnXbrlUnitObj)
         for allwdDomItemQn in (domRtObj.allowedDomainItems or ()):
             allwdDomItemObj = compMdl.namedObjects.get(allwdDomItemQn)
-            if allwdDomItemQn not in (qnXbrlMemberObj, qnXbrlHeadingObj, qnXbrlConceptObj, qnXbrlEntityObj, qnXbrlUnitObj) and not isinstance(allwdDomItemObj, XbrlDataType):
+            if not _qname_in_set(allwdDomItemQn, allowed_domain_object_qnames) and not isinstance(allwdDomItemObj, XbrlDataType):
                 compMdl.error("oimte:invalidPropertyValue",
                   _("DomainClass %(name)s allowedDomainItem must be a member, xbrl object, or a dataType object %(allowedDomainItem)s."),
                   xbrlObject=domRtObj, name=name, allowedDomainItem=allwdDomItemQn)

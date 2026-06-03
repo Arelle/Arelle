@@ -233,7 +233,8 @@ class XBRLEmbedder(_EmbedderBase):
           - Weighted average is a few vector ops (mul, sum) on that device.
         """
         if not ids:
-            raise ValueError("No token IDs provided to combine().")
+            # Empty token sets can occur on invalid/minimal inputs; return a neutral vector instead of failing validation.
+            return torch.zeros(self.embedding.embedding_dim, dtype=self.embedding.weight.dtype, device=self.device)
 
         ids_tensor = torch.tensor(ids, device=self.device)
         vecs = self.embedding(ids_tensor)  # (n, embedDim) on CUDA/MPS/CPU
