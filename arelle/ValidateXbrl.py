@@ -207,7 +207,7 @@ class ValidateXbrl:
                     noUndirected = cyclesAllowed == "none"
                     fromRelationships = relsSet.fromModelObjects()
                     for relFrom, rels in fromRelationships.items():
-                        cycleFound = cast(list[ModelRelationship], self.fwdCycle(relsSet, rels, noUndirected, {relFrom}))
+                        cycleFound = cast(list[ModelRelationship], self.fwdCycle(relsSet, rels, noUndirected, {relFrom}))  # type: ignore[arg-type]
 
                         if cycleFound is not None:
                             pathEndsAt = len(cycleFound)  # consistently find start of path

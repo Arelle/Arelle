@@ -228,7 +228,7 @@ class ValidateXbrlCalcs:
             if arcrole in summationArcroles:
                 fromRelationships = relsSet.fromModelObjects()
                 for sumConcept, modelRels in fromRelationships.items():
-                    sumBindingKeys = self.sumConceptBindKeys[sumConcept]
+                    sumBindingKeys = self.sumConceptBindKeys[sumConcept]  # type: ignore[index]
                     dupBindingKeys = set()
                     boundSumKeys: set[tuple[ModelObject, int, ModelUnit]] = set()
                     # determine boundSums

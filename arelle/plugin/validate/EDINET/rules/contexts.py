@@ -138,8 +138,8 @@ def rule_EC8013W(
         XbrlConst.parentChild,
         tuple(roleType.roleURI for roleType in financialStatementRoleTypes)  # type: ignore[misc]
     )
-    financialStatementConcepts.update(labelsRelationshipSet.fromModelObjects().keys())
-    financialStatementConcepts.update(labelsRelationshipSet.toModelObjects().keys())
+    financialStatementConcepts.update(labelsRelationshipSet.fromModelObjects().keys())  # type: ignore[arg-type]
+    financialStatementConcepts.update(labelsRelationshipSet.toModelObjects().keys())  # type: ignore[arg-type]
 
     invalidContextIdMap = defaultdict(list)
     for fact in val.modelXbrl.facts:

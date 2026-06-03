@@ -1,28 +1,48 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-import os, sys
+from __future__ import annotations
+
+import os
+import sys
 from collections import defaultdict
-from arelle import (UrlUtil, XbrlConst)
-from arelle.ModelObject import ModelObject
+from typing import TYPE_CHECKING
+
+from arelle import UrlUtil, XbrlConst
 from arelle.ModelDtsObject import ModelConcept
+from arelle.ModelObject import ModelObject
 from arelle.PrototypeInstanceObject import ContextPrototype, DimValuePrototype
-from typing import cast
+from arelle.typing import TypeGetText
+
+if TYPE_CHECKING:
+    from arelle.ModelDtsObject import ModelRelationship
+    from arelle.ModelInstanceObject import ModelContext, ModelFact
+    from arelle.ModelRelationshipSet import ModelRelationshipSet
+    from arelle.ValidateXbrl import ValidateXbrl
+    from arelle.ModelManager import ModelManager
+    from arelle.ModelXbrl import ModelXbrl
+    from arelle.PrototypeInstanceObject import FactPrototype
+    from arelle.formula.XPathContext import XPathContext
+
+_: TypeGetText
 
 NONDEFAULT = sys.intern(str("non-default"))
 
-def loadDimensionDefaults(val):
+
+def loadDimensionDefaults(val: ModelManager | ModelXbrl) -> None:
     # load dimension defaults when required without performing validations
+    assert val.modelXbrl is not None, "modelXbrl not loaded"
     val.modelXbrl.dimensionDefaultConcepts = {}
     val.modelXbrl.qnameDimensionDefaults = {}
     val.modelXbrl.qnameDimensionContextElement = {}
     for baseSetKey in val.modelXbrl.baseSets.keys():
         arcrole, ELR, linkqname, arcqname = baseSetKey
         if ELR and linkqname and arcqname and arcrole in (XbrlConst.all, XbrlConst.dimensionDefault):
-            checkBaseSet(val, arcrole, ELR, val.modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname))
+            checkBaseSet(val, arcrole, ELR, val.modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname))  # type: ignore[arg-type]
     val.modelXbrl.isDimensionsValidated = True
 
-def checkBaseSet(val, arcrole, ELR, relsSet) -> None:
+
+def checkBaseSet(val: ValidateXbrl | ModelXbrl, arcrole: str, ELR: str, relsSet: ModelRelationshipSet) -> None:
     # check hypercube-dimension relationships
     if arcrole == XbrlConst.hypercubeDimension:
         for modelRel in relsSet.modelRelationships:
@@ -71,7 +91,7 @@ def checkBaseSet(val, arcrole, ELR, relsSet) -> None:
                         dimConcept = hcDimRel.toModelObject
                         if dimConcept is not None:
                             if arcrole == XbrlConst.all:
-                                cntxElt = val.modelXbrl.qnameDimensionContextElement.setdefault(dimConcept.qname, hcContextElement)
+                                cntxElt = val.modelXbrl.qnameDimensionContextElement.setdefault(dimConcept.qname, hcContextElement)  # type: ignore[arg-type]
                                 if cntxElt != hcContextElement:
                                     val.modelXbrl.qnameDimensionContextElement[dimConcept.qname] = "ambiguous"
                             domELR = hcDimRel.targetRole
@@ -79,7 +99,7 @@ def checkBaseSet(val, arcrole, ELR, relsSet) -> None:
                                 domELR = dimELR
                             dimDomRels = val.modelXbrl.relationshipSet(
                                  XbrlConst.dimensionDomain, domELR).fromModelObject(dimConcept)
-                            cycle = xdtCycle(val, domainTargetRoles(val, domELR,dimDomRels), dimDomRels, {hcConcept,dimConcept})
+                            cycle = xdtCycle(val, domainTargetRoles(val, domELR,dimDomRels), dimDomRels, {hcConcept, dimConcept})  # type: ignore[arg-type]
                             if cycle is not None:
                                 if cycle is not None:
                                     cycle.append(hcDimRel)
@@ -89,7 +109,7 @@ def checkBaseSet(val, arcrole, ELR, relsSet) -> None:
                                 val.modelXbrl.error("xbrldte:DRSDirectedCycleError",
                                     _("Dimension relationships have a directed cycle in DRS role %(linkrole)s \nstarting from hypercube %(hypercube)s, \ndimension %(dimension)s, \npath %(path)s"),
                                     modelObject=[hcConcept] + cycle, hypercube=hcConcept.qname, dimension=dimConcept.qname, linkrole=ELR, path=path)
-                            cycle = drsPolymorphism(val, domELR, dimDomRels, drsPriItems(val, ELR, priItemConcept))
+                            cycle = drsPolymorphism(val, domELR, dimDomRels, drsPriItems(val, ELR, priItemConcept))  # type: ignore[arg-type]
                             if cycle is not None:
                                 if cycle is not None:
                                     cycle.append(hcDimRel)
@@ -141,7 +161,7 @@ def checkBaseSet(val, arcrole, ELR, relsSet) -> None:
                         modelObject=modelRel, source=fromConcept.qname, target=toConcept.qname,
                         target2=val.modelXbrl.dimensionDefaultConcepts[fromConcept].qname)
                 else:
-                    val.modelXbrl.dimensionDefaultConcepts[fromConcept] = toConcept
+                    val.modelXbrl.dimensionDefaultConcepts[fromConcept] = toConcept  # type: ignore[index,assignment]
                     val.modelXbrl.qnameDimensionDefaults[fromConcept.qname] = toConcept.qname
 
     # check for primary item cycles
@@ -160,7 +180,14 @@ def checkBaseSet(val, arcrole, ELR, relsSet) -> None:
                                 _("Domain-Member relationship from %(source)s to %(target)s in link role %(linkrole)s must have a domain primary item or domain member target"),
                                 modelObject=domMbrRel, source=priItemConcept.qname, target=toConcept.qname, linkrole=ELR)
 
-def domainTargetRoles(val, fromELR, rels, fromConcepts=None, ELRs=None):
+
+def domainTargetRoles(
+    val: ModelXbrl,
+    fromELR: str,
+    rels: list[ModelRelationship],
+    fromConcepts: set[ModelObject] | None = None,
+    ELRs: set[str] | None = None,
+) -> set[str]:
     if fromConcepts is None:
         fromConcepts = set()
     if not ELRs:
@@ -168,25 +195,31 @@ def domainTargetRoles(val, fromELR, rels, fromConcepts=None, ELRs=None):
     for rel in rels:
         relTo = rel.toModelObject
         if relTo not in fromConcepts:
-            fromConcepts.add(relTo)
+            fromConcepts.add(relTo)  # type: ignore[arg-type]
             toELR = rel.targetRole
             if toELR:
                 ELRs.add(toELR)
             else:
                 toELR = fromELR
-            domMbrRels = val.modelXbrl.relationshipSet(XbrlConst.domainMember, toELR).fromModelObject(relTo)
+            domMbrRels = val.modelXbrl.relationshipSet(XbrlConst.domainMember, toELR).fromModelObject(relTo)  # type: ignore[arg-type]
             domainTargetRoles(val, toELR, domMbrRels, fromConcepts, ELRs)
             fromConcepts.discard(relTo)
     return ELRs
 
-def xdtCycle(val, ELRs, rels, fromConcepts):
+
+def xdtCycle(
+    val: ModelXbrl,
+    ELRs: set[str],
+    rels: list[ModelRelationship],
+    fromConcepts: set[ModelObject],
+) -> list[ModelRelationship] | None:
     for rel in rels:
         relTo = rel.toModelObject
         if rel.isUsable and relTo in fromConcepts: # don't think we want this?? and toELR == drsELR: #forms a directed cycle
             return [rel,]
-        fromConcepts.add(relTo)
+        fromConcepts.add(relTo)  # type: ignore[arg-type]
         for ELR in ELRs:
-            domMbrRels = val.modelXbrl.relationshipSet(XbrlConst.domainMember, ELR).fromModelObject(relTo)
+            domMbrRels = val.modelXbrl.relationshipSet(XbrlConst.domainMember, ELR).fromModelObject(relTo)  # type: ignore[arg-type]
             foundCycle = xdtCycle(val, ELRs, domMbrRels, fromConcepts)
             if foundCycle is not None:
                 foundCycle.append(rel)
@@ -194,19 +227,32 @@ def xdtCycle(val, ELRs, rels, fromConcepts):
         fromConcepts.discard(relTo)
     return None
 
-def drsPriItems(val, fromELR, fromPriItem, priItems=None):
+
+def drsPriItems(
+    val: ModelXbrl,
+    fromELR: str,
+    fromPriItem: ModelObject,
+    priItems: set[ModelObject] | None = None,
+) -> set[ModelObject]:
     if priItems is None:
         priItems = {fromPriItem}
     for rel in  val.modelXbrl.relationshipSet(XbrlConst.domainMember, fromELR).fromModelObject(fromPriItem):
         toPriItem = rel.toModelObject
         if toPriItem not in priItems:
             if rel.isUsable:
-                priItems.add(toPriItem)
+                priItems.add(toPriItem)  # type: ignore[arg-type]
             toELR = rel.targetRole
-            drsPriItems(val, toELR if toELR else fromELR, toPriItem, priItems)
+            drsPriItems(val, toELR if toELR else fromELR, toPriItem, priItems)  # type: ignore[arg-type]
     return priItems
 
-def drsPolymorphism(val, fromELR, rels, priItems, visitedMbrs=None):
+
+def drsPolymorphism(
+    val: ModelXbrl,
+    fromELR: str,
+    rels: list[ModelRelationship],
+    priItems: set[ModelObject],
+    visitedMbrs: set[ModelObject] | None = None,
+) -> list[ModelRelationship] | None:
     if visitedMbrs is None:
         visitedMbrs = set()
     for rel in rels:
@@ -217,8 +263,8 @@ def drsPolymorphism(val, fromELR, rels, priItems, visitedMbrs=None):
         if rel.isUsable and relTo in priItems: # don't think we want this?? and toELR == drsELR: #forms a directed cycle
             return [rel,]
         if relTo not in visitedMbrs:
-            visitedMbrs.add(relTo)
-            domMbrRels = val.modelXbrl.relationshipSet(XbrlConst.domainMember, toELR).fromModelObject(relTo)
+            visitedMbrs.add(relTo)  # type: ignore[arg-type]
+            domMbrRels = val.modelXbrl.relationshipSet(XbrlConst.domainMember, toELR).fromModelObject(relTo)  # type: ignore[arg-type]
             foundCycle = drsPolymorphism(val, toELR, domMbrRels, priItems, visitedMbrs)
             if foundCycle is not None:
                 foundCycle.append(rel)
@@ -226,12 +272,13 @@ def drsPolymorphism(val, fromELR, rels, priItems, visitedMbrs=None):
             visitedMbrs.discard(relTo)
     return None
 
-def checkConcept(val, concept) -> None:
+
+def checkConcept(val: ValidateXbrl, concept: ModelConcept) -> None:
     if concept.get("{http://xbrl.org/2005/xbrldt}typedDomainRef"):
         if concept.isDimensionItem:
             typedDomainElement = concept.typedDomainElement
             if typedDomainElement is None:
-                url, id = UrlUtil.splitDecodeFragment(concept.get("{http://xbrl.org/2005/xbrldt}typedDomainRef"))
+                url, id = UrlUtil.splitDecodeFragment(concept.get("{http://xbrl.org/2005/xbrldt}typedDomainRef"))  # type: ignore[arg-type]
                 if len(id) == 0:
                     val.modelXbrl.error("xbrldte:TypedDimensionURIError",
                         _("Concept %(concept)s typedDomainRef has no fragment identifier"),
@@ -251,9 +298,10 @@ def checkConcept(val, concept) -> None:
                 _("Concept %(concept)s is not a dimension item but has a typedDomainRef"),
                 modelObject=concept, concept=concept.qname)
 
-def checkContext(val, cntx) -> None:
-    def logDimAndFacts(modelDimValue):
-        dimAndFacts = [modelDimValue]
+
+def checkContext(val: ValidateXbrl, cntx: ModelContext) -> None:
+    def logDimAndFacts(modelDimValue: ModelObject) -> list[ModelObject]:
+        dimAndFacts: list[ModelObject] = [modelDimValue]
         for f in val.modelXbrl.facts:
             if f.context == cntx:
                 dimAndFacts.append(f)
@@ -286,22 +334,22 @@ def checkContext(val, cntx) -> None:
                             element.namespaceURI != typedDomainConcept.modelDocument.targetNamespace:
                             problem = _("wrong content {0}").format(element.prefixedName)
                         else:
-                            problem = None
+                            problem = None  # type: ignore[assignment]
                             # validate enumeration set typed dimension value here
                             if (val.validateEnum and typedDomainConcept.isEnumeration and getattr(element,"xValid", 0) == 4 and
                                 element.get("{http://www.w3.org/2001/XMLSchema-instance}nil") not in ("true","1")):
                                 qnEnums = element.xValue
-                                if not isinstance(qnEnums, list): qnEnums = (qnEnums,)
-                                if not all(enumerationMemberUsable(val, typedDomainConcept, val.modelXbrl.qnameConcepts.get(qnEnum))
-                                           for qnEnum in qnEnums):
+                                if not isinstance(qnEnums, list): qnEnums = (qnEnums,)  # type: ignore[assignment]
+                                if not all(enumerationMemberUsable(val, typedDomainConcept, val.modelXbrl.qnameConcepts.get(qnEnum))  # type: ignore[arg-type]
+                                           for qnEnum in qnEnums):  # type: ignore[union-attr]
                                     val.modelXbrl.error("enum2ie:InvalidDimensionSetValue",
                                         _("Dimension value %(dimensionMember)s context %(contextID)s enumeration %(value)s is not in the domain of %(concept)s"),
                                         modelObject=element, dimensionMember=element.qname, contextID=cntx.id, value=element.xValue, concept=element.qname)
-                                if len(qnEnums) > len(set(qnEnums)):
+                                if len(qnEnums) > len(set(qnEnums)):  # type: ignore[arg-type]
                                     val.modelXbrl.error("enum2ie:RepeatedDimensionSetValue",
                                         _("Dimension value %(dimensionMember)s context %(contextID)s enumeration has non-unique values %(value)s"),
                                         modelObject=element, dimensionMember=element.qname, contextID=cntx.id, value=element.xValue, concept=element.qname)
-                                if any(qnEnum < qnEnums[i] for i, qnEnum in enumerate(qnEnums[1:])):
+                                if any(qnEnum < qnEnums[i] for i, qnEnum in enumerate(qnEnums[1:])):  # type: ignore[index,arg-type]
                                     val.modelXbrl.error("enum2ie:InvalidDimensionSetOrder",
                                         _("Dimension value %(dimensionMember) context %(contextID)s enumeration is not in lexicographical order %(value)s"),
                                         modelObject=element, dimensionMember=element.qname, contextID=cntx.id, value=element.xValue, concept=element.qname)
@@ -338,15 +386,22 @@ def checkContext(val, cntx) -> None:
                 _("Context %(contextID)s dimension %(dimension)s is a repeated dimension value"),
                 modelObject=logDimAndFacts(modelDimValue), contextID=cntx.id, dimension=modelDimValue.dimensionQname)
 
-def checkFact(val, f, otherFacts=None) -> None:
-    if not isFactDimensionallyValid(val, f, otherFacts):
+
+def checkFact(val: ValidateXbrl, f: ModelFact, otherFacts: set[ModelFact] | None = None) -> None:
+    if not isFactDimensionallyValid(val, f, otherFacts=otherFacts):
         val.modelXbrl.error("xbrldie:PrimaryItemDimensionallyInvalidError",
             _("Fact %(fact)s context %(contextID)s dimensionally not valid"),
             modelObject=f, fact=f.qname, contextID=f.context.id)
 
-def isFactDimensionallyValid(val, f, setPrototypeContextElements=False, otherFacts=None) -> bool:
+
+def isFactDimensionallyValid(
+        val: ValidateXbrl | ModelXbrl,
+        f: ModelFact | FactPrototype,
+        setPrototypeContextElements: bool = False,
+        otherFacts: set[ModelFact] | None = None
+    ) -> bool:
     hasElrHc = False
-    for ELR, hcRels in priItemElrHcRels(val, f.concept).items():
+    for ELR, hcRels in priItemElrHcRels(val, f.concept).items():  # type: ignore[arg-type]
         hasElrHc = True
         '''
         if otherFacts: # find relevant facts with compatible primary items and same dims
@@ -360,7 +415,7 @@ def isFactDimensionallyValid(val, f, setPrototypeContextElements=False, otherFac
         else:
             relevantFactsByDims = None
         '''
-        if checkFactElrHcs(val, f, ELR, hcRels, setPrototypeContextElements):
+        if checkFactElrHcs(val, f, ELR, hcRels, setPrototypeContextElements):  # type: ignore[arg-type]
             return True # meets hypercubes in this ELR
 
     if hasElrHc:
@@ -368,19 +423,27 @@ def isFactDimensionallyValid(val, f, setPrototypeContextElements=False, otherFac
         return False
     return True
 
-def priItemElrHcRels(val, priItem, ELR=None):
+
+def priItemElrHcRels(val: ModelXbrl | XPathContext, priItem: ModelConcept, ELR: str | None = None) -> dict[str, list[ModelRelationship]]:
     key = (priItem, ELR)
     try:
-        priItemElrHcRels = val.priItemElrHcRels
+        priItemElrHcRels = val.priItemElrHcRels  # type: ignore[union-attr]
     except AttributeError:
-        priItemElrHcRels = val.priItemElrHcRels = {}
+        priItemElrHcRels = val.priItemElrHcRels = {}  # type: ignore[union-attr]
     try:
-        return priItemElrHcRels[key]
+        return priItemElrHcRels[key]  # type: ignore[no-any-return]
     except KeyError:
-        rels = priItemElrHcRels[key] = findPriItemElrHcRels(val, priItem, ELR)
+        rels = priItemElrHcRels[key] = findPriItemElrHcRels(val, priItem, ELR)  # type: ignore[arg-type]
         return rels
 
-def findPriItemElrHcRels(val, priItem, ELR=None, elrHcRels=None, seenPrimaryItems=None):
+
+def findPriItemElrHcRels(
+    val: ModelXbrl,
+    priItem: ModelObject,
+    ELR: str | None = None,
+    elrHcRels: defaultdict[str, list[ModelRelationship]] | None = None,
+    seenPrimaryItems: set[tuple[str | None, ModelObject]] | None = None,
+) -> dict[str, list[ModelRelationship]]:
     if elrHcRels is None:
         elrHcRels = defaultdict(list)
     if seenPrimaryItems is None:
@@ -392,31 +455,46 @@ def findPriItemElrHcRels(val, priItem, ELR=None, elrHcRels=None, seenPrimaryItem
     # add has hypercube relationships for ELR
     for arcrole in (XbrlConst.all, XbrlConst.notAll):
         for hasHcRel in val.modelXbrl.relationshipSet(arcrole,ELR).fromModelObject(priItem):
-            elrHcRels[hasHcRel.linkrole].append(hasHcRel)
+            elrHcRels[hasHcRel.linkrole].append(hasHcRel)  # type: ignore[index]
     # check inherited ELRs
     for domMbrRel in val.modelXbrl.relationshipSet(XbrlConst.domainMember).toModelObject(priItem):
         relLinkrole = domMbrRel.linkrole
         toELR = (domMbrRel.targetRole or relLinkrole)
         if ELR is None or ELR == toELR:
-            findPriItemElrHcRels(val, domMbrRel.fromModelObject, relLinkrole, elrHcRels, seenPrimaryItems)
+            findPriItemElrHcRels(val, domMbrRel.fromModelObject, relLinkrole, elrHcRels, seenPrimaryItems)  # type: ignore[arg-type]
     return elrHcRels
 
-def priItemsOfElrHc(val, priItem, hcELR, relELR, priItems=None):
+
+def priItemsOfElrHc(
+    val: ModelXbrl,
+    priItem: ModelObject,
+    hcELR: str,
+    relELR: str,
+    priItems: set[ModelObject] | None = None,
+) -> set[ModelObject]:
     if priItems is None:
-        priItems = set(priItem)
+        priItems = {priItem}
     for domMbrRel in val.modelXbrl.relationshipSet(XbrlConst.domainMember, relELR).fromModelObject(priItem):
         toPriItem = domMbrRel.toModelObject
         linkrole = domMbrRel.consecutiveLinkrole
         if linkrole == hcELR:
-            priItems.add(toPriItem)
-        priItemsOfElrHc(val, toPriItem, hcELR, linkrole, priItems)
+            priItems.add(toPriItem)  # type: ignore[arg-type]
+        priItemsOfElrHc(val, toPriItem, hcELR, linkrole, priItems)  # type: ignore[arg-type]
     return priItems
+
 
 NOT_FOUND = 0
 MEMBER_USABLE = 1
 MEMBER_NOT_USABLE = 2
 
-def checkFactElrHcs(val, f, ELR, hcRels, setPrototypeContextElements=False):
+
+def checkFactElrHcs(
+    val: ModelXbrl,
+    f: ModelFact,
+    ELR: str,
+    hcRels: list[ModelRelationship],
+    setPrototypeContextElements: bool = False,
+) -> bool:
     context = f.context
     elrValid = True # start assuming ELR is valid
 
@@ -427,7 +505,7 @@ def checkFactElrHcs(val, f, ELR, hcRels, setPrototypeContextElements=False):
         hcNegating = hasHcRel.arcrole == XbrlConst.notAll
         modelDimValues = context.dimValues(hcContextElement)
         if setPrototypeContextElements and isinstance(context,ContextPrototype):
-            oppositeContextDimValues = context.dimValues(hcContextElement, oppositeContextElement=True)
+            oppositeContextDimValues = context.dimValues(hcContextElement, oppositeContextElement=True)  # type: ignore[no-untyped-call]
         contextElementDimSet = set(modelDimValues.keys())
         modelNonDimValues = context.nonDimValues(hcContextElement)
         hcValid = True
@@ -438,7 +516,7 @@ def checkFactElrHcs(val, f, ELR, hcRels, setPrototypeContextElements=False):
         else:
             dimELR = (hasHcRel.targetRole or ELR)
             for hcDimRel in val.modelXbrl.relationshipSet(
-                                XbrlConst.hypercubeDimension, dimELR).fromModelObject(hcConcept):
+                                XbrlConst.hypercubeDimension, dimELR).fromModelObject(hcConcept):  # type: ignore[arg-type]
                 dimConcept = hcDimRel.toModelObject
                 if isinstance(dimConcept, ModelConcept):
                     domELR = (hcDimRel.targetRole or dimELR)
@@ -457,7 +535,7 @@ def checkFactElrHcs(val, f, ELR, hcRels, setPrototypeContextElements=False):
                         continue
                     if not dimConcept.isTypedDimension:
                         # change to cache all member concepts usability per domain: if dimensionMemberState(val, dimConcept, memConcept, domELR) != MEMBER_USABLE:
-                        if not dimensionMemberUsable(val, dimConcept, memConcept, domELR):
+                        if not dimensionMemberUsable(val, dimConcept, memConcept, domELR):  # type: ignore[arg-type]
                             hcValid = False
                     if hcValid and setPrototypeContextElements and isinstance(memModelDimension,DimValuePrototype) and not hcNegating:
                         memModelDimension.contextElement = hcContextElement
@@ -478,17 +556,18 @@ def checkFactElrHcs(val, f, ELR, hcRels, setPrototypeContextElements=False):
             elrValid = False
     return elrValid
 
-def dimensionMemberUsable(val, dimConcept, memConcept, domELR):
+
+def dimensionMemberUsable(val: ValidateXbrl, dimConcept: ModelConcept, memConcept: ModelObject, domELR: str) -> bool:
     try:
-        dimensionMembersUsable = val.dimensionMembersUsable
+        dimensionMembersUsable = val.dimensionMembersUsable  # type: ignore[attr-defined]
     except AttributeError:
-        dimensionMembersUsable = val.dimensionMembersUsable = {}
+        dimensionMembersUsable = val.dimensionMembersUsable = {}  # type: ignore[attr-defined]
     key = (dimConcept, domELR)
     try:
         return memConcept in dimensionMembersUsable[key]
     except KeyError:
-        usableMembers = set()
-        unusableMembers = set()
+        usableMembers: set[ModelConcept] = set()
+        unusableMembers: set[ModelConcept] = set()
         dimensionMembersUsable[key] = usableMembers
         # build set of usable members in dimension/domain/ELR
         findUsableMembersInDomainELR(val, val.modelXbrl.relationshipSet(XbrlConst.dimensionDomain, domELR).fromModelObject(dimConcept),
@@ -496,34 +575,43 @@ def dimensionMemberUsable(val, dimConcept, memConcept, domELR):
         usableMembers -= unusableMembers
         return memConcept in usableMembers
 
-def findUsableMembersInDomainELR(val, rels, ELR, usableMembers, unusableMembers, toConceptELRs):
+
+def findUsableMembersInDomainELR(
+    val: ValidateXbrl,
+    rels: list[ModelRelationship],
+    ELR: str,
+    usableMembers: set[ModelConcept],
+    unusableMembers: set[ModelConcept],
+    toConceptELRs: defaultdict[ModelConcept, set[str]],
+) -> None:
     for rel in rels:
         toConcept = rel.toModelObject
         if rel.isUsable:
-            usableMembers.add(toConcept)
+            usableMembers.add(toConcept)  # type: ignore[arg-type]
         else:
-            unusableMembers.add(toConcept)
+            unusableMembers.add(toConcept)  # type: ignore[arg-type]
         toELR = (rel.targetRole or ELR)
-        toELRs = toConceptELRs[toConcept]
+        toELRs = toConceptELRs[toConcept]  # type: ignore[index]
         if toELR not in toELRs:  # looping if it's already there in a visited ELR
             toELRs.add(toELR)
-            domMbrRels = val.modelXbrl.relationshipSet(XbrlConst.domainMember, toELR).fromModelObject(toConcept)
+            domMbrRels = val.modelXbrl.relationshipSet(XbrlConst.domainMember, toELR).fromModelObject(toConcept)  # type: ignore[arg-type]
             findUsableMembersInDomainELR(val, domMbrRels, toELR, usableMembers, unusableMembers, toConceptELRs)
             toELRs.discard(toELR)
 
-def usableEnumerationMembers(val, enumConcept):
+
+def usableEnumerationMembers(val: ValidateXbrl, enumConcept: ModelConcept | None) -> set[ModelConcept]:
     if enumConcept is None:
         return set()
     try:
-        enumerationMembersUsable = val.enumerationMembersUsable
+        enumerationMembersUsable = val.enumerationMembersUsable  # type: ignore[attr-defined]
     except AttributeError:
-        enumerationMembersUsable = val.enumerationMembersUsable = {}
+        enumerationMembersUsable = val.enumerationMembersUsable = {}  # type: ignore[attr-defined]
     try:
-        return enumerationMembersUsable[enumConcept]
+        return enumerationMembersUsable[enumConcept]  # type: ignore[no-any-return]
     except KeyError:
         domConcept = enumConcept.enumDomain
-        usableMembers = set()
-        unusableMembers = set()
+        usableMembers: set[ModelConcept] = set()
+        unusableMembers: set[ModelConcept] = set()
         enumerationMembersUsable[enumConcept] = usableMembers
         if domConcept is None:
             usableMembers = set()
@@ -533,11 +621,12 @@ def usableEnumerationMembers(val, enumConcept):
         # build set of usable members in dimension/domain/ELR
         domELR = enumConcept.enumLinkrole
         findUsableMembersInDomainELR(val, val.modelXbrl.relationshipSet(XbrlConst.domainMember, domELR).fromModelObject(domConcept),
-                                     domELR, usableMembers, unusableMembers, defaultdict(set))
+                                     domELR, usableMembers, unusableMembers, defaultdict(set))  # type: ignore[arg-type]
         usableMembers -= unusableMembers
         return usableMembers
 
-def enumerationMemberUsable(val, enumConcept, memConcept) -> bool:
+
+def enumerationMemberUsable(val: ValidateXbrl, enumConcept: ModelConcept | None, memConcept: ModelConcept | None) -> bool:
     if enumConcept is None or memConcept is None:
         return False
     else:

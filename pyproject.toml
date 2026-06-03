@@ -176,7 +176,6 @@ module = [
     'arelle.ValidateVersReport',
     'arelle.ValidateXbrlCalcs',
     'arelle.ValidateXbrlDTS',
-    'arelle.ValidateXbrlDimensions',
     'arelle.Version',
     'arelle.ViewFile',
     'arelle.ViewFileConcepts',
