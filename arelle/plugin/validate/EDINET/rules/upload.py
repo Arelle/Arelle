@@ -1136,11 +1136,14 @@ def rule_EC5003E(
                 if illegalChars:
                     yield Validation.error(
                         codes='EDINET.EC5003E',
-                        msg=_("Prohibited characters (%(chars)s) are used. "
+                        msg=_("Prohibited characters are used: %(chars)s "
                               "File name: '%(file)s' (line %(line)s). "
                               "The file in question contains prohibited characters. "
                               "Please correct the prohibited characters. "),
-                        chars=', '.join(sorted(illegalChars)),
+                        chars=', '.join(
+                            f'{c} (&#{ord(c)};)'
+                            for c in sorted(illegalChars)
+                        ),
                         file=filepath,
                         line=lineNumber,
                     )
