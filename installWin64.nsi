@@ -31,6 +31,7 @@ Unicode true
 
 !include "MUI2.nsh"
 !include "FileFunc.nsh"
+!include "LogicLib.nsh"
 
 SetCompressor /SOLID lzma
 
@@ -118,6 +119,16 @@ Section "Arelle" SecArelle
 
   RMDir /r "$INSTDIR\*"
   
+  ; Clean up user shortcuts left by older installers
+  SetShellVarContext current
+  ReadRegStr $0 HKLM "Software\Arelle" "Start Menu Folder"
+  ${If} ${FileExists} "$SMPROGRAMS\$0\*.*"
+    Delete "$SMPROGRAMS\$0\*.*"
+    RMDir "$SMPROGRAMS\$0"
+  ${EndIf}
+
+  SetShellVarContext all
+
   ; ADD YOUR OWN FILES HERE...
   File /r $%BUILD_PATH%\*.*
   
@@ -185,6 +196,8 @@ SectionEnd
 ; Uninstaller Section
 
 Section "Uninstall"
+
+  SetShellVarContext all
 
   ;ADD YOUR OWN FILES HERE...
 
