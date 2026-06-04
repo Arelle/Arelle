@@ -531,7 +531,7 @@ def descendant(
     return None
 
 def descendants(
-    element: ModelObject | PrototypeObject | etree._ElementTree,
+    element: ModelObject | PrototypeObject | etree._ElementTree | PrototypeElementTree,
     descendantNamespaceURI: str | None,
     descendantLocalNames: str | tuple[str, ...],
     attrName: str | None = None,
