@@ -97,20 +97,72 @@ arelleCmdLine --help
 arelleGUI
 ```
 
-## Docker containers
-Run Arelle with Docker. New releases are tagged and published to [Docker Hub][docker-hub]. There are a couple different configurations/tags:
+## Docker
+Run Arelle with Docker. New releases are tagged and published to [Docker Hub][docker-hub] and the [GitHub Container registry][ghcr]. There are a couple different configurations/tags:
 - latest - Arelle with all plugins ([EDGAR plugins][edgar-plugin], [XULE plugin][xule-plugin], [iXBRL Viewer plugin][ixbrl-viewer-plugin], and [EFM][efm-plugin] disclosure systems)
 - slim - Arelle without EDGAR, XULE, or iXBRL Viewer plugins
 
+### Command Line
 ```shell
-# To run the command line
 docker run arelleproject/arelle:latest python arelleCmdLine.py --help
-
-# To run the webserver. The webserver will be available at http://127.0.0.1:8080
+# From GitHub Container registry
+docker run ghcr.io/arelle/arelle:latest python arelleCmdLine.py --help
+```
+### Web Server
+The webserver will be available at http://127.0.0.1:8080
+```shell
 docker run --name arelle-webserver -p 8080:8080 arelleproject/arelle:latest /opt/start.sh
+# From GitHub Container registry
+docker run --name arelle-webserver -p 8080:8080 ghcr.io/arelle/arelle:latest /opt/start.sh
+```
+### Docker Compose
+```shell
+# docker-compose.yml
+services:
+  ...
+  arelle-webserver:
+    container_name: arelle-webserver
+    image: arelleproject/arelle:latest
+    # GitHub Container registry
+    # image: ghcr.io/arelle/arelle:latest
+    command: /opt/start.sh
+    ports: 
+      - 8080:8080
+    healthcheck:
+      test: /opt/healthcheck.sh
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+```
+### Dockerfile
+```shell
+# Dockerfile
+FROM arelleproject/arelle:latest
+# GitHub Container registry
+# FROM ghcr.io/arelle/arelle:latest
+
+WORKDIR /usr/src/app
+
+# Install additional dependencies
+ENV PYTHONUNBUFFERED=1
+ENV PATH="/opt/venv/bin:$PATH"
+RUN pip install #custom-plugin
+
+# Replace /opt/start.sh with a custom start script
+COPY --chmod=755 start.sh /opt/
+
+# Add user with home directory (Arelle caches to the user's home directory by default)
+# Assign app ownership and switch to new user
+RUN useradd -m arelle \
+  && chown -R arelle:arelle /usr/src/app
+USER arelle
+
+ENTRYPOINT ["/opt/entrypoint.sh"]
 ```
 
 [docker-hub]: https://hub.docker.com/r/arelleproject/arelle
+[ghcr]: https://ghcr.io/arelle/arelle
 [edgar-plugin]: plugins/popular/edgar.md
 [xule-plugin]: plugins/popular/xule.md
 [efm-plugin]: plugins/popular/validation.md#validate-efm
