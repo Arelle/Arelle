@@ -121,7 +121,7 @@ jobs:
     secrets: inherit
 
   publish-docker:
-    needs: 
+    needs:
       - tests
     permissions:
       packages: write
@@ -129,4 +129,6 @@ jobs:
       attestations: write
       id-token: write
     uses: ./.github/workflows/publish-docker.yml
+    with:
+      arelle_version: ${{ github.ref_name }}
     secrets: inherit

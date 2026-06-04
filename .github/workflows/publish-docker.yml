@@ -6,6 +6,11 @@ name: Publish Docker images
 on:
   workflow_call:
     inputs:
+      arelle_version:
+        default: ''
+        description: 'Version Arelle should declare itself to be in the image (blank to skip)'
+        required: false
+        type: string
       python_version:
         default: '3.14.4'
         description: 'Python version to use'
@@ -24,6 +29,11 @@ on:
 
   workflow_dispatch:
     inputs:
+      arelle_version:
+        default: ''
+        description: 'Version Arelle should declare itself to be in the image (blank to skip)'
+        required: false
+        type: string
       python_version:
         default: '3.14.4'
         description: 'Python version to use'
@@ -102,6 +112,7 @@ jobs:
           file: docker/Dockerfile
           platforms: linux/amd64,linux/arm64
           build-args: |
+            ARELLE_VERSION=${{ inputs.arelle_version }}
             PYTHON_VERSION=${{ inputs.python_version }}
           push: true
           tags: ${{ steps.meta-slim.outputs.tags }}
@@ -158,6 +169,7 @@ jobs:
           file: docker/Dockerfile
           platforms: linux/amd64,linux/arm64
           build-args: |
+            ARELLE_VERSION=${{ inputs.arelle_version }}
             PYTHON_VERSION=${{ inputs.python_version }}
             INCLUDE_EDGAR=true
             EXTRA_PIP=-r requirements-plugins.txt
