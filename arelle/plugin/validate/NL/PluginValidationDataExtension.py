@@ -205,7 +205,7 @@ class PluginValidationDataExtension(PluginData):
         ixHiddenFacts = set()
         presentedHiddenEltIds = defaultdict(list)
         requiredToDisplayFacts = set()
-        for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
+        for ixdsHtmlRootElt in self.getIxdsHtmlElements(modelXbrl):
             ixNStag = str(getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11))
             for ixHiddenElt in ixdsHtmlRootElt.iterdescendants(tag=ixNStag + "hidden"):
                 for tag in (ixNStag + "nonNumeric", ixNStag+"nonFraction"):
@@ -222,7 +222,7 @@ class PluginValidationDataExtension(PluginData):
                         for ixElt in cssHiddenElt.iterdescendants(tag=tag):
                             if ixElt not in ixHiddenFacts:
                                 cssHiddenFacts.add(ixElt)
-        for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
+        for ixdsHtmlRootElt in self.getIxdsHtmlElements(modelXbrl):
             for ixElt in ixdsHtmlRootElt.getroottree().iterfind(".//{http://www.w3.org/1999/xhtml}*[@style]"):
                 styleValue = ixElt.get("style","")
                 hiddenFactRefMatch = STYLE_IX_HIDDEN_PATTERN.match(styleValue)
@@ -244,6 +244,12 @@ class PluginValidationDataExtension(PluginData):
             requiredToDisplayFacts=requiredToDisplayFacts,
         )
 
+    def getIxdsHtmlElements(self, modelXbrl: ModelXbrl) -> list[Any]:
+        ixdsHtmlElements = []
+        if hasattr(modelXbrl, "ixdsHtmlElements"):
+            ixdsHtmlElements = modelXbrl.ixdsHtmlElements
+        return ixdsHtmlElements
+
     @lru_cache(1)
     def checkInlineHTMLElements(self, modelXbrl: ModelXbrl) -> InlineHTMLData:
         baseElements = set()
@@ -254,7 +260,7 @@ class PluginValidationDataExtension(PluginData):
         noMatchLangFootnotes = set()
         tupleElements = set()
         orphanedFootnotes = set()
-        for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
+        for ixdsHtmlRootElt in self.getIxdsHtmlElements(modelXbrl):
             ixNStag = str(getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11))
             ixFootnoteTag = ixNStag + "footnote"
             ixFractionTag = ixNStag + "fraction"
@@ -626,8 +632,9 @@ class PluginValidationDataExtension(PluginData):
     def getReportXmlLang(self, modelXbrl: ModelXbrl) -> str | None:
         reportXmlLang = None
         firstRootmostXmlLangDepth = 9999999
-        if modelXbrl.ixdsHtmlElements:
-            ixdsHtmlRootElt = modelXbrl.ixdsHtmlElements[0]
+        ixdsHtmlElements = self.getIxdsHtmlElements(modelXbrl)
+        if ixdsHtmlElements:
+            ixdsHtmlRootElt = ixdsHtmlElements[0]
             for elt, depth in etreeIterWithDepth(ixdsHtmlRootElt):
                 if isinstance(elt, (_Comment, _ElementTree, _Entity, _ProcessingInstruction)):
                     continue
@@ -640,7 +647,7 @@ class PluginValidationDataExtension(PluginData):
     @lru_cache(1)
     def getElementsByTarget(self, modelXbrl: ModelXbrl) -> dict[str | None, list[ModelObject]]:
         elementsByTarget = defaultdict(list)
-        for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
+        for ixdsHtmlRootElt in self.getIxdsHtmlElements(modelXbrl):
             ixNStag = str(getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11))
             ixTags = (ixNStag + ln for ln in ("nonNumeric", "nonFraction", "references", "relationship"))
             for elt in ixdsHtmlRootElt.iter(*ixTags):
