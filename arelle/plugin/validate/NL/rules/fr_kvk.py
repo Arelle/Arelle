@@ -37,7 +37,7 @@ def rule_fr_kvk_1_01(
     """
     modelXbrl = val.modelXbrl
     for doc in modelXbrl.urlDocs.values():
-        if doc.type == ModelDocumentType.INSTANCE:
+        if doc.type in (ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET):
             if not doc.basename.endswith('.xbrl'):
                 yield Validation.error(
                     codes='NL.FR-KVK-1.01',
