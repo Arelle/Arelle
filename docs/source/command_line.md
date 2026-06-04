@@ -5,12 +5,14 @@
 
 ## Running Arelle on the Command Line
 
-| Method or System      | Command                                                             |
-|-----------------------|---------------------------------------------------------------------|
-| Python source code    | `python arelleCmdLine.py [arguments]`                               |
-| Windows x64 or 32 bit | `"c:\Program Files\arelleCmdLine.exe" [arguments]`                  |
-| MacOS App             | `/Applications/Arelle.app/contents/MacOS/arelleCmdLine [arguments]` |
-| Linux/Unix            | `./arelleCmdLine [arguments]`                                       |
+| Method or System      | Command                                                               |
+|-----------------------|-----------------------------------------------------------------------|
+| Python source code    | `python arelleCmdLine.py [arguments]`                                 |
+| Windows x64 or 32 bit | `"c:\Program Files\arelleCmdLine.exe" [arguments]`                    |
+| MacOS App             | `/Applications/Arelle.app/contents/MacOS/arelleCmdLine [arguments]`   |
+| Linux/Unix            | `./arelleCmdLine [arguments]`                                         |
+| Docker                | `docker run arelleproject/arelle python arelleCmdLine.py [arguments]` |
+| Docker (GHCR)         | `docker run ghcr.io/arelle/arelle python arelleCmdLine.py [arguments]`|
 
 ## Arguments
 
