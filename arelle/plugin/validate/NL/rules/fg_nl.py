@@ -52,10 +52,11 @@ def rule_fg_nl_03(
     """
     standardNamespaceMap: dict[str, set[str]] = defaultdict(set)
     for modelDocument in val.modelXbrl.urlDocs.values():
+        if modelDocument.targetXbrlElementTree is None:
+            continue
         if modelDocument.type == ModelDocumentType.INSTANCE:
             continue
 
-        assert isinstance(modelDocument.targetXbrlElementTree, _ElementTree)
         for element in modelDocument.targetXbrlElementTree.iter():
             for prefix, namespace in element.nsmap.items():
                 if prefix:
@@ -63,10 +64,11 @@ def rule_fg_nl_03(
 
     warningsMap: defaultdict[tuple[str, str], list[_Element]] = defaultdict(list)
     for modelDocument in val.modelXbrl.urlDocs.values():
+        if modelDocument.targetXbrlElementTree is None:
+            continue
         if modelDocument.type != ModelDocumentType.INSTANCE:
             continue
 
-        assert isinstance(modelDocument.targetXbrlElementTree, _ElementTree)
         for element in modelDocument.targetXbrlElementTree.iter():
             for prefix, namespace in element.nsmap.items():
                 if namespace not in standardNamespaceMap or not prefix:
