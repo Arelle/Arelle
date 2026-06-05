@@ -22,7 +22,7 @@
               "format": "uri"
             }
           },
-          "documentNamespace": {
+          "documentNamespacePrefix": {
             "type": "string"
           },
           "importMapping": {
@@ -311,6 +311,12 @@
                             }
                           },
                           "required": ["dimension"],
+                          "if": {
+                            "required": ["typedSort"]
+                          },
+                          "then": {
+                            "required": ["domainDataType"]
+                          },
                           "additionalProperties": false
                         },
                         "minItems": 1,

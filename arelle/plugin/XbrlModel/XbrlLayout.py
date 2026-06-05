@@ -45,7 +45,7 @@ class XbrlAxisLabelGroup(XbrlModelObject):
     range: Optional[XbrlAxisLabelGroupRange] # (optional) Range specification for generating axis labels .
 
 class XbrlAxisItem(XbrlModelObject):
-    axisId: str # (required) Identifier for this axis item (e.g., "C0030", "R0100"). This identifier is used to reference the axis position in the grid.
+    axisId: Optional[str] # (optional) Identifier for this axis item (e.g., "C0030", "R0100"). This identifier is used to reference the axis position in the grid.
     itemLabel: Optional[str] # (optional) Optional label for the axis item. If not provided, the label is derived from the member's label in the taxonomy.
     dimensions: dict[QName, QName] # (optional) Map of dimension names to member names for this grid cell.
 

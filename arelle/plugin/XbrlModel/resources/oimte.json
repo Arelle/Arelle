@@ -3,12 +3,12 @@
     "documentInfo": {
         "documentType": "https://xbrl.org/2026/module",
         "namespaces": {
-            "oimte": "https://xbrl.org/2025/oimtaxonomy/error",
+            "oimte": "https://xbrl.org/2026/oimtaxonomy/error",
             "oime": "http://www.xbrl.org/2021/oim/error",
-            "xbrl": "https://xbrl.org/2025",
+            "xbrl": "https://xbrl.org/2026",
             "xs": "http://www.w3.org/2001/XMLSchema"
         },
-        "documentNamespace": "oimte"
+        "documentNamespacePrefix": "oimte"
     },
     "xbrlModel": {
         "name": "oimte:ErrorsTaxonomy",
@@ -548,6 +548,18 @@
             },
             {
                 "name": "oimte:duplicateItemsInSet",
+                "domainClasses": [
+                    "oimte:OIMErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:duplicateSourceNameProperty",
                 "domainClasses": [
                     "oimte:OIMErrorClassDomain"
                 ],
@@ -4040,7 +4052,7 @@
             {
                 "relatedName": "oimte:disallowedObjectModelType",
                 "language": "en",
-                "value": "This error occurs when an xbrlModel with a modelType attribute contains object types that are not in the modelType's allowedObjects array. The constraint only applies to objects defined in the same namespace as the xbrlModel's documentNamespace when modelForm is 'module' or undefined. Objects included via importTaxonomy are not subject to this constraint.",
+                "value": "This error occurs when an xbrlModel with a modelType attribute contains object types that are not in the modelType's allowedObjects array. The constraint only applies to objects defined in the same namespace as the xbrlModel's documentNamespacePrefix when modelForm is 'module' or undefined. Objects included via importTaxonomy are not subject to this constraint.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -4082,7 +4094,7 @@
             {
                 "relatedName": "oimte:documentNamespacePrefixNotDefined",
                 "language": "en",
-                "value": "The documentNamespace '{documentNamespace}' does not match any defined namespace prefix in the namespaces declaration.",
+                "value": "The documentNamespacePrefix '{documentNamespacePrefix}' does not match any defined namespace prefix in the namespaces declaration.",
                 "labelType": "xbrl:errorMessage"
             },
             {
@@ -4094,13 +4106,13 @@
             {
                 "relatedName": "oimte:documentNamespaceNotDefined",
                 "language": "en",
-                "value": "This error occurs when an XBRL Model with a modelForm of 'module' (or where modelForm is not defined, which defaults to module) does not define the documentNamespace property in its documentInfo object. The documentNamespace property is required for modules and must be a prefix string defined as a key in the namespaces map.",
+                "value": "This error occurs when an XBRL Model with a modelForm of 'module' (or where modelForm is not defined, which defaults to module) does not define the documentNamespacePrefix property in its documentInfo object. The documentNamespacePrefix property is required for modules and must be a prefix string defined as a key in the namespaces map.",
                 "labelType": "xbrl:documentation"
             },
             {
                 "relatedName": "oimte:documentNamespaceNotDefined",
                 "language": "en",
-                "value": "The documentNamespace property is required for modules but is not defined in the documentInfo object.",
+                "value": "The documentNamespacePrefix property is required for modules but is not defined in the documentInfo object.",
                 "labelType": "xbrl:errorMessage"
             },
             {
@@ -4946,7 +4958,7 @@
             {
                 "relatedName": "oimte:documentNamespacePrefixNotDefined",
                 "language": "en",
-                "value": "This error occurs when the documentNamespace property specifies a prefix that is not defined in the namespaces declaration. The documentNamespace must reference a valid prefix that exists in the namespaces map.",
+                "value": "This error occurs when the documentNamespacePrefix property specifies a prefix that is not defined in the namespaces declaration. The documentNamespacePrefix must reference a valid prefix that exists in the namespaces map.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -20935,6 +20947,32 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBETYPE-RequiredCubeRelationshipWrongTargetType"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:duplicateSourceNamePropertyReference",
+                "relatedNames": [
+                    "oimte:duplicateSourceNameProperty"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACTSET-DuplicateSourceNameProperty.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACTSET-DuplicateSourceNameProperty"
                     }
                 ]
             }

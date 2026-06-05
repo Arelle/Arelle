@@ -4,10 +4,10 @@
         "documentType": "https://xbrl.org/2026/module",
         "namespaces": {
             "calc11e": "https://xbrl.org/CR/2022-10-12/error",
-            "xbrl": "https://xbrl.org/2025",
+            "xbrl": "https://xbrl.org/2026",
             "xs": "http://www.w3.org/2001/XMLSchema"
         },
-        "documentNamespace": "calc11e"
+        "documentNamespacePrefix": "calc11e"
     },
     "xbrlModel": {
         "name": "calc11e:ErrorsTaxonomy",

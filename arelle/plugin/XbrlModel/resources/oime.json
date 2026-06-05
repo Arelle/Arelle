@@ -4,10 +4,10 @@
         "documentType": "https://xbrl.org/2026/module",
         "namespaces": {
             "oime": "http://www.xbrl.org/2021/oim/error",
-            "xbrl": "https://xbrl.org/2025",
+            "xbrl": "https://xbrl.org/2026",
             "xs": "http://www.w3.org/2001/XMLSchema"
         },
-        "documentNamespace": "oime"
+        "documentNamespacePrefix": "oime"
     },
     "xbrlModel": {
         "name": "oime:ErrorsTaxonomy",

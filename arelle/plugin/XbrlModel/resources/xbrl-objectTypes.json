@@ -1,10 +1,10 @@
 {
     "documentInfo": {
         "documentType": "https://xbrl.org/2026/module",
-        "documentNamespace": "https://xbrl.org/2026/model/meta",
+        "documentNamespacePrefix": "https://xbrl.org/2026/model/meta",
         "namespaces": {
-            "xbrl": "https://xbrl.org/2025",
-            "xbrlr": "https://xbrl.org/2025/report",
+            "xbrl": "https://xbrl.org/2026",
+            "xbrlr": "https://xbrl.org/2026/report",
             "xs": "https://www.w3.org/2001/XMLSchema"
         }
     },

@@ -3,13 +3,13 @@
      "documentInfo": {
         "documentType": "https://xbrl.org/2026/module",
         "namespaces": {
-            "xbrl": "https://xbrl.org/2025",
-            "xbrlr":"https://xbrl.org/2025/report",
+            "xbrl": "https://xbrl.org/2026",
+            "xbrlr":"https://xbrl.org/2026/report",
             "xs": "http://www.w3.org/2001/XMLSchema",
-            "iso4217": "http://www.xbrl.org/2003/iso421",
-            "utr": "https://xbrl.org/2025/utr"
+            "iso4217": "http://www.xbrl.org/2003/iso4217",
+            "utr": "https://xbrl.org/2026/utr"
             },
-        "documentNamespace":"utr"
+        "documentNamespacePrefix":"utr"
     },
     "xbrlModel": {
         "frameworkName": "utr",

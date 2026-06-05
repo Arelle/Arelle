@@ -3,13 +3,13 @@
     "documentInfo": {
         "documentType": "https://xbrl.org/2026/module",
         "namespaces": {
-            "xbrl": "https://xbrl.org/2025",
+            "xbrl": "https://xbrl.org/2026",
             "xbrla": "http://xbrl.org/accounting",
-            "xbrlr":"https://xbrl.org/2025/report",
+            "xbrlr":"https://xbrl.org/2026/report",
             "xs": "http://www.w3.org/2001/XMLSchema",
-            "utr": "https://xbrl.org/2025/utr"
+            "utr": "https://xbrl.org/2026/utr"
             },
-        "documentNamespace":"xbrla"
+        "documentNamespacePrefix":"xbrla"
     },
     "xbrlModel": {
         "name": "xbrla:AccountingModel",

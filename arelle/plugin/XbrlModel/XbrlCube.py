@@ -36,7 +36,7 @@ class XbrlPeriodConstraint(XbrlModelObject):
     """ Period Constraint Object
         Reference: oim-taxonomy#periodconstraint-object
     """
-    periodType: str # (required) Used to indicate if the period is an instant or a duration.
+    periodType: Optional[str] # (optional) Used to indicate if the period is an instant or a duration.
     timeSpan: Optional[str] # (optional) Defines a duration of time using the XML duration type to define a duration of time. The duration of the time span maps to facts with the same duration.
     periodPattern: Optional[str] # (optional) Defines a date or duration pattern that is used to select dates or durations.
     endDate: Optional[XbrlDateResolution] # (optional) Defines an end date for a duration fact and the date of an instant fact. Values can be provided as a literal date value, a fact with a date value, or the date context value of a date. A suffix of @start or @end may be added to any of the date formats, specifying the instant at the start or end end of the duration, respectively.
