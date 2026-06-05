@@ -4,10 +4,10 @@
         "documentType": "https://xbrl.org/2026/module",
         "namespaces": {
             "oimce": "https://xbrl.org/2021/oim-common/error",
-            "xbrl": "https://xbrl.org/2025",
+            "xbrl": "https://xbrl.org/2026",
             "xs": "http://www.w3.org/2001/XMLSchema"
         },
-        "documentNamespace": "oimce"
+        "documentNamespacePrefix": "oimce"
     },
     "xbrlModel": {
         "name": "oimce:ErrorsTaxonomy",
@@ -298,7 +298,7 @@
             {
                 "relatedName": "oimce:invalidAliasForReservedURI",
                 "language": "en",
-                "value": "A namespace URI for which a reserved alias is prescribed MUST NOT be bound to any other alias. If a specification defines that the URI 'https://xbrl.org/2025' must use the alias 'xbrl', then binding that URI to any other prefix is not permitted.",
+                "value": "A namespace URI for which a reserved alias is prescribed MUST NOT be bound to any other alias. If a specification defines that the URI 'https://xbrl.org/2026' must use the alias 'xbrl', then binding that URI to any other prefix is not permitted.",
                 "labelType": "xbrl:documentation"
             },
             {
@@ -802,6 +802,32 @@
                     {
                         "property": "xbrl:specificationErrorURI",
                         "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NAMESPACE-DocumentNamespaceNotInNamespaceMap"
+                    }
+                ]
+            },
+            {
+                "name": "oimce:unboundPrefixOnImportReference",
+                "relatedNames": [
+                    "oimce:unboundPrefix"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "NAMESPACE-InvalidUnboundPrefixOnImport.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NAMESPACE-InvalidUnboundPrefixOnImport"
                     }
                 ]
             },

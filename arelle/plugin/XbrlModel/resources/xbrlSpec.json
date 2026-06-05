@@ -3,18 +3,18 @@
     "documentInfo": {
         "documentType": "https://xbrl.org/2026/module",
         "namespaces": {
-            "xbrl": "https://xbrl.org/2025",
-            "xbrlr":"https://xbrl.org/2025/report",
+            "xbrl": "https://xbrl.org/2026",
+            "xbrlr":"https://xbrl.org/2026/report",
             "xs": "http://www.w3.org/2001/XMLSchema",
-            "utr": "https://xbrl.org/2025/utr",
+            "utr": "https://xbrl.org/2026/utr",
             "lei": "http://standards.iso.org/iso/17442"
             },
-        "documentNamespace":"xbrl"
+        "documentNamespacePrefix":"xbrl"
     },
     "xbrlModel": {
         "name": "xbrl:CoreTaxonomyModule",
         "frameworkName": "Core",
-        "version": "2025",
+        "version": "2026",
         "cubeTypes" :[
                 {
                     "name": "xbrl:reportCube",
@@ -1595,11 +1595,11 @@
         ],
         "namespacePrefixes": [
             {
-                "namespace": "https://xbrl.org/2025",
+                "namespace": "https://xbrl.org/2026",
                 "preferredPrefixes": ["xbrl"]
             },
             {
-                "namespace": "https://xbrl.org/2025/report",
+                "namespace": "https://xbrl.org/2026/report",
                 "preferredPrefixes": ["xbrlr"]
             },
             {
@@ -1607,7 +1607,7 @@
                 "preferredPrefixes": ["xs"]
             },
             {
-                "namespace": "https://xbrl.org/2025/utr",
+                "namespace": "https://xbrl.org/2026/utr",
                 "preferredPrefixes": ["utr"]
             }
         ],

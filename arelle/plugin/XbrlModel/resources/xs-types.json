@@ -3,15 +3,15 @@
     "documentInfo": {
         "documentType": "https://xbrl.org/2026/module",
         "namespaces": {
-            "xbrl": "https://xbrl.org/2025",
+            "xbrl": "https://xbrl.org/2026",
             "xs": "http://www.w3.org/2001/XMLSchema"
         },
-        "documentNamespace": "xs"
+        "documentNamespacePrefix": "xs"
     },
     "xbrlModel": {
         "name": "xs:XMLSchemaTypes",
         "frameworkName": "xml-schema-types",
-        "version": "2025",
+        "version": "2026",
         "dataTypes": [
             {
                 "name": "xs:anySimpleType",

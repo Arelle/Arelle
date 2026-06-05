@@ -7,6 +7,7 @@ from collections import defaultdict, OrderedDict
 from decimal import Decimal
 from arelle.ModelValue import QName, AnyURI
 from arelle.PythonUtil import OrderedSet
+from bin.arelle.plugin.OimTaxonomy.ModelValueMore import SQName
 from .XbrlTypes import XbrlTaxonomyModelType,XbrlModuleType, QNameKeyType, DefaultFalse, DefaultTrue, OptionalList
 from .XbrlObject import XbrlObject, XbrlReportObject
 from .XbrlProperty import XbrlProperty
@@ -34,7 +35,7 @@ class XbrlFactValue(XbrlObject):
     """ Fact Value Object
         Reference: oim-taxonomy#factvalue-object
     """
-    name: QNameKeyType
+    name: SQName # (required) The fact SQName that identifies the fact value so it can be referenced by other objects. It is an SQName that allows a the local name to start with a number.
     value: Optional[Any] # (required if valueSources not provided) The value of the fact. This can be a numeric value, a string, or any other type of value that is valid for the fact.
     decimals: Optional[int] # An integer providing the value of the {decimals} property, or absent if the value is infinitely precise or not applicable (for nil or non-numeric facts).
     language: Optional[str] # (optional) The language of the fact value, specified using the BCP 47 standard language code (e.g., "en" for English, "fr" for French).
@@ -44,7 +45,6 @@ class XbrlFactValue(XbrlObject):
     scale: Optional[int] # (optional) identifies a power of 10 to multiply source text number (such as when in billions in the source document_
     sign: Optional[str] # (optional) identifies a sign when not part of transformation of value. Not relevant for workbook cells with number or date formats specified.
     escape: Union[bool, DefaultFalse] # (optional) If the escape attribute is true then value is the escaped representation for media with markup, e.g. html or pdf, otherwise the concatenation in document order of all descendant text content. If no value is provided the attribute defaults to false.
-
     valueSources: OrderedSet[XbrlFactValueSource] # (required if value not provided) An ordered set of factValueSource objects that identify where the values are obtained from content of an embedding or accompanying document file (html, pdf or tabular).
     valueAnchors: OrderedSet[XbrlFactValueAnchor] # (optional if valueSources not provided) An ordered set of factAnchor objects that identify corresponding content of an embedding document file (html, pdf or tabular) for cases where the value is provided in the value property instead of obtained from the content of document file. For example, non-transformable values, such as a QName value, may correspond to prose text in the document file. Used by tools to highlight and detect mouse-over correspondence between fact values and document text.
 
