@@ -72,6 +72,7 @@ ContextItem = Union[
     bool,
     datetime.datetime,
     etree._ElementTree,
+    PrototypeElementTree,
     float,
     int,
     range,

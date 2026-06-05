@@ -673,7 +673,7 @@ class ModelDocument(ModelDocumentBase):
         self.uri: str = uri
         self.filepath: str = filepath
         self.xmlDocument: etree._ElementTree[etree._Element] | None = xmlDocument
-        self.targetXbrlElementTree: etree._ElementTree[etree._Element] | None = xmlDocument
+        self.targetXbrlElementTree: etree._ElementTree[etree._Element] | PrototypeElementTree | None = xmlDocument
         self.targetNamespace: str | None = None
         modelXbrl.urlDocs[uri] = self
         self.objectIndex: int = len(modelXbrl.modelObjects)
@@ -2160,7 +2160,7 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
 
     if ixdsTarget in modelXbrl.ixTargetRootElements:  # type: ignore[attr-defined]
         modelIxdsDocument.targetXbrlRootElement = modelXbrl.ixTargetRootElements[ixdsTarget]  # type: ignore[attr-defined]
-        modelIxdsDocument.targetXbrlElementTree = PrototypeElementTree(modelIxdsDocument.targetXbrlRootElement)  # type: ignore[assignment]
+        modelIxdsDocument.targetXbrlElementTree = PrototypeElementTree(modelIxdsDocument.targetXbrlRootElement)
 
     for pluginMethod in modelXbrl.modelManager.cntlr.plugins.hooks("ModelDocument.IxdsTargetDiscovered"):
         pluginMethod(modelXbrl, modelIxdsDocument)

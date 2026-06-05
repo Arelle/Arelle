@@ -666,7 +666,7 @@ def rule_nl_kvk_3_5_1_1_non_img (
     """
 
     executableElements = []
-    for ixdsHtmlRootElt in val.modelXbrl.ixdsHtmlElements:
+    for ixdsHtmlRootElt in pluginData.getIxdsHtmlElements(val.modelXbrl):
         for elt in ixdsHtmlRootElt.iter(Element):
             if containsScriptMarkers(elt):
                 executableElements.append(elt)
@@ -702,7 +702,7 @@ def rule_nl_kvk_3_5_1_img (
         recommendBase64EncodingEmbeddedImages=False,
         supportedImgTypes=SUPPORTED_IMAGE_TYPES_BY_IS_FILE,
     )
-    for ixdsHtmlRootElt in val.modelXbrl.ixdsHtmlElements:
+    for ixdsHtmlRootElt in pluginData.getIxdsHtmlElements(val.modelXbrl):
         for elt in ixdsHtmlRootElt.iter((f'{{{XbrlConst.xhtml}}}img', '{http://www.w3.org/2000/svg}svg')):
             src = elt.get('src', '').strip()
             evaluatedMsg = _('On line {line}, "alt" attribute value: "{alt}"').format(line=elt.sourceline, alt=elt.get('alt'))
@@ -789,7 +789,7 @@ def rule_nl_kvk_3_5_2_3(
     NL-KVK.3.5.2.3: The value of the @xml:lang attribute SHOULD be 'nl' or 'en' or 'de' or 'fr'.
     """
     badLangsUsed = set()
-    for ixdsHtmlRootElt in val.modelXbrl.ixdsHtmlElements:
+    for ixdsHtmlRootElt in pluginData.getIxdsHtmlElements(val.modelXbrl):
         for uncast_elt in ixdsHtmlRootElt.iter():
             elt = cast(Any, uncast_elt)
             xmlLang = elt.get("{http://www.w3.org/XML/1998/namespace}lang")
