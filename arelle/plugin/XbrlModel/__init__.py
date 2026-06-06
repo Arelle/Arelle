@@ -133,6 +133,47 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         def ldError(msgCode, msgText, **kwargs):
             loadDictErrors.append((msgCode, msgText, kwargs))
 
+        def reservedAliasUriMap(namespaces=None):
+            reservedAliasUris = {
+                "xs": "http://www.w3.org/2001/XMLSchema",
+                "iso4217": "http://www.xbrl.org/2003/iso4217",
+                "oimce": "https://xbrl.org/2021/oim-common/error",
+                "oime": "http://www.xbrl.org/2021/oim/error",
+                "dtr-type": "http://www.xbrl.org/dtr/type/*",
+            }
+
+            year = None
+            if isinstance(namespaces, dict):
+                nsXbrl = namespaces.get("xbrl")
+                if isinstance(nsXbrl, str):
+                    m = re.match(r"https://xbrl\.org/(\d{4})(?:/|$)", nsXbrl)
+                    if m:
+                        year = m.group(1)
+                if year is None:
+                    for nsValue in namespaces.values():
+                        if isinstance(nsValue, str):
+                            m = re.match(r"https://xbrl\.org/(\d{4})(?:/|$)", nsValue)
+                            if m:
+                                year = m.group(1)
+                                break
+            if year is None:
+                m = re.match(r"https://xbrl\.org/(\d{4})/", documentType or "")
+                if m:
+                    year = m.group(1)
+
+            if year is None:
+                return reservedAliasUris
+
+            reservedAliasUris.update({
+                "xbrl": f"https://xbrl.org/{year}",
+                "xbrli": f"https://xbrl.org/{year}/instance",
+                "ref": f"https://xbrl.org/{year}/ref",
+                "utr": f"https://xbrl.org/{year}/utr",
+                "xbrltt": f"https://xbrl.org/{year}/transform-types",
+                "oimte": f"https://xbrl.org/{year}/oimtaxonomy/error",
+            })
+            return reservedAliasUris
+
         def loadDict(keyValuePairs):
             """"""
             _dict = {}
@@ -140,11 +181,12 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             for key, value in keyValuePairs:
                 if isinstance(value, dict):
                     if key == "documentInfo" and "documentType" in value:
-                        global documentType
+                        nonlocal documentType
                         documentType = value["documentType"]
                     if key in ("namespaces", "xbrlModel"):
                         normalizedDict = {}
                         normalizedValueKeyDict = {}
+                        reservedAliasMap = reservedAliasUriMap(value) if key == "namespaces" else EMPTY_DICT
                         if DUPJSONKEY in value:
                             normalizedDict[DUPJSONKEY] = value[DUPJSONKEY]
                         if DUPJSONVALUE in value:
@@ -169,7 +211,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                                         normalizedValueKeyDict[_value] = _key
                             if key == "namespaces":
                                 if not XmlValidate.NCNamePattern.match(_key):
-                                    ldError("{}:invalidJSONStructure",
+                                    ldError("oimce:invalidURIAlias",
                                           _("The %(map)s alias \"%(alias)s\" must be a canonical NCName value"),
                                           modelObject=modelXbrl, map=key, alias=_key)
                                 if UrlInvalidPattern.match(_value):
@@ -180,14 +222,33 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                                     ldError("oimce:invalidURI",
                                             _("The %(map)s \"%(alias)s\" URI is invalid: \"%(URI)s\"."),
                                             modelObject=modelXbrl, map=key, alias=_key, URI=_value)
+                                else:
+                                    reservedNs = reservedAliasMap.get(_key)
+                                    if reservedNs is not None:
+                                        if "*" in reservedNs:
+                                            reservedNsPrefix = reservedNs.partition("*")[0]
+                                            if not _value.startswith(reservedNsPrefix):
+                                                ldError("oimce:invalidURIForReservedAlias",
+                                                        _("The reserved alias \"%(alias)s\" must map to URI pattern \"%(reservedURI)s\", found \"%(URI)s\"."),
+                                                        modelObject=modelXbrl, alias=_key, reservedURI=reservedNs, URI=_value)
+                                        elif _value != reservedNs:
+                                            ldError("oimce:invalidURIForReservedAlias",
+                                                    _("The reserved alias \"%(alias)s\" must map to URI \"%(reservedURI)s\", found \"%(URI)s\"."),
+                                                    modelObject=modelXbrl, alias=_key, reservedURI=reservedNs, URI=_value)
+                                    for reservedAlias, reservedURI in reservedAliasMap.items():
+                                        if reservedAlias != _key and "*" not in reservedURI and _value == reservedURI:
+                                            ldError("oimce:invalidAliasForReservedURI",
+                                                    _("URI \"%(URI)s\" is reserved for alias \"%(reservedAlias)s\" and must not be bound to alias \"%(alias)s\"."),
+                                                    modelObject=modelXbrl, URI=_value, reservedAlias=reservedAlias, alias=_key)
+                                            break
                         value.clear() # replace with normalized values
                         for _key, _value in normalizedDict.items():
                             value[_key] = _value
                     if DUPJSONKEY in value:
                         for _errKey, _errValue, _otherValue in value[DUPJSONKEY]:
                             if key in ("namespaces", ):
-                                ldError("{}:invalidJSON", # {} expanded when loadDictErrors are processed
-                                                _("The %(map)s alias \"%(prefix)s\" is used on uri \"%(uri1)s\" and uri \"\"%(uri2)s."),
+                                ldError("oimce:multipleURIsForAlias",
+                                                _("The %(map)s alias \"%(prefix)s\" is used on uri \"%(uri1)s\" and uri \"%(uri2)s\"."),
                                                 modelObject=modelXbrl, map=key, prefix=_errKey, uri1=_errValue, uri2=_otherValue)
                             else:
                                 ldError("{}:invalidJSON", # {} expanded when loadDictErrors are processed
@@ -725,6 +786,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         newModule = createModelObjects("xbrlModel", moduleFileObj["xbrlModel"], xbrlCompMdl, ["", "xbrlModel"])
         modelXbrl.profileActivity(f"Create taxonomy objects from {moduleFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
         newModule._prefixNamespaces = prefixNamespaces
+        declaredPrefixNamespaces = dict(prefixNamespaces)
         # Step 8: well-known prefixes from previously-loaded baked-in modules
         # (e.g. iso4217, utr) are made available as fallbacks for QName lookup
         # in this module. The user's explicit declarations always win, so we
@@ -798,6 +860,21 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                         if isinstance(impSchemaDoc, ModelDocument): # if an exception object is returned, loading didn't succeed\
                             if impSchemaDoc._txmyModule.name == impTxObj.xbrlModelName:
                                 impTxObj._txmyModule = impSchemaDoc._txmyModule
+                                # If an imported module reuses an alias for a different URI and
+                                # the importing model has no alias for that URI, remapping is ambiguous.
+                                impPrefixNamespaces = getattr(impTxObj._txmyModule, "_prefixNamespaces", EMPTY_DICT) or EMPTY_DICT
+                                for impPrefix, impNamespace in impPrefixNamespaces.items():
+                                    if (impPrefix in declaredPrefixNamespaces and
+                                        declaredPrefixNamespaces[impPrefix] != impNamespace and
+                                        impNamespace not in declaredPrefixNamespaces.values()):
+                                        xbrlCompMdl.error("oimce:multipleURIsForAlias",
+                                                          _("Alias %(alias)s maps to %(ns1)s in importing taxonomy and %(ns2)s in imported taxonomy %(importedModel)s, and %(ns2)s has no alias in the importing taxonomy."),
+                                                          xbrlObject=impTxObj,
+                                                          alias=impPrefix,
+                                                          ns1=declaredPrefixNamespaces[impPrefix],
+                                                          ns2=impNamespace,
+                                                          importedModel=impTxObj.xbrlModelName)
+                                        break
                                 selectImportedObjects(xbrlCompMdl, newModule, impTxObj)
                             else:
                                 xbrlCompMdl.error("oimte:taxonomyNotFound",
