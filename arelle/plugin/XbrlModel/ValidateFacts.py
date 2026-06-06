@@ -209,6 +209,8 @@ def validateFactPosition(txmyMdl, fact):
     """
     def error(code, msg, **kwargs):
             emit_error(txmyMdl, code, msg, xbrlObject=fact, name=getattr(fact,"name"), **kwargs)
+    if not getattr(fact, "factDimensions", None):
+        return
     cQn = fact.factDimensions.get(conceptCoreDim)
     cObj = txmyMdl.namedObjects.get(cQn)
     if cObj is None or not isinstance(cObj, XbrlConcept):

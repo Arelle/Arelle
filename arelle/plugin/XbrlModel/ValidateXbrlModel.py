@@ -67,6 +67,16 @@ def _qname_in_set(value, candidates):
     return any(_qname_key(candidate) == value_key for candidate in candidates)
 
 
+def _hashable_value(value):
+    if isinstance(value, dict):
+        return tuple(sorted((key, _hashable_value(val)) for key, val in value.items()))
+    if isinstance(value, (list, tuple)):
+        return tuple(_hashable_value(val) for val in value)
+    if isinstance(value, set):
+        return frozenset(_hashable_value(val) for val in value)
+    return value
+
+
 def validateCompiledModel(compMdl):
     """Validate the compiled model as a whole, after all modules have been validated and combined into the compiled model.
         This is for checks that require the whole model to be available, such as checking for duplicate labels across modules.
@@ -326,7 +336,7 @@ def validateProperties(compMdl, oimFile, module, obj):
                               name=propTypeQn)
             propObj._xValid, propObj._xValue = validateValue(compMdl, module, obj, propObj.value, propTypeObj.dataType, f"/properties[{i}]", "oimte:propertyValueDataTypeMismatch")
 
-            propTypeQns[propTypeQn].add(propObj._xValue)
+            propTypeQns[propTypeQn].add(_hashable_value(propObj._xValue))
     if any(len(vals) > 1 for qn, vals in propTypeQns.items()):
         compMdl.error("oimte:conflictingPropertyValues",
                   _("%(parentObjName)s %(parentName)s has conflicting values for properties %(names)s"),
@@ -1111,7 +1121,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         lblTpObj = validateQNameReference(compMdl, lblObj, "labelType", XbrlLabelType)
         if lblTpObj:
             if lblTpObj.allowedObjects and relatedObj is not None and not any(
-                type(relatedObj) == xbrlObjectTypes[allowedObj] for allowedObj in lblTpObj.allowedObjects):
+                type(relatedObj) == xbrlObjectTypes.get(allowedObj) for allowedObj in lblTpObj.allowedObjects):
                 compMdl.error("oimte:invalidAllowedObject",
                           _("Label has disallowed related object %(relatedName)s"),
                           xbrlObject=lblObj, relatedName=relatedName)
