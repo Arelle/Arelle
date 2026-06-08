@@ -67,6 +67,10 @@ class XmlValidationResult:
     xValue: TypeXValue
     xValid: int
 
+    @property
+    def isXValid(self) -> bool:
+        return self.xValid >= XmlValidateConst.VALID
+
 
 # support legacy direct imports from this module
 UNVALIDATED      = XmlValidateConst.UNVALIDATED

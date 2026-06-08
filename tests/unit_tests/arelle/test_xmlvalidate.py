@@ -11,7 +11,8 @@ import regex
 from unittest.mock import Mock
 
 from arelle.ModelValue import QName, DateTime, Time, isoDuration, gDay, gMonth, gMonthDay, gYear, gYearMonth
-from arelle.XmlValidate import validateValue, validateValueString, validateFacetValueString, VALID, UNKNOWN, INVALID, VALID_ID, NMTOKENPattern, namePattern, NCNamePattern, VALID_NO_CONTENT, XsdPattern
+from arelle.XmlValidate import validateValue, validateValueString, validateFacetValueString, NMTOKENPattern, namePattern, NCNamePattern, XsdPattern
+from arelle.XmlValidateConst import INVALID, UNKNOWN, VALID, VALID_ID, VALID_NO_CONTENT
 
 FLOAT_CASES = [
     {"value": "-1", "expected": (-1, -1, VALID)},
@@ -737,6 +738,7 @@ def test_validateValueString(
         _assertValidateValue(result.sValue, expectedSValue)
     _assertValidateValue(result.xValue, expectedXValue)
     assert result.xValid == expectedXValid
+    assert result.isXValid == (expectedXValid >= VALID)
 
 
 class TestValidateFacetValueString:
