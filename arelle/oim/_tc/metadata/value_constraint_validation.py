@@ -40,7 +40,6 @@ _VALID_PERIOD_TYPES = frozenset(
     }
 )
 
-
 _VALID_DURATION_TYPES = frozenset(
     {
         "dayTime",
@@ -196,12 +195,12 @@ def _validate_bounds_restrictions(
     max_inc_result = _parse_bounds_facet_value(TCRestriction.MAX_INCLUSIVE, max_inclusive, base_xsd_type)
     max_exc_result = _parse_bounds_facet_value(TCRestriction.MAX_EXCLUSIVE, max_exclusive, base_xsd_type)
 
-    restriction_parsed_values = [
+    restriction_parsed_values = (
         (TCRestriction.MIN_INCLUSIVE, min_inclusive, min_inc_result),
         (TCRestriction.MAX_INCLUSIVE, max_inclusive, max_inc_result),
         (TCRestriction.MIN_EXCLUSIVE, min_exclusive, min_exc_result),
         (TCRestriction.MAX_EXCLUSIVE, max_exclusive, max_exc_result),
-    ]
+    )
     for restriction, raw, result in restriction_parsed_values:
         if result is None or result.isXValid or isinstance(result.xValue, str):
             continue
