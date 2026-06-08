@@ -289,7 +289,7 @@ def selectImportedObjects(txmyMdl, newTxmy, impTxObj):
     elif exclLbls:
         for obj in [o for o in txmyMdl.namedObjects.values()]:
             if i0 <= obj.xbrlMdlObjIndex <= iL: # applies to this taxonomy import
-                if isinstance(obj, XbrlLabelObj):
+                if isinstance(obj, XbrlLabel):
                     if obj.relatedName in txmyMdl.tagObjects:
                         del txmyMdl.tagObjects[name]
                         del obj

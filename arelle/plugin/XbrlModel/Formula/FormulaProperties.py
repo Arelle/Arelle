@@ -62,13 +62,13 @@ def _wrapSet(items) -> FormulaValue:
 def _factPropPeriod(fact, args, ctx):
     dims = fact.factDimensions
     from arelle.ModelValue import qname as mkQn
-    periodQn = mkQn("https://xbrl.org/2025", "period")
+    periodQn = mkQn("https://xbrl.org/2026", "period")
     period = dims.get(periodQn)
     return _wrap(period)
 
 def _factPropEntity(fact, args, ctx):
     from arelle.ModelValue import qname as mkQn
-    entityQn = mkQn("https://xbrl.org/2025", "entity")
+    entityQn = mkQn("https://xbrl.org/2026", "entity")
     ev = fact.factDimensions.get(entityQn)
     if ev is None:
         return NONE_VALUE
@@ -77,7 +77,7 @@ def _factPropEntity(fact, args, ctx):
 
 def _factPropUnit(fact, args, ctx):
     from arelle.ModelValue import qname as mkQn
-    unitQn = mkQn("https://xbrl.org/2025", "unit")
+    unitQn = mkQn("https://xbrl.org/2026", "unit")
     uv = fact.factDimensions.get(unitQn)
     if uv is None:
         return NONE_VALUE
@@ -86,7 +86,7 @@ def _factPropUnit(fact, args, ctx):
 
 def _factPropConcept(fact, args, ctx):
     from arelle.ModelValue import qname as mkQn
-    conceptQn = mkQn("https://xbrl.org/2025", "concept")
+    conceptQn = mkQn("https://xbrl.org/2026", "concept")
     qn = fact.factDimensions.get(conceptQn)
     if qn is None:
         return NONE_VALUE
@@ -158,7 +158,7 @@ def _factPropCubes(fact, args, ctx):
     from XbrlModel.XbrlCube import XbrlCube
     from arelle.ModelValue import qname as mkQn
     txmy = ctx.txmyMdl
-    cubeDimQn = mkQn("https://xbrl.org/2025", "cube")
+    cubeDimQn = mkQn("https://xbrl.org/2026", "cube")
     factCubeNames = fact.factDimensions.get(cubeDimQn)
     cubes = []
     if factCubeNames is not None:
@@ -182,7 +182,7 @@ def _factPropCubes(fact, args, ctx):
 def _factPropAspects(fact, args, ctx):
     from arelle.ModelValue import qname as mkQn
     coreLocals = ("concept", "period", "entity", "unit", "language")
-    coreNs = "https://xbrl.org/2025"
+    coreNs = "https://xbrl.org/2026"
     aspects = {}
     for k, v in fact.factDimensions.items():
         if isinstance(k, QName) and k.namespaceURI == coreNs and k.localName in coreLocals:
@@ -283,7 +283,7 @@ def _resolveLabelTypeUri(lt, ctx) -> Optional[str]:
             return str(u)
     if lt.namespaceURI in (
         "http://www.xbrl.org/2003/instance",
-        "https://xbrl.org/2025",
+        "https://xbrl.org/2026",
         "https://xbrl.org/2021",
     ):
         return f"http://www.xbrl.org/2003/role/{lt.localName}"
@@ -782,7 +782,7 @@ def _cubeProp(cube, propName: str, args, ctx) -> FormulaValue:
     if propName == "facts":
         from XbrlModel.XbrlFact import XbrlFact
         from arelle.ModelValue import qname as mkQn
-        cubeDimQn = mkQn("https://xbrl.org/2025", "cube")
+        cubeDimQn = mkQn("https://xbrl.org/2026", "cube")
         cubeQn = getattr(cube, "name", None)
         facts = [
             f for f in ctx.txmyMdl.filterNamedObjects(XbrlFact)

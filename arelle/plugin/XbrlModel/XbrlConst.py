@@ -14,8 +14,8 @@ oimTaxonomyDocTypes = (
         "https://xbrl.org/2026/archive",
     )
 
-xbrl = "https://xbrl.org/2025"
-xbrli = "https://xbrl.org/2025/instance"
+xbrl = "https://xbrl.org/2026"
+xbrli = "https://xbrl.org/2026/instance"
 
 reservedPrefixNamespaces = {
     "xbrl": xbrl,
