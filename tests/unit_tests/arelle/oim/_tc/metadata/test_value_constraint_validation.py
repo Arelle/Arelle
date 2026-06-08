@@ -198,3 +198,159 @@ class TestValidateValueConstraint:
 
     def test_min_length_equal_max_length_no_error(self) -> None:
         assert _errors(TCValueConstraint(type="xs:string", min_length=5, max_length=5)) == []
+
+
+class TestBoundsFacets:
+    @pytest.mark.parametrize(
+        "xs_type, value",
+        [
+            ("xs:decimal", "1"),
+            ("xs:integer", "1"),
+            ("xs:date", "2024-01-01"),
+            ("xs:dateTime", "2024-01-01T00:00:00"),
+            ("xs:time", "12:00:00"),
+            ("xs:gYear", "2024"),
+            ("xs:duration", "P1D"),
+        ],
+    )
+    def test_min_inclusive_alone_no_error_on_permitted_types(self, xs_type: str, value: str) -> None:
+        assert _errors(TCValueConstraint(type=xs_type, min_inclusive=value)) == []
+
+    @pytest.mark.parametrize(
+        "xs_type",
+        ["xs:string", "xs:Name", "xs:NCName", "xs:hexBinary", "xs:QName", "xs:boolean"],
+    )
+    def test_bounds_on_non_permitted_types_error(self, xs_type: str) -> None:
+        errors = _errors(TCValueConstraint(type=xs_type, min_inclusive="x"))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/type", "/minInclusive"]
+
+    def test_all_bounds_on_non_permitted_type(self) -> None:
+        errors = _errors(
+            TCValueConstraint(
+                type="xs:string",
+                min_inclusive="a",
+                max_inclusive="b",
+                min_exclusive="c",
+                max_exclusive="d",
+            )
+        )
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/type", "/maxExclusive", "/maxInclusive", "/minExclusive", "/minInclusive"]
+
+    def test_min_inclusive_with_min_exclusive_error(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:decimal", min_inclusive="1", min_exclusive="1"))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/minInclusive", "/minExclusive"]
+
+    def test_max_inclusive_with_max_exclusive_error(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:decimal", max_inclusive="1", max_exclusive="1"))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/maxInclusive", "/maxExclusive"]
+
+    def test_min_inclusive_greater_than_max_inclusive_error(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:decimal", min_inclusive="10", max_inclusive="5"))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/minInclusive", "/maxInclusive"]
+
+    def test_min_inclusive_equal_max_inclusive_no_error(self) -> None:
+        assert _errors(TCValueConstraint(type="xs:decimal", min_inclusive="5", max_inclusive="5")) == []
+
+    def test_min_inclusive_equal_max_exclusive_error(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:decimal", min_inclusive="5", max_exclusive="5"))
+        assert len(errors) == 1
+        assert errors[0].json_pointers == ["/minInclusive", "/maxExclusive"]
+
+    def test_min_exclusive_equal_max_inclusive_error(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:decimal", min_exclusive="5", max_inclusive="5"))
+        assert len(errors) == 1
+        assert errors[0].json_pointers == ["/minExclusive", "/maxInclusive"]
+
+    def test_min_exclusive_equal_max_exclusive_no_error(self) -> None:
+        assert _errors(TCValueConstraint(type="xs:decimal", min_exclusive="5", max_exclusive="5")) == []
+
+    def test_min_exclusive_greater_than_max_exclusive_error(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:decimal", min_exclusive="10", max_exclusive="5"))
+        assert len(errors) == 1
+        assert errors[0].json_pointers == ["/minExclusive", "/maxExclusive"]
+
+    def test_date_ordering_violation(self) -> None:
+        errors = _errors(
+            TCValueConstraint(
+                type="xs:date",
+                min_inclusive="2024-12-31",
+                max_inclusive="2024-01-01",
+            )
+        )
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/minInclusive", "/maxInclusive"]
+
+    def test_date_ordering_valid(self) -> None:
+        assert (
+            _errors(
+                TCValueConstraint(
+                    type="xs:date",
+                    min_inclusive="2024-01-01",
+                    max_inclusive="2024-12-31",
+                )
+            )
+            == []
+        )
+
+    def test_g_year_ordering_violation(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:gYear", min_inclusive="2030", max_inclusive="2020"))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/minInclusive", "/maxInclusive"]
+
+    def test_duration_ordering_violation(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:duration", min_exclusive="P10D", max_exclusive="P1D"))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/minExclusive", "/maxExclusive"]
+
+    def test_unparseable_bound_yields_error_and_skips_ordering(self) -> None:
+        errors = _errors(
+            TCValueConstraint(
+                type="xs:decimal",
+                min_inclusive="seven",
+                max_inclusive="1",
+            )
+        )
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/minInclusive"]
+
+    @pytest.mark.parametrize(
+        "facet_kwarg",
+        [
+            {"min_inclusive": "one"},
+            {"max_inclusive": "one"},
+            {"min_exclusive": "one"},
+            {"max_exclusive": "one"},
+        ],
+    )
+    def test_each_unparseable_bound_facet_yields_error(self, facet_kwarg: dict[str, str]) -> None:
+        errors = _errors(TCValueConstraint(type="xs:decimal", **facet_kwarg))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+
+    def test_mutex_still_fires_when_value_unparseable(self) -> None:
+        errors = _errors(
+            TCValueConstraint(
+                type="xs:decimal",
+                min_inclusive="bogus",
+                min_exclusive="alsoBogus",
+            )
+        )
+        assert len(errors) == 3
+        assert all(e.code == TCME_ILLEGAL_CONSTRAINT for e in errors)
+        assert errors[0].json_pointers == ["/minInclusive", "/minExclusive"]
+        assert errors[1].json_pointers == ["/minInclusive"]
+        assert errors[2].json_pointers == ["/minExclusive"]
