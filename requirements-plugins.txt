@@ -2,7 +2,7 @@
 ixbrl-viewer==1.4.92
 
 # EDGAR plugins
-holidays==0.97
+holidays==0.98
 matplotlib==3.10.9
 pytz==2026.2
 
