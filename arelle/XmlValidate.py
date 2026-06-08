@@ -160,6 +160,19 @@ baseXsdTypePatterns = {
                 "ENTITY": NCNamePattern,
                 "QName": QNamePattern,
             }
+_XSD_TYPE_INHERENT_INCLUSIVE_BOUNDS: dict[str, tuple[int | None, int | None]] = {
+    "nonPositiveInteger": (None, 0),
+    "short": (-32768, 32767),
+    "byte": (-128, 127),
+    "nonNegativeInteger": (0, None),
+    "unsignedLong": (0, None),
+    "unsignedInt": (0, None),
+    "unsignedShort": (0, 65535),
+    "unsignedByte": (0, 255),
+    "positiveInteger": (1, None),
+}
+_INTEGER_BASE_XSD_TYPES = frozenset(_XSD_TYPE_INHERENT_INCLUSIVE_BOUNDS.keys() | {"integer", "negativeInteger", "int", "long"})
+
 predefinedAttributeTypes = {
     qname("{http://www.w3.org/XML/1998/namespace}xml:lang"):("languageOrEmpty",None),
     qname("{http://www.w3.org/XML/1998/namespace}xml:space"):("NCName",{"enumeration":{"default","preserve"}})}
@@ -543,23 +556,12 @@ def _validateValueStringOrRaise(
                     raise ValueError(" < minInclusive {0}".format(facets["minInclusive"]))
                 if "minExclusive" in facets and xValue <= facets["minExclusive"]:
                     raise ValueError(" <= minExclusive {0}".format(facets["minExclusive"]))
-        elif baseXsdType in {"integer",
-                             "nonPositiveInteger", "negativeInteger", "nonNegativeInteger", "positiveInteger",
-                             "long", "unsignedLong",
-                             "int", "unsignedInt",
-                             "short", "unsignedShort",
-                             "byte", "unsignedByte"}:
+        elif baseXsdType in _INTEGER_BASE_XSD_TYPES:
             xValue = sValue = int(value)
-            if ((baseXsdType in {"nonNegativeInteger","unsignedLong","unsignedInt"}
-                 and xValue < 0) or
-                (baseXsdType == "nonPositiveInteger" and xValue > 0) or
-                (baseXsdType == "positiveInteger" and xValue <= 0) or
-                (baseXsdType == "byte" and not -128 <= xValue <= 127) or
-                (baseXsdType == "unsignedByte" and not 0 <= xValue <= 255) or
-                (baseXsdType == "short" and not -32768 <= xValue <= 32767) or
-                (baseXsdType == "unsignedShort" and not 0 <= xValue <= 65535) or
-                (baseXsdType == "positiveInteger" and xValue <= 0)):
-                raise ValueError("{0} is not {1}".format(value, baseXsdType))
+            if inclusiveBounds := _XSD_TYPE_INHERENT_INCLUSIVE_BOUNDS.get(baseXsdType):
+                lowerLimit, upperLimit = inclusiveBounds
+                if (lowerLimit is not None and xValue < lowerLimit) or (upperLimit is not None and xValue > upperLimit):
+                    raise ValueError(f"{value} is not {baseXsdType}")
             if facets:
                 if "totalDigits" in facets and len(value.replace(".","")) > facets["totalDigits"]:
                     raise ValueError("totalDigits facet {0}".format(facets["totalDigits"]))
