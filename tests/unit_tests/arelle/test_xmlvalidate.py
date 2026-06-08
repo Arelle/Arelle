@@ -1,17 +1,25 @@
 from __future__ import annotations
 
 import datetime
-from _decimal import Decimal, InvalidOperation
+from _decimal import Decimal
 from fractions import Fraction
-from math import inf, nan, isnan
+from math import inf, isnan, nan
 from typing import Any
+from unittest.mock import Mock
 
 import pytest
 import regex
-from unittest.mock import Mock
 
-from arelle.ModelValue import QName, DateTime, Time, isoDuration, gDay, gMonth, gMonthDay, gYear, gYearMonth
-from arelle.XmlValidate import validateValue, validateValueString, validateFacetValueString, NMTOKENPattern, namePattern, NCNamePattern, XsdPattern
+from arelle.ModelValue import DateTime, QName, Time, gDay, gMonth, gMonthDay, gYear, gYearMonth, isoDuration
+from arelle.XmlValidate import (
+    NCNamePattern,
+    NMTOKENPattern,
+    XsdPattern,
+    namePattern,
+    validateFacetValueString,
+    validateValue,
+    validateValueString,
+)
 from arelle.XmlValidateConst import INVALID, UNKNOWN, VALID, VALID_ID, VALID_NO_CONTENT
 
 FLOAT_CASES = [
@@ -929,5 +937,25 @@ class TestValidateFacetValueString:
     )
     def test_bounds_facet_type_range(self, base_xsd_type: str, value: str, expected_x_valid: int):
         result = validateFacetValueString("minInclusive", value, base_xsd_type)
+        assert result.xValid == expected_x_valid
+        assert result.isXValid == (expected_x_valid >= VALID)
+
+    @pytest.mark.parametrize(
+        "facet_name,value,expected_x_valid",
+        [
+            ("length", "0", VALID),
+            ("length", "-1", INVALID),
+            ("minLength", "0", VALID),
+            ("minLength", "-1", INVALID),
+            ("maxLength", "0", VALID),
+            ("maxLength", "-1", INVALID),
+            ("fractionDigits", "0", VALID),
+            ("fractionDigits", "-1", INVALID),
+            ("totalDigits", "1", VALID),
+            ("totalDigits", "0", INVALID),
+        ],
+    )
+    def test_numeric_facet_bounds(self, facet_name: str, value: str, expected_x_valid: int):
+        result = validateFacetValueString(facet_name, value, "string")
         assert result.xValid == expected_x_valid
         assert result.isXValid == (expected_x_valid >= VALID)
