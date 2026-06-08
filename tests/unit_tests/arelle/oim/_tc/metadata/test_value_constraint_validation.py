@@ -107,3 +107,31 @@ class TestValidateValueConstraint:
         assert len(errors) == 1
         assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
         assert errors[0].json_pointers == ["/type", "/durationType"]
+
+    def test_patterns_single_valid_no_error(self) -> None:
+        assert _errors(TCValueConstraint(type="xs:string", patterns=frozenset({r"[a-z]+"}))) == []
+
+    def test_patterns_multiple_valid_no_error(self) -> None:
+        assert _errors(TCValueConstraint(type="xs:string", patterns=frozenset({r"[a-z]+", r"\d{3}-\d{4}"}))) == []
+
+    def test_patterns_invalid_error(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:string", patterns=frozenset({"["})))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/patterns"]
+
+    def test_patterns_mixed_reports_only_invalid(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:string", patterns=frozenset({r"[a-z]+", "(", r"\d+", "["})))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert str(errors[0]) == "/patterns: Patterns ['(', '['] are not valid XSD regular expressions"
+        assert errors[0].json_pointers == ["/patterns"]
+
+    def test_patterns_xsd_name_char_escapes_no_error(self) -> None:
+        assert _errors(TCValueConstraint(type="xs:string", patterns=frozenset({r"\i\c*"}))) == []
+
+    def test_patterns_unicode_category_no_error(self) -> None:
+        assert _errors(TCValueConstraint(type="xs:string", patterns=frozenset({r"\p{L}+"}))) == []
+
+    def test_patterns_escaped_paren_with_quantifier_no_error(self) -> None:
+        assert _errors(TCValueConstraint(type="xs:string", patterns=frozenset({r"\(?"}))) == []
