@@ -714,16 +714,29 @@ def validateValue(
         elt.sValue = sValue
 
 
-def _facetTypeAndFacets(facetName: str, baseXsdType: str) -> tuple[str, dict[str, set[str]] | None]:
+def _facetTypeAndFacets(facetName: str, baseXsdType: str) -> tuple[str, dict[str, int | set[str]] | None]:
+    facets: dict[str, int | set[str]] | None
     if facetName in ("length", "minLength", "maxLength", "fractionDigits"):
         baseXsdType = "nonNegativeInteger"
         facets = None
     elif facetName == "totalDigits":
         baseXsdType = "positiveInteger"
         facets = None
-    elif facetName in ("minInclusive", "maxInclusive", "minExclusive", "maxExclusive"):
+    elif facetName in ("minInclusive", "maxInclusive"):
         baseXsdType = baseXsdType
         facets = None
+    elif facetName in ("minExclusive", "maxExclusive"):
+        # Reject values at or outside of the type's bounds, e.g. minExclusive="127" for byte.
+        # The facet value itself is valid as a byte but it creates an empty range (nothing > 127)
+        # for the value space of the type it restricts. Inclusive bounds don't need this because they
+        # overshoot the range by one (minInclusive="128" for byte), which type parsing already rejects.
+        facets = None
+        if inherentBounds := _XSD_TYPE_INHERENT_INCLUSIVE_BOUNDS.get(baseXsdType):
+            lowerLimit, upperLimit = inherentBounds
+            if facetName == "minExclusive" and upperLimit is not None:
+                facets = {"maxExclusive": upperLimit}
+            elif facetName == "maxExclusive" and lowerLimit is not None:
+                facets = {"minExclusive": lowerLimit}
     elif facetName == "whiteSpace":
         baseXsdType = "string"
         facets = {"enumeration": {"replace", "preserve", "collapse"}}

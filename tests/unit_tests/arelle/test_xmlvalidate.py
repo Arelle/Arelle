@@ -959,3 +959,63 @@ class TestValidateFacetValueString:
         result = validateFacetValueString(facet_name, value, "string")
         assert result.xValid == expected_x_valid
         assert result.isXValid == (expected_x_valid >= VALID)
+
+    @pytest.mark.parametrize(
+        "facet_name,base_xsd_type,value,expected_x_valid",
+        [
+            ("minExclusive", "byte", "126", VALID),
+            ("minExclusive", "byte", "127", INVALID),
+            ("minExclusive", "byte", "0", VALID),
+            ("minExclusive", "short", "32766", VALID),
+            ("minExclusive", "short", "32767", INVALID),
+            ("minExclusive", "int", "2147483646", VALID),
+            ("minExclusive", "int", "2147483647", INVALID),
+            ("minExclusive", "long", "9223372036854775806", VALID),
+            ("minExclusive", "long", "9223372036854775807", INVALID),
+            ("minExclusive", "unsignedByte", "254", VALID),
+            ("minExclusive", "unsignedByte", "255", INVALID),
+            ("minExclusive", "unsignedShort", "65534", VALID),
+            ("minExclusive", "unsignedShort", "65535", INVALID),
+            ("minExclusive", "unsignedInt", "4294967294", VALID),
+            ("minExclusive", "unsignedInt", "4294967295", INVALID),
+            ("minExclusive", "unsignedLong", "18446744073709551614", VALID),
+            ("minExclusive", "unsignedLong", "18446744073709551615", INVALID),
+            ("minExclusive", "negativeInteger", "-2", VALID),
+            ("minExclusive", "negativeInteger", "-1", INVALID),
+            ("minExclusive", "nonPositiveInteger", "-1", VALID),
+            ("minExclusive", "nonPositiveInteger", "0", INVALID),
+            ("maxExclusive", "byte", "-127", VALID),
+            ("maxExclusive", "byte", "-128", INVALID),
+            ("maxExclusive", "byte", "0", VALID),
+            ("maxExclusive", "short", "-32767", VALID),
+            ("maxExclusive", "short", "-32768", INVALID),
+            ("maxExclusive", "int", "-2147483647", VALID),
+            ("maxExclusive", "int", "-2147483648", INVALID),
+            ("maxExclusive", "long", "-9223372036854775807", VALID),
+            ("maxExclusive", "long", "-9223372036854775808", INVALID),
+            ("maxExclusive", "unsignedByte", "1", VALID),
+            ("maxExclusive", "unsignedByte", "0", INVALID),
+            ("maxExclusive", "unsignedShort", "1", VALID),
+            ("maxExclusive", "unsignedShort", "0", INVALID),
+            ("maxExclusive", "unsignedInt", "1", VALID),
+            ("maxExclusive", "unsignedInt", "0", INVALID),
+            ("maxExclusive", "unsignedLong", "1", VALID),
+            ("maxExclusive", "unsignedLong", "0", INVALID),
+            ("maxExclusive", "positiveInteger", "2", VALID),
+            ("maxExclusive", "positiveInteger", "1", INVALID),
+            ("maxExclusive", "nonNegativeInteger", "1", VALID),
+            ("maxExclusive", "nonNegativeInteger", "0", INVALID),
+            ("minExclusive", "positiveInteger", "5", VALID),
+            ("minExclusive", "nonNegativeInteger", "5", VALID),
+            ("minExclusive", "integer", "5", VALID),
+            ("maxExclusive", "negativeInteger", "-5", VALID),
+            ("maxExclusive", "nonPositiveInteger", "-5", VALID),
+            ("maxExclusive", "integer", "5", VALID),
+        ],
+    )
+    def test_exclusive_bounds_facet_type_range(
+        self, facet_name: str, base_xsd_type: str, value: str, expected_x_valid: int
+    ):
+        result = validateFacetValueString(facet_name, value, base_xsd_type)
+        assert result.xValid == expected_x_valid
+        assert result.isXValid == (expected_x_valid >= VALID)

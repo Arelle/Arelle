@@ -354,3 +354,62 @@ class TestBoundsFacets:
         assert errors[0].json_pointers == ["/minInclusive", "/minExclusive"]
         assert errors[1].json_pointers == ["/minInclusive"]
         assert errors[2].json_pointers == ["/minExclusive"]
+
+
+class TestBaseTypeBoundsRestrictions:
+    @pytest.mark.parametrize(
+        "xs_type, base_max_inclusive",
+        [
+            ("xs:byte", "127"),
+            ("xs:int", "2147483647"),
+            ("xs:long", "9223372036854775807"),
+            ("xs:short", "32767"),
+            ("xs:unsignedByte", "255"),
+            ("xs:unsignedInt", "4294967295"),
+            ("xs:unsignedLong", "18446744073709551615"),
+            ("xs:unsignedShort", "65535"),
+            ("xs:negativeInteger", "-1"),
+            ("xs:nonPositiveInteger", "0"),
+        ],
+    )
+    def test_min_exclusive_at_base_max_inclusive_error(self, xs_type: str, base_max_inclusive: str) -> None:
+        errors = _errors(TCValueConstraint(type=xs_type, min_exclusive=base_max_inclusive))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/minExclusive"]
+
+    @pytest.mark.parametrize(
+        "xs_type, base_min_inclusive",
+        [
+            ("xs:byte", "-128"),
+            ("xs:int", "-2147483648"),
+            ("xs:long", "-9223372036854775808"),
+            ("xs:short", "-32768"),
+            ("xs:unsignedByte", "0"),
+            ("xs:unsignedInt", "0"),
+            ("xs:unsignedLong", "0"),
+            ("xs:unsignedShort", "0"),
+            ("xs:positiveInteger", "1"),
+            ("xs:nonNegativeInteger", "0"),
+        ],
+    )
+    def test_max_exclusive_at_base_min_inclusive_error(self, xs_type: str, base_min_inclusive: str) -> None:
+        errors = _errors(TCValueConstraint(type=xs_type, max_exclusive=base_min_inclusive))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/maxExclusive"]
+
+    def test_min_exclusive_below_base_max_inclusive_no_error(self) -> None:
+        assert _errors(TCValueConstraint(type="xs:byte", min_exclusive="126")) == []
+
+    def test_max_exclusive_above_base_min_inclusive_no_error(self) -> None:
+        assert _errors(TCValueConstraint(type="xs:byte", max_exclusive="-127")) == []
+
+    def test_min_exclusive_on_unbounded_type_no_error(self) -> None:
+        assert _errors(TCValueConstraint(type="xs:integer", min_exclusive="999999999")) == []
+
+    def test_max_exclusive_on_unbounded_type_no_error(self) -> None:
+        assert _errors(TCValueConstraint(type="xs:integer", max_exclusive="-999999999")) == []
+
+    def test_min_exclusive_on_decimal_no_inherent_bounds_check(self) -> None:
+        assert _errors(TCValueConstraint(type="xs:decimal", min_exclusive="99999999")) == []
