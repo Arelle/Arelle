@@ -162,16 +162,19 @@ baseXsdTypePatterns = {
             }
 _XSD_TYPE_INHERENT_INCLUSIVE_BOUNDS: dict[str, tuple[int | None, int | None]] = {
     "nonPositiveInteger": (None, 0),
+    "negativeInteger": (None, -1),
+    "long": (-9223372036854775808, 9223372036854775807),
+    "int": (-2147483648, 2147483647),
     "short": (-32768, 32767),
     "byte": (-128, 127),
     "nonNegativeInteger": (0, None),
-    "unsignedLong": (0, None),
-    "unsignedInt": (0, None),
+    "unsignedLong": (0, 18446744073709551615),
+    "unsignedInt": (0, 4294967295),
     "unsignedShort": (0, 65535),
     "unsignedByte": (0, 255),
     "positiveInteger": (1, None),
 }
-_INTEGER_BASE_XSD_TYPES = frozenset(_XSD_TYPE_INHERENT_INCLUSIVE_BOUNDS.keys() | {"integer", "negativeInteger", "int", "long"})
+_INTEGER_BASE_XSD_TYPES = frozenset(_XSD_TYPE_INHERENT_INCLUSIVE_BOUNDS.keys() | {"integer"})
 
 predefinedAttributeTypes = {
     qname("{http://www.w3.org/XML/1998/namespace}xml:lang"):("languageOrEmpty",None),

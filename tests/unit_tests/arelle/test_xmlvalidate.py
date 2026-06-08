@@ -265,9 +265,13 @@ BASE_XSD_TYPES = {
         {"value": "valid valid", "expected": ("=", "=", VALID)},
     ],
     "int": [
+        {"value": "-2147483649", "expected": ("=", None, INVALID)},
+        {"value": "-2147483648", "expected": (-2147483648, -2147483648, VALID)},
         {"value": "-1", "expected": (-1, -1, VALID)},
         {"value": "0", "expected": (0, 0, VALID)},
         {"value": "1", "expected": (1, 1, VALID)},
+        {"value": "2147483647", "expected": (2147483647, 2147483647, VALID)},
+        {"value": "2147483648", "expected": ("=", None, INVALID)},
     ],
     "integer": [
         {"value": "-1", "expected": (-1, -1, VALID)},
@@ -284,9 +288,13 @@ BASE_XSD_TYPES = {
         {"value": "*invalid", "expected": ("=", None, INVALID)},
     ],
     "long": [
+        {"value": "-9223372036854775809", "expected": ("=", None, INVALID)},
+        {"value": "-9223372036854775808", "expected": (-9223372036854775808, -9223372036854775808, VALID)},
         {"value": "-1", "expected": (-1, -1, VALID)},
         {"value": "0", "expected": (0, 0, VALID)},
         {"value": "1", "expected": (1, 1, VALID)},
+        {"value": "9223372036854775807", "expected": (9223372036854775807, 9223372036854775807, VALID)},
+        {"value": "9223372036854775808", "expected": ("=", None, INVALID)},
     ],
     "Name": [
         {"value": "*invalid", "expected": ("=", None, INVALID)},
@@ -298,8 +306,8 @@ BASE_XSD_TYPES = {
     ],
     "negativeInteger": [
         {"value": "-1", "expected": (-1, -1, VALID)},
-        {"value": "0", "expected": (0, 0, VALID)},  # TODO: should be invalid
-        {"value": "1", "expected": (1, 1, VALID)},  # TODO: should be invalid
+        {"value": "0", "expected": ("=", None, INVALID)},
+        {"value": "1", "expected": ("=", None, INVALID)},
     ],
     "NMTOKEN": [
         {"value": "*invalid", "expected": ("=", None, INVALID)},
@@ -375,11 +383,15 @@ BASE_XSD_TYPES = {
         {"value": "-1", "expected": ("=", None, INVALID)},
         {"value": "0", "expected": (0, 0, VALID)},
         {"value": "1", "expected": (1, 1, VALID)},
+        {"value": "4294967295", "expected": (4294967295, 4294967295, VALID)},
+        {"value": "4294967296", "expected": ("=", None, INVALID)},
     ],
     "unsignedLong": [
         {"value": "-1", "expected": ("=", None, INVALID)},
         {"value": "0", "expected": (0, 0, VALID)},
         {"value": "1", "expected": (1, 1, VALID)},
+        {"value": "18446744073709551615", "expected": (18446744073709551615, 18446744073709551615, VALID)},
+        {"value": "18446744073709551616", "expected": ("=", None, INVALID)},
     ],
     "unsignedShort": [
         {"value": "-1", "expected": ("=", None, INVALID)},
@@ -889,3 +901,33 @@ class TestValidateFacetValueString:
         assert result.isXValid
         assert result.sValue == "value"
         assert result.xValue == "value"
+
+    @pytest.mark.parametrize(
+        "base_xsd_type,value,expected_x_valid",
+        [
+            ("int", "2147483647", VALID),
+            ("int", "-2147483648", VALID),
+            ("int", "2147483648", INVALID),
+            ("int", "-2147483649", INVALID),
+            ("long", "9223372036854775807", VALID),
+            ("long", "-9223372036854775808", VALID),
+            ("long", "9223372036854775808", INVALID),
+            ("long", "-9223372036854775809", INVALID),
+            ("unsignedInt", "4294967295", VALID),
+            ("unsignedInt", "0", VALID),
+            ("unsignedInt", "4294967296", INVALID),
+            ("unsignedInt", "-1", INVALID),
+            ("unsignedLong", "18446744073709551615", VALID),
+            ("unsignedLong", "0", VALID),
+            ("unsignedLong", "18446744073709551616", INVALID),
+            ("unsignedLong", "-1", INVALID),
+            ("negativeInteger", "-1", VALID),
+            ("negativeInteger", "-1000", VALID),
+            ("negativeInteger", "0", INVALID),
+            ("negativeInteger", "1", INVALID),
+        ],
+    )
+    def test_bounds_facet_type_range(self, base_xsd_type: str, value: str, expected_x_valid: int):
+        result = validateFacetValueString("minInclusive", value, base_xsd_type)
+        assert result.xValid == expected_x_valid
+        assert result.isXValid == (expected_x_valid >= VALID)
