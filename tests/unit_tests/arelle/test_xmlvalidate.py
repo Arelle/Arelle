@@ -715,17 +715,17 @@ def test_validateValueString(
     baseXsdType: str, value: str, isNillable: bool, isNil: bool, facets: dict, expected: tuple
 ):
     expectedXValid = expected[2]
-    try:
-        result = validateValueString(
-            baseXsdType=baseXsdType,
-            value=value,
-            isNillable=isNillable,
-            isNil=isNil,
-            facets=facets,
-            nsmap=NSMAP,
-        )
-    except (ValueError, InvalidOperation):
-        assert expectedXValid == INVALID
+    result = validateValueString(
+        baseXsdType=baseXsdType,
+        value=value,
+        isNillable=isNillable,
+        isNil=isNil,
+        facets=facets,
+        nsmap=NSMAP,
+    )
+    assert result.xValid == expectedXValid
+    if expectedXValid == INVALID:
+        assert result.sValue == value
         return
     expectedSValue = value if expected[0] == "=" else expected[0]
     expectedXValue = value if expected[1] == "=" else expected[1]
@@ -743,78 +743,146 @@ def test_validateValueString(
 
 class TestValidateFacetValueString:
     def test_length(self):
-        assert validateFacetValueString("length", "3", "string").xValue == 3
+        result = validateFacetValueString("length", "3", "string")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.xValue == 3
 
     def test_length_invalid(self):
-        with pytest.raises(ValueError):
-            validateFacetValueString("length", "abc", "string")
+        result = validateFacetValueString("length", "abc", "string")
+        assert result.xValid == INVALID
+        assert not result.isXValid
+        assert result.sValue == "abc"
+        assert result.xValue is None
 
     def test_minLength(self):
-        assert validateFacetValueString("minLength", "1", "string").xValue == 1
+        result = validateFacetValueString("minLength", "1", "string")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.xValue == 1
 
     def test_minLength_invalid(self):
-        with pytest.raises(ValueError):
-            validateFacetValueString("minLength", "abc", "string")
+        result = validateFacetValueString("minLength", "abc", "string")
+        assert result.xValid == INVALID
+        assert not result.isXValid
+        assert result.sValue == "abc"
+        assert result.xValue is None
 
     def test_maxLength(self):
-        assert validateFacetValueString("maxLength", "10", "string").xValue == 10
+        result = validateFacetValueString("maxLength", "10", "string")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.xValue == 10
 
     def test_maxLength_invalid(self):
-        with pytest.raises(ValueError):
-            validateFacetValueString("maxLength", "abc", "string")
+        result = validateFacetValueString("maxLength", "abc", "string")
+        assert result.xValid == INVALID
+        assert not result.isXValid
+        assert result.sValue == "abc"
+        assert result.xValue is None
 
     def test_totalDigits(self):
-        assert validateFacetValueString("totalDigits", "5", "decimal").xValue == 5
+        result = validateFacetValueString("totalDigits", "5", "decimal")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.xValue == 5
 
     def test_totalDigits_invalid(self):
-        with pytest.raises(ValueError):
-            validateFacetValueString("totalDigits", "abc", "decimal")
+        result = validateFacetValueString("totalDigits", "abc", "decimal")
+        assert result.xValid == INVALID
+        assert not result.isXValid
+        assert result.sValue == "abc"
+        assert result.xValue is None
 
     def test_fractionDigits(self):
-        assert validateFacetValueString("fractionDigits", "2", "decimal").xValue == 2
+        result = validateFacetValueString("fractionDigits", "2", "decimal")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.xValue == 2
 
     def test_fractionDigits_invalid(self):
-        with pytest.raises(ValueError):
-            validateFacetValueString("fractionDigits", "abc", "decimal")
+        result = validateFacetValueString("fractionDigits", "abc", "decimal")
+        assert result.xValid == INVALID
+        assert not result.isXValid
+        assert result.sValue == "abc"
+        assert result.xValue is None
 
     def test_minInclusive(self):
-        assert validateFacetValueString("minInclusive", "0", "integer").xValue == 0
+        result = validateFacetValueString("minInclusive", "0", "integer")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.xValue == 0
 
     def test_minInclusive_invalid(self):
-        with pytest.raises(ValueError):
-            validateFacetValueString("minInclusive", "abc", "integer")
+        result = validateFacetValueString("minInclusive", "abc", "integer")
+        assert result.xValid == INVALID
+        assert not result.isXValid
+        assert result.sValue == "abc"
+        assert result.xValue is None
 
     def test_maxInclusive(self):
-        assert validateFacetValueString("maxInclusive", "100", "integer").xValue == 100
+        result = validateFacetValueString("maxInclusive", "100", "integer")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.xValue == 100
 
     def test_maxInclusive_invalid(self):
-        with pytest.raises(ValueError):
-            validateFacetValueString("maxInclusive", "abc", "integer")
+        result = validateFacetValueString("maxInclusive", "abc", "integer")
+        assert result.xValid == INVALID
+        assert not result.isXValid
+        assert result.sValue == "abc"
+        assert result.xValue is None
 
     def test_minExclusive(self):
-        assert validateFacetValueString("minExclusive", "-1", "integer").xValue == -1
+        result = validateFacetValueString("minExclusive", "-1", "integer")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.xValue == -1
 
     def test_minExclusive_invalid(self):
-        with pytest.raises(ValueError):
-            validateFacetValueString("minExclusive", "abc", "integer")
+        result = validateFacetValueString("minExclusive", "abc", "integer")
+        assert result.xValid == INVALID
+        assert not result.isXValid
+        assert result.sValue == "abc"
+        assert result.xValue is None
 
     def test_maxExclusive(self):
-        assert validateFacetValueString("maxExclusive", "50", "integer").xValue == 50
+        result = validateFacetValueString("maxExclusive", "50", "integer")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.xValue == 50
 
     def test_maxExclusive_invalid(self):
-        with pytest.raises(ValueError):
-            validateFacetValueString("maxExclusive", "abc", "integer")
+        result = validateFacetValueString("maxExclusive", "abc", "integer")
+        assert result.xValid == INVALID
+        assert not result.isXValid
+        assert result.sValue == "abc"
+        assert result.xValue is None
 
     def test_whiteSpace(self):
-        assert validateFacetValueString("whiteSpace", "collapse", "string").xValue == "collapse"
+        result = validateFacetValueString("whiteSpace", "collapse", "string")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.sValue == "collapse"
+        assert result.xValue == "collapse"
 
     def test_pattern(self):
         result = validateFacetValueString("pattern", "[A-Z]+", "string")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.sValue == "[A-Z]+"
         assert isinstance(result.xValue, XsdPattern)
 
     def test_pattern_invalid(self):
-        with pytest.raises(ValueError):
-            validateFacetValueString("pattern", "invalid(", "string")
+        result = validateFacetValueString("pattern", "invalid(", "string")
+        assert result.xValid == INVALID
+        assert not result.isXValid
+        assert result.sValue == "invalid("
+        assert result.xValue is None
 
     def test_unknown_facet(self):
-        assert validateFacetValueString("unknownFacet", "value", "string").xValue == "value"
+        result = validateFacetValueString("unknownFacet", "value", "string")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.sValue == "value"
+        assert result.xValue == "value"

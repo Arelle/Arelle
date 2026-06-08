@@ -425,6 +425,20 @@ def validateValueString(
     facets: dict[str, Any] | None = None,
     nsmap: dict[str | None, str] | None = None,
 ) -> XmlValidationResult:
+    try:
+        return _validateValueStringOrRaise(baseXsdType, value, isNillable, isNil, facets, nsmap)
+    except (InvalidOperation, ValueError):
+        return XmlValidationResult(sValue=value, xValue=None, xValid=INVALID)
+
+
+def _validateValueStringOrRaise(
+    baseXsdType: str,
+    value: str,
+    isNillable: bool = False,
+    isNil: bool = False,
+    facets: dict[str, Any] | None = None,
+    nsmap: dict[str | None, str] | None = None,
+) -> XmlValidationResult:
     if nsmap is None:
         nsmap = {}
     sValue: TypeSValue
@@ -641,7 +655,7 @@ def validateValue(
                 # Fraction reads numerator/denominator from child elements, not from the value string
                 result = fractionValidateValue(value, elt.fractionValue)  # type: ignore[attr-defined]
             else:
-                result = validateValueString(baseXsdType, value, isNillable, isNil, facets, elt.nsmap)
+                result = _validateValueStringOrRaise(baseXsdType, value, isNillable, isNil, facets, elt.nsmap)
             sValue, xValue, xValid = result.sValue, result.xValue, result.xValid
         except (ValueError, InvalidOperation) as err:
             elt.xValueError = err
