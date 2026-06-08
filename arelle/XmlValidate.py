@@ -502,7 +502,7 @@ def validateValueString(
                 if "maxInclusive" in facets and xValue > facets["maxInclusive"]:
                     raise ValueError(" > maxInclusive {0}".format(facets["maxInclusive"]))
                 if "maxExclusive" in facets and xValue >= facets["maxExclusive"]:
-                    raise ValueError(" >= maxInclusive {0}".format(facets["maxExclusive"]))
+                    raise ValueError(" >= maxExclusive {0}".format(facets["maxExclusive"]))
                 if "minInclusive" in facets and xValue < facets["minInclusive"]:
                     raise ValueError(" < minInclusive {0}".format(facets["minInclusive"]))
                 if "minExclusive" in facets and xValue <= facets["minExclusive"]:
@@ -533,7 +533,7 @@ def validateValueString(
                 if "maxInclusive" in facets and xValue > facets["maxInclusive"]:
                     raise ValueError(" > maxInclusive {0}".format(facets["maxInclusive"]))
                 if "maxExclusive" in facets and xValue >= facets["maxExclusive"]:
-                    raise ValueError(" >= maxInclusive {0}".format(facets["maxExclusive"]))
+                    raise ValueError(" >= maxExclusive {0}".format(facets["maxExclusive"]))
                 if "minInclusive" in facets and xValue < facets["minInclusive"]:
                     raise ValueError(" < minInclusive {0}".format(facets["minInclusive"]))
                 if "minExclusive" in facets and xValue <= facets["minExclusive"]:
