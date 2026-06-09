@@ -9,7 +9,7 @@ from collections.abc import Iterable
 from arelle.ModelValue import qname, QName, DateTime, YearMonthDayTimeDuration
 from arelle.PythonUtil import OrderedSet
 from arelle.oim.Load import EMPTY_DICT
-from .XbrlConst import xbrl
+from .XbrlConst import xbrl, xbrla
 from .XbrlDimension import XbrlDomain
 from .XbrlProperty import XbrlProperty
 from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue, DefaultFalse, OptionalNonemptySet
@@ -236,10 +236,12 @@ timeSeriesCubeType = qname(xbrl, "xbrl:timeSeriesCube")
 defaultCubeType = qname(xbrl, "xbrl:defaultCube")
 baseCubeTypes = {eventCubeType, positionCubeType, referenceCubeType, reportCubeType, journalCubeType,
                  eventDetailsCubeType, timeSeriesCubeType, defaultCubeType}
-timeSeriesPropType = qname(xbrl, "xbrl:timeSeriesType")
-intervalOfMeasurementPropType = qname(xbrl, "xbrl:intervalOfMeasurement")
-intervalConventionPropType = qname(xbrl, "xbrl:intervalConvention")
-excludedIntervalsPropType = qname(xbrl, "xbrl:excludedIntervals")
+timeSeriesPropType = qname(xbrla, "xbrla:timeSeriesType")
+intervalOfMeasurementPropType = qname(xbrla, "xbrla:intervalOfMeasurement")
+intervalConventionPropType = qname(xbrla, "xbrla:intervalConvention")
+excludedIntervalsPropType = qname(xbrla, "xbrla:excludedIntervals")
+completeTimeSeriesPropType = qname(xbrla, "xbrla:completeTimeSeries")
+aggregationPropType = qname(xbrla, "xbrla:aggregation")
 
 periodCoreDim = qname(xbrl, "xbrl:period")
 conceptCoreDim = qname(xbrl, "xbrl:concept")

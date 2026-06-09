@@ -50,7 +50,7 @@ def validateConceptFamily(compMdl, module, oimFile, *, assertObjectType, validat
 
     for collObj in module.collectionTypes:
         assertObjectType(compMdl, collObj, XbrlCollectionType)
-        validateQNameReference(compMdl, collObj, "dataType", XbrlDataType)
+        validateQNameReference(compMdl, collObj, "dataType", (XbrlDataType, XbrlCollectionType))
         minItems = getattr(collObj, "minItems", None)
         maxItems = getattr(collObj, "maxItems", None)
         if minItems is not None and maxItems is not None and maxItems < minItems:
