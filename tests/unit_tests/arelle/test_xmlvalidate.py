@@ -1,17 +1,26 @@
 from __future__ import annotations
 
 import datetime
-from _decimal import Decimal, InvalidOperation
+from _decimal import Decimal
 from fractions import Fraction
-from math import inf, nan, isnan
+from math import inf, isnan, nan
 from typing import Any
+from unittest.mock import Mock
 
 import pytest
 import regex
-from unittest.mock import Mock
 
-from arelle.ModelValue import QName, DateTime, Time, isoDuration, gDay, gMonth, gMonthDay, gYear, gYearMonth
-from arelle.XmlValidate import validateValue, validateValueString, validateFacetValueString, VALID, UNKNOWN, INVALID, VALID_ID, NMTOKENPattern, namePattern, NCNamePattern, VALID_NO_CONTENT, XsdPattern
+from arelle.ModelValue import DateTime, QName, Time, gDay, gMonth, gMonthDay, gYear, gYearMonth, isoDuration
+from arelle.XmlValidate import (
+    NCNamePattern,
+    NMTOKENPattern,
+    XsdPattern,
+    namePattern,
+    validateFacetValueString,
+    validateValue,
+    validateValueString,
+)
+from arelle.XmlValidateConst import INVALID, UNKNOWN, VALID, VALID_ID, VALID_NO_CONTENT
 
 FLOAT_CASES = [
     {"value": "-1", "expected": (-1, -1, VALID)},
@@ -264,9 +273,13 @@ BASE_XSD_TYPES = {
         {"value": "valid valid", "expected": ("=", "=", VALID)},
     ],
     "int": [
+        {"value": "-2147483649", "expected": ("=", None, INVALID)},
+        {"value": "-2147483648", "expected": (-2147483648, -2147483648, VALID)},
         {"value": "-1", "expected": (-1, -1, VALID)},
         {"value": "0", "expected": (0, 0, VALID)},
         {"value": "1", "expected": (1, 1, VALID)},
+        {"value": "2147483647", "expected": (2147483647, 2147483647, VALID)},
+        {"value": "2147483648", "expected": ("=", None, INVALID)},
     ],
     "integer": [
         {"value": "-1", "expected": (-1, -1, VALID)},
@@ -283,9 +296,13 @@ BASE_XSD_TYPES = {
         {"value": "*invalid", "expected": ("=", None, INVALID)},
     ],
     "long": [
+        {"value": "-9223372036854775809", "expected": ("=", None, INVALID)},
+        {"value": "-9223372036854775808", "expected": (-9223372036854775808, -9223372036854775808, VALID)},
         {"value": "-1", "expected": (-1, -1, VALID)},
         {"value": "0", "expected": (0, 0, VALID)},
         {"value": "1", "expected": (1, 1, VALID)},
+        {"value": "9223372036854775807", "expected": (9223372036854775807, 9223372036854775807, VALID)},
+        {"value": "9223372036854775808", "expected": ("=", None, INVALID)},
     ],
     "Name": [
         {"value": "*invalid", "expected": ("=", None, INVALID)},
@@ -297,8 +314,8 @@ BASE_XSD_TYPES = {
     ],
     "negativeInteger": [
         {"value": "-1", "expected": (-1, -1, VALID)},
-        {"value": "0", "expected": (0, 0, VALID)},  # TODO: should be invalid
-        {"value": "1", "expected": (1, 1, VALID)},  # TODO: should be invalid
+        {"value": "0", "expected": ("=", None, INVALID)},
+        {"value": "1", "expected": ("=", None, INVALID)},
     ],
     "NMTOKEN": [
         {"value": "*invalid", "expected": ("=", None, INVALID)},
@@ -374,11 +391,15 @@ BASE_XSD_TYPES = {
         {"value": "-1", "expected": ("=", None, INVALID)},
         {"value": "0", "expected": (0, 0, VALID)},
         {"value": "1", "expected": (1, 1, VALID)},
+        {"value": "4294967295", "expected": (4294967295, 4294967295, VALID)},
+        {"value": "4294967296", "expected": ("=", None, INVALID)},
     ],
     "unsignedLong": [
         {"value": "-1", "expected": ("=", None, INVALID)},
         {"value": "0", "expected": (0, 0, VALID)},
         {"value": "1", "expected": (1, 1, VALID)},
+        {"value": "18446744073709551615", "expected": (18446744073709551615, 18446744073709551615, VALID)},
+        {"value": "18446744073709551616", "expected": ("=", None, INVALID)},
     ],
     "unsignedShort": [
         {"value": "-1", "expected": ("=", None, INVALID)},
@@ -419,6 +440,9 @@ BASE_XSD_TYPES = {
         {"value": r"[\i-[:]][\c-[:]]*", "expected": ("=", XsdPattern(xsdPattern=r"[\i-[:]][\c-[:]]*", pyPattern=NCNamePattern), VALID)},
         {"value": "test", "expected": ("=", XsdPattern.compile("test"), VALID)},
         {"value": r"invalid(", "expected": ("=", None, INVALID)},
+        {"value": r"\(?", "expected": ("=", XsdPattern.compile(r"\(?"), VALID)},
+        {"value": "foo(?=bar)", "expected": ("=", None, INVALID)},
+        {"value": "(?:foo)", "expected": ("=", None, INVALID)},
     ],
 }
 
@@ -714,17 +738,17 @@ def test_validateValueString(
     baseXsdType: str, value: str, isNillable: bool, isNil: bool, facets: dict, expected: tuple
 ):
     expectedXValid = expected[2]
-    try:
-        result = validateValueString(
-            baseXsdType=baseXsdType,
-            value=value,
-            isNillable=isNillable,
-            isNil=isNil,
-            facets=facets,
-            nsmap=NSMAP,
-        )
-    except (ValueError, InvalidOperation):
-        assert expectedXValid == INVALID
+    result = validateValueString(
+        baseXsdType=baseXsdType,
+        value=value,
+        isNillable=isNillable,
+        isNil=isNil,
+        facets=facets,
+        nsmap=NSMAP,
+    )
+    assert result.xValid == expectedXValid
+    if expectedXValid == INVALID:
+        assert result.sValue == value
         return
     expectedSValue = value if expected[0] == "=" else expected[0]
     expectedXValue = value if expected[1] == "=" else expected[1]
@@ -737,82 +761,299 @@ def test_validateValueString(
         _assertValidateValue(result.sValue, expectedSValue)
     _assertValidateValue(result.xValue, expectedXValue)
     assert result.xValid == expectedXValid
+    assert result.isXValid == (expectedXValid >= VALID)
 
 
 class TestValidateFacetValueString:
     def test_length(self):
-        assert validateFacetValueString("length", "3", "string").xValue == 3
+        result = validateFacetValueString("length", "3", "string")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.xValue == 3
 
     def test_length_invalid(self):
-        with pytest.raises(ValueError):
-            validateFacetValueString("length", "abc", "string")
+        result = validateFacetValueString("length", "abc", "string")
+        assert result.xValid == INVALID
+        assert not result.isXValid
+        assert result.sValue == "abc"
+        assert result.xValue is None
 
     def test_minLength(self):
-        assert validateFacetValueString("minLength", "1", "string").xValue == 1
+        result = validateFacetValueString("minLength", "1", "string")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.xValue == 1
 
     def test_minLength_invalid(self):
-        with pytest.raises(ValueError):
-            validateFacetValueString("minLength", "abc", "string")
+        result = validateFacetValueString("minLength", "abc", "string")
+        assert result.xValid == INVALID
+        assert not result.isXValid
+        assert result.sValue == "abc"
+        assert result.xValue is None
 
     def test_maxLength(self):
-        assert validateFacetValueString("maxLength", "10", "string").xValue == 10
+        result = validateFacetValueString("maxLength", "10", "string")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.xValue == 10
 
     def test_maxLength_invalid(self):
-        with pytest.raises(ValueError):
-            validateFacetValueString("maxLength", "abc", "string")
+        result = validateFacetValueString("maxLength", "abc", "string")
+        assert result.xValid == INVALID
+        assert not result.isXValid
+        assert result.sValue == "abc"
+        assert result.xValue is None
 
     def test_totalDigits(self):
-        assert validateFacetValueString("totalDigits", "5", "decimal").xValue == 5
+        result = validateFacetValueString("totalDigits", "5", "decimal")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.xValue == 5
 
     def test_totalDigits_invalid(self):
-        with pytest.raises(ValueError):
-            validateFacetValueString("totalDigits", "abc", "decimal")
+        result = validateFacetValueString("totalDigits", "abc", "decimal")
+        assert result.xValid == INVALID
+        assert not result.isXValid
+        assert result.sValue == "abc"
+        assert result.xValue is None
 
     def test_fractionDigits(self):
-        assert validateFacetValueString("fractionDigits", "2", "decimal").xValue == 2
+        result = validateFacetValueString("fractionDigits", "2", "decimal")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.xValue == 2
 
     def test_fractionDigits_invalid(self):
-        with pytest.raises(ValueError):
-            validateFacetValueString("fractionDigits", "abc", "decimal")
+        result = validateFacetValueString("fractionDigits", "abc", "decimal")
+        assert result.xValid == INVALID
+        assert not result.isXValid
+        assert result.sValue == "abc"
+        assert result.xValue is None
 
     def test_minInclusive(self):
-        assert validateFacetValueString("minInclusive", "0", "integer").xValue == 0
+        result = validateFacetValueString("minInclusive", "0", "integer")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.xValue == 0
 
     def test_minInclusive_invalid(self):
-        with pytest.raises(ValueError):
-            validateFacetValueString("minInclusive", "abc", "integer")
+        result = validateFacetValueString("minInclusive", "abc", "integer")
+        assert result.xValid == INVALID
+        assert not result.isXValid
+        assert result.sValue == "abc"
+        assert result.xValue is None
 
     def test_maxInclusive(self):
-        assert validateFacetValueString("maxInclusive", "100", "integer").xValue == 100
+        result = validateFacetValueString("maxInclusive", "100", "integer")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.xValue == 100
 
     def test_maxInclusive_invalid(self):
-        with pytest.raises(ValueError):
-            validateFacetValueString("maxInclusive", "abc", "integer")
+        result = validateFacetValueString("maxInclusive", "abc", "integer")
+        assert result.xValid == INVALID
+        assert not result.isXValid
+        assert result.sValue == "abc"
+        assert result.xValue is None
 
     def test_minExclusive(self):
-        assert validateFacetValueString("minExclusive", "-1", "integer").xValue == -1
+        result = validateFacetValueString("minExclusive", "-1", "integer")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.xValue == -1
 
     def test_minExclusive_invalid(self):
-        with pytest.raises(ValueError):
-            validateFacetValueString("minExclusive", "abc", "integer")
+        result = validateFacetValueString("minExclusive", "abc", "integer")
+        assert result.xValid == INVALID
+        assert not result.isXValid
+        assert result.sValue == "abc"
+        assert result.xValue is None
 
     def test_maxExclusive(self):
-        assert validateFacetValueString("maxExclusive", "50", "integer").xValue == 50
+        result = validateFacetValueString("maxExclusive", "50", "integer")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.xValue == 50
 
     def test_maxExclusive_invalid(self):
-        with pytest.raises(ValueError):
-            validateFacetValueString("maxExclusive", "abc", "integer")
+        result = validateFacetValueString("maxExclusive", "abc", "integer")
+        assert result.xValid == INVALID
+        assert not result.isXValid
+        assert result.sValue == "abc"
+        assert result.xValue is None
 
     def test_whiteSpace(self):
-        assert validateFacetValueString("whiteSpace", "collapse", "string").xValue == "collapse"
+        result = validateFacetValueString("whiteSpace", "collapse", "string")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.sValue == "collapse"
+        assert result.xValue == "collapse"
 
     def test_pattern(self):
         result = validateFacetValueString("pattern", "[A-Z]+", "string")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.sValue == "[A-Z]+"
         assert isinstance(result.xValue, XsdPattern)
 
     def test_pattern_invalid(self):
-        with pytest.raises(ValueError):
-            validateFacetValueString("pattern", "invalid(", "string")
+        result = validateFacetValueString("pattern", "invalid(", "string")
+        assert result.xValid == INVALID
+        assert not result.isXValid
+        assert result.sValue == "invalid("
+        assert result.xValue is None
 
     def test_unknown_facet(self):
-        assert validateFacetValueString("unknownFacet", "value", "string").xValue == "value"
+        result = validateFacetValueString("unknownFacet", "value", "string")
+        assert result.xValid == VALID
+        assert result.isXValid
+        assert result.sValue == "value"
+        assert result.xValue == "value"
+
+    @pytest.mark.parametrize(
+        "base_xsd_type,value,expected_x_valid",
+        [
+            ("int", "2147483647", VALID),
+            ("int", "-2147483648", VALID),
+            ("int", "2147483648", INVALID),
+            ("int", "-2147483649", INVALID),
+            ("long", "9223372036854775807", VALID),
+            ("long", "-9223372036854775808", VALID),
+            ("long", "9223372036854775808", INVALID),
+            ("long", "-9223372036854775809", INVALID),
+            ("unsignedInt", "4294967295", VALID),
+            ("unsignedInt", "0", VALID),
+            ("unsignedInt", "4294967296", INVALID),
+            ("unsignedInt", "-1", INVALID),
+            ("unsignedLong", "18446744073709551615", VALID),
+            ("unsignedLong", "0", VALID),
+            ("unsignedLong", "18446744073709551616", INVALID),
+            ("unsignedLong", "-1", INVALID),
+            ("negativeInteger", "-1", VALID),
+            ("negativeInteger", "-1000", VALID),
+            ("negativeInteger", "0", INVALID),
+            ("negativeInteger", "1", INVALID),
+        ],
+    )
+    def test_bounds_facet_type_range(self, base_xsd_type: str, value: str, expected_x_valid: int):
+        result = validateFacetValueString("minInclusive", value, base_xsd_type)
+        assert result.xValid == expected_x_valid
+        assert result.isXValid == (expected_x_valid >= VALID)
+
+    @pytest.mark.parametrize(
+        "facet_name,value,expected_x_valid",
+        [
+            ("length", "0", VALID),
+            ("length", "-1", INVALID),
+            ("minLength", "0", VALID),
+            ("minLength", "-1", INVALID),
+            ("maxLength", "0", VALID),
+            ("maxLength", "-1", INVALID),
+            ("fractionDigits", "0", VALID),
+            ("fractionDigits", "-1", INVALID),
+            ("totalDigits", "1", VALID),
+            ("totalDigits", "0", INVALID),
+        ],
+    )
+    def test_numeric_facet_bounds(self, facet_name: str, value: str, expected_x_valid: int):
+        result = validateFacetValueString(facet_name, value, "string")
+        assert result.xValid == expected_x_valid
+        assert result.isXValid == (expected_x_valid >= VALID)
+
+    @pytest.mark.parametrize(
+        "facet_name,base_xsd_type,value,expected_x_valid",
+        [
+            ("minExclusive", "byte", "126", VALID),
+            ("minExclusive", "byte", "127", INVALID),
+            ("minExclusive", "byte", "0", VALID),
+            ("minExclusive", "short", "32766", VALID),
+            ("minExclusive", "short", "32767", INVALID),
+            ("minExclusive", "int", "2147483646", VALID),
+            ("minExclusive", "int", "2147483647", INVALID),
+            ("minExclusive", "long", "9223372036854775806", VALID),
+            ("minExclusive", "long", "9223372036854775807", INVALID),
+            ("minExclusive", "unsignedByte", "254", VALID),
+            ("minExclusive", "unsignedByte", "255", INVALID),
+            ("minExclusive", "unsignedShort", "65534", VALID),
+            ("minExclusive", "unsignedShort", "65535", INVALID),
+            ("minExclusive", "unsignedInt", "4294967294", VALID),
+            ("minExclusive", "unsignedInt", "4294967295", INVALID),
+            ("minExclusive", "unsignedLong", "18446744073709551614", VALID),
+            ("minExclusive", "unsignedLong", "18446744073709551615", INVALID),
+            ("minExclusive", "negativeInteger", "-2", VALID),
+            ("minExclusive", "negativeInteger", "-1", INVALID),
+            ("minExclusive", "nonPositiveInteger", "-1", VALID),
+            ("minExclusive", "nonPositiveInteger", "0", INVALID),
+            ("maxExclusive", "byte", "-127", VALID),
+            ("maxExclusive", "byte", "-128", INVALID),
+            ("maxExclusive", "byte", "0", VALID),
+            ("maxExclusive", "short", "-32767", VALID),
+            ("maxExclusive", "short", "-32768", INVALID),
+            ("maxExclusive", "int", "-2147483647", VALID),
+            ("maxExclusive", "int", "-2147483648", INVALID),
+            ("maxExclusive", "long", "-9223372036854775807", VALID),
+            ("maxExclusive", "long", "-9223372036854775808", INVALID),
+            ("maxExclusive", "unsignedByte", "1", VALID),
+            ("maxExclusive", "unsignedByte", "0", INVALID),
+            ("maxExclusive", "unsignedShort", "1", VALID),
+            ("maxExclusive", "unsignedShort", "0", INVALID),
+            ("maxExclusive", "unsignedInt", "1", VALID),
+            ("maxExclusive", "unsignedInt", "0", INVALID),
+            ("maxExclusive", "unsignedLong", "1", VALID),
+            ("maxExclusive", "unsignedLong", "0", INVALID),
+            ("maxExclusive", "positiveInteger", "2", VALID),
+            ("maxExclusive", "positiveInteger", "1", INVALID),
+            ("maxExclusive", "nonNegativeInteger", "1", VALID),
+            ("maxExclusive", "nonNegativeInteger", "0", INVALID),
+            ("minExclusive", "positiveInteger", "5", VALID),
+            ("minExclusive", "nonNegativeInteger", "5", VALID),
+            ("minExclusive", "integer", "5", VALID),
+            ("maxExclusive", "negativeInteger", "-5", VALID),
+            ("maxExclusive", "nonPositiveInteger", "-5", VALID),
+            ("maxExclusive", "integer", "5", VALID),
+        ],
+    )
+    def test_exclusive_bounds_facet_type_range(
+        self, facet_name: str, base_xsd_type: str, value: str, expected_x_valid: int
+    ):
+        result = validateFacetValueString(facet_name, value, base_xsd_type)
+        assert result.xValid == expected_x_valid
+        assert result.isXValid == (expected_x_valid >= VALID)
+
+    @pytest.mark.parametrize(
+        "base_xsd_type,value,expected_x_valid",
+        [
+            ("decimal", "0", VALID),
+            ("decimal", "3", VALID),
+            ("integer", "0", VALID),
+            ("integer", "1", INVALID),
+            ("byte", "0", VALID),
+            ("byte", "1", INVALID),
+            ("short", "0", VALID),
+            ("short", "1", INVALID),
+            ("int", "0", VALID),
+            ("int", "1", INVALID),
+            ("long", "0", VALID),
+            ("long", "1", INVALID),
+            ("unsignedByte", "0", VALID),
+            ("unsignedByte", "1", INVALID),
+            ("unsignedShort", "0", VALID),
+            ("unsignedShort", "1", INVALID),
+            ("unsignedInt", "0", VALID),
+            ("unsignedInt", "1", INVALID),
+            ("unsignedLong", "0", VALID),
+            ("unsignedLong", "1", INVALID),
+            ("negativeInteger", "0", VALID),
+            ("negativeInteger", "1", INVALID),
+            ("nonNegativeInteger", "0", VALID),
+            ("nonNegativeInteger", "1", INVALID),
+            ("nonPositiveInteger", "0", VALID),
+            ("nonPositiveInteger", "1", INVALID),
+            ("positiveInteger", "0", VALID),
+            ("positiveInteger", "1", INVALID),
+        ],
+    )
+    def test_fractionDigits_facet_integer_types(self, base_xsd_type: str, value: str, expected_x_valid: int):
+        result = validateFacetValueString("fractionDigits", value, base_xsd_type)
+        assert result.xValid == expected_x_valid
+        assert result.isXValid == (expected_x_valid >= VALID)

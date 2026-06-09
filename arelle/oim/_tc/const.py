@@ -4,27 +4,25 @@ See COPYRIGHT.md for copyright information.
 
 from __future__ import annotations
 
+TC_NS_GIT = "https://xbrl.org/((~status_date_uri~))/tc"
 TC_NS_DRAFT = "https://xbrl.org/WGWD/YYYY-MM-DD/tc"
 TC_NS_CR = "https://xbrl.org/CR/2025-10-07/tc"
-TC_NS_PR = "https://xbrl.org/PR/2026-03-18/tc"
+TC_NS_DPR = "https://xbrl.org/DPR/YYYY-MM-DD/tc"
+TC_NS_PR_1 = "https://xbrl.org/PR/2026-03-18/tc"
+TC_NS_PR_2 = "https://xbrl.org/PR/2026-05-05/tc"
 
 TC_NAMESPACES = frozenset({
+    TC_NS_GIT,
     TC_NS_DRAFT,
     TC_NS_CR,
-    TC_NS_PR,
+    TC_NS_DPR,
+    TC_NS_PR_1,
+    TC_NS_PR_2,
 })
 
-TC_METADATA_ERROR_NAMESPACES = frozenset({
-    "https://xbrl.org/WGWD/YYYY-MM-DD/tc/metadataerror",
-    "https://xbrl.org/CR/2025-10-07/tc/metadataerror",
-    "https://xbrl.org/PR/2026-03-18/tc/metadataerror",
-})
+TC_METADATA_ERROR_NAMESPACES = frozenset(f"{ns}/metadataerror" for ns in TC_NAMESPACES)
 
-TC_REPORT_ERROR_NAMESPACES = frozenset({
-    "https://xbrl.org/WGWD/YYYY-MM-DD/tc/reporterror",
-    "https://xbrl.org/CR/2025-10-07/tc/reporterror",
-    "https://xbrl.org/PR/2026-03-18/tc/reporterror",
-})
+TC_REPORT_ERROR_NAMESPACES = frozenset(f"{ns}/reporterror" for ns in TC_NAMESPACES)
 
 TC_PREFIX = "tc"
 

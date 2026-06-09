@@ -9,6 +9,7 @@ from arelle.oim._tc.const import (
     TCME_COLUMN_PARAMETER_CONFLICT,
     TCME_INCONSISTENT_COLUMN_ORDER_DEFINITION,
     TCME_INVALID_NAMESPACE_PREFIX,
+    TCME_UNKNOWN_TYPE,
 )
 from arelle.oim._tc.metadata.common import TCMetadataValidationError
 from arelle.oim._tc.metadata.model import TCMetadata, TCTemplateConstraints, TCValueConstraint
@@ -256,3 +257,31 @@ class TestColumnOrderDefinition:
         )
         errors = list(TCMetadataValidator(_build_effective_metadata(_TC_NAMESPACES), tc_metadata).validate())
         assert errors == []
+
+
+class TestValueConstraintIntegration:
+    def test_column_constraint_error_path(self) -> None:
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(
+                    constraints={"col1": TCValueConstraint(type="xs:bogus")},
+                ),
+            }
+        )
+        errors = list(TCMetadataValidator(_build_effective_metadata(_TC_NAMESPACES), tc_metadata).validate())
+        assert len(errors) == 1
+        assert errors[0].code == TCME_UNKNOWN_TYPE
+        assert errors[0].json_pointers == ["/tableTemplates/t1/columns/col1/tc:constraints/type"]
+
+    def test_parameter_constraint_error_path(self) -> None:
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(
+                    parameters={"p1": TCValueConstraint(type="xs:bogus")},
+                ),
+            }
+        )
+        errors = list(TCMetadataValidator(_build_effective_metadata(_TC_NAMESPACES), tc_metadata).validate())
+        assert len(errors) == 1
+        assert errors[0].code == TCME_UNKNOWN_TYPE
+        assert errors[0].json_pointers == ["/tableTemplates/t1/tc:parameters/p1/type"]

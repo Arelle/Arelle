@@ -8,6 +8,7 @@ from collections.abc import Generator
 
 from arelle.oim._tc.const import (
     TC_COLUMN_ORDER_PROPERTY_NAME,
+    TC_CONSTRAINTS_PROPERTY_NAME,
     TC_NAMESPACES,
     TC_PARAMETERS_PROPERTY_NAME,
     TC_PREFIX,
@@ -17,6 +18,7 @@ from arelle.oim._tc.const import (
 )
 from arelle.oim._tc.metadata.common import TCMetadataValidationError
 from arelle.oim._tc.metadata.model import TCMetadata
+from arelle.oim._tc.metadata.value_constraint_validation import validate_value_constraint
 from arelle.oim.csv.metadata.common import COLUMNS_KEY, TABLE_TEMPLATES_KEY
 from arelle.oim.csv.metadata.model import XbrlCsvEffectiveMetadata, XbrlCsvTableTemplate
 from arelle.typing import TypeGetText
@@ -34,6 +36,7 @@ class TCMetadataValidator:
         yield from self._validate_namespace_prefixes()
         yield from self._validate_column_parameter_conflicts()
         yield from self._validate_column_order()
+        yield from self._validate_value_constraints()
 
     def _validate_namespace_prefixes(self) -> Generator[TCMetadataValidationError, None, None]:
         for prefix, uri in self._namespaces.items():
@@ -89,3 +92,16 @@ class TCMetadataValidator:
                         for index in unknown_in_order
                     ),
                 )
+
+    def _validate_value_constraints(self) -> Generator[TCMetadataValidationError, None, None]:
+        for template_id, tc in self._tc_metadata.template_constraints.items():
+            for col_name, constraint in tc.constraints.items():
+                for error in validate_value_constraint(constraint, self._namespaces):
+                    error.prepend_path(
+                        TABLE_TEMPLATES_KEY, template_id, COLUMNS_KEY, col_name, TC_CONSTRAINTS_PROPERTY_NAME
+                    )
+                    yield error
+            for param_name, constraint in tc.parameters.items():
+                for error in validate_value_constraint(constraint, self._namespaces):
+                    error.prepend_path(TABLE_TEMPLATES_KEY, template_id, TC_PARAMETERS_PROPERTY_NAME, param_name)
+                    yield error

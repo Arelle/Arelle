@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from typing import TYPE_CHECKING, Any, cast
 from lxml import etree
 from regex import Match, Pattern, compile as re_compile
@@ -36,6 +36,21 @@ iNameChar = "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F
 cNameChar = r"[_\-\.:"   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]"
 cMinusCNameChar = r"[_\-\."   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]"
 
+def _raiseOnNonXsdRegexSyntax(p: str) -> None:
+    """
+    Python regex supports extension groups (?:...) syntax (lookahead, non-capturing groups) that XSD patterns do not.
+    Raise a ValueError if the pattern contains any such syntax.
+    """
+    i = 0
+    while i < len(p) - 1:
+        if p[i] == "\\":
+            i += 2
+        elif p[i] == "(" and p[i + 1] == "?":
+            raise ValueError("XSD regular expressions do not support '(?' syntax")
+        else:
+            i += 1
+
+
 @dataclass(frozen=True)
 class XsdPattern:
     xsdPattern: str
@@ -44,6 +59,7 @@ class XsdPattern:
     # shim class for python wrapper of xsd pattern
     @classmethod
     def compile(cls, p: str) -> XsdPattern:
+        _raiseOnNonXsdRegexSyntax(p)
         if r"\i" in p or r"\c" in p:
             p = p.replace(r"[\i-[:]]", iNameChar).replace(r"\i", iNameChar) \
                  .replace(r"[\c-[:]]", cMinusCNameChar).replace(r"\c", cNameChar)
@@ -66,6 +82,10 @@ class XmlValidationResult:
     sValue: TypeSValue
     xValue: TypeXValue
     xValid: int
+
+    @property
+    def isXValid(self) -> bool:
+        return self.xValid >= XmlValidateConst.VALID
 
 
 # support legacy direct imports from this module
@@ -140,6 +160,22 @@ baseXsdTypePatterns = {
                 "ENTITY": NCNamePattern,
                 "QName": QNamePattern,
             }
+_XSD_TYPE_INHERENT_INCLUSIVE_BOUNDS: dict[str, tuple[int | None, int | None]] = {
+    "nonPositiveInteger": (None, 0),
+    "negativeInteger": (None, -1),
+    "long": (-9223372036854775808, 9223372036854775807),
+    "int": (-2147483648, 2147483647),
+    "short": (-32768, 32767),
+    "byte": (-128, 127),
+    "nonNegativeInteger": (0, None),
+    "unsignedLong": (0, 18446744073709551615),
+    "unsignedInt": (0, 4294967295),
+    "unsignedShort": (0, 65535),
+    "unsignedByte": (0, 255),
+    "positiveInteger": (1, None),
+}
+_INTEGER_BASE_XSD_TYPES = frozenset(_XSD_TYPE_INHERENT_INCLUSIVE_BOUNDS.keys() | {"integer"})
+
 predefinedAttributeTypes = {
     qname("{http://www.w3.org/XML/1998/namespace}xml:lang"):("languageOrEmpty",None),
     qname("{http://www.w3.org/XML/1998/namespace}xml:space"):("NCName",{"enumeration":{"default","preserve"}})}
@@ -418,8 +454,22 @@ def validateValueString(
     value: str,
     isNillable: bool = False,
     isNil: bool = False,
-    facets: dict[str, Any] | None = None,
-    nsmap: dict[str | None, str] | None = None,
+    facets: Mapping[str, Any] | None = None,
+    nsmap: Mapping[str | None, str] | None = None,
+) -> XmlValidationResult:
+    try:
+        return _validateValueStringOrRaise(baseXsdType, value, isNillable, isNil, facets, nsmap)
+    except (InvalidOperation, ValueError):
+        return XmlValidationResult(sValue=value, xValue=None, xValid=INVALID)
+
+
+def _validateValueStringOrRaise(
+    baseXsdType: str,
+    value: str,
+    isNillable: bool = False,
+    isNil: bool = False,
+    facets: Mapping[str, Any] | None = None,
+    nsmap: Mapping[str | None, str] | None = None,
 ) -> XmlValidationResult:
     if nsmap is None:
         nsmap = {}
@@ -433,8 +483,10 @@ def validateValueString(
         baseXsdType = baseXsdType[:-1] # remove plural
         if facets:
             if "minLength" not in facets:
-                facets = facets.copy()
-                facets["minLength"] = 1
+                facets = {
+                    **facets,
+                    "minLength": 1,
+                }
         else:
             facets = {"minLength": 1}
     pattern = baseXsdTypePatterns.get(baseXsdType)
@@ -502,28 +554,17 @@ def validateValueString(
                 if "maxInclusive" in facets and xValue > facets["maxInclusive"]:
                     raise ValueError(" > maxInclusive {0}".format(facets["maxInclusive"]))
                 if "maxExclusive" in facets and xValue >= facets["maxExclusive"]:
-                    raise ValueError(" >= maxInclusive {0}".format(facets["maxExclusive"]))
+                    raise ValueError(" >= maxExclusive {0}".format(facets["maxExclusive"]))
                 if "minInclusive" in facets and xValue < facets["minInclusive"]:
                     raise ValueError(" < minInclusive {0}".format(facets["minInclusive"]))
                 if "minExclusive" in facets and xValue <= facets["minExclusive"]:
                     raise ValueError(" <= minExclusive {0}".format(facets["minExclusive"]))
-        elif baseXsdType in {"integer",
-                             "nonPositiveInteger", "negativeInteger", "nonNegativeInteger", "positiveInteger",
-                             "long", "unsignedLong",
-                             "int", "unsignedInt",
-                             "short", "unsignedShort",
-                             "byte", "unsignedByte"}:
+        elif baseXsdType in _INTEGER_BASE_XSD_TYPES:
             xValue = sValue = int(value)
-            if ((baseXsdType in {"nonNegativeInteger","unsignedLong","unsignedInt"}
-                 and xValue < 0) or
-                (baseXsdType == "nonPositiveInteger" and xValue > 0) or
-                (baseXsdType == "positiveInteger" and xValue <= 0) or
-                (baseXsdType == "byte" and not -128 <= xValue <= 127) or
-                (baseXsdType == "unsignedByte" and not 0 <= xValue <= 255) or
-                (baseXsdType == "short" and not -32768 <= xValue <= 32767) or
-                (baseXsdType == "unsignedShort" and not 0 <= xValue <= 65535) or
-                (baseXsdType == "positiveInteger" and xValue <= 0)):
-                raise ValueError("{0} is not {1}".format(value, baseXsdType))
+            if inclusiveBounds := _XSD_TYPE_INHERENT_INCLUSIVE_BOUNDS.get(baseXsdType):
+                lowerLimit, upperLimit = inclusiveBounds
+                if (lowerLimit is not None and xValue < lowerLimit) or (upperLimit is not None and xValue > upperLimit):
+                    raise ValueError(f"{value} is not {baseXsdType}")
             if facets:
                 if "totalDigits" in facets and len(value.replace(".","")) > facets["totalDigits"]:
                     raise ValueError("totalDigits facet {0}".format(facets["totalDigits"]))
@@ -533,7 +574,7 @@ def validateValueString(
                 if "maxInclusive" in facets and xValue > facets["maxInclusive"]:
                     raise ValueError(" > maxInclusive {0}".format(facets["maxInclusive"]))
                 if "maxExclusive" in facets and xValue >= facets["maxExclusive"]:
-                    raise ValueError(" >= maxInclusive {0}".format(facets["maxExclusive"]))
+                    raise ValueError(" >= maxExclusive {0}".format(facets["maxExclusive"]))
                 if "minInclusive" in facets and xValue < facets["minInclusive"]:
                     raise ValueError(" < minInclusive {0}".format(facets["minInclusive"]))
                 if "minExclusive" in facets and xValue <= facets["minExclusive"]:
@@ -546,16 +587,7 @@ def validateValueString(
             else: raise ValueError
         elif baseXsdType == "QName":
             xValue = qnameFromNsmap(nsmap, value, prefixException=ValueError)
-            #xValue = qname(elt, value, castException=ValueError, prefixException=ValueError)
             sValue = value
-            ''' not sure here, how are explicitDimensions validated, but bad units not?
-            if xValue.namespaceURI in modelXbrl.namespaceDocs:
-                if (xValue not in modelXbrl.qnameConcepts and
-                    xValue not in modelXbrl.qnameTypes and
-                    xValue not in modelXbrl.qnameAttributes and
-                    xValue not in modelXbrl.qnameAttributeGroups):
-                    raise ValueError("qname not defined " + str(xValue))
-            '''
         elif baseXsdType == "enumerationHrefs":
             xValue = [qnameHref(href) for href in value.split()]
             sValue = value
@@ -626,7 +658,7 @@ def validateValue(
     value: str,
     isNillable: bool = False,
     isNil: bool = False,
-    facets: dict[str, Any] | None = None,
+    facets: Mapping[str, Any] | None = None,
 ) -> None:
     sValue: TypeSValue
     xValue: TypeXValue
@@ -637,7 +669,7 @@ def validateValue(
                 # Fraction reads numerator/denominator from child elements, not from the value string
                 result = fractionValidateValue(value, elt.fractionValue)  # type: ignore[attr-defined]
             else:
-                result = validateValueString(baseXsdType, value, isNillable, isNil, facets, elt.nsmap)
+                result = _validateValueStringOrRaise(baseXsdType, value, isNillable, isNil, facets, elt.nsmap)
             sValue, xValue, xValid = result.sValue, result.xValue, result.xValid
         except (ValueError, InvalidOperation) as err:
             elt.xValueError = err
@@ -682,13 +714,33 @@ def validateValue(
         elt.sValue = sValue
 
 
-def _facetTypeAndFacets(facetName: str, baseXsdType: str) -> tuple[str, dict[str, set[str]] | None]:
-    if facetName in ("length", "minLength", "maxLength", "totalDigits", "fractionDigits"):
-        baseXsdType = "integer"
+def _facetTypeAndFacets(facetName: str, baseXsdType: str) -> tuple[str, dict[str, int | set[str]] | None]:
+    facets: dict[str, int | set[str]] | None
+    if facetName in ("length", "minLength", "maxLength"):
+        baseXsdType = "nonNegativeInteger"
         facets = None
-    elif facetName in ("minInclusive", "maxInclusive", "minExclusive", "maxExclusive"):
+    elif facetName == "fractionDigits":
+        # Integer and its derived types have fractionDigits fixed at 0 while xs:decimal allows any non-negative value.
+        facets = {"maxInclusive": 0} if baseXsdType in _INTEGER_BASE_XSD_TYPES else None
+        baseXsdType = "nonNegativeInteger"
+    elif facetName == "totalDigits":
+        baseXsdType = "positiveInteger"
+        facets = None
+    elif facetName in ("minInclusive", "maxInclusive"):
         baseXsdType = baseXsdType
         facets = None
+    elif facetName in ("minExclusive", "maxExclusive"):
+        # Reject values at or outside of the type's bounds, e.g. minExclusive="127" for byte.
+        # The facet value itself is valid as a byte but it creates an empty range (nothing > 127)
+        # for the value space of the type it restricts. Inclusive bounds don't need this because they
+        # overshoot the range by one (minInclusive="128" for byte), which type parsing already rejects.
+        facets = None
+        if inherentBounds := _XSD_TYPE_INHERENT_INCLUSIVE_BOUNDS.get(baseXsdType):
+            lowerLimit, upperLimit = inherentBounds
+            if facetName == "minExclusive" and upperLimit is not None:
+                facets = {"maxExclusive": upperLimit}
+            elif facetName == "maxExclusive" and lowerLimit is not None:
+                facets = {"minExclusive": lowerLimit}
     elif facetName == "whiteSpace":
         baseXsdType = "string"
         facets = {"enumeration": {"replace", "preserve", "collapse"}}
