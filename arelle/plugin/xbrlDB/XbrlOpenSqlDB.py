@@ -1091,7 +1091,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                   fact.decimals,
                                   roundValue(fact.value, fact.precision, fact.decimals) if fact.isNumeric and not fact.isNil else None,
                                   fact.xmlLang if not fact.isNumeric and not fact.isNil else None,
-                                  collapseWhitespace(value) if fact.value is not None else None,
+                                  collapseWhitespace(fact.value) if fact.value is not None else None,
                                   fact.value,
                                   ))
             table = self.getTable('fact', 'fact_pk',
