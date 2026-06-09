@@ -24,6 +24,7 @@ from .XbrlCube import (XbrlCube, XbrlCubeType, baseCubeTypes, XbrlCubeDimension,
                     conceptDomainClass, entityDomainClass, unitDomainClass, languageDomainClass,
                     defaultCubeType, reportCubeType, timeSeriesCubeType,
                     timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType, excludedIntervalsPropType,
+                    completeTimeSeriesPropType, aggregationPropType,
                     periodConstraintPeriodPattern)
 from .XbrlDimension import XbrlDimension, XbrlDomain, XbrlDomainClass, XbrlMember, xbrlMemberObj
 from .XbrlEntity import XbrlEntity
@@ -201,6 +202,9 @@ def validateValue(compMdl, module, obj, value, dataTypeQn, pathElt, msgCode):
         dataTypeObj = compMdl.namedObjects.get(dataTypeQn)
         if isinstance(dataTypeObj, XbrlCollectionType):
             if not isinstance(value, list):
+                emit_error(compMdl, msgCode,
+                    _("Collection value is not a collection %(value)s for collectionType %(collectionType)s."),
+                    xbrlObject=obj, value=value, collectionType=dataTypeObj.name,)
                 return (INVALID, None)
 
             minItems = getattr(dataTypeObj, "minItems", None)
@@ -481,8 +485,9 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 matchedNtws = relConstraintNetworkMatches.get(cnst, 0)
                 if cnst.minNetworks is not None and matchedNtws < cnst.minNetworks:
                     compMdl.error("oimte:missingRequiredRelationship",
-                                  _("Cube %(name)s is missing required relationships for relationshipType %(relationshipType)s."),
-                                  xbrlObject=cubeObj, name=name, relationshipType=cnst.relationshipType)
+                                  _("Cube %(name)s has %(matchedNtws)d networks for relationshipType %(relationshipType)s but cubeType requires minNetworks %(minNetworks)d."),
+                                  xbrlObject=cubeObj, name=name, relationshipType=cnst.relationshipType,
+                                  matchedNtws=matchedNtws, minNetworks=cnst.minNetworks)
 
         dimQnCounts = {}
         for cubeDimObj in cubeObj.cubeDimensions:
@@ -491,11 +496,13 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                             invalidTypeMsgCode="oimte:invalidObjectType")
             if dimObj:
                 # specific cubeType dimension property validations
-                tsProps = {timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType, excludedIntervalsPropType} & set(p.property for p in dimObj.properties)
+                tsProps = {timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType, excludedIntervalsPropType, completeTimeSeriesPropType} & set(p.property for p in dimObj.properties)
                 if tsProps:
                     if cubeType and cubeType.name != timeSeriesCubeType:
                         compMdl.error("oimte:timeSeriesTypeOnNonTimeSeriesDimension" if timeSeriesPropType in tsProps else
                                       "oimte:intervalConventionOnNonTimeSeriesDimension" if intervalConventionPropType in tsProps else
+                                      "oimte:intervalOfMeasurementOnNonTimeSeriesDimension" if intervalOfMeasurementPropType in tsProps else
+                                      "oimte:completeTimeSeriesOnNonTimeSeriesDimension" if completeTimeSeriesPropType in tsProps else
                                       "oimte:intervalOfMeasurementOnNonTimeSeriesDimension",
                                   _("The dimension %(dimension)s properties %(tsProps)s on cube %(name)s type %(cubeType)s MUST only be used on a timeSeries cubeType."),
                                   xbrlObject=cubeObj, name=name, dimension=dimQn, cubeType=cubeType.name, tsProps=", ".join(sorted(str(p) for p in tsProps)))
@@ -504,14 +511,64 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                         domDTobj = compMdl.namedObjects.get(dimDomDTQn)
                         if not (isinstance(compMdl.namedObjects.get(dimDomDTQn), XbrlDataType) or
                                 domDTobj.instanceOfType(qnXsDateTime, compMdl)):
-                            compMdl.error("oimte:timeSeriesTypeOnNonTimeSeriesDimension",
+                            compMdl.error("oimte:timeSeriesTypeOnNonTimeSeriesDimension" if timeSeriesPropType in tsProps else
+                                      "oimte:intervalConventionOnNonTimeSeriesDimension" if intervalConventionPropType in tsProps else
+                                      "oimte:intervalOfMeasurementOnNonTimeSeriesDimension" if intervalOfMeasurementPropType in tsProps else
+                                      "oimte:completeTimeSeriesOnNonTimeSeriesDimension" if completeTimeSeriesPropType in tsProps else
+                                      "oimte:intervalOfMeasurementOnNonTimeSeriesDimension",
                                       _("The dimension %(dimension)s of domain type %(dimDomType)s properties %(tsProps)s on cube %(name)s MUST only be used on a date-time typed dimension."),
                                       xbrlObject=cubeObj, name=name, dimension=dimQn, dimDomType=dimDomDTQn, tsProps=", ".join(sorted(str(p) for p in tsProps)))
                         if len(tsProps & {intervalOfMeasurementPropType, intervalConventionPropType}) == 1:
-                            compMdl.error("oimte:missingIntervalOfMeasurementForConvention",
+                            compMdl.error("oimte:missingDependentPropertyType",
                                       _("The dimension %(dimension)s of domain type %(dimDomType)s on cube %(name)s MUST also have property %(tsProp)s."),
                                       xbrlObject=cubeObj, name=name, dimension=dimQn, dimDomType=dimDomDTQn,
                                       tsProp=next(iter({intervalOfMeasurementPropType, intervalConventionPropType} - tsProps)))
+                        if dimObj.propertyObjectValue(timeSeriesPropType) == "Aggregated" and dimObj.propertyObjectValue(aggregationPropType) is None:
+                            compMdl.error("oimte:missingDependentPropertyType",
+                                      _("The dimension %(dimension)s of domain type %(dimDomType)s on cube %(name)s with xbrla:timeSeriesType Aggregated MUST also have xbrl:aggregation."),
+                                      xbrlObject=cubeObj, name=name, dimension=dimQn, dimDomType=dimDomDTQn)
+                        if intervalConventionPropType in tsProps and dimObj.propertyObjectValue(intervalOfMeasurementPropType) is None:
+                            compMdl.error("oimte:missingDependentPropertyType",
+                                      _("The dimension %(dimension)s of domain type %(dimDomType)s on cube %(name)s with xbrla:intervalConvention MUST also have xbrla:intervalOfMeasurement."),
+                                      xbrlObject=cubeObj, name=name, dimension=dimQn, dimDomType=dimDomDTQn)
+                        if dimObj.propertyObjectValue(completeTimeSeriesPropType) is True and dimObj.propertyObjectValue(intervalOfMeasurementPropType) is None:
+                            compMdl.error("oimte:missingDependentPropertyType",
+                                      _("The dimension %(dimension)s of domain type %(dimDomType)s on cube %(name)s with xbrl:completeTimeSeries true MUST also have xbrla:intervalOfMeasurement."),
+                                      xbrlObject=cubeObj, name=name, dimension=dimQn, dimDomType=dimDomDTQn)
+                
+                # Validate dependent properties on domain class (for time-series typed dimensions)
+                domClass = compMdl.namedObjects.get(dimObj.domainClass)
+                if isTimeSeriesCubeType and isinstance(domClass, XbrlDomainClass) and domClass.allowedDomainItems:
+                    # Check if domain class has datetime type (either explicit or through allowedDomainItems)
+                    isDateTimeType = qnXsDateTime in domClass.allowedDomainItems or cubeDimObj.domainDataType == qnXsDateTime
+                    if isDateTimeType:
+                        # Get time-series properties from domain class
+                        domClassTsProps = {timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType, completeTimeSeriesPropType} & set(p.property for p in getattr(domClass, 'properties', ()))
+                        if domClassTsProps:
+                            # Validate dependent properties
+                            tsTypeVal = domClass.propertyObjectValue(timeSeriesPropType)
+                            iomVal = domClass.propertyObjectValue(intervalOfMeasurementPropType)
+                            icVal = domClass.propertyObjectValue(intervalConventionPropType)
+                            ctsVal = domClass.propertyObjectValue(completeTimeSeriesPropType)
+                            aggVal = domClass.propertyObjectValue(aggregationPropType)
+                            
+                            # Rule 1: timeSeriesType="Aggregated" requires xbrla:aggregation
+                            if tsTypeVal == "Aggregated" and aggVal is None:
+                                compMdl.error("oimte:missingDependentPropertyType",
+                                          _("Domain class %(domainClass)s with xbrla:timeSeriesType Aggregated on cube %(name)s dimension %(dimension)s MUST also have xbrla:aggregation."),
+                                          xbrlObject=(cubeObj, domClass), name=name, domainClass=domClass.name, dimension=dimQn)
+                            
+                            # Rule 2: intervalConvention requires intervalOfMeasurement
+                            if intervalConventionPropType in domClassTsProps and iomVal is None:
+                                compMdl.error("oimte:missingDependentPropertyType",
+                                          _("Domain class %(domainClass)s with xbrla:intervalConvention on cube %(name)s dimension %(dimension)s MUST also have xbrla:intervalOfMeasurement."),
+                                          xbrlObject=(cubeObj, domClass), name=name, domainClass=domClass.name, dimension=dimQn)
+                            
+                            # Rule 3: completeTimeSeries=true requires intervalOfMeasurement
+                            if ctsVal is True and iomVal is None:
+                                compMdl.error("oimte:missingDependentPropertyType",
+                                          _("Domain class %(domainClass)s with xbrl:completeTimeSeries true on cube %(name)s dimension %(dimension)s MUST also have xbrla:intervalOfMeasurement."),
+                                          xbrlObject=(cubeObj, domClass), name=name, domainClass=domClass.name, dimension=dimQn)
             dimQnCounts[dimQn] = dimQnCounts.get(dimQn, 0) + 1
         if any(c > 1 for c in dimQnCounts.values()):
             compMdl.error("oimte:duplicateDimensionsInCube",
@@ -708,7 +765,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                   _("Cube %(name)s dimension %(dimensionName)s domain objects MUST NOT be defined with a domainName property."),
                                   xbrlObject=cubeObj, name=name, dimensionName=dimName)
                     else:
-                        compMdl.error("oimte:invalidCubeDimensionDomainName",
+                        compMdl.error("oimte:invalidDomainObject",
                                   _("Cube %(name)s dimension %(dimensionName)s domain objects MUST NOT be defined with a typed domainClass object."),
                                   xbrlObject=cubeObj, name=name, dimensionName=dimName)
                 cubeDomObj = compMdl.namedObjects.get(cubeDimObj.domain)
@@ -720,7 +777,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                   _("Cube %(name)s taxonomy-defined dimension %(dimensionName)s does not satisfy cubeType dimension constraints."),
                                   xbrlObject=(cubeObj, cubeDimObj), name=name, dimensionName=dimName)
                     else:
-                        compMdl.error("oimte:invalidCubeDimensionDomainName",
+                        compMdl.error("oimte:domainClassMismatchWithDomain",
                                   _("Cube %(name)s domainName property MUST identify a domain object: %(domainName)s."),
                                   xbrlObject=cubeObj, name=name, domainName=cubeDimObj.domain)
             if cubeDimObj.periodConstraints and dimName != periodCoreDim:
@@ -778,10 +835,6 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                               xbrlObject=cubeObj, name=name)
             if dimName == periodCoreDim:
                 for iPerConst, perConstObj in enumerate(cubeDimObj.periodConstraints):
-                    if perConstObj.periodType not in ("instant", "duration", "none"):
-                        compMdl.error("oimte:invalidPeriodRepresentation",
-                                  _("Cube %(name)s period constraint periodType property MUST be \"instant\" or \"duration\"."),
-                                  xbrlObject=(cubeObj,cubeDimObj), name=name)
                     if perConstObj.timeSpan:
                         if perConstObj.endDate and perConstObj.startDate:
                             compMdl.error("oimte:redundantTimeSpanProperty",
@@ -805,7 +858,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                           _("Cube %(name)s periodConstraint[%(perConstNbr)s] periodFormat property, %(periodPattern)s, MUST be a valid period pattern per xbrl-csv specification."),
                                           xbrlObject=(cubeObj,cubeDimObj), name=name, perConstNbr=iPerConst, periodPattern=perConstObj.periodPattern)
                     if perConstObj.periodType == "instant" and (perConstObj.timeSpan or perConstObj.startDate):
-                        compMdl.error("oimte:invalidPeriodRepresentation",
+                        compMdl.error("oimte:instantWithDurationProperties",
                               _("Cube %(name)s period constraint periodType instant MUST NOT define timeSpan or startDate."),
                                   xbrlObject=(cubeObj,cubeDimObj), name=name)
                     for dtResProp in ("monthDay", "endDate", "startDate", "onOrAfter", "onOrBefore"):
@@ -1080,6 +1133,37 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                   _("DomainClass %(name)s allowedDomainItem must be a member, xbrl object, or a dataType object %(allowedDomainItem)s."),
                   xbrlObject=domRtObj, name=name, allowedDomainItem=allwdDomItemQn)
         validateProperties(compMdl, oimFile, module, domRtObj)
+        
+        # Validate dependent properties on domain classes with time-series properties
+        isDateTimeType = qnXsDateTime in (domRtObj.allowedDomainItems or ())
+        if isDateTimeType:
+            # Get time-series properties from domain class
+            domClassTsProps = {timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType, completeTimeSeriesPropType} & set(p.property for p in getattr(domRtObj, 'properties', ()))
+            if domClassTsProps:
+                # Validate dependent properties
+                tsTypeVal = domRtObj.propertyObjectValue(timeSeriesPropType)
+                iomVal = domRtObj.propertyObjectValue(intervalOfMeasurementPropType)
+                icVal = domRtObj.propertyObjectValue(intervalConventionPropType)
+                ctsVal = domRtObj.propertyObjectValue(completeTimeSeriesPropType)
+                aggVal = domRtObj.propertyObjectValue(aggregationPropType)
+                
+                # Rule 1: timeSeriesType="Aggregated" requires xbrla:aggregation
+                if tsTypeVal == "Aggregated" and aggVal is None:
+                    compMdl.error("oimte:missingDependentPropertyType",
+                              _("Domain class %(name)s with xbrla:timeSeriesType Aggregated MUST also have xbrla:aggregation."),
+                              xbrlObject=domRtObj, name=name)
+                
+                # Rule 2: intervalConvention requires intervalOfMeasurement
+                if intervalConventionPropType in domClassTsProps and iomVal is None:
+                    compMdl.error("oimte:missingDependentPropertyType",
+                              _("Domain class %(name)s with xbrla:intervalConvention MUST also have xbrla:intervalOfMeasurement."),
+                              xbrlObject=domRtObj, name=name)
+                
+                # Rule 3: completeTimeSeries=true requires intervalOfMeasurement
+                if ctsVal is True and iomVal is None:
+                    compMdl.error("oimte:missingDependentPropertyType",
+                              _("Domain class %(name)s with xbrla:completeTimeSeries true MUST also have xbrla:intervalOfMeasurement."),
+                              xbrlObject=domRtObj, name=name)
 
     # Entity Objects
     for entityObj in module.entities:
@@ -1091,16 +1175,14 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         assertObjectType(compMdl, grpCntObj, XbrlGroupContent)
         grpQn = grpCntObj.groupName
         validateQNameReference(compMdl, grpCntObj, "groupName", XbrlGroup,
-                               msgCode="oimte:invalidGroupObject",
                                invalidTypeMsgCode="oimte:invalidGroupObject",
                                undefinedMessage=_("The groupContent object groupName QName %(name)s MUST be a valid group object in the taxonomy model"),
                                invalidTypeMessage=_("The groupContent object groupName QName %(name)s MUST be a valid group object in the taxonomy model"),
                                errorArgs={"name": grpQn}, qnRef=grpQn)
         for relName in grpCntObj.relatedNames:
             validateQNameReference(compMdl, grpCntObj, "relatedNames",
-                                   (XbrlNetwork, XbrlCube, XbrlTableTemplate, XbrlDomain, XbrlLayout),
-                                   msgCode="oimte:invalidGroupObject",
-                                   invalidTypeMsgCode="oimte:invalidGroupObject",
+                                   (XbrlNetwork, XbrlCube, XbrlTableTemplate, XbrlDomain),
+                                   invalidTypeMsgCode="oimte:invalidGroupContentRelatedName",
                                    undefinedMessage=_("The groupContent object %(name)s relatedName %(relName)s MUST only include QNames associated with network objects, cube objects, table template objects or layout objects."),
                                    invalidTypeMessage=_("The groupContent object %(name)s relatedName %(relName)s MUST only include QNames associated with network objects, cube objects, table template objects or layout objects."),
                                    errorArgs={"name": grpQn, "relName": relName}, qnRef=relName)
@@ -1122,10 +1204,10 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         if lblTpObj:
             if lblTpObj.allowedObjects and relatedObj is not None and not any(
                 type(relatedObj) == xbrlObjectTypes.get(allowedObj) for allowedObj in lblTpObj.allowedObjects):
-                compMdl.error("oimte:invalidAllowedObject",
+                compMdl.error("oimte:disallowedObjectLabelType",
                           _("Label has disallowed related object %(relatedName)s"),
                           xbrlObject=lblObj, relatedName=relatedName)
-            lblObj._xValid, lblObj._xValue = validateValue(compMdl, module, lblObj, lblObj.value, lblTpObj.dataType, "", "oimte:propertyValueDataTypeMismatch")
+            lblObj._xValid, lblObj._xValue = validateValue(compMdl, module, lblObj, lblObj.value, lblTpObj.dataType, "", "oimte:invalidLabelValue")
         validateProperties(compMdl, oimFile, module, lblObj)
         lblKey = (relatedName, lblObj.labelType, lblObj.language)
         mdlLvlChecks.labelsCt[lblKey].append(lblObj)
@@ -1188,11 +1270,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
     lblTpCt = {}
     for lblObj in module.labelTypes:
         assertObjectType(compMdl, lblObj, XbrlLabelType)
-        dataTypeObj = compMdl.namedObjects.get(lblObj.dataType)
-        if not isinstance(dataTypeObj, XbrlDataType):
-            compMdl.error("oimte:invalidDataTypeObject",
-                      _("The labelType %(name)s dataType %(qname)s MUST be a valid dataType object in the taxonomy model"),
-                      xbrlObject=lblObj, name=lblObj.name, qname=lblObj.dataType)
+        dataTypeObj = validateQNameReference(compMdl, lblObj, "dataType", (XbrlDataType, XbrlCollectionType))
         if lblObj.allowedObjects is not None:
             if not lblObj.allowedObjects:
                 compMdl.error("oimte:invalidEmptySet",

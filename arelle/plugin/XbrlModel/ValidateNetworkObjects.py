@@ -12,6 +12,7 @@ from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
 from .XbrlProperty import XbrlPropertyType
 
 qnXbrlClassSubclass = qname(xbrl, "xbrl:class-subclass")
+qnPreferredLabel = qname(xbrl, "xbrl:preferredLabel")
 
 
 def _qname_key(value):
@@ -93,7 +94,9 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
                 if extendTargetObj is not None:
                     extendTargetObj.relationships.add(relObj)
             validateProperties(compMdl, oimFile, module, relObj)
-            relObjPrefLbl = validateQNameReference(compMdl, relObj, "preferredLabel", XbrlLabelType, isOptional=True)
+            relObjPrefLbl = relObj.propertyObjectValue(qnPreferredLabel)
+            if relObjPrefLbl is not None:
+                validateQNameReference(compMdl, relObj, qnPreferredLabel, XbrlLabelType, qnRef=relObjPrefLbl)
             relKey = (relObj.source, relObj.target, relObjPrefLbl, relObj.order)
             ntwkCt[relKey] = ntwkCt.get(relKey, 0) + 1
         if any(ct > 1 for relKey, ct in ntwkCt.items()):

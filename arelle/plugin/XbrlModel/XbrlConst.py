@@ -15,10 +15,12 @@ oimTaxonomyDocTypes = (
     )
 
 xbrl = "https://xbrl.org/2026"
+xbrla = "http://xbrl.org/accounting"
 xbrli = "https://xbrl.org/2026/instance"
 
 reservedPrefixNamespaces = {
     "xbrl": xbrl,
+    "xbrla": xbrla,
     "xbrli": xbrli,
     "xbrli-2003": "https://xbrl.org/2003/instance",
     "dtr-type": "http://www.xbrl.org/dtr/type/*",
