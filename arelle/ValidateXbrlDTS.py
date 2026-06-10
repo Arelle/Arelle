@@ -2,6 +2,7 @@
 See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
+from decimal import Decimal, InvalidOperation
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Iterable
 
@@ -1003,7 +1004,7 @@ def checkElements(val: ValidateXbrl, modelDocument: ModelDocument, parent: _Elem
                         val.modelXbrl.error(ixMsgCode("fractionTermDescendants", elt, sect="validation"),
                             _("Inline XBRL fraction term ix:%(name)s may only contain text nodes, but contained %(wrongDescendants)s"),
                             modelObject=[elt] + wrongDescendants, name=elt.localName, wrongDescendants=", ".join(str(d.elementQname) for d in wrongDescendants))  # type: ignore[union-attr]
-                    if elt.get("format") is None and '-' in XmlUtil.innerText(elt):
+                    if elt.get("format") is None and _isNegativeDecimal(XmlUtil.innerText(elt)):
                         val.modelXbrl.error(ixMsgCode("fractionTermNegative", elt, sect="validation"),
                             _("Inline XBRL ix:numerator or ix:denominator without format attribute must be non-negative"),
                             modelObject=elt)
@@ -1038,7 +1039,7 @@ def checkElements(val: ValidateXbrl, modelDocument: ModelDocument, parent: _Elem
                                 val.modelXbrl.error(ixMsgCode("nestedNonFractionProperties", e, sect="validation"),
                                     _("Inline XBRL nested ix:nonFraction must have matching format, scale, and unitRef properties"),
                                     modelObject=(elt, e))
-                    if elt.get("format") is None and '-' in XmlUtil.innerText(elt):
+                    if elt.get("format") is None and _isNegativeDecimal(XmlUtil.innerText(elt)):
                         val.modelXbrl.error(ixMsgCode("nonFractionNegative", elt, sect="validation"),
                             _("Inline XBRL ix:nonFraction without format attribute must be non-negative"),
                             modelObject=elt)
@@ -1448,6 +1449,14 @@ def checkIxContinuationChain(val: ValidateXbrl, elt: ModelObject, chain: list[Mo
                 if contAt is not None:
                     chain.append(elt)
                 checkIxContinuationChain(val, contAt, chain)  # type: ignore[arg-type]
+
+def _isNegativeDecimal(text: str) -> bool:
+    """Return True if text is a valid decimal number and is negative."""
+    try:
+        return Decimal(text.strip()) < 0
+    except (InvalidOperation, ValueError):
+        return False
+
 
 def _isExtensionTaxonomyDocument(val: ValidateXbrl, modelDocument: ModelDocument) -> bool:
     if modelDocument.uri.startswith(val.modelXbrl.uriDir):
