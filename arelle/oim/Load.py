@@ -24,7 +24,14 @@ from arelle.ModelDocument import ModelDocument as ModelDocumentClass
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelValue import (DATETIME, dateTime, dayTimeDuration, qname,
                                yearMonthDuration)
-from arelle.oim.const import IDENTIFIER_PATTERN, XBRLCE_INVALID_IDENTIFIER
+from arelle.oim.const import (
+    IDENTIFIER_PATTERN,
+    XBRLCE_INVALID_IDENTIFIER,
+    PREFIXED_QNAME_PATTERN as PrefixedQName,
+    SQNAME_PATTERN as SQNamePattern,
+    UNIT_PATTERN as UnitPattern,
+    UNIT_QNAME_SUBSTITUTION_CHAR as UnitPrefixedQNameSubstitutionChar,
+)
 from arelle.oim.csv.context import XbrlCsvLoadingContext
 from arelle.oim.csv.metadata.common import CSV_DOCUMENT_TYPES
 from arelle.oim.csv.metadata.parser import parse_xbrl_csv_metadata
@@ -165,27 +172,7 @@ PeriodPattern = re.compile(
     r"^-?[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?"
     r"(/-?[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?)?$"
     )
-PrefixedQName = re.compile(
-    "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
-     r"[_\-\."
-     "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*:"
-    "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
-     r"[_\-\."
-     "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*")
 SpecialValuePattern = re.compile("##|#empty$|#nil$|#none$")
-SQNamePattern = re.compile(
-    "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
-     r"[_\-\."
-     "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*:"
-    r"\S+")
-UnitPrefixedQNameSubstitutionChar = "\x07" # replaces PrefixedQName in unit pattern
-UnitPattern = re.compile(
-    # QNames are replaced by \x07 in these expressions
-    # numerator only (no parentheses)
-    "(^\x07$)|(^\x07([*]\x07)+$)|"
-    # numerator and optional denominator, with parentheses if more than one term in either
-    "(^((\x07)|([(]\x07([*]\x07)+[)]))([/]((\x07)|([(]\x07([*]\x07)+[)])))?$)"
-    )
 UrlInvalidPattern = re.compile(
     r"^[ \t\n\r]+[^ \t\n\r]*|.*[^ \t\n\r][ \t\n\r]+$|" # leading or trailing whitespace
     r".*[^ \t\n\r]([\t\n\r]+|[ \t\n\r]{2,})[^ \t\n\r]|" # embedded uncollapsed whitespace
