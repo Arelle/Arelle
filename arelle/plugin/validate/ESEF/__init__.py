@@ -301,10 +301,10 @@ class ESEFPlugin(PluginHooks):
     ) -> None:
         if not val.validateDisclosureSystem:
             return None
-        if not esefDisclosureSystemSelected(val.modelXbrl):
-            return None
         modelXbrl = val.modelXbrl
         pluginData = ESEFPluginData.get(modelXbrl.modelManager.cntlr, ESEF_PLUGIN_NAME)
+        if not esefDisclosureSystemSelected(val.modelXbrl):
+            return None
         val.extensionImportedUrls = set()
         val.unconsolidated = any("unconsolidated" in n for n in val.disclosureSystem.names)
         val.consolidated = not val.unconsolidated

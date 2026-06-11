@@ -204,7 +204,13 @@ def _hasEventAttributes(elt: Any, attributes: Collection[str]) -> bool:
 
 
 def esefDisclosureSystemSelected(modelXbrl: ModelXbrl) -> bool:
-    return getattr(modelXbrl.modelManager.disclosureSystem, ESEF_DISCLOSURE_SYSTEM_TEST_PROPERTY, False)
+    disclosureSystem = modelXbrl.modelManager.disclosureSystem
+    if not getattr(disclosureSystem, ESEF_DISCLOSURE_SYSTEM_TEST_PROPERTY, False):
+        return False
+    if disclosureSystem.authority is not None:
+        # This is an authority-specific disclosure system
+        return False
+    return True
 
 
 def hasEsefTaxonomy(modelXbrl: ModelXbrl) -> bool:

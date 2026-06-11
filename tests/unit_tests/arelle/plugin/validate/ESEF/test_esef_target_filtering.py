@@ -18,6 +18,7 @@ def make_model_xbrl(
     is_supplemental: bool = False,
     primary_namespace_docs: dict | None = None,
     report_package: SimpleNamespace | None = None,
+    disclosureSystemAuthority: str | None = None,
 ) -> SimpleNamespace:
     kwargs: dict = {"namespaceDocs": namespace_docs or {}}
     if ixds_target is not object:
@@ -34,7 +35,10 @@ def make_model_xbrl(
         )
     else:
         primary = model_xbrl
-    disclosure_system = SimpleNamespace(ESEFplugin=True)
+    disclosure_system = SimpleNamespace(
+        authority=disclosureSystemAuthority,
+        ESEFplugin=True,
+    )
     file_source = SimpleNamespace(reportPackage=report_package)
     model_xbrl.modelManager = SimpleNamespace(modelXbrl=primary, disclosureSystem=disclosure_system)  # type: ignore[attr-defined]
     model_xbrl.fileSource = file_source
@@ -186,5 +190,14 @@ class TestShouldRunEsefValidationRules:
     def test_false_when_esef_not_selected(self) -> None:
         model_xbrl = make_model_xbrl(namespace_docs={ESEF_NAMESPACE: []}, ixds_target=None)
         model_xbrl.modelManager.disclosureSystem = SimpleNamespace(ESEFplugin=False)
+        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "allowed", "ixdsMultiUsage": "error"})
+        assert shouldRunEsefValidationRules(val) is False
+
+    def test_false_when_disclosure_system_authority_set(self) -> None:
+        model_xbrl = make_model_xbrl(
+            namespace_docs={ESEF_NAMESPACE: []},
+            ixds_target=None,
+            disclosureSystemAuthority="UKFRC",
+        )
         val = make_val(model_xbrl, auth_param={"ixTargetUsage": "allowed", "ixdsMultiUsage": "error"})
         assert shouldRunEsefValidationRules(val) is False

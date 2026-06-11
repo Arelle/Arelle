@@ -46,6 +46,9 @@ class ESEFPluginData(PluginData):
     ) -> str | None:
         cntlr = modelXbrl.modelManager.cntlr
         esefAuthority = self._esefAuthority
+        disclosureSystem = modelXbrl.modelManager.disclosureSystem
+        if disclosureSystem is not None and disclosureSystem.authority is not None:
+            esefAuthority = disclosureSystem.authority
         if not esefAuthority and cntlr.hasGui and cntlr.config is not None:
             esefAuthority = cntlr.config.get("esefAuthority") or None
         formulaAuthority = None
