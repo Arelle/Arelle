@@ -1057,3 +1057,48 @@ class TestValidateFacetValueString:
         result = validateFacetValueString("fractionDigits", value, base_xsd_type)
         assert result.xValid == expected_x_valid
         assert result.isXValid == (expected_x_valid >= VALID)
+
+
+class TestTimezoneValidation:
+    @pytest.mark.parametrize(
+        "base_xsd_type,value",
+        [
+            ("date", "2024-01-01"),
+            ("date", "2024-01-01Z"),
+            ("date", "2024-01-01+00:00"),
+            ("date", "2024-01-01-05:00"),
+            ("date", "2024-01-01+14:00"),
+            ("date", "2024-01-01-14:00"),
+            ("dateTime", "2024-01-01T00:00:00"),
+            ("dateTime", "2024-01-01T00:00:00Z"),
+            ("dateTime", "2024-01-01T00:00:00+05:30"),
+            ("dateTime", "2024-01-01T00:00:00-14:00"),
+            ("time", "12:00:00"),
+            ("time", "12:00:00Z"),
+            ("time", "12:00:00+14:00"),
+        ],
+    )
+    def test_valid_timezone(self, base_xsd_type: str, value: str):
+        result = validateValueString(base_xsd_type, value)
+        assert result.xValid == VALID
+        assert result.isXValid
+
+    @pytest.mark.parametrize(
+        "base_xsd_type,value",
+        [
+            ("date", "2024-01-01+15:00"),
+            ("date", "2024-01-01-15:00"),
+            ("date", "2024-01-01+14:01"),
+            ("date", "2024-01-01-14:01"),
+            ("date", "2024-01-01+05:69"),
+            ("dateTime", "2024-01-01T00:00:00+15:00"),
+            ("dateTime", "2024-01-01T00:00:00+14:01"),
+            ("dateTime", "2024-01-01T00:00:00+05:69"),
+            ("time", "12:00:00+15:00"),
+            ("time", "12:00:00+14:01"),
+        ],
+    )
+    def test_invalid_timezone(self, base_xsd_type: str, value: str):
+        result = validateValueString(base_xsd_type, value)
+        assert result.xValid == INVALID
+        assert not result.isXValid
