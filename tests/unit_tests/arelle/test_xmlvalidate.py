@@ -1059,6 +1059,35 @@ class TestValidateFacetValueString:
         assert result.isXValid == (expected_x_valid >= VALID)
 
 
+class TestBase64BinaryValidation:
+    @pytest.mark.parametrize("value", [
+        "",
+        "AAAA",
+        "AA==",
+        "AAA=",
+        "AAAAAAAA",
+        "dGVzdA==",
+        "A A A A",
+    ])
+    def test_valid_base64_binary(self, value: str):
+        result = validateValueString("base64Binary", value)
+        assert result.xValid == VALID
+        assert result.isXValid
+
+    @pytest.mark.parametrize("value", [
+        "AAAAA",
+        "!!!!",
+        "AAA",
+        "AA=A",
+        "====",
+        "A",
+    ])
+    def test_invalid_base64_binary(self, value: str):
+        result = validateValueString("base64Binary", value)
+        assert result.xValid == INVALID
+        assert not result.isXValid
+
+
 class TestHexBinaryValidation:
     @pytest.mark.parametrize("value", [
         "",
