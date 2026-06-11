@@ -79,7 +79,11 @@ BASE_XSD_TYPES = {
         {"value": "/test.test/test", "expected": ("=", "=", VALID)},
         {"value": "test.test/test", "expected": ("=", "=", VALID)},
         {"value": "\\escaped", "expected": ("=", "%5Cescaped", VALID)},
+        {"value": "http://example.com/%20valid", "expected": ("=", "=", VALID)},
+        {"value": "http://example.com/path#section", "expected": ("=", "=", VALID)},
         {"value": ":invalid:", "expected": ("=", None, INVALID)},
+        {"value": "http://example.com/%ZZ", "expected": ("=", None, INVALID)},
+        {"value": "http://example.com/path#frag1#frag2", "expected": ("=", None, INVALID)},
     ],
     "boolean": [
         {"value": "true", "expected": (True, True, VALID)},
