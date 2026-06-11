@@ -1879,7 +1879,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.webCache.logDownloads = True
         if options.internetRecheck:
             self.webCache.recheck = options.internetRecheck
-        fo = FormulaOptions()  # type: ignore[no-untyped-call]
+        fo = FormulaOptions()
         if options.parameters:
             parameterSeparator = options.parameterSeparator or ","
             fo.parameterValues = dict(((qname(key, noPrefixIsNoNamespace=True), (None, value))
@@ -2125,7 +2125,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             if not options.validate:
                                 ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
                             # setup fresh parameters from formula optoins
-                            modelXbrl.parameters = fo.typedParameters(modelXbrl.prefixedNamespaces)  # type: ignore[no-untyped-call]
+                            modelXbrl.parameters = fo.typedParameters(modelXbrl.prefixedNamespaces)
                             ValidateFormula.validate(modelXbrl, compileOnly=(options.formulaAction != "run"))
                             self.addToLog(format_string(self.modelManager.locale,
                                                         _("formula validation and execution in %.2f secs")

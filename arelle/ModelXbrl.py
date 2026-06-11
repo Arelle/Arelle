@@ -612,9 +612,9 @@ class ModelXbrl:
         :param scenOCCs: Scenario non-dimensional nodes
         """
         if dims:
-            segAspect, scenAspect = (arelle.ModelFormulaObject.Aspect.NON_XDT_SEGMENT, arelle.ModelFormulaObject.Aspect.NON_XDT_SCENARIO)
+            segAspect, scenAspect = (arelle.Aspect.Aspect.NON_XDT_SEGMENT, arelle.Aspect.Aspect.NON_XDT_SCENARIO)
         else:
-            segAspect, scenAspect = (arelle.ModelFormulaObject.Aspect.COMPLETE_SEGMENT, arelle.ModelFormulaObject.Aspect.COMPLETE_SCENARIO)
+            segAspect, scenAspect = (arelle.Aspect.Aspect.COMPLETE_SEGMENT, arelle.Aspect.Aspect.COMPLETE_SCENARIO)
         for c in self.contexts.values():
             if (c.entityIdentifier == (entityIdentScheme, entityIdentValue) and
                 ((c.isInstantPeriod and periodType == "instant" and dateUnionEqual(c.instantDatetime, periodEndInstant, instantEndDate=True)) or
