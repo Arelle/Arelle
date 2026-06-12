@@ -11,8 +11,10 @@ import regex as re
 from arelle import XmlUtil, XbrlConst
 from arelle.formula import XPathContext, XPathParser
 # Aspect used to be in this file, so allow others to import its attributes from here.
-from arelle.Aspect import Aspect, aspectStr, aspectFromToken, aspectElementNameAttrValue
-
+from arelle.Aspect import (
+    Aspect as Aspect, aspectStr, isDimensionalAspect, aspectModelAspect, aspectRuleAspects,
+    aspectModels, aspectFromToken, aspectToToken, aspectElementNameAttrValue,
+)
 from arelle.ModelValue import qname, QName
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelResource, ModelRelationship
