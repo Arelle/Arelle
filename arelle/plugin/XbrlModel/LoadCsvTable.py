@@ -9,7 +9,8 @@ from collections import defaultdict
 from arelle.oim.Load import (parseMetadataCellValues, csvCellValue, _isParamRef, _getParamRefName, csvPeriod,
                              openCsvReader,
                              CSV_FACTS_FILE, EMPTY_LIST, EMPTY_DICT, EMPTY_CELL, NONE_CELL, INVALID_REFERENCE_TARGET,
-                             IdentifierPattern, RowIdentifierPattern)
+                             RowIdentifierPattern)
+from arelle.oim.const import IDENTIFIER_PATTERN as IdentifierPattern
 from arelle.ModelValue import qname
 from .XbrlConcept import XbrlConcept
 from .XbrlCube import coreDimensionsByLocalname
