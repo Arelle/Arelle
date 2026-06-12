@@ -1090,10 +1090,10 @@ class ModelAndFilter(ModelBooleanFilter):
         super(ModelAndFilter, self).init(modelDocument)
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         if self.filterRelationships:
@@ -1108,10 +1108,10 @@ class ModelOrFilter(ModelBooleanFilter):
         super(ModelOrFilter, self).init(modelDocument)
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         if self.filterRelationships:
@@ -1208,10 +1208,10 @@ class ModelConceptPeriodType(ModelFilter):
         return self.get("periodType")
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         factsOfPeriodType = set.union(*[inst.factsByPeriodType(self.periodType)
@@ -1243,10 +1243,10 @@ class ModelConceptBalance(ModelFilter):
         return self.get("balance")
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         return set(fact for fact in facts
@@ -1333,10 +1333,10 @@ class ModelConceptCustomAttribute(ModelConceptFilterWithQnameExpression):
             return None
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         return set(fact for fact in facts
@@ -1372,10 +1372,10 @@ class ModelConceptDataType(ModelConceptFilterWithQnameExpression):
         return self.get("strict")
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         notStrict = self.strict != "true"
@@ -1412,10 +1412,10 @@ class ModelConceptSubstitutionGroup(ModelConceptFilterWithQnameExpression):
         return self.get("strict")
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         if self.strict == "true":
@@ -1599,10 +1599,10 @@ class ModelConceptRelation(ModelFilter):
             return None
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         if self.variable:
@@ -1670,10 +1670,10 @@ class ModelEntityIdentifier(ModelTestFilter):
         super(ModelEntityIdentifier, self).init(modelDocument)
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         return set(fact for fact in facts
@@ -1714,10 +1714,10 @@ class ModelEntitySpecificIdentifier(ModelFilter):
         return super(ModelEntitySpecificIdentifier, self).variableRefs((self.schemeProg or []) + (self.valueProg or []), varRefSet)
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         return set(fact for fact in facts
@@ -1763,10 +1763,10 @@ class ModelEntityScheme(ModelFilter):
         return super(ModelEntityScheme, self).variableRefs(self.schemeProg, varRefSet)
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         return set(fact for fact in facts
@@ -1794,10 +1794,10 @@ class ModelEntityRegexpIdentifier(ModelPatternFilter):
         return {Aspect.ENTITY_IDENTIFIER}
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         return set(fact for fact in facts
@@ -1813,10 +1813,10 @@ class ModelEntityRegexpScheme(ModelPatternFilter):
         return {Aspect.ENTITY_IDENTIFIER}
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         return set(fact for fact in facts
@@ -1829,10 +1829,10 @@ class ModelGeneral(ModelTestFilter):
         super(ModelGeneral, self).init(modelDocument)
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         if self.isFilterShared and self.hasNoFilterVariableDependencies(xpCtx): # cache this filter by fact
@@ -1900,10 +1900,10 @@ class ModelMatchFilter(ModelFilter):
         return super(ModelMatchFilter, self).variableRefs(None, varRefSet)
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         aspect = self.aspect
@@ -1963,10 +1963,10 @@ class ModelPeriod(ModelTestFilter):
         return {Aspect.PERIOD}
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         return set(fact for fact in facts
@@ -2034,10 +2034,10 @@ class ModelPeriodStart(ModelDateTimeFilter):
         super(ModelPeriodStart, self).init(modelDocument)
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         return set(fact for fact in facts
@@ -2050,10 +2050,10 @@ class ModelPeriodEnd(ModelDateTimeFilter):
         super(ModelPeriodEnd, self).init(modelDocument)
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         return set(fact for fact in facts
@@ -2066,10 +2066,10 @@ class ModelPeriodInstant(ModelDateTimeFilter):
         super(ModelPeriodInstant, self).init(modelDocument)
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         return set(fact for fact in facts
@@ -2082,10 +2082,10 @@ class ModelForever(ModelFilter):
         super(ModelForever, self).init(modelDocument)
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         return set(fact for fact in facts
@@ -2118,10 +2118,10 @@ class ModelInstantDuration(ModelFilter):
         return self.get("boundary")
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         otherFact = xpCtx.inScopeVars.get(self.variable)  # type: ignore[arg-type]
@@ -2245,10 +2245,10 @@ class ModelExplicitDimension(ModelFilter):
             return None
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         if not facts: # if an empty winnowing fact set return it
@@ -2296,7 +2296,7 @@ class ModelExplicitDimension(ModelFilter):
                                 memConcept = xpCtx.modelXbrl.qnameConcepts.get(matchMemQname)  # type: ignore[arg-type]
                                 if memConcept is None:
                                     return set()
-                                if ((not memberModel.axis or memberModel.axis.endswith("-self")) 
+                                if ((not memberModel.axis or memberModel.axis.endswith("-self"))
                                         and matchMemQname == memQname):
                                         factOk = True
                                         break
@@ -2417,10 +2417,10 @@ class ModelTypedDimension(ModelTestFilter):
             return None
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         outFacts = set()
@@ -2458,10 +2458,10 @@ class ModelRelativeFilter(ModelFilter):
         return varBinding.aspectsDefined
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         aspectsUncovered = (varBinding.aspectsDefined - varBinding.aspectsCovered)
@@ -2499,10 +2499,10 @@ class ModelSegmentFilter(ModelTestFilter):
         return {Aspect.COMPLETE_SEGMENT}
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         return set(fact for fact in facts
@@ -2518,10 +2518,10 @@ class ModelScenarioFilter(ModelTestFilter):
         return {Aspect.COMPLETE_SCENARIO}
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         return set(fact for fact in facts
@@ -2568,10 +2568,10 @@ class ModelAncestorFilter(ModelFilter):
             return None
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         return set(fact for fact in facts if cmplmt ^ (self.evalQname(xpCtx, fact) in fact.ancestorQnames))
@@ -2633,10 +2633,10 @@ class ModelParentFilter(ModelFilter):
             return None
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         return set(fact for fact in facts if cmplmt ^ (self.evalQname(xpCtx, fact) == fact.parentQname))
@@ -2694,10 +2694,10 @@ class ModelLocationFilter(ModelFilter):
             return set()
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         varFacts: ModelFact | list[ModelFact] | tuple[ModelFact, ...] = xpCtx.inScopeVars.get(self.variable, [])  # type: ignore[arg-type,assignment]
@@ -2741,10 +2741,10 @@ class ModelSiblingFilter(ModelFilter):
         return super(ModelSiblingFilter, self).variableRefs(progs, varRefSet)
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         otherFact = xpCtx.inScopeVars.get(self.variable)  # type: ignore[arg-type]
@@ -2778,10 +2778,10 @@ class ModelGeneralMeasures(ModelTestFilter):
         return {Aspect.UNIT}
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         return set(fact for fact in facts
@@ -2833,10 +2833,10 @@ class ModelSingleMeasure(ModelFilter):
             return None
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         return set(fact for fact in facts
@@ -2863,10 +2863,10 @@ class ModelNilFilter(ModelFilter):
         super(ModelNilFilter, self).init(modelDocument)
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         return set(fact for fact in facts
@@ -2882,10 +2882,10 @@ class ModelPrecisionFilter(ModelFilter):
         return self.get("minimum")
 
     def filter(
-            self, 
-            xpCtx: XPathContextType, 
-            varBinding: VariableBinding, 
-            facts: set[ModelFact], 
+            self,
+            xpCtx: XPathContextType,
+            varBinding: VariableBinding,
+            facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
         minimum = self.minimum
