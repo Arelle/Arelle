@@ -659,6 +659,7 @@ def validateValue(
     isNillable: bool = False,
     isNil: bool = False,
     facets: Mapping[str, Any] | None = None,
+    msgCode: str = "xmlSchema:valueError",
 ) -> None:
     sValue: TypeSValue
     xValue: TypeXValue
@@ -680,7 +681,7 @@ def validateValue(
                 errElt = elt.elementQname
             assert modelXbrl is not None
             if attrTag:
-                modelXbrl.error("xmlSchema:valueError",
+                modelXbrl.error(msgCode,
                     _("Element %(element)s attribute %(attribute)s type %(typeName)s value error: %(value)s, %(error)s"),
                     modelObject=elt,
                     element=errElt,
@@ -689,7 +690,7 @@ def validateValue(
                     value=strTruncate(value, 30),
                     error=err)
             else:
-                modelXbrl.error("xmlSchema:valueError",
+                modelXbrl.error(msgCode,
                     _("Element %(element)s type %(typeName)s value error: %(value)s, %(error)s"),
                     modelObject=elt,
                     element=errElt,

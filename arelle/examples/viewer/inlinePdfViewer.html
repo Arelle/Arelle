@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<!--
+  Companion viewer for Arelle plugin loadFromPDF.
+  (c) Copyright 2011-present Workiva, Inc.
+  Licensed under the Apache License, Version 2.0
+
+  Use: run under a local viewer with a json instance provided by loadFromPDF like this:
+    If loading from an inline pdf Json report produced by loadFromPDF:
+       URL: http://localhost:52785/1/inlinePdfViewer.html?doc=myFile.json (from loadFromPDF)
+    Else if loading from a pdf with attachement embedded file:
+       URL: http://localhost:52785/1/inlinePdfViewer.html?doc=myFile.pdf
+
+    (one may use an Arelle LocalViewer as with EDGAR local operation.)
+    (requires these Mozilla files: pdf.mjs, pdf.mjs.map, pdf.worker.mjs, pdf.worker.mjs.map)
+
+ Careat: This is a proof-of-concept viewer, not a production product.
+ -->
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>XBRL Tagged PDF inline viewer example</title>
+</head>
+<body>
+
+<div>
+  <button id="prev">Previous</button>
+  <button id="next">Next</button>
+  &nbsp; &nbsp;
+  <span>Page: <span id="page_num"></span> / <span id="page_count"></span></span>
+</div>
+<div>
+<canvas id="ixv-canvas" style="border: 1px solid red; direction: ltr; position:absolute; left:0px; top:30px; z-index: 2"></canvas>
+<canvas id="pdf-canvas" style="border: 1px solid black; direction: ltr; position:absolute; left:0px; top:30px; z-index: 1"></canvas>
+</div>
+
+
+<!--<script src="../../node_modules/pdfjs-dist/build/pdf.mjs" type="module"></script>-->
+<script src="pdf.mjs" type="module"></script>
+
+<script id="script" type="module">
+  //
+  // If absolute URL from the remote server is provided, configure the CORS
+  // header on that server.
+  //
+  // check for ?doc= parameter to load first (pdf or json instance)
+  const urlPattern = /\?doc=([^&]+)$/;
+  var entryUrl, pdfUrl = null;
+  var ixTarget = null, ixFacts = null, ixTextFields = null, ixFormFields = null;
+  var ixMcidFacts = null, ixFormFields = null, rectFactIds = null;
+
+  // pdf vars
+  var pdf = null;
+  const scale = 1.85;
+  const vScale = scale * 2;
+  // Support HiDPI-screens.
+  const outputScale = window.devicePixelRatio || 1;
+
+  // ixviewer canvas and context for drawing fact outlines and receiving clicks
+  const ixvCanvas = document.getElementById("ixv-canvas");
+  const ixvContext = ixvCanvas.getContext("2d");
+  // pdf viewing canvas
+  const pdfCanvas = document.getElementById("pdf-canvas");
+  const pdfContext = pdfCanvas.getContext("2d");
+
+  var ixvLeft = 0, ixvTop = 0, vTop = 0, fTop = 0,
+      pageRendering = false, pageNumPending = null, pageNum = 1    ;
+
+  if (urlPattern.test(location.href)) {
+     entryUrl = location.href.match(urlPattern)[1];
+  } else {
+     // this is for testing, provide link to a test pdf or json document
+     entryUrl = './apple-10-Q4-2024-As-Filed-2pgAcrobat-Tagged.pdf';
+  }
+  if (entryUrl.endsWith(".json")) {
+    let xhr = new XMLHttpRequest();
+    var loadingErr = null;
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4) {
+            if (this.status == 200) {
+                startupPdf(this.responseText);
+            } else {
+                loadingErr = "Unable to read OIM json instance";
+            }
+            if (loadingErr) {
+              alert(loadingErr);
+              console.log(loadingErr);
+            }
+        }
+    };
+    xhr.ontimeout = function() {
+        alert("Timeout reading OIM json instance");
+    };
+    xhr.open("GET", entryUrl, true);
+    xhr.timeout = 2000; // milliseconds
+    xhr.send();
+  } else {
+    pdfUrl = entryUrl;
+    startupPdf(null);
+  }
+
+  /**
+   * Get page info from document, resize canvas accordingly, and render page.
+   * @param num Page number.
+   */
+  function renderPage(num) {
+    pageRendering = true;
+    // Using promise to fetch the page
+    pdf.getPage(num).then(function(page) {
+      var viewport = page.getViewport({scale: scale});
+      pdfCanvas.width = Math.floor(viewport.width * outputScale);
+      pdfCanvas.height = Math.floor(viewport.height * outputScale);
+      pdfCanvas.style.width = Math.floor(viewport.width) + "px";
+      pdfCanvas.style.height = Math.floor(viewport.height) + "px";
+
+      ixvCanvas.width = pdfCanvas.width ;
+      ixvCanvas.height = pdfCanvas.height;
+      ixvCanvas.style.width = pdfCanvas.style.width;
+      ixvCanvas.style.height = pdfCanvas.style.height;
+       ixvLeft = ixvCanvas.offsetLeft + ixvCanvas.clientLeft;
+        ixvTop = ixvCanvas.offsetTop + ixvCanvas.clientTop;
+
+      vTop = viewport.viewBox[3]; // y height unscaled
+      fTop = vTop + 0;
+
+      var transform = outputScale !== 1
+          ? [outputScale, 0, 0, outputScale, 0, 0]
+          : null;
+      //
+      // Render PDF page into canvas context
+      //
+      var renderContext = {
+        canvasContext: pdfContext,
+        transform,
+        viewport,
+      };
+      var renderTask = page.render(renderContext);
+
+      // Wait for rendering to finish
+      renderTask.promise.then(function() {
+        pageRendering = false;
+        if (pageNumPending !== null) {
+          // New page rendering is pending
+          renderPage(pageNumPending);
+          pageNumPending = null;
+        }
+      rectFactIds = null;
+      page.getTextContent( { includeMarkedContent: true } ).then(function(textContent) {
+       if (ixTextFields && ixFormFields) {
+          console.log("textContent with ix text and form mapping");
+          let currentPagePrefix = "p" + page._pageInfo.ref.num + "R";
+          rectFactIds = []; // [  [x,y,w,h, [factIds]], ... ]
+          let mcidFactIds = {};
+          Object.entries(ixTextFields).forEach(([factId, mcids]) => {
+              for (const mcid of mcids) {
+                 if (mcid.startsWith(currentPagePrefix)) {
+                   if (!(mcid in mcidFactIds)) mcidFactIds[mcid] = [];
+                   mcidFactIds[mcid].push(factId);
+                 }
+              }
+          });
+          let fieldFactIds = {};
+          Object.entries(ixFormFields).forEach(([factId, fields]) => {
+              for (const field of fields) {
+                 if (field.startsWith(currentPagePrefix)) {
+                   let fieldName = field.slice(currentPagePrefix.length + 1); // +1 for _ after p{nbr}R
+                   if (!(fieldName in fieldFactIds)) fieldFactIds[fieldName] = [];
+                   fieldFactIds[fieldName].push(factId);
+                 }
+              }
+          });
+          // capture rectangle Fact Ids of text fields
+          var mcid = null, tag = null;
+          for (const t of textContent.items) {
+            if (t.type == "beginMarkedContentProps") {
+               mcid = t.id;
+               tag = t.tag;
+            } else if (t.type == "endMarkedContent") {
+               mcid = null;
+               tag = null;
+            } else {
+                if (mcid in mcidFactIds && t.width > 0 && t.height > 0) {
+                  rectFactIds.push( [ t.transform[4], t.transform[5], t.width, t.height,
+                                      true, // text fields needs padding
+                                      mcidFactIds[mcid] ] )
+                }
+            }
+          }
+          // capture rectangle Fact Ids of form fields
+          page.getAnnotations().then(function(items) {
+            for (const formFld of items) {
+              if (formFld.fieldName && formFld.fieldType == "Tx") {
+                let fieldId = formFld.fieldName.split('.').at(-1);
+                if (fieldId in fieldFactIds) {
+                  rectFactIds.push( [ formFld.rect[0],
+                                        formFld.rect[1],
+                                        formFld.rect[2] - formFld.rect[0],
+                                        formFld.rect[3] - formFld.rect[1],
+                                      false, // form fields doesn't need padding
+                                        fieldFactIds[fieldId] ] );
+                  }
+                }
+             }
+            ixvContext.strokeStyle = "red";
+            for (const r of rectFactIds) { // x, y, w, h, txtFld, [factIDs]
+              // pad txt flds on all sides
+              let pad = (r[4]) ? 2 : 0;
+              ixvContext.strokeRect((r[0]-pad) * vScale,
+                                    (vTop - r[1]+pad) * vScale,
+                                    (r[2]+pad+1) * vScale,
+                                    (-r[3]-pad) * vScale);
+            }
+          });
+       } else {
+          console.log("textContent but no ix text or form mapping available");
+       }
+      });
+      });
+   })
+    // Update page counters
+    document.getElementById('page_num').textContent = num;
+  };
+
+  function startupPdf( jsonReportText ) {
+    //
+    // The workerSrc property shall be specified.
+    //
+    //pdfjsLib.GlobalWorkerOptions.workerSrc =
+    //  '../../node_modules/pdfjs-dist/build/pdf.worker.mjs';
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      './pdf.worker.mjs';
+    //
+    // Load report now if provided as input (not embedded as PDF attachment)
+    // (this may discover pdfUrl if it wasn't provided as a parameter)
+    //
+    if (jsonReportText) {
+      loadJsonReport( jsonReportText );
+    }
+    //
+    // Asynchronous download PDF
+    //
+    pdfjsLib.getDocument(pdfUrl).promise.then(function(_pdf) {
+      pdf = _pdf;
+      document.getElementById('page_count').textContent = pdf.numPages;
+
+      pdf.getMetadata().then(function(metadata) {
+         console.log(metadata); // Metadata object here
+      }).catch(function(err) {
+         console.log('Error getting meta data');
+         console.log(err);
+      });
+
+
+      pdf.getAttachments().then(function(attachments) {
+         if (!jsonReportText) {
+            // find file "ixReport.json"
+            const rpt = 'ix-report.json';
+            if (attachments && rpt in attachments) {
+                loadJsonReport(new TextDecoder().decode(attachments[rpt].content));
+            }
+         }
+         /* uncomment to process each attachment file
+         Object.entries(attachments).forEach(([fileId, attachment]) => {
+            const content = new TextDecoder().decode(attachment.content);
+         });
+         */
+      });
+
+      // Initial/first page rendering
+      renderPage(1);
+    });
+  } // end startupPDF
+
+  /**
+   * process json report containing PDF metadata from loadFromPdf
+  **/
+  function loadJsonReport(reportText) {
+    const oimInst = JSON.parse(reportText);
+    if (!(typeof oimInst === 'object' && "documentInfo" in oimInst)) {
+       loadingErr = "Json loaded is not an OIM instance objects";
+    } else if (oimInst.documentInfo.documentType != "https://xbrl.org/2021/xbrl-json") {
+       loadingErr = "Json loaded does not have OIM json instance documentType";
+    } else if (!("ixbrl-pdf:mapping" in oimInst && "file" in oimInst["ixbrl-pdf:mapping"])) {
+       loadingErr = "Json loaded does not have ixbrl-pdf:mapping object";
+    } else {
+       const pdfMapping = oimInst['ixbrl-pdf:mapping'];
+       pdfUrl = pdfMapping.file;
+       ixTarget = pdfMapping.target;
+       ixFacts = oimInst.facts;
+       ixTextFields = pdfMapping.ixTextFields;
+       ixFormFields = pdfMapping.ixFormFields;
+    }
+  }
+
+
+  /**
+   * If another page rendering in progress, waits until the rendering is
+   * finised. Otherwise, executes rendering immediately.
+   */
+  function queueRenderPage(num) {
+    if (pageRendering) {
+      pageNumPending = num;
+    } else {
+      renderPage(num);
+    }
+  }
+
+  /**
+   * Displays previous page.
+   */
+  function onPrevPage() {
+    if (pageNum <= 1) {
+      return;
+    }
+    pageNum--;
+    queueRenderPage(pageNum);
+  }
+  document.getElementById('prev').addEventListener('click', onPrevPage);
+
+  /**
+   * Displays next page.
+   */
+  function onNextPage() {
+    if (pageNum >= pdf.numPages) {
+      return;
+    }
+    pageNum++;
+    queueRenderPage(pageNum);
+  }
+  document.getElementById('next').addEventListener('click', onNextPage);
+
+  // Add event listener for `click` events.
+  ixvCanvas.addEventListener('click', function(event) {
+    var x = event.pageX - ixvLeft,
+        y = event.pageY - ixvTop;
+
+    let vX = x / scale;
+    let vY = vTop - y / scale;
+    console.log("click at x=" + x + " y=" + y + " vx=" +
+                vX + " vy=" + vY);
+    if (rectFactIds) {
+       var facts = "", factIds = "";
+       for (const r of rectFactIds) { // x, y, w, h, isTxt, factIDs
+           if (vX >= r[0] && vX <= r[0] + r[2] && vY >= r[1] && vY <= r[1] + r[3]) {
+               // fact is highlighted, add to fact window
+               for (const factId of r[5]) {
+                 facts += JSON.stringify(ixFacts[factId], undefined, 2) + "\n";
+                 factIds += ((factIds) ? ", " : "") + factId;
+               }
+           }
+       }
+       console.log("  facts: " + factIds);
+       document.getElementById('facts').textContent = facts;
+       if (facts) {
+         alert(facts);
+       }
+    }
+
+  }, false);
+</script>
+
+<hr>
+<h2>Selected facts:</h2>
+<pre id="facts"></pre>
+</body>
+</html>

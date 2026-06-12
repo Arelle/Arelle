@@ -1,0 +1,870 @@
+"""
+See COPYRIGHT.md for copyright information.
+
+Unified vector search over XBRL taxonomy + facts using:
+- PyTorch embeddings
+- Exact cosine similarity (no ANN, no FAISS)
+- Automatic device selection (CUDA / MPS / CPU)
+
+Design rationale / hardware model
+---------------------------------
+- We NEVER call CUDA or Metal (MPS) directly.
+- Instead, we:
+    * Choose a torch.device: "cuda", "mps", or "cpu".
+    * Move the embedding layer and all vectors to that device.
+    * Run all encoding and search operations with PyTorch tensor ops.
+- This means:
+    * On Windows/Linux with NVIDIA → CUDA kernels do the work.
+    * On macOS with Apple Silicon → MPS (Metal Performance Shaders) does the work.
+    * On other systems → CPU with vectorized math (SIMD) does the work.
+- Search is EXACT:
+    * We compute cosine similarity against every stored vector.
+    * No approximate index; no results are “missed” due to ANN heuristics.
+
+What’s in this module
+---------------------
+- Single-query search: `searchXbrl(...)`
+- Multi-query search: `searchFactsBatchTopk(...)` + `encodeQueriesMean(...)`
+* Computes top-k matches for EACH query in parallel on GPU/CPU.
+* Keeps the existing single-query API intact.
+
+Notes on multi-query design
+---------------------------
+- Queries are initially variable-length lists of aspect tokens.
+- To batch them efficiently, we convert each query to a fixed-size vector (D,)
+  by combining the embeddings of its aspect tokens (masked mean).
+- Once we have Q = (B, D) query vectors, we compute all similarities at once:
+    scores = facts (N, D) @ Q^T (D, B) = (N, B)
+  and then take top-k per query (per column / per query row after transpose).
+
+"""
+
+from __future__ import annotations
+from dataclasses import dataclass
+from typing import Dict, List, Tuple, Literal, Any, Iterable, TYPE_CHECKING
+from ordered_set import OrderedSet
+import math
+import logging
+
+import numpy as np
+
+# --------------------------------------------------------------------
+# Optional torch dependency (graceful degradation)
+# --------------------------------------------------------------------
+# Building / searching vectors requires PyTorch (and on Apple Silicon, an
+# MPS-capable build). When torch is not importable -- e.g. minimal CI
+# environments, embedded deployments, or platforms where the user
+# explicitly does not want a multi-hundred-MB dependency -- the plugin
+# MUST still load and validate. Callers that need vector results catch
+# ValueError already; we surface the missing-torch case the same way.
+#
+# `HAS_TORCH` lets the FactSink decide whether to buffer facts for batched
+# encoding (`addFactsBatch`) or skip vector work entirely.
+
+try:
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+    HAS_TORCH = True
+except ImportError:  # pragma: no cover - exercised on torch-less installs
+    torch = None  # type: ignore[assignment]
+    nn = None  # type: ignore[assignment]
+    F = None  # type: ignore[assignment]
+    HAS_TORCH = False
+    logging.getLogger("arelle.XbrlModel.VectorSearch").info(
+        "PyTorch not available; XbrlModel vector search disabled. "
+        "Cube fit scoring will fall back to exhaustive dimensional matching."
+    )
+
+from arelle.ModelValue import QName
+from arelle.XmlValidate import VALID
+
+from .XbrlCube import XbrlCube
+from .XbrlObject import XbrlReferencableModelObject, XbrlReportObject
+from .XbrlFact import XbrlFact
+from .XbrlModule import referencableObjectTypes
+
+SEARCH_CUBES = 1
+SEARCH_FACTPOSITIONS = 2
+SEARCH_BOTH = 3
+
+# --------------------------------------------------------------------
+# Device selection
+# --------------------------------------------------------------------
+
+def bestDevice():
+    """Pick a torch device. Returns None when torch is unavailable.
+
+    Priority:
+      1. CUDA  (NVIDIA GPUs on Windows/Linux)
+      2. MPS   (Apple Silicon GPUs via Metal on macOS)
+      3. CPU   (fallback)
+    """
+    if not HAS_TORCH:
+        return None
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
+
+
+DEVICE_DESCRIPTION = {
+    "cuda": "NVIDIA GPUs",
+    "mps":  "Apple Silicon GPUs",
+    "cpu":  "CPU vectorized math"
+    }
+
+# --------------------------------------------------------------------
+# Tokenization / vocabulary
+# --------------------------------------------------------------------
+
+def buildXbrlVocab(txmyMdl: XbrlCompiledModel, valueTokensOffset: int) -> Tuple[Dict[str, int], Dict[int, str]]:
+    """
+    Collect unique tokens from an OIM Taxonomy Model including factsets and return mappings.
+
+    Tokens are normalized as:
+      - every object in xbrlModel.xbrlObjects is a token whose value is object.xbrlMdlObjIndex (integer from 0)
+      - every value which is not an xbrl object is tokenized herein (starting at txmyMdl.initialValueToken
+
+    Rationale:
+      - We want a single embedding space shared by all XBRL "aspects":
+        concepts, dimensions, units, periods.
+      - By putting prefixes in the token string, we keep namespaces
+        clear and avoid collisions.
+
+    """
+    cubeTokens = set()
+    factTokens = set()
+    valueTokens = OrderedSet()
+
+    # from cubes
+    for cubeObj in txmyMdl.filterNamedObjects(XbrlCube):
+        c = cubeObj.xbrlMdlObjIndex
+        tokens = []
+        for cubeDimObj in cubeObj.cubeDimensions:
+            dimQn = cubeDimObj.dimension
+            dimObj = txmyMdl.namedObjects.get(dimQn)
+            if dimObj:
+                d = dimObj.xbrlMdlObjIndex
+                tokens.append( d )          # hasDimension for queries wildcarding dimension
+                for memQn in cubeDimObj.allowedMembers(txmyMdl):
+                    memObj = txmyMdl.namedObjects.get(memQn)
+                    if memObj:
+                        v = ( d, memObj.xbrlMdlObjIndex )
+                        t = valueTokens.add( v ) + valueTokensOffset
+                        tokens.append( t ) # dimension value for dimension value queries
+        cubeTokens.add( (c, tuple(tokens) ) )
+
+    # from factPosition
+    for factPosition in txmyMdl.filterNamedObjects(XbrlFact):
+        if factPosition._xValid >= VALID:
+            f = factPosition.xbrlMdlObjIndex
+            tokens = []
+            for qn, value in factPosition.factDimensions.items():
+                dimObj = txmyMdl.namedObjects.get(qn)
+                if dimObj:
+                    d = dimObj.xbrlMdlObjIndex
+                    if isinstance(value, QName) and value in txmyMdl.namedObjects:
+                        m = txmyMdl.namedObjects[value].xbrlMdlObjIndex
+                    else:
+                        m = value
+                    v = ( d, m )
+                    t = valueTokens.add( v ) + valueTokensOffset
+                    tokens.append( t ) # dimension value for dimension value queries
+                    tokens.append( d )      # hasDimension for queries wildcarding dimension
+            factTokens.add( (f, tuple(tokens) ) )
+            # do we encode the fact's value?  or its hash?  or valueSource like html id or pdf form field id
+
+    return OrderedSet(sorted(cubeTokens)), OrderedSet(sorted(factTokens)), valueTokens
+
+
+# --------------------------------------------------------------------
+# Embedding model
+# --------------------------------------------------------------------
+
+# `nn.Module` only exists when torch imported successfully. Pick a base
+# class up front so the class statement parses either way; callers must
+# still check `HAS_TORCH` before instantiation.
+_EmbedderBase = nn.Module if HAS_TORCH else object
+
+
+class XBRLEmbedder(_EmbedderBase):
+    """
+    Wraps a single nn.Embedding used for all XBRL tokens.
+
+    Key design points:
+      - The embedding matrix is moved to the chosen device (CUDA/MPS/CPU)
+        in __init__ via self.to(device).
+      - All token → vector operations happen on that device.
+      - The model is intentionally simple; training can be layered on later.
+    """
+    def __init__(self, vocab_size: int, embedDim: int, device):
+        if not HAS_TORCH:
+            raise RuntimeError("XBRLEmbedder requires PyTorch")
+        super().__init__()
+        # GPU/CPU: embedding table lives where we send the module
+        self.embedding = nn.Embedding(vocab_size, embedDim)
+        self.to(device)  # <-- GPU/MPS/CPU placement (hot path decision)
+
+    @property
+    def device(self) -> torch.device:
+        return self.embedding.weight.device
+
+    def tokenVec(self, token_id: int) -> torch.Tensor:
+        """
+        Single token ID → (embedDim,) tensor on current device.
+
+        GPU hot path:
+          - This is an embedding lookup; on CUDA/MPS it becomes a GPU kernel
+            fetching a row from the embedding matrix in GPU memory.
+        """
+        idx = torch.tensor([token_id], device=self.device)
+        return self.embedding(idx)[0]
+
+    def combine(self, ids: Tuple[int] | List[int], weights: List[float] | None = None) -> torch.Tensor:
+        """
+        Combine multiple token IDs into one vector by weighted average.
+        Returns (embedDim,) tensor.
+
+        GPU hot path:
+          - Converts ids to a tensor on self.device.
+          - Embedding lookup produces a (n, D) tensor on GPU/CPU.
+          - Weighted average is a few vector ops (mul, sum) on that device.
+        """
+        if not ids:
+            # Empty token sets can occur on invalid/minimal inputs; return a neutral vector instead of failing validation.
+            return torch.zeros(self.embedding.embedding_dim, dtype=self.embedding.weight.dtype, device=self.device)
+
+        ids_tensor = torch.tensor(ids, device=self.device)
+        vecs = self.embedding(ids_tensor)  # (n, embedDim) on CUDA/MPS/CPU
+
+        if weights is None:
+            return vecs.mean(dim=0)
+
+        w = torch.tensor(weights, dtype=vecs.dtype, device=self.device)
+        w = w / w.sum()
+        return (vecs * w.unsqueeze(1)).sum(dim=0)
+
+
+@dataclass
+class XBRLVectorStore:
+    """
+    Holds normalized vectors and their metadata for taxonomy and facts.
+
+    All tensors here (taxonomy_vecs, factVecs) are:
+      - row-normalized (L2=1) to support cosine similarity as dot product
+      - allocated on the same device as the embedder (CUDA/MPS/CPU)
+    """
+    device: torch.device
+    embedDim: int
+    cubeVecs: torch.Tensor | None      # (N_tax, D) normalized
+    factVecs: torch.Tensor | None          # (N_fact, D) normalized
+    cubeObjsList: List[IndexEntry]
+    factObjsList: List[IndexEntry]
+    valueTokensOffset: int
+    valueTokens: OrderedSet[Any]
+
+
+# --------------------------------------------------------------------
+# Helpers
+# --------------------------------------------------------------------
+
+
+def l2NormalizeRows(t: torch.Tensor, eps: float = 1e-8) -> torch.Tensor:
+    """
+    Row-wise L2 normalization.
+
+    GPU hot path:
+      - For (N, D) tensor on CUDA/MPS, this is a few fast vector ops.
+      - Used so that cosine similarity becomes a simple dot product.
+    """
+    norms = torch.linalg.norm(t, dim=1, keepdim=True)
+    return t / (norms + eps)
+
+
+# --------------------------------------------------------------------
+# Build embedder + vector store
+# --------------------------------------------------------------------
+
+def buildXbrlVectors(
+    txmyMdl: XbrlCompiledModel,
+    embedDim: int = 64,
+    device_hint: str | None = None,
+) -> Tuple[XBRLEmbedder, Dict[str, int], Dict[int, str], XBRLVectorStore]:
+    """
+    Build:
+      - token vocabulary
+      - XBRLEmbedder on chosen device
+      - taxonomy vectors (one per concept/axis-member/unit)
+      - fact vectors (one per fact)
+      - XBRLVectorStore with normalized vectors and metadata
+
+    All heavy work (embeddings & normalization) is on device:
+      - CUDA → GPU kernels
+      - MPS  → Metal on Apple Silicon
+      - CPU  → vectorized CPU ops
+
+    Graceful degradation: when PyTorch is not installed this function is a
+    no-op. `txmyMdl._xbrlEmbedder` / `_xbrlVectorStore` remain unset; callers
+    that try to search will get a ValueError (already caught by ValidateCubes)
+    and fall back to exhaustive dimensional matching.
+    """
+    if not HAS_TORCH:
+        txmyMdl.info(
+            "arelle:oimModelVectorSearchDisabled",
+            _("PyTorch not available; XbrlModel vector search disabled."),
+        )
+        return
+
+    # Device decision is centralized here
+    device = bestDevice() if device_hint is None else torch.device(device_hint)
+    # print("Using device:", device)
+
+    # offset tokens to be past largest xbrlMdlObjIndex in txmyMdl
+    lenObjs = len(txmyMdl.xbrlObjects)
+    valueTokensOffset = 10 ** math.ceil(math.log10( lenObjs ))
+
+    cubeTokens, factTokens, valueTokens = buildXbrlVocab(txmyMdl, valueTokensOffset)
+    vocabSize = valueTokensOffset + len(valueTokens)
+    # print(f"Vocab size: {vocabSize}")
+    txmyMdl.info("arelle:oimModelVectorSearch",
+                 _("Using %(device)s.  Vectorized vocabulary size %(vocabSize)s."),
+                 device=DEVICE_DESCRIPTION.get(device.type, "unrecognized device"), vocabSize=vocabSize)
+
+    txmyMdl._xbrlEmbedder = embedder = XBRLEmbedder(vocabSize, embedDim, device=device)
+
+    # --------- cube dimension vectors ----------
+    cubeVecsList: List[torch.Tensor] = []
+    cubeObjsList: List[int] = []
+
+    # cube dimensions:
+    for c, tokens in cubeTokens:
+        v = embedder.combine(tokens)
+        cubeObjsList.append(c)
+        cubeVecsList.append(v)
+
+    cubeVecs = None
+    if cubeVecsList:
+        cubeVecs = torch.stack(cubeVecsList, dim=0)  # (N_tax, D)
+        cubeVecs = l2NormalizeRows(cubeVecs)   # normalization on device
+
+    # --------- fact dimension vectors ----------
+    factVecsList: List[torch.Tensor] = []
+    factObjsList: List[int] = []
+
+    # from facts
+    for f, tokens in factTokens:
+        v = embedder.combine(tokens)
+        factObjsList.append(f)
+        factVecsList.append(v)
+
+    factVecs = None
+    if factVecsList:
+        factVecs = torch.stack(factVecsList, dim=0)     # (N_fact, D)
+        factVecs = l2NormalizeRows(factVecs)           # normalization on device
+
+    txmyMdl._xbrlVectorStore = store = XBRLVectorStore(
+        device=device,
+        embedDim=embedDim,
+        cubeVecs=cubeVecs,
+        factVecs=factVecs,
+        cubeObjsList=cubeObjsList,
+        factObjsList=factObjsList,
+        valueTokensOffset=valueTokensOffset,
+        valueTokens=valueTokens
+    )
+
+# --------------------------------------------------------------------
+# Query aspect encoder
+# --------------------------------------------------------------------
+
+def mapQueryAspects(
+    txmyMdl: XbrlCompiledModel,
+    queryAspects: List[Tuple[int, ...]],
+    store: XBRLVectorStore,
+) -> List[int]:    # Map tokens to IDs, ignore unknown
+    """
+    queryAspects: list of model object indices and values, e.g.:
+        arguments may be objects or qnames of objects, and are mapped to mdlObjIndices
+        for concept: (xbrl:concept name, exp:assets qname)
+        for dimension presence: (exp:dim qname, )
+        for dimension value: (exp:dim qname, exp:mem qname or
+                             (exp:dim qname, typed mem value)
+        for period: (xbrl:period qname, period datetime value)
+        for unit: (xbrl:unit qname, unit string value) ???
+    """
+
+    store = txmyMdl._xbrlVectorStore
+    aspectIds = []
+    for queryAspect in queryAspects:
+        if not isinstance(queryAspect, (tuple,list)):
+            raise ValueError(f"Vector search query aspects must be tuple or list of aspect and value, as objects, object QNames or value (e.g. date or string).")
+        qa0 = queryAspect[0]
+        if isinstance(qa0, (XbrlReferencableModelObject,XbrlReportObject)):
+            dimObj = qa0
+        elif isinstance(qa0, QName):
+            dimObj = txmyMdl.namedObjects.get(qa0)
+        else:
+            raise ValueError(f"Vector search query aspects (first tuple/list item) must be an objects or object QNames, but not {qa0}.")
+        if dimObj:
+            d = dimObj.xbrlMdlObjIndex
+            if len(queryAspect) > 1:
+                qa1 = queryAspect[1]
+                if isinstance(qa1, (XbrlReferencableModelObject,XbrlReportObject)):
+                    v = ( d, qa1.xbrlMdlObjIndex )
+                elif isinstance(qa1, QName) and qa1 in txmyMdl.namedObjects:
+                    v = ( d, txmyMdl.namedObjects[qa1].xbrlMdlObjIndex )
+                elif qa1 in store.valueTokens:
+                    v = ( d, qa1 )
+                else:
+                    # No registered (dim, value) token: fall back to bare
+                    # dimension presence so open cubes (whose vectors only
+                    # carry the dimension token `d`) can still match.
+                    aspectIds.append( d )
+                    continue
+                if v in store.valueTokens:
+                    v = store.valueTokens.index( v ) + store.valueTokensOffset
+                else:
+                    aspectIds.append( d )
+                    continue
+                # Emit both: (dim,value) for constrained cubes and `d` for
+                # open cubes that only encode dimension presence.
+                aspectIds.append( v )
+                aspectIds.append( d )
+                continue
+            else:
+                v = d
+            aspectIds.append( v )
+    return aspectIds
+
+# --------------------------------------------------------------------
+# Exact search using cosine similarity
+# --------------------------------------------------------------------
+
+def searchXbrl(
+    txmyMdl: XbrlCompiledModel,
+    queryAspects: List[Tuple[int, ...]],
+    domain: Literal[SEARCH_CUBES, SEARCH_FACTPOSITIONS, SEARCH_BOTH] = SEARCH_BOTH,
+    topK: int = 20,
+) -> List[Tuple[float, IndexEntry]]:
+    """
+    queryAspects: see mapQueryAspects above
+
+    domain: SEARCH_CUBES, SEARCH_FACTPOSITIONS or SEARCH_BOTH
+
+    Returns a list of (score, object) sorted by descending cosine similarity.
+
+    VERY IMPORTANT:
+      - This is an EXACT search.
+      - We compute cosine similarity between the query vector and every stored
+        vector in the chosen domain using a dense matrix-vector product.
+      - Complexity is O(N * D), but on CUDA/MPS that's extremely fast for the
+        XBRL scales we care about (thousands to low hundreds of thousands).
+      - No approximate index, no risk of "missing" nearest neighbors.
+
+    Graceful degradation: when torch is unavailable (or the vector store was
+    never built), this raises ValueError -- which existing call sites already
+    catch and treat as "no candidate cubes".
+    """
+    if not HAS_TORCH:
+        raise ValueError("Vector search unavailable: PyTorch not installed.")
+    if not hasattr(txmyMdl, "_xbrlEmbedder") or not hasattr(txmyMdl, "_xbrlVectorStore"):
+        raise ValueError("Vector search unavailable: store not built for this model.")
+    embedder = txmyMdl._xbrlEmbedder
+    store = txmyMdl._xbrlVectorStore
+
+    aspectIds = mapQueryAspects(txmyMdl, queryAspects, store)
+    if not aspectIds:
+        raise ValueError("None of the queryAspects exist in the model. Check query contents.")
+
+    # Encode query aspects into a vector on same device, normalize
+    qVec = embedder.combine(aspectIds).to(store.device)
+    qVec = F.normalize(qVec.unsqueeze(0), dim=1)  # (1, D), on CUDA/MPS/CPU
+
+    results: List[Tuple[float, IndexEntry]] = []
+
+    # ---- taxonomy search (GPU hot path: matrix-vector dot) ----
+    if domain in (SEARCH_CUBES, SEARCH_BOTH) and store.cubeVecs is not None:
+        tv = store.cubeVecs  # (N_tax, D), already normalized, on device
+        # EXACT cosine similarity via dot product on device
+        sims = (tv @ qVec.T).squeeze(1)  # (N_tax,)
+        k = min(topK, sims.shape[0])
+        scores, idxs = torch.topk(sims, k)
+        for s, idx in zip(scores.tolist(), idxs.tolist()):
+            cubeObjIndex = store.cubeObjsList[idx]
+            results.append((float(s), txmyMdl.xbrlObjects[cubeObjIndex]))
+
+    # ---- fact search (same GPU hot path) ----
+    if domain in (SEARCH_FACTPOSITIONS, SEARCH_BOTH) and store.factVecs is not None:
+        fv = store.factVecs  # (N_fact, D), already normalized, on device
+        sims = (fv @ qVec.T).squeeze(1)  # (N_fact,)
+        k = min(topK, sims.shape[0])
+        scores, idxs = torch.topk(sims, k)
+        for s, idx in zip(scores.tolist(), idxs.tolist()):
+            factObjIndex = store.factObjsList[idx]
+            results.append((float(s), txmyMdl.xbrlObjects[factObjIndex]))
+
+    # Merge+sort if both
+    results.sort(key=lambda x: x[0], reverse=True)
+    if domain == SEARCH_BOTH:
+        results = results[:topK]
+
+    return results
+
+# --------------------------------------------------------------------
+# Multi-query facility
+# --------------------------------------------------------------------
+
+def encodeQueriesMean(
+    embedder: XBRLEmbedder,
+    queries_token_ids: List[List[int]],
+    padId: int,
+) -> torch.Tensor:
+    """Batch-encode many queries into a (B, D) tensor using masked mean.
+
+    Why this exists:
+      - Each query is a variable-length list of aspect token IDs.
+      - GPUs like rectangular tensors.
+      - We pad to (B, Lmax), do ONE embedding lookup, then masked-average.
+
+    Returns:
+      Q: (B, D) L2-normalized query vectors on embedder.device.
+
+    CUDA/MPS usage:
+      - The embedding lookup for the entire (B, Lmax) ID matrix is a single
+        high-throughput device operation.
+    """
+
+    if not queries_token_ids:
+        raise ValueError("No queries provided.")
+
+    device = embedder.device
+    B = len(queries_token_ids)
+    Lmax = max(len(q) for q in queries_token_ids)
+    if Lmax == 0:
+        raise ValueError("All queries are empty.")
+
+    ids = torch.full((B, Lmax), pad_id, device=device, dtype=torch.long)
+    mask = torch.zeros((B, Lmax), device=device, dtype=torch.float32)
+
+    for i, q in enumerate(queries_token_ids):
+        if not q:
+            continue
+        ids[i, : len(q)] = torch.tensor(q, device=device, dtype=torch.long)
+        mask[i, : len(q)] = 1.0
+
+    # (B, Lmax, D) embedding lookup in one call (device op)
+    E = embedder.embedding(ids)
+
+    # masked mean
+    denom = mask.sum(dim=1, keepdim=True).clamp_min(1.0)  # (B,1)
+    Q = (E * mask.unsqueeze(-1)).sum(dim=1) / denom       # (B,D)
+
+    return F.normalize(Q, dim=1)
+
+
+def searchXbrlBatchTopk(
+    txmyMdl: XbrlCompiledModel,
+    queriesAspects: List[List[str]],
+    domain: Literal[SEARCH_CUBES, SEARCH_FACTPOSITIONS] = SEARCH_FACTPOSITIONS,
+    top_k: int = 20,
+    query_batch: int = 128,
+) -> Tuple[torch.Tensor, torch.Tensor]:
+    """Exact batched search over facts: returns top-k per query.
+
+    Inputs:
+      queries_aspects: List of queries; each query is a List[tuples] of aspect tokens.
+      top_k: number of matches per query
+      query_batch: process queries in chunks to limit score matrix size
+
+    Returns:
+      top_idx:    (B, K) indices into store.fact_entries
+      top_scores: (B, K) cosine similarity scores
+
+    Exactness:
+      - For each query, we compute cosine similarity against ALL facts.
+      - This is a dense matmul and torch.topk; no approximation.
+
+    GPU/MPS usage:
+      - For each query chunk of size b:
+          scores = fact_vecs (N,D) @ Qb^T (D,b) -> (N,b)
+        This is a highly optimized device matmul.
+      - Then we take topk per query (on device).
+
+    Notes:
+      - We chunk queries because the intermediate score matrix is size (N x b).
+        For large N, keep query_batch modest (e.g., 64-256).
+    """
+
+    embedder = txmyMdl._xbrlEmbedder
+    store = txmyMdl._xbrlVectorStore
+
+    if store.factVecs is None or not store.factObjsList:
+        raise ValueError("No fact vectors available in store.")
+
+    # Convert each query’s aspect tokens -> token IDs; keep per-query lists
+    queriesIds: List[List[int]] = []
+    for q in queriesAspects:
+        ids = mapQueryAspects(txmyMdl, q, store)
+        queriesIds.append(ids)
+
+    B = len(queries_ids)
+    if B == 0:
+        raise ValueError("No queries provided.")
+
+    padId = (store.valueTokensOffset + len(store.valueTokens)) / 1000 + 1000 # round up to make it easy to debug
+
+    # Pre-allocate CPU tensors for final outputs; we’ll fill per chunk.
+    # We return torch tensors; caller can map indices back to entries.
+    allTopIdx = []
+    allTopScores = []
+
+    if domain == SEARCH_CUBES:
+        vecs = store.cubeVecs  # (N, D), already normalized, on device
+    else: # SEARCH_FACTPOSITIONS
+        vecs = store.factVecs  # (N, D), already normalized, on device
+    N = vecs.shape[0]
+
+    for start in range(0, B, query_batch):
+        end = min(B, start + query_batch)
+        chunkIds = queriesIds[start:end]
+
+        # Encode query chunk to Qb (b, D) on device
+        Qb = encodeQueriesMean(embedder, chunkIds, padId=padId)
+        # scores: (N, b) exact cosine similarities
+        scores = fact_vecs @ Qb.T
+        # topk per query: transpose to (b, N) so dim=1 is facts
+        scoresBt = scores.T
+        k = min(top_k, N)
+        topScores, topIdx = torch.topk(scoresBt, k=k, dim=1)
+
+        allTopIdx.append(top_idx.detach().cpu())
+        allTopScores.append(top_scores.detach().cpu())
+
+    return torch.cat(allTopIdx, dim=0), torch.cat(allTopScores, dim=0)
+
+
+# --------------------------------------------------------------------
+# Alignment vector index  (used by Formula/FormulaAlignment.py)
+# --------------------------------------------------------------------
+
+CONCEPT_DIM_NS = "https://xbrl.org/2021"
+CONCEPT_DIM_LN = "concept"
+
+
+def buildAlignmentVectors(
+    txmyMdl: XbrlCompiledModel,
+    facts: List,
+    embedDim: int = 64,
+) -> Tuple["torch.Tensor", List]:
+    """
+    Build a matrix of *alignment* vectors for a list of XbrlFact objects.
+
+    Alignment vectors encode every dimension of a fact *except* xbrl:concept,
+    so that two facts with the same entity, period, and explicit dimension
+    context (but different concepts) receive the same (or very similar) vector.
+
+    This is the key primitive used by the formula interpreter to align fact
+    groups from multiple @Concept queries using GPU-accelerated cosine
+    similarity instead of O(N×M) Python loops.
+
+    Parameters
+    ----------
+    txmyMdl:
+        The compiled OIM taxonomy + report model.  If it already has a
+        ``_xbrlEmbedder`` attribute the same embedding space is reused,
+        guaranteeing consistent token IDs across all calls in a session.
+    facts:
+        The XbrlFact objects to encode.  Only valid facts (``_xValid >= VALID``)
+        are included; invalid facts are silently skipped.
+    embedDim:
+        Embedding dimension.  Must match the value used when building the
+        model's main vector store (``buildXbrlVectors``).  Ignored when an
+        embedder already exists on the model.
+
+    Returns
+    -------
+    factMat : torch.Tensor, shape (N, embedDim), L2-normalised, on device
+        One row per fact in ``validFacts``.
+    validFacts : list[XbrlFact]
+        The subset of ``facts`` that were successfully encoded, in the same
+        order as the rows of ``factMat``.
+
+    GPU hot path
+    ------------
+    All embedding lookups and the final L2 normalisation run on
+    CUDA / MPS / CPU (whichever was chosen by ``bestDevice()``).  The caller
+    can then compute pairwise cosine similarities with a single batched
+    matrix multiply::
+
+        S = factMatA  @  factMatB.T      # (N_A, N_B) on device
+        aligned = (S >= threshold).nonzero()
+
+    which is O(N_A × N_B × D) but runs entirely as a device kernel.
+    """
+    from arelle.ModelValue import qname as mkQn
+
+    # Reuse or create the model's shared embedder / store
+    if not hasattr(txmyMdl, "_xbrlEmbedder") or txmyMdl._xbrlEmbedder is None:
+        _embedder, _vocab, _ivocab, _store = buildXbrlVectors(txmyMdl, embedDim=embedDim)
+        # buildXbrlVectors caches embedder + store on txmyMdl
+    embedder: XBRLEmbedder = txmyMdl._xbrlEmbedder
+    store: XBRLVectorStore = txmyMdl._xbrlVectorStore
+    device = store.device
+
+    conceptQn = mkQn(CONCEPT_DIM_NS, CONCEPT_DIM_LN)
+
+    rows: List[torch.Tensor] = []
+    validFacts: List = []
+
+    for fact in facts:
+        if getattr(fact, "_xValid", VALID) < VALID:
+            continue
+
+        tokenIds: List[int] = []
+        for dimQn, value in fact.factDimensions.items():
+            if dimQn == conceptQn:
+                continue  # exclude concept — alignment should be concept-agnostic
+
+            dimObj = txmyMdl.namedObjects.get(dimQn)
+            if dimObj is None:
+                continue
+
+            d = dimObj.xbrlMdlObjIndex
+            # Dimension presence token
+            tokenIds.append(d)
+
+            # Dimension value token
+            if isinstance(value, QName) and value in txmyMdl.namedObjects:
+                m = txmyMdl.namedObjects[value].xbrlMdlObjIndex
+            else:
+                # Typed dimension value — use hash bucketed into token space
+                m = hash(value) % store.valueTokensOffset
+
+            v = (d, m)
+            if v in store.valueTokens:
+                t = store.valueTokens.index(v) + store.valueTokensOffset
+                tokenIds.append(t)
+
+        if tokenIds:
+            vec = embedder.combine(tokenIds).to(device)
+        else:
+            # Fact has no relevant alignment dimensions → zero vector
+            vec = torch.zeros(store.embedDim, device=device)
+
+        rows.append(vec)
+        validFacts.append(fact)
+
+    if not rows:
+        return torch.zeros((0, store.embedDim), device=device), []
+
+    factMat = torch.stack(rows, dim=0)   # (N, D) on device
+    factMat = l2NormalizeRows(factMat)   # in-place normalise for cosine similarity
+
+    return factMat, validFacts
+
+
+def pairwiseAlignmentScores(
+    matA: "torch.Tensor",
+    matB: "torch.Tensor",
+) -> "torch.Tensor":
+    """
+    Compute the full N_A × N_B cosine similarity matrix between two sets of
+    L2-normalised alignment vectors.
+
+    Both matrices must be on the same device (ensured by
+    ``buildAlignmentVectors``).
+
+    Parameters
+    ----------
+    matA : (N_A, D) L2-normalised tensor
+    matB : (N_B, D) L2-normalised tensor
+
+    Returns
+    -------
+    S : (N_A, N_B) cosine similarity tensor on the same device.
+        ``S[i, j] ≈ 1.0`` means fact A[i] and fact B[j] are aligned.
+
+    GPU hot path
+    ------------
+    A single high-throughput device matmul on CUDA / MPS / CPU.
+    """
+    return matA @ matB.to(matA.device).T   # (N_A, N_B)
+
+
+# --------------------------------------------------------------------
+# Streaming-ingestion API: addFactsBatch
+# --------------------------------------------------------------------
+
+def addFactsBatch(txmyMdl, facts: "Iterable[XbrlFact]", batchSize: int = 4096) -> int:
+    """Encode a batch of `XbrlFact` objects into the model's vector store
+    incrementally, in fixed-size chunks.
+
+    The streaming-ingestion pipeline (`FactPipeline.FactSink`) buffers facts
+    as they arrive from each `FactSourceLoader`. When the buffer reaches
+    `batchSize`, the sink flushes via this function -- letting on-device
+    matmul / embedding lookups amortize fixed overheads across many facts
+    rather than encoding one fact at a time.
+
+    Returns the number of facts actually added (skipping facts whose
+    `_xValid < VALID`). When PyTorch is unavailable this is a no-op
+    returning 0.
+
+    The vector store must already exist (created lazily by `buildXbrlVectors`).
+    Bridges that want to ingest facts before any vector store exists must
+    call `buildXbrlVectors(txmyMdl)` first; this avoids surprising IO cost
+    from a no-op path.
+    """
+    if not HAS_TORCH:
+        return 0
+    store = getattr(txmyMdl, "_xbrlVectorStore", None)
+    embedder = getattr(txmyMdl, "_xbrlEmbedder", None)
+    if store is None or embedder is None:
+        return 0
+
+    valueTokens = store.valueTokens
+    valueTokensOffset = store.valueTokensOffset
+    added = 0
+    chunkVecs: List["torch.Tensor"] = []
+    chunkObjs: List[int] = []
+
+    def _flush():
+        nonlocal chunkVecs, chunkObjs
+        if not chunkVecs:
+            return
+        newVecs = l2NormalizeRows(torch.stack(chunkVecs, dim=0))
+        if store.factVecs is None:
+            store.factVecs = newVecs
+        else:
+            store.factVecs = torch.cat([store.factVecs, newVecs], dim=0)
+        store.factObjsList.extend(chunkObjs)
+        chunkVecs = []
+        chunkObjs = []
+
+    for fact in facts:
+        if getattr(fact, "_xValid", VALID) < VALID:
+            continue
+        tokens: List[int] = []
+        for qn, value in fact.factDimensions.items():
+            dimObj = txmyMdl.namedObjects.get(qn)
+            if dimObj is None:
+                continue
+            d = dimObj.xbrlMdlObjIndex
+            if isinstance(value, QName) and value in txmyMdl.namedObjects:
+                m = txmyMdl.namedObjects[value].xbrlMdlObjIndex
+            else:
+                m = value
+            v = (d, m)
+            t = valueTokens.add(v) + valueTokensOffset
+            tokens.append(t)
+            tokens.append(d)
+        if not tokens:
+            continue
+        chunkVecs.append(embedder.combine(tokens))
+        chunkObjs.append(fact.xbrlMdlObjIndex)
+        added += 1
+        if len(chunkVecs) >= batchSize:
+            _flush()
+    _flush()
+    return added

@@ -1,0 +1,51 @@
+{
+    "$schema": "../oim-taxonomy-schema.json",
+    "documentInfo": {
+        "documentType": "https://xbrl.org/2026/module",
+        "namespaces": {
+            "xbrl": "https://xbrl.org/2026",
+            "xbrlr":"https://xbrl.org/2026/report",
+            "xbrlm":"https://xbrl.org/2026/model",
+            "xs": "http://www.w3.org/2001/XMLSchema",
+            "ref": "https://xbrl.org/2026/ref",
+            "utr": "https://xbrl.org/2026/utr",
+            "lei": "http://standards.iso.org/iso/17442",
+            "iso4217": "http://www.xbrl.org/2003/iso4217"
+            },
+        "documentNamespacePrefix":"xbrlm",
+        "importMapping": {
+            "xs:XMLSchemaTypes": "../spec-taxonomies/xs-types.json",
+            "xbrl:CoreTaxonomyModule": "../spec-taxonomies/xbrlSpec.json",
+            "utr:UnitsTaxonomyModule": "../spec-taxonomies/utr.json",
+            "xbrlr:TypesTaxonomyModule": "../spec-taxonomies/types.json",
+            "ref:ReferencePropertiesTaxonomyModule": "../spec-taxonomies/ref.json",
+            "iso4217:iso4217TaxonomyModule": "../spec-taxonomies/iso4217.json"
+        },
+        "description": "The base specification module, that collates the core XBRL data models. This module imports the XML Schema data types and the other core XBRL taxonomy modules that in aggregate define the objects comprising the XBRL data model."
+    },
+    "xbrlModel": {
+        "name": "xbrlm:BaseSpecificationModule",
+        "frameworkName": "Core",
+        "version": "2026",
+        "importedTaxonomies": [
+                {
+                    "xbrlModelName": "xs:XMLSchemaTypes"
+                },
+                {
+                    "xbrlModelName": "xbrl:CoreTaxonomyModule"
+                },
+                {
+                    "xbrlModelName": "utr:UnitsTaxonomyModule"
+                },
+                {
+                    "xbrlModelName": "xbrlr:TypesTaxonomyModule"
+                },
+                {
+                    "xbrlModelName": "ref:ReferencePropertiesTaxonomyModule"
+                },
+                {
+                    "xbrlModelName": "iso4217:iso4217TaxonomyModule"
+                }
+        ]   
+    }
+}
