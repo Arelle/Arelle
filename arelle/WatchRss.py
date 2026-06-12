@@ -59,7 +59,7 @@ class WatchRss:
                 self.rssModelXbrl.modelManager.validateCalcs = rssWatchOptions.get("validateCalcs")  # type: ignore[assignment]
             if (rssWatchOptions.get("validateFormulaAssertions") in (False,True) and
                 self.rssModelXbrl.modelManager.formulaOptions is not None):
-                self.priorFormulaRunIDs = self.rssModelXbrl.modelManager.formulaOptions.runIDs
+                self.priorFormulaRunIDs = self.rssModelXbrl.modelManager.formulaOptions.runIDs  # type: ignore[assignment]
                 self.rssModelXbrl.modelManager.formulaOptions.runIDs = "" if rssWatchOptions.get("validateFormulaAssertions") else "**FakeIdToBlockFormulas**"
             self.thread = threading.Thread(target=lambda: self.watchCycle())
             self.thread.daemon = True
@@ -156,7 +156,7 @@ class WatchRss:
                                 modelXbrl.close()
                                 break
                             if self.instValidator:
-                                self.instValidator.validate(modelXbrl, modelXbrl.modelManager.formulaOptions.typedParameters(modelXbrl.prefixedNamespaces))  # type: ignore[no-untyped-call]
+                                self.instValidator.validate(modelXbrl, modelXbrl.modelManager.formulaOptions.typedParameters(modelXbrl.prefixedNamespaces))
                                 if modelXbrl.errors and rssWatchOptions.get("alertValiditionError"):
                                     emailAlert = True
                             for pluginXbrlMethod in self.cntlr.plugins.hooks("RssWatch.DoWatchAction"):

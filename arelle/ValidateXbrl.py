@@ -73,7 +73,7 @@ class ValidateXbrl:
     ixdsRoleRefURIs: dict[Any, Any]
     ixdsArcroleRefURIs: dict[Any, Any]
     unconsolidated: bool
-    priorFormulaOptionsRunIDs: str | None
+    priorFormulaOptionsRunIDs: int | str | None
     primaryItems: set[Any]
     remoteResourceLocElements: set[ModelObject]
     # Attributes set dynamically during DTS validation (arelle/ValidateXbrlDTS.py)

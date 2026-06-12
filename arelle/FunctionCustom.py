@@ -56,8 +56,8 @@ def callCfi(
 
     cfi = cfSig.customFunctionImplementation
     overriddenInScopeVars: dict[str, Any] = {}
-    traceSource = xc.formulaOptions.traceSource(xc.traceType)  # type: ignore[no-untyped-call]
-    traceEvaluation = xc.formulaOptions.traceEvaluation(xc.traceType)  # type: ignore[no-untyped-call]
+    traceSource = xc.formulaOptions.traceSource(xc.traceType)
+    traceEvaluation = xc.formulaOptions.traceEvaluation(xc.traceType)
     inputNames = cfi.inputNames
     for i, argName in enumerate(inputNames):
         if argName in xc.inScopeVars:
