@@ -4,20 +4,37 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import csv, io, json
-from typing import TYPE_CHECKING
+from decimal import Decimal
+from typing import TYPE_CHECKING, Any, Iterable, Sequence
 
 import regex as re
 from lxml import etree
-from decimal import Decimal
+
 from arelle.FileSource import FileNamedStringIO
+from arelle.typing import TypeGetText
 
 if TYPE_CHECKING:
+    from io import TextIOWrapper
+    from openpyxl.worksheet._write_only import WriteOnlyWorksheet
+    from openpyxl.worksheet.worksheet import Worksheet
     from arelle.ModelXbrl import ModelXbrl
+
+
+_: TypeGetText
 
 NoneType = type(None) # for isinstance testing
 
 # deferred opening of openpyxl so it's not needed in site-packages unless it is used
-Workbook = cell = utils = Font = PatternFill = Border = Alignment = Color = fills = Side = None
+Workbook: Any = None
+cell: Any = None
+utils: Any = None
+Font: Any = None
+PatternFill: Any = None
+Border: Any = None
+Alignment: Any = None
+Color: Any = None
+fills: Any = None
+Side: Any = None
 
 NOOUT = 0
 CSV   = 1
@@ -29,26 +46,36 @@ TABULAR_VIEW_TYPES = {CSV, XLSX, HTML}
 TYPENAMES = ["NOOUT", "CSV", "XLSX", "HTML", "XML", "JSON"] # null means no output
 nonNameCharPattern =  re.compile(r"[^\w\-\.:]")
 
+
 class View:
+    langDir: str
+    langAlign: str
+    xmlRowElementName: str | None
+    columnEltNames: list[str]
+    csvFile: FileNamedStringIO | TextIOWrapper
+    xmlDoc: etree._ElementTree | None
+    tblElt: etree._Element | None
+    xlsxWs: WriteOnlyWorksheet | Worksheet
+
     # note that cssExtras override any css entries provided by this module if they have the same name
     def __init__(
             self,
             modelXbrl: ModelXbrl | None,
-            outfile,
-            rootElementName,
-            lang=None,
-            style="table",
-            cssExtras=""
-    ):
+            outfile: str | FileNamedStringIO | None,
+            rootElementName: str,
+            lang: str | None = None,
+            style: str = "table",
+            cssExtras: str = "",
+    ) -> None:
         global Workbook, cell, utils, Font, PatternFill, Border, Alignment, Color, fills, Side
         self.modelXbrl = modelXbrl
         self.lang = lang
-        if lang and lang[:2] in {'ar', 'he'}:
-            self.langDir = 'rtl'
-            self.langAlign = 'right'
+        if lang and lang[:2] in {"ar", "he"}:
+            self.langDir = "rtl"
+            self.langAlign = "right"
         else:
-            self.langDir = 'ltr'
-            self.langAlign = 'left'
+            self.langDir = "ltr"
+            self.langAlign = "left"
         if outfile is None:
             self.type = NOOUT
         elif isinstance(outfile, FileNamedStringIO):
@@ -91,16 +118,16 @@ class View:
                 self.csvFile = self.outfile
             else:
                 # note: BOM signature required for Excel to open properly with characters > 0x7f
-                self.csvFile = open(outfile, 'w', newline='', encoding='utf-8-sig')
+                self.csvFile = open(outfile, "w", newline="", encoding="utf-8-sig")  # type: ignore[arg-type,assignment]
             self.csvWriter = csv.writer(self.csvFile, dialect="excel")
         elif self.type == XLSX:
             self.xlsxWb = Workbook()
             # remove pre-existing worksheets
-            while len(self.xlsxWb.worksheets)>0:
+            while len(self.xlsxWb.worksheets) > 0:
                 self.xlsxWb.remove(self.xlsxWb.worksheets[0])
             self.xlsxWs = self.xlsxWb.create_sheet(title=rootElementName)
             self.xlsxRow = 0
-            self.xlsxColWrapText = [] # bool true if col is always wrap text
+            self.xlsxColWrapText: list[bool] = [] # bool true if col is always wrap text
             self.autoFilter = True # auto-filter table
         elif self.type == HTML:
             if style == "rendering":
@@ -171,66 +198,80 @@ class View:
             html = io.StringIO("<{0}/>".format(self.rootElementName))
             self.xmlDoc = etree.parse(html)
             html.close()
-            self.docEltLevels = [self.xmlDoc.getroot()]
+            self.docEltLevels: list[etree._Element] = [self.xmlDoc.getroot()]
             self.tblElt = self.docEltLevels[0]
         elif self.type == JSON:
-            self.entries = []
-            self.entryLevels = [self.entries]
-            self.jsonObject = {self.rootElementName: self.entries}
+            self.entries: list[Any] = []
+            self.entryLevels: list[list[Any] | None] = [self.entries]
+            self.jsonObject: dict[str, list[Any]] = {self.rootElementName: self.entries}
 
-    def setColWidths(self, colWidths):
+    def setColWidths(self, colWidths: Iterable[float]) -> None:
         # widths in monospace character counts (as with xlsx files)
         if self.type == XLSX:
             for iCol, colWidth in enumerate(colWidths):
-                colLetter = utils.get_column_letter(iCol+1)
-                self.xlsxWs.column_dimensions[colLetter].width = colWidth
+                colLetter = utils.get_column_letter(iCol + 1)
+                self.xlsxWs.column_dimensions[colLetter].width = colWidth  # type: ignore[union-attr]
 
-    def setColWrapText(self, colColWrapText):
+    def setColWrapText(self, colColWrapText: list[bool]) -> None:
         # list with True for columns to be word wrapped in every row including heading
         if self.type == XLSX:
             self.xlsxColWrapText = colColWrapText
 
-    def setAutoFilter(self, autoFilter):
+    def setAutoFilter(self, autoFilter: bool) -> None:
         # set whether auto-filter is enabled for the worksheet
         if self.type == XLSX:
             self.autoFilter = autoFilter
 
-    def addRow(self, cols, asHeader=False, treeIndent=0, colSpan=1, xmlRowElementName=None, xmlRowEltAttr=None, xmlRowText=None, xmlCol0skipElt=False, xmlColElementNames=None, lastColSpan=None, arcRole=None):
+    def addRow(
+            self,
+            cols: Sequence[str],
+            asHeader: bool = False,
+            treeIndent: int = 0,
+            colSpan: int = 1,
+            xmlRowElementName: str | None = None,
+            xmlRowEltAttr: dict[str, Any] | None = None,
+            xmlRowText: str | None = None,
+            xmlCol0skipElt: bool = False,
+            xmlColElementNames: list[str] | None = None,
+            lastColSpan: int | None = None,
+            arcRole: str | None = None,
+    ) -> None:
         if asHeader and len(cols) > self.numHdrCols:
             self.numHdrCols = len(cols)
         if self.type == CSV:
             self.csvWriter.writerow(cols if not self.treeCols else
                                     ([None for i in range(treeIndent)] +
-                                     cols[0:1] +
+                                     list(cols[0:1]) +
                                      [None for i in range(treeIndent, self.treeCols - 1)] +
-                                     cols[1:]))
+                                     list(cols[1:])))
         elif self.type == XLSX:
             cell = None
+            iCol = 0
             for iCol, col in enumerate(cols):
-                cell = self.xlsxWs.cell(row=self.xlsxRow+1, column=iCol+1)
+                cell = self.xlsxWs.cell(row=self.xlsxRow + 1, column=iCol + 1)  # type: ignore[union-attr]
                 if asHeader:
-                    cell.value = col.replace('\u00AD','') # remove soft-breaks
+                    cell.value = col.replace("\u00AD","") # remove soft-breaks
                     cell.alignment = Alignment(horizontal="center", vertical="center")
                     cell.fill = PatternFill(patternType=fills.FILL_SOLID, fgColor=Color("00FFBF5F"))
                 else:
-                    cell.value = col if isinstance(col,(str,int,float,Decimal,NoneType)) else str(col)
+                    cell.value = col if isinstance(col, (str, int, float, Decimal, NoneType)) else str(col)
                     if iCol == 0 and self.treeCols and treeIndent > 0:
                         cell.alignment = Alignment(indent=treeIndent)
                 if self.xlsxColWrapText and iCol < len(self.xlsxColWrapText) and self.xlsxColWrapText[iCol]:
                     cell.alignment = Alignment(wrap_text=True)
             if lastColSpan and cell is not None:
-                self.xlsxWs.merge_cells(range_string='%s%s:%s%s' % (utils.get_column_letter(iCol+1),
-                                                                    self.xlsxRow+1,
-                                                                    utils.get_column_letter(iCol+lastColSpan),
-                                                                    self.xlsxRow+1))
+                self.xlsxWs.merge_cells(range_string="%s%s:%s%s" % (utils.get_column_letter(iCol + 1),  # type: ignore[union-attr]
+                                                                    self.xlsxRow + 1,
+                                                                    utils.get_column_letter(iCol + lastColSpan),
+                                                                    self.xlsxRow + 1))
             if asHeader and self.xlsxRow == 0:
-                self.xlsxWs.freeze_panes = self.xlsxWs["A2"] # freezes row 1 and no columns
+                self.xlsxWs.freeze_panes = self.xlsxWs["A2"]  # type: ignore[index] # freezes row 1 and no columns
             self.xlsxRow += 1
         elif self.type == HTML:
-            tr = etree.SubElement(self.tblElt, "{http://www.w3.org/1999/xhtml}tr")
+            tr = etree.SubElement(self.tblElt, "{http://www.w3.org/1999/xhtml}tr")  # type: ignore[type-var]
             td = None
-            for i, col in enumerate(cols + [None for emptyCol in range(self.numHdrCols - colSpan + 1 - len(cols))]):
-                attrib = {}
+            for i, col in enumerate(list(cols) + [None for emptyCol in range(self.numHdrCols - colSpan + 1 - len(cols))]):  # type: ignore[assignment]
+                attrib: dict[str, str] = {}
                 if asHeader:
                     attrib["class"] = "tableHdr"
                     colEltTag = "{http://www.w3.org/1999/xhtml}th"
@@ -244,18 +285,18 @@ class View:
                         attrib["colspan"] = str(colSpan)
                 if i == 0 and self.treeCols:
                     for indent in range(treeIndent):
-                        etree.SubElement(tr, colEltTag,
-                                         attrib={"class":"rowSpanLeg"},
-                                         ).text = '\u00A0'  # produces &nbsp;
-                td = etree.SubElement(tr, colEltTag, attrib=attrib)
-                td.text = str(col) if col else '\u00A0'  # produces &nbsp;
+                        etree.SubElement(tr, colEltTag,  # type: ignore[type-var,union-attr]
+                                         attrib={"class": "rowSpanLeg"},
+                                         ).text = "\u00A0" # produces &nbsp;
+                td = etree.SubElement(tr, colEltTag, attrib=attrib)  # type: ignore[type-var]
+                td.text = str(col) if col else "\u00A0"  # type: ignore[union-attr] # produces &nbsp;
             if lastColSpan and td is not None:
                 td.set("colspan", str(lastColSpan))
         elif self.type == XML:
             if asHeader:
                 # save column element names
                 self.xmlRowElementName = xmlRowElementName or "row"
-                self.columnEltNames = [col[0].lower() + nonNameCharPattern.sub('', col[1:])
+                self.columnEltNames = [col[0].lower() + nonNameCharPattern.sub("", col[1:])
                                        for col in cols]
             else:
                 if treeIndent < len(self.docEltLevels) and self.docEltLevels[treeIndent] is not None:
@@ -264,20 +305,22 @@ class View:
                     # problem, error message? unexpected indent
                     parentElt = self.docEltLevels[0]
                 # escape attributes content
-                escapedRowEltAttr = dict(((k, v.replace("&","&amp;").replace("<","&lt;"))
+                escapedRowEltAttr = dict(((k, v.replace("&", "&amp;").replace("<", "&lt;"))
                                           for k,v in xmlRowEltAttr.items())
                                          if xmlRowEltAttr else ())
-                rowElt = etree.SubElement(parentElt, xmlRowElementName or self.xmlRowElementName, attrib=escapedRowEltAttr)
+                rowElt = etree.SubElement(parentElt, xmlRowElementName or self.xmlRowElementName, attrib=escapedRowEltAttr)  # type: ignore[arg-type]
                 if treeIndent + 1 >= len(self.docEltLevels): # extend levels as needed
                     for extraColIndex in range(len(self.docEltLevels) - 1, treeIndent + 1):
-                        self.docEltLevels.append(None)
+                        self.docEltLevels.append(None)  # type: ignore[arg-type]
                 self.docEltLevels[treeIndent + 1] = rowElt
-                if not xmlColElementNames: xmlColElementNames = self.columnEltNames
+                if not xmlColElementNames:
+                    xmlColElementNames = self.columnEltNames
                 if len(cols) == 1 and not xmlCol0skipElt:
                     rowElt.text = xmlRowText if xmlRowText else cols[0]
                 else:
                     isDimensionName = isDimensionValue = False
                     elementName = "element" # need a default
+                    dimensionName = ""
                     for i, col in enumerate(cols):
                         if (i != 0 or not xmlCol0skipElt) and col:
                             if i < len(xmlColElementNames):
@@ -291,7 +334,7 @@ class View:
                                 dimensionName = str(col)
                             else:
                                 elt = etree.SubElement(rowElt, elementName)
-                                elt.text = str(col).replace("&","&amp;").replace("<","&lt;")
+                                elt.text = str(col).replace("&", "&amp;").replace("<", "&lt;")
                                 if isDimensionValue:
                                     elt.set("name", dimensionName)
                                     isDimensionName = True
@@ -300,7 +343,7 @@ class View:
             if asHeader:
                 # save column element names
                 self.xmlRowElementName = xmlRowElementName
-                self.columnEltNames = [col[0].lower() + nonNameCharPattern.sub('', col[1:])
+                self.columnEltNames = [col[0].lower() + nonNameCharPattern.sub("", col[1:])
                                        for col in cols]
             else:
                 if treeIndent < len(self.entryLevels) and self.entryLevels[treeIndent] is not None:
@@ -308,7 +351,7 @@ class View:
                 else:
                     # problem, error message? unexpected indent
                     entries = self.entryLevels[0]
-                entry = []
+                entry: list[Any] = []
                 if xmlRowElementName:
                     entry.append(xmlRowElementName)
                 elif self.xmlRowElementName:
@@ -317,36 +360,38 @@ class View:
                     entry.append(xmlRowEltAttr)
                 else:
                     entry.append({})
-                entries.append(entry)
+                entries.append(entry)  # type: ignore[union-attr]
                 if treeIndent + 1 >= len(self.entryLevels): # extend levels as needed
                     for extraColIndex in range(len(self.entryLevels) - 1, treeIndent + 1):
                         self.entryLevels.append(None)
                 self.entryLevels[treeIndent + 1] = entry
-                if not xmlColElementNames: xmlColElementNames = self.columnEltNames
+                if not xmlColElementNames:
+                    xmlColElementNames = self.columnEltNames
                 if len(cols) == 1 and not xmlCol0skipElt:
                     entry.append(xmlRowText if xmlRowText else cols[0])
                 else:
-                    content = {}
+                    content: dict[str, str | dict[str, str]] = {}
                     entry.append(content)
                     for i, col in enumerate(cols):
                         if (i != 0 or not xmlCol0skipElt) and col and i < len(xmlColElementNames):
                                 elementName = xmlColElementNames[i]
+                                value: str | dict[str, str]
                                 if elementName == "dimensions":
-                                    value = dict((str(cols[i]),str(cols[i+1])) for i in range(i, len(cols), 2))
+                                    value = dict((str(cols[i]), str(cols[i + 1])) for i in range(i, len(cols), 2))
                                 else:
                                     value = str(col)
                                 content[elementName] = value
         if asHeader and lastColSpan:
             self.numHdrCols += lastColSpan - 1
 
-    def close(self, noWrite=False):
+    def close(self, noWrite: bool = False) -> None:
         if self.type == CSV:
             if not isinstance(self.outfile, FileNamedStringIO):
                 self.csvFile.close()
         elif self.type == XLSX:
             if self.autoFilter:
                 # add filtering
-                self.xlsxWs.auto_filter.ref = 'A1:{}{}'.format(utils.get_column_letter(self.xlsxWs.max_column), len(self.xlsxWs['A']))
+                self.xlsxWs.auto_filter.ref = "A1:{}{}".format(utils.get_column_letter(self.xlsxWs.max_column), len(self.xlsxWs["A"]))  # type: ignore[union-attr,index]
             self.xlsxWb.save(self.outfile)
         elif self.type != NOOUT and not noWrite:
             fileType = TYPENAMES[self.type]
@@ -355,25 +400,25 @@ class View:
                 if isinstance(self.outfile, FileNamedStringIO):
                     fh = self.outfile
                 else:
-                    fh = open(self.outfile, "w", encoding="utf-8")
+                    fh = open(self.outfile, "w", encoding="utf-8")  # type: ignore[arg-type,assignment]
                 if self.type == JSON:
                     fh.write(json.dumps(self.jsonObject, ensure_ascii=False))
                 else:
-                    XmlUtil.writexml(fh, self.xmlDoc, encoding="utf-8",
-                                     xmlcharrefreplace= (self.type == HTML) )
+                    XmlUtil.writexml(fh, self.xmlDoc, encoding="utf-8",  # type: ignore[arg-type]
+                                     xmlcharrefreplace=(self.type == HTML))
                 if not isinstance(self.outfile, FileNamedStringIO):
                     fh.close()
                 if self.modelXbrl:
                     self.modelXbrl.info("info", _("Saved output %(type)s to %(file)s"), file=self.outfile, type=fileType)
             except (IOError, EnvironmentError) as err:
                 if self.modelXbrl:
-                    self.modelXbrl.exception("arelle:htmlIOError", _("Failed to save output %(type)s to %(file)s: %(error)s"), file=self.outfile, type=fileType, error=err)
+                    self.modelXbrl.exception("arelle:htmlIOError", _("Failed to save output %(type)s to %(file)s: %(error)s"), file=self.outfile, type=fileType, error=err)  # type: ignore[arg-type]
                 else:
                     raise
         self.modelXbrl = None
         if self.type == HTML:
             self.tblElt = None
         elif self.type == XML:
-            self.docEltLevels = None
+            self.docEltLevels = None  # type: ignore[assignment]
 
         self.__dict__.clear() # dereference everything after closing document

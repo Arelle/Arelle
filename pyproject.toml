@@ -174,7 +174,6 @@ module = [
     'arelle.ValidateInfoset',
     'arelle.ValidateVersReport',
     'arelle.Version',
-    'arelle.ViewFile',
     'arelle.ViewFileConcepts',
     'arelle.ViewFileDTS',
     'arelle.ViewFileFactList',
