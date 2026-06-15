@@ -2,7 +2,7 @@
 bottle==0.13.4
 certifi==2026.5.20
 cheroot==11.1.2
-filelock==3.29.1
+filelock==3.29.4
 isodate==0.7.2
 jaconv==0.5.0
 jsonschema==4.26.0
@@ -13,7 +13,7 @@ openpyxl==3.1.5
 pyparsing==3.3.2
 python-dateutil==2.9.0.post0
 regex==2026.5.9
-tornado==6.5.6
+tornado==6.5.7
 truststore==0.10.4
 typing-extensions==4.15.0
 # plugins
