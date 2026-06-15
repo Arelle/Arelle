@@ -552,8 +552,8 @@ def rule_EC0349E(
     uploadContents = pluginData.getUploadContents()
     if uploadContents is None:
         return
-    xbrlDirectoryPath = Path('XBRL')
-    allowedPaths = {p.xbrlDirectory for p in (
+    xbrlDirectoryPath = uploadContents.rootDirectory / Path('XBRL')
+    allowedPaths = {uploadContents.rootDirectory / p.xbrlDirectory for p in (
         ReportFolderType.AUDIT_DOC,
         ReportFolderType.PRIVATE_DOC,
         ReportFolderType.PUBLIC_DOC,
