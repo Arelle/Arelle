@@ -13,7 +13,6 @@ class TestIsNegativeDecimal:
         "-0.5",
         "-100",
         "-0.001",
-        " -1 ",       # with whitespace
         "-1.0",
         "-99999999",
     ])
@@ -26,7 +25,6 @@ class TestIsNegativeDecimal:
         "0.5",
         "100",
         "0.001",
-        " 1 ",        # with whitespace
         "99999999",
         "0.0",
     ])

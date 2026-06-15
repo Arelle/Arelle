@@ -1453,7 +1453,7 @@ def checkIxContinuationChain(val: ValidateXbrl, elt: ModelObject, chain: list[Mo
 def _isNegativeDecimal(text: str) -> bool:
     """Return True if text is a valid decimal number and is negative."""
     try:
-        return Decimal(text.strip()) < 0
+        return Decimal(text) < 0
     except (InvalidOperation, ValueError):
         return False
 
