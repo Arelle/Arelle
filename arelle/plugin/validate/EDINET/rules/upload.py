@@ -244,28 +244,29 @@ def rule_EC0132E(
         if reportFolderType.isAttachment:
             # These rules don't apply to "Attach" directories
             continue
+        manifestPath = uploadContents.rootDirectory / reportFolderType.manifestPath
         coverPageFound = False
         manifestFound = False
         for path in paths:
             pathInfo = uploadContents.uploadPathsByPath[path]
             if pathInfo.isCoverPage:
                 coverPageFound = True
-            if path == reportFolderType.manifestPath:
+            if path == manifestPath:
                 manifestFound = True
         if not coverPageFound and reportFolderType != ReportFolderType.AUDIT_DOC:
             yield Validation.error(
                 codes='EDINET.EC0132E',
                 msg=_("Cover page does not exist in '%(expectedManifestDirectory)s'. "
                       "Please store the cover file directly under the relevant folder and upload it again. "),
-                expectedManifestDirectory=str(reportFolderType.manifestPath.parent),
+                expectedManifestDirectory=str(manifestPath.parent),
             )
         if not manifestFound:
             yield Validation.error(
                 codes='EDINET.EC0132E',
                 msg=_("'%(expectedManifestName)s' does not exist in '%(expectedManifestDirectory)s'. "
                       "Please store the manifest file directly under the relevant folder and upload it again. "),
-                expectedManifestName=reportFolderType.manifestPath.name,
-                expectedManifestDirectory=str(reportFolderType.manifestPath.parent),
+                expectedManifestName=manifestPath.name,
+                expectedManifestDirectory=str(manifestPath.parent),
             )
 
 
