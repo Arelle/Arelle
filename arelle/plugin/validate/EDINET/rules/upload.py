@@ -127,7 +127,7 @@ def rule_EC0124E_EC0187E(
         if not any(path in p.parents for p in uploadFilepaths):
             emptyDirectories.append(path)
     for emptyDirectory in emptyDirectories:
-        if len(emptyDirectory.parts) <= 1:
+        if len(emptyDirectory.parts) <= 2:
             yield Validation.error(
                 codes='EDINET.EC0124E',
                 msg=_("There is no file directly under '%(emptyDirectory)s'. "
