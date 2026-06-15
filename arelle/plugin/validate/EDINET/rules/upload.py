@@ -375,12 +375,15 @@ def rule_EC0198E(
     EDINET.EC0198E: The number of files in the total submission and directories can not exceed the upper limit.
     """
     fileCounts: dict[Path, int] = defaultdict(int)
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
     uploadFilepaths = pluginData.getUploadFilepaths(fileSource)
     for path, zipPath in uploadFilepaths.items():
         if zipPath.is_dir():
             continue
         for directory in FILE_COUNT_LIMITS.keys():
-            if directory in path.parents:
+            if uploadContents.rootDirectory / directory in path.parents:
                 fileCounts[directory] += 1
                 break
     for directory, limit in FILE_COUNT_LIMITS.items():
