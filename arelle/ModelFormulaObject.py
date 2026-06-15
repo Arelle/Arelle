@@ -786,7 +786,7 @@ class ModelFactVariable(ModelVariable):
 
     @property
     def viewExpression(self) -> str:
-        return "fallbackValue =" + self.fallbackValue or ""  # type: ignore[operator]
+        return ("fallbackValue =" + self.fallbackValue) if self.fallbackValue else ""
 
 
 class ModelGeneralVariable(ModelVariable):
