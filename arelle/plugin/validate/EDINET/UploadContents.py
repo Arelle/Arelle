@@ -13,7 +13,12 @@ from .ReportFolderType import ReportFolderType
 @dataclass(frozen=True)
 class UploadContents:
     reports: dict[ReportFolderType, frozenset[Path]]
+    rootDirectory: Path
     uploadPaths: list[UploadPathInfo]
+
+    @property
+    def manifestPaths(self) -> frozenset[Path]:
+        return frozenset(self.rootDirectory / t.manifestPath for t in self.reports)
 
     @property
     def sortedPaths(self) -> list[Path]:
@@ -41,8 +46,9 @@ class UploadPathInfo:
     isCorrection: bool
     isCoverPage: bool
     isDirectory: bool
-    isRoot: bool
+    isRootSubdirectory: bool
     isSubdirectory: bool
     path: Path
     reportFolderType: ReportFolderType | None
     reportPath: Path | None
+    rootDirectory: Path | None

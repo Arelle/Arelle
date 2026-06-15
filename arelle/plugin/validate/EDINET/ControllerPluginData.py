@@ -35,6 +35,14 @@ if TYPE_CHECKING:
 _: TypeGetText
 
 
+DEPTH_ROOT_DIRECTORY = 0
+DEPTH_XBRL_DIRECTORY = 1
+DEPTH_CORRECTIONS_DIRECTORY = 1
+DEPTH_CORRECTIONS_SUBDIRECTORY = 2
+DEPTH_REPORT_DIRECTORY = 2
+DEPTH_REPORT_SUBDIRECTORY = 3
+
+
 @dataclass
 class ControllerPluginData(PluginData):
     _allowedCharacterSheetPath: Path
@@ -112,6 +120,9 @@ class ControllerPluginData(PluginData):
             if len(path.parts) == 0:
                 continue
             assert isinstance(fileSource.basefile, str)
+            rootDirectory = path.parents[-1] if path.parts else Path('.')
+            if rootParts := [part for part in path.parts if part not in ('.', '/')]:
+                rootDirectory = Path(rootParts[0])
             fullPath = Path(fileSource.basefile) / path
             parents = list(reversed([p.name for p in path.parents if len(p.name) > 0]))
             reportFolderType = None
@@ -119,19 +130,20 @@ class ControllerPluginData(PluginData):
             isDirectory = zipPath.is_dir()
             isInSubdirectory = False
             reportPath = None
-            if len(parents) > 0:
-                isCorrection = parents[0] != 'XBRL'
+            depth = len(parents)
+            if depth > DEPTH_XBRL_DIRECTORY:
+                isCorrection = parents[DEPTH_XBRL_DIRECTORY] != 'XBRL'
                 if not isCorrection:
-                    if len(parents) > 1:
-                        formName = parents[1]
-                        isInSubdirectory = len(parents) > 2
+                    if depth > DEPTH_REPORT_DIRECTORY:
+                        formName = parents[DEPTH_REPORT_DIRECTORY]
+                        isInSubdirectory = depth > DEPTH_REPORT_SUBDIRECTORY
                         reportFolderType = ReportFolderType.parse(formName)
                 if reportFolderType is None:
-                    formName = parents[0]
-                    isInSubdirectory = len(parents) > 1
+                    formName = parents[DEPTH_CORRECTIONS_DIRECTORY]
+                    isInSubdirectory = depth > DEPTH_CORRECTIONS_SUBDIRECTORY
                     reportFolderType = ReportFolderType.parse(formName)
                 if reportFolderType is not None:
-                    reportPath = Path(reportFolderType.value) if isCorrection else Path("XBRL") / reportFolderType.value
+                    reportPath = rootDirectory / (Path(reportFolderType.value) if isCorrection else Path("XBRL") / reportFolderType.value)
                     if not isCorrection:
                         reports[reportFolderType].append(path)
             uploadPaths[path] = UploadPathInfo(
@@ -140,14 +152,16 @@ class ControllerPluginData(PluginData):
                 isCorrection=isCorrection,
                 isCoverPage=not isDirectory and path.stem.startswith(Constants.COVER_PAGE_FILENAME_PREFIX),
                 isDirectory=isDirectory,
-                isRoot=len(path.parts) == 1,
+                isRootSubdirectory=depth == DEPTH_XBRL_DIRECTORY,
                 isSubdirectory=isInSubdirectory or (isDirectory and reportFolderType is not None),
                 path=path,
                 reportFolderType=reportFolderType,
                 reportPath=reportPath,
+                rootDirectory=rootDirectory,
             )
         self._uploadContents = UploadContents(
             reports={k: frozenset(v) for k, v in reports.items() if len(v) > 0},
+            rootDirectory=next((p.rootDirectory for p in uploadPaths.values() if p.rootDirectory is not None), Path('.')),
             uploadPaths=list(uploadPaths.values())
         )
         return self._uploadContents
