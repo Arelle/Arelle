@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 
 _: TypeGetText
 
-ALLOWED_ROOT_FOLDERS = {
+ALLOWED_ROOT_SUBDIRECTORIES = {
     "AttachDoc",
     "AuditDoc",
     "PrivateAttach",
@@ -73,8 +73,8 @@ def rule_EC0100E(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    EDINET.EC0100E: An illegal directory is found directly under the transferred directory.
-    Only the following root folders are allowed:
+    EDINET.EC0100E: An illegal directory is found directly under the root directory.
+    Only the following root subdirectories are allowed:
         AttachDoc
         AuditDoc*
         PrivateAttach
@@ -86,21 +86,21 @@ def rule_EC0100E(
 
     NOTE: since we do not have access to the submission type, we can't determine if the submission is a correction or not.
     For this implementation, we will allow all directories that may be valid for at least one submission type.
-    This allows for a false-negative outcome when a non-correction submission has a correction-only root directory.
+    This allows for a false-negative outcome when a non-correction submission has a correction-only root subdirectory.
     """
     uploadContents = pluginData.getUploadContents()
     if uploadContents is None:
         return
     for path, pathInfo in uploadContents.uploadPathsByPath.items():
-        if pathInfo.isRoot and path.name not in ALLOWED_ROOT_FOLDERS:
+        if pathInfo.isRootSubdirectory and path.name not in ALLOWED_ROOT_SUBDIRECTORIES:
             yield Validation.error(
                 codes='EDINET.EC0100E',
-                msg=_("An illegal directory is found directly under the transferred directory. "
-                      "Directory name or file name: '%(rootDirectory)s'. "
+                msg=_("An illegal directory is found directly under the root directory. "
+                      "Directory name or file name: '%(rootSubdirectory)s'. "
                       "Delete all folders except the following folders that exist directly "
                       "under the root folder, and then upload again: %(allowedDirectories)s."),
-                rootDirectory=path.name,
-                allowedDirectories=', '.join(f"'{d}'" for d in ALLOWED_ROOT_FOLDERS)
+                rootSubdirectory=path.name,
+                allowedDirectories=', '.join(f"'{d}'" for d in ALLOWED_ROOT_SUBDIRECTORIES)
             )
 
 
