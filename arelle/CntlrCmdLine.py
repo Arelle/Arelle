@@ -2187,7 +2187,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             ViewFileRssFeed.viewRssFeed(self.modelManager.modelXbrl, options.rssReport, options.rssReportCols)  # type: ignore[no-untyped-call]
 
                         if options.DTSFile:
-                            ViewFileDTS.viewDTS(modelXbrl, options.DTSFile)  # type: ignore[no-untyped-call]
+                            ViewFileDTS.viewDTS(modelXbrl, options.DTSFile)  # type: ignore[arg-type]
                         if options.factsFile:
                             ViewFileFactList.viewFacts(modelXbrl, options.factsFile, labelrole=options.labelRole, lang=options.labelLang, cols=options.factListCols)  # type: ignore[no-untyped-call]
                         if options.factTableFile:
