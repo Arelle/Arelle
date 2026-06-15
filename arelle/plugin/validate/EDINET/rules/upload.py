@@ -594,7 +594,7 @@ def rule_EC0352E(
             pathInfo.isSubdirectory or
             pathInfo.isAttachment or
             pathInfo.reportFolderType is None or
-            any(path == t.manifestPath for t in ReportFolderType)
+            path in uploadContents.manifestPaths
         ):
             continue
         patterns = pathInfo.reportFolderType.ixbrlFilenamePatterns
