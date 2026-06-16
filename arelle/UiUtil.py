@@ -214,7 +214,7 @@ class gridCell(Entry):
         master: Misc,
         x: int,
         y: int,
-        value: str = "",
+        value: str | None = "",
         width: int | None = None,
         justify: str | None = None,
         objectId: Any = None,

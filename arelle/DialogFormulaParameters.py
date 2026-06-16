@@ -1,18 +1,26 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
+from __future__ import annotations
+
 from tkinter import Toplevel, N, S, E, W
-try:
-    from tkinter.ttk import Frame, Button
-except ImportError:
-    from ttk import Frame, Button
+from tkinter.ttk import Frame, Button
+from typing import TYPE_CHECKING, Any
 import regex as re
-from arelle.UiUtil import (gridHdr, gridCell, gridCombobox, label, checkbox)
+from arelle.UiUtil import gridHdr, gridCell, gridCombobox, label, checkbox
+from arelle.typing import TypeGetText
+
+if TYPE_CHECKING:
+    from arelle.CntlrWinMain import CntlrWinMain
+
+_: TypeGetText
 
 '''
 caller checks accepted, if True, caller retrieves url
 '''
-def getParameters(mainWin):
+
+
+def getParameters(mainWin: CntlrWinMain) -> None:
     dialog = DialogFormulaParameters(mainWin, mainWin.modelManager.formulaOptions.__dict__.copy())
     if dialog.accepted:
         mainWin.modelManager.formulaOptions.__dict__.update(dialog.options)
@@ -21,13 +29,14 @@ def getParameters(mainWin):
 
 
 class DialogFormulaParameters(Toplevel):
-    def __init__(self, mainWin, options):
+    def __init__(self, mainWin: CntlrWinMain, options: dict[str, Any]) -> None:
         parent = mainWin.parent
         self.modelManager = mainWin.modelManager
         super(DialogFormulaParameters, self).__init__(parent)
         self.parent = parent
         self.options = options
         parentGeometry = re.match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
+        assert parentGeometry is not None
         dialogX = int(parentGeometry.group(3))
         dialogY = int(parentGeometry.group(4))
         self.accepted = False
@@ -52,27 +61,27 @@ class DialogFormulaParameters(Toplevel):
         gridHdr(frame, 2, 1, "Type")
         gridHdr(frame, 3, 1, "Value")
 
-        self.gridCells = []
+        self.gridCells: list[tuple[gridCell, gridCombobox, gridCell]] = []
         y = 2
         dataTypes = ("xs:string", "xs:integer", "xs:decimal", "xs:boolean", "xs:date", "xs:datetime", "xs:QName")
         for parameter in options["parameterValues"].items():
             paramQname, paramTypeValue = parameter
-            if isinstance(paramTypeValue, (tuple,list)):
+            if isinstance(paramTypeValue, (tuple, list)):
                 paramType, paramValue = paramTypeValue  # similar to modelTestcaseObject, where values() are (type,value)
             else:
                 paramType = None
                 paramValue = paramTypeValue
-            self.gridCells.append( (
+            self.gridCells.append((
                 gridCell(frame, 1, y, paramQname),
                 gridCombobox(frame, 2, y, paramType, values=dataTypes),
-                gridCell(frame, 3, y, paramValue)) )
+                gridCell(frame, 3, y, paramValue)))
             y += 1
         # extra entry for new cells
         for i in range(5):
-            self.gridCells.append( (
+            self.gridCells.append((
                 gridCell(frame, 1, y),
                 gridCombobox(frame, 2, y, values=dataTypes),
-                gridCell(frame, 3, y)) )
+                gridCell(frame, 3, y)))
             y += 1
         y += 1
 
@@ -82,7 +91,7 @@ class DialogFormulaParameters(Toplevel):
         label(frame, 1, y + 8, "Testcase Results & RSS Items:")
         label(frame, 2, y, "Variable Set Trace:")
         label(frame, 3, y, "Variables Trace:")
-        self.checkboxes = (
+        self.checkboxes: tuple[checkbox | gridCombobox, ...] = (
            checkbox(frame, 1, y + 1,
                     "Expression Result",
                     "traceParameterExpressionResult"),
@@ -168,7 +177,7 @@ class DialogFormulaParameters(Toplevel):
            )
         y += 11
 
-        mainWin.showStatus(None)
+        mainWin.showStatus("")
 
         label(frame, 1, y, "Variable Set Timeout (secs):")
         self.varSetTimeoutEntry = gridCell(frame, 2, y, options.get("formulaVarSetTimeout"))
@@ -186,13 +195,13 @@ class DialogFormulaParameters(Toplevel):
         okButton.grid(row=y, column=3, sticky=W, pady=3)
         cancelButton.grid(row=y, column=3, sticky=E, pady=3, padx=3)
 
-        frame.grid(row=0, column=0, sticky=(N,S,E,W))
+        frame.grid(row=0, column=0, sticky=(N, S, E, W))
         frame.columnconfigure(1, weight=3)
         frame.columnconfigure(2, weight=1)
         frame.columnconfigure(3, weight=3)
         window = self.winfo_toplevel()
         window.columnconfigure(0, weight=1)
-        self.geometry("+{0}+{1}".format(dialogX+50,dialogY+100))
+        self.geometry("+{0}+{1}".format(dialogX + 50, dialogY + 100))
 
         #self.bind("<Return>", self.ok)
         #self.bind("<Escape>", self.close)
@@ -201,11 +210,11 @@ class DialogFormulaParameters(Toplevel):
         self.grab_set()
         self.wait_window(self)
 
-    def setOptions(self):
+    def setOptions(self) -> None:
         # set formula options
         for checkbox in self.checkboxes:
-            self.options[checkbox.attr] = checkbox.value
-        parameterValues = {}
+            self.options[checkbox.attr] = checkbox.value  # type: ignore[index]
+        parameterValues: dict[str, tuple[str, str]] = {}
         for paramCells in self.gridCells:
             qnameCell, typeCell, valueCell = paramCells
             if qnameCell.value != "" and valueCell.value != "":
@@ -216,16 +225,17 @@ class DialogFormulaParameters(Toplevel):
         self.options["formulaVarSetTimeout"] = _parsePositiveFloat(self.varSetTimeoutEntry.value)
         self.options["formulaReportTimeout"] = _parsePositiveFloat(self.reportTimeoutEntry.value)
 
-    def ok(self, event=None):
+    def ok(self, event: Any = None) -> None:
         self.setOptions()
         self.accepted = True
         self.close()
 
-    def close(self, event=None):
+    def close(self, event: Any = None) -> None:
         self.parent.focus_set()
         self.destroy()
 
-def _parsePositiveFloat(value):
+
+def _parsePositiveFloat(value: str) -> float | None:
     try:
         f = float(value.strip())
         return f if f > 0 else None
