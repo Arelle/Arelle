@@ -198,7 +198,7 @@ class View:
             html = io.StringIO("<{0}/>".format(self.rootElementName))
             self.xmlDoc = etree.parse(html)
             html.close()
-            self.docEltLevels: list[etree._Element] = [self.xmlDoc.getroot()]
+            self.docEltLevels: list[etree._Element | None] | None = [self.xmlDoc.getroot()]
             self.tblElt = self.docEltLevels[0]
         elif self.type == JSON:
             self.entries: list[Any] = []
@@ -224,7 +224,7 @@ class View:
 
     def addRow(
             self,
-            cols: Sequence[str],
+            cols: Sequence[str | int | float | Decimal | None],
             asHeader: bool = False,
             treeIndent: int = 0,
             colSpan: int = 1,
@@ -250,7 +250,7 @@ class View:
             for iCol, col in enumerate(cols):
                 cell = self.xlsxWs.cell(row=self.xlsxRow + 1, column=iCol + 1)  # type: ignore[union-attr]
                 if asHeader:
-                    cell.value = col.replace("\u00AD","") # remove soft-breaks
+                    cell.value = col.replace("\u00AD","")  # type: ignore[union-attr] # remove soft-breaks
                     cell.alignment = Alignment(horizontal="center", vertical="center")
                     cell.fill = PatternFill(patternType=fills.FILL_SOLID, fgColor=Color("00FFBF5F"))
                 else:
@@ -270,7 +270,7 @@ class View:
         elif self.type == HTML:
             tr = etree.SubElement(self.tblElt, "{http://www.w3.org/1999/xhtml}tr")  # type: ignore[type-var]
             td = None
-            for i, col in enumerate(list(cols) + [None for emptyCol in range(self.numHdrCols - colSpan + 1 - len(cols))]):  # type: ignore[assignment]
+            for i, col in enumerate(list(cols) + [None for emptyCol in range(self.numHdrCols - colSpan + 1 - len(cols))]):
                 attrib: dict[str, str] = {}
                 if asHeader:
                     attrib["class"] = "tableHdr"
@@ -296,27 +296,27 @@ class View:
             if asHeader:
                 # save column element names
                 self.xmlRowElementName = xmlRowElementName or "row"
-                self.columnEltNames = [col[0].lower() + nonNameCharPattern.sub("", col[1:])
+                self.columnEltNames = [col[0].lower() + nonNameCharPattern.sub("", col[1:])  # type: ignore[index,operator]
                                        for col in cols]
             else:
-                if treeIndent < len(self.docEltLevels) and self.docEltLevels[treeIndent] is not None:
-                    parentElt = self.docEltLevels[treeIndent]
+                if treeIndent < len(self.docEltLevels) and self.docEltLevels[treeIndent] is not None:  # type: ignore[arg-type,index]
+                    parentElt = self.docEltLevels[treeIndent]  # type: ignore[index]
                 else:
                     # problem, error message? unexpected indent
-                    parentElt = self.docEltLevels[0]
+                    parentElt = self.docEltLevels[0]  # type: ignore[index]
                 # escape attributes content
                 escapedRowEltAttr = dict(((k, v.replace("&", "&amp;").replace("<", "&lt;"))
                                           for k,v in xmlRowEltAttr.items())
                                          if xmlRowEltAttr else ())
                 rowElt = etree.SubElement(parentElt, xmlRowElementName or self.xmlRowElementName, attrib=escapedRowEltAttr)  # type: ignore[arg-type]
-                if treeIndent + 1 >= len(self.docEltLevels): # extend levels as needed
-                    for extraColIndex in range(len(self.docEltLevels) - 1, treeIndent + 1):
-                        self.docEltLevels.append(None)  # type: ignore[arg-type]
-                self.docEltLevels[treeIndent + 1] = rowElt
+                if treeIndent + 1 >= len(self.docEltLevels):  # type: ignore[arg-type] # extend levels as needed
+                    for extraColIndex in range(len(self.docEltLevels) - 1, treeIndent + 1):  # type: ignore[arg-type]
+                        self.docEltLevels.append(None)  # type: ignore[union-attr]
+                self.docEltLevels[treeIndent + 1] = rowElt  # type: ignore[index]
                 if not xmlColElementNames:
                     xmlColElementNames = self.columnEltNames
                 if len(cols) == 1 and not xmlCol0skipElt:
-                    rowElt.text = xmlRowText if xmlRowText else cols[0]
+                    rowElt.text = xmlRowText if xmlRowText else cols[0]  # type: ignore[assignment,misc]
                 else:
                     isDimensionName = isDimensionValue = False
                     elementName = "element" # need a default
@@ -334,7 +334,7 @@ class View:
                                 dimensionName = str(col)
                             else:
                                 elt = etree.SubElement(rowElt, elementName)
-                                elt.text = str(col).replace("&", "&amp;").replace("<", "&lt;")
+                                elt.text = str(col).replace("&", "&amp;").replace("<", "&lt;")  # type: ignore[misc]
                                 if isDimensionValue:
                                     elt.set("name", dimensionName)
                                     isDimensionName = True
@@ -343,7 +343,7 @@ class View:
             if asHeader:
                 # save column element names
                 self.xmlRowElementName = xmlRowElementName
-                self.columnEltNames = [col[0].lower() + nonNameCharPattern.sub("", col[1:])
+                self.columnEltNames = [col[0].lower() + nonNameCharPattern.sub("", col[1:])  # type: ignore[index,operator]
                                        for col in cols]
             else:
                 if treeIndent < len(self.entryLevels) and self.entryLevels[treeIndent] is not None:
@@ -419,6 +419,6 @@ class View:
         if self.type == HTML:
             self.tblElt = None
         elif self.type == XML:
-            self.docEltLevels = None  # type: ignore[assignment]
+            self.docEltLevels = None
 
         self.__dict__.clear() # dereference everything after closing document
