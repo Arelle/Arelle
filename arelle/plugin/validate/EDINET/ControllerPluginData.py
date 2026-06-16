@@ -120,9 +120,7 @@ class ControllerPluginData(PluginData):
             if len(path.parts) == 0:
                 continue
             assert isinstance(fileSource.basefile, str)
-            rootDirectory = path.parents[-1] if path.parts else Path('.')
-            if rootParts := [part for part in path.parts if part not in ('.', '/')]:
-                rootDirectory = Path(rootParts[0])
+            rootDirectory = Path(path.parts[0])
             fullPath = Path(fileSource.basefile) / path
             parents = list(reversed([p.name for p in path.parents if len(p.name) > 0]))
             reportFolderType = None
@@ -161,7 +159,7 @@ class ControllerPluginData(PluginData):
             )
         self._uploadContents = UploadContents(
             reports={k: frozenset(v) for k, v in reports.items() if len(v) > 0},
-            rootDirectory=next((p.rootDirectory for p in uploadPaths.values() if p.rootDirectory is not None), Path('.')),
+            rootDirectory=next((p.rootDirectory for p in uploadPaths.values()), Path('.')),
             uploadPaths=list(uploadPaths.values())
         )
         return self._uploadContents

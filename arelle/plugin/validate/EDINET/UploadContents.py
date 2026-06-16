@@ -51,4 +51,4 @@ class UploadPathInfo:
     path: Path
     reportFolderType: ReportFolderType | None
     reportPath: Path | None
-    rootDirectory: Path | None
+    rootDirectory: Path

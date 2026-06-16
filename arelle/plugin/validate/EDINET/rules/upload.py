@@ -116,9 +116,12 @@ def rule_EC0124E_EC0187E(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    EDINET.EC0124E: There are no empty root directories.
+    EDINET.EC0124E: There are no empty folders directly beneath the root directory.
     EDINET.EC0187E: There are no empty subdirectories.
     """
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
     uploadFilepaths = pluginData.getUploadFilepaths(fileSource)
     emptyDirectories = []
     for path, zipPath in uploadFilepaths.items():
@@ -126,16 +129,18 @@ def rule_EC0124E_EC0187E(
             continue
         if not any(path in p.parents for p in uploadFilepaths):
             emptyDirectories.append(path)
+    rootSubdirectoryDepth = len(uploadContents.rootDirectory.parts) + 1
     for emptyDirectory in emptyDirectories:
-        if len(emptyDirectory.parts) <= 2:
+        depth = len(emptyDirectory.parts)
+        if depth == rootSubdirectoryDepth:
             yield Validation.error(
                 codes='EDINET.EC0124E',
                 msg=_("There is no file directly under '%(emptyDirectory)s'. "
-                      "No empty root folders. "
+                      "No empty folders directly beneath the root folder. "
                       "Please store the file in the appropriate folder or delete the folder and upload again."),
                 emptyDirectory=str(emptyDirectory),
             )
-        else:
+        elif depth > rootSubdirectoryDepth:
             yield Validation.error(
                 codes='EDINET.EC0187E',
                 msg=_("'%(parentDirectory)s' contains a subordinate directory ('%(emptyDirectory)s') with no files. "
@@ -587,6 +592,7 @@ def rule_EC0352E(
     uploadContents = pluginData.getUploadContents()
     if uploadContents is None:
         return
+    manifestPaths = uploadContents.manifestPaths
     for path, pathInfo in uploadContents.uploadPathsByPath.items():
         if (
             pathInfo.isDirectory or
@@ -594,7 +600,7 @@ def rule_EC0352E(
             pathInfo.isSubdirectory or
             pathInfo.isAttachment or
             pathInfo.reportFolderType is None or
-            path in uploadContents.manifestPaths
+            path in manifestPaths
         ):
             continue
         patterns = pathInfo.reportFolderType.ixbrlFilenamePatterns
