@@ -748,7 +748,7 @@ class CntlrWinMain(Cntlr.Cntlr):
                     elif isinstance(view, ViewWinFormulae.ViewFormulae):
                         ViewFileFormulae.viewFormulae(modelXbrl, filename, "Formulae", lang=view.lang)
                     elif isinstance(view, ViewWinDTS.ViewDTS):
-                        ViewFileDTS.viewDTS(modelXbrl, filename)
+                        ViewFileDTS.viewDTS(modelXbrl, filename)  # type: ignore[arg-type]
                     else:
                         if isinstance(view.arcrole, tuple) and len(view.arcrole) > 0 and view.arcrole[0] == "Calculation":  # type: ignore[attr-defined]
                             # "arcrole" is overloaded with special strings that are sometimes used magically to query
