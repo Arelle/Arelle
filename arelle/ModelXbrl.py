@@ -12,7 +12,7 @@ from collections import defaultdict
 from typing import TYPE_CHECKING, Any, TypeVar, Union, cast, Optional
 
 import regex as re
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, Iterator, Set
 
 import arelle
 from arelle import FileSource, ModelRelationshipSet, XmlUtil, ModelValue, XbrlConst, XmlValidate
@@ -130,7 +130,7 @@ def loadSchemalocatedSchemas(modelXbrl: ModelXbrl) -> None:
         modelDocumentsSchemaLocated: set[ModelDocumentClass] = set()
         # loadSchemalocatedSchemas sometimes adds to modelXbrl.urlDocs
         while True:
-            modelDocuments: set[ModelDocumentClass] = set(modelXbrl.urlDocs.values()) - modelDocumentsSchemaLocated
+            modelDocuments: Set[ModelDocumentClass] = dict.fromkeys(d for d in modelXbrl.urlDocs.values() if d not in modelDocumentsSchemaLocated).keys()
             if not modelDocuments:
                 break
             for modelDocument in modelDocuments:
