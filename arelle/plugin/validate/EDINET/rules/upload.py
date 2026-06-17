@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 
 _: TypeGetText
 
-ALLOWED_ROOT_FOLDERS = {
+ALLOWED_ROOT_SUBDIRECTORIES = {
     "AttachDoc",
     "AuditDoc",
     "PrivateAttach",
@@ -73,8 +73,8 @@ def rule_EC0100E(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    EDINET.EC0100E: An illegal directory is found directly under the transferred directory.
-    Only the following root folders are allowed:
+    EDINET.EC0100E: An illegal directory is found directly under the root directory.
+    Only the following root subdirectories are allowed:
         AttachDoc
         AuditDoc*
         PrivateAttach
@@ -86,21 +86,21 @@ def rule_EC0100E(
 
     NOTE: since we do not have access to the submission type, we can't determine if the submission is a correction or not.
     For this implementation, we will allow all directories that may be valid for at least one submission type.
-    This allows for a false-negative outcome when a non-correction submission has a correction-only root directory.
+    This allows for a false-negative outcome when a non-correction submission has a correction-only root subdirectory.
     """
     uploadContents = pluginData.getUploadContents()
     if uploadContents is None:
         return
     for path, pathInfo in uploadContents.uploadPathsByPath.items():
-        if pathInfo.isRoot and path.name not in ALLOWED_ROOT_FOLDERS:
+        if pathInfo.isRootSubdirectory and path.name not in ALLOWED_ROOT_SUBDIRECTORIES:
             yield Validation.error(
                 codes='EDINET.EC0100E',
-                msg=_("An illegal directory is found directly under the transferred directory. "
-                      "Directory name or file name: '%(rootDirectory)s'. "
+                msg=_("An illegal directory is found directly under the root directory. "
+                      "Directory name or file name: '%(rootSubdirectory)s'. "
                       "Delete all folders except the following folders that exist directly "
                       "under the root folder, and then upload again: %(allowedDirectories)s."),
-                rootDirectory=path.name,
-                allowedDirectories=', '.join(f"'{d}'" for d in ALLOWED_ROOT_FOLDERS)
+                rootSubdirectory=path.name,
+                allowedDirectories=', '.join(f"'{d}'" for d in ALLOWED_ROOT_SUBDIRECTORIES)
             )
 
 
@@ -116,9 +116,12 @@ def rule_EC0124E_EC0187E(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    EDINET.EC0124E: There are no empty root directories.
+    EDINET.EC0124E: There are no empty folders directly beneath the root directory.
     EDINET.EC0187E: There are no empty subdirectories.
     """
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
     uploadFilepaths = pluginData.getUploadFilepaths(fileSource)
     emptyDirectories = []
     for path, zipPath in uploadFilepaths.items():
@@ -126,16 +129,18 @@ def rule_EC0124E_EC0187E(
             continue
         if not any(path in p.parents for p in uploadFilepaths):
             emptyDirectories.append(path)
+    rootSubdirectoryDepth = len(uploadContents.rootDirectory.parts) + 1
     for emptyDirectory in emptyDirectories:
-        if len(emptyDirectory.parts) <= 1:
+        depth = len(emptyDirectory.parts)
+        if depth == rootSubdirectoryDepth:
             yield Validation.error(
                 codes='EDINET.EC0124E',
                 msg=_("There is no file directly under '%(emptyDirectory)s'. "
-                      "No empty root folders. "
+                      "No empty folders directly beneath the root folder. "
                       "Please store the file in the appropriate folder or delete the folder and upload again."),
                 emptyDirectory=str(emptyDirectory),
             )
-        else:
+        elif depth > rootSubdirectoryDepth:
             yield Validation.error(
                 codes='EDINET.EC0187E',
                 msg=_("'%(parentDirectory)s' contains a subordinate directory ('%(emptyDirectory)s') with no files. "
@@ -244,28 +249,29 @@ def rule_EC0132E(
         if reportFolderType.isAttachment:
             # These rules don't apply to "Attach" directories
             continue
+        manifestPath = uploadContents.rootDirectory / reportFolderType.manifestPath
         coverPageFound = False
         manifestFound = False
         for path in paths:
             pathInfo = uploadContents.uploadPathsByPath[path]
             if pathInfo.isCoverPage:
                 coverPageFound = True
-            if path == reportFolderType.manifestPath:
+            if path == manifestPath:
                 manifestFound = True
         if not coverPageFound and reportFolderType != ReportFolderType.AUDIT_DOC:
             yield Validation.error(
                 codes='EDINET.EC0132E',
                 msg=_("Cover page does not exist in '%(expectedManifestDirectory)s'. "
                       "Please store the cover file directly under the relevant folder and upload it again. "),
-                expectedManifestDirectory=str(reportFolderType.manifestPath.parent),
+                expectedManifestDirectory=str(manifestPath.parent),
             )
         if not manifestFound:
             yield Validation.error(
                 codes='EDINET.EC0132E',
                 msg=_("'%(expectedManifestName)s' does not exist in '%(expectedManifestDirectory)s'. "
                       "Please store the manifest file directly under the relevant folder and upload it again. "),
-                expectedManifestName=reportFolderType.manifestPath.name,
-                expectedManifestDirectory=str(reportFolderType.manifestPath.parent),
+                expectedManifestName=manifestPath.name,
+                expectedManifestDirectory=str(manifestPath.parent),
             )
 
 
@@ -374,12 +380,15 @@ def rule_EC0198E(
     EDINET.EC0198E: The number of files in the total submission and directories can not exceed the upper limit.
     """
     fileCounts: dict[Path, int] = defaultdict(int)
+    uploadContents = pluginData.getUploadContents()
+    if uploadContents is None:
+        return
     uploadFilepaths = pluginData.getUploadFilepaths(fileSource)
     for path, zipPath in uploadFilepaths.items():
         if zipPath.is_dir():
             continue
         for directory in FILE_COUNT_LIMITS.keys():
-            if directory in path.parents:
+            if uploadContents.rootDirectory / directory in path.parents:
                 fileCounts[directory] += 1
                 break
     for directory, limit in FILE_COUNT_LIMITS.items():
@@ -548,8 +557,8 @@ def rule_EC0349E(
     uploadContents = pluginData.getUploadContents()
     if uploadContents is None:
         return
-    xbrlDirectoryPath = Path('XBRL')
-    allowedPaths = {p.xbrlDirectory for p in (
+    xbrlDirectoryPath = uploadContents.rootDirectory / Path('XBRL')
+    allowedPaths = {uploadContents.rootDirectory / p.xbrlDirectory for p in (
         ReportFolderType.AUDIT_DOC,
         ReportFolderType.PRIVATE_DOC,
         ReportFolderType.PUBLIC_DOC,
@@ -583,6 +592,7 @@ def rule_EC0352E(
     uploadContents = pluginData.getUploadContents()
     if uploadContents is None:
         return
+    manifestPaths = uploadContents.manifestPaths
     for path, pathInfo in uploadContents.uploadPathsByPath.items():
         if (
             pathInfo.isDirectory or
@@ -590,7 +600,7 @@ def rule_EC0352E(
             pathInfo.isSubdirectory or
             pathInfo.isAttachment or
             pathInfo.reportFolderType is None or
-            any(path == t.manifestPath for t in ReportFolderType)
+            path in manifestPaths
         ):
             continue
         patterns = pathInfo.reportFolderType.ixbrlFilenamePatterns
