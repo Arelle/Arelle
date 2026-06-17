@@ -505,7 +505,7 @@ def checkFactElrHcs(
         hcNegating = hasHcRel.arcrole == XbrlConst.notAll
         modelDimValues = context.dimValues(hcContextElement)
         if setPrototypeContextElements and isinstance(context,ContextPrototype):
-            oppositeContextDimValues = context.dimValues(hcContextElement, oppositeContextElement=True)  # type: ignore[no-untyped-call]
+            oppositeContextDimValues = context.dimValues(hcContextElement, oppositeContextElement=True)
         contextElementDimSet = set(modelDimValues.keys())
         modelNonDimValues = context.nonDimValues(hcContextElement)
         hcValid = True
