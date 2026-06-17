@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING, Optional, Any, Union, ClassVar, Dict
 from collections import defaultdict, OrderedDict
 from decimal import Decimal
 from arelle.ModelValue import QName, AnyURI
-from arelle.PythonUtil import OrderedSet
-from bin.arelle.plugin.OimTaxonomy.ModelValueMore import SQName
+from ordered_set import OrderedSet
+from arelle.plugin.XbrlModel.ModelValueMore import SQName
 from .XbrlTypes import XbrlTaxonomyModelType,XbrlModuleType, QNameKeyType, DefaultFalse, DefaultTrue, OptionalList
 from .XbrlObject import XbrlObject, XbrlReportObject
 from .XbrlProperty import XbrlProperty

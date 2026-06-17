@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Optional, Union
 from collections import OrderedDict
 
 from arelle.ModelValue import qname, QName, AnyURI
-from arelle.PythonUtil import OrderedSet
+from ordered_set import OrderedSet
 from .ModelValueMore import SQName
 from .XbrlImportTaxonomy import XbrlImportTaxonomy, XbrlFinalTaxonomy
 from .XbrlProperty import XbrlProperty
@@ -14,7 +14,7 @@ from .XbrlHeading import XbrlHeading
 from .XbrlConcept import XbrlCollectionType, XbrlConcept, XbrlDataType, XbrlUnitType
 from .XbrlConst import xbrl
 from .XbrlCube import XbrlCube, XbrlCubeType, XbrlCubeDimension, XbrlPeriodConstraint, XbrlDateResolution
-from .XbrlDimension import XbrlDimension, XbrlDomain, XbrlDomainClass, XbrlMember
+from .XbrlDimension import XbrlDimension, XbrlDomainNetwork, XbrlDomainClass, XbrlMember
 from .XbrlEntity import XbrlEntity
 from .XbrlGroup import XbrlGroup, XbrlGroupContent, XbrlGroupTree
 from .XbrlLabel import XbrlLabel, XbrlLabelType
@@ -75,7 +75,7 @@ class XbrlModule(XbrlModelObject):
     cubeTypes: OrderedSet[XbrlCubeType] # ordered set of cubeType objects.
     dataTypes: OrderedSet[XbrlDataType] # ordered set of dataType objects.
     dimensions: OrderedSet[XbrlDimension] # ordered set of dimension objects.
-    domains: OrderedSet[XbrlDomain] # (optional) ordered set of domain objects.
+    domainNetworks: OrderedSet[XbrlDomainNetwork] # (optional) ordered set of domain network objects.
     domainClasses: OrderedSet[XbrlDomainClass] # (optional) ordered set of domain root objects.
     entities: OrderedSet[XbrlEntity] # (optional) ordered set of entity objects.
     facts: OrderedSet[XbrlFact] #  (optional) ordered set of fact objects.
@@ -119,7 +119,7 @@ referencableObjectTypes = {
         qname(xbrl, "xbrl:headingObject"): XbrlHeading,
         qname(xbrl, "xbrl:cubeObject"): XbrlCube,
         qname(xbrl, "xbrl:dimensionObject"): XbrlDimension,
-        qname(xbrl, "xbrl:domainObject"): XbrlDomain,
+        qname(xbrl, "xbrl:domainNetworkObject"): XbrlDomainNetwork,
         qname(xbrl, "xbrl:domainClassObject"): XbrlDomainClass,
         qname(xbrl, "xbrl:entityObject"): XbrlEntity,
         qname(xbrl, "xbrl:factObject"): XbrlFact,

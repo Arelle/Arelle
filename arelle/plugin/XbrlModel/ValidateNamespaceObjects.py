@@ -3,7 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from typing import GenericAlias
 from arelle.ModelValue import QName
-from arelle.PythonUtil import OrderedSet
+from ordered_set import OrderedSet
 from .ErrorCatalog import emit_error
 from .XbrlConst import reservedPrefixNamespaces, qnXbrlPropertyObj
 from .XbrlModule import XbrlModule, XbrlModelType, xbrlObjectQNames

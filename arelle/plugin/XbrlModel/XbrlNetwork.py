@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Optional, Union
 from collections import defaultdict
 
 from arelle.ModelValue import QName, AnyURI
-from arelle.PythonUtil import OrderedSet
+from ordered_set import OrderedSet
 from .XbrlProperty import XbrlProperty
 from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue, OptionalNonemptySet
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject

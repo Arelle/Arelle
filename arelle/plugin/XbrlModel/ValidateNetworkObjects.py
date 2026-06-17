@@ -1,12 +1,12 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-from arelle.PythonUtil import OrderedSet
+from ordered_set import OrderedSet
 from arelle.ModelValue import QName, qname
 from .ErrorCatalog import emit_error
 from .XbrlConcept import XbrlCollectionType, XbrlDataType, XbrlConcept
 from .XbrlConst import objectsWithProperties, xbrl
-from .XbrlDimension import XbrlDomain
+from .XbrlDimension import XbrlDomainNetwork
 from .XbrlLabel import XbrlLabelType
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
 from .XbrlProperty import XbrlPropertyType
@@ -134,7 +134,7 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
                 emit_error(compMdl, "oimte:invalidQNameReference",
                            _("The propertyType %(name)s dataType %(qname)s MUST be a valid dataType object in the taxonomy model"),
                            xbrlObject=propTpObj, name=propTpObj.name, qname=propTpObj.dataType)
-            validateQNameReference(compMdl, propTpObj, "enumerationDomain", XbrlDomain)
+            validateQNameReference(compMdl, propTpObj, "enumerationDomain", XbrlDomainNetwork)
         for allowedObjQn in (propTpObj.allowedObjects or ()):
             if not _is_allowed_property_object_qname(allowedObjQn):
                 emit_error(compMdl, "oimte:invalidAllowedObject",

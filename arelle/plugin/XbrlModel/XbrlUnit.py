@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Optional
 
 from arelle.ModelValue import QName, qname
 from arelle.oim.Load import OIMException
-from arelle.PythonUtil import OrderedSet
+from ordered_set import OrderedSet
 from .XbrlTypes import XbrlModuleType, SQNameKeyType
 from .XbrlObject import XbrlReferencableModelObject
 

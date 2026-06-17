@@ -109,7 +109,7 @@ from arelle.ModelValue import (
     qname,
     tzinfoStr,
 )
-from arelle.PythonUtil import OrderedSet
+from ordered_set import OrderedSet
 from arelle.typing import TypeGetText
 from arelle.UrlUtil import relativeUri
 from arelle.utils.PluginData import PluginData

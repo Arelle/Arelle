@@ -5,7 +5,7 @@ See COPYRIGHT.md for copyright information.
 from typing import TYPE_CHECKING, Any, Optional, Union
 
 from arelle.ModelValue import QName
-from arelle.PythonUtil import OrderedSet
+from ordered_set import OrderedSet
 from .XbrlObject import XbrlModelClass, XbrlReferencableModelObject
 from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultFalse, OptionalNonemptySet
 

@@ -9,10 +9,10 @@ import sys, traceback
 from arelle.ModelValue import QName, AnyURI
 from arelle.ModelXbrl import ModelXbrl, create as modelXbrlCreate, XbrlConst
 from arelle.oim.Load import EMPTY_DICT
-from arelle.PythonUtil import OrderedSet
+from ordered_set import OrderedSet
 from .XbrlCube import XbrlCube
 from .XbrlConcept import XbrlConcept, XbrlDataType
-from .XbrlDimension import XbrlDomain
+from .XbrlDimension import XbrlDomainNetwork
 from .XbrlGroup import XbrlGroupContent
 from .XbrlNetwork import XbrlNetwork
 from .XbrlReference import XbrlReference
@@ -169,7 +169,7 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
         self._effectiveCubeExtensionCache.clear()
         self._referenceObjectsByNameCache = None
         for obj in self.namedObjects.values():
-            if isinstance(obj, (XbrlDomain, XbrlNetwork)):
+            if isinstance(obj, (XbrlDomainNetwork, XbrlNetwork)):
                 for attrName in ("_relationshipsFrom", "_relationshipsTo", "_roots"):
                     if hasattr(obj, attrName):
                         delattr(obj, attrName)
@@ -206,7 +206,7 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
         extendTargetName = getattr(obj, "extendTargetName", None)
         if extendTargetName is not None:
             targetObj = self.namedObjects.get(extendTargetName)
-            if isinstance(obj, XbrlDomain) and isinstance(targetObj, XbrlDomain) and getattr(targetObj, "isExtensible", True):
+            if isinstance(obj, XbrlDomainNetwork) and isinstance(targetObj, XbrlDomainNetwork) and getattr(targetObj, "isExtensible", True):
                 baseSet = self._effectiveRelationshipSet(targetObj, visiting)
                 relationships.update(baseSet["relationships"])
                 explicitRoots.update(baseSet["roots"])

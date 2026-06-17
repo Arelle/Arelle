@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 from typing import GenericAlias, _UnionGenericAlias, Any, _GenericAlias, ClassVar, ForwardRef
 import os, inspect
 from arelle.ModelValue import QName
-from arelle.PythonUtil import OrderedSet
+from ordered_set import OrderedSet
 from arelle.XmlValidate import INVALID, VALID
 from .XbrlConst import qnStdLabel
 XbrlModelObject = None # class forward reference

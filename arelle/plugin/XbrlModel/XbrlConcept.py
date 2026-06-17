@@ -7,7 +7,7 @@ from typing_extensions import TypeAlias
 from decimal import Decimal
 
 from arelle.ModelValue import QName
-from arelle.PythonUtil import OrderedSet
+from ordered_set import OrderedSet
 from arelle.XbrlConst import xsd, isNumericXsdType
 from .XbrlProperty import XbrlProperty
 from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue, DefaultFalse, OptionalNonemptySet

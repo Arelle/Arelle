@@ -9,7 +9,7 @@ class LegMdlXbrl(XbrlCompiledModel):
     @property
     def qnameConcepts(self, qname):
         concept = self.namedObjects(qname)
-        if isinstance(self, (XbrlConcept, XbrlAbstract, XbrlDimension, XbrlDomain, XbrlMember)):
+        if isinstance(self, (XbrlConcept, XbrlAbstract, XbrlDimension, XbrlMember)):
             return LegMdlConcept(concept)
         return None
 

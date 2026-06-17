@@ -4,7 +4,7 @@ See COPYRIGHT.md for copyright information.
 
 from typing import TYPE_CHECKING
 
-from arelle.PythonUtil import OrderedSet
+from ordered_set import OrderedSet
 from .XbrlProperty import XbrlProperty
 from .XbrlTypes import XbrlModuleType, SQNameKeyType
 from .ModelValueMore import SQName

@@ -8,9 +8,9 @@ from typing import GenericAlias
 from arelle import ViewWinTree, XbrlConst
 from arelle.FunctionFn import false
 from arelle.ModelValue import qname
-from arelle.PythonUtil import OrderedSet
+from ordered_set import OrderedSet
 from .XbrlCube import XbrlCube, XbrlPeriodConstraint
-from .XbrlDimension import XbrlDomain
+from .XbrlDimension import XbrlDomainNetwork
 from .XbrlGroup import XbrlGroup
 from .XbrlNetwork import XbrlNetwork
 from .XbrlFact import XbrlFact
@@ -136,7 +136,7 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
                 self.viewGroupContent(node, nodeNum, obj)
             elif isinstance(obj, XbrlCube):
                 self.viewDims(node, nodeNum, obj)
-            elif isinstance(obj, (XbrlNetwork, XbrlDomain)):
+            elif isinstance(obj, (XbrlNetwork, XbrlDomainNetwork)):
                 self.viewRoots(node, nodeNum, obj)
 
     def viewProps(self, parentNode, nodeNum, obj, nestedObjs=True):
@@ -178,7 +178,7 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
                 nodeNum += 1
                 if isinstance(relatedObj, XbrlCube):
                     self.viewDims(node, nodeNum, relatedObj)
-                elif isinstance(relatedObj, (XbrlNetwork, XbrlDomain)):
+                elif isinstance(relatedObj, (XbrlNetwork, XbrlDomainNetwork)):
                     self.viewRoots(node, nodeNum, relatedObj)
 
     def viewDims(self, parentNode, nodeNum, obj):
@@ -194,7 +194,7 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
                     self.viewRoots(domNode, nodeNum, domObj)
 
     def viewRoots(self, parentNode, nodeNum, obj):
-        if not isinstance(obj, (XbrlDomain, XbrlNetwork)):
+        if not isinstance(obj, (XbrlDomainNetwork, XbrlNetwork)):
             return
         relationshipsFrom = self.xbrlCompMdl.effectiveRelationshipsFrom(obj)
         for qn in self.xbrlCompMdl.effectiveRelationshipRoots(obj):

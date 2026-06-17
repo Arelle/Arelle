@@ -6,7 +6,7 @@ from .ErrorCatalog import emit_error
 from .XbrlHeading import XbrlHeading
 from .XbrlConcept import XbrlCollectionType, XbrlConcept, XbrlDataType, XbrlUnitType
 from .XbrlConst import qnXbrlConceptObj
-from .XbrlDimension import XbrlDomain
+from .XbrlDimension import XbrlDomainNetwork
 
 
 def validateConceptFamily(compMdl, module, oimFile, *, assertObjectType, validateQNameReference, validateProperties):
@@ -33,7 +33,7 @@ def validateConceptFamily(compMdl, module, oimFile, *, assertObjectType, validat
                        _("Concept %(name)s is not allowed for dataType %(dataType)s"),
                        xbrlObject=cncpt, name=cncpt.name, dataType=dtObj.name)
         if getattr(cncpt, "enumerationDomain", None):
-            validateQNameReference(compMdl, cncpt, "enumerationDomain", XbrlDomain)
+            validateQNameReference(compMdl, cncpt, "enumerationDomain", XbrlDomainNetwork)
         validateProperties(compMdl, oimFile, module, cncpt)
 
     for dtObj in module.dataTypes:
