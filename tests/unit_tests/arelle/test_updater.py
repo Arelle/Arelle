@@ -112,7 +112,7 @@ class TestUpdater:
     @patch("platform.machine")
     @patch("tkinter.messagebox.showinfo")
     @patch("tkinter.messagebox.showwarning")
-    def test_check_for_updates_macos(self, showWarning, showInfo, machine):
+    def test_check_for_updates_macos_x64(self, showWarning, showInfo, machine):
         machine.return_value = "x64"
         arelleRelease = ArelleRelease(
             version=NEW_ARELLE_VERSION,
@@ -135,7 +135,7 @@ class TestUpdater:
     @patch("platform.machine")
     @patch("tkinter.messagebox.showinfo")
     @patch("tkinter.messagebox.showwarning")
-    def test_check_for_updates_macos(self, showWarning, showInfo, machine):
+    def test_check_for_updates_macos_arm64(self, showWarning, showInfo, machine):
         machine.return_value = "arm64"
         arelleRelease = ArelleRelease(
             version=NEW_ARELLE_VERSION,
