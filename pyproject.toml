@@ -152,7 +152,6 @@ module = [
     'arelle.DialogAbout',
     'arelle.DialogArcroleGroup',
     'arelle.DialogFind',
-    'arelle.DialogFormulaParameters',
     'arelle.DialogLanguage',
     'arelle.DialogNewFactItem',
     'arelle.DialogOpenArchive',
