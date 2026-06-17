@@ -12,7 +12,7 @@
         "documentNamespacePrefix":"xbrlr"
     },
     "xbrlModel": {
-        "name": "xbrlr:TypesTaxonomyModule",
+        "name": "xbrlr:dataTypesModule",
         "frameworkName": "types",
         "version": "2025",
         "dataTypes": [
@@ -487,11 +487,6 @@
             {
                 "name": "xbrlr:linkToMarkdownFormat",
                 "baseType": "xbrlr:realURL"
-            },
-            {
-                "name": "xbrlr:languageType",
-                "baseType": "xs:string",
-                "patterns": ["^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$"]
             }
         ],
         "units": [
@@ -1126,12 +1121,6 @@
                 "language": "en",
                 "relatedName": "xbrlr:realURL",
                 "value": "A URL that references a real link to a resource. If used the URL must be valid."
-            },
-            {
-                "labelType": "xbrl:documentation",
-                "language": "en",
-                "relatedName": "xbrlr:languageType",
-                "value": "A string value that represents a BCP 47 language code (e.g. 'en', 'fr', 'zh-Hans'). The value must conform to the pattern: two or three ASCII letters optionally followed by one or more hyphen-separated subtags of two to eight alphanumeric characters."
             }
         ],
         "references": [
@@ -1253,8 +1242,7 @@
                     "xbrlr:enumeration",
                     "xbrlr:sharesType",
                     "xbrlr:pure",
-                    "xbrlr:monetary",
-                    "xbrlr:languageType"
+                    "xbrlr:monetary"
                 ],
                 "referenceType": "xbrl:specStatus",
                 "properties": [{"property":"ref:Status", "value":"REC"}]

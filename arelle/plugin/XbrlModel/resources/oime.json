@@ -17,7 +17,7 @@
                 "name": "oime:OIMErrorClassDomain"
             }
         ],
-        "domains": [
+        "domainNetworks": [
             {
                 "name": "oime:OIMErrorDomain",
                 "root": "oime:OIMErrorClassDomain",
@@ -44,13 +44,18 @@
                     },
                     {
                         "source": "oime:OIMErrorClassDomain",
-                        "target": "oime:missingPeriodDimension",
+                        "target": "oime:missingConceptDimension",
                         "order": 6
                     },
                     {
                         "source": "oime:OIMErrorClassDomain",
-                        "target": "oime:invalidPeriodDimension",
+                        "target": "oime:missingPeriodDimension",
                         "order": 7
+                    },
+                    {
+                        "source": "oime:OIMErrorClassDomain",
+                        "target": "oime:invalidPeriodDimension",
+                        "order": 8
                     }
                 ]
             }
@@ -85,6 +90,15 @@
             },
             {
                 "name": "oime:misplacedUnitDimension",
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oime:missingConceptDimension",
                 "properties": [
                     {
                         "property": "xbrl:severity",
@@ -150,13 +164,18 @@
                     },
                     {
                         "source": "oime:ReportErrors",
-                        "target": "oime:missingPeriodDimension",
+                        "target": "oime:missingConceptDimension",
                         "order": 3
                     },
                     {
                         "source": "oime:ReportErrors",
-                        "target": "oime:invalidPeriodDimension",
+                        "target": "oime:missingPeriodDimension",
                         "order": 4
+                    },
+                    {
+                        "source": "oime:ReportErrors",
+                        "target": "oime:invalidPeriodDimension",
+                        "order": 5
                     }
                 ]
             },
@@ -190,13 +209,18 @@
                     },
                     {
                         "source": "oime:ReportErrors",
-                        "target": "oime:missingPeriodDimension",
+                        "target": "oime:missingConceptDimension",
                         "order": 3
                     },
                     {
                         "source": "oime:ReportErrors",
-                        "target": "oime:invalidPeriodDimension",
+                        "target": "oime:missingPeriodDimension",
                         "order": 4
+                    },
+                    {
+                        "source": "oime:ReportErrors",
+                        "target": "oime:invalidPeriodDimension",
+                        "order": 5
                     }
                 ]
             }
@@ -299,6 +323,30 @@
                 "labelType": "xbrl:documentation"
             },
             {
+                "relatedName": "oime:missingConceptDimension",
+                "language": "en",
+                "value": "Missing Concept Dimension",
+                "labelType": "xbrl:label"
+            },
+            {
+                "relatedName": "oime:missingConceptDimension",
+                "language": "en",
+                "value": "Fact '{factName}' is missing the required xbrl:concept dimension.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "relatedName": "oime:missingConceptDimension",
+                "language": "en",
+                "value": "🚫",
+                "labelType": "xbrl:iconLabel"
+            },
+            {
+                "relatedName": "oime:missingConceptDimension",
+                "language": "en",
+                "value": "Raised when a fact's factDimensions object does not include the required xbrl:concept key. Every fact MUST include xbrl:concept in its factDimensions to identify the concept associated with the fact value.",
+                "labelType": "xbrl:documentation"
+            },
+            {
                 "relatedName": "oime:missingPeriodDimension",
                 "language": "en",
                 "value": "Missing Period Dimension",
@@ -348,6 +396,32 @@
             }
         ],
         "references": [
+            {
+                "name": "oime:missingConceptDimensionConformanceReference",
+                "relatedNames": [
+                    "oime:missingConceptDimension"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "FACT-MissingConceptDimension.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-MissingConceptDimension"
+                    }
+                ]
+            },
             {
                 "name": "oime:missingPeriodDimensionConformanceReference",
                 "relatedNames": [

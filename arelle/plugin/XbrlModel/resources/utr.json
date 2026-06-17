@@ -13,7 +13,7 @@
     },
     "xbrlModel": {
         "frameworkName": "utr",
-        "name": "utr:UnitsTaxonomyModule",
+        "name": "utr:unitsModule",
         "version": "2025",
         "units": [
             {

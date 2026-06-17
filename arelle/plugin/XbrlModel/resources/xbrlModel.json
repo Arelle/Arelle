@@ -15,11 +15,11 @@
         "documentNamespacePrefix":"xbrlm",
         "importMapping": {
             "xs:XMLSchemaTypes": "../spec-taxonomies/xs-types.json",
-            "xbrl:CoreTaxonomyModule": "../spec-taxonomies/xbrlSpec.json",
-            "utr:UnitsTaxonomyModule": "../spec-taxonomies/utr.json",
-            "xbrlr:TypesTaxonomyModule": "../spec-taxonomies/types.json",
-            "ref:ReferencePropertiesTaxonomyModule": "../spec-taxonomies/ref.json",
-            "iso4217:iso4217TaxonomyModule": "../spec-taxonomies/iso4217.json"
+            "xbrl:coreModule": "../spec-taxonomies/xbrlSpec.json",
+            "utr:unitsModule": "../spec-taxonomies/utr.json",
+            "xbrlr:dataTypesModule": "../spec-taxonomies/types.json",
+            "ref:referencePropertiesModule": "../spec-taxonomies/ref.json",
+            "iso4217:iso4217Module": "../spec-taxonomies/iso4217.json"
         },
         "description": "The base specification module, that collates the core XBRL data models. This module imports the XML Schema data types and the other core XBRL taxonomy modules that in aggregate define the objects comprising the XBRL data model."
     },
@@ -32,19 +32,19 @@
                     "xbrlModelName": "xs:XMLSchemaTypes"
                 },
                 {
-                    "xbrlModelName": "xbrl:CoreTaxonomyModule"
+                    "xbrlModelName": "xbrl:coreModule"
                 },
                 {
-                    "xbrlModelName": "utr:UnitsTaxonomyModule"
+                    "xbrlModelName": "utr:unitsModule"
                 },
                 {
-                    "xbrlModelName": "xbrlr:TypesTaxonomyModule"
+                    "xbrlModelName": "xbrlr:dataTypesModule"
                 },
                 {
-                    "xbrlModelName": "ref:ReferencePropertiesTaxonomyModule"
+                    "xbrlModelName": "ref:referencePropertiesModule"
                 },
                 {
-                    "xbrlModelName": "iso4217:iso4217TaxonomyModule"
+                    "xbrlModelName": "iso4217:iso4217Module"
                 }
         ]   
     }

@@ -59,7 +59,7 @@
             {
                 "name": "specDoc:domainRationale",
                 "relatedNames": [
-                    "xbrl:domainObject"
+                    "xbrl:domainNetworkObject"
                 ],
                 "referenceType": "specDoc:ObjectRationale",
                 "language": "en",
@@ -201,7 +201,7 @@
                     },
                     {
                         "source": "xbrl:xbrlModelObject",
-                        "target": "xbrl:domainObject",
+                        "target": "xbrl:domainNetworkObject",
                         "order": 14
                     },
                     {

@@ -108,26 +108,26 @@
                 ]
             },
             {
-                "name": "xbrl:domainObject",
+                "name": "xbrl:domainNetworkObject",
                 "properties": [
                     {
-                        "name": "xbrl:domainObjectName",
+                        "name": "xbrl:domainNetworkObjectName",
                         "dataType": "xs:QName",
                         "required": true
                     },
                     {
-                        "name": "xbrl:domainObjectRoot",
+                        "name": "xbrl:domainNetworkObjectRoot",
                         "dataType": "xs:QName",
                         "required": true
                     },
                     {
-                        "name": "xbrl:domainObjectRelationships",
+                        "name": "xbrl:domainNetworkObjectRelationships",
                         "dataType": "xbrl:orderedSet",
                         "setContents": "xbrl:relationshipObject",
                         "required": false
                     },
                     {
-                        "name": "xbrl:domainObjectProperties",
+                        "name": "xbrl:domainNetworkObjectProperties",
                         "dataType": "xbrl:orderedSet",
                         "setContents": "xbrl:propertyObject",
                         "required": false
