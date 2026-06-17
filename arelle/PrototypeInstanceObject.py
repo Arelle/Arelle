@@ -81,7 +81,7 @@ class FactPrototype:  # behaves like a fact for dimensional validity testing
                 ("dimensions", "({0})".format(len(dims)),
                   tuple(dimVal.propertyView if dimVal is not None else (str(dim.qname), "None")
                         for dim, dimVal in sorted(dims.items(), key=lambda i:i[0])
-                        if hasattr(dimVal,"propertyView")))
+                        if hasattr(dimVal, "propertyView")))
                   if dims else (),
                 )
 
@@ -222,7 +222,7 @@ class ContextPrototype:  # behaves like a context
 
 
 class DimValuePrototype:
-    typedMember: ModelObject | QName | None
+    typedMember: QName | None
     isExplicit: bool
     isTyped: bool
     memberQname: QName | None
@@ -251,7 +251,7 @@ class DimValuePrototype:
         else:
             self.isExplicit = False
             self.isTyped = True
-            self.typedMember = mem
+            self.typedMember = mem  # type: ignore[assignment]
             self.memberQname = None
             self.member = None
 
