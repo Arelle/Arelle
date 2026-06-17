@@ -16,6 +16,7 @@ from arelle.ModelObject import ModelObject
 if TYPE_CHECKING:
     from arelle.ModelManager import ModelManager
     from arelle.ModelXbrl import ModelXbrl
+    from arelle.ModelInstanceObject import ModelContext
 
 Aspect: Any = None
 
@@ -75,9 +76,9 @@ class FactPrototype:  # behaves like a fact for dimensional validity testing
         return self.parent
 
     @property
-    def propertyView(self) -> tuple[tuple[str, str] | tuple[()], ...]:
+    def propertyView(self) -> tuple[tuple[str, str], tuple[str, str, tuple[tuple[str, str], ...]] | tuple[()]]:
         dims = self.context.qnameDims  # type: ignore[union-attr]
-        return (("concept", str(self.qname) if self.concept is not None else "not specified"),  # type: ignore[return-value]
+        return (("concept", str(self.qname) if self.concept is not None else "not specified"),
                 ("dimensions", "({0})".format(len(dims)),
                   tuple(dimVal.propertyView if dimVal is not None else (str(dim.qname), "None")
                         for dim, dimVal in sorted(dims.items(), key=lambda i:i[0])
@@ -203,20 +204,20 @@ class ContextPrototype:  # behaves like a context
     def nonDimValues(self, contextElement: str | int) -> list[ModelObject]:
         return self._nonDimValues.get(contextElement, [])
 
-    def isEntityIdentifierEqualTo(self, cntx2: ContextPrototype) -> bool:
+    def isEntityIdentifierEqualTo(self, cntx2: ModelContext) -> bool:
         return self.entityIdentifierHash is None or self.entityIdentifierHash == cntx2.entityIdentifierHash
 
-    def isPeriodEqualTo(self, cntx2: ContextPrototype) -> bool:
+    def isPeriodEqualTo(self, cntx2: ModelContext) -> bool:
         if self.isForeverPeriod:
-            return cntx2.isForeverPeriod
+            return cntx2.isForeverPeriod  # type: ignore[no-any-return]
         elif self.isStartEndPeriod:
             if not cntx2.isStartEndPeriod:
                 return False
-            return self.startDatetime == cntx2.startDatetime and self.endDatetime == cntx2.endDatetime
+            return self.startDatetime == cntx2.startDatetime and self.endDatetime == cntx2.endDatetime  # type: ignore[no-any-return]
         elif self.isInstantPeriod:
             if not cntx2.isInstantPeriod:
                 return False
-            return self.instantDatetime == cntx2.instantDatetime
+            return self.instantDatetime == cntx2.instantDatetime  # type: ignore[no-any-return]
         else:
             return False
 
