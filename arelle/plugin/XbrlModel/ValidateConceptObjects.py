@@ -16,11 +16,11 @@ def validateConceptFamily(compMdl, module, oimFile, *, assertObjectType, validat
     refactoring can follow the object-family structure used by the error catalog.
     """
 
-    for heading in module.headings:
+    for heading in module.headings or ():
         assertObjectType(compMdl, heading, XbrlHeading)
         validateProperties(compMdl, oimFile, module, heading)
 
-    for cncpt in module.concepts:
+    for cncpt in module.concepts or ():
         assertObjectType(compMdl, cncpt, XbrlConcept)
         perType = getattr(cncpt, "periodType", None)
         if perType not in ("instant", "duration", "none"):
@@ -36,7 +36,7 @@ def validateConceptFamily(compMdl, module, oimFile, *, assertObjectType, validat
             validateQNameReference(compMdl, cncpt, "enumerationDomain", XbrlDomainNetwork)
         validateProperties(compMdl, oimFile, module, cncpt)
 
-    for dtObj in module.dataTypes:
+    for dtObj in module.dataTypes or ():
         assertObjectType(compMdl, dtObj, XbrlDataType)
         btQn = dtObj.baseType
         if btQn and btQn.namespaceURI != "http://www.w3.org/2001/XMLSchema":
@@ -48,7 +48,7 @@ def validateConceptFamily(compMdl, module, oimFile, *, assertObjectType, validat
                 validateQNameReference(compMdl, utObj, utProp, XbrlDataType, isOptional=True)
         _validateFacetRestrictions(compMdl, dtObj)
 
-    for collObj in module.collectionTypes:
+    for collObj in module.collectionTypes or ():
         assertObjectType(compMdl, collObj, XbrlCollectionType)
         validateQNameReference(compMdl, collObj, "dataType", (XbrlDataType, XbrlCollectionType))
         minItems = getattr(collObj, "minItems", None)

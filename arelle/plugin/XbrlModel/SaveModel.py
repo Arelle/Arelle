@@ -13,7 +13,7 @@ import tkinter
 from collections import OrderedDict
 from typing import GenericAlias, Optional, Union, _UnionGenericAlias, get_origin
 from arelle.ModelValue import qname, QName, timeInterval
-from arelle.PythonUtil import  OrderedSet
+from ordered_set import OrderedSet
 from .ViewXbrlTaxonomyObject import ViewXbrlTxmyObj
 from .XbrlConst import qnBuiltInCoreObjectsTaxonomy
 from .XbrlObject import XbrlModelClass, XbrlObject

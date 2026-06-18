@@ -2,12 +2,12 @@
 See COPYRIGHT.md for copyright information.
 """
 
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 from arelle.ModelValue import QName, qname
 from arelle.oim.Load import OIMException
 from ordered_set import OrderedSet
-from .XbrlTypes import XbrlModuleType, SQNameKeyType
+from .XbrlTypes import XbrlModuleType, SQNameKeyType, NonemptySet
 from .XbrlObject import XbrlReferencableModelObject
 
 class XbrlUnit(XbrlReferencableModelObject):
@@ -16,7 +16,7 @@ class XbrlUnit(XbrlReferencableModelObject):
     module: XbrlModuleType
     name: SQNameKeyType # (required) The unitQName that identifies the unit so it can be referenced by other objects.
     dataType: QName # (required) Indicates the dataType of the unit. These are provided as a QName based on the datatypes specified in the XBRL 2.1 specification and any custom datatype defined in the taxonomy.
-    compositeUnitRepresentation: OrderedSet[str] # (optional) A set of unit string representations that are equivalent to the defined unit. Multiple unit string representations can be defined for a defined unit. 
+    compositeUnitRepresentation: Optional[NonemptySet[str]] # (optional) A set of unit string representations that are equivalent to the defined unit. Multiple unit string representations can be defined for a defined unit. 
 
 def parseUnitString(uStr, unitObj, reportObj, txmyMdl):
     _mul, _sep, _div = uStr.partition('/')

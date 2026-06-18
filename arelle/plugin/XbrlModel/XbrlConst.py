@@ -16,26 +16,43 @@ oimTaxonomyDocTypes = (
 
 xbrl = "https://xbrl.org/2026"
 xbrla = "http://xbrl.org/accounting"
-xbrli = "https://xbrl.org/2026/instance"
+xbrlr = "https://xbrl.org/2026/report"
 
 reservedPrefixNamespaces = {
     "xbrl": xbrl,
     "xbrla": xbrla,
-    "xbrli": xbrli,
+    "xbrlr": xbrlr,
     "xbrli-2003": "https://xbrl.org/2003/instance",
-    "dtr-type": "http://www.xbrl.org/dtr/type/*",
     "xs": "https://www.w3.org/2001/XMLSchema",
     "enum2": "https://xbrl.org/2020/extensible-enumerations-2.0",
     "oimce": "https://xbrl.org/2021/oim-common/error",
     "oime": "http://www.xbrl.org/2021/oim/error",
     "oimte": "https://xbrl.org/2025/oimtaxonomy/error",
     "iso4217": "http://www.xbrl.org/2003/iso4217",
+    "lei": "http://standards.iso.org/iso/17442",
     "utr": "https://xbrl.org/2025/utr",
     "ref": "https://xbrl.org/2025/ref",
     "xbrltt": "https://xbrl.org/2025/transform-types"
     }
 
-qnStdLabel = qname(xbrl, "xbrli:label")
+builtInPrefixTaxonomies = { # these are in resources subdirectory
+    "xbrl": "xbrlSpec.json",
+    "xbrla": "xbrla.json",
+    "xbrlr": "types.json",
+    "xbrli-2003": "https://xbrl.org/2003/instance",
+    "xs": "xs-types.json",
+    "enum2": "https://xbrl.org/2020/extensible-enumerations-2.0",
+    "oimce": "oimce.json",
+    "oime": "oime.json",
+    "oimte": "oimte.json",
+    "iso4217": "iso4217.json",
+    "lei": "http://standards.iso.org/iso/17442",
+    "utr": "utr.json",
+    "ref": "ref.json",
+    "xbrltt": "https://xbrl.org/2025/transform-types"
+}
+
+qnStdLabel = qname(xbrl, "xbrl:label")
 qnXsDate = qname(xsd, "xs:date")
 qnXsDateTime = qname(xsd, "xs:dateTime")
 qnXsDuration = qname(xsd, "xs:duration")
@@ -52,8 +69,6 @@ qnXbrlUnitObj = qname(xbrl, "xbrl:unitObject")
 qnXbrlLabelObj = qname(xbrl, "xbrl:labelObject")
 qnXbrlPropertyObj = qname(xbrl, "xbrl:propertyObject")
 qnXbrlReferenceObj = qname(xbrl, "xbrl:referenceObject")
-
-qnXbrliCollection = qname(xbrli, "xbrli:collection")
 
 qnBuiltInCoreObjectsTaxonomy = qname(xbrl, "xbrl:BuiltInCoreObjectsTaxonomy")
 
@@ -302,3 +317,5 @@ xbrlTaxonomyObjects = {
         ]
     }
 }
+
+EMPTY_FROZENSET = frozenset()

@@ -39,7 +39,7 @@ def _is_allowed_property_object_qname(value):
 def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validateQNameReference, validateProperties):
     """Validate networks, propertyTypes and relationshipTypes within a module."""
     # Network Objects
-    for ntwkObj in module.networks:
+    for ntwkObj in module.networks or ():
         assertObjectType(compMdl, ntwkObj, XbrlNetwork)
         extendTargetObj = None
         relTypeObj = None
@@ -66,7 +66,7 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
             continue
 
         ntwkCt = {}
-        for rootQn in ntwkObj.roots:
+        for rootQn in ntwkObj.roots or ():
             validateQNameReference(compMdl, ntwkObj, "roots", qnRef=rootQn,
                                    undefinedMessage=_("The network %(name)s root %(qname)s must be defined in the taxonomy model."),
                                    errorArgs={"name": ntwkObj.name, "qname": rootQn})
@@ -79,7 +79,7 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
         ntwkCt = {}
         sources = OrderedSet()
         targets = OrderedSet()
-        for i, relObj in enumerate(ntwkObj.relationships):
+        for i, relObj in enumerate(ntwkObj.relationships or ()):
             assertObjectType(compMdl, relObj, XbrlRelationship)
             if relObj.source not in compMdl.namedObjects or relObj.target not in compMdl.namedObjects:
                 validateQNameReference(compMdl, relObj, "source", qnRef=relObj.source,
@@ -124,7 +124,7 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
         validateProperties(compMdl, oimFile, module, ntwkObj)
 
     # PropertyType Objects
-    for i, propTpObj in enumerate(module.propertyTypes):
+    for i, propTpObj in enumerate(module.propertyTypes or ()):
         assertObjectType(compMdl, propTpObj, XbrlPropertyType)
         dataTypeObj = validateQNameReference(compMdl, propTpObj, "dataType", (XbrlDataType, XbrlCollectionType))
         if not dataTypeObj:
@@ -142,7 +142,7 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
                            xbrlObject=propTpObj, name=propTpObj.name, allowedObj=allowedObjQn)
 
     # RelationshipType Objects
-    for relTpObj in module.relationshipTypes:
+    for relTpObj in module.relationshipTypes or ():
         assertObjectType(compMdl, relTpObj, XbrlRelationshipType)
         for prop in ("allowedLinkProperties", "requiredLinkProperties"):
             for propTpQn in (getattr(relTpObj, prop) or ()):
@@ -206,10 +206,10 @@ def _validateClassSubclassConsistency(compMdl, module):
     oimte:conflictingPropertyValues otherwise."""
     # Collect class-subclass edges across all networks in this module
     edges = {}  # subclass concept QName -> list of class concept QNames
-    for ntwkObj in getattr(module, "networks", ()):
-        if getattr(ntwkObj, "relationshipTypeName", None) != qnXbrlClassSubclass:
+    for ntwkObj in module.networks or ():
+        if ntwkObj.relationshipTypeName != qnXbrlClassSubclass:
             continue
-        for rel in getattr(ntwkObj, "relationships", ()) or ():
+        for rel in ntwkObj.relationships or ():
             src = getattr(rel, "source", None)
             tgt = getattr(rel, "target", None)
             if src is None or tgt is None:

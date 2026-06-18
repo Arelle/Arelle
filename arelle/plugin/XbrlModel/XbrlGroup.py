@@ -2,13 +2,13 @@
 See COPYRIGHT.md for copyright information.
 """
 
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 from arelle.ModelValue import QName, AnyURI
 from ordered_set import OrderedSet
 from .XbrlNetwork import XbrlRelationship
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlModuleType, QNameKeyType
+from .XbrlTypes import XbrlModuleType, QNameKeyType, NonemptySet
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
 
 class XbrlGroup(XbrlReferencableModelObject):
@@ -18,7 +18,7 @@ class XbrlGroup(XbrlReferencableModelObject):
     module: XbrlModuleType
     name: QNameKeyType # (required) The group object QName that identifies the group so it can be referenced by other objects.
     groupURI:Optional[AnyURI] # (optional) The group URI that uniquely identifies the group and id used for backward compatibility with roles.
-    properties: OrderedSet[XbrlProperty] # (optional) an ordered set of property objects used to specify additional properties associated with the group using the property object. Only immutable properties as defined in the propertyType object can be added to a group.
+    properties: Optional[NonemptySet[XbrlProperty]] # (optional) an ordered set of property objects used to specify additional properties associated with the group using the property object. Only immutable properties as defined in the propertyType object can be added to a group.
 
 class XbrlGroupContent(XbrlModelObject):
     """ Group Content Object
@@ -34,4 +34,4 @@ class XbrlGroupTree(XbrlReferencableModelObject):
     """
     module: XbrlModuleType
     name: QNameKeyType # (required) The group object QName that identifies the group so it can be referenced by other objects.
-    relationships: OrderedSet[XbrlRelationship] # (optional) An ordered set of relationship objects that organize groups into a hierarchical structure. Each relationship uses the xbrl:taxonomy-group relationship type. The source can be either the taxonomy object QName (for top-level groups) or a group object QName. The target MUST always be a group object QName. The order of relationships determines the presentation order of groups.
+    relationships: Optional[NonemptySet[XbrlRelationship]] # (optional) An ordered set of relationship objects that organize groups into a hierarchical structure. Each relationship uses the xbrl:taxonomy-group relationship type. The source can be either the taxonomy object QName (for top-level groups) or a group object QName. The target MUST always be a group object QName. The order of relationships determines the presentation order of groups.

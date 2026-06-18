@@ -4,6 +4,7 @@ See COPYRIGHT.md for copyright information.
 
 from typing_extensions import TypeAlias, List
 from arelle.ModelValue import QName
+from ordered_set import OrderedSet
 
 XbrlLabelType: TypeAlias = "XbrlLabel"
 XbrlLayoutType: TypeAlias = "XbrlLayout"
@@ -29,5 +30,5 @@ class DefaultOne: # a number which if absent defaults to one
     pass
 class OptionalList(List): # list of objects like OrderedSet which is present and empty when no objects
     pass
-class OptionalNonemptySet(set): # set of objects like OrderedSet which is present and absent when no objects
+class NonemptySet(OrderedSet): # set of objects like OrderedSet which is present and nonempty
     pass

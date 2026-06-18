@@ -10,7 +10,7 @@ from arelle.ModelValue import QName
 from ordered_set import OrderedSet
 from arelle.XbrlConst import xsd, isNumericXsdType
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue, DefaultFalse, OptionalNonemptySet
+from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue, DefaultFalse, NonemptySet
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
 from arelle.FunctionFn import true
 xbrlObjectQNames = None
@@ -25,7 +25,7 @@ class XbrlConcept(XbrlReferencableModelObject):
     periodType: str # (required) Indicates the period type of the concept. The property values can be either instant or duration. If the concept can be an atemporal value it must be defined as a duration. (i.e. the value does not change with the passage of time)
     enumerationDomain: Optional[QName] # (optional) Used to specify enumerated domain members that are associated with a domain defined in the taxonomy.
     nillable: Optional[bool] # (optional) Used to specify if the concept can have a nill value. The default value is true.
-    properties: OrderedSet[XbrlProperty] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.
+    properties: Optional[NonemptySet[XbrlProperty]] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.
 
     def isNumeric(self, txmyMdl):
         dtObj = txmyMdl.namedObjects.get(self.dataType)
@@ -47,19 +47,6 @@ class XbrlCollectionType(XbrlReferencableModelObject):
     maxItems: Optional[int] # (optional) Defines an int value to indicate the maximum number of items in the collection.
     minItems: Optional[int] # (optional) Defines an int value to indicate the minimum number of items in the collection.
 
-
-class XbrlMapType(XbrlModelObject):
-    """ Map Type Object
-        Reference: oim-taxonomy.md#maptype-object
-    """
-    keyType: QName # (required) Defines the data type of the keys in the map. The data type is defined using the QName of the dataType object.
-    valueType: QName # (required) Defines the data type of the values in the map. The data type is defined using the QName of the dataType object. The value data type can be defined as a xbrli:set with a collection of data types to allow for multiple data types for the values in the map.
-    requiredKeys: OrderedSet[QName] # (optional) Defines a set of required keys in the map. The values of the required keys must be included in any instance of the map type. The values in the set are based on the keyType property of the map type.
-    allowedKeys: OrderedSet[QName] # (optional) Defines a set of allowed keys in the map. If provided, the values of the keys in any instance of the map type must be included in this set. The values in the set are based on the keyType property of the map type. If not provided, then any key value based on the keyType property is allowed.
-    uniqueKeys: Union[bool, DefaultTrue] # (optional) Indicates if the keys in the map must be unique. If true all keys in the map must be unique. If false keys can be duplicated. Defaults to true if not provided.
-    minItems: Optional[int] # (optional) Defines an int value to indicate the minimum number of key-value pairs in the map.
-    maxItems: Optional[int] # (optional) Defines an int value to indicate the maximum number of key-value pairs in the map.
-
 class XbrlUnitType(XbrlModelObject):
     """ Unit Type Object
         Reference: oim-taxonomy.md#unittype-object
@@ -75,7 +62,7 @@ class XbrlDataType(XbrlReferencableModelObject):
     module: XbrlModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the datatype object.
     baseType: QName # (required) The base type is a QName that uniquely identifies the base datatype the datatype is based on.
-    enumeration: OrderedSet[Any] # (optional) Defines an ordered set of enumerated values of the datatype if applicable
+    enumeration: Optional[NonemptySet[Any]] # (optional) Defines an ordered set of enumerated values of the datatype if applicable
     openEnumeration: Union[bool, DefaultFalse] # (optional) Indicates if the enumeration is open or closed. If true, the enumeration is open and additional values beyond those specified in the enumeration property are allowed. If false, the enumeration is closed and only the values specified in the enumeration property are allowed. Defaults to false if not provided.
     minInclusive: Optional[Decimal] # (optional) Defines a decimal value to indicate a min inclusive cardinal value for a type. Only applies to types based on float, double and decimal.
     maxInclusive: Optional[Decimal] # (optional) Defines a decimal value to indicate a max inclusive cardinal value for a type. Only applies to types based on float, double and decimal.
@@ -87,9 +74,9 @@ class XbrlDataType(XbrlReferencableModelObject):
     minLength: Optional[int] # (optional) Defines an int used to define minimum length of a string value.
     maxLength: Optional[int] # (optional) Defines an int used to define maximum length of a string value.
     whiteSpace: Optional[str] # (optional) Defines a string one of preserve, replace or collapse.
-    patterns: set[str] # (optional) Defines a string as a single regex expressions. At least one of the regex patterns must match. (Uses XML regex)
+    patterns: Optional[set[str]] # (optional) Defines a string as a single regex expressions. At least one of the regex patterns must match. (Uses XML regex)
     unitType: Optional[XbrlUnitType] # (optional) Defines a unitType object For example xbrli:flow has unit datatypes of xbrli:volume and xbrli:time
-    allowedObjects: OptionalNonemptySet[QName] # (optional) Set of object type QNames that the data type can be used with. If no value is provided the property can be used with any object. The value provided is a set of model component objects. MUST NOT be empty if provided.
+    allowedObjects: Optional[NonemptySet[QName]] # (optional) Set of object type QNames that the data type can be used with. If no value is provided the property can be used with any object. The value provided is a set of model component objects. MUST NOT be empty if provided.
     checksumAlgorithm: Optional[QName] # (optional) QName of a member object that defines checksum validation semantics for string/QName local-name values.
 
     def xsBaseType(self, compMdl, visitedTypes=None): # find base types thru dataType hierarchy

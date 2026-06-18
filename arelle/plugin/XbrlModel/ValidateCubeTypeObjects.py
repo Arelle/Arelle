@@ -3,7 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from .ErrorCatalog import emit_error
 from .XbrlConcept import XbrlDataType
-from .XbrlConst import qnXbrlDimensionObj
+from .XbrlConst import qnXbrlDimensionObj, EMPTY_FROZENSET
 from .XbrlCube import XbrlCubeType, coreDimensions, conceptDomainClass, entityDomainClass, unitDomainClass
 from .XbrlDimension import XbrlDimension
 from .XbrlModule import referencableObjectTypes
@@ -14,17 +14,17 @@ from .XbrlProperty import XbrlPropertyType
 def validateCubeTypeFamily(compMdl, module, oimFile, *, assertObjectType, validateQNameReference, validateProperties):
     """Validate XbrlCubeType objects: core dimensions, dimension constraints, network constraints,
        cube properties, and base-cube-type restriction rules."""
-    for cubeType in module.cubeTypes:
+    for cubeType in module.cubeTypes or ():
         assertObjectType(compMdl, cubeType, XbrlCubeType)
         name = cubeType.name
-        if cubeType.coreDimensions - coreDimensions:
+        if (cubeType.coreDimensions or EMPTY_FROZENSET) - coreDimensions:
             emit_error(compMdl, "oimte:invalidCoreDimension",
                        _("The cube type %(name)s, specifies QNames which are not core dimensions: %(qnames)s."),
                        xbrlObject=cubeType, name=name,
                        qnames=", ".join(str(qn) for qn in (cubeType.coreDimensions - coreDimensions)))
 
         validCoreDomainClasses = {conceptDomainClass, entityDomainClass, unitDomainClass}
-        for coreDomClass in cubeType.coreDomainClasses:
+        for coreDomClass in cubeType.coreDomainClasses or ():
             if coreDomClass not in validCoreDomainClasses:
                 emit_error(compMdl, "oimte:invalidCoreDomainClass",
                            _("The cube type %(name)s coreDomainClasses contains invalid core domain class %(domainClass)s."),
@@ -98,7 +98,7 @@ def validateCubeTypeFamily(compMdl, module, oimFile, *, assertObjectType, valida
                                                        invalidTypeMsgCode="oimte:invalidObjectType")
         if cubeType.cubeProperties:
             for ra in ("requiredProperties", "allowedProperties"):
-                for i, propTpQn in enumerate(getattr(cubeType.cubeProperties, ra)):
+                for i, propTpQn in enumerate(getattr(cubeType.cubeProperties, ra) or ()):
                     propTypeObj = compMdl.namedObjects.get(propTpQn)
                     if propTypeObj is None:
                         emit_error(compMdl, "oimte:invalidQNameReference",

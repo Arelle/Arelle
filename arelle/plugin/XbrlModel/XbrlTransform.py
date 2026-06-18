@@ -2,10 +2,7 @@
 See COPYRIGHT.md for copyright information.
 """
 
-from typing import TYPE_CHECKING
-
 from arelle.ModelValue import QName, YearMonthDayTimeDuration
-from ordered_set import OrderedSet
 from .XbrlTypes import XbrlModuleType, QNameKeyType
 from .ModelValueMore import QNameAt, SQName
 from .XbrlObject import XbrlReferencableModelObject

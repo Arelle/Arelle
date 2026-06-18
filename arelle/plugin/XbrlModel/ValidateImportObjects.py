@@ -13,7 +13,7 @@ from .XbrlFact import XbrlFact, XbrlFootnote
 def validateImportFamily(compMdl, module, oimFile, *, assertObjectType, validateQNameReference, validateProperties):
     """Validate importedTaxonomies on the taxonomy module: importObjectTypes correctness and
        finalTaxonomy-driven extension restrictions."""
-    for impTxObj in module.importedTaxonomies:
+    for impTxObj in module.importedTaxonomies or ():
         assertObjectType(compMdl, impTxObj, XbrlImportTaxonomy)
         impMdlName = impTxObj.xbrlModelName
         for qnObjType in impTxObj.importObjectTypes:

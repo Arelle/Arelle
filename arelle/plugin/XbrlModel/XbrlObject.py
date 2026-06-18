@@ -71,7 +71,7 @@ class XbrlObject(XbrlModelClass):
 
     # propertyObjectValue returns an object's property object validated typed xValue from .properties
     def propertyObjectValue(self, propertyType, defaultValue=None):
-        for propObj in getattr(self, "properties", ()):
+        for propObj in getattr(self, "properties", None) or ():
             if propObj.property == propertyType and getattr(propObj, "_xValid", INVALID) >= VALID:
                 return getattr(propObj, "_xValue", defaultValue)
         return defaultValue

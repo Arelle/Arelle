@@ -7,17 +7,18 @@ from collections import defaultdict
 from decimal import Decimal
 from typing import GenericAlias, _GenericAlias, _UnionGenericAlias
 from arelle.ModelValue import QName, timeInterval
+from arelle.PythonUtil import attrdict
 from arelle.XmlValidate import languagePattern, validateValue as validateXmlValue,\
     INVALID, VALID, NONE
 from arelle.XbrlConst import isNumericXsdType
-from arelle.PythonUtil import attrdict, OrderedSet
+from ordered_set import OrderedSet
 from arelle.oim.Load import EMPTY_DICT, csvPeriod
 from .ValidateCubes import validateCompleteCube
 from .XbrlHeading import XbrlHeading
 from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlCollectionType, XbrlUnitType
 from .XbrlConst import (xbrl, qnXbrlReferenceObj, qnXbrlLabelObj, qnXbrlHeadingObj, qnXbrlConceptObj,
                         qnXbrlMemberObj, qnXbrlEntityObj, qnXbrlUnitObj, qnXbrlImportTaxonomyObj,
-                        qnXbrliCollection, reservedPrefixNamespaces, qnXbrlLabelObj, qnXbrlPropertyObj,
+                        reservedPrefixNamespaces, qnXbrlLabelObj, qnXbrlPropertyObj,
                         qnXbrlDimensionObj)
 from .XbrlCube import (XbrlCube, XbrlCubeType, baseCubeTypes, XbrlCubeDimension,
                        periodCoreDim, conceptCoreDim, entityCoreDim, unitCoreDim, languageCoreDim, coreDimensions,
@@ -310,7 +311,7 @@ def validateProperties(compMdl, oimFile, module, obj):
             None
     """
     propTypeQns = defaultdict(set)
-    for i, propObj in enumerate(getattr(obj, "properties", ())):
+    for i, propObj in enumerate(getattr(obj, "properties", None) or ()):
         propTypeQn = propObj.property
         propTypeObj = compMdl.namedObjects.get(propTypeQn)
         if not isinstance(propTypeObj, XbrlPropertyType):
@@ -383,7 +384,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
     validateCubeTypeFamily(compMdl, module, oimFile, **familyKwargs)
 
     # Cube Objects
-    for cubeObj in module.cubes:
+    for cubeObj in module.cubes or ():
         assertObjectType(compMdl, cubeObj, XbrlCube)
         name = cubeObj.name
         cubeType = validateQNameReference(compMdl, cubeObj, "cubeType", XbrlCubeType,
@@ -424,7 +425,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             for ntwk in ntwks:
                 matchingConstrs = [c for c in cubeNtwkConstrs if c.relationshipType == ntwk.relationshipTypeName]
                 ntwkMatchedConstraints = set()
-                for relObj in ntwk.relationships:
+                for relObj in ntwk.relationships or ():
                     if not matchingConstrs:
                         if getattr(cubeNtwkConstrObj, "closed", False):
                             compMdl.error("oimte:invalidCubeNetworkRelationship",
@@ -631,7 +632,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                             (not reqRel.target or reqRelMatch(r.target, reqRel.target, compMdl)) and
                             (not reqRel.sourceObject or isinstance(type(compMdl.namedObjects.get(r.source)), xbrlObjectTypes.get(reqRel.sourceObject))) and
                             (not reqRel.targetObject or isinstance(type(compMdl.namedObjects.get(r.target)), xbrlObjectTypes.get(reqRel.targetObject))))
-                        for r in ntwk.relationships)):
+                        for r in ntwk.relationships or ())):
                     reqRelSatisfied = True
                     break
             if not reqRelSatisfied:
@@ -787,7 +788,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             if dimName == conceptCoreDim:
                 hasConceptDimension = True
             if dimName == conceptCoreDim and hasValidDomainName:
-                for relObj in compMdl.namedObjects[cubeDimObj.domain].relationships:
+                for relObj in compMdl.namedObjects[cubeDimObj.domain].relationships or ():
                     if not isinstance(compMdl.namedObjects.get(relObj.source,None), (XbrlConcept, XbrlHeading)) and relObj.source != conceptDomainClass:
                         compMdl.error("oimte:invalidRelationshipSourceObject",
                                   _("Cube %(name)s conceptConstraints domain relationships must be from concepts, source: %(source)s."),
@@ -799,13 +800,13 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                               _("Cube %(name)s conceptConstraints property MUST NOT specify allowDomainFacts."),
                               xbrlObject=(cubeObj,cubeDimObj), name=name)
             if dimName == entityCoreDim and hasValidDomainName:
-                for relObj in compMdl.namedObjects[cubeDimObj.domain].relationships:
+                for relObj in compMdl.namedObjects[cubeDimObj.domain].relationships or ():
                     if not isinstance(compMdl.namedObjects.get(relObj.source,None), XbrlEntity) and relObj.source != entityDomainClass:
                         compMdl.error("oimte:invalidRelationshipSourceObject",
                                   _("Cube %(name)s entityConstraints domain relationships must be from entities, source: %(source)s."),
                                   xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName, source=relObj.source)
             if dimName == unitCoreDim and hasValidDomainName:
-                for relObj in compMdl.namedObjects[cubeDimObj.domain].relationships:
+                for relObj in compMdl.namedObjects[cubeDimObj.domain].relationships or ():
                     if not isinstance(compMdl.namedObjects.get(relObj.source,None), XbrlUnit) and relObj.source != unitDomainClass:
                         compMdl.error("oimte:invalidRelationshipSourceObject",
                                   _("Cube %(name)s unitConstraints domain relationships must be from units, source: %(source)s."),
@@ -819,7 +820,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 if not isTyped: # explicit
                     domNwkObj = compMdl.namedObjects.get(cubeDimObj.domainNetwork)
                     if isinstance(domNwkObj, XbrlDomainNetwork):
-                        for relObj in domNwkObj.relationships:
+                        for relObj in domNwkObj.relationships or ():
                             if not isinstance(compMdl.namedObjects.get(getattr(relObj, "target", None),None), (XbrlConcept, XbrlHeading, XbrlUnit, XbrlMember)):
                                 compMdl.error("oimte:invalidDomainRelationshipTarget",
                                           _("Cube %(name)s explicit dimension domain relationships must be to members."),
@@ -980,9 +981,9 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                       xbrlObject=(cubeObj,cubeDimObj), name=name)
 
     # Dimension Objects
-    for dimObj in module.dimensions:
+    for dimObj in module.dimensions or ():
         assertObjectType(compMdl, dimObj, XbrlDimension)
-        for cubeTypeQn in dimObj.cubeTypes:
+        for cubeTypeQn in dimObj.cubeTypes or ():
             validateQNameReference(compMdl, dimObj, "cubeTypes", XbrlCubeType, qnRef=cubeTypeQn)
         domRtObj = validateQNameReference(compMdl, dimObj, "domainClass", XbrlDomainClass, msgCode="oimte:invalidDomainClass")
         if (dimObj.domainClass in (conceptDomainClass, entityDomainClass, unitDomainClass, languageDomainClass) and
@@ -1003,7 +1004,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                           xbrlObject=dimObj, name=dimObj.name, error=str(ex), excludedIntervals=exclIntPropStr)
 
     # Domain Objects
-    for domNwkObj in module.domainNetworks:
+    for domNwkObj in module.domainNetworks or ():
         assertObjectType(compMdl, domNwkObj, XbrlDomainNetwork)
         extendTargetObj = None
         extendedDomClassQn = None
@@ -1029,9 +1030,9 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             continue
         domRtQn = domRtObj.name
         domRelCts = {}
-        domRelRoots = set(relObj.source for relObj in domObj.relationships if getattr(relObj, "source", None))
+        domRelRoots = set(relObj.source for relObj in domObj.relationships or () if getattr(relObj, "source", None))
         domClassSourceInRel = domRtObj is not None # only check if there are any relationships
-        for i, relObj in enumerate(domNwkObj.relationships):
+        for i, relObj in enumerate(domNwkObj.relationships or ()):
             if i == 0:
                 domClassSourceInRel = False
             assertObjectType(compMdl, relObj, XbrlRelationship)
@@ -1122,7 +1123,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
 
 
     # DomainClass Objects
-    for domRtObj in module.domainClasses:
+    for domRtObj in module.domainClasses or ():
         assertObjectType(compMdl, domRtObj, XbrlDomainClass)
         name = domRtObj.name
         allowed_domain_object_qnames = (qnXbrlMemberObj, qnXbrlHeadingObj, qnXbrlConceptObj, qnXbrlEntityObj, qnXbrlUnitObj)
@@ -1166,12 +1167,12 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                               xbrlObject=domRtObj, name=name)
 
     # Entity Objects
-    for entityObj in module.entities:
+    for entityObj in module.entities or ():
         assertObjectType(compMdl, entityObj, XbrlEntity)
         validateProperties(compMdl, oimFile, module, entityObj)
 
     # GroupContent Objects
-    for grpCntObj in module.groupContents:
+    for grpCntObj in module.groupContents or ():
         assertObjectType(compMdl, grpCntObj, XbrlGroupContent)
         grpQn = grpCntObj.groupName
         validateQNameReference(compMdl, grpCntObj, "groupName", XbrlGroup,
@@ -1188,7 +1189,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                    errorArgs={"name": grpQn, "relName": relName}, qnRef=relName)
 
     # Label Objects
-    for lblObj in module.labels:
+    for lblObj in module.labels or ():
         assertObjectType(compMdl, lblObj, XbrlLabel)
         relatedName = lblObj.relatedName
         relatedObj = None
@@ -1219,13 +1220,13 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
     refsWithInvalidRelName = []
     refInvalidNames = []
     refsDup = defaultdict(list)
-    for refObj in module.references:
+    for refObj in module.references or ():
         assertObjectType(compMdl, refObj, XbrlReference)
         name = refObj.name
         lang = refObj.language
         refTp = refObj.referenceType
         extName = refObj.extendTargetName
-        for relName in refObj.relatedNames:
+        for relName in refObj.relatedNames or ():
             if relName not in compMdl.namedObjects:
                 refsWithInvalidRelName.append(refObj)
                 refInvalidNames.append(relName)
@@ -1268,7 +1269,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
 
     # LabelType Objects
     lblTpCt = {}
-    for lblObj in module.labelTypes:
+    for lblObj in module.labelTypes or ():
         assertObjectType(compMdl, lblObj, XbrlLabelType)
         dataTypeObj = validateQNameReference(compMdl, lblObj, "dataType", (XbrlDataType, XbrlCollectionType))
         if lblObj.allowedObjects is not None:
@@ -1285,7 +1286,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
 
     # ReferenceType Objects
     refTpCt = {}
-    for refObj in module.referenceTypes:
+    for refObj in module.referenceTypes or ():
         assertObjectType(compMdl, refObj, XbrlReferenceType)
         for allowedObj in (refObj.allowedObjects or ()):
             if allowedObj not in referencableObjectTypes:
@@ -1294,7 +1295,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                           xbrlObject=refObj, name=refObj.name, allowedObject=allowedObj)
         for prop, msgCode in (("orderedProperties","oimte:invalidOrderedProperty"),
                               ("requiredProperties","oimte:invalidRequiredProperty")):
-            for propTpQn in getattr(refObj, prop):
+            for propTpQn in getattr(refObj, prop) or ():
                 propTpObj = compMdl.namedObjects.get(propTpQn)
                 if not isinstance(propTpObj, XbrlPropertyType):
                     compMdl.error("oimte:invalidQNameReference",
@@ -1306,7 +1307,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                               xbrlObject=refObj, name=refObj.name, property=prop, propType=propTpQn)
 
     # Unit Objects
-    for unitObj in module.units:
+    for unitObj in module.units or ():
         assertObjectType(compMdl, unitObj, XbrlUnit)
         name = unitObj.name
         dtQn = getattr(unitObj, "dataType", None)
@@ -1327,7 +1328,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                               _("The unit %(name)s dataType %(dataType)s MUST NOT be defined in the xs schema namespace."),
                               xbrlObject=unitObj, name=unitObj.name, dataType=dtQn)
 
-        unitObj._unitsMeasures = [parseUnitString(uStr, unitObj, module, compMdl) for uStr in unitObj.compositeUnitRepresentation]
+        unitObj._unitsMeasures = [parseUnitString(uStr, unitObj, module, compMdl) for uStr in unitObj.compositeUnitRepresentation or ()]
         for uMeas in unitObj._unitsMeasures:
             if any(m == name for md in uMeas for m in md):
                 compMdl.error("oimte:invalidPropertyValue",
@@ -1341,7 +1342,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                   xbrlObject=unitObj, name=unitObj.name, measure=m)
 
     # ModelType Objects
-    for mdlTpObj in module.modelTypes:
+    for mdlTpObj in module.modelTypes or ():
         assertObjectType(compMdl, mdlTpObj, XbrlModelType)
         for allowedObjQn in (mdlTpObj.allowedObjects or ()):
             if allowedObjQn not in xbrlObjectTypes:
@@ -1360,10 +1361,10 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             resolveFact(compMdl, module, factPosition)
 
     # Layouts in XbrlModel
-    for layout in module.layouts:
+    for layout in module.layouts or ():
         assertObjectType(compMdl, layout, XbrlLayout)
 
-        for dataTbl in layout.dataTables:
+        for dataTbl in layout.dataTables or ():
             assertObjectType(compMdl, dataTbl, XbrlDataTable)
 
             for axisName, axis in (("xAxis", dataTbl.xAxis), ("yAxis", dataTbl.yAxis)):
@@ -1371,7 +1372,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             if dataTbl.zAxis is not None:
                 assertObjectType(compMdl, dataTbl.zAxis, XbrlAxis)
 
-    for tblTmpl in module.tableTemplates:
+    for tblTmpl in module.tableTemplates or ():
         assertObjectType(compMdl, tblTmpl, XbrlTableTemplate)
 
         for dim in tblTmpl.factDimensions:

@@ -25,7 +25,7 @@ from .XbrlFact import XbrlFact, XbrlFactLocatorType, XbrlFactValueAnchor, XbrlFa
 from .XbrlModel import XbrlCompiledModel
 from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
-from .XbrlTypes import XbrlModuleType, QNameKeyType, OptionalNonemptySet
+from .XbrlTypes import XbrlModuleType, QNameKeyType, NonemptySet
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
 from .XbrlLayout import XbrlLayout, XbrlDataTable, XbrlAxis, XbrlAxisHeader
 
@@ -35,9 +35,9 @@ class XbrlModelType(XbrlReferencableModelObject):
     """
     module: XbrlModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the model type object.
-    allowedObjects: OptionalNonemptySet[QName] # (optional) Defines a set of QNames representing the object types that may use the modelType. If no value is provided then the modelType can be used with any object type.
-    allowedProperties: OptionalNonemptySet[QName] # (optional) Defines a set of property QNames that can be used with the model type. If no value is provided then any property can be used with the model type.
-    requiredProperties: OptionalNonemptySet[QName] # (optional) Defines a set of property QNames that must be properties of the xbrl:xbrlModelObject. The set MUST NOT be empty.
+    allowedObjects: Optional[NonemptySet[QName]] # (optional) Defines a set of QNames representing the object types that may use the modelType. If no value is provided then the modelType can be used with any object type.
+    allowedProperties: Optional[NonemptySet[QName]] # (optional) Defines a set of property QNames that can be used with the model type. If no value is provided then any property can be used with the model type.
+    requiredProperties: Optional[NonemptySet[QName]] # (optional) Defines a set of property QNames that must be properties of the xbrl:xbrlModelObject. The set MUST NOT be empty.
 
 class XbrlNamespacePrefix(XbrlReferencableModelObject):
     """ Namespace Prefix Object
@@ -69,46 +69,46 @@ class XbrlModule(XbrlModelObject):
     modelForm: Optional[str] # (optional) Indicates if the model is a compiled or is modularized. If no value is provided the model defaults to module. Possible values are compiled, module
     modelType: Optional[QName]
     duplicateFactsInModel: Optional[str] # (optional) A string value that indicates if the model validates duplicate facts. It can be one of the following: no duplicates, complete duplicates,consistent duplicates, or inconsistent duplicates. If no string value is provided the default value is inconsistent duplicates. The value of duplicateFactsInModel sets the default value of duplicateFactsInCube. The value of duplicateFactsInCube has precedence over duplicateFactsInModel
-    concepts: OrderedSet[XbrlConcept] # ordered set of concept objects.
-    collectionTypes: OrderedSet[XbrlCollectionType] # ordered set of collectionType objects.
-    cubes: OrderedSet[XbrlCube] # ordered set of cube objects.
-    cubeTypes: OrderedSet[XbrlCubeType] # ordered set of cubeType objects.
-    dataTypes: OrderedSet[XbrlDataType] # ordered set of dataType objects.
-    dimensions: OrderedSet[XbrlDimension] # ordered set of dimension objects.
-    domainNetworks: OrderedSet[XbrlDomainNetwork] # (optional) ordered set of domain network objects.
-    domainClasses: OrderedSet[XbrlDomainClass] # (optional) ordered set of domain root objects.
-    entities: OrderedSet[XbrlEntity] # (optional) ordered set of entity objects.
-    facts: OrderedSet[XbrlFact] #  (optional) ordered set of fact objects.
-    factMaps: OrderedSet[XbrlFactMap] # (optional) ordered set of factMap objects.
-    factSources: OrderedSet[XbrlFactSource] # (optional) ordered set of factSource objects.
-    factLocatorTypes: OrderedSet[XbrlFactLocatorType] # (optional) ordered set of factLocatorType objects.
-    footnotes: OrderedSet[XbrlFootnote] #  (optional) ordered set of footnote objects.
-    tableTemplates: OrderedSet[XbrlTableTemplate] # (optional) ordered set of tableTemplate objects.
-    groups: OrderedSet[XbrlGroup] #  (optional) ordered set of group objects.
-    groupContents: OrderedSet[XbrlGroupContent] # ordered set of groupContent objects that link a group QName to a list of network or cube objects.
+    concepts: Optional[NonemptySet[XbrlConcept]] # ordered set of concept objects.
+    collectionTypes: Optional[NonemptySet[XbrlCollectionType]] # ordered set of collectionType objects.
+    cubes: Optional[NonemptySet[XbrlCube]] # ordered set of cube objects.
+    cubeTypes: Optional[NonemptySet[XbrlCubeType]] # ordered set of cubeType objects.
+    dataTypes: Optional[NonemptySet[XbrlDataType]] # ordered set of dataType objects.
+    dimensions: Optional[NonemptySet[XbrlDimension]] # ordered set of dimension objects.
+    domainNetworks: Optional[NonemptySet[XbrlDomainNetwork]] # (optional) ordered set of domain network objects.
+    domainClasses: Optional[NonemptySet[XbrlDomainClass]] # (optional) ordered set of domain root objects.
+    entities: Optional[NonemptySet[XbrlEntity]] # (optional) ordered set of entity objects.
+    facts: Optional[NonemptySet[XbrlFact]] #  (optional) ordered set of fact objects.
+    factMaps: Optional[NonemptySet[XbrlFactMap]] # (optional) ordered set of factMap objects.
+    factSources: Optional[NonemptySet[XbrlFactSource]] # (optional) ordered set of factSource objects.
+    factLocatorTypes: Optional[NonemptySet[XbrlFactLocatorType]] # (optional) ordered set of factLocatorType objects.
+    footnotes: Optional[NonemptySet[XbrlFootnote]] #  (optional) ordered set of footnote objects.
+    tableTemplates: Optional[NonemptySet[XbrlTableTemplate]] # (optional) ordered set of tableTemplate objects.
+    groups: Optional[NonemptySet[XbrlGroup]] #  (optional) ordered set of group objects.
+    groupContents: Optional[NonemptySet[XbrlGroupContent]] # ordered set of groupContent objects that link a group QName to a list of network or cube objects.
     groupTree: Optional[XbrlGroupTree] # (optional) A groupTree object that defines the hierarchical organization of groups within the taxonomy. Unlike groupContents which links groups to networks and cubes, groupTree organizes the groups themselves into a tree structure. The taxonomy serves as the root by being referenced as the source in top-level relationships. Only one groupTree object is allowed per taxonomy.
-    headings: OrderedSet[XbrlHeading] # ordered set of heading objects.
-    jsonTemplateMaps: OrderedSet[XbrlJSONTemplateMap] # (optional) ordered set of JSON template map objects that define mappings from taxonomy objects to JSON templates for rendering in user interfaces or forms.
-    labels: OrderedSet[XbrlLabel] # (optional) ordered set of label objects.
-    layouts: OrderedSet[XbrlLayout] # (optional) A layout object that defines the layout of a data structure that conforms with a XBRL model. The layout object is used to define how facts in a model or are rendered in a form or user interface.
-    members: OrderedSet[XbrlMember] #  (optional) ordered set of member objects.
-    modelTypes: OrderedSet[XbrlModelType] # (optional) ordered set of modelType objects.
-    networks: OrderedSet[XbrlNetwork] # (optional) ordered set of network objects.
-    propertyTypes: OrderedSet[XbrlPropertyType] # (optional) ordered set of propertyType objects.
-    references: OrderedSet[XbrlReference] # (optional) ordered set of reference objects.
-    labelTypes: OrderedSet[XbrlLabelType] # (optional)  ordered set of labelType objects.
-    referenceTypes: OrderedSet[XbrlReferenceType] # (optional) ordered set of referenceType objects.
-    relationshipTypes: OrderedSet[XbrlRelationshipType] # (optional) ordered set of relationshipType objects.
-    transforms: OrderedSet[XbrlTransform] # (optional) an ordered set of transform objects.
-    units: OrderedSet[XbrlUnit] # ordered set of unit objects.
-    xmlTemplateMaps: OrderedSet[XbrlXMLTemplateMap] # (optional) ordered set of XML template map objects that define mappings from taxonomy objects to XML templates for rendering in user interfaces or forms.
-    importedTaxonomies: OrderedSet[XbrlImportTaxonomy] # ordered set of importTaxonomy objects that can comprise QName of the taxonomy to be imported, an object type or a taxonomy object referenced by its QName.
+    headings: Optional[NonemptySet[XbrlHeading]] # ordered set of heading objects.
+    jsonTemplateMaps: Optional[NonemptySet[XbrlJSONTemplateMap]] # (optional) ordered set of JSON template map objects that define mappings from taxonomy objects to JSON templates for rendering in user interfaces or forms.
+    labels: Optional[NonemptySet[XbrlLabel]] # (optional) ordered set of label objects.
+    layouts: Optional[NonemptySet[XbrlLayout]] # (optional) A layout object that defines the layout of a data structure that conforms with a XBRL model. The layout object is used to define how facts in a model or are rendered in a form or user interface.
+    members: Optional[NonemptySet[XbrlMember]] #  (optional) ordered set of member objects.
+    modelTypes: Optional[NonemptySet[XbrlModelType]] # (optional) ordered set of modelType objects.
+    networks: Optional[NonemptySet[XbrlNetwork]] # (optional) ordered set of network objects.
+    propertyTypes: Optional[NonemptySet[XbrlPropertyType]] # (optional) ordered set of propertyType objects.
+    references: Optional[NonemptySet[XbrlReference]] # (optional) ordered set of reference objects.
+    labelTypes: Optional[NonemptySet[XbrlLabelType]] # (optional)  ordered set of labelType objects.
+    referenceTypes: Optional[NonemptySet[XbrlReferenceType]] # (optional) ordered set of referenceType objects.
+    relationshipTypes: Optional[NonemptySet[XbrlRelationshipType]] # (optional) ordered set of relationshipType objects.
+    transforms: Optional[NonemptySet[XbrlTransform]] # (optional) an ordered set of transform objects.
+    units: Optional[NonemptySet[XbrlUnit]] # ordered set of unit objects.
+    xmlTemplateMaps: Optional[NonemptySet[XbrlXMLTemplateMap]] # (optional) ordered set of XML template map objects that define mappings from taxonomy objects to XML templates for rendering in user interfaces or forms.
+    importedTaxonomies: Optional[NonemptySet[XbrlImportTaxonomy]] # ordered set of importTaxonomy objects that can comprise QName of the taxonomy to be imported, an object type or a taxonomy object referenced by its QName.
     finalTaxonomy: Optional[XbrlFinalTaxonomy] # (optional) A final taxonomy object that indicates those components of the taxonomy that are final and cannot be amended or added by an importing taxonomy.
-    namespacePrefixes: OrderedSet[XbrlNamespacePrefix] # (optional) ordered set of namespace prefix objects that define preferred prefixes for namespaces used within the taxonomy.
-    impliedObjects: OrderedSet[XbrlImpliedObject] # (optional) A set of implied Objects that defines objects that are implied by the model but not explicitly defined.
-    JSONTemplateMaps: OrderedSet[XbrlJSONTemplateMap]
-    XMLTemplateMaps: OrderedSet[XbrlXMLTemplateMap]
-    properties: OrderedSet[XbrlProperty] # ordered set of property objects used to specify additional properties associated with the taxonomy. Only immutable properties as defined in the propertyType object can be added to a taxonom
+    namespacePrefixes: Optional[NonemptySet[XbrlNamespacePrefix]] # (optional) ordered set of namespace prefix objects that define preferred prefixes for namespaces used within the taxonomy.
+    impliedObjects: Optional[NonemptySet[XbrlImpliedObject]] # (optional) A set of implied Objects that defines objects that are implied by the model but not explicitly defined.
+    JSONTemplateMaps: Optional[NonemptySet[XbrlJSONTemplateMap]]
+    XMLTemplateMaps: Optional[NonemptySet[XbrlXMLTemplateMap]]
+    properties: Optional[NonemptySet[XbrlProperty]] # ordered set of property objects used to specify additional properties associated with the taxonomy. Only immutable properties as defined in the propertyType object can be added to a taxonom
 
 """ Referencable Object Types
     These are the object types that can be referenced by other objects in the taxonomy or report."""

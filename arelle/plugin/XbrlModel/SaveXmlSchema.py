@@ -14,7 +14,7 @@ from collections import OrderedDict
 from typing import GenericAlias, Optional, Union, _UnionGenericAlias, get_origin
 from arelle.ModelDocument import Type, create as createModelDocument
 from arelle.ModelValue import qname, QName, timeInterval
-from arelle.PythonUtil import  OrderedSet
+from ordered_set import OrderedSet
 from arelle.XmlUtil import addChild
 from .ViewXbrlTaxonomyObject import ViewXbrlTxmyObj
 from .XbrlHeading import XbrlHeading

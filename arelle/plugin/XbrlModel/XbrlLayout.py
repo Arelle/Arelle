@@ -2,11 +2,11 @@
 See COPYRIGHT.md for copyright information.
 """
 
-from typing import TYPE_CHECKING, Optional, Union, List, Any
+from typing import Optional, Union
 
 from arelle.ModelValue import QName
 from ordered_set import OrderedSet
-from .XbrlTypes import XbrlLayoutType, XbrlDataTableType, XbrlModuleType, QNameKeyType, DefaultFalse, DefaultOne, OptionalList
+from .XbrlTypes import XbrlLayoutType, XbrlDataTableType, XbrlModuleType, QNameKeyType, DefaultFalse, DefaultOne, OptionalList, NonemptySet
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
 
 class XbrlAxisLabelGroupRange(XbrlModelObject):
@@ -56,13 +56,13 @@ class XbrlAxisGroup(XbrlModelObject):
     axisStart: Optional[int] # (optional) Integer that indicates the start location of the group on the axis. This is used for positioning the group on the axis. If not provided the group starts at the first position on the grid or a default value of 1.
 
 class XbrlGridAxis(XbrlModelObject):
-    axisItems: OrderedSet[XbrlAxisItem] # (optional) Array of axisItem objects that define individual dimension member pairs for grid positioning.
-    axisGroups: OrderedSet[XbrlAxisGroup] # (optional) Array of axisGroup objects that organize dimension member pairs into logical groupings.
+    axisItems: Optional[NonemptySet[XbrlAxisItem]] # (optional) Array of axisItem objects that define individual dimension member pairs for grid positioning.
+    axisGroups: Optional[NonemptySet[XbrlAxisGroup]] # (optional) Array of axisGroup objects that organize dimension member pairs into logical groupings.
 
 class XbrlAxis(XbrlModelObject):
     dataTable: XbrlDataTableType
-    axisHeaders: OrderedSet[XbrlAxisHeader] # (optional) Defines a set of strings that are used as the axis labels. Cannot be used with the presentationNetwork property.
-    gridHeaders: OrderedSet[XbrlGridHeader] # (optional) An array of gridHeader objects that defines the label for each column or row on a grid.
+    axisHeaders: Optional[NonemptySet[XbrlAxisHeader]] # (optional) Defines a set of strings that are used as the axis labels. Cannot be used with the presentationNetwork property.
+    gridHeaders: Optional[NonemptySet[XbrlGridHeader]] # (optional) An array of gridHeader objects that defines the label for each column or row on a grid.
     axisLabelsGroup: Optional[XbrlAxisLabelGroup] # (optional) An optional grouping of axis labels with valueArray and/or range specifications.
     gridAxis: Optional[XbrlGridAxis] # (optional) Grid axis configuration for aligning dimension pairs with rows and columns in grid layouts.
 
@@ -84,10 +84,10 @@ class XbrlDataTable(XbrlReferencableModelObject):
     xAxis: XbrlAxis # (required) An axis object that identifies an ordered set of axis and the behaviour of the dimension when mapped to the X axis of the table.
     yAxis: XbrlAxis # (required) An axis object that identifies an ordered set of axis and the behaviour of the dimension when mapped to the Y axis of the table.
     zAxis: Optional[XbrlAxis] # (optional) An axis object that identifies an ordered set of axis and the behaviour of the dimension when mapped to the Z axis of the table.
-    tablePoints: OrderedSet[XbrlTablePoint] # (optional) Array of tablePoint objects that map dimension member pairs to specific grid cells.
+    tablePoints: Optional[NonemptySet[XbrlTablePoint]] # (optional) Array of tablePoint objects that map dimension member pairs to specific grid cells.
 
 class XbrlLayout(XbrlReferencableModelObject):
     txmyMdl: XbrlModuleType
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the layout object.
     tableConstruction: Optional[str] # (optional) Specifies how multiple tables in the dataTables array should be joined together.
-    dataTables: OrderedSet[XbrlDataTable] # (optional) ordered set of dataTable objects.
+    dataTables: Optional[NonemptySet[XbrlDataTable]] # (optional) ordered set of dataTable objects.

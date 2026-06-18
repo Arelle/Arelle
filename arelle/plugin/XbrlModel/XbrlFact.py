@@ -8,7 +8,7 @@ from decimal import Decimal
 from arelle.ModelValue import QName, AnyURI
 from ordered_set import OrderedSet
 from arelle.plugin.XbrlModel.ModelValueMore import SQName
-from .XbrlTypes import XbrlTaxonomyModelType,XbrlModuleType, QNameKeyType, DefaultFalse, DefaultTrue, OptionalList
+from .XbrlTypes import XbrlTaxonomyModelType,XbrlModuleType, QNameKeyType, DefaultFalse, DefaultTrue, OptionalList, NonemptySet
 from .XbrlObject import XbrlObject, XbrlReportObject
 from .XbrlProperty import XbrlProperty
 from .XbrlUnit import  parseUnitString
@@ -56,7 +56,7 @@ class XbrlFact(XbrlReportObject):
     name: QNameKeyType # (equired if no extendTargetName) The name is a QName that uniquely identifies the factspace object.
     factValues: OrderedSet[XbrlFactValue]
     factDimensions: Dict[QName, Any] # (required) A dimensions object with properties corresponding to the members of the {dimensions} property.
-    properties: OrderedSet[XbrlProperty] # (optional) an ordered set of property objects used to specify additional properties associated with the fact using the property object.
+    properties: Optional[NonemptySet[XbrlProperty]] # (optional) an ordered set of property objects used to specify additional properties associated with the fact using the property object.
     extendTargetName: Optional[QName] # (required if no name property) Names the fact object that is appended to. The fact values and dimensions of the fact with this property are appended to the end of the fact object with the name property. This property cannot be used in conjunction with the name property.
     isExtensible: Union[bool, DefaultTrue] # (optional) If set to false, the fact is non-extensible and no importing taxonomy may augment it using extendTargetName. If set to true or omitted, the fact may be extended. The default value is true.
     _propertyMap: ClassVar[dict[type,dict[str, str]]] = {}
@@ -104,7 +104,7 @@ class XbrlFactSourceMetadata(XbrlObject):
     concepts: OrderedSet[QName] # (required) An ordered set of QNames that reference concept objects defined in the taxonomy model. If provided, the factSource object only applies to the facts with these concepts. If not provided, the factSource object applies to all facts in the report.
     dimensions: OrderedSet[XbrlFactSourceDimensionSummary] # (required) An ordered set of QNames that reference dimension objects defined in the taxonomy model. If provided, the factSource object only applies to the facts with these dimensions. If not provided, the factSource object applies to all facts inAn ordered set of factSourceDimensionSummary objects that describe the dimensions used in the fact collection, including the xbrl:concept dimension.
     threshold: Optional[int] # (optional) The threshold property is a numeric value that can be used to determine when to apply certain processing rules or optimizations to the data source identified by the factSource object. For example, if the factCount property exceeds the threshold value, certain processing rules or optimizations may be applied to improve performance.
-    properties: OrderedSet[XbrlProperty] # (optional) an ordered set of property objects used to specify additional properties associated with the factSource using the property object.
+    properties: Optional[NonemptySet[XbrlProperty]] # (optional) an ordered set of property objects used to specify additional properties associated with the factSource using the property object.
 
 class XbrlFactSource(XbrlReportObject):
     """ Fact Source Object
@@ -119,7 +119,7 @@ class XbrlFactSource(XbrlReportObject):
     hash: Optional[str] # (optional) A hash value that can be used to verify the integrity of the data source. The specific hashing algorithm used is not defined in the specification and may be determined by the implementation.
     metadata: Optional[XbrlFactSourceMetadata] # (optional) A metadata object that can contain any additional information about the fact source. The structure and content of the metadata object is not defined in the specification and may be determined by the implementation.
     factIdentifierNamespace: Optional[AnyURI] # (optional) Namespace URI used for generated fact/factValue object names derived from this source.
-    properties: OrderedSet[XbrlProperty] # (optional) an ordered set of property objects used to specify additional properties associated with the factSource using the property object.
+    properties: Optional[NonemptySet[XbrlProperty]] # (optional) an ordered set of property objects used to specify additional properties associated with the factSource using the property object.
 
 class XbrlTableTemplate(XbrlReportObject):
     """ Table Template Object
@@ -161,8 +161,8 @@ class XbrlFactLocatorType(XbrlReportObject):
     parent: XbrlModuleType  # fact locator types in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The name is a QName that uniquely identifies this locator type.
     sourceMediaType: str # (optional) Advisory MIME type or media format hint (e.g. text/html, application/pdf, text/csv). Informational only; does not restrict which source documents a locator of this type may reference.
-    requiredProperties: OrderedSet[QName] # (optional) A set of property QNames that MUST be present on any factValueSource object using this type.
-    allowedProperties: OrderedSet[QName] # (optional) A set of property QNames that MAY be present on any factValueSource object using this type. If not provided, there are no restrictions on the properties that may be used with this locator type.
+    requiredProperties: Optional[NonemptySet[QName]] # (optional) A set of property QNames that MUST be present on any factValueSource object using this type.
+    allowedProperties: Optional[NonemptySet[QName]] # (optional) A set of property QNames that MAY be present on any factValueSource object using this type. If not provided, there are no restrictions on the properties that may be used with this locator type.
 
 # XbrlReport object has been removed: facts, footnotes, factSources, tableTemplates etc.
 # are owned directly by XbrlModule per the current oim-taxonomy specification.

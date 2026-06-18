@@ -8,7 +8,7 @@ from collections import defaultdict
 from arelle.ModelValue import QName, AnyURI
 from ordered_set import OrderedSet
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue, OptionalNonemptySet
+from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue, NonemptySet
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
 
 if TYPE_CHECKING:
@@ -21,7 +21,7 @@ class XbrlRelationship(XbrlModelObject):
     source: QName # (required) This attribute identifies the source concept of the relationship type. The value of the attribute must be a QName.
     target: QName # (required) This attribute identifies the target concept of the relationship type. The value of the attribute must be a QName.
     order: Optional[int] # (optional) This is used to order the relationships if the order is different than the order that the relationship appears in the list of relationships. The order property can be used on any relationship type.
-    properties: OrderedSet[XbrlProperty] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.
+    properties: Optional[NonemptySet[XbrlProperty]] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.
 
     @property
     def propertyView(self):
@@ -85,11 +85,11 @@ class XbrlNetwork(XbrlReferencableModelObject, XbrlRelationshipSet):
     module: XbrlModuleType
     name: QNameKeyType # (required if no extendedTargetName) The name is a QName that uniquely identifies the network object.
     relationshipTypeName: QName # (required if no extendedTargetName) The relationshipType object of the network expressed as a QName such as xbrl:parent-child
-    roots: OrderedSet[QName] # (optional) A list of the root objects of the network object. This allows a single object to be associated with a network without the need for a relationship. The order of roots in the list indicates the order in which the roots should appear. If no root is specified for a list of relationships the roots property is inferred from the relationships defined.
-    relationships: OrderedSet[XbrlRelationship] # (optional) A set of the relationship objects comprising the network.
+    roots: Optional[NonemptySet[QName]] # (optional) A list of the root objects of the network object. This allows a single object to be associated with a network without the need for a relationship. The order of roots in the list indicates the order in which the roots should appear. If no root is specified for a list of relationships the roots property is inferred from the relationships defined.
+    relationships: Optional[NonemptySet[XbrlRelationship]] # (optional) A set of the relationship objects comprising the network.
     extendTargetName: Optional[QName] # (required if no name) Names the network object that the defined network relationships should be appended to. The items in the network with this property are appended to the end of the relationships or roots defined in the target network object. This property cannot be used in conjunction with the relationshipTypeName and name property.
     isExtensible: Union[bool, DefaultTrue] # (optional) If set to false, the network is non-extensible and no importing taxonomy may augment it using extendTargetName. If set to true or omitted, the network may be extended. The default value is true.
-    properties: OrderedSet[XbrlProperty] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.
+    properties: Optional[NonemptySet[XbrlProperty]] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.
 
     @property
     def relationshipType(self) -> Optional["XbrlRelationshipType"]:
@@ -150,8 +150,8 @@ class XbrlRelationshipType(XbrlReferencableModelObject):
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the relationshipType object.
     uri: Optional[AnyURI] # (optional) The URI identifies the uri of the relationship type for historical and backward compatibility purposes.
     cycles: QName # (required) The cycles attribute indicates if the relationship when used in a hierarchy can include cycles. Possible values are any, none, and undirected. Any means cycles are allowed in the relationships, undirected means cycles are allowed, but they must be undirected, and none means cycles are not allowed in the relationships.
-    allowedLinkProperties: OptionalNonemptySet[QName] # (optional) Defines an ordered set of property QNames that can be included on the relationship type. Each property is represented as the QName defined in the propertyType object. Only properties defined in this list can be added to the specific relationship type. MUST NOT be empty if provided.
-    requiredLinkProperties: OptionalNonemptySet[QName] # (optional) Defines an ordered set of property QNames that MUST be included on the relationship type. Each property is represented as the QName defined in the propertyType object. MUST NOT be empty if provided.
-    sourceObjects: OrderedSet[QName] # (optional) Defines a list of source object types that can be used as the source for the relationship. The only permitted values are referenceable taxonomy objects
-    targetObjects: OrderedSet[QName] # (optional) Defines a list of target object types that can be used as the source for the relationship. The only permitted values are referenceable taxonomy objects
-    constraints: OrderedSet[XbrlRelationshipConstraint] # (optional) An ordered set of relationshipConstraint objects that define the allowable properties of source, target and links comprising the relationship. Each constraint is defined as a relationshipConstraint object. Separate relationshipConstraint objects are considered to be an OR.
+    allowedLinkProperties: Optional[NonemptySet[QName]] # (optional) Defines an ordered set of property QNames that can be included on the relationship type. Each property is represented as the QName defined in the propertyType object. Only properties defined in this list can be added to the specific relationship type. MUST NOT be empty if provided.
+    requiredLinkProperties: Optional[NonemptySet[QName]] # (optional) Defines an ordered set of property QNames that MUST be included on the relationship type. Each property is represented as the QName defined in the propertyType object. MUST NOT be empty if provided.
+    sourceObjects: Optional[NonemptySet[QName]] # (optional) Defines a list of source object types that can be used as the source for the relationship. The only permitted values are referenceable taxonomy objects
+    targetObjects: Optional[NonemptySet[QName]] # (optional) Defines a list of target object types that can be used as the source for the relationship. The only permitted values are referenceable taxonomy objects
+    constraints: Optional[NonemptySet[XbrlRelationshipConstraint]] # (optional) An ordered set of relationshipConstraint objects that define the allowable properties of source, target and links comprising the relationship. Each constraint is defined as a relationshipConstraint object. Separate relationshipConstraint objects are considered to be an OR.
