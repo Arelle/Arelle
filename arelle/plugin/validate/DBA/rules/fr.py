@@ -1107,6 +1107,8 @@ def rule_fr74(
         liabilityOtherFact = None
         provisionFact = None
         for fact in facts:
+            if fact.unit is None:
+                continue
             if fact.qname == pluginData.equityQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:
                 equityFact = fact
             elif fact.qname == pluginData.liabilitiesQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:
@@ -1159,6 +1161,8 @@ def rule_fr75(
         wagesFact = None
         employeesFact = None
         for fact in facts:
+            if fact.unit is None:
+                continue
             if fact.qname == pluginData.employeeBenefitsExpenseQn and fact.unit.id.upper() == DANISH_CURRENCY_ID and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) >= PERSONNEL_EXPENSE_THRESHOLD:
                 benefitsFact = fact
             elif fact.qname == pluginData.wagesAndSalariesQn and fact.unit.id.upper() == DANISH_CURRENCY_ID and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) >= PERSONNEL_EXPENSE_THRESHOLD:
@@ -1195,6 +1199,8 @@ def rule_fr77(
         longLiabilityFact = None
         shortLiabilityFact = None
         for fact in facts:
+            if fact.unit is None:
+                continue
             if fact.qname == pluginData.equityQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:
                 equityFact = fact
             elif fact.qname == pluginData.liabilitiesQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:
