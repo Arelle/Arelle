@@ -161,7 +161,6 @@ module = [
     'arelle.InstanceAspectsEvaluator',
     'arelle.ModelInstanceObject',
     'arelle.ModelRenderingObject',
-    'arelle.ModelVersObject',
     'arelle.ModelVersReport',
     'arelle.PrototypeInstanceObject',
     'arelle.rendering.RenderingEvaluator',
