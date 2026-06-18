@@ -204,26 +204,26 @@ class ContextPrototype:  # behaves like a context
     def nonDimValues(self, contextElement: str | int) -> list[ModelObject]:
         return self._nonDimValues.get(contextElement, [])
 
-    def isEntityIdentifierEqualTo(self, cntx2: ModelContext) -> bool:
+    def isEntityIdentifierEqualTo(self, cntx2: ContextPrototype | ModelContext) -> bool:
         return self.entityIdentifierHash is None or self.entityIdentifierHash == cntx2.entityIdentifierHash
 
-    def isPeriodEqualTo(self, cntx2: ModelContext) -> bool:
+    def isPeriodEqualTo(self, cntx2: ContextPrototype | ModelContext) -> bool:
         if self.isForeverPeriod:
-            return cntx2.isForeverPeriod  # type: ignore[no-any-return]
+            return cntx2.isForeverPeriod
         elif self.isStartEndPeriod:
             if not cntx2.isStartEndPeriod:
                 return False
-            return self.startDatetime == cntx2.startDatetime and self.endDatetime == cntx2.endDatetime  # type: ignore[no-any-return]
+            return self.startDatetime == cntx2.startDatetime and self.endDatetime == cntx2.endDatetime
         elif self.isInstantPeriod:
             if not cntx2.isInstantPeriod:
                 return False
-            return self.instantDatetime == cntx2.instantDatetime  # type: ignore[no-any-return]
+            return self.instantDatetime == cntx2.instantDatetime
         else:
             return False
 
 
 class DimValuePrototype:
-    typedMember: QName | None
+    typedMember: ModelObject | None
     isExplicit: bool
     isTyped: bool
     memberQname: QName | None
@@ -252,7 +252,7 @@ class DimValuePrototype:
         else:
             self.isExplicit = False
             self.isTyped = True
-            self.typedMember = mem  # type: ignore[assignment]
+            self.typedMember = mem
             self.memberQname = None
             self.member = None
 
