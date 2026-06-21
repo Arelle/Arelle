@@ -1649,19 +1649,6 @@
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrlr:shares",
-                "value": "Share"
-            },
-            
-            {
-                "labelType": "xbrl:documentation",
-                "language": "en",
-                "relatedName": "xbrlr:shares",
-                "value": "Unit of Ownership (Stock)"
-            },
-            {
-                "labelType": "xbrl:label",
-                "language": "en",
                 "relatedName": "utr:Y",
                 "value": "Year"
             },
@@ -2699,7 +2686,6 @@
                                     "utr:bu",
                                     "xbrlr:pure",
                                     "utr:Rate",
-                                    "xbrlr:shares",
                                     "utr:Y",
                                     "utr:M",
                                     "utr:D",
@@ -2847,8 +2833,7 @@
             {
                 "name" : "utr:XbrlDerivedUnitsRef",
                 "relatedNames" : ["xbrlr:pure",
-                                    "utr:Rate",
-                                    "xbrlr:shares" ],
+                                    "utr:Rate" ],
                 "referenceType" : "xbrl:baseUnitsStandard",
                 "properties" : [{"property":"utr:baseStandardIdentifier", "value":"xbrl"}]
             }

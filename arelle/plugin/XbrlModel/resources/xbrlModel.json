@@ -6,6 +6,7 @@
             "xbrl": "https://xbrl.org/2026",
             "xbrlr":"https://xbrl.org/2026/report",
             "xbrlm":"https://xbrl.org/2026/model",
+            "xbrla": "http://xbrl.org/accounting",
             "xs": "http://www.w3.org/2001/XMLSchema",
             "ref": "https://xbrl.org/2026/ref",
             "utr": "https://xbrl.org/2026/utr",
@@ -13,18 +14,10 @@
             "iso4217": "http://www.xbrl.org/2003/iso4217"
             },
         "documentNamespacePrefix":"xbrlm",
-        "importMapping": {
-            "xs:XMLSchemaTypes": "../spec-taxonomies/xs-types.json",
-            "xbrl:coreModule": "../spec-taxonomies/xbrlSpec.json",
-            "utr:unitsModule": "../spec-taxonomies/utr.json",
-            "xbrlr:dataTypesModule": "../spec-taxonomies/types.json",
-            "ref:referencePropertiesModule": "../spec-taxonomies/ref.json",
-            "iso4217:iso4217Module": "../spec-taxonomies/iso4217.json"
-        },
-        "description": "The base specification module, that collates the core XBRL data models. This module imports the XML Schema data types and the other core XBRL taxonomy modules that in aggregate define the objects comprising the XBRL data model."
+        "description": "The base module, that collates the core XBRL data models. This module imports the XML Schema data types and the other core XBRL taxonomy modules that in aggregate define the objects comprising the XBRL data model."
     },
     "xbrlModel": {
-        "name": "xbrlm:BaseSpecificationModule",
+        "name": "xbrlm:baseModule",
         "frameworkName": "Core",
         "version": "2026",
         "importedTaxonomies": [
@@ -45,6 +38,9 @@
                 },
                 {
                     "xbrlModelName": "iso4217:iso4217Module"
+                },
+                {
+                    "xbrlModelName": "xbrla:accountingModule"
                 }
         ]   
     }

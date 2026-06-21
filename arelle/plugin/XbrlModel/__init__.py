@@ -548,8 +548,11 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             oimParentTypes = (type(oimParentObj), type(oimParentObj).__name__) # allow actual type or TypeAlias type
             if isinstance(jsonObj, str):
                 print("trace")
+            if isinstance(objClass, XbrlUnitType):
+                print("trace")
             unexpectedJsonProps = set(jsonObj.keys())
             propertyMap = getattr(objClass, "_propertyMap", EMPTY_DICT).get(type(oimParentObj), EMPTY_DICT)
+            initialParentObjProp = True
             for propName, propType in objClass.propertyNameTypes():
                 if isinstance(propType, GenericAlias) or (isinstance(propType, _GenericAlias) and propType.__origin__ == list):
                     propClass = propType.__origin__ # collection type such as OrderedSet, dict
@@ -683,7 +686,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                         setattr(newObj, propName, jsonValue)
                         if (keyClass and keyClass == propType) or (not keyClass and propType in (QNameKeyType, SQNameKeyType)):
                             keyValue = jsonValue # e.g. the QNAme of the new object for parent object collection
-                elif (propType in oimParentTypes or # propType may be a TypeAlias which is a string name of class
+                elif initialParentObjProp and (propType in oimParentTypes or # propType may be a TypeAlias which is a string name of class
                       (isinstance(propType, _UnionGenericAlias) and any(t.__forward_arg__ in oimParentTypes for t in propType.__args__ if isinstance(t,ForwardRef)))): # Union of TypeAliases are ForwardArgs
                     setattr(newObj, propName, oimParentObj)
                 elif (((get_origin(propType) is Union) or isinstance(get_origin(propType), type(Union))) and # Optional[ ] type
@@ -698,6 +701,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                             if "extendTargetName" not in jsonObj:
                                 jsonEltsReqdButMissing.append(f"{'/'.join(pathParts + [propName])}")
                         setattr(newObj, propName, None) # not defaultable but set to None anyway
+                initialParentObjProp = False
             if unexpectedJsonProps:
                 for propName in unexpectedJsonProps:
                     jsonEltsNotInObjClass.append(f"{'/'.join(pathParts + [propName])}={jsonObj.get(propName,'(absent)')}")
@@ -790,11 +794,71 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                   _("Missing /xbrlModel object"),
                   file=moduleFile)
             return {}
+        
+        # imported taxonomy modules are needed before creating objects in this module, so that imported objects are available for reference and validation as the module is processed. This matches the expectation in the OIM spec that imported modules are processed before the importing module.
+        impTxmyNameModuleObjs = {}
+        if "importedTaxonomies" in moduleFileObj["xbrlModel"]:
+            for impTxJsonObj in moduleFileObj["xbrlModel"]["importedTaxonomies"]:
+                impModuleName = qname(impTxJsonObj.get("xbrlModelName"), prefixNamespaces)
+                if impModuleName:
+                    if impModuleName not in xbrlCompMdl.xbrlModels:
+                        impSchemaDoc = None
+                        impTxModuleObj = None
+                        # is it built in?
+                        if impModuleName.prefix in builtInPrefixTaxonomies:
+                            url = os.path.join(RESOURCES_DIR, builtInPrefixTaxonomies[impModuleName.prefix])
+                            impSchemaDoc = loadXbrlModule(cntlr, error, warning, modelXbrl, url, "BakedInXbrlSpecObjects", **kwargs)
+                        # is it present in importMapping?
+                        elif impModuleName in importMapping:
+                            url = importMapping[impModuleName]
+                            normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(url, moduleFileName)
+                            if modelXbrl.fileSource.isMappedUrl(normalizedUri):
+                                mappedUrl = modelXbrl.fileSource.mappedUrl(normalizedUri)
+                            elif PackageManager.isMappedUrl(normalizedUri):
+                                mappedUrl = PackageManager.mappedUrl(normalizedUri)
+                            else:
+                                mappedUrl = modelXbrl.modelManager.disclosureSystem.mappedUrl(normalizedUri)
+                            impSchemaDoc = loadXbrlModule(cntlr, error, warning, modelXbrl,
+                                                        mappedUrl, url, importingTxmyObj=impTxJsonObj)
+                        if isinstance(impSchemaDoc, ModelDocument): # if an exception object is returned, loading didn't succeed\
+                            if impSchemaDoc._txmyModule.name == impModuleName:
+                                impTxModuleObj = impSchemaDoc._txmyModule
+                                impTxmyNameModuleObjs[impModuleName] = impTxModuleObj # key is a QName
+                                # If an imported module reuses an alias for a different URI and
+                                # the importing model has no alias for that URI, remapping is ambiguous.
+                                impPrefixNamespaces = getattr(impTxModuleObj, "_prefixNamespaces", EMPTY_DICT) or EMPTY_DICT
+                                for impPrefix, impNamespace in impPrefixNamespaces.items():
+                                    if (impPrefix in prefixNamespaces and
+                                        prefixNamespaces[impPrefix] != impNamespace and
+                                        impNamespace not in prefixNamespaces.values()):
+                                        xbrlCompMdl.error("oimce:multipleURIsForAlias",
+                                                            _("Alias %(alias)s maps to %(ns1)s in importing taxonomy and %(ns2)s in imported taxonomy %(importedModel)s, and %(ns2)s has no alias in the importing taxonomy."),
+                                                            xbrlObject=impTxJsonObj,
+                                                            alias=impPrefix,
+                                                            ns1=prefixNamespaces[impPrefix],
+                                                            ns2=impNamespace,
+                                                            importedModel=impModuleName)
+                                        break
+                                # selecting imported objects is deferred until this module's objects are created, so that imported objects are available for reference and validation as the module is processed. This matches the expectation in the OIM spec that imported modules are processed before the importing module.
+                            else:
+                                xbrlCompMdl.error("oimte:taxonomyNotFound",
+                                                    _("Imported taxonomy for %(qname)s found at %(url)s has mismatching xbrlModelName %(name)s."),
+                                                    xbrlObject=impTxJsonObj, url=url, qname=impModuleName, name= impSchemaDoc._txmyModule.name)
+                                foundMismatchedNameReported = True
+                        if impTxModuleObj is None:
+                            xbrlCompMdl.error("oimte:taxonomyNotFound",
+                                            _("Imported taxonomy for %(qname)s not found because the URL mapping namespace is incorrect."),
+                                            xbrlObject=impTxJsonObj, qname=impModuleName)
+                    else:
+                        impTxModuleObj = xbrlCompMdl.xbrlModels[impModuleName]
+                        impTxmyNameModuleObjs[impModuleName] = impTxModuleObj
+        modelXbrl.profileActivity(f"Load taxonomies imported from {moduleFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
+        
+
 
         newModule = createModelObjects("xbrlModel", moduleFileObj["xbrlModel"], xbrlCompMdl, ["", "xbrlModel"])
         modelXbrl.profileActivity(f"Create taxonomy objects from {moduleFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
         newModule._prefixNamespaces = prefixNamespaces
-        declaredPrefixNamespaces = dict(prefixNamespaces)
         # Step 8: well-known prefixes from previously-loaded baked-in modules
         # (e.g. iso4217, utr) are made available as fallbacks for QName lookup
         # in this module. The user's explicit declarations always win, so we
@@ -809,6 +873,13 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                 if _pfx and _ns and _pfx not in prefixNamespaces:
                     prefixNamespaces[_pfx] = _ns
         newModule._lastMdlObjIndex = len(xbrlCompMdl.xbrlObjects) - 1
+
+        # remove imported taxonomy objects not wanted
+        for impTxMdlObj in newModule.importedTaxonomies or ():
+            if impTxMdlObj.xbrlModelName in impTxmyNameModuleObjs:
+                impTxMdlObj._txmyModule = impTxmyNameModuleObjs[impTxMdlObj.xbrlModelName] # used by validation
+            selectImportedObjects(xbrlCompMdl, newModule, impTxMdlObj)
+
         # Parse documentInfo.sourceMappings into a lightweight list of mapping
         # objects accessible via module._sourceMappings for FactValueResolver
         # (step 6 -- HTML / PDF locator-property registry).
@@ -845,61 +916,10 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
 
         for qname, dupObjs in namedObjectDuplicates.items():
             xbrlCompMdl.error("oimte:duplicateObjects",
-                  _("Multiple referenceable objects have the same name: %(qname)s"),
-                  xbrlObject=dupObjs, qname=qname)
+                  _("Multiple referenceable objects have the same name: %(qname)s processing file %(href)s"),
+                  xbrlObject=dupObjs, qname=qname, href=href)
 
         # remove imported objects not wanted
-
-        if newModule is not None:
-            for impTxObj in newModule.importedTaxonomies or ():
-                if impTxObj.xbrlModelName and impTxObj.xbrlModelName not in xbrlCompMdl.xbrlModels:
-                    impSchemaDoc = None
-                    # is it built in?
-                    if impTxObj.xbrlModelName.prefix in builtInPrefixTaxonomies:
-                        url = os.path.join(RESOURCES_DIR, builtInPrefixTaxonomies[impTxObj.xbrlModelName.prefix])
-                        impSchemaDoc = loadXbrlModule(cntlr, error, warning, modelXbrl, url, "BakedInXbrlSpecObjects", **kwargs)
-                    # is it present in importMapping?
-                    if impTxObj.xbrlModelName in importMapping:
-                        url = importMapping[impTxObj.xbrlModelName]
-                        normalizedUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(url, moduleFileName)
-                        if modelXbrl.fileSource.isMappedUrl(normalizedUri):
-                            mappedUrl = modelXbrl.fileSource.mappedUrl(normalizedUri)
-                        elif PackageManager.isMappedUrl(normalizedUri):
-                            mappedUrl = PackageManager.mappedUrl(normalizedUri)
-                        else:
-                            mappedUrl = modelXbrl.modelManager.disclosureSystem.mappedUrl(normalizedUri)
-                        impSchemaDoc = loadXbrlModule(cntlr, error, warning, modelXbrl,
-                                                       mappedUrl, url, importingTxmyObj=impTxObj)
-                    if isinstance(impSchemaDoc, ModelDocument): # if an exception object is returned, loading didn't succeed\
-                        if impSchemaDoc._txmyModule.name == impTxObj.xbrlModelName:
-                            impTxObj._txmyModule = impSchemaDoc._txmyModule
-                            # If an imported module reuses an alias for a different URI and
-                            # the importing model has no alias for that URI, remapping is ambiguous.
-                            impPrefixNamespaces = getattr(impTxObj._txmyModule, "_prefixNamespaces", EMPTY_DICT) or EMPTY_DICT
-                            for impPrefix, impNamespace in impPrefixNamespaces.items():
-                                if (impPrefix in declaredPrefixNamespaces and
-                                    declaredPrefixNamespaces[impPrefix] != impNamespace and
-                                    impNamespace not in declaredPrefixNamespaces.values()):
-                                    xbrlCompMdl.error("oimce:multipleURIsForAlias",
-                                                        _("Alias %(alias)s maps to %(ns1)s in importing taxonomy and %(ns2)s in imported taxonomy %(importedModel)s, and %(ns2)s has no alias in the importing taxonomy."),
-                                                        xbrlObject=impTxObj,
-                                                        alias=impPrefix,
-                                                        ns1=declaredPrefixNamespaces[impPrefix],
-                                                        ns2=impNamespace,
-                                                        importedModel=impTxObj.xbrlModelName)
-                                    break
-                            selectImportedObjects(xbrlCompMdl, newModule, impTxObj)
-                        else:
-                            xbrlCompMdl.error("oimte:taxonomyNotFound",
-                                                _("Imported taxonomy for %(qname)s found at %(url)s has mismatching xbrlModelName %(name)s."),
-                                                xbrlObject=impTxObj, url=url, qname=impTxObj.xbrlModelName, name= impSchemaDoc._txmyModule.name)
-                            foundMismatchedNameReported = True
-                    if not getattr(impTxObj, "_txmyModule", None):
-                        xbrlCompMdl.error("oimte:taxonomyNotFound",
-                                          _("Imported taxonomy for %(qname)s not found because the URL mapping namespace is incorrect."),
-                                          xbrlObject=impTxObj, qname=impTxObj.xbrlModelName)
-
-        modelXbrl.profileActivity(f"Load taxonomies imported from {moduleFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
         if xbrlModelName is not None: # otherwise some error would have occured
             xbrlCompMdl.namespaceDocs[xbrlModelName.namespaceURI].append(schemaDoc)
 

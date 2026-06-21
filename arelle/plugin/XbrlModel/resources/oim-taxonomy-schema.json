@@ -198,7 +198,7 @@
                         "type": "object",
                         "properties": {
                             "name": { "$ref": "#/definitions/QName" },
-                            "extendTargetName": { "$ref": "#/definitions/QName" },
+                            "extends": { "$ref": "#/definitions/QName" },
                             "isExtensible": {
                                 "type": "boolean",
                                 "description": "Indicates whether the member can be extended by an importing taxonomy. Defaults to true (extensible). Set to false to prevent any importing taxonomy from augmenting this member."
@@ -218,10 +218,10 @@
                         },
                         "oneOf": [
                             { "required": ["name"] },
-                            { "required": ["extendTargetName"] }
+                            { "required": ["extends"] }
                         ],
                         "not": {
-                            "required": ["name", "extendTargetName"]
+                            "required": ["name", "extends"]
                         },
                          "additionalProperties": false
                     },
@@ -351,7 +351,7 @@
                             "description": "Additional properties associated with the cube.",
                             "uniqueItems": true
                         },
-                      "extendTargetName": { "$ref": "#/definitions/QName" },
+                      "extends": { "$ref": "#/definitions/QName" },
                       "isExtensible": {
                         "type": "boolean",
                         "description": "Indicates whether the cube can be extended by an importing taxonomy. Defaults to true (extensible). Set to false to prevent any importing taxonomy from augmenting this cube."
@@ -359,13 +359,13 @@
                     },
                       "oneOf": [
                         { "required": ["name", "cubeDimensions"] },
-                        { "required": ["extendTargetName"] }
+                        { "required": ["extends"] }
                       ],
                       "not": {
                         "anyOf": [
-                            { "required": ["extendTargetName", "cubeDimensions"] },
-                            { "required": ["extendTargetName", "cubeType"] },
-                            { "required": ["extendTargetName", "name"] }
+                            { "required": ["extends", "cubeDimensions"] },
+                            { "required": ["extends", "cubeType"] },
+                            { "required": ["extends", "name"] }
                           ]
                       },
                       "additionalProperties": false
@@ -423,7 +423,7 @@
                           "additionalProperties":   false
                           }
                         },
-                        "extendTargetName": { "$ref": "#/definitions/QName" },
+                        "extends": { "$ref": "#/definitions/QName" },
                         "isExtensible" :{
                           "type": "boolean",
                           "description": "Indicates whether the domain network can be extended by an importing taxonomy. Defaults to true (extensible). Set to false to prevent any importing taxonomy from adding relationships to this domain network."
@@ -437,12 +437,12 @@
                       },
                       "oneOf": [
                         { "required": ["name", "root"] },
-                        { "required": ["extendTargetName"] }
+                        { "required": ["extends"] }
                       ],
                       "not": {
                         "anyOf": [
-                            { "required": ["extendTargetName", "root"] },
-                            { "required": ["extendTargetName", "name"] }
+                            { "required": ["extends", "root"] },
+                            { "required": ["extends", "name"] }
                           ]
                       },
                       "additionalProperties": false
@@ -482,7 +482,7 @@
                         "relationshipTypeName": { "$ref": "#/definitions/relationshipTypeQName" },
                         "roots": {
                           "type": "array",
-                          "items": { "$ref": "#/definitions/SQName" },
+                          "items": { "$ref": "#/definitions/rootObject" },
                           "uniqueItems": true
                         },
                         "relationships": {
@@ -507,7 +507,7 @@
                           },
                           "uniqueItems": true
                         },
-                        "extendTargetName": { "$ref": "#/definitions/QName" },
+                        "extends": { "$ref": "#/definitions/QName" },
                         "isExtensible": {
                           "type": "boolean",
                           "description": "Indicates whether the network can be extended by an importing taxonomy. Defaults to true (extensible). Set to false to prevent any importing taxonomy from augmenting this network."
@@ -520,12 +520,12 @@
                       },
                       "oneOf": [
                         { "required": ["name", "relationshipTypeName"] },
-                        { "required": ["extendTargetName"] }
+                        { "required": ["extends"] }
                       ],
                       "not": {
                         "anyOf": [
-                            { "required": ["extendTargetName", "relationshipTypeName"] },
-                            { "required": ["extendTargetName", "name"] }
+                            { "required": ["extends", "relationshipTypeName"] },
+                            { "required": ["extends", "name"] }
                           ]
                       },
                       "additionalProperties": false
@@ -737,7 +737,7 @@
                     "type": "object",
                      "properties": {
                         "name": { "$ref": "#/definitions/QName" },
-                        "extendTargetName": { "$ref": "#/definitions/QName" },
+                        "extends": { "$ref": "#/definitions/QName" },
                         "isExtensible": {
                           "type": "boolean",
                           "description": "Indicates whether the reference can be extended by an importing taxonomy. Defaults to true (extensible). Set to false to prevent any importing taxonomy from augmenting this reference."
@@ -764,7 +764,7 @@
                       "oneOf": [
                         { "required": ["name", "referenceType"] },
                         {
-                          "required": ["extendTargetName"],
+                          "required": ["extends"],
                           "anyOf": [
                             { "required": ["relatedNames"] },
                             { "required": ["properties"] }
@@ -773,9 +773,9 @@
                       ],
                       "not": {
                         "anyOf": [
-                          { "required": ["extendTargetName", "referenceType"] },
-                          { "required": ["extendTargetName", "language"] },
-                          { "required": ["extendTargetName", "name"] }
+                          { "required": ["extends", "referenceType"] },
+                          { "required": ["extends", "language"] },
+                          { "required": ["extends", "name"] }
                         ]
                       },
                       "additionalProperties": false
@@ -921,7 +921,7 @@
                         "description": "Additional properties associated with the label.",
                         "uniqueItems": true
                       },
-                      "extendTargetName": { "$ref": "#/definitions/SQName"},
+                      "extends": { "$ref": "#/definitions/SQName"},
                       "isExtensible": {
                         "type": "boolean",
                         "description": "Indicates whether the fact can be extended by an importing taxonomy. Defaults to true (extensible). Set to false to prevent any importing taxonomy from augmenting this fact."
@@ -929,12 +929,12 @@
                     },
                       "oneOf": [
                         { "required": ["name", "factDimensions"] },
-                        { "required": ["extendTargetName"] }
+                        { "required": ["extends"] }
                       ],
                       "not": {
                         "anyOf": [
-                            { "required": ["extendTargetName", "factDimensions"] },
-                            { "required": ["extendTargetName", "name"] }
+                            { "required": ["extends", "factDimensions"] },
+                            { "required": ["extends", "name"] }
                           ]
                       },
                       "additionalProperties": false
@@ -1129,7 +1129,7 @@
                               { "type": "string", "pattern": "INF" }
                             ]
                           },
-                          "extendTargetName": { "$ref": "#/definitions/QName" },
+                          "extends": { "$ref": "#/definitions/QName" },
                           "isExtensible": {
                             "type": "boolean",
                             "description": "Indicates whether the table template can be extended by an importing taxonomy. Defaults to true (extensible). Set to false to prevent any importing taxonomy from augmenting this table template."
@@ -2272,6 +2272,15 @@
           "type": "string",
           "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z0-9_.-]+$",
           "description": "QName that uniquely identifies the object."
+      },
+      "rootObject": {
+          "type": "object",
+          "properties": {
+            "root": { "$ref": "#/definitions/SQName" },
+            "order": { "type": "number" }
+          },
+          "required": ["root"],
+          "additionalProperties": false
       },
       "selectorObject":{
         "oneOf": [

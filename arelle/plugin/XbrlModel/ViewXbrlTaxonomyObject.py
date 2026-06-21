@@ -171,7 +171,7 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
 
     def viewGroupContent(self, parentNode, nodeNum, obj):
         # related content for the Group object are under tagged content
-        for relatedObjQn in self.xbrlCompMdl.groupContents.get(obj.name, ()):
+        for relatedObjQn in self.xbrlCompMdl.groupContents.get(obj.name, None) or ():
             relatedObj = self.xbrlCompMdl.namedObjects.get(relatedObjQn)
             if relatedObj is not None:
                 node = self.viewProps(parentNode, nodeNum, relatedObj, nestedObjs=False)
@@ -182,7 +182,7 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
                     self.viewRoots(node, nodeNum, relatedObj)
 
     def viewDims(self, parentNode, nodeNum, obj):
-        for cubeDim in obj.cubeDimensions:
+        for cubeDim in obj.cubeDimensions or ():
             node = self.viewProps(parentNode, nodeNum, cubeDim)
             nodeNum += 1
             domName = getattr(cubeDim, "domain", None)

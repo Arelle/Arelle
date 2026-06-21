@@ -27,7 +27,7 @@
                     },
                     {
                         "name": "xbrl:conceptObjectPeriodType",
-                        "dataType": "xbrlr:periodType",
+                        "dataType": "xbrl:periodType",
                         "required": true
                     },
                     {

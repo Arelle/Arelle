@@ -77,6 +77,13 @@ class XbrlRelationshipSet:
                                 relsFrom[0].source == relsFrom[0].target)]
         return self._roots
 
+class XbrlRoot(XbrlModelObject):
+    """ Root Object
+        Reference: oim-taxonomy#root-object
+    """
+    root: QName # (required) The root is a QName that references the model object that is the root of the network.
+    order: Optional[int] # (optional) The order specifies the order of the root object within the root of the network object.
+
 class XbrlNetwork(XbrlReferencableModelObject, XbrlRelationshipSet):
     """ Network Object
         Reference: oim-taxonomy#network-object
@@ -85,7 +92,7 @@ class XbrlNetwork(XbrlReferencableModelObject, XbrlRelationshipSet):
     module: XbrlModuleType
     name: QNameKeyType # (required if no extendedTargetName) The name is a QName that uniquely identifies the network object.
     relationshipTypeName: QName # (required if no extendedTargetName) The relationshipType object of the network expressed as a QName such as xbrl:parent-child
-    roots: Optional[NonemptySet[QName]] # (optional) A list of the root objects of the network object. This allows a single object to be associated with a network without the need for a relationship. The order of roots in the list indicates the order in which the roots should appear. If no root is specified for a list of relationships the roots property is inferred from the relationships defined.
+    roots: Optional[NonemptySet[XbrlRoot]] # (optional) A list of the root objects of the network object. This allows a single object to be associated with a network without the need for a relationship. The order of roots in the list indicates the order in which the roots should appear. If no root is specified for a list of relationships the roots property is inferred from the relationships defined.
     relationships: Optional[NonemptySet[XbrlRelationship]] # (optional) A set of the relationship objects comprising the network.
     extendTargetName: Optional[QName] # (required if no name) Names the network object that the defined network relationships should be appended to. The items in the network with this property are appended to the end of the relationships or roots defined in the target network object. This property cannot be used in conjunction with the relationshipTypeName and name property.
     isExtensible: Union[bool, DefaultTrue] # (optional) If set to false, the network is non-extensible and no importing taxonomy may augment it using extendTargetName. If set to true or omitted, the network may be extended. The default value is true.

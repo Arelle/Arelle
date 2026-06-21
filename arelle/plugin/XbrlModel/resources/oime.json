@@ -1,893 +1,901 @@
 {
-    "$schema": "../oim-taxonomy-schema.json",
-    "documentInfo": {
-        "documentType": "https://xbrl.org/2026/module",
-        "namespaces": {
-            "oime": "http://www.xbrl.org/2021/oim/error",
-            "xbrl": "https://xbrl.org/2026",
-            "xs": "http://www.w3.org/2001/XMLSchema"
-        },
-        "documentNamespacePrefix": "oime"
+  "$schema": "../oim-taxonomy-schema.json",
+  "documentInfo": {
+    "documentType": "https://xbrl.org/2026/module",
+    "namespaces": {
+      "oime": "http://www.xbrl.org/2021/oim/error",
+      "xbrl": "https://xbrl.org/2026",
+      "xs": "http://www.w3.org/2001/XMLSchema"
     },
-    "xbrlModel": {
-        "name": "oime:ErrorsTaxonomy",
-        "version": "1.0",
-        "domainClasses": [
-            {
-                "name": "oime:OIMErrorClassDomain"
-            }
-        ],
-        "domainNetworks": [
-            {
-                "name": "oime:OIMErrorDomain",
-                "root": "oime:OIMErrorClassDomain",
-                "relationships": [
-                    {
-                        "source": "oime:OIMErrorClassDomain",
-                        "target": "oime:invalidJSON",
-                        "order": 2
-                    },
-                    {
-                        "source": "oime:OIMErrorClassDomain",
-                        "target": "oime:invalidJSONStructure",
-                        "order": 3
-                    },
-                    {
-                        "source": "oime:OIMErrorClassDomain",
-                        "target": "oime:disallowedDuplicateFacts",
-                        "order": 4
-                    },
-                    {
-                        "source": "oime:OIMErrorClassDomain",
-                        "target": "oime:misplacedUnitDimension",
-                        "order": 5
-                    },
-                    {
-                        "source": "oime:OIMErrorClassDomain",
-                        "target": "oime:missingConceptDimension",
-                        "order": 6
-                    },
-                    {
-                        "source": "oime:OIMErrorClassDomain",
-                        "target": "oime:missingPeriodDimension",
-                        "order": 7
-                    },
-                    {
-                        "source": "oime:OIMErrorClassDomain",
-                        "target": "oime:invalidPeriodDimension",
-                        "order": 8
-                    }
-                ]
-            }
-        ],
-        "members": [
-            {
-                "name": "oime:invalidJSON",
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oime:invalidJSONStructure",
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oime:disallowedDuplicateFacts",
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oime:misplacedUnitDimension",
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oime:missingConceptDimension",
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oime:missingPeriodDimension",
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oime:invalidPeriodDimension",
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            }
-        ],
-        "headings": [
-            {
-                "name": "oime:JSONErrors"
-            },
-            {
-                "name": "oime:ReportErrors"
-            }
-        ],
-        "networks": [
-            {
-                "name": "oime:ErrorsByObjectType",
-                "relationshipTypeName": "xbrl:parent-child",
-                "roots": [
-                    "oime:JSONErrors",
-                    "oime:ReportErrors"
-                ],
-                "relationships": [
-                    {
-                        "source": "oime:JSONErrors",
-                        "target": "oime:invalidJSON",
-                        "order": 1
-                    },
-                    {
-                        "source": "oime:JSONErrors",
-                        "target": "oime:invalidJSONStructure",
-                        "order": 2
-                    },
-                    {
-                        "source": "oime:ReportErrors",
-                        "target": "oime:disallowedDuplicateFacts",
-                        "order": 1
-                    },
-                    {
-                        "source": "oime:ReportErrors",
-                        "target": "oime:misplacedUnitDimension",
-                        "order": 2
-                    },
-                    {
-                        "source": "oime:ReportErrors",
-                        "target": "oime:missingConceptDimension",
-                        "order": 3
-                    },
-                    {
-                        "source": "oime:ReportErrors",
-                        "target": "oime:missingPeriodDimension",
-                        "order": 4
-                    },
-                    {
-                        "source": "oime:ReportErrors",
-                        "target": "oime:invalidPeriodDimension",
-                        "order": 5
-                    }
-                ]
-            },
-            {
-                "name": "oime:ErrorsByBaseObjectType",
-                "relationshipTypeName": "xbrl:parent-child",
-                "roots": [
-                    "oime:JSONErrors",
-                    "oime:ReportErrors"
-                ],
-                "relationships": [
-                    {
-                        "source": "oime:JSONErrors",
-                        "target": "oime:invalidJSON",
-                        "order": 1
-                    },
-                    {
-                        "source": "oime:JSONErrors",
-                        "target": "oime:invalidJSONStructure",
-                        "order": 2
-                    },
-                    {
-                        "source": "oime:ReportErrors",
-                        "target": "oime:disallowedDuplicateFacts",
-                        "order": 1
-                    },
-                    {
-                        "source": "oime:ReportErrors",
-                        "target": "oime:misplacedUnitDimension",
-                        "order": 2
-                    },
-                    {
-                        "source": "oime:ReportErrors",
-                        "target": "oime:missingConceptDimension",
-                        "order": 3
-                    },
-                    {
-                        "source": "oime:ReportErrors",
-                        "target": "oime:missingPeriodDimension",
-                        "order": 4
-                    },
-                    {
-                        "source": "oime:ReportErrors",
-                        "target": "oime:invalidPeriodDimension",
-                        "order": 5
-                    }
-                ]
-            }
-        ],
-        "labels": [
-            {
-                "relatedName": "oime:invalidJSON",
-                "language": "en",
-                "value": "Invalid JSON",
-                "labelType": "xbrl:label"
-            },
-            {
-                "relatedName": "oime:invalidJSON",
-                "language": "en",
-                "value": "The document is not valid JSON according to RFC 8259.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
-                "relatedName": "oime:invalidJSONStructure",
-                "language": "en",
-                "value": "Invalid JSON Structure",
-                "labelType": "xbrl:label"
-            },
-            {
-                "relatedName": "oime:invalidJSONStructure",
-                "language": "en",
-                "value": "The JSON structure does not conform to the required schema: {details}.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
-                "relatedName": "oime:invalidJSON",
-                "language": "en",
-                "value": "🚫",
-                "labelType": "xbrl:iconLabel"
-            },
-            {
-                "relatedName": "oime:invalidJSON",
-                "language": "en",
-                "value": "This error occurs when the taxonomy document is not valid JSON according to RFC 8259. The document must be well-formed JSON with proper syntax, including correct use of braces, brackets, quotes, commas, and escape sequences. The document must use UTF-8 encoding.",
-                "labelType": "xbrl:documentation"
-            },
-            {
-                "relatedName": "oime:invalidJSONStructure",
-                "language": "en",
-                "value": "🚫",
-                "labelType": "xbrl:iconLabel"
-            },
-            {
-                "relatedName": "oime:invalidJSONStructure",
-                "language": "en",
-                "value": "This error is generated when the JSON document's structure does not conform to the OIM Taxonomy schema requirements. Property values must match their specified JSON types (string, object, array, number). Required properties must be present. Values must conform to the specified model types, including proper lexical representations for XML Schema datatypes.",
-                "labelType": "xbrl:documentation"
-            },
-            {
-                "relatedName": "oime:disallowedDuplicateFacts",
-                "language": "en",
-                "value": "Disallowed Duplicate Facts",
-                "labelType": "xbrl:label"
-            },
-            {
-                "relatedName": "oime:disallowedDuplicateFacts",
-                "language": "en",
-                "value": "Prohibited duplicate facts are present in this report: {details}.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
-                "relatedName": "oime:disallowedDuplicateFacts",
-                "language": "en",
-                "value": "🚫",
-                "labelType": "xbrl:iconLabel"
-            },
-            {
-                "relatedName": "oime:disallowedDuplicateFacts",
-                "language": "en",
-                "value": "This error MAY be raised when duplicate facts that are prohibited are present in a model, as defined in section 6 of the Open Information Model 1.0 specification. Two facts are duplicate facts if, for every dimension in the dimensions property of one fact, the same dimension is present in the other fact with an equal dimension value and vice versa. The model defines whether duplicate facts are valid or invalid via the duplicateFactsInCube property of a cube object. If a duplicate fact exists in a model it must match the dimension values of at least one cube in the model that allows duplicate facts (complete duplicates, consistent duplicates, or inconsistent duplicates as permitted by that cube). If a duplicate fact does not match the dimension values of any cube that allows duplicates, this error MUST be raised.",
-                "labelType": "xbrl:documentation"
-            },
-            {
-                "relatedName": "oime:misplacedUnitDimension",
-                "language": "en",
-                "value": "Misplaced Unit Dimension",
-                "labelType": "xbrl:label"
-            },
-            {
-                "relatedName": "oime:misplacedUnitDimension",
-                "language": "en",
-                "value": "The xbrl:unit dimension must only be used with numeric facts: {details}.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
-                "relatedName": "oime:misplacedUnitDimension",
-                "language": "en",
-                "value": "🚫",
-                "labelType": "xbrl:iconLabel"
-            },
-            {
-                "relatedName": "oime:misplacedUnitDimension",
-                "language": "en",
-                "value": "This error is raised when the xbrl:unit dimension is present in the factDimensions of a fact whose concept has a non-numeric data type. A numeric fact is a fact object with a data type derived from xs:decimal, xs:double, or xs:float. Only numeric facts may carry a unit dimension; non-numeric facts (such as date, string, or boolean facts) MUST NOT include xbrl:unit in their factDimensions.",
-                "labelType": "xbrl:documentation"
-            },
-            {
-                "relatedName": "oime:missingConceptDimension",
-                "language": "en",
-                "value": "Missing Concept Dimension",
-                "labelType": "xbrl:label"
-            },
-            {
-                "relatedName": "oime:missingConceptDimension",
-                "language": "en",
-                "value": "Fact '{factName}' is missing the required xbrl:concept dimension.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
-                "relatedName": "oime:missingConceptDimension",
-                "language": "en",
-                "value": "🚫",
-                "labelType": "xbrl:iconLabel"
-            },
-            {
-                "relatedName": "oime:missingConceptDimension",
-                "language": "en",
-                "value": "Raised when a fact's factDimensions object does not include the required xbrl:concept key. Every fact MUST include xbrl:concept in its factDimensions to identify the concept associated with the fact value.",
-                "labelType": "xbrl:documentation"
-            },
-            {
-                "relatedName": "oime:missingPeriodDimension",
-                "language": "en",
-                "value": "Missing Period Dimension",
-                "labelType": "xbrl:label"
-            },
-            {
-                "relatedName": "oime:missingPeriodDimension",
-                "language": "en",
-                "value": "Fact '{factName}' is missing the required xbrl:period dimension. Concept '{conceptName}' has periodType '{periodType}' which requires a period dimension.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
-                "relatedName": "oime:missingPeriodDimension",
-                "language": "en",
-                "value": "🚫",
-                "labelType": "xbrl:iconLabel"
-            },
-            {
-                "relatedName": "oime:missingPeriodDimension",
-                "language": "en",
-                "value": "Raised when a fact's concept has a periodType of 'duration' or 'instant' but the fact does not include the xbrl:period dimension in its factDimensions. Facts whose concept has periodType 'none' MUST NOT include xbrl:period, but facts with periodType 'duration' or 'instant' MUST always include it.",
-                "labelType": "xbrl:documentation"
-            },
-            {
-                "relatedName": "oime:invalidPeriodDimension",
-                "language": "en",
-                "value": "Invalid Period Dimension",
-                "labelType": "xbrl:label"
-            },
-            {
-                "relatedName": "oime:invalidPeriodDimension",
-                "language": "en",
-                "value": "Fact '{factName}' has an xbrl:period value '{period}' that is inconsistent with the concept '{conceptName}' periodType '{periodType}'.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
-                "relatedName": "oime:invalidPeriodDimension",
-                "language": "en",
-                "value": "🚫",
-                "labelType": "xbrl:iconLabel"
-            },
-            {
-                "relatedName": "oime:invalidPeriodDimension",
-                "language": "en",
-                "value": "Raised when the xbrl:period value of a fact is inconsistent with the periodType of its concept. If periodType is 'duration', the period must be a non-zero time interval (e.g. '2023-01-01/2023-12-31'). If periodType is 'instant', the period must be a zero-length time interval (a single date, e.g. '2023-12-31'). If periodType is 'none', the xbrl:period dimension must not be present at all.",
-                "labelType": "xbrl:documentation"
-            }
-        ],
-        "references": [
-            {
-                "name": "oime:missingConceptDimensionConformanceReference",
-                "relatedNames": [
-                    "oime:missingConceptDimension"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "FACT-MissingConceptDimension.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "❌ Fail"
-                    },
-                    {
-                        "property": "xbrl:conformanceErrorsProduced",
-                        "value": "1"
-                    },
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-MissingConceptDimension"
-                    }
-                ]
-            },
-            {
-                "name": "oime:missingPeriodDimensionConformanceReference",
-                "relatedNames": [
-                    "oime:missingPeriodDimension"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "FACT-MissingPeriodDimension.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "❌ Fail"
-                    },
-                    {
-                        "property": "xbrl:conformanceErrorsProduced",
-                        "value": "2"
-                    },
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-MissingPeriodDimension"
-                    }
-                ]
-            },
-            {
-                "name": "oime:missingPeriodDimension2ConformanceReference",
-                "relatedNames": [
-                    "oime:missingPeriodDimension"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "FACT-InvalidPeriodTypeInstantNoPeriod.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "❌ Fail"
-                    },
-                    {
-                        "property": "xbrl:conformanceErrorsProduced",
-                        "value": "1"
-                    },
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-InvalidPeriodTypeInstantNoPeriod"
-                    }
-                ]
-            },
-            {
-                "name": "oime:invalidPeriodDimensionConformanceReference",
-                "relatedNames": [
-                    "oime:invalidPeriodDimension"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "FACT-InvalidPeriodDimension.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "❌ Fail"
-                    },
-                    {
-                        "property": "xbrl:conformanceErrorsProduced",
-                        "value": "3"
-                    },
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-InvalidPeriodDimension"
-                    }
-                ]
-            },
-            {
-                "name": "oime:invalidPeriodDimension2ConformanceReference",
-                "relatedNames": [
-                    "oime:invalidPeriodDimension"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "FACT-InvalidPeriodDurationDateOrder.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "❌ Fail"
-                    },
-                    {
-                        "property": "xbrl:conformanceErrorsProduced",
-                        "value": "1"
-                    },
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-InvalidPeriodDurationDateOrder"
-                    }
-                ]
-            },
-            {
-                "name": "oime:invalidPeriodDimension3ConformanceReference",
-                "relatedNames": [
-                    "oime:invalidPeriodDimension"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "FACT-InvalidPeriodDurationInstantBadDate.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "❌ Fail"
-                    },
-                    {
-                        "property": "xbrl:conformanceErrorsProduced",
-                        "value": "1"
-                    },
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-InvalidPeriodDurationInstantBadDate"
-                    }
-                ]
-            },
-            {
-                "name": "oime:invalidPeriodDimension4ConformanceReference",
-                "relatedNames": [
-                    "oime:invalidPeriodDimension"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "FACT-InvalidPeriodDurationInstantBadTime.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "❌ Fail"
-                    },
-                    {
-                        "property": "xbrl:conformanceErrorsProduced",
-                        "value": "1"
-                    },
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-InvalidPeriodDurationInstantBadTime"
-                    }
-                ]
-            },
-            {
-                "name": "oime:invalidPeriodDimension5ConformanceReference",
-                "relatedNames": [
-                    "oime:invalidPeriodDimension"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "FACT-InvalidPeriodDurationStartEndSame.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "❌ Fail"
-                    },
-                    {
-                        "property": "xbrl:conformanceErrorsProduced",
-                        "value": "1"
-                    },
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-InvalidPeriodDurationStartEndSame"
-                    }
-                ]
-            },
-            {
-                "name": "oime:misplacedUnitDimensionConformanceReference",
-                "relatedNames": [
-                    "oime:misplacedUnitDimension"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "FACT-UnitOnNonNumericFact.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "❌ Fail"
-                    },
-                    {
-                        "property": "xbrl:conformanceErrorsProduced",
-                        "value": "1"
-                    },
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-UnitOnNonNumericFact"
-                    }
-                ]
-            },
-            {
-                "name": "oime:disallowedDuplicateFactsReference",
-                "relatedNames": [
-                    "oime:disallowedDuplicateFacts"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "CUBE-DisallowedDuplicateFacts-Error.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "❌ Fail"
-                    },
-                    {
-                        "property": "xbrl:conformanceErrorsProduced",
-                        "value": "1"
-                    },
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-DisallowedDuplicateFacts-Error"
-                    }
-                ]
-            },
-            {
-                "name": "oime:disallowedDuplicateFactsConsistentReference",
-                "relatedNames": [
-                    "oime:disallowedDuplicateFacts"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "CUBE-DisallowedDuplicateFacts-ConsistentDuplicate-Error.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "❌ Fail"
-                    },
-                    {
-                        "property": "xbrl:conformanceErrorsProduced",
-                        "value": "1"
-                    },
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-DisallowedDuplicateFacts-ConsistentDuplicate-Error"
-                    }
-                ]
-            },
-            {
-                "name": "oime:disallowedDuplicateFactsInconsistentReference",
-                "relatedNames": [
-                    "oime:disallowedDuplicateFacts"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "CUBE-DisallowedDuplicateFacts-InconsistentDuplicate-Error.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "❌ Fail"
-                    },
-                    {
-                        "property": "xbrl:conformanceErrorsProduced",
-                        "value": "1"
-                    },
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-DisallowedDuplicateFacts-InconsistentDuplicate-Error"
-                    }
-                ]
-            },
-            {
-                "name": "oime:disallowedDuplicateFactsInconsistentDuplicateModelReference",
-                "relatedNames": [
-                    "oime:disallowedDuplicateFacts"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "CUBE-DisallowedDuplicateFacts-InconsistentDuplicate-Model.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "❌ Fail"
-                    },
-                    {
-                        "property": "xbrl:conformanceErrorsProduced",
-                        "value": "1"
-                    },
-                    {
-                        "property": "xbrl:conformanceTestDescription",
-                        "value": "duplicateFactsInModel 'consistent duplicates'; two inconsistent duplicates (same dimensions, values disagree when rounded to lower precision) are prohibited."
-                    },
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-DisallowedDuplicateFacts-InconsistentDuplicate-Model"
-                    }
-                ]
-            },
-            {
-                "name": "oime:disallowedDuplicateFactValuesInconsistentDuplicateModelReference",
-                "relatedNames": [
-                    "oime:disallowedDuplicateFacts"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "CUBE-DisallowedDuplicateFactValues-InconsistentDuplicate-Model.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "❌ Fail"
-                    },
-                    {
-                        "property": "xbrl:conformanceErrorsProduced",
-                        "value": "3"
-                    },
-                    {
-                        "property": "xbrl:conformanceTestDescription",
-                        "value": "duplicateFactsInModel 'consistent duplicates'; two values within a single fact's factValues array are inconsistent duplicates (same dimensions, values disagree when rounded to lower precision) and are prohibited."
-                    },
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-DisallowedDuplicateFactValues-InconsistentDuplicate-Model"
-                    }
-                ]
-            },
-            {
-                "name": "oime:disallowedDuplicateFVFOInconsistentDuplicateModelReference",
-                "relatedNames": [
-                    "oime:disallowedDuplicateFacts"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "CUBE-DisallowedDuplicateFV-FO-InconsistentDuplicate-Model.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "❌ Fail"
-                    },
-                    {
-                        "property": "xbrl:conformanceErrorsProduced",
-                        "value": "5"
-                    },
-                    {
-                        "property": "xbrl:conformanceTestDescription",
-                        "value": "duplicateFactsInModel 'consistent duplicates'; inconsistent duplicates exist both within a single fact's factValues array and across separate fact objects (including a consistent cross-object duplicate), producing multiple errors."
-                    },
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-DisallowedDuplicateFV-FO-InconsistentDuplicate-Model"
-                    }
-                ]
-            },
-            {
-                "name": "oime:disallowedDuplicateFactsModelNoDuplicatesReference",
-                "relatedNames": [
-                    "oime:disallowedDuplicateFacts"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "MODEL-DuplicateFactsInModel-NoDuplicates-Error.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "❌ Fail"
-                    },
-                    {
-                        "property": "xbrl:conformanceErrorsProduced",
-                        "value": "1"
-                    },
-                    {
-                        "property": "xbrl:conformanceTestDescription",
-                        "value": "duplicateFactsInModel 'no duplicates' applied as cube default; two complete duplicates prohibited."
-                    },
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#MODEL-DuplicateFactsInModel-NoDuplicates-Error"
-                    }
-                ]
-            },
-            {
-                "name": "oime:disallowedDuplicateFactsModelCompleteDuplicatesInconsistentReference",
-                "relatedNames": [
-                    "oime:disallowedDuplicateFacts"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "MODEL-DuplicateFactsInModel-CompleteDuplicates-InconsistentFacts-Error.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "❌ Fail"
-                    },
-                    {
-                        "property": "xbrl:conformanceErrorsProduced",
-                        "value": "1"
-                    },
-                    {
-                        "property": "xbrl:conformanceTestDescription",
-                        "value": "duplicateFactsInModel 'complete duplicates' applied as cube default; two inconsistent duplicates prohibited."
-                    },
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#MODEL-DuplicateFactsInModel-CompleteDuplicates-InconsistentFacts-Error"
-                    }
-                ]
-            },
-            {
-                "name": "oime:disallowedDuplicateFactsCubeOverridesModelValidReference",
-                "relatedNames": [
-                    "oime:disallowedDuplicateFacts"
-                ],
-                "referenceType": "xbrl:conformanceTestReference",
-                "language": "en",
-                "properties": [
-                    {
-                        "property": "xbrl:conformanceTestFileName",
-                        "value": "MODEL-DuplicateFactsInCube-OverridesModel-Valid.json"
-                    },
-                    {
-                        "property": "xbrl:conformanceStatus",
-                        "value": "✅ Pass"
-                    },
-                    {
-                        "property": "xbrl:conformanceErrorsProduced",
-                        "value": "0"
-                    },
-                    {
-                        "property": "xbrl:conformanceTestDescription",
-                        "value": "duplicateFactsInCube 'consistent duplicates' on the cube overrides model-level 'no duplicates'; two consistent duplicate facts are permitted."
-                    },
-                    {
-                        "property": "xbrl:specificationErrorURI",
-                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#MODEL-DuplicateFactsInCube-OverridesModel-Valid"
-                    }
-                ]
-            }
+    "documentNamespacePrefix": "oime"
+  },
+  "xbrlModel": {
+    "name": "oime:ErrorsTaxonomy",
+    "version": "1.0",
+    "domainClasses": [
+      {
+        "name": "oime:OIMErrorClassDomain"
+      }
+    ],
+    "domainNetworks": [
+      {
+        "name": "oime:OIMErrorDomain",
+        "root": "oime:OIMErrorClassDomain",
+        "relationships": [
+          {
+            "source": "oime:OIMErrorClassDomain",
+            "target": "oime:invalidJSON",
+            "order": 2
+          },
+          {
+            "source": "oime:OIMErrorClassDomain",
+            "target": "oime:invalidJSONStructure",
+            "order": 3
+          },
+          {
+            "source": "oime:OIMErrorClassDomain",
+            "target": "oime:disallowedDuplicateFacts",
+            "order": 4
+          },
+          {
+            "source": "oime:OIMErrorClassDomain",
+            "target": "oime:misplacedUnitDimension",
+            "order": 5
+          },
+          {
+            "source": "oime:OIMErrorClassDomain",
+            "target": "oime:missingConceptDimension",
+            "order": 6
+          },
+          {
+            "source": "oime:OIMErrorClassDomain",
+            "target": "oime:missingPeriodDimension",
+            "order": 7
+          },
+          {
+            "source": "oime:OIMErrorClassDomain",
+            "target": "oime:invalidPeriodDimension",
+            "order": 8
+          }
         ]
-    }
+      }
+    ],
+    "members": [
+      {
+        "name": "oime:invalidJSON",
+        "properties": [
+          {
+            "property": "xbrl:severity",
+            "value": "error"
+          }
+        ]
+      },
+      {
+        "name": "oime:invalidJSONStructure",
+        "properties": [
+          {
+            "property": "xbrl:severity",
+            "value": "error"
+          }
+        ]
+      },
+      {
+        "name": "oime:disallowedDuplicateFacts",
+        "properties": [
+          {
+            "property": "xbrl:severity",
+            "value": "error"
+          }
+        ]
+      },
+      {
+        "name": "oime:misplacedUnitDimension",
+        "properties": [
+          {
+            "property": "xbrl:severity",
+            "value": "error"
+          }
+        ]
+      },
+      {
+        "name": "oime:missingConceptDimension",
+        "properties": [
+          {
+            "property": "xbrl:severity",
+            "value": "error"
+          }
+        ]
+      },
+      {
+        "name": "oime:missingPeriodDimension",
+        "properties": [
+          {
+            "property": "xbrl:severity",
+            "value": "error"
+          }
+        ]
+      },
+      {
+        "name": "oime:invalidPeriodDimension",
+        "properties": [
+          {
+            "property": "xbrl:severity",
+            "value": "error"
+          }
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "name": "oime:JSONErrors"
+      },
+      {
+        "name": "oime:ReportErrors"
+      }
+    ],
+    "networks": [
+      {
+        "name": "oime:ErrorsByObjectType",
+        "relationshipTypeName": "xbrl:parent-child",
+        "roots": [
+          {
+            "root": "oime:JSONErrors"
+          },
+          {
+            "root": "oime:ReportErrors"
+          }
+        ],
+        "relationships": [
+          {
+            "source": "oime:JSONErrors",
+            "target": "oime:invalidJSON",
+            "order": 1
+          },
+          {
+            "source": "oime:JSONErrors",
+            "target": "oime:invalidJSONStructure",
+            "order": 2
+          },
+          {
+            "source": "oime:ReportErrors",
+            "target": "oime:disallowedDuplicateFacts",
+            "order": 1
+          },
+          {
+            "source": "oime:ReportErrors",
+            "target": "oime:misplacedUnitDimension",
+            "order": 2
+          },
+          {
+            "source": "oime:ReportErrors",
+            "target": "oime:missingConceptDimension",
+            "order": 3
+          },
+          {
+            "source": "oime:ReportErrors",
+            "target": "oime:missingPeriodDimension",
+            "order": 4
+          },
+          {
+            "source": "oime:ReportErrors",
+            "target": "oime:invalidPeriodDimension",
+            "order": 5
+          }
+        ]
+      },
+      {
+        "name": "oime:ErrorsByBaseObjectType",
+        "relationshipTypeName": "xbrl:parent-child",
+        "roots": [
+          {
+            "root": "oime:JSONErrors"
+          },
+          {
+            "root": "oime:ReportErrors"
+          }
+        ],
+        "relationships": [
+          {
+            "source": "oime:JSONErrors",
+            "target": "oime:invalidJSON",
+            "order": 1
+          },
+          {
+            "source": "oime:JSONErrors",
+            "target": "oime:invalidJSONStructure",
+            "order": 2
+          },
+          {
+            "source": "oime:ReportErrors",
+            "target": "oime:disallowedDuplicateFacts",
+            "order": 1
+          },
+          {
+            "source": "oime:ReportErrors",
+            "target": "oime:misplacedUnitDimension",
+            "order": 2
+          },
+          {
+            "source": "oime:ReportErrors",
+            "target": "oime:missingConceptDimension",
+            "order": 3
+          },
+          {
+            "source": "oime:ReportErrors",
+            "target": "oime:missingPeriodDimension",
+            "order": 4
+          },
+          {
+            "source": "oime:ReportErrors",
+            "target": "oime:invalidPeriodDimension",
+            "order": 5
+          }
+        ]
+      }
+    ],
+    "labels": [
+      {
+        "relatedName": "oime:invalidJSON",
+        "language": "en",
+        "value": "Invalid JSON",
+        "labelType": "xbrl:label"
+      },
+      {
+        "relatedName": "oime:invalidJSON",
+        "language": "en",
+        "value": "The document is not valid JSON according to RFC 8259.",
+        "labelType": "xbrl:errorMessage"
+      },
+      {
+        "relatedName": "oime:invalidJSONStructure",
+        "language": "en",
+        "value": "Invalid JSON Structure",
+        "labelType": "xbrl:label"
+      },
+      {
+        "relatedName": "oime:invalidJSONStructure",
+        "language": "en",
+        "value": "The JSON structure does not conform to the required schema: {details}.",
+        "labelType": "xbrl:errorMessage"
+      },
+      {
+        "relatedName": "oime:invalidJSON",
+        "language": "en",
+        "value": "\ud83d\udeab",
+        "labelType": "xbrl:iconLabel"
+      },
+      {
+        "relatedName": "oime:invalidJSON",
+        "language": "en",
+        "value": "This error occurs when the taxonomy document is not valid JSON according to RFC 8259. The document must be well-formed JSON with proper syntax, including correct use of braces, brackets, quotes, commas, and escape sequences. The document must use UTF-8 encoding.",
+        "labelType": "xbrl:documentation"
+      },
+      {
+        "relatedName": "oime:invalidJSONStructure",
+        "language": "en",
+        "value": "\ud83d\udeab",
+        "labelType": "xbrl:iconLabel"
+      },
+      {
+        "relatedName": "oime:invalidJSONStructure",
+        "language": "en",
+        "value": "This error is generated when the JSON document's structure does not conform to the OIM Taxonomy schema requirements. Property values must match their specified JSON types (string, object, array, number). Required properties must be present. Values must conform to the specified model types, including proper lexical representations for XML Schema datatypes.",
+        "labelType": "xbrl:documentation"
+      },
+      {
+        "relatedName": "oime:disallowedDuplicateFacts",
+        "language": "en",
+        "value": "Disallowed Duplicate Facts",
+        "labelType": "xbrl:label"
+      },
+      {
+        "relatedName": "oime:disallowedDuplicateFacts",
+        "language": "en",
+        "value": "Prohibited duplicate facts are present in this report: {details}.",
+        "labelType": "xbrl:errorMessage"
+      },
+      {
+        "relatedName": "oime:disallowedDuplicateFacts",
+        "language": "en",
+        "value": "\ud83d\udeab",
+        "labelType": "xbrl:iconLabel"
+      },
+      {
+        "relatedName": "oime:disallowedDuplicateFacts",
+        "language": "en",
+        "value": "This error MAY be raised when duplicate facts that are prohibited are present in a model, as defined in section 6 of the Open Information Model 1.0 specification. Two facts are duplicate facts if, for every dimension in the dimensions property of one fact, the same dimension is present in the other fact with an equal dimension value and vice versa. The model defines whether duplicate facts are valid or invalid via the duplicateFactsInCube property of a cube object. If a duplicate fact exists in a model it must match the dimension values of at least one cube in the model that allows duplicate facts (complete duplicates, consistent duplicates, or inconsistent duplicates as permitted by that cube). If a duplicate fact does not match the dimension values of any cube that allows duplicates, this error MUST be raised.",
+        "labelType": "xbrl:documentation"
+      },
+      {
+        "relatedName": "oime:misplacedUnitDimension",
+        "language": "en",
+        "value": "Misplaced Unit Dimension",
+        "labelType": "xbrl:label"
+      },
+      {
+        "relatedName": "oime:misplacedUnitDimension",
+        "language": "en",
+        "value": "The xbrl:unit dimension must only be used with numeric facts: {details}.",
+        "labelType": "xbrl:errorMessage"
+      },
+      {
+        "relatedName": "oime:misplacedUnitDimension",
+        "language": "en",
+        "value": "\ud83d\udeab",
+        "labelType": "xbrl:iconLabel"
+      },
+      {
+        "relatedName": "oime:misplacedUnitDimension",
+        "language": "en",
+        "value": "This error is raised when the xbrl:unit dimension is present in the factDimensions of a fact whose concept has a non-numeric data type. A numeric fact is a fact object with a data type derived from xs:decimal, xs:double, or xs:float. Only numeric facts may carry a unit dimension; non-numeric facts (such as date, string, or boolean facts) MUST NOT include xbrl:unit in their factDimensions.",
+        "labelType": "xbrl:documentation"
+      },
+      {
+        "relatedName": "oime:missingConceptDimension",
+        "language": "en",
+        "value": "Missing Concept Dimension",
+        "labelType": "xbrl:label"
+      },
+      {
+        "relatedName": "oime:missingConceptDimension",
+        "language": "en",
+        "value": "Fact '{factName}' is missing the required xbrl:concept dimension.",
+        "labelType": "xbrl:errorMessage"
+      },
+      {
+        "relatedName": "oime:missingConceptDimension",
+        "language": "en",
+        "value": "\ud83d\udeab",
+        "labelType": "xbrl:iconLabel"
+      },
+      {
+        "relatedName": "oime:missingConceptDimension",
+        "language": "en",
+        "value": "Raised when a fact's factDimensions object does not include the required xbrl:concept key. Every fact MUST include xbrl:concept in its factDimensions to identify the concept associated with the fact value.",
+        "labelType": "xbrl:documentation"
+      },
+      {
+        "relatedName": "oime:missingPeriodDimension",
+        "language": "en",
+        "value": "Missing Period Dimension",
+        "labelType": "xbrl:label"
+      },
+      {
+        "relatedName": "oime:missingPeriodDimension",
+        "language": "en",
+        "value": "Fact '{factName}' is missing the required xbrl:period dimension. Concept '{conceptName}' has periodType '{periodType}' which requires a period dimension.",
+        "labelType": "xbrl:errorMessage"
+      },
+      {
+        "relatedName": "oime:missingPeriodDimension",
+        "language": "en",
+        "value": "\ud83d\udeab",
+        "labelType": "xbrl:iconLabel"
+      },
+      {
+        "relatedName": "oime:missingPeriodDimension",
+        "language": "en",
+        "value": "Raised when a fact's concept has a periodType of 'duration' or 'instant' but the fact does not include the xbrl:period dimension in its factDimensions. Facts whose concept has periodType 'none' MUST NOT include xbrl:period, but facts with periodType 'duration' or 'instant' MUST always include it.",
+        "labelType": "xbrl:documentation"
+      },
+      {
+        "relatedName": "oime:invalidPeriodDimension",
+        "language": "en",
+        "value": "Invalid Period Dimension",
+        "labelType": "xbrl:label"
+      },
+      {
+        "relatedName": "oime:invalidPeriodDimension",
+        "language": "en",
+        "value": "Fact '{factName}' has an xbrl:period value '{period}' that is inconsistent with the concept '{conceptName}' periodType '{periodType}'.",
+        "labelType": "xbrl:errorMessage"
+      },
+      {
+        "relatedName": "oime:invalidPeriodDimension",
+        "language": "en",
+        "value": "\ud83d\udeab",
+        "labelType": "xbrl:iconLabel"
+      },
+      {
+        "relatedName": "oime:invalidPeriodDimension",
+        "language": "en",
+        "value": "Raised when the xbrl:period value of a fact is inconsistent with the periodType of its concept. If periodType is 'duration', the period must be a non-zero time interval (e.g. '2023-01-01/2023-12-31'). If periodType is 'instant', the period must be a zero-length time interval (a single date, e.g. '2023-12-31'). If periodType is 'none', the xbrl:period dimension must not be present at all.",
+        "labelType": "xbrl:documentation"
+      }
+    ],
+    "references": [
+      {
+        "name": "oime:missingConceptDimensionConformanceReference",
+        "relatedNames": [
+          "oime:missingConceptDimension"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "FACT-MissingConceptDimension.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-MissingConceptDimension"
+          }
+        ]
+      },
+      {
+        "name": "oime:missingPeriodDimensionConformanceReference",
+        "relatedNames": [
+          "oime:missingPeriodDimension"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "FACT-MissingPeriodDimension.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "2"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-MissingPeriodDimension"
+          }
+        ]
+      },
+      {
+        "name": "oime:missingPeriodDimension2ConformanceReference",
+        "relatedNames": [
+          "oime:missingPeriodDimension"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "FACT-InvalidPeriodTypeInstantNoPeriod.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-InvalidPeriodTypeInstantNoPeriod"
+          }
+        ]
+      },
+      {
+        "name": "oime:invalidPeriodDimensionConformanceReference",
+        "relatedNames": [
+          "oime:invalidPeriodDimension"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "FACT-InvalidPeriodDimension.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "3"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-InvalidPeriodDimension"
+          }
+        ]
+      },
+      {
+        "name": "oime:invalidPeriodDimension2ConformanceReference",
+        "relatedNames": [
+          "oime:invalidPeriodDimension"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "FACT-InvalidPeriodDurationDateOrder.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-InvalidPeriodDurationDateOrder"
+          }
+        ]
+      },
+      {
+        "name": "oime:invalidPeriodDimension3ConformanceReference",
+        "relatedNames": [
+          "oime:invalidPeriodDimension"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "FACT-InvalidPeriodDurationInstantBadDate.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-InvalidPeriodDurationInstantBadDate"
+          }
+        ]
+      },
+      {
+        "name": "oime:invalidPeriodDimension4ConformanceReference",
+        "relatedNames": [
+          "oime:invalidPeriodDimension"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "FACT-InvalidPeriodDurationInstantBadTime.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-InvalidPeriodDurationInstantBadTime"
+          }
+        ]
+      },
+      {
+        "name": "oime:invalidPeriodDimension5ConformanceReference",
+        "relatedNames": [
+          "oime:invalidPeriodDimension"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "FACT-InvalidPeriodDurationStartEndSame.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-InvalidPeriodDurationStartEndSame"
+          }
+        ]
+      },
+      {
+        "name": "oime:misplacedUnitDimensionConformanceReference",
+        "relatedNames": [
+          "oime:misplacedUnitDimension"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "FACT-UnitOnNonNumericFact.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-UnitOnNonNumericFact"
+          }
+        ]
+      },
+      {
+        "name": "oime:disallowedDuplicateFactsReference",
+        "relatedNames": [
+          "oime:disallowedDuplicateFacts"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "CUBE-DisallowedDuplicateFacts-Error.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-DisallowedDuplicateFacts-Error"
+          }
+        ]
+      },
+      {
+        "name": "oime:disallowedDuplicateFactsConsistentReference",
+        "relatedNames": [
+          "oime:disallowedDuplicateFacts"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "CUBE-DisallowedDuplicateFacts-ConsistentDuplicate-Error.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-DisallowedDuplicateFacts-ConsistentDuplicate-Error"
+          }
+        ]
+      },
+      {
+        "name": "oime:disallowedDuplicateFactsInconsistentReference",
+        "relatedNames": [
+          "oime:disallowedDuplicateFacts"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "CUBE-DisallowedDuplicateFacts-InconsistentDuplicate-Error.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-DisallowedDuplicateFacts-InconsistentDuplicate-Error"
+          }
+        ]
+      },
+      {
+        "name": "oime:disallowedDuplicateFactsInconsistentDuplicateModelReference",
+        "relatedNames": [
+          "oime:disallowedDuplicateFacts"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "CUBE-DisallowedDuplicateFacts-InconsistentDuplicate-Model.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "duplicateFactsInModel 'consistent duplicates'; two inconsistent duplicates (same dimensions, values disagree when rounded to lower precision) are prohibited."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-DisallowedDuplicateFacts-InconsistentDuplicate-Model"
+          }
+        ]
+      },
+      {
+        "name": "oime:disallowedDuplicateFactValuesInconsistentDuplicateModelReference",
+        "relatedNames": [
+          "oime:disallowedDuplicateFacts"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "CUBE-DisallowedDuplicateFactValues-InconsistentDuplicate-Model.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "3"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "duplicateFactsInModel 'consistent duplicates'; two values within a single fact's factValues array are inconsistent duplicates (same dimensions, values disagree when rounded to lower precision) and are prohibited."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-DisallowedDuplicateFactValues-InconsistentDuplicate-Model"
+          }
+        ]
+      },
+      {
+        "name": "oime:disallowedDuplicateFVFOInconsistentDuplicateModelReference",
+        "relatedNames": [
+          "oime:disallowedDuplicateFacts"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "CUBE-DisallowedDuplicateFV-FO-InconsistentDuplicate-Model.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "5"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "duplicateFactsInModel 'consistent duplicates'; inconsistent duplicates exist both within a single fact's factValues array and across separate fact objects (including a consistent cross-object duplicate), producing multiple errors."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-DisallowedDuplicateFV-FO-InconsistentDuplicate-Model"
+          }
+        ]
+      },
+      {
+        "name": "oime:disallowedDuplicateFactsModelNoDuplicatesReference",
+        "relatedNames": [
+          "oime:disallowedDuplicateFacts"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "MODEL-DuplicateFactsInModel-NoDuplicates-Error.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "duplicateFactsInModel 'no duplicates' applied as cube default; two complete duplicates prohibited."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#MODEL-DuplicateFactsInModel-NoDuplicates-Error"
+          }
+        ]
+      },
+      {
+        "name": "oime:disallowedDuplicateFactsModelCompleteDuplicatesInconsistentReference",
+        "relatedNames": [
+          "oime:disallowedDuplicateFacts"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "MODEL-DuplicateFactsInModel-CompleteDuplicates-InconsistentFacts-Error.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "duplicateFactsInModel 'complete duplicates' applied as cube default; two inconsistent duplicates prohibited."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#MODEL-DuplicateFactsInModel-CompleteDuplicates-InconsistentFacts-Error"
+          }
+        ]
+      },
+      {
+        "name": "oime:disallowedDuplicateFactsCubeOverridesModelValidReference",
+        "relatedNames": [
+          "oime:disallowedDuplicateFacts"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "MODEL-DuplicateFactsInCube-OverridesModel-Valid.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u2705 Pass"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "0"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "duplicateFactsInCube 'consistent duplicates' on the cube overrides model-level 'no duplicates'; two consistent duplicate facts are permitted."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#MODEL-DuplicateFactsInCube-OverridesModel-Valid"
+          }
+        ]
+      }
+    ]
+  }
 }

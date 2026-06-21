@@ -7,7 +7,8 @@
             "xbrlr":"https://xbrl.org/2026/report",
             "xs": "http://www.w3.org/2001/XMLSchema",
             "utr": "https://xbrl.org/2026/utr",
-            "lei": "http://standards.iso.org/iso/17442"
+            "lei": "http://standards.iso.org/iso/17442",
+            "ref": "https://xbrl.org/2026/ref"
             },
         "documentNamespacePrefix":"xbrl"
     },
@@ -21,6 +22,9 @@
                 },
                 {
                     "xbrlModelName": "xbrlr:dataTypesModule"
+                },
+                {
+                    "xbrlModelName": "ref:referencePropertiesModule"
                 }
             ],
         "cubeTypes" :[
@@ -1601,6 +1605,30 @@
                 "language": "en",
                 "relatedName": "xbrl:otherNilReason",
                 "value": "The value is nil for a reason not covered by the other nil reason members."
+            },
+            {
+                "relatedName" : "xbrl:SQName",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "SQName provides a simple type. This can be used to define typed dimensions domains that take SQName values. The prefix used in an SQName MUST correspond to a namespace prefix that is in scope at the point of use."
+            },
+            {
+                "relatedName" : "xbrl:prefixedContent",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "prefixedContent denotes values that rely for correct interpretation on namespace-prefix bindings in scope at the point of use. All item types that involve prefixed content should derive (directly or indirectly) from QName or prefixedContent Processors MUST raise an error if they encounter a fact with a type that is a subtype of prefixedContent that they do not recognise (unless that subtype is itself derived from a subtype that is recognised) as knowledge of the structure of the prefixed content is required to correctly preserve and present such content."
+            },
+            {
+                "relatedName" : "xbrl:noLangToken",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "noLangToken is a derivation of token and is used to denote values that should not have an associated language. This is typically used for values that are unique identifiers, rather than human-readable strings."
+            },
+            {
+                "relatedName" : "xbrl:noLangString",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "noLangString is a derivation of string and is used to denote values that should not have an associated language. This is typically used for values that are unique identifiers, rather than human-readable strings."
             }
         ],
         "namespacePrefixes": [
@@ -2209,6 +2237,28 @@
                 "name": "xbrl:languageType",
                 "baseType": "xs:string",
                 "patterns": ["^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$"]
+            },
+
+            {   "name": "xbrl:periodType",
+                "baseType": "xs:string",
+                "enumeration": ["instant", "duration", "none"]
+            },
+            {
+                "name" : "xbrl:SQName",
+                "baseType" : "xbrl:prefixedContent",
+                "patterns": ["[^:\\s0-9][^:\\s]*:\\S+"]
+            },
+            {
+                "name" : "xbrl:noLangToken",
+                "baseType" : "xs:token"
+            },
+            {
+                "name" : "xbrl:noLangString",
+                "baseType" : "xs:string"
+            },
+            {
+                "name" : "xbrl:prefixedContent",
+                "baseType" : "xbrl:noLangToken"
             }
         ],
         "domainNetworks": [
@@ -2303,6 +2353,24 @@
             {
                 "name": "xbrl:luhnMod97-10",
                 "domainClasses": ["xbrl:checksumAlgorithmDomainClass"]
+            }
+        ],
+        "collectionTypes": [
+            {
+                "name": "xbrl:SQNames",
+                "dataType": "xbrl:SQName",
+                "uniqueValues": true,
+                "orderedValues": true
+            }
+        ],
+        "references": [
+            {
+                "name": "xbrl:PrefixedContentRequirementReference",
+                "relatedNames": [
+                    "xbrl:prefixedContent"
+                ],
+                "referenceType": "xbrl:dataTypeRequirement",
+                "properties": [{"property":"ref:Requirement", "value":"This data type acts as a supertype for all custom types that rely on namespace-prefix bindings. It allows processors to 'fail fast' if presented with prefixed content that they do not understand, rather than silently breaking or changing the semantics of such values."}]
             }
         ]
     }

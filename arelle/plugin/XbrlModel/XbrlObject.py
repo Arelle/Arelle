@@ -47,6 +47,16 @@ class XbrlModelClass:
             if not isinstance(propType, _GenericAlias) or propType.__origin__ != ClassVar:
                 yield propName, propType
 
+    @classmethod
+    def parentNameType(cls):
+        for propName, propType in inspect.get_annotations(cls).items():
+            if (isinstance(propType, str) or propType.__name__.startswith("Xbrl") or
+                (isinstance(propType, _UnionGenericAlias) and
+                    any((isinstance(t.__forward_arg__, str) or t.__forward_arg__.__name__.startswith("Xbrl")) for t in propType.__args__ if isinstance(t,ForwardRef)))): # Union of TypeAliases are ForwardArgs
+                return propName, propType
+            break
+        return None, None
+
 class XbrlObject(XbrlModelClass):
     def __init__(self, xbrlMdlObjIndex=0, **kwargs):
         self.xbrlMdlObjIndex = xbrlMdlObjIndex
@@ -57,12 +67,30 @@ class XbrlObject(XbrlModelClass):
 
     @property
     def entryLoadingUrl(self):
-        href = str(getattr(getattr(self, 'taxonomy', None), 'name', '(none)'))
-        className = type(self).__name__
-        if className.startswith("Xbrl"):
-            classIndex = getattr(self, "_classIndex", None)
-            if classIndex is not None:
-                href = f"{href}/{className[4].lower()}{className[5:]}[{classIndex}]"
+        # accumulate parent objects up to module
+        href = ""
+        obj = self
+        while (obj):
+            parentPropName, parentPropType = type(obj).parentNameType()
+            if not parentPropName:
+                break
+            obj = getattr(obj, parentPropName, None)
+            if obj is None:
+                break
+            objName = getattr(obj, 'name', None)
+            if not objName:
+                className = type(self).__name__
+                if className.startswith("Xbrl"):
+                    objName = f"{className[4].lower()}{className[5:]}"
+                    classIndex = getattr(obj, "_classIndex", None)
+                    if classIndex is not None:
+                        objName += f"[{classIndex}]"
+                else:
+                    objName = className
+            href = str(objName) + (f"/{href}" if href else '')
+            if obj.__class__.__name__ == "XbrlModule":
+                break # stop at module, don't include compiled model which is above the module
+        if not href: href = '(none)'
         return href
 
     # getProperty returns an object property (e.g. an @property of the object, not object.properties[foo])
@@ -95,7 +123,7 @@ class XbrlObject(XbrlModelClass):
                 val = getattr(self, propName)
                 if isTaxonomyObject: # for Taxonomy objects, not used by OIM Instance objects
                     if propName == "properties":
-                        for propObj in val:
+                        for propObj in val or ():
                             propVals.append( (str(getattr(propObj, "property", "")), str(getattr(propObj, "value", ""))) )
                         continue
                     if propName in ("name", "groupName") and val and issubclass(objClass, XbrlReferencableModelObject):
@@ -159,7 +187,7 @@ class XbrlObject(XbrlModelClass):
             if isinstance(propType, _GenericAlias) and propType.__origin__ == ClassVar:
                 continue
             if initialParentObjProp:
-                initialParentProp = False
+                initialParentObjProp = False
                 if isinstance(propType, str) or getattr(propType, "__name__", "").startswith("Xbrl"): # skip taxonomy alias type
                     continue
             if hasattr(self, propName):

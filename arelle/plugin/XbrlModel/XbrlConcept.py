@@ -2,7 +2,7 @@
 See COPYRIGHT.md for copyright information.
 """
 
-from typing import TYPE_CHECKING, Union, Optional, Any
+from typing import TYPE_CHECKING, Union, Optional, Any, TypeAlias
 from typing_extensions import TypeAlias
 from decimal import Decimal
 
@@ -47,10 +47,12 @@ class XbrlCollectionType(XbrlReferencableModelObject):
     maxItems: Optional[int] # (optional) Defines an int value to indicate the maximum number of items in the collection.
     minItems: Optional[int] # (optional) Defines an int value to indicate the minimum number of items in the collection.
 
+XbrlDataTypeType: TypeAlias = "XbrlDataType"
 class XbrlUnitType(XbrlModelObject):
     """ Unit Type Object
         Reference: oim-taxonomy.md#unittype-object
     """
+    dataType: XbrlDataTypeType
     dataTypeNumerator: Optional[QName] # (optional) Defines the numerator data type of the data type.
     dataTypeDenominator: Optional[QName] # (optional) Defines the denominator data type used by a unit used to define a value of the data type.
     dataTypeMultiplier: Optional[QName] # (optional) Defines a multiplier data type used by a unit used to define a value of the data type.
