@@ -1,6 +1,6 @@
 # core modules
 bottle==0.13.4
-certifi==2026.5.20
+certifi==2026.6.17
 cheroot==11.1.2
 filelock==3.29.4
 isodate==0.7.2
