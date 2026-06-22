@@ -684,7 +684,7 @@ class ModelXbrl:
             fpDims: dict[int | QName, QName | DimValuePrototype]
             if priItem is not None: # creating concept for a specific fact
                 dims[2] = priItem # Aspect.CONCEPT: prototype needs primary item as an aspect
-                fp = FactPrototype(self, dims)
+                fp = FactPrototype(self, dims)  # type: ignore[arg-type]
                 del dims[2] # Aspect.CONCEPT
                 # force trying a valid prototype's context Elements
                 if not isFactDimensionallyValid(self, fp, setPrototypeContextElements=True):
@@ -692,7 +692,7 @@ class ModelXbrl:
                         _("Create context for %(priItem)s, cannot determine valid context elements, no suitable hypercubes"),
                         modelObject=self, priItem=priItem)
                     # fp.context.qnameDims is actually of type dict[QName, DimValuePrototype]
-                fpDims = cast(dict[Union[int, 'QName'], Union['QName', DimValuePrototype]], fp.context.qnameDims)
+                fpDims = cast(dict[Union[int, 'QName'], Union['QName', DimValuePrototype]], fp.context.qnameDims)  # type: ignore[union-attr]
             else:
                 fpDims = dims # dims known to be valid (such as for inline extraction)
             for dimQname in sorted(fpDims.keys()):

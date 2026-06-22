@@ -380,7 +380,7 @@ class Validate:
         elif resultIsTaxonomyPackage:
             from arelle import PackageManager, PrototypeInstanceObject
             dtsName = readMeFirstUri
-            modelXbrl = PrototypeInstanceObject.XbrlPrototype(self.modelXbrl.modelManager, readMeFirstUri)  # type: ignore[no-untyped-call,assignment]
+            modelXbrl = PrototypeInstanceObject.XbrlPrototype(self.modelXbrl.modelManager, readMeFirstUri)  # type: ignore[assignment]
             loadedModels.append(modelXbrl)
             PackageManager.packageInfo(self.modelXbrl.modelManager.cntlr, readMeFirstUri, reload=True, errors=modelXbrl.errors)  # type: ignore[arg-type]
         else: # not a multi-schemaRef versioning report
