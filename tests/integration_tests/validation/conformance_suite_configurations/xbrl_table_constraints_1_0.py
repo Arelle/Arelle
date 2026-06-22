@@ -281,8 +281,6 @@ config = ConformanceSuiteConfig(
         'generated/facets-with-invalid-values/index-tc-facets-with-invalid-values.xml:V-GEN-facetValue-unit-enumerationValues-unitTrailingStar-invalid',
         'generated/facets-with-invalid-values/index-tc-facets-with-invalid-values.xml:V-GEN-facetValue-unit-enumerationValues-unitUnnecessaryParensNum-invalid',
         'generated/facets-with-invalid-values/index-tc-facets-with-invalid-values.xml:V-GEN-facetValue-xs_anyURI-enumerationValues-malformedPercent-invalid',
-        'generated/facets-with-invalid-values/index-tc-facets-with-invalid-values.xml:V-GEN-facetValue-xs_gYear-enumerationValues-yearZero-invalid',
-        'generated/facets-with-invalid-values/index-tc-facets-with-invalid-values.xml:V-GEN-facetValue-xs_gYearMonth-enumerationValues-yearMonthZero-invalid',
         'generated/facets-with-invalid-values/index-tc-facets-with-invalid-values.xml:V-GEN-facetValue-xs_QName-enumerationValues-localOnly-invalid',
     ]),
     info_url='https://www.xbrl.org/Specification/table-constraints/PR-2026-03-18/table-constraints-PR-2026-03-18.html',

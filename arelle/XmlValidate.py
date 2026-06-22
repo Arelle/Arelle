@@ -632,9 +632,13 @@ def _validateValueStringOrRaise(
                     xValue = gMonthDay(month, day)
                 elif baseXsdType == "gYearMonth":
                     year, month, zSign, zHrMin, zHr, zMin = match.groups()
+                    if int(year) == 0:
+                        raise ValueError("year zero is not permitted per XSD 1.0")
                     xValue = gYearMonth(year, month)
                 elif baseXsdType == "gYear":
                     year, zSign, zHrMin, zHr, zMin = match.groups()
+                    if int(year) == 0:
+                        raise ValueError("year zero is not permitted per XSD 1.0")
                     xValue = gYear(year)
                 elif baseXsdType == "gMonth":
                     month, zSign, zHrMin, zHr, zMin = match.groups()
