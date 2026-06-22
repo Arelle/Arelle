@@ -302,6 +302,28 @@ def tzinfoStr(dt: datetime.datetime | datetime.date) -> str:
             return tz[3:] or "Z"
     return ""
 
+
+@overload
+def dateTime(
+    value: str | ModelObject | DateTime | datetime.datetime | datetime.date | None,
+    time: Any = ...,
+    addOneDay: bool = ...,
+    *,
+    type: int | None = ...,
+    castException: type[Exception],
+) -> DateTime: ...
+
+
+@overload
+def dateTime(
+    value: str | ModelObject | DateTime | datetime.datetime | datetime.date | None,
+    time: Any = ...,
+    addOneDay: bool = ...,
+    type: int | None = ...,
+    castException: None = ...,
+) -> DateTime | None: ...
+
+
 def dateTime(
     value: str | ModelObject | DateTime | datetime.datetime | datetime.date | None,
     time: Any = None,
