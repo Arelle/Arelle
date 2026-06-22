@@ -56,6 +56,10 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
             if propName in ("taxonomies", "layouts"):
                 yield propName, propType
 
+    @classmethod
+    def parentNameType(cls):
+        return None, None
+
     def __init__(self, isReport:bool = False, *args: Any, **kwargs: Any) -> None:
         super(XbrlCompiledModel, self).__init__(*args, **kwargs)
         self.dtsObjectIndex = 0

@@ -121,7 +121,7 @@ def validateCubeTypeFamily(compMdl, module, oimFile, *, assertObjectType, valida
                                xbrlObject=cubeType, name=name, base=cubeType.baseCubeType)
                 else:
                     baseCoreDims = baseCubeType.effectivePropVal(compMdl, "coreDimensions")
-                    if baseCoreDims and (cubeType.coreDimensions - baseCoreDims):
+                    if baseCoreDims and ((cubeType.coreDimensions or EMPTY_FROZENSET) - baseCoreDims):
                         emit_error(compMdl, "oimte:coreDimensionsExpansion",
                                    _("The cube type %(name)s, expands base cube type core dimensions by %(qnames)s."),
                                    xbrlObject=cubeType, name=name,

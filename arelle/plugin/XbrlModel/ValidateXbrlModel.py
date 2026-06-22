@@ -19,7 +19,7 @@ from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlCollectionType, XbrlUnit
 from .XbrlConst import (xbrl, qnXbrlReferenceObj, qnXbrlLabelObj, qnXbrlHeadingObj, qnXbrlConceptObj,
                         qnXbrlMemberObj, qnXbrlEntityObj, qnXbrlUnitObj, qnXbrlImportTaxonomyObj,
                         reservedPrefixNamespaces, qnXbrlLabelObj, qnXbrlPropertyObj,
-                        qnXbrlDimensionObj)
+                        qnXbrlDimensionObj, EMPTY_FROZENSET)
 from .XbrlCube import (XbrlCube, XbrlCubeType, baseCubeTypes, XbrlCubeDimension,
                        periodCoreDim, conceptCoreDim, entityCoreDim, unitCoreDim, languageCoreDim, coreDimensions,
                     conceptDomainClass, entityDomainClass, unitDomainClass, languageDomainClass,
@@ -157,7 +157,7 @@ def validateQNameReference(compMdl, contextObj, propName, objType=None, msgCode=
     messageArgs = {
         "xbrlObject": contextObj,
         "parentType": type(contextObj).__name__,
-        "parentName": getattr(contextObj, 'name', '?'),
+        "parentName": getattr(contextObj, 'name', ''),
         "propName": propName,
         "qnRef": qnRef,
     }
@@ -497,7 +497,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                             invalidTypeMsgCode="oimte:invalidObjectType")
             if dimObj:
                 # specific cubeType dimension property validations
-                tsProps = {timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType, excludedIntervalsPropType, completeTimeSeriesPropType} & set(p.property for p in dimObj.properties)
+                tsProps = {timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType, excludedIntervalsPropType, completeTimeSeriesPropType} & set(p.property for p in (dimObj.properties or EMPTY_FROZENSET))
                 if tsProps:
                     if cubeType and cubeType.name != timeSeriesCubeType:
                         compMdl.error("oimte:timeSeriesTypeOnNonTimeSeriesDimension" if timeSeriesPropType in tsProps else
@@ -748,7 +748,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                     isTyped = True
                     if domClass.allowedDomainItems and cubeDimDT not in domClass.allowedDomainItems:
                         compMdl.error("oimte:invalidDataTypeForDomainClass",
-                                      _("Cube %(name)s dimension %(dimensionName)s domainDataType %(dataType)s MUST be included in the set of allowedDomainItems defined as a property of the domain root object: %(allowedDataItems)s."),
+                                      _("Cube %(name)s dimension %(dimensionName)s domainDataType %(dataType)s MUST be included in the set of allowedDomainItems defined as a property of The domain network root object: %(allowedDataItems)s."),
                                       xbrlObject=cubeObj, name=name, dimensionName=dimName, dataType=cubeDimDT, allowedDataItems=", ".join(str(qn) for qn in domClass.allowedDomainItems))
                     if dimName == periodCoreDim:
                         compMdl.error("oimte:domainUsedOnPeriodDimension",
@@ -759,7 +759,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                       _("Cube %(name)s dimension %(dimensionName)s domainDataType %(dataType)s MUST not be used on a concept dimension."),
                                       xbrlObject=cubeObj, name=name, dimensionName=dimName, dataType=cubeDimDT)
             hasValidDomainName = False
-            if cubeDimObj.domain:
+            if cubeDimObj.domainNetwork:
                 if isTyped:
                     if dimName == periodCoreDim:
                         compMdl.error("oimte:domainUsedOnPeriodDimension",
@@ -770,7 +770,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                   _("Cube %(name)s dimension %(dimensionName)s domain objects MUST NOT be defined with a typed domainClass object."),
                                   xbrlObject=cubeObj, name=name, dimensionName=dimName)
                 cubeDomNwkObj = compMdl.namedObjects.get(cubeDimObj.domainNetwork)
-                if isinstance(cubeDomObj, XbrlDomainNetwork):
+                if isinstance(cubeDomNwkObj, XbrlDomainNetwork):
                     hasValidDomainName = True
                 else:
                     if dimName not in coreDimensions and allowedCubeDimConstrs:
@@ -779,8 +779,8 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                   xbrlObject=(cubeObj, cubeDimObj), name=name, dimensionName=dimName)
                     else:
                         compMdl.error("oimte:domainClassMismatchWithDomain",
-                                  _("Cube %(name)s domainName property MUST identify a domain object: %(domainName)s."),
-                                  xbrlObject=cubeObj, name=name, domainName=cubeDimObj.domain)
+                                  _("Cube %(name)s domainName property MUST identify a domain object: %(domainNetworkName)s."),
+                                  xbrlObject=cubeObj, name=name, domainNetworkName=cubeDimObj.domainNetwork)
             if cubeDimObj.periodConstraints and dimName != periodCoreDim:
                 compMdl.error("oimte:invalidPeriodConstraintDimension",
                           _("Cube %(name)s periodConstraints property MUST only be used where the dimensionName property has a QName value of xbrl:period, not %(qname)s."),
@@ -788,7 +788,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             if dimName == conceptCoreDim:
                 hasConceptDimension = True
             if dimName == conceptCoreDim and hasValidDomainName:
-                for relObj in compMdl.namedObjects[cubeDimObj.domain].relationships or ():
+                for relObj in compMdl.namedObjects[cubeDimObj.domainNetwork].relationships or ():
                     if not isinstance(compMdl.namedObjects.get(relObj.source,None), (XbrlConcept, XbrlHeading)) and relObj.source != conceptDomainClass:
                         compMdl.error("oimte:invalidRelationshipSourceObject",
                                   _("Cube %(name)s conceptConstraints domain relationships must be from concepts, source: %(source)s."),
@@ -800,21 +800,21 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                               _("Cube %(name)s conceptConstraints property MUST NOT specify allowDomainFacts."),
                               xbrlObject=(cubeObj,cubeDimObj), name=name)
             if dimName == entityCoreDim and hasValidDomainName:
-                for relObj in compMdl.namedObjects[cubeDimObj.domain].relationships or ():
+                for relObj in compMdl.namedObjects[cubeDimObj.domainNetwork].relationships or ():
                     if not isinstance(compMdl.namedObjects.get(relObj.source,None), XbrlEntity) and relObj.source != entityDomainClass:
                         compMdl.error("oimte:invalidRelationshipSourceObject",
                                   _("Cube %(name)s entityConstraints domain relationships must be from entities, source: %(source)s."),
                                   xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName, source=relObj.source)
             if dimName == unitCoreDim and hasValidDomainName:
-                for relObj in compMdl.namedObjects[cubeDimObj.domain].relationships or ():
+                for relObj in compMdl.namedObjects[cubeDimObj.domainNetwork].relationships or ():
                     if not isinstance(compMdl.namedObjects.get(relObj.source,None), XbrlUnit) and relObj.source != unitDomainClass:
                         compMdl.error("oimte:invalidRelationshipSourceObject",
                                   _("Cube %(name)s unitConstraints domain relationships must be from units, source: %(source)s."),
                                   xbrlObject=(cubeObj,cubeDimObj,relObj), name=name, qname=dimName, source=relObj.source)
             if dimName in (periodCoreDim, languageCoreDim) and hasValidDomainName:
                 compMdl.error("oimte:invalidCubeDimensionProperty",
-                          _("Cube %(name)s dimension %(qname)s must not specify domain %(domain)s."),
-                          xbrlObject=(cubeObj,cubeDimObj,dimObj), name=name, qname=dimName, domain=cubeDimObj.domain)
+                          _("Cube %(name)s dimension %(qname)s must not specify domain network %(domainNetwork)s."),
+                          xbrlObject=(cubeObj,cubeDimObj,dimObj), name=name, qname=dimName, domainNetwork=cubeDimObj.domainNetwork)
             if dimName not in coreDimensions and isinstance(compMdl.namedObjects.get(dimName), XbrlDimension):
                 timeSeriesTaxonomyDims.append((cubeDimObj, dimObj, isTyped, cubeDimDT, domClass))
                 if not isTyped: # explicit
@@ -823,12 +823,12 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                         for relObj in domNwkObj.relationships or ():
                             if not isinstance(compMdl.namedObjects.get(getattr(relObj, "target", None),None), (XbrlConcept, XbrlHeading, XbrlUnit, XbrlMember)):
                                 compMdl.error("oimte:invalidDomainRelationshipTarget",
-                                          _("Cube %(name)s explicit dimension domain relationships must be to members."),
+                                          _("Cube %(name)s explicit dimension domain network relationships must be to members."),
                                           xbrlObject=(cubeObj,dimObj,relObj), name=name, qname=dimName)
                         if dimObj.domainClass and domNwkObj.root and dimObj.domainClass != domNwkObj.root:
                             compMdl.error("oimte:invalidCubeDimensionDomainName",
-                                      _("Cube %(name)s explicit dimension domain root %(domClass)s does not match dimension domainClass %(dimRoot)s."),
-                                      xbrlObject=(cubeObj,dimObj,relObj), name=name, qname=dimName, domClass=domObj.root, dimRoot=dimObj.domainClass)
+                                      _("Cube %(name)s explicit dimension domain network root %(domClass)s does not match dimension domainClass %(dimRoot)s."),
+                                      xbrlObject=(cubeObj,dimObj,relObj), name=name, qname=dimName, domClass=domNwkObj.root, dimRoot=dimObj.domainClass)
             if not isTyped: # explicit dimension
                 if cubeDimObj.typedSort is not None:
                     compMdl.error("oimte:invalidTypedSortOnExplicitDomain",
@@ -915,9 +915,9 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             for reqDim, reqDomClass in coreDomainClassByDimension.items():
                 if reqDomClass in coreDomainClasses:
                     cubeDimObj = cubeDimByName.get(reqDim)
-                    if cubeDimObj is not None and not cubeDimObj.domain:
+                    if cubeDimObj is not None and not cubeDimObj.domainNetwork:
                         compMdl.error("oimte:missingCoreDomainNameFromCubeDimension",
-                                      _("Cube %(name)s dimension %(dimensionName)s MUST specify domainName because cubeType %(cubeType)s requires coreDomainClass %(domainClass)s."),
+                                      _("Cube %(name)s dimension %(dimensionName)s MUST specify domainNetworkName because cubeType %(cubeType)s requires coreDomainClass %(domainClass)s."),
                                       xbrlObject=(cubeObj, cubeDimObj), name=name, dimensionName=reqDim, cubeType=cubeType.name, domainClass=reqDomClass)
 
         if isTimeSeriesCubeType:
@@ -1015,22 +1015,22 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                     extendTargetObj = None # don't extend, already been extended
                 elif not getattr(extendTargetObj, "isExtensible", True):
                     compMdl.error("oimte:cannotExtendCompleteDomain",
-                            _("The domain %(name)s cannot be extended because it is a completeDomain."),
-                            xbrlObject=domObj, name=extendTargetObj.name)
+                            _("The domain network %(name)s cannot be extended because it is a completeDomain."),
+                            xbrlObject=domNwkObj, name=extendTargetObj.name)
                     continue
                 else:
                     domNwkObj._extendResolved = True
                     extendedDomClassQn = getattr(extendTargetObj, "root", None)
         elif not domNwkObj.name:
             compMdl.error("oimte:missingRequiredProperty",
-                      _("The domain object MUST have either a name or an extendTargetName, not neither."),
+                      _("The domain network object MUST have either a name or an extendTargetName, not neither."),
                       xbrlObject=domNwkObj)
         domRtObj = validateQNameReference(compMdl, domNwkObj, "root", XbrlDomainClass, qnDefault=extendedDomClassQn, msgCode="oimte:invalidDomainClass")
         if not domRtObj:
             continue
         domRtQn = domRtObj.name
         domRelCts = {}
-        domRelRoots = set(relObj.source for relObj in domObj.relationships or () if getattr(relObj, "source", None))
+        domRelRoots = set(relObj.source for relObj in domNwkObj.relationships or () if getattr(relObj, "source", None))
         domClassSourceInRel = domRtObj is not None # only check if there are any relationships
         for i, relObj in enumerate(domNwkObj.relationships or ()):
             if i == 0:
@@ -1041,66 +1041,66 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             if src not in compMdl.namedObjects or tgt not in compMdl.namedObjects:
                 if src not in compMdl.namedObjects:
                     validateQNameReference(compMdl, relObj, "source", qnRef=src,
-                                           undefinedMessage=_("The domain %(name)s relationship[%(nbr)s] source, %(source)s, MUST be an object in the taxonomy model."),
+                                           undefinedMessage=_("The domain network %(name)s relationship[%(nbr)s] source, %(source)s, MUST be an object in the taxonomy model."),
                                            errorArgs={"name": domNwkObj.name, "nbr": i, "source": src})
                 if tgt not in compMdl.namedObjects:
                     validateQNameReference(compMdl, relObj, "target", qnRef=tgt,
-                                           undefinedMessage=_("The domain %(name)s relationship[%(nbr)s] target, %(target)s, MUST be an object in the taxonomy model."),
+                                           undefinedMessage=_("The domain network %(name)s relationship[%(nbr)s] target, %(target)s, MUST be an object in the taxonomy model."),
                                            errorArgs={"name": domNwkObj.name, "nbr": i, "target": tgt})
             else:
                 if domRtQn == conceptDomainClass:
                     if relObj.source != domRtQn and not isinstance(compMdl.namedObjects[relObj.source], (XbrlConcept, XbrlHeading)):
                         compMdl.error("oimte:invalidDomainSource",
-                                  _("The domain %(name)s relationship[%(nbr)s] source, %(source)s MUST be a concept object in the taxonomy model."),
-                                  xbrlObject=relObj, name=domObj.name, nbr=i, source=relObj.source)
+                                  _("The domain network %(name)s relationship[%(nbr)s] source, %(source)s MUST be a concept object in the taxonomy model."),
+                                  xbrlObject=relObj, name=domNwkObj.name, nbr=i, source=relObj.source)
                 if domRtQn == entityDomainClass:
                     if relObj.source != domRtQn and not isinstance(compMdl.namedObjects[relObj.source], XbrlEntity):
                         compMdl.error("oimte:invalidDomainSource",
-                                  _("The domain %(name)s relationship[%(nbr)s] source, %(source)s, MUST be the entity root or an entity object in the taxonomy model."),
-                                  xbrlObject=relObj, name=domObj.name, nbr=i, source=relObj.source)
+                                  _("The domain network %(name)s relationship[%(nbr)s] source, %(source)s, MUST be the entity root or an entity object in the taxonomy model."),
+                                  xbrlObject=relObj, name=domNwkObj.name, nbr=i, source=relObj.source)
                     if not isinstance(compMdl.namedObjects[relObj.target], XbrlEntity):
                         compMdl.error("oimte:invalidDomainRelationshipTarget",
-                                  _("The domain %(name)s relationship[%(nbr)s] target, %(target)s, MUST be an entity object in the taxonomy model."),
+                                  _("The domain network %(name)s relationship[%(nbr)s] target, %(target)s, MUST be an entity object in the taxonomy model."),
                                   xbrlObject=relObj, name=domNwkObj.name, nbr=i, target=relObj.target)
                 if domRtQn == unitDomainClass:
                     if relObj.source != domRtQn and not isinstance(compMdl.namedObjects[relObj.source], XbrlUnit):
                         compMdl.error("oimte:invalidDomainSource",
-                                  _("The domain %(name)s relationship[%(nbr)s] source, %(source)s, MUST be the unit root or an unit object in the taxonomy model."),
+                                  _("The domain network %(name)s relationship[%(nbr)s] source, %(source)s, MUST be the unit root or an unit object in the taxonomy model."),
                                   xbrlObject=relObj, name=domNwkObj.name, nbr=i, source=relObj.source)
                     if not isinstance(compMdl.namedObjects[relObj.target], XbrlUnit):
                         compMdl.error("oimte:invalidDomainRelationshipTarget",
-                                  _("The domain %(name)s relationship[%(nbr)s] target, %(target)s, MUST be a unit object in the taxonomy model."),
-                                  xbrlObject=relObj, name=domObj.name, nbr=i, target=relObj.target)
+                                  _("The domain network %(name)s relationship[%(nbr)s] target, %(target)s, MUST be a unit object in the taxonomy model."),
+                                  xbrlObject=relObj, name=domNwkObj.name, nbr=i, target=relObj.target)
                 elif isinstance(compMdl.namedObjects[relObj.source], XbrlUnit) or isinstance(compMdl.namedObjects[relObj.target], XbrlUnit):
                     compMdl.error("oimte:invalidDomainObject",
-                              _("The domain %(name)s relationship[%(nbr)s] source, %(source)s, or target, %(target)s, MUST be not be unit objects in the taxonomy model."),
+                              _("The domain network %(name)s relationship[%(nbr)s] source, %(source)s, or target, %(target)s, MUST be not be unit objects in the taxonomy model."),
                               xbrlObject=relObj, name=domNwkObj.name, nbr=i, source=relObj.source, target=relObj.target)
                 for prop in ("source", "target"):
                     obj = compMdl.namedObjects[getattr(relObj, prop)]
                     if isinstance(obj, XbrlMember) and domRtQn in (conceptDomainClass, unitDomainClass, entityDomainClass, languageDomainClass):
                         compMdl.error("oimte:invalidDimensionMember",
-                                  _("The domain %(name)s relationship[%(nbr)s] %(property)s, %(propQn)s MUST be not be a member object in the taxonomy model."),
+                                  _("The domain network %(name)s relationship[%(nbr)s] %(property)s, %(propQn)s MUST be not be a member object in the taxonomy model."),
                                   xbrlObject=relObj, name=domNwkObj.name, nbr=i, property=prop, propQn=getattr(relObj, prop))
                     if domRtObj and domRtObj.allowedDomainItems and (
                         not _qname_in_set(xbrlObjectQNames.get(type(obj)), domRtObj.allowedDomainItems)
                         and (prop != "source" and obj != domRtObj)):
                         compMdl.error("oimte:invalidDomainObject",
-                                  _("The domain %(name)s relationship[%(nbr)s] %(property)s, %(propQn)s MUST be only be objects in the allowedDomainItems."),
-                                  xbrlObject=relObj, name=domObj.name, nbr=i, property=prop, propQn=getattr(relObj, prop))
+                                  _("The domain network %(name)s relationship[%(nbr)s] %(property)s, %(propQn)s MUST be only be objects in the allowedDomainItems."),
+                                  xbrlObject=relObj, name=domNwkObj.name, nbr=i, property=prop, propQn=getattr(relObj, prop))
             if isinstance(compMdl.namedObjects.get(tgt), XbrlDomainClass):
                 compMdl.error("oimte:invalidDomainRelationshipTarget",
-                          _("The domain %(name)s relationship target %(qname)s MUST NOT be a domainClass object."),
-                          xbrlObject=domNwkObj, name=domObj.name, qname=tgt)
+                          _("The domain network %(name)s relationship target %(qname)s MUST NOT be a domainClass object."),
+                          xbrlObject=domNwkObj, name=domNwkObj.name, qname=tgt)
             elif isinstance(compMdl.namedObjects.get(tgt), XbrlDomainNetwork):
                 compMdl.error("oimte:invalidObjectType",
-                          _("The domain %(name)s relationship target %(qname)s MUST NOT be a domain object."),
+                          _("The domain network %(name)s relationship target %(qname)s MUST NOT be a domain object."),
                           xbrlObject=domNwkObj, name=domNwkObj.name, qname=tgt)
             elif extendTargetObj is not None:
                 extendTargetObj.relationships.add(relObj)
             if tgt == domRtQn:
                 compMdl.error("oimte:invalidDomainRelationshipTarget",
-                          _("The domain %(name)s relationship target %(qname)s MUST NOT be the domain root object."),
-                          xbrlObject=domNwkObj, name=domObj.name, qname=tgt)
+                          _("The domain network %(name)s relationship target %(qname)s MUST NOT be The domain network root object."),
+                          xbrlObject=domNwkObj, name=domNwkObj.name, qname=tgt)
             if domRtQn == src:
                 domClassSourceInRel = True
             relKey = (src, tgt)
@@ -1108,17 +1108,17 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             domRelRoots.discard(tgt) # remove any target from roots
         if any(ct > 1 for relKey, ct in domRelCts.items()):
             compMdl.error("oimte:duplicateItemsInSet",
-                      _("The domain %(name)s has duplicated relationships %(names)s"),
-                      xbrlObject=domNwkObj, name=domObj.name,
+                      _("The domain network %(name)s has duplicated relationships %(names)s"),
+                      xbrlObject=domNwkObj, name=domNwkObj.name,
                       names=", ".join(f"{relKey[0]}\u2192{relKey[1]}" for relKey, ct in domRelCts.items() if ct > 1))
         if domRtObj and not domClassSourceInRel:
             compMdl.error("oimte:missingDomainClassSource",
-                      _("The domain %(name)s root %(qname)s MUST be a source in a relationship"),
+                      _("The domain network %(name)s root %(qname)s MUST be a source in a relationship"),
                       xbrlObject=domNwkObj, name=domNwkObj.name, qname=domNwkObj.root)
         if len(domRelRoots) > 1:
             compMdl.error("oimte:multipleDomainClasses",
-                      _("The domain %(name)s relationship must resolve to a single root object, multiple found: %(roots)s"),
-                      xbrlObject=domNwkObj, name=domObj.name, roots=", ".join(sorted(str(r) for r in domRelRoots)))
+                      _("The domain network %(name)s relationship must resolve to a single root object, multiple found: %(roots)s"),
+                      xbrlObject=domNwkObj, name=domNwkObj.name, roots=", ".join(sorted(str(r) for r in domRelRoots)))
         validateProperties(compMdl, oimFile, module, domNwkObj)
 
 
@@ -1139,7 +1139,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         isDateTimeType = qnXsDateTime in (domRtObj.allowedDomainItems or ())
         if isDateTimeType:
             # Get time-series properties from domain class
-            domClassTsProps = {timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType, completeTimeSeriesPropType} & set(p.property for p in getattr(domRtObj, 'properties', ()))
+            domClassTsProps = {timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType, completeTimeSeriesPropType} & set(p.property for p in getattr(domRtObj, 'properties') or EMPTY_FROZENSET)
             if domClassTsProps:
                 # Validate dependent properties
                 tsTypeVal = domRtObj.propertyObjectValue(timeSeriesPropType)

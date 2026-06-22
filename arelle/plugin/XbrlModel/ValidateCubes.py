@@ -66,7 +66,7 @@ def matchFactToCube(compMdl, factspace, cubeObj):
             dimObj = compMdl.namedObjects.get(dimName)
             isTyped = bool(cubeDimObj.domainDataType)
             if not isTyped:
-                dimMbrQn = qname(factspace.factDimensions.get(dimName), factspace.parent._prefixNamespaces)
+                dimMbrQn = qname(factspace.factDimensions.get(dimName), factspace.module._prefixNamespaces)
             if (isinstance(dimObj, XbrlDimension) and not isTyped and
                 dimMbrQn not in cubeDimObj.allowedMembers(compMdl)):
                 hasDims = False # skip this cube

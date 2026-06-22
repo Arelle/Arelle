@@ -38,6 +38,7 @@ reservedPrefixNamespaces = {
 builtInPrefixTaxonomies = { # these are in resources subdirectory
     "xbrl": "xbrlSpec.json",
     "xbrla": "xbrla.json",
+    "xbrlm": "xbrlModel.json",
     "xbrlr": "types.json",
     "xbrli-2003": "https://xbrl.org/2003/instance",
     "xs": "xs-types.json",

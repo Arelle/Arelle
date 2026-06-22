@@ -532,17 +532,16 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                 return name + "s"
         def addToCol(oimParentObj, objName, newObj, key):
             parentCol = getattr(oimParentObj, plural(objName), None) # parent collection object
-            if colObj is not None:
+            if parentCol is not None:
                 if key:
-                    colObj[key] = newObj
+                    parentCol[key] = newObj
                 else:
-                    colObj.add(newObj)
+                    parentCol.add(newObj)
 
         jsonEltsNotInObjClass = []
         jsonEltsReqdButMissing = []
         namedObjectDuplicates = defaultdict(OrderedSet)
         def createModelObject(jsonObj, oimParentObj, keyClass, objClass, newObj, pathParts):
-            """"""
             keyValue = None
             relatedNames = [] # to tag an object with labels or references
             oimParentTypes = (type(oimParentObj), type(oimParentObj).__name__) # allow actual type or TypeAlias type
@@ -657,7 +656,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                                 propClass = propType.__args__[0].__origin__ # collection type such as OrderedSet, dict
                                 collectionProp = propClass()
                                 setattr(newObj, propName, collectionProp) # fresh new dict or OrderedSet (even if no contents for it)
-                        createModelObjects(propName, listObj, newObj, pathParts + [f'{propName}[{iObj}]'])
+                            createModelObjects(propName, listObj, newObj, pathParts + [f'{propName}[{iObj}]'])
                     elif isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] == type(None) and isinstance(jsonValue,dict): # optional embdded object
                         createModelObjects(propName, jsonValue, newObj, pathParts + [propName]) # object property
                     elif isinstance(propType, type) and issubclass(propType, XbrlObject) and isinstance(jsonValue,dict): # mandatory embdded object
@@ -799,7 +798,8 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         impTxmyNameModuleObjs = {}
         if "importedTaxonomies" in moduleFileObj["xbrlModel"]:
             for impTxJsonObj in moduleFileObj["xbrlModel"]["importedTaxonomies"]:
-                impModuleName = qname(impTxJsonObj.get("xbrlModelName"), prefixNamespaces)
+                impTxModelName = impTxJsonObj.get("xbrlModelName")
+                impModuleName = qname(impTxModelName, prefixNamespaces)
                 if impModuleName:
                     if impModuleName not in xbrlCompMdl.xbrlModels:
                         impSchemaDoc = None
@@ -847,11 +847,15 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                                 foundMismatchedNameReported = True
                         if impTxModuleObj is None:
                             xbrlCompMdl.error("oimte:taxonomyNotFound",
-                                            _("Imported taxonomy for %(qname)s not found because the URL mapping namespace is incorrect."),
+                                            _("Imported taxonomy for %(qname)s not found because the QName could not be resolved."),
                                             xbrlObject=impTxJsonObj, qname=impModuleName)
                     else:
                         impTxModuleObj = xbrlCompMdl.xbrlModels[impModuleName]
                         impTxmyNameModuleObjs[impModuleName] = impTxModuleObj
+                else:
+                    xbrlCompMdl.error("oimte:taxonomyNotFound",
+                                    _("Imported taxonomy for %(qname)s not found because the URL mapping namespace is incorrect."),
+                                    xbrlObject=impTxJsonObj, qname=impTxModelName)
         modelXbrl.profileActivity(f"Load taxonomies imported from {moduleFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
         
 

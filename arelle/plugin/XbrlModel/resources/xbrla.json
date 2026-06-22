@@ -7,6 +7,7 @@
       "xbrla": "http://xbrl.org/accounting",
       "xbrlr": "https://xbrl.org/2026/report",
       "xs": "http://www.w3.org/2001/XMLSchema",
+      "ref": "https://xbrl.org/2026/ref",
       "utr": "https://xbrl.org/2026/utr"
     },
     "documentNamespacePrefix": "xbrla"
