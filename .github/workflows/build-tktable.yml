@@ -14,7 +14,7 @@ jobs:
   build-macos-arm64:
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
         with:
           repository: bohagan1/TkTable
           ref: ${{ inputs.tktable_tag }}
@@ -41,7 +41,7 @@ jobs:
   build-macos-x86_64:
     runs-on: macos-26-intel
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
         with:
           repository: bohagan1/TkTable
           ref: ${{ inputs.tktable_tag }}
@@ -68,7 +68,7 @@ jobs:
   build-linux-x86_64:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
         with:
           repository: bohagan1/TkTable
           ref: ${{ inputs.tktable_tag }}
@@ -94,17 +94,17 @@ jobs:
   build-windows-x86_64:
     runs-on: windows-2025
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
         with:
           repository: tcltk/tcl
           ref: core-8-6-17
           path: tcl-src
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
         with:
           repository: tcltk/tk
           ref: core-8-6-17
           path: tk-src
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
         with:
           repository: bohagan1/TkTable
           ref: ${{ inputs.tktable_tag }}
