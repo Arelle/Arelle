@@ -266,6 +266,7 @@ class DialogPackageManager(Toplevel):
         if self.packagesConfigChanged:
             self._packageManager.packagesConfig = self.packagesConfig
             self._packageManager.packagesConfigChanged = True
+            self._packageManager.save(self.cntlr)
             self.cntlr.onPackageEnablementChanged()
         self.close()
 
