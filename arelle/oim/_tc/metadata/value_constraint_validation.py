@@ -23,6 +23,7 @@ from arelle.oim._tc.metadata.restrictions import (
     permitted_restrictions,
 )
 from arelle.oim._tc.metadata.types import resolve_effective_lexical_type
+from arelle.oim._tc.value_validator import ValueConstraintValidator
 from arelle.typing import TypeGetText
 from arelle.XmlValidate import XmlValidationResult, validateFacetValueString
 
@@ -82,6 +83,7 @@ def validate_value_constraint(
     yield from _validate_length_restrictions(constraint)
     yield from _validate_bounds_restrictions(constraint, effective_lexical_type)
     yield from _validate_digit_restrictions(constraint, effective_lexical_type)
+    yield from _validate_enumeration_values_restriction(constraint, namespaces)
 
 
 def _validate_permitted_restrictions(
@@ -286,4 +288,24 @@ def _validate_digit_restrictions(
             ),
             TCRestriction.FRACTION_DIGITS,
             TCRestriction.TOTAL_DIGITS,
+        )
+
+
+def _validate_enumeration_values_restriction(
+    constraint: TCValueConstraint,
+    namespaces: Mapping[str, str],
+) -> Generator[TCMetadataValidationError, None, None]:
+    if constraint.enumeration_values is None:
+        return
+    value_constraint_validator = ValueConstraintValidator(constraint, namespaces)
+    invalid_values = sorted(
+        value for value in constraint.enumeration_values if not value_constraint_validator.validate(value)
+    )
+    if invalid_values:
+        yield TCMetadataIllegalConstraintError(
+            _("enumerationValues {} are not valid values for type '{}'").format(
+                invalid_values,
+                constraint.type,
+            ),
+            TCRestriction.ENUMERATION_VALUES,
         )
