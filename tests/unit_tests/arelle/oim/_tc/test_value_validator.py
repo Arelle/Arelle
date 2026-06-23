@@ -129,6 +129,32 @@ class TestValidateConcept:
         assert _validator(tc_types.CORE_CONCEPT).validate(value) is expected
 
 
+class TestValidateLanguage:
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ("en", True),
+            ("en-us", True),
+            ("en-x-twain", True),
+            ("he-il-u-ca-hebrew-tz-jeruslm", True),
+            ("zh-hans", True),
+            ("x-private", True),
+            ("i-klingon", True),
+            ("abcdefgh", True),
+            ("en-US", False),
+            ("EN", False),
+            ("EN-US", False),
+            ("he-IL-u-ca-hebrew-tz-jeruslm", False),
+            ("zh-Hant", False),
+            (" hello", False),
+            ("hello ", False),
+            ("", False),
+        ],
+    )
+    def test_language_validation(self, value: str, expected: bool) -> None:
+        assert _validator(tc_types.CORE_LANGUAGE).validate(value) is expected
+
+
 class TestValidateEntity:
     @pytest.mark.parametrize(
         "value, expected",

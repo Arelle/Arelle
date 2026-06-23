@@ -13,9 +13,12 @@ import regex
 
 from arelle.ModelValue import QName, TypeXValue
 from arelle.oim._tc.metadata.model import TCValueConstraint
-from arelle.oim._tc.metadata.types import CORE_ENTITY, QNAME, resolve_effective_lexical_type
+from arelle.oim._tc.metadata.types import CORE_ENTITY, CORE_LANGUAGE, QNAME, resolve_effective_lexical_type
 from arelle.oim.const import SQNAME_PATTERN
 from arelle.XmlValidate import XmlValidationResult, XsdPattern, validateFacetValueString, validateValueString
+
+# TC prohibits uppercase characters in core language.
+_TC_CORE_LANGUAGE_PATTERN = regex.compile(r"[a-z]{1,8}(-[a-z0-9]{1,8})*$")
 
 
 class ValueConstraintValidator:
@@ -77,6 +80,10 @@ class ValueConstraintValidator:
             tc_valid_sqname = self._is_valid_sqname(value)
             if not tc_valid_sqname:
                 return False
+        if self._constraint.type == CORE_LANGUAGE:
+            tc_valid_language = self._is_valid_core_language(value)
+            if not tc_valid_language:
+                return False
         return True
 
     def _validate_base_type(self, base_xsd_type: QName, value_string: str) -> XmlValidationResult:
@@ -106,3 +113,6 @@ class ValueConstraintValidator:
             return False
         prefix = sqname_match.group("prefix")
         return prefix is not None and prefix in self._namespaces
+
+    def _is_valid_core_language(self, value: str) -> bool:
+        return _TC_CORE_LANGUAGE_PATTERN.fullmatch(value) is not None
