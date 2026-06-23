@@ -43,6 +43,7 @@ from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundV
 from arelle.XmlValidateConst import UNVALIDATED, INVALID, VALID
 from arelle.XmlValidate import validate as xmlValidate
 from arelle.XmlUtil import collapseWhitespace
+from arelle.ModelValue import QName
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.ModelDtsObject import ModelResource
 from arelle.typing import ModelFactBase
@@ -56,7 +57,6 @@ if TYPE_CHECKING:
     from datetime import date, datetime
     from arelle.ModelDocument import ModelDocument
     from arelle.ModelDtsObject import ModelConcept, ModelType
-    from arelle.ModelValue import QName
     from arelle.ValidateUtr import UtrEntry
     from arelle.ModelDtsObject import ModelLink
     from arelle.PrototypeDtsObject import LinkPrototype
