@@ -159,7 +159,6 @@ module = [
     'arelle.DialogURL',
     'arelle.DialogUserPassword',
     'arelle.InstanceAspectsEvaluator',
-    'arelle.ModelInstanceObject',
     'arelle.ModelRenderingObject',
     'arelle.ModelVersReport',
     'arelle.rendering.RenderingEvaluator',

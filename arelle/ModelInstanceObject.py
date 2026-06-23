@@ -35,9 +35,8 @@ from __future__ import annotations
 
 import uuid
 from collections import defaultdict
-from typing import Any, TYPE_CHECKING
-from lxml import etree
-from arelle import XmlUtil, XbrlConst, XbrlUtil, UrlUtil, Locale, ModelValue
+from typing import Any, Callable, Iterator, TYPE_CHECKING, Sequence
+from arelle import XmlUtil, XbrlConst, XbrlUtil, Locale, ModelValue
 from arelle.Aspect import Aspect
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue, rangeValue, ValidateCalcsMode
@@ -45,6 +44,7 @@ from arelle.XmlValidateConst import UNVALIDATED, INVALID, VALID
 from arelle.XmlValidate import validate as xmlValidate
 from arelle.XmlUtil import collapseWhitespace
 from arelle.PrototypeInstanceObject import DimValuePrototype
+from arelle.ModelDtsObject import ModelResource
 from arelle.typing import ModelFactBase
 from math import isnan, isinf
 from arelle.ModelObject import ModelObject
@@ -53,15 +53,22 @@ from hashlib import md5
 from arelle.HashUtil import md5hash, Md5Sum
 
 if TYPE_CHECKING:
-    from datetime import date
+    from datetime import date, datetime
+    from arelle.ModelDocument import ModelDocument
+    from arelle.ModelDtsObject import ModelConcept, ModelType
+    from arelle.ModelValue import QName
+    from arelle.ValidateUtr import UtrEntry
+    from arelle.ModelDtsObject import ModelLink
+    from arelle.PrototypeDtsObject import LinkPrototype
 
-utrEntries = None
-utrSymbol = None
+utrEntries: Callable[..., Any] | None = None
+utrSymbol: Callable[..., Any] | None = None
 POSINF = float("inf")
 NEGINF = float("-inf")
 DECIMALONE = Decimal(1)
 
-class NewFactItemOptions():
+
+class NewFactItemOptions:
     """
     .. class:: NewFactItemOptions(savedOptions=None, xbrlInstance=None)
 
@@ -88,10 +95,10 @@ class NewFactItemOptions():
     :param savedOptions: prior persisted dict of this class's attributes
     :param xbrlInstance: an open instance document from which to glean prototpye contextual parameters.
     """
-    def __init__(self, savedOptions=None, xbrlInstance=None):
+    def __init__(self, savedOptions: dict[str, Any] | None = None, xbrlInstance: Any = None) -> None:
         self.entityIdentScheme = ""
         self.entityIdentValue = ""
-        self.startDate = ""  # use string  values so structure can be json-saved
+        self.startDate = ""  # use string values so structure can be json-saved
         self.endDate = ""
         self.monetaryUnit = ""
         self.monetaryDecimals = ""
@@ -121,12 +128,12 @@ class NewFactItemOptions():
                     break
 
     @property
-    def startDateDate(self):
+    def startDateDate(self) -> datetime | None:
         """(datetime) -- date-typed date value of startDate (which is persisted in str form)"""
         return XmlUtil.datetimeValue(self.startDate)
 
     @property
-    def endDateDate(self):  # return a date-typed date
+    def endDateDate(self) -> datetime | None:  # return a date-typed date
         """(datetime) -- date-typed date value of endDate (which is persisted in str form)"""
         return XmlUtil.datetimeValue(self.endDate, addOneDay=True)
 
@@ -144,64 +151,75 @@ class ModelFact(ModelObject, ModelFactBase):
 
         ([ModelFact]) - List of child facts in source document order
     """
-    modelTupleFacts: list['ModelFact']
+    modelTupleFacts: list["ModelFact"]
     uniqueUUID: uuid.UUID
+    _context: ModelContext | None
+    _conceptContextUnitHash: int
+    _isItem: bool
+    _isTuple: bool
+    _isNumeric: bool
+    _isInteger: bool
+    _isFraction: bool
+    _ancestorQnames: set[QName]
+    _decimals: str | None
+    _precision: str | None
+    _fractionValue: tuple[str, str]
 
-    def init(self, modelDocument):
+    def init(self, modelDocument: ModelDocument) -> None:
         super(ModelFact, self).init(modelDocument)
         self.modelTupleFacts = []
         self.uniqueUUID = uuid.uuid4()
 
     @property
-    def concept(self):
+    def concept(self) -> ModelConcept | None:
         """(ModelConcept) -- concept of the fact."""
         return self.elementDeclaration()  # logical (fact) declaration in own modelXbrl, not physical element (if inline)
 
     @property
-    def contextID(self) -> str:
+    def contextID(self) -> str | None:
         """(str) -- contextRef attribute"""
         return self.get("contextRef")
 
     @property
-    def context(self):
+    def context(self) -> ModelContext | None:
         """(ModelContext) -- context of the fact if any else None (e.g., tuple)"""
         try:
             return self._context
         except AttributeError:
-            if not self.modelXbrl.contexts: return None # don't attempt before contexts are loaded
-            self._context = self.modelXbrl.contexts.get(self.contextID)
+            if not self.modelXbrl.contexts: return None  # type: ignore[union-attr] # don't attempt before contexts are loaded
+            self._context = self.modelXbrl.contexts.get(self.contextID)  # type: ignore[arg-type,union-attr]
             return self._context
 
     @property
-    def unit(self):
+    def unit(self) -> ModelUnit | None:
         """(ModelUnit) -- unit of the fact if any else None (e.g., non-numeric or tuple)"""
-        return self.modelXbrl.units.get(self.unitID)
+        return self.modelXbrl.units.get(self.unitID)  # type: ignore[arg-type,union-attr]
 
     @property
-    def unitID(self) -> str:
+    def unitID(self) -> str | None:
         """(str) -- unitRef attribute"""
         return self.getStripped("unitRef")
 
     @unitID.setter
-    def unitID(self, value):
+    def unitID(self, value: str) -> None:
         """(str) -- unitRef attribute"""
         self.set("unitRef", value)
 
     @property
-    def utrEntries(self):
+    def utrEntries(self) -> set[UtrEntry | None] | None:
         """(set(UtrEntry)) -- set of UtrEntry objects that match this fact and unit"""
         if self.unit is not None and self.concept is not None:
-            return self.unit.utrEntries(self.concept.type)
+            return self.unit.utrEntries(self.concept.type)  # type: ignore[arg-type]
         return None
 
-    def unitSymbol(self):
+    def unitSymbol(self) -> str:
         """(str) -- utr symbol for this fact and unit"""
         if self.unit is not None and self.concept is not None:
-            return self.unit.utrSymbol(self.concept.type)
+            return self.unit.utrSymbol(self.concept.type)  # type: ignore[arg-type]
         return ""
 
     @property
-    def conceptContextUnitHash(self):
+    def conceptContextUnitHash(self) -> int:
         """(int) -- Hash value of fact's concept QName, dimensions-aware
         context hash, unit hash, useful for fast comparison of facts for EFM 6.5.12"""
         try:
@@ -212,81 +230,82 @@ class ModelFact(ModelObject, ModelFactBase):
             self._conceptContextUnitHash = hash(
                 (self.qname,
                  context.contextDimAwareHash if context is not None else None,
-                 unit.hash if unit is not None else None) )
+                 unit.hash if unit is not None else None)
+            )
             return self._conceptContextUnitHash
 
     @property
-    def isItem(self):
+    def isItem(self) -> bool:
         """(bool) -- concept.isItem"""
         try:
             return self._isItem
         except AttributeError:
             concept = self.concept
-            self._isItem = (concept is not None) and concept.isItem
+            self._isItem = concept is not None and concept.isItem
             return self._isItem
 
     @property
-    def isTuple(self):
+    def isTuple(self) -> bool:
         """(bool) -- concept.isTuple"""
         try:
             return self._isTuple
         except AttributeError:
             concept = self.concept
-            self._isTuple = (concept is not None) and concept.isTuple
+            self._isTuple = concept is not None and concept.isTuple
             return self._isTuple
 
     @property
-    def isNumeric(self):
+    def isNumeric(self) -> bool:  # type: ignore[override]
         """(bool) -- concept.isNumeric (note this is false for fractions)"""
         try:
             return self._isNumeric
         except AttributeError:
             concept = self.concept
-            self._isNumeric = (concept is not None) and concept.isNumeric
+            self._isNumeric = concept is not None and concept.isNumeric
             return self._isNumeric
 
     @property
-    def isInteger(self):
+    def isInteger(self) -> bool:
         """(bool) -- concept.isInteger (note this is false for fractions)"""
         try:
             return self._isInteger
         except AttributeError:
             concept = self.concept
-            self._isInteger = (concept is not None) and concept.isInteger
+            self._isInteger = concept is not None and concept.isInteger
             return self._isInteger
 
     @property
-    def isMultiLanguage(self):
+    def isMultiLanguage(self) -> bool:
         """(bool) -- concept.type.isMultiLanguage (string or normalized string)"""
         concept = self.concept
         return concept is not None and concept.type is not None and concept.type.isMultiLanguage
 
     @property
-    def isFraction(self):
+    def isFraction(self) -> bool:
         """(bool) -- concept.isFraction"""
         try:
             return self._isFraction
         except AttributeError:
             concept = self.concept
-            self._isFraction = (concept is not None) and concept.isFraction
+            self._isFraction = concept is not None and concept.isFraction
             return self._isFraction
 
     @property
-    def parentElement(self):
+    def parentElement(self) -> ModelObject | None:
         """(ModelObject) -- parent element (tuple or xbrli:xbrl)"""
         return self.getparent()
 
     @property
-    def ancestorQnames(self):
+    def ancestorQnames(self) -> set[QName]:
         """(set) -- Set of QNames of ancestor elements (tuple and xbrli:xbrl)"""
         try:
             return self._ancestorQnames
         except AttributeError:
-            self._ancestorQnames = set( ModelValue.qname(ancestor) for ancestor in self.iterancestors() )
+            self._ancestorQnames = set(ModelValue.qname(ancestor) for ancestor in self.iterancestors())
             return self._ancestorQnames
 
     @property
-    def decimals(self):
+    def decimals(self) -> str | None:
         """(str) -- Value of decimals attribute, or fixed or default value for decimals on concept type declaration"""
         try:
             return self._decimals
@@ -304,12 +323,12 @@ class ModelFact(ModelObject, ModelFactBase):
             return  self._decimals
 
     @decimals.setter
-    def decimals(self, value):
+    def decimals(self, value: str) -> None:
         self._decimals = value
         self.set("decimals", value)
 
     @property
-    def precision(self):
+    def precision(self) -> str | None:
         """(str) -- Value of precision attribute, or fixed or default value for precision on concept type declaration"""
         try:
             return self._precision
@@ -320,14 +339,14 @@ class ModelFact(ModelObject, ModelFactBase):
             else:   #check for fixed decimals on type
                 concept = self.concept
                 if concept is not None:
-                    type = self.concept.type
+                    type = self.concept.type  # type: ignore[union-attr]
                     self._precision = type.fixedOrDefaultAttrValue("precision") if type is not None else None
                 else:
                     self._precision = None
-            return  self._precision
+            return self._precision
 
     @property
-    def xmlLang(self):
+    def xmlLang(self) -> str | None:  # type: ignore[override]
         """(str) -- xml:lang attribute, if none and non-numeric, disclosure-system specified default lang"""
         lang = self.get("{http://www.w3.org/XML/1998/namespace}lang")
         if lang is not None:
@@ -340,24 +359,24 @@ class ModelFact(ModelObject, ModelFactBase):
             if lang is not None:
                 return lang
         # if we got here there is no xml:lang on fact or ancestry
-        if self.modelXbrl.modelManager.validateDisclosureSystem: # use disclosureSystem's defaultXmlLang (if any)
+        if self.modelXbrl.modelManager.validateDisclosureSystem:  # type: ignore[union-attr] # use disclosureSystem's defaultXmlLang (if any)
             concept = self.concept
             if concept is not None and not concept.isNumeric:
-                lang = self.modelXbrl.modelManager.disclosureSystem.defaultXmlLang
+                lang = self.modelXbrl.modelManager.disclosureSystem.defaultXmlLang  # type: ignore[union-attr]
         return lang
 
     @property
-    def xsiNil(self):
+    def xsiNil(self) -> str:
         """(str) -- value of xsi:nil or 'false' if absent"""
         return self.get("{http://www.w3.org/2001/XMLSchema-instance}nil", "false")
 
     @property
-    def isNil(self):
+    def isNil(self) -> bool:
         """(bool) -- True if xsi:nil is 'true'"""
-        return self.xsiNil in ("true","1")
+        return self.xsiNil in ("true", "1")
 
     @isNil.setter
-    def isNil(self, value):
+    def isNil(self, value: bool) -> None:
         """:param value: if true, set xsi:nil to 'true', if false, remove xsi:nil attribute """
         if value:
             XmlUtil.setXmlns(self.modelDocument, "xsi", "http://www.w3.org/2001/XMLSchema-instance")
@@ -381,13 +400,13 @@ class ModelFact(ModelObject, ModelFactBase):
         return v
 
     @property
-    def fractionValue(self):
+    def fractionValue(self) -> tuple[str, str]:
         """( (str,str) ) -- (text value of numerator, text value of denominator)"""
         try:
             return self._fractionValue
         except AttributeError:
-            self._fractionValue = (XmlUtil.text(XmlUtil.child(self, None, "numerator")),
-                                   XmlUtil.text(XmlUtil.child(self, None, "denominator")))
+            self._fractionValue = (XmlUtil.text(XmlUtil.child(self, None, "numerator")),  # type: ignore[arg-type]
+                                   XmlUtil.text(XmlUtil.child(self, None, "denominator")))  # type: ignore[arg-type]
             return self._fractionValue
 
     @property
@@ -416,14 +435,14 @@ class ModelFact(ModelObject, ModelFactBase):
                         return "NaN"
                     else:
                         if dec is None or dec == "INF":  # show using decimals or reported format
-                            dec = len(val.partition(".")[2])
+                            dec = len(val.partition(".")[2])  # type: ignore[assignment]
                         else: # max decimals at 28
-                            dec = max( min(int(dec), 28), -28)
+                            dec = max(min(int(dec), 28), -28)  # type: ignore[assignment]
                         # return Locale.format(self.modelXbrl.locale, "%.*f", (dec, num), True)
                         # switch to new formatting so long-precision decimal numbers are correct
-                        if dec < 0:
-                            dec = 0 # {} formatting doesn't accept negative dec
-                        return Locale.format(self.modelXbrl.locale, "{:.{}f}", (num,dec), True)
+                        if dec < 0:  # type: ignore[operator]
+                            dec = 0  # type: ignore[assignment] # {} formatting doesn't accept negative dec
+                        return Locale.format(self.modelXbrl.locale, "{:.{}f}", (num, dec), True)  # type: ignore[arg-type,union-attr]
                 except ValueError:
                     return "(error)"
             # non-numeric fact at this point
@@ -437,13 +456,20 @@ class ModelFact(ModelObject, ModelFactBase):
             return str(ex)  # could be transform value of inline fact
 
     @property
-    def vEqValue(self):
+    def vEqValue(self) -> float | str:
         """(float or str) -- v-equal value, float if numeric, otherwise string value"""
-        if self.concept.isNumeric:
+        if self.concept.isNumeric:  # type: ignore[union-attr]
             return float(self.value)
         return self.value
 
-    def isVEqualTo(self, other, deemP0Equal=False, deemP0inf=False, normalizeSpace=True, numericIntervalConsistency=False) -> bool:
+    def isVEqualTo(
+            self,
+            other: ModelFact,
+            deemP0Equal: bool = False,
+            deemP0inf: bool = False,
+            normalizeSpace: bool = True,
+            numericIntervalConsistency: bool = False
+        ) -> bool:
         """(bool) -- v-equality of two facts
 
         Note that facts may be in different instances
@@ -459,7 +485,7 @@ class ModelFact(ModelObject, ModelFactBase):
         if not self.context.isEqualTo(other.context):
             return False
         if self.concept.isNumeric:
-            if other.concept.isNumeric:
+            if other.concept.isNumeric:  # type: ignore[union-attr]
                 if self.unit is None or not self.unit.isEqualTo(other.unit):
                     return False
 
@@ -468,35 +494,44 @@ class ModelFact(ModelObject, ModelFactBase):
                     (a2,b2,_ia2,_ib2) = rangeValue(other.value, inferredDecimals(other))
                     return not (b1 < a2 or b2 < a1)
 
-                if self.modelXbrl.modelManager.validateCalcs != ValidateCalcsMode.XBRL_v2_1_INFER_PRECISION:
-                    d = min((inferredDecimals(self), inferredDecimals(other))); p = None
+                if self.modelXbrl.modelManager.validateCalcs != ValidateCalcsMode.XBRL_v2_1_INFER_PRECISION:  # type: ignore[union-attr]
+                    d = min((inferredDecimals(self), inferredDecimals(other)))
+                    p = None
                     if isnan(d):
                         if deemP0Equal:
                             return True
                         elif deemP0inf: # for test cases deem P0 as INF comparison
                             return self.xValue == other.xValue
                 else: # pre-2010 XBRL 2.1 inferred precision
-                    d = None; p = min((inferredPrecision(self), inferredPrecision(other)))
+                    d = None
+                    p = min((inferredPrecision(self), inferredPrecision(other)))
                     if p == 0:
                         if deemP0Equal:
                             return True
                         elif deemP0inf: # for test cases deem P0 as INF comparison
                             return self.xValue == other.xValue
-                return roundValue(self.value,precision=p,decimals=d) == roundValue(other.value,precision=p,decimals=d)
+                return roundValue(self.value, precision=p, decimals=d) == roundValue(other.value, precision=p, decimals=d)
             else:
                 return False
         elif self.concept.isFraction:
-            return (other.concept.isFraction and
-                    self.unit is not None and self.unit.isEqualTo(other.unit) and
+            return (other.concept.isFraction and  # type: ignore[union-attr]
+                    self.unit is not None and
+                    self.unit.isEqualTo(other.unit) and
                     self.xValue == other.xValue)
         selfValue = self.value
         otherValue = other.value
-        if normalizeSpace and isinstance(selfValue,str) and isinstance(otherValue,str): # normalized space comparison
-            return ' '.join(selfValue.split()) == ' '.join(otherValue.split())
+        if normalizeSpace and isinstance(selfValue, str) and isinstance(otherValue, str): # normalized space comparison
+            return " ".join(selfValue.split()) == " ".join(otherValue.split())
         else:
             return selfValue == otherValue
 
-    def isDuplicateOf(self, other, topLevel=True, deemP0Equal=False, unmatchedFactsStack=None) -> bool:
+    def isDuplicateOf(
+            self,
+            other: ModelFact,
+            topLevel: bool = True,
+            deemP0Equal: bool = False,
+            unmatchedFactsStack: list[ModelFact] | None = None
+        ) -> bool:
         """(bool) -- fact is duplicate of other fact
 
         Note that facts may be in different instances
@@ -513,7 +548,7 @@ class ModelFact(ModelObject, ModelFactBase):
         if self.isItem:
             if (self == other or
                 self.qname != other.qname or
-                self.parentElement.qname != other.parentElement.qname):
+                self.parentElement.qname != other.parentElement.qname):  # type: ignore[union-attr]
                 return False    # can't be identical
             # parent test can only be done if in same instauce
             if self.modelXbrl == other.modelXbrl and self.parentElement != other.parentElement:
@@ -524,8 +559,8 @@ class ModelFact(ModelObject, ModelFactBase):
         elif self.isTuple:
             if (self == other or
                 self.qname != other.qname or
-                (topLevel and self.parentElement.qname != other.parentElement.qname)):
-                return False    # can't be identical
+                (topLevel and self.parentElement.qname != other.parentElement.qname)):  # type: ignore[union-attr]
+                return False  # can't be identical
             if len(self.modelTupleFacts) != len(other.modelTupleFacts):
                 return False
             for child1 in self.modelTupleFacts:
@@ -543,8 +578,8 @@ class ModelFact(ModelObject, ModelFactBase):
         return True
 
     @property
-    def md5sum(self):  # note this must work in --skipDTS and streaming modes
-        _toHash = [self.qname]
+    def md5sum(self) -> Md5Sum:  # note this must work in --skipDTS and streaming modes
+        _toHash: list[str | QName | Md5Sum] = [self.qname]
         if self.context is not None: # not a tuple and has a valid unit
             # don't use self.xmlLang because its value may depend on disclosure system (assumption)
             _lang = XmlUtil.ancestorOrSelfAttr(self, "{http://www.w3.org/XML/1998/namespace}lang")
@@ -562,19 +597,19 @@ class ModelFact(ModelObject, ModelFactBase):
         return md5hash(_toHash)
 
     @property
-    def propertyView(self):
+    def propertyView(self) -> tuple[tuple[str, str | QName | None], ...]:
         try:
             concept = self.concept
-            lbl = (("label", concept.label(lang=self.modelXbrl.modelManager.defaultLang)),)
+            lbl = (("label", concept.label(lang=self.modelXbrl.modelManager.defaultLang)),)  # type: ignore[union-attr]
         except (KeyError, AttributeError):
-            lbl = ()
+            lbl = ()  # type: ignore[assignment]
         if self.isNumeric and self.unit is not None:
             unitValue = self.unitID
             unitSymbol = self.unitSymbol()
             if unitSymbol:
-                unitValue += " (" + unitSymbol + ")"
+                unitValue += " (" + unitSymbol + ")"  # type: ignore[operator]
         return lbl + (
-               (("namespace", self.qname.namespaceURI),
+               (("namespace", self.qname.namespaceURI),  # type: ignore[operator]
                 ("name", self.qname.localName),
                 ("QName", self.qname)) +
                (((("contextRef", self.contextID, self.context.propertyView) if self.context is not None else ()),
@@ -583,63 +618,72 @@ class ModelFact(ModelObject, ModelFactBase):
                  ("precision", self.precision),
                  ("xsi:nil", self.xsiNil),
                  ("value", self.effectiveValue))
-                 if self.isItem else () ))
+                 if self.isItem else ()))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ("modelFact[{0}, qname: {1}, contextRef: {2}, unitRef: {3}, value: {4}, {5}, line {6}]"
                 .format(self.objectIndex, self.qname, self.get("contextRef"), self.get("unitRef"),
-                        self.effectiveValue.strip() if self.isItem else '(tuple)',
+                        self.effectiveValue.strip() if self.isItem else "(tuple)",  # type: ignore[union-attr]
                         self.modelDocument.basename, self.sourceline))
 
     @property
-    def viewConcept(self):
+    def viewConcept(self) -> ModelConcept | None:
         return self.concept
+
 
 class ModelInlineValueObject:
 
     xValue: Any
+    xValid: int
+    isNil: bool
+    isInteger: bool
+    localName: str
+    elementQname: QName
+    namespaceURI: str
+    modelXbrl: Any
+    _ixValue: str
 
-    def init(self, modelDocument):
-        super(ModelInlineValueObject, self).init(modelDocument)
+    def init(self, modelDocument: ModelDocument) -> None:
+        super(ModelInlineValueObject, self).init(modelDocument)  # type: ignore[misc]
 
     @property
-    def sign(self):
+    def sign(self) -> str | None:
         """(str) -- sign attribute of inline element"""
-        return self.get("sign")
+        return self.get("sign")  # type: ignore[attr-defined,no-any-return]
 
     @property
-    def format(self):
+    def format(self) -> QName | None:
         """(QName) -- format attribute of inline element"""
-        return self.prefixedNameQname(self.getStripped("format"))
+        return self.prefixedNameQname(self.getStripped("format"))  # type: ignore[attr-defined,no-any-return]
 
     @property
-    def scale(self):
+    def scale(self) -> str | None:
         """(str) -- scale attribute of inline element"""
-        return self.getStripped("scale")
+        return self.getStripped("scale")  # type: ignore[attr-defined,no-any-return]
 
     @property
-    def scaleInt(self):
+    def scaleInt(self) -> int | None:
         """(int) -- scale attribute of inline element"""
         try:
-            _scale = self.get("scale")
+            _scale = self.get("scale")  # type: ignore[attr-defined]
             if _scale is None:
                 return None
-            return int(self.get("scale"))
+            return int(_scale)
         except ValueError:
             return None # should have rasied a validation error in XhtmlValidate.py
 
-    def setInvalid(self):
+    def setInvalid(self) -> None:
         self._ixValue = ModelValue.INVALIDixVALUE
         self.xValid = INVALID
         self.xValue = None
 
     @property
-    def rawValue(self):
-        ixEscape = self.get("escape") in ("true", "1")
+    def rawValue(self) -> str:
+        ixEscape = self.get("escape") in ("true", "1")  # type: ignore[attr-defined]
         raw = XmlUtil.innerText(
-            self,
-            ixExclude="tuple" if self.elementQname == XbrlConst.qnIXbrl11Tuple else "html",
-            ixEscape=ixEscape,
+            self,  # type: ignore[arg-type]
+            ixExclude="tuple" if self.elementQname == XbrlConst.qnIXbrl11Tuple else "html",  # type: ignore[arg-type]
+            ixEscape=ixEscape,  # type: ignore[arg-type]
             ixContinuation=(self.elementQname == XbrlConst.qnIXbrl11NonNumeric),
             ixResolveUris=ixEscape,
             strip = False)
@@ -653,7 +697,7 @@ class ModelInlineValueObject:
         return raw
 
     @property
-    def value(self):
+    def value(self) -> str:
         """(str) -- Overrides and corresponds to value property of ModelFact,
         for relevant inner text nodes aggregated and transformed as needed."""
         try:
@@ -722,14 +766,14 @@ class ModelInlineValueObject:
             return self._ixValue
 
     @property
-    def textValue(self):
+    def textValue(self) -> str:
         """(str) -- override xml-level textValue for transformed value text()
             will raise any value errors if transforming string or numeric has an error
         """
         return self.value
 
     @property
-    def stringValue(self):
+    def stringValue(self) -> str:
         """(str) -- override xml-level stringValue for transformed value descendants text
             will raise any value errors if transforming string or numeric has an error
         """
@@ -745,13 +789,18 @@ class ModelInlineFact(ModelInlineValueObject, ModelFact):
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
-    modelTupleFacts: list['ModelInlineFact']
+    modelTupleFacts: list["ModelInlineFact"]  # type: ignore[assignment]
+    _factQname: QName | None
+    _tupleId: str | None
+    _tupleRef: str | None
+    _order: Decimal | None  # type: ignore[assignment]
+    _isEscaped: bool
 
-    def init(self, modelDocument):
+    def init(self, modelDocument: ModelDocument) -> None:
         super(ModelInlineFact, self).init(modelDocument)
 
     @property
-    def qname(self):
+    def qname(self) -> QName | None:  # type: ignore[override]
         """(QName) -- QName of concept from the name attribute, overrides and corresponds to the qname property of a ModelFact (inherited from ModelObject)"""
         try:
             return self._factQname
@@ -760,7 +809,7 @@ class ModelInlineFact(ModelInlineValueObject, ModelFact):
             return self._factQname
 
     @property
-    def tupleID(self):
+    def tupleID(self) -> str | None:
         """(str) -- tupleId attribute of inline element"""
         try:
             return self._tupleId
@@ -769,7 +818,7 @@ class ModelInlineFact(ModelInlineValueObject, ModelFact):
             return self._tupleId
 
     @property
-    def tupleRef(self):
+    def tupleRef(self) -> str | None:
         """(str) -- tupleRef attribute of inline element"""
         try:
             return self._tupleRef
@@ -778,26 +827,26 @@ class ModelInlineFact(ModelInlineValueObject, ModelFact):
             return self._tupleRef
 
     @property
-    def order(self):
+    def order(self) -> Decimal | None:
         """(Decimal) -- order attribute of inline element or None if absent or Decimal conversion error"""
         try:
             return self._order
         except AttributeError:
             try:
                 orderAttr = self.get("order")
-                self._order = Decimal(orderAttr)
+                self._order = Decimal(orderAttr)  # type: ignore[arg-type]
             except (ValueError, TypeError, InvalidOperation):
                 self._order = None
             return self._order
 
     @property
-    def parentElement(self):
+    def parentElement(self) -> ModelObject | None:
         """(ModelObject) -- parent element (tuple or xbrli:xbrl) of the inline target instance document
             for inline root element, the xbrli:xbrl element is substituted for by the inline root element"""
-        return getattr(self, "_ixFactParent") # set by ModelDocument locateFactInTuple for the inline target's root element
+        return getattr(self, "_ixFactParent")  # type: ignore[no-any-return] # set by ModelDocument locateFactInTuple for the inline target's root element
 
     @property
-    def isEscaped(self):
+    def isEscaped(self) -> bool:
         """(bool) -- if true, the fact is escaped"""
         try:
             return self._isEscaped
@@ -805,7 +854,7 @@ class ModelInlineFact(ModelInlineValueObject, ModelFact):
             self._isEscaped = self.get("escape") in ("true", "1")
             return self._isEscaped
 
-    def ixIter(self, childOnly=False):
+    def ixIter(self, childOnly: bool = False) -> Iterator[ModelInlineFact]:
         """(ModelObject) -- child elements (tuple facts) of the inline target instance document"""
         for fact in self.modelTupleFacts:
             yield fact
@@ -813,58 +862,62 @@ class ModelInlineFact(ModelInlineValueObject, ModelFact):
                 fact.ixIter(childOnly)
 
     @property
-    def fractionValue(self):
+    def fractionValue(self) -> tuple[str, str]:
         """( (str,str) ) -- (text value of numerator, text value of denominator)"""
-        return (XmlUtil.text(XmlUtil.descendant(self, self.namespaceURI, "numerator")),
-                XmlUtil.text(XmlUtil.descendant(self, self.namespaceURI, "denominator")))
+        return (XmlUtil.text(XmlUtil.descendant(self, self.namespaceURI, "numerator")),  # type: ignore[arg-type]
+                XmlUtil.text(XmlUtil.descendant(self, self.namespaceURI, "denominator")))  # type: ignore[arg-type]
 
     @property
-    def footnoteRefs(self):
+    def footnoteRefs(self) -> list[str]:
         """([str]) -- list of footnoteRefs attribute contents of inline 1.0 element"""
         return self.get("footnoteRefs", "").split()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[ModelObject]:  # type: ignore[override]
         if self.localName == "fraction":
             n = XmlUtil.descendant(self, self.namespaceURI, "numerator")
             d = XmlUtil.descendant(self, self.namespaceURI, "denominator")
             if n is not None and d is not None:
-                yield n
-                yield d
+                yield n  # type: ignore[misc]
+                yield d  # type: ignore[misc]
         for tupleFact in self.modelTupleFacts:
             yield tupleFact
 
     @property
-    def propertyView(self):
+    def propertyView(self) -> tuple[tuple[str, str | int | QName | None], ...]:  # type: ignore[override]
         if self.localName == "nonFraction" or self.localName == "fraction":
             numProperties = (("format", self.format),
                 ("scale", self.scale),
                 ("html value", XmlUtil.innerText(self)))
         else:
-            numProperties = ()
+            numProperties = ()  # type: ignore[assignment]
         return (("file", self.modelDocument.basename),
                 ("line", self.sourceline)) + \
-               super(ModelInlineFact,self).propertyView + \
+               super(ModelInlineFact, self).propertyView + \
                numProperties
 
-    def __repr__(self):
-        return ("modelInlineFact[{0}]{1})".format(self.objectId(),self.propertyView))
+    def __repr__(self) -> str:
+        return "modelInlineFact[{0}]{1})".format(self.objectId(), self.propertyView)
+
 
 class ModelInlineFraction(ModelInlineFact):
-    def init(self, modelDocument):
+    def init(self, modelDocument: ModelDocument) -> None:
         super(ModelInlineFraction, self).init(modelDocument)
 
     @property
-    def textValue(self):
+    def textValue(self) -> str:
         return ""  # no text value for fraction
 
+
 class ModelInlineFractionTerm(ModelInlineValueObject, ModelObject):
-    def init(self, modelDocument):
+    modelTupleFacts: list["ModelInlineFractionTerm"]
+
+    def init(self, modelDocument: ModelDocument) -> None:
         super(ModelInlineFractionTerm, self).init(modelDocument)
         self.isNil = False # required for inherited value property
         self.modelTupleFacts = [] # required for inherited XmlValudate of fraction term
 
     @property
-    def qname(self):
+    def qname(self) -> QName:
         if self.localName == "numerator":
             return XbrlConst.qnXbrliNumerator
         elif self.localName == "denominator":
@@ -872,15 +925,16 @@ class ModelInlineFractionTerm(ModelInlineValueObject, ModelObject):
         return self.elementQname
 
     @property
-    def concept(self):
-        return self.modelXbrl.qnameConcepts.get(self.qname) # for fraction term type determination
+    def concept(self) -> ModelConcept | None:
+        return self.modelXbrl.qnameConcepts.get(self.qname)  # type: ignore[no-any-return] # for fraction term type determination
 
     @property
-    def isInteger(self):
+    def isInteger(self) -> bool:  # type: ignore[override]
         return False # fraction terms are xs:decimal
 
-    def __iter__(self):
-        if False: yield None # generator with nothing to generate
+    def __iter__(self) -> Iterator[Any]:
+        if False:
+            yield None # generator with nothing to generate
 
 
 class ModelContext(ModelObject):
@@ -916,124 +970,147 @@ class ModelContext(ModelObject):
 
         (list) - List of scenario child non-dimension ModelObjects
     """
-    def init(self, modelDocument):
-        super(ModelContext, self).init(modelDocument)
-        self.segDimValues = {}
-        self.scenDimValues = {}
-        self.qnameDims = {}
-        self.errorDimValues = []
-        self.segNonDimValues = []
-        self.scenNonDimValues = []
-        self._isEqualTo = {}
+    _inUse: bool
+    _isStartEndPeriod: bool
+    _isInstantPeriod: bool
+    _isForeverPeriod: bool
+    _startDatetime: datetime | None
+    _endDate: date | None
+    _endDatetime: datetime | None
+    _instantDate: date | None
+    _instantDatetime: datetime | None
+    _period: ModelObject | None
+    _periodHash: int
+    _entity: ModelObject | None
+    _entityIdentifierElement: ModelObject | None
+    _entityIdentifier: tuple[str, str]
+    _entityIdentifierHash: int
+    _dimsHash: int
+    _nonDimSegmentHash: int
+    _nonDimScenarioHash: int
+    _nonDimsHash: int
+    _contextDimAwareHash: int
+    _contextNonDimAwareHash: int
+    _md5sum: Md5Sum
 
-    def clearCachedProperties(self):
+    def init(self, modelDocument: ModelDocument) -> None:
+        super(ModelContext, self).init(modelDocument)
+        self.segDimValues: dict[ModelConcept, ModelDimensionValue] = {}
+        self.scenDimValues: dict[ModelConcept, ModelDimensionValue] = {}
+        self.qnameDims: dict[QName, ModelDimensionValue] = {}
+        self.errorDimValues: list[ModelDimensionValue] = []
+        self.segNonDimValues: list[ModelObject] = []
+        self.scenNonDimValues: list[ModelObject] = []
+        self._isEqualTo: dict[tuple[ModelContext | None, bool], bool] = {}
+
+    def clearCachedProperties(self) -> None:
         for key in [k for k in vars(self).keys() if k.startswith("_")]:
             delattr(self, key)
 
     @property
-    def isStartEndPeriod(self):
+    def isStartEndPeriod(self) -> bool:
         """(bool) -- True for startDate/endDate period"""
         try:
             return self._isStartEndPeriod
         except AttributeError:
-            self._isStartEndPeriod = XmlUtil.hasChild(self.period, XbrlConst.xbrli, ("startDate","endDate"))
+            self._isStartEndPeriod = XmlUtil.hasChild(self.period, XbrlConst.xbrli, ("startDate", "endDate"))  # type: ignore[arg-type]
             return self._isStartEndPeriod
 
     @property
-    def isInstantPeriod(self):
+    def isInstantPeriod(self) -> bool:
         """(bool) -- True for instant period"""
         try:
             return self._isInstantPeriod
         except AttributeError:
-            self._isInstantPeriod = XmlUtil.hasChild(self.period, XbrlConst.xbrli, "instant")
+            self._isInstantPeriod = XmlUtil.hasChild(self.period, XbrlConst.xbrli, "instant")  # type: ignore[arg-type]
             return self._isInstantPeriod
 
     @property
-    def isForeverPeriod(self):
+    def isForeverPeriod(self) -> bool:
         """(bool) -- True for forever period"""
         try:
             return self._isForeverPeriod
         except AttributeError:
-            self._isForeverPeriod = XmlUtil.hasChild(self.period, XbrlConst.xbrli, "forever")
+            self._isForeverPeriod = XmlUtil.hasChild(self.period, XbrlConst.xbrli, "forever")  # type: ignore[arg-type]
             return self._isForeverPeriod
 
     @property
-    def startDatetime(self):
+    def startDatetime(self) -> datetime | None:
         """(datetime) -- startDate attribute"""
         try:
             return self._startDatetime
         except AttributeError:
-            self._startDatetime = XmlUtil.datetimeValue(XmlUtil.child(self.period, XbrlConst.xbrli, "startDate"))
+            self._startDatetime = XmlUtil.datetimeValue(XmlUtil.child(self.period, XbrlConst.xbrli, "startDate"))  # type: ignore[arg-type]
             return self._startDatetime
 
     @startDatetime.setter
-    def startDatetime(self, value):
+    def startDatetime(self, value: datetime | date) -> None:
         self.clearCachedProperties()
-        elt = XmlUtil.child(self.period, XbrlConst.xbrli, "startDate")
+        elt = XmlUtil.child(self.period, XbrlConst.xbrli, "startDate")  # type: ignore[arg-type]
         if elt is not None:
             elt.text = XmlUtil.dateunionValue(value)
             xmlValidate(self.modelXbrl, elt)
 
     @property
-    def endDate(self) -> date:
+    def endDate(self) -> date | None:
         """
         :return: endDate or instant attribute as date, *not* adjusted by a day for midnight values
         """
         try:
             return self._endDate
         except AttributeError:
-            endDate = XmlUtil.datetimeValue(XmlUtil.child(self.period, XbrlConst.xbrli, ("endDate", "instant")), subtractOneDay=True)
+            endDate = XmlUtil.datetimeValue(XmlUtil.child(self.period, XbrlConst.xbrli, ("endDate", "instant")), subtractOneDay=True)  # type: ignore[arg-type]
             self._endDate = endDate.date() if endDate else None
             return self._endDate
 
     @property
-    def endDatetime(self):
+    def endDatetime(self) -> datetime | None:
         """(datetime) -- endDate or instant attribute, with adjustment to end-of-day midnight as needed"""
         try:
             return self._endDatetime
         except AttributeError:
-            self._endDatetime = XmlUtil.datetimeValue(XmlUtil.child(self.period, XbrlConst.xbrli, ("endDate","instant")), addOneDay=True)
+            self._endDatetime = XmlUtil.datetimeValue(XmlUtil.child(self.period, XbrlConst.xbrli, ("endDate", "instant")), addOneDay=True)  # type: ignore[arg-type]
             return self._endDatetime
 
     @endDatetime.setter
-    def endDatetime(self, value):
+    def endDatetime(self, value: datetime | date) -> None:
         self.clearCachedProperties()
-        elt = XmlUtil.child(self.period, XbrlConst.xbrli, "endDate")
+        elt = XmlUtil.child(self.period, XbrlConst.xbrli, "endDate")  # type: ignore[arg-type]
         if elt is not None:
             elt.text = XmlUtil.dateunionValue(value, subtractOneDay=True)
             xmlValidate(self.modelXbrl, elt)
 
     @property
-    def instantDate(self) -> date:
+    def instantDate(self) -> date | None:
         """
         :return: instant attribute as date, *not* adjusted by a day for midnight values
         """
         try:
             return self._instantDate
         except AttributeError:
-            instantDate = XmlUtil.datetimeValue(XmlUtil.child(self.period, XbrlConst.xbrli, "instant"), subtractOneDay=True)
+            instantDate = XmlUtil.datetimeValue(XmlUtil.child(self.period, XbrlConst.xbrli, "instant"), subtractOneDay=True)  # type: ignore[arg-type]
             self._instantDate = instantDate.date() if instantDate else None
             return self._instantDate
 
     @property
-    def instantDatetime(self):
+    def instantDatetime(self) -> datetime | None:
         """(datetime) -- instant attribute, with adjustment to end-of-day midnight as needed"""
         try:
             return self._instantDatetime
         except AttributeError:
-            self._instantDatetime = XmlUtil.datetimeValue(XmlUtil.child(self.period, XbrlConst.xbrli, "instant"), addOneDay=True)
+            self._instantDatetime = XmlUtil.datetimeValue(XmlUtil.child(self.period, XbrlConst.xbrli, "instant"), addOneDay=True)  # type: ignore[arg-type]
             return self._instantDatetime
 
     @instantDatetime.setter
-    def instantDatetime(self, value):
+    def instantDatetime(self, value: datetime | date) -> None:
         self.clearCachedProperties()
-        elt = XmlUtil.child(self.period, XbrlConst.xbrli, "instant")
+        elt = XmlUtil.child(self.period, XbrlConst.xbrli, "instant")  # type: ignore[arg-type]
         if elt is not None:
             elt.text = XmlUtil.dateunionValue(value, subtractOneDay=True)
             xmlValidate(self.modelXbrl, elt)
 
     @property
-    def period(self):
+    def period(self) -> ModelObject | None:
         """(ModelObject) -- period element"""
         try:
             return self._period
@@ -1042,16 +1119,16 @@ class ModelContext(ModelObject):
             return self._period
 
     @property
-    def periodHash(self):
+    def periodHash(self) -> int:
         """(int) -- hash of period start and end datetimes"""
         try:
             return self._periodHash
         except AttributeError:
-            self._periodHash = hash((self.startDatetime,self.endDatetime)) # instant hashes (None, inst), forever hashes (None,None)
+            self._periodHash = hash((self.startDatetime, self.endDatetime)) # instant hashes (None, inst), forever hashes (None,None)
             return self._periodHash
 
     @property
-    def entity(self):
+    def entity(self) -> ModelObject | None:
         """(ModelObject) -- entity element"""
         try:
             return self._entity
@@ -1060,29 +1137,29 @@ class ModelContext(ModelObject):
             return self._entity
 
     @property
-    def entityIdentifierElement(self):
+    def entityIdentifierElement(self) -> ModelObject | None:
         """(ModelObject) -- entity identifier element"""
         try:
             return self._entityIdentifierElement
         except AttributeError:
-            self._entityIdentifierElement = XmlUtil.child(self.entity, XbrlConst.xbrli, "identifier")
+            self._entityIdentifierElement = XmlUtil.child(self.entity, XbrlConst.xbrli, "identifier")  # type: ignore[arg-type]
             return self._entityIdentifierElement
 
     @property
-    def entityIdentifier(self):
+    def entityIdentifier(self) -> tuple[str, str]:
         """( (str,str) ) -- tuple of (scheme value, identifier value)"""
         try:
             return self._entityIdentifier
         except AttributeError:
             eiElt = self.entityIdentifierElement
             if eiElt is not None:
-                self._entityIdentifier = (eiElt.get("scheme"), eiElt.xValue or eiElt.textValue) # no xValue if --skipDTS
+                self._entityIdentifier = (eiElt.get("scheme"), eiElt.xValue or eiElt.textValue)  # type: ignore[assignment] # no xValue if --skipDTS
             else:
                 self._entityIdentifier = ("(Error)", "(Error)")
             return self._entityIdentifier
 
     @property
-    def entityIdentifierHash(self):
+    def entityIdentifierHash(self) -> int:
         """(int) -- hash of entityIdentifier"""
         try:
             return self._entityIdentifierHash
@@ -1091,26 +1168,26 @@ class ModelContext(ModelObject):
             return self._entityIdentifierHash
 
     @property
-    def hasSegment(self):
+    def hasSegment(self) -> bool:
         """(bool) -- True if a xbrli:segment element is present"""
-        return XmlUtil.hasChild(self.entity, XbrlConst.xbrli, "segment")
+        return XmlUtil.hasChild(self.entity, XbrlConst.xbrli, "segment")  # type: ignore[arg-type]
 
     @property
-    def segment(self):
+    def segment(self) -> ModelObject | None:
         """(ModelObject) -- xbrli:segment element"""
-        return XmlUtil.child(self.entity, XbrlConst.xbrli, "segment")
+        return XmlUtil.child(self.entity, XbrlConst.xbrli, "segment")  # type: ignore[arg-type]
 
     @property
-    def hasScenario(self):
+    def hasScenario(self) -> bool:
         """(bool) -- True if a xbrli:scenario element is present"""
         return XmlUtil.hasChild(self, XbrlConst.xbrli, "scenario")
 
     @property
-    def scenario(self):
+    def scenario(self) -> ModelObject | None:
         """(ModelObject) -- xbrli:scenario element"""
         return XmlUtil.child(self, XbrlConst.xbrli, "scenario")
 
-    def dimValues(self, contextElement):
+    def dimValues(self, contextElement: str) -> dict[ModelConcept, ModelDimensionValue]:
         """(dict) -- Indicated context element's dimension dict (indexed by ModelConcepts)
 
         :param contextElement: 'segment' or 'scenario'
@@ -1122,45 +1199,45 @@ class ModelContext(ModelObject):
             return self.scenDimValues
         return {}
 
-    def hasDimension(self, dimQname):
+    def hasDimension(self, dimQname: QName) -> bool:
         """(bool) -- True if dimension concept qname is reported by context (in either context element), not including defaulted dimensions."""
         return dimQname in self.qnameDims
 
     # returns ModelDimensionValue for instance dimensions, else QName for defaults
-    def dimValue(self, dimQname):
+    def dimValue(self, dimQname: QName) -> ModelDimensionValue | QName | None:
         """(ModelDimension or QName) -- ModelDimension object if dimension is reported (in either context element), or QName of dimension default if there is a default, otherwise None"""
         dimValue = self.qnameDims.get(dimQname)
         if dimValue is None:
-            dimValue = self.modelXbrl.qnameDimensionDefaults.get(dimQname)
+            dimValue = self.modelXbrl.qnameDimensionDefaults.get(dimQname)  # type: ignore[assignment,union-attr]
         return dimValue
 
-    def dimMemberQname(self, dimQname: ModelValue.QName, includeDefaults: bool = False) -> ModelValue.QName | None:
+    def dimMemberQname(self, dimQname: QName, includeDefaults: bool = False) -> QName | None:
         """(QName) -- QName of explicit dimension if reported (or defaulted if includeDefaults is True), else None"""
         dimValue = self.dimValue(dimQname)
-        if isinstance(dimValue, (ModelDimensionValue,DimValuePrototype)) and dimValue.isExplicit:
+        if isinstance(dimValue, (ModelDimensionValue, DimValuePrototype)) and dimValue.isExplicit:
             return dimValue.memberQname
-        elif isinstance(dimValue, ModelValue.QName):
+        elif isinstance(dimValue, QName):
             return dimValue
-        if dimValue is None and includeDefaults and dimQname in self.modelXbrl.qnameDimensionDefaults:
-            return self.modelXbrl.qnameDimensionDefaults[dimQname]
+        if dimValue is None and includeDefaults and dimQname in self.modelXbrl.qnameDimensionDefaults:  # type: ignore[union-attr]
+            return self.modelXbrl.qnameDimensionDefaults[dimQname]  # type: ignore[union-attr]
         return None
 
-    def dimAspects(self, defaultDimensionAspects=None):
+    def dimAspects(self, defaultDimensionAspects: set[QName] | None = None) -> set[QName]:
         """(set) -- For formula and instance aspects processing, set of all dimensions reported or defaulted."""
         if defaultDimensionAspects:
             return self.qnameDims.keys() | defaultDimensionAspects
-        return self.qnameDims.keys()
+        return set(self.qnameDims.keys())
 
     @property
-    def dimsHash(self):
+    def dimsHash(self) -> int:
         """(int) -- A hash of the set of reported dimension values."""
         try:
             return self._dimsHash
         except AttributeError:
-            self._dimsHash = hash( frozenset(self.qnameDims.values()) )
+            self._dimsHash = hash(frozenset(self.qnameDims.values()))
             return self._dimsHash
 
-    def nonDimValues(self, contextElement: str | int) -> list[ModelObject]:
+    def nonDimValues(self, contextElement: str | int) -> Sequence[ModelObject]:
         """([ModelObject]) -- ContextElement is either string or Aspect code for segment or scenario, returns nonXDT ModelObject children of context element.
 
         :param contextElement: one of 'segment', 'scenario', Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO, Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO
@@ -1172,23 +1249,23 @@ class ModelContext(ModelObject):
         elif contextElement in ("scenario", Aspect.NON_XDT_SCENARIO):
             return self.scenNonDimValues
         elif contextElement == Aspect.COMPLETE_SEGMENT and self.hasSegment:
-            return XmlUtil.children(self.segment, None, "*")
+            return XmlUtil.children(self.segment, None, "*")  # type: ignore[arg-type]
         elif contextElement == Aspect.COMPLETE_SCENARIO and self.hasScenario:
-            return XmlUtil.children(self.scenario, None, "*")
+            return XmlUtil.children(self.scenario, None, "*")  # type: ignore[arg-type]
         return []
 
     @property
-    def segmentHash(self):
+    def segmentHash(self) -> int:
         """(int) -- Hash of the segment, based on s-equality values"""
-        return XbrlUtil.equalityHash( self.segment ) # self-caching
+        return XbrlUtil.equalityHash(self.segment)  # type: ignore[arg-type] # self-caching
 
     @property
-    def scenarioHash(self):
+    def scenarioHash(self) -> int:
         """(int) -- Hash of the scenario, based on s-equality values"""
-        return XbrlUtil.equalityHash( self.scenario ) # self-caching
+        return XbrlUtil.equalityHash(self.scenario)  # type: ignore[arg-type] # self-caching
 
     @property
-    def nonDimSegmentHash(self):
+    def nonDimSegmentHash(self) -> int:
         """(int) -- Hash, of s-equality values, of non-XDT segment objects"""
         try:
             return self._nonDimSegmentHash
@@ -1197,7 +1274,7 @@ class ModelContext(ModelObject):
             return self._nonDimSegmentHash
 
     @property
-    def nonDimScenarioHash(self):
+    def nonDimScenarioHash(self) -> int:
         """(int) -- Hash, of s-equality values, of non-XDT scenario objects"""
         try:
             return self._nonDimScenarioHash
@@ -1206,38 +1283,38 @@ class ModelContext(ModelObject):
             return self._nonDimScenarioHash
 
     @property
-    def nonDimHash(self):
+    def nonDimHash(self) -> int:
         """(int) -- Hash, of s-equality values, of non-XDT segment and scenario objects"""
         try:
             return self._nonDimsHash
         except AttributeError:
-            self._nonDimsHash = hash( (self.nonDimSegmentHash, self.nonDimScenarioHash) )
+            self._nonDimsHash = hash((self.nonDimSegmentHash, self.nonDimScenarioHash))
             return self._nonDimsHash
 
     @property
-    def contextDimAwareHash(self):
+    def contextDimAwareHash(self) -> int:
         """(int) -- Hash of period, entityIdentifier, dim, and nonDims"""
         try:
             return self._contextDimAwareHash
         except AttributeError:
-            self._contextDimAwareHash = hash( (self.periodHash, self.entityIdentifierHash, self.dimsHash, self.nonDimHash) )
+            self._contextDimAwareHash = hash((self.periodHash, self.entityIdentifierHash, self.dimsHash, self.nonDimHash))
             return self._contextDimAwareHash
 
     @property
-    def contextNonDimAwareHash(self):
+    def contextNonDimAwareHash(self) -> int:
         """(int) -- Hash of period, entityIdentifier, segment, and scenario (s-equal based)"""
         try:
             return self._contextNonDimAwareHash
         except AttributeError:
-            self._contextNonDimAwareHash = hash( (self.periodHash, self.entityIdentifierHash, self.segmentHash, self.scenarioHash) )
+            self._contextNonDimAwareHash = hash((self.periodHash, self.entityIdentifierHash, self.segmentHash, self.scenarioHash))
             return self._contextNonDimAwareHash
 
     @property
-    def md5sum(self):
+    def md5sum(self) -> Md5Sum:
         try:
             return self._md5sum
         except AttributeError:
-            _toHash = [self.entityIdentifier[0], self.entityIdentifier[1]]
+            _toHash: list[str | datetime | Md5Sum | None] = [self.entityIdentifier[0], self.entityIdentifier[1]]
             if self.isInstantPeriod:
                 _toHash.append(self.instantDatetime)
             elif self.isStartEndPeriod:
@@ -1247,10 +1324,10 @@ class ModelContext(ModelObject):
                 _toHash.append("forever")
             if self.qnameDims:
                 _toHash.extend([dim.md5sum for dim in self.qnameDims.values()])
-            self._md5sum = md5hash(_toHash)
+            self._md5sum = md5hash(_toHash)  # type: ignore[arg-type]
             return self._md5sum
 
-    def isPeriodEqualTo(self, cntx2):
+    def isPeriodEqualTo(self, cntx2: ModelContext) -> bool:
         """(bool) -- True if periods are datetime equal (based on 2.1 date offsets)"""
         if self.isForeverPeriod:
             return cntx2.isForeverPeriod
@@ -1265,12 +1342,13 @@ class ModelContext(ModelObject):
         else:
             return False
 
-    def isEntityIdentifierEqualTo(self, cntx2):
+    def isEntityIdentifierEqualTo(self, cntx2: ModelContext) -> bool:
         """(bool) -- True if entityIdentifier values are equal (scheme and text value)"""
         return self.entityIdentifier == cntx2.entityIdentifier
 
-    def isEqualTo(self, cntx2, dimensionalAspectModel=None) -> bool:
-        if dimensionalAspectModel is None: dimensionalAspectModel = self.modelXbrl.hasXDT
+    def isEqualTo(self, cntx2: ModelContext | None, dimensionalAspectModel: bool | None = None) -> bool:
+        if dimensionalAspectModel is None:
+            dimensionalAspectModel = self.modelXbrl.hasXDT  # type: ignore[union-attr]
         try:
             return self._isEqualTo[(cntx2,dimensionalAspectModel)]
         except KeyError:
@@ -1278,7 +1356,7 @@ class ModelContext(ModelObject):
             self._isEqualTo[(cntx2,dimensionalAspectModel)] = result
             return result
 
-    def isEqualTo_(self, cntx2, dimensionalAspectModel):
+    def isEqualTo_(self, cntx2: ModelContext | None, dimensionalAspectModel: bool) -> bool:
         """(bool) -- If dimensionalAspectModel is absent, True is assumed.
         False means comparing based on s-equality of segment, scenario, while
         True means based on dimensional values and nonDimensional values separately."""
@@ -1307,16 +1385,16 @@ class ModelContext(ModelObject):
                     return False
             for nonDimVals1, nonDimVals2 in ((self.segNonDimValues,cntx2.segNonDimValues),
                                              (self.scenNonDimValues,cntx2.scenNonDimValues)):
-                if len(nonDimVals1) !=  len(nonDimVals2):
+                if len(nonDimVals1) != len(nonDimVals2):
                     return False
                 for i, nonDimVal1 in enumerate(nonDimVals1):
-                    if not XbrlUtil.sEqual(self.modelXbrl, nonDimVal1, nonDimVals2[i]):
+                    if not XbrlUtil.sEqual(self.modelXbrl, nonDimVal1, nonDimVals2[i]):  # type: ignore[arg-type]
                         return False
         else:
             if self.hasSegment:
                 if not cntx2.hasSegment:
                     return False
-                if not XbrlUtil.sEqual(self.modelXbrl, self.segment, cntx2.segment):
+                if not XbrlUtil.sEqual(self.modelXbrl, self.segment, cntx2.segment):  # type: ignore[arg-type]
                     return False
             elif cntx2.hasSegment:
                 return False
@@ -1324,7 +1402,7 @@ class ModelContext(ModelObject):
             if self.hasScenario:
                 if not cntx2.hasScenario:
                     return False
-                if not XbrlUtil.sEqual(self.modelXbrl, self.scenario, cntx2.scenario):
+                if not XbrlUtil.sEqual(self.modelXbrl, self.scenario, cntx2.scenario):  # type: ignore[arg-type]
                     return False
             elif cntx2.hasScenario:
                 return False
@@ -1332,27 +1410,28 @@ class ModelContext(ModelObject):
         return True
 
     @property
-    def propertyView(self):
+    def propertyView(self) -> tuple[tuple[str, str, tuple[tuple[str, str]]] | tuple[str, str], ...]:  # type: ignore[override]
         scheme, entityId = self.entityIdentifier
         return ((("entity", entityId, (("scheme", scheme),)),) +
                 ((("forever", ""),) if self.isForeverPeriod else
                  (("instant", XmlUtil.dateunionValue(self.instantDatetime, subtractOneDay=True)),) if self.isInstantPeriod else
-                 (("startDate", XmlUtil.dateunionValue(self.startDatetime)),("endDate", XmlUtil.dateunionValue(self.endDatetime, subtractOneDay=True)))) +
+                 (("startDate", XmlUtil.dateunionValue(self.startDatetime)), ("endDate", XmlUtil.dateunionValue(self.endDatetime, subtractOneDay=True)))) +
                 (("dimensions", "({0})".format(len(self.qnameDims)),
-                  tuple(mem.propertyView for dim,mem in sorted(self.qnameDims.items())))
+                  tuple(mem.propertyView for dim, mem in sorted(self.qnameDims.items())))  # type: ignore[operator]
                   if self.qnameDims else (),
                 ))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ("modelContext[{0}, period: {1}, {2}{3} line {4}]"
                 .format(self.id,
                         "forever" if self.isForeverPeriod else
                         "instant " + XmlUtil.dateunionValue(self.instantDatetime, subtractOneDay=True) if self.isInstantPeriod else
                         "duration " + XmlUtil.dateunionValue(self.startDatetime) + " - " + XmlUtil.dateunionValue(self.endDatetime, subtractOneDay=True),
                         "dimensions: ({0}) {1},".format(len(self.qnameDims),
-                        tuple(mem.propertyView for dim,mem in sorted(self.qnameDims.items())))
+                        tuple(mem.propertyView for dim, mem in sorted(self.qnameDims.items())))
                         if self.qnameDims else "",
                         self.modelDocument.basename, self.sourceline))
+
 
 class ModelDimensionValue(ModelObject):
     """
@@ -1363,42 +1442,45 @@ class ModelDimensionValue(ModelObject):
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
-    def init(self, modelDocument):
+    _dimension: ModelConcept | None
+    _memberQname: QName | None
+    _member: ModelConcept | None
+
+    def init(self, modelDocument: ModelDocument) -> None:
         super(ModelDimensionValue, self).init(modelDocument)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         if self.isExplicit:
-            return hash( (self.dimensionQname, self.memberQname) )
+            return hash((self.dimensionQname, self.memberQname))
         else: # need XPath equal so that QNames aren't lexically compared (for fact and context equality in comparing formula results)
-            return hash( (self.dimensionQname, XbrlUtil.equalityHash(XmlUtil.child(self), equalMode=XbrlUtil.XPATH_EQ)) )
+            return hash((self.dimensionQname, XbrlUtil.equalityHash(XmlUtil.child(self), equalMode=XbrlUtil.XPATH_EQ)))  # type: ignore[arg-type]
 
     @property
-    def md5sum(self):
+    def md5sum(self) -> Md5Sum:
         if self.isExplicit:
-            return md5hash([self.dimensionQname, self.memberQname])
+            return md5hash([self.dimensionQname, self.memberQname])  # type: ignore[list-item]
         else:
-            return md5hash([self.dimensionQname, self.typedMember])
+            return md5hash([self.dimensionQname, self.typedMember])  # type: ignore[list-item]
 
     @property
-    def dimensionQname(self):
+    def dimensionQname(self) -> QName | None:
         """(QName) -- QName of the dimension concept"""
         dimAttr = self.xAttributes.get("dimension", None)
         if dimAttr is not None and dimAttr.xValid >= VALID:
-            return dimAttr.xValue
+            return dimAttr.xValue  # type: ignore[return-value]
         return None
-        #return self.prefixedNameQname(self.get("dimension"))
 
     @property
-    def dimension(self):
+    def dimension(self) -> ModelConcept | None:
         """(ModelConcept) -- Dimension concept"""
         try:
             return self._dimension
         except AttributeError:
-            self._dimension = self.modelXbrl.qnameConcepts.get(self.dimensionQname)
+            self._dimension = self.modelXbrl.qnameConcepts.get(self.dimensionQname)  # type: ignore[arg-type,union-attr]
             return  self._dimension
 
     @property
-    def isExplicit(self):
+    def isExplicit(self) -> bool:
         """(bool) -- True if explicitMember element"""
         return self.localName == "explicitMember"
 
@@ -1414,33 +1496,32 @@ class ModelDimensionValue(ModelObject):
         return None
 
     @property
-    def isTyped(self):
+    def isTyped(self) -> bool:
         """(bool) -- True if typedMember element"""
         return self.localName == "typedMember"
 
     @property
-    def memberQname(self):
+    def memberQname(self) -> QName | None:
         """(QName) -- QName of an explicit dimension member"""
         try:
             return self._memberQname
         except AttributeError:
             if self.isExplicit and self.xValid >= VALID:
-                self._memberQname = self.xValue
+                self._memberQname = self.xValue  # type: ignore[assignment]
             else:
                 self._memberQname = None
-            #self._memberQname = self.prefixedNameQname(self.textValue) if self.isExplicit else None
             return self._memberQname
 
     @property
-    def member(self):
+    def member(self) -> ModelConcept | None:
         """(ModelConcept) -- Concept of an explicit dimension member"""
         try:
             return self._member
         except AttributeError:
-            self._member = self.modelXbrl.qnameConcepts.get(self.memberQname)
+            self._member = self.modelXbrl.qnameConcepts.get(self.memberQname)  # type: ignore[arg-type,union-attr]
             return  self._member
 
-    def isEqualTo(self, other, equalMode=XbrlUtil.XPATH_EQ):
+    def isEqualTo(self, other: ModelDimensionValue | None, equalMode: int = XbrlUtil.XPATH_EQ) -> bool:
         """(bool) -- True if explicit member QNames equal or typed member nodes correspond, given equalMode (s-equal, s-equal2, or xpath-equal for formula)
 
         :param equalMode: XbrlUtil.S_EQUAL (ordinary S-equality from 2.1 spec), XbrlUtil.S_EQUAL2 (XDT definition of equality, adding QName comparisions), or XbrlUtil.XPATH_EQ (XPath EQ on all types)
@@ -1448,27 +1529,27 @@ class ModelDimensionValue(ModelObject):
         if other is None:
             return False
         if self.isExplicit: # other is either ModelDimensionValue or the QName value of explicit dimension
-            return self.memberQname == (other.memberQname if isinstance(other, (ModelDimensionValue,DimValuePrototype)) else other)
+            return self.memberQname == (other.memberQname if isinstance(other, (ModelDimensionValue, DimValuePrototype)) else other)
         else: # typed dimension compared to another ModelDimensionValue or other is the value nodes
-            return XbrlUtil.nodesCorrespond(self.modelXbrl, self.typedMember,
-                                            other.typedMember if isinstance(other, (ModelDimensionValue,DimValuePrototype)) else other,
+            return XbrlUtil.nodesCorrespond(self.modelXbrl, self.typedMember,  # type: ignore[arg-type]
+                                            other.typedMember if isinstance(other, (ModelDimensionValue, DimValuePrototype)) else other,
                                             equalMode=equalMode, excludeIDs=XbrlUtil.NO_IDs_EXCLUDED)
 
     @property
-    def contextElement(self):
+    def contextElement(self) -> str:
         """(str) -- 'segment' or 'scenario'"""
-        return self.getparent().localName
+        return self.getparent().localName  # type: ignore[union-attr]
 
     @property
-    def propertyView(self):
+    def propertyView(self) -> tuple[str, str]:  # type: ignore[override]
         if self.isExplicit:
-            return (str(self.dimensionQname),str(self.memberQname))
+            return str(self.dimensionQname), str(self.memberQname)
         else:
-            return (str(self.dimensionQname), XmlUtil.xmlstring( XmlUtil.child(self), stripXmlns=True, prettyPrint=True ) )
+            return str(self.dimensionQname), XmlUtil.xmlstring(XmlUtil.child(self), stripXmlns=True, prettyPrint=True)  # type: ignore[arg-type]
 
-def measuresOf(parent):
+def measuresOf(parent: ModelObject) -> tuple[QName, ...]:
     if parent.xValid >= VALID: # has DTS and is validated
-        return tuple(sorted([m.xValue
+        return tuple(sorted([m.xValue  # type: ignore[misc]
                              for m in parent.iterchildren(tag="{http://www.xbrl.org/2003/instance}measure")
                              if isinstance(m, ModelObject) and m.xValue]))
     else:  # probably skipDTS
@@ -1476,8 +1557,9 @@ def measuresOf(parent):
                              for m in parent.iterchildren(tag="{http://www.xbrl.org/2003/instance}measure")
                              if isinstance(m, ModelObject)]))
 
-def measuresStr(m):
+def measuresStr(m: QName) -> str:
     return m.localName if m.namespaceURI in (XbrlConst.xbrli, XbrlConst.iso4217) else str(m)
+
 
 class ModelUnit(ModelObject):
     """
@@ -1488,35 +1570,43 @@ class ModelUnit(ModelObject):
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
-    def init(self, modelDocument):
+    _measures: tuple[tuple[QName, ...], tuple[QName, ...]]
+    _hash: int
+    _inUse: bool
+    _md5hash: str
+    _md5sum: Md5Sum
+    _utrEntries: dict[ModelType, set[UtrEntry | None]]
+    _utrSymbols: dict[ModelType, str]
+
+    def init(self, modelDocument: ModelDocument) -> None:
         super(ModelUnit, self).init(modelDocument)
 
     @property
-    def measures(self):
+    def measures(self) -> tuple[tuple[QName, ...], tuple[QName, ...]]:
         """([QName],[Qname]) -- Returns a tuple of multiply measures list and divide members list
         (empty if not a divide element).  Each list of QNames is in prefixed-name order."""
         try:
             return self._measures
         except AttributeError:
             if self.isDivide:
-                self._measures = (measuresOf(XmlUtil.descendant(self, XbrlConst.xbrli, "unitNumerator")),
-                                  measuresOf(XmlUtil.descendant(self, XbrlConst.xbrli, "unitDenominator")))
+                self._measures = (measuresOf(XmlUtil.descendant(self, XbrlConst.xbrli, "unitNumerator")),  # type: ignore[arg-type]
+                                  measuresOf(XmlUtil.descendant(self, XbrlConst.xbrli, "unitDenominator")))  # type: ignore[arg-type]
             else:
-                self._measures = (measuresOf(self),())
+                self._measures = (measuresOf(self), ())
             return self._measures
 
     @property
-    def hash(self):
-        """(bool) -- Hash of measures in both multiply and divide lists."""
+    def hash(self) -> int:
+        """(int) -- Hash of measures in both multiply and divide lists."""
         try:
             return self._hash
         except AttributeError:
             # should this use frozenSet of each measures element?
-            self._hash = hash( self.measures ) # measures must be immutable (tuple)
+            self._hash = hash(self.measures) # measures must be immutable (tuple)
             return self._hash
 
     @property
-    def md5hash(self):
+    def md5hash(self) -> str:
         """(bool) -- md5 Hash of measures in both multiply and divide lists."""
         try:
             return self._md5hash
@@ -1527,14 +1617,14 @@ class ModelUnit(ModelObject):
                     md5hash.update(b"divisor")
                 for measure in measures:
                     if measure.namespaceURI:
-                        md5hash.update(measure.namespaceURI.encode('utf-8','replace'))
-                    md5hash.update(measure.localName.encode('utf-8','replace'))
+                        md5hash.update(measure.namespaceURI.encode("utf-8", "replace"))
+                    md5hash.update(measure.localName.encode("utf-8", "replace"))
             # should this use frozenSet of each measures element?
             self._md5hash = md5hash.hexdigest()
             return self._md5hash
 
     @property
-    def md5sum(self):
+    def md5sum(self) -> Md5Sum:
         try:
             return self._md5sum
         except AttributeError:
@@ -1546,31 +1636,31 @@ class ModelUnit(ModelObject):
             return self._md5sum
 
     @property
-    def isDivide(self):
+    def isDivide(self) -> bool:
         """(bool) -- True if unit has a divide element"""
         return XmlUtil.hasChild(self, XbrlConst.xbrli, "divide")
 
     @property
-    def isSingleMeasure(self):
+    def isSingleMeasure(self) -> bool:
         """(bool) -- True for a single multiply and no divide measures"""
         measures = self.measures
         return len(measures[0]) == 1 and len(measures[1]) == 0
 
-    def isEqualTo(self, unit2) -> bool:
+    def isEqualTo(self, unit2: ModelUnit | None) -> bool:
         """(bool) -- True if measures are equal"""
         if unit2 is None or unit2.hash != self.hash:
             return False
         return unit2 is self or self.measures == unit2.measures
 
     @property
-    def value(self):
+    def value(self) -> str:
         """(str) -- String value for view purposes, space separated list of string qnames
         of multiply measures, and if any divide, a '/' character and list of string qnames
         of divide measure qnames."""
         mul, div = self.measures
-        return ' '.join([measuresStr(m) for m in mul] + (['/'] + [measuresStr(d) for d in div] if div else []))
+        return " ".join([measuresStr(m) for m in mul] + (["/"] + [measuresStr(d) for d in div] if div else []))
 
-    def utrEntries(self, modelType):
+    def utrEntries(self, modelType: ModelType) -> set[UtrEntry | None]:
         try:
             return self._utrEntries[modelType]
         except AttributeError:
@@ -1580,10 +1670,10 @@ class ModelUnit(ModelObject):
             global utrEntries
             if utrEntries is None:
                 from arelle.ValidateUtr import utrEntries
-            self._utrEntries[modelType] = utrEntries(modelType, self)
+            self._utrEntries[modelType] = utrEntries(modelType, self)  # type: ignore[misc]
             return self._utrEntries[modelType]
 
-    def utrSymbol(self, modelType):
+    def utrSymbol(self, modelType: ModelType) -> str:
         try:
             return self._utrSymbols[modelType]
         except AttributeError:
@@ -1593,20 +1683,19 @@ class ModelUnit(ModelObject):
             global utrSymbol
             if utrSymbol is None:
                 from arelle.ValidateUtr import utrSymbol
-            self._utrSymbols[modelType] = utrSymbol(modelType, self.measures)
+            self._utrSymbols[modelType] = utrSymbol(modelType, self.measures)  # type: ignore[misc]
             return self._utrSymbols[modelType]
 
-
     @property
-    def propertyView(self):
+    def propertyView(self) -> tuple[tuple[str, QName], ...]:
         measures = self.measures
         if measures[1]:
-            return tuple(('mul',m) for m in measures[0]) + \
-                   tuple(('div',d) for d in measures[1])
+            return tuple(("mul", m) for m in measures[0]) + \
+                   tuple(("div", d) for d in measures[1])
         else:
-            return tuple(('measure',m) for m in measures[0])
+            return tuple(("measure", m) for m in measures[0])
 
-from arelle.ModelDtsObject import ModelResource
+
 class ModelInlineFootnote(ModelResource):
     """
     .. class:: ModelInlineFootnote(modelDocument)
@@ -1616,23 +1705,25 @@ class ModelInlineFootnote(ModelResource):
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
-    def init(self, modelDocument):
+    _ixValue: str
+
+    def init(self, modelDocument: ModelDocument) -> None:
         super(ModelInlineFootnote, self).init(modelDocument)
 
     @property
-    def qname(self):
+    def qname(self) -> QName:
         """(QName) -- QName of generated object"""
         return XbrlConst.qnLinkFootnote
 
     @property
-    def footnoteID(self):
+    def footnoteID(self) -> str | None:  # type: ignore[override]
         if self.namespaceURI == XbrlConst.ixbrl:
             return self.get("footnoteID")
         else:
             return self.id
 
     @property
-    def value(self):
+    def value(self) -> str:
         """(str) -- Overrides and corresponds to value property of ModelFact,
         for relevant inner text nodes aggregated and transformed as needed."""
         try:
@@ -1648,39 +1739,39 @@ class ModelInlineFootnote(ModelResource):
             return self._ixValue
 
     @property
-    def textValue(self):
+    def textValue(self) -> str:
         """(str) -- override xml-level stringValue for transformed value descendants text"""
         return self.value
 
     @property
-    def stringValue(self):
+    def stringValue(self) -> str:
         """(str) -- override xml-level stringValue for transformed value descendants text"""
         return self.value
 
     @property
-    def htmlValue(self):
+    def htmlValue(self) -> str:
         return XmlUtil.innerText(self, ixExclude=True, ixContinuation=True, strip=False)
 
     @property
-    def role(self):
+    def role(self) -> str:  # type: ignore[override]
         """(str) -- xlink:role attribute"""
         return self.get("footnoteRole") or XbrlConst.footnote
 
     @property
-    def xlinkLabel(self):
+    def xlinkLabel(self) -> str | None:  # type: ignore[override]
         """(str) -- xlink:label attribute"""
         return self.footnoteID
 
     @property
-    def xmlLang(self):
+    def xmlLang(self) -> str | None:  # type: ignore[override]
         """(str) -- xml:lang attribute"""
         return XmlUtil.ancestorOrSelfAttr(self, "{http://www.w3.org/XML/1998/namespace}lang")
 
     @property
-    def attributes(self):
+    def attributes(self) -> dict[str, str | None]:
         # for output of derived instance, includes all output-applicable attributes
-        attributes = {"{http://www.w3.org/1999/xlink}type":"resource",
-                      "{http://www.w3.org/1999/xlink}label":self.xlinkLabel,
+        attributes = {"{http://www.w3.org/1999/xlink}type": "resource",
+                      "{http://www.w3.org/1999/xlink}label": self.xlinkLabel,
                       "{http://www.w3.org/1999/xlink}role": self.role}
         if self.id:
             attributes["id"] = self.footnoteID
@@ -1689,18 +1780,19 @@ class ModelInlineFootnote(ModelResource):
             attributes["{http://www.w3.org/XML/1998/namespace}lang"] = lang
         return attributes
 
-    def viewText(self, labelrole=None, lang=None):
+    def viewText(self, labelrole: str | None = None, lang: str | None = None) -> str:
         return self.value
 
     @property
-    def propertyView(self):
+    def propertyView(self) -> tuple[tuple[str, str | int | None], ...]:
         return (("file", self.modelDocument.basename),
                 ("line", self.sourceline)) + \
-               super(ModelInlineFootnote,self).propertyView + \
+               super(ModelInlineFootnote, self).propertyView + \
                (("html value", self.htmlValue),)
 
-    def __repr__(self):
-        return ("modelInlineFootnote[{0}]{1})".format(self.objectId(),self.propertyView))
+    def __repr__(self) -> str:
+        return "modelInlineFootnote[{0}]{1})".format(self.objectId(), self.propertyView)
+
 
 class ModelInlineXbrliXbrl(ModelObject):
     """
@@ -1711,49 +1803,49 @@ class ModelInlineXbrliXbrl(ModelObject):
     :param modelDocument: owner document
     :type modelDocument: ModelDocument
     """
-    def init(self, modelDocument):
+    def init(self, modelDocument: ModelDocument) -> None:
         super(ModelInlineXbrliXbrl, self).init(modelDocument)
 
     @property
-    def qname(self):
+    def qname(self) -> QName:
         """(QName) -- QName of generated object"""
         return XbrlConst.qnXbrliXbrl
 
     @property
-    def parentElement(self):
+    def parentElement(self) -> None:
         """(ModelObject) -- inline root element has no parent element"""
         return None
 
-    def ixIter(self, childOnly=False):
+    def ixIter(self, childOnly: bool = False) -> Iterator[Any]:
         """(ModelObject) -- generator of child elements of the inline target instance document"""
         modelXbrl = self.modelXbrl
         # roleRef and arcroleRef (of each inline document)
-        for sourceRefs in (modelXbrl.targetRoleRefs, modelXbrl.targetArcroleRefs):
+        for sourceRefs in (modelXbrl.targetRoleRefs, modelXbrl.targetArcroleRefs):  # type: ignore[union-attr]
             for roleRefElt in sourceRefs.values():
                 yield roleRefElt
         # contexts
         if not hasattr(self, "_orderedContenxts"): # contexts may come from multiple IXDS files
-            self._orderedContenxts = sorted(modelXbrl.contexts.values(), key=lambda c: c.objectIndex)
+            self._orderedContenxts = sorted(modelXbrl.contexts.values(), key=lambda c: c.objectIndex)  # type: ignore[union-attr]
         for context in self._orderedContenxts:
             yield context
             if not childOnly:
                 for e in context.iterdescendants():
                     yield e
         if not hasattr(self, "_orderedUnits"): # units may come from multiple IXDS files
-            self._orderedUnits = sorted(modelXbrl.units.values(), key=lambda u: u.objectIndex)
+            self._orderedUnits = sorted(modelXbrl.units.values(), key=lambda u: u.objectIndex)  # type: ignore[union-attr]
         for unit in self._orderedUnits:
             yield unit
             if not childOnly:
                 for e in unit.iterdescendants():
                     yield e
-        for fact in modelXbrl.facts:
+        for fact in modelXbrl.facts:  # type: ignore[union-attr]
             yield fact
             if not childOnly:
-                for e in fact.ixIter(childOnly):
+                for e in fact.ixIter(childOnly):  # type: ignore[union-attr]
                     yield e
         if not hasattr(self, "_orderedFootnoteLinks"):
-            _ftLinks = defaultdict(list)
-            for linkKey, linkPrototypes in modelXbrl.baseSets.items():
+            _ftLinks: defaultdict[str | None, list[ModelLink | LinkPrototype]] = defaultdict(list)
+            for linkKey, linkPrototypes in modelXbrl.baseSets.items():  # type: ignore[union-attr]
                 arcrole, linkrole, linkqname, arcqname = linkKey
                 if (linkrole and linkqname and arcqname and  # fully specified roles
                     arcrole != "XBRL-footnotes" and
@@ -1761,7 +1853,7 @@ class ModelInlineXbrliXbrl(ModelObject):
                     for linkPrototype in linkPrototypes:
                         if linkPrototype not in _ftLinks[linkrole]:
                             _ftLinks[linkrole].append(linkPrototype)
-            self._orderedFootnoteLinks = [l for r in sorted(_ftLinks.keys()) for l in _ftLinks[r]]
+            self._orderedFootnoteLinks = [l for r in sorted(_ftLinks.keys()) for l in _ftLinks[r]]  # type: ignore[type-var]
         for linkPrototype in self._orderedFootnoteLinks:
             yield linkPrototype
             if not childOnly:
