@@ -384,8 +384,9 @@ class DialogPackageManager(Toplevel):
         initialdir = self.cntlr.pluginDir # default plugin directory
         #if not self.cntlr.isMac: # can't navigate within app easily, always start in default directory
         initialdir = self.cntlr.config.setdefault("packageOpenDir", initialdir)
-        filename = self.cntlr.uiFileDialog("open",
+        filenames = self.cntlr.uiFileDialog("open",
                                            parent=self,
+                                           multiple=True,
                                            title=_("Choose taxonomy package file"),
                                            initialdir=initialdir,
                                            filetypes=[(_("Taxonomy package files (*.zip)"), "*.zip"),
@@ -393,7 +394,7 @@ class DialogPackageManager(Toplevel):
                                                       (_("pre-PWD Manifest (*.taxonomyPackage.xml)"), "*.taxonomyPackage.xml"),
                                                       (_("pre-PWD Oasis Catalog (*catalog.xml)"), "*catalog.xml")],
                                            defaultextension=".zip")
-        if filename:
+        for filename in filenames:
             # check if a package is selected (any file in a directory containing an __init__.py
             self.cntlr.config["packageOpenDir"] = os.path.dirname(filename)
             packageInfo = self._packageManager.packageInfo(self.cntlr, filename, packageManifestName=self.manifestNamePattern)
