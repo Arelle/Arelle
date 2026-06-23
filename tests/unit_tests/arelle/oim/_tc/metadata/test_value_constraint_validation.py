@@ -442,6 +442,45 @@ class TestEnumerationValues:
     def test_no_enumeration_values_no_error(self) -> None:
         assert _errors(TCValueConstraint(type="xs:decimal")) == []
 
+    def test_enumeration_value_violates_length_facet(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:string", length=3, enumeration_values=frozenset({"abcd"})))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/enumerationValues"]
+
+    def test_enumeration_value_violates_max_length_facet(self) -> None:
+        errors = _errors(TCValueConstraint(type="xs:string", max_length=3, enumeration_values=frozenset({"abcde"})))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/enumerationValues"]
+
+    def test_enumeration_value_violates_min_inclusive_facet(self) -> None:
+        errors = _errors(
+            TCValueConstraint(type="xs:decimal", min_inclusive="100", enumeration_values=frozenset({"50"}))
+        )
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/enumerationValues"]
+
+    def test_enumeration_value_violates_fraction_digits_facet(self) -> None:
+        errors = _errors(
+            TCValueConstraint(type="xs:decimal", fraction_digits=2, enumeration_values=frozenset({"1.234"}))
+        )
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/enumerationValues"]
+
+    def test_enumeration_values_satisfying_all_facets_no_error(self) -> None:
+        errors = _errors(
+            TCValueConstraint(
+                type="xs:string",
+                length=3,
+                patterns=frozenset({"[a-z]+"}),
+                enumeration_values=frozenset({"abc", "xyz"}),
+            )
+        )
+        assert errors == []
+
 
 class TestDigitFacets:
     def test_total_digits_one_no_error(self) -> None:
