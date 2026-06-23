@@ -129,6 +129,21 @@ class TestValidateConcept:
         assert _validator(tc_types.CORE_CONCEPT).validate(value) is expected
 
 
+class TestValidateEntity:
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ("xs:entity", True),
+            ("xs:entity with space", False),
+            ("unprefixed", False),
+            ("unknown:entity", False),
+            ("", False),
+        ],
+    )
+    def test_entity_validation(self, value: str, expected: bool) -> None:
+        assert _validator(tc_types.CORE_ENTITY).validate(value) is expected
+
+
 class TestValidateWithFacets:
     def test_length_valid(self) -> None:
         assert _validator(tc_types.STRING, length=3).validate("abc") is True

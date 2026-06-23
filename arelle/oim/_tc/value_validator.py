@@ -13,7 +13,8 @@ import regex
 
 from arelle.ModelValue import QName, TypeXValue
 from arelle.oim._tc.metadata.model import TCValueConstraint
-from arelle.oim._tc.metadata.types import QNAME, resolve_effective_lexical_type
+from arelle.oim._tc.metadata.types import CORE_ENTITY, QNAME, resolve_effective_lexical_type
+from arelle.oim.const import SQNAME_PATTERN
 from arelle.XmlValidate import XmlValidationResult, XsdPattern, validateFacetValueString, validateValueString
 
 
@@ -72,6 +73,10 @@ class ValueConstraintValidator:
             tc_valid_qname = self._is_valid_qname(typed_value_result.xValue)
             if not tc_valid_qname:
                 return False
+        if self._constraint.type == CORE_ENTITY:
+            tc_valid_sqname = self._is_valid_sqname(value)
+            if not tc_valid_sqname:
+                return False
         return True
 
     def _validate_base_type(self, base_xsd_type: QName, value_string: str) -> XmlValidationResult:
@@ -94,3 +99,10 @@ class ValueConstraintValidator:
             # Local only QNames are prohibited.
             return False
         return typed_value.prefix in self._namespaces
+
+    def _is_valid_sqname(self, value: str) -> bool:
+        sqname_match = SQNAME_PATTERN.fullmatch(value)
+        if sqname_match is None:
+            return False
+        prefix = sqname_match.group("prefix")
+        return prefix is not None and prefix in self._namespaces
