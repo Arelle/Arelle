@@ -115,6 +115,20 @@ class TestValidateQName:
         assert _validator(tc_types.QNAME).validate(value) is expected
 
 
+class TestValidateConcept:
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ("xs:string", True),
+            ("localName", False),
+            ("bad:not a qname!", False),
+            ("", False),
+        ],
+    )
+    def test_concept_validation(self, value: str, expected: bool) -> None:
+        assert _validator(tc_types.CORE_CONCEPT).validate(value) is expected
+
+
 class TestValidateWithFacets:
     def test_length_valid(self) -> None:
         assert _validator(tc_types.STRING, length=3).validate("abc") is True
