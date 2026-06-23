@@ -33,10 +33,10 @@ def rule_tc02(
     modelXbrl = val.modelXbrl
     possible_cpr_values = set()
     for fact in modelXbrl.facts:
-        for dim_value in fact.context.scenDimValues.values():
+        for dim_value in fact.context.scenDimValues.values():  # type: ignore[union-attr]
             if (dim_value.isTyped and
-                    dim_value.typedMember.xValid >= VALID and
-                    pluginData.cpr_regex.match(dim_value.typedMember.xValue)):
+                    dim_value.typedMember.xValid >= VALID and  # type: ignore[union-attr]
+                    pluginData.cpr_regex.match(dim_value.typedMember.xValue)):  # type: ignore[arg-type,union-attr]
                 possible_cpr_values.add(dim_value)
     if possible_cpr_values:
         yield Validation.warning(

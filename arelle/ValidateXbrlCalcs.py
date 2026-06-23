@@ -324,7 +324,7 @@ class ValidateXbrlCalcs:
                                             linkroleDefinition=modelXbrl.roleTypeDefinition(ELR),
                                             reportedSum=Locale.format_decimal(modelXbrl.locale, roundedSum, 1, max(d,0)),  # type: ignore[arg-type]
                                             computedSum=Locale.format_decimal(modelXbrl.locale, roundedItemsSum, 1, max(d,0)),  # type: ignore[arg-type]
-                                            contextID=fact.context.id, unitID=fact.unit.id if fact.unit is not None else "(none)",
+                                            contextID=fact.context.id, unitID=fact.unit.id if fact.unit is not None else "(none)",  # type: ignore[union-attr]
                                             unreportedContributors=", ".join(unreportedContribingItemQnames) or "none")
                                         del unreportedContribingItemQnames[:]
                         if calc11:
@@ -345,7 +345,7 @@ class ValidateXbrlCalcs:
                                         linkroleDefinition=modelXbrl.roleTypeDefinition(ELR),
                                         reportedSum=rangeToStr(s1,s2,incls1,incls2),  # type: ignore[arg-type]
                                         computedSum=rangeToStr(x1,x2,inclx1,inclx2),
-                                        contextID=sumFacts[0].context.id, unitID=sumFacts[0].unit.id if sumFacts[0].unit is not None else "(none)")
+                                        contextID=sumFacts[0].context.id, unitID=sumFacts[0].unit.id if sumFacts[0].unit is not None else "(none)")  # type: ignore[union-attr]
                     boundSummationItems.clear() # dereference facts in list
                     boundIntervalItems.clear()
             elif arcrole == XbrlConst.essenceAlias:
@@ -361,8 +361,8 @@ class ValidateXbrlCalcs:
                         if essenceFactsKey in self.esAlFacts and aliasFactsKey in self.esAlFacts:
                             for eF in self.esAlFacts[essenceFactsKey]:  # type: ignore[index]
                                 for aF in self.esAlFacts[aliasFactsKey]:  # type: ignore[index]
-                                    essenceUnit = self.mapUnit.get(eF.unit,eF.unit)
-                                    aliasUnit = self.mapUnit.get(aF.unit,aF.unit)
+                                    essenceUnit = self.mapUnit.get(eF.unit,eF.unit)  # type: ignore[arg-type]
+                                    aliasUnit = self.mapUnit.get(aF.unit,aF.unit)  # type: ignore[arg-type]
                                     if essenceUnit != aliasUnit:
                                         yield Validation.inconsistency("xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency",
                                             _("Essence-Alias inconsistent units from %(essenceConcept)s to %(aliasConcept)s in link role %(linkrole)s context %(contextID)s"),
@@ -370,7 +370,7 @@ class ValidateXbrlCalcs:
                                             essenceConcept=essenceConcept.qname, aliasConcept=aliasConcept.qname,  # type: ignore[union-attr]
                                             linkrole=ELR,
                                             linkroleDefinition=modelXbrl.roleTypeDefinition(ELR),
-                                            contextID=eF.context.id)
+                                            contextID=eF.context.id)  # type: ignore[union-attr]
                                     if not XbrlUtil.vEqual(eF, aF):
                                         yield Validation.inconsistency("xbrl.5.2.6.2.2:essenceAliasUnitsInconsistency",
                                             _("Essence-Alias inconsistent value from %(essenceConcept)s to %(aliasConcept)s in link role %(linkrole)s context %(contextID)s"),
@@ -378,7 +378,7 @@ class ValidateXbrlCalcs:
                                             essenceConcept=essenceConcept.qname, aliasConcept=aliasConcept.qname,  # type: ignore[union-attr]
                                             linkrole=ELR,
                                             linkroleDefinition=modelXbrl.roleTypeDefinition(ELR),
-                                            contextID=eF.context.id)
+                                            contextID=eF.context.id)  # type: ignore[union-attr]
             elif arcrole == XbrlConst.requiresElement:
                 for modelRel in relsSet.modelRelationships:
                     sourceConcept = modelRel.fromModelObject
@@ -402,10 +402,10 @@ class ValidateXbrlCalcs:
                 if concept.isNumeric:
                     for ancestor in ancestors:
                         # tbd: uniqify context and unit
-                        context = self.mapContext.get(f.context,f.context)
+                        context = self.mapContext.get(f.context,f.context)  # type: ignore[arg-type]
                         # must use nonDimAwareHash to achieve s-equal comparison of contexts
                         contextHash = context.contextNonDimAwareHash if context is not None else hash(None)
-                        unit = self.mapUnit.get(f.unit,f.unit)
+                        unit = self.mapUnit.get(f.unit,f.unit)  # type: ignore[arg-type]
                         calcKey = (concept, ancestor, contextHash, unit)
                         self.itemFacts[calcKey].append(f)  # type: ignore[index]
                         bindKey: tuple[ModelObject, int, ModelUnit] = (ancestor, contextHash, unit)  # type: ignore[assignment]
@@ -450,7 +450,7 @@ class ValidateXbrlCalcs:
                 # index facts by their essence alias relationship set
                 if concept in self.conceptsInEssencesAlias and not f.isNil:
                     ancestor = ancestors[-1]    # only care about direct parent
-                    context = self.mapContext.get(f.context,f.context)
+                    context = self.mapContext.get(f.context,f.context)  # type: ignore[arg-type]
                     contextHash = context.contextNonDimAwareHash if context is not None else hash(None)
                     esAlKey = (concept, ancestor, contextHash)
                     self.esAlFacts[esAlKey].append(f)
@@ -502,7 +502,7 @@ class ValidateXbrlCalcs:
             return Validation.inconsistency("calc11e:excessDigits",
                 _("Calculations check stopped for excess digits in fact values %(element)s: %(values)s, %(contextIDs)s."),
                 modelObject=fList, element=_excessDigitFacts[0].qname,
-                contextIDs=", ".join(sorted(set(f.contextID for f in _excessDigitFacts))),
+                contextIDs=", ".join(sorted(set(f.contextID for f in _excessDigitFacts))),  # type: ignore[misc]
                 values=", ".join(strTruncate(f.value,64) for f in _excessDigitFacts)
             ), (INCONSISTENT, INCONSISTENT,True,True)
         if _inConsistent:
@@ -510,7 +510,7 @@ class ValidateXbrlCalcs:
                 "calc11e:disallowedDuplicateFactsUsingTruncation" if self.calc11t else "oime:disallowedDuplicateFacts",
                 _("Calculations check stopped for duplicate fact values %(element)s: %(values)s, %(contextIDs)s."),
                 modelObject=fList, element=fList[0].qname,
-                contextIDs=", ".join(sorted(set(f.contextID for f in fList))),
+                contextIDs=", ".join(sorted(set(f.contextID for f in fList))),  # type: ignore[misc]
                 values=", ".join(strTruncate(f.value,64) for f in fList)
             ), (INCONSISTENT, INCONSISTENT,True,True)
         return None, (a, b, inclA, inclB)
@@ -617,7 +617,7 @@ def inferredPrecision(fact: ModelFact) -> float | int:
             else:
                 p = 0
         else:
-            return int(pStr)
+            return int(pStr)  # type: ignore[arg-type]
     except ValueError:
         return floatNaN
     if p == 0:

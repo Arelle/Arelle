@@ -1250,7 +1250,7 @@ class ModelConceptBalance(ModelFilter):
             cmplmt: bool
         ) -> set[ModelFact]:
         return set(fact for fact in facts
-                   if cmplmt ^ ((fact.concept.balance == self.balance) if fact.concept.balance else (self.balance == "none")))
+                   if cmplmt ^ ((fact.concept.balance == self.balance) if fact.concept.balance else (self.balance == "none")))  # type: ignore[union-attr]
 
     @property
     def propertyView(self) -> tuple[tuple[str, str | None], ...]:
@@ -1344,8 +1344,8 @@ class ModelConceptCustomAttribute(ModelConceptFilterWithQnameExpression):
                    for v in (self.evalValue(xpCtx, fact),)
                    for c in (fact.concept,)
                    if cmplmt ^ (qn is not None and
-                                c.get(qn.clarkNotation) is not None and
-                                (v is None or v == typedValue(xpCtx.modelXbrl, c, attrQname=qn))))
+                                c.get(qn.clarkNotation) is not None and  # type: ignore[union-attr]
+                                (v is None or v == typedValue(xpCtx.modelXbrl, c, attrQname=qn))))  # type: ignore[arg-type]
 
     @property
     def propertyView(self) -> tuple[tuple[str, str | QName | None] | tuple[()], ...]:  # type: ignore[override]
@@ -1386,7 +1386,7 @@ class ModelConceptDataType(ModelConceptFilterWithQnameExpression):
         return set(fact for fact in facts
                    for qn in (self.evalQname(xpCtx, fact),)
                    for c in (fact.concept,)
-                   if c is not None and cmplmt ^ (c.typeQname == qn or (notStrict and c.type is not None and c.type.isDerivedFrom(qn))))
+                   if c is not None and cmplmt ^ (c.typeQname == qn or (notStrict and c.type is not None and c.type.isDerivedFrom(qn))))  # type: ignore[arg-type]
 
     @property
     def propertyView(self) -> tuple[tuple[str, str | QName | None] | tuple[()], ...]:  # type: ignore[override]
@@ -1420,9 +1420,9 @@ class ModelConceptSubstitutionGroup(ModelConceptFilterWithQnameExpression):
         ) -> set[ModelFact]:
         if self.strict == "true":
             return set(fact for fact in facts
-                       if cmplmt ^ (fact.concept.substitutionGroupQname == self.evalQname(xpCtx, fact)))
+                       if cmplmt ^ (fact.concept.substitutionGroupQname == self.evalQname(xpCtx, fact)))  # type: ignore[union-attr]
         return set(fact for fact in facts
-                   if fact.concept is not None and cmplmt ^ fact.concept.substitutesForQname(self.evalQname(xpCtx, fact)))
+                   if fact.concept is not None and cmplmt ^ fact.concept.substitutesForQname(self.evalQname(xpCtx, fact)))  # type: ignore[arg-type]
 
     @property
     def propertyView(self) -> tuple[tuple[str, str | QName | None] | tuple[()], ...]:  # type: ignore[override]
@@ -1679,7 +1679,7 @@ class ModelEntityIdentifier(ModelTestFilter):
         return set(fact for fact in facts
                    if cmplmt ^ (fact.isItem and
                                 self.evalTest(xpCtx,
-                                              fact.context.entityIdentifierElement)))
+                                              fact.context.entityIdentifierElement)))  # type: ignore[arg-type,union-attr]
 
     def aspectsCovered(self, varBinding: VariableBinding) -> set[int]:
         return {Aspect.ENTITY_IDENTIFIER}
@@ -1722,8 +1722,8 @@ class ModelEntitySpecificIdentifier(ModelFilter):
         ) -> set[ModelFact]:
         return set(fact for fact in facts
                    if cmplmt ^ (fact.isItem and (
-                                                 fact.context.entityIdentifier[0] == xpCtx.evaluateAtomicValue(self.schemeProg, "xs:string", fact) and  # type: ignore[arg-type]
-                                                 fact.context.entityIdentifier[1] == xpCtx.evaluateAtomicValue(self.valueProg, "xs:string", fact))))  # type: ignore[arg-type]
+                                                 fact.context.entityIdentifier[0] == xpCtx.evaluateAtomicValue(self.schemeProg, "xs:string", fact) and  # type: ignore[arg-type,union-attr]
+                                                 fact.context.entityIdentifier[1] == xpCtx.evaluateAtomicValue(self.valueProg, "xs:string", fact))))  # type: ignore[arg-type,union-attr]
 
     @property
     def propertyView(self) -> tuple[tuple[str, str | None], ...]:
@@ -1771,7 +1771,7 @@ class ModelEntityScheme(ModelFilter):
         ) -> set[ModelFact]:
         return set(fact for fact in facts
                    if cmplmt ^ (fact.isItem and
-                                fact.context.entityIdentifier[0] == xpCtx.evaluateAtomicValue(self.schemeProg, "xs:string", fact)))  # type: ignore[arg-type]
+                                fact.context.entityIdentifier[0] == xpCtx.evaluateAtomicValue(self.schemeProg, "xs:string", fact)))  # type: ignore[arg-type,union-attr]
 
     @property
     def propertyView(self) -> tuple[tuple[str, str | None], ...]:
@@ -1802,7 +1802,7 @@ class ModelEntityRegexpIdentifier(ModelPatternFilter):
         ) -> set[ModelFact]:
         return set(fact for fact in facts
                    if cmplmt ^ (fact.isItem and
-                                self.rePattern.search(fact.context.entityIdentifierElement.xValue) is not None))
+                                self.rePattern.search(fact.context.entityIdentifierElement.xValue) is not None))  # type: ignore[arg-type,union-attr]
 
 
 class ModelEntityRegexpScheme(ModelPatternFilter):
@@ -1821,7 +1821,7 @@ class ModelEntityRegexpScheme(ModelPatternFilter):
         ) -> set[ModelFact]:
         return set(fact for fact in facts
                    if cmplmt ^ (fact.isItem and
-                                self.rePattern.search(fact.context.entityIdentifier[0]) is not None))
+                                self.rePattern.search(fact.context.entityIdentifier[0]) is not None))  # type: ignore[union-attr]
 
 
 class ModelGeneral(ModelTestFilter):
@@ -1971,7 +1971,7 @@ class ModelPeriod(ModelTestFilter):
         ) -> set[ModelFact]:
         return set(fact for fact in facts
                    if cmplmt ^ (fact.isItem and
-                                self.evalTest(xpCtx, fact.context.period)))
+                                self.evalTest(xpCtx, fact.context.period)))  # type: ignore[arg-type,union-attr]
 
 
 class ModelDateTimeFilter(ModelFilter):
@@ -2042,7 +2042,7 @@ class ModelPeriodStart(ModelDateTimeFilter):
         ) -> set[ModelFact]:
         return set(fact for fact in facts
                    if cmplmt ^ (fact.isItem and
-                                fact.context.startDatetime == self.evalDatetime(xpCtx, fact, addOneDay=False)))
+                                fact.context.startDatetime == self.evalDatetime(xpCtx, fact, addOneDay=False)))  # type: ignore[union-attr]
 
 
 class ModelPeriodEnd(ModelDateTimeFilter):
@@ -2057,8 +2057,8 @@ class ModelPeriodEnd(ModelDateTimeFilter):
             cmplmt: bool
         ) -> set[ModelFact]:
         return set(fact for fact in facts
-                   if cmplmt ^ (fact.isItem and (fact.context.isStartEndPeriod
-                                                 and fact.context.endDatetime == self.evalDatetime(xpCtx, fact, addOneDay=True))))
+                   if cmplmt ^ (fact.isItem and (fact.context.isStartEndPeriod  # type: ignore[union-attr]
+                                                 and fact.context.endDatetime == self.evalDatetime(xpCtx, fact, addOneDay=True))))  # type: ignore[union-attr]
 
 
 class ModelPeriodInstant(ModelDateTimeFilter):
@@ -2074,7 +2074,7 @@ class ModelPeriodInstant(ModelDateTimeFilter):
         ) -> set[ModelFact]:
         return set(fact for fact in facts
                    if cmplmt ^ (fact.isItem and
-                                fact.context.instantDatetime == self.evalDatetime(xpCtx, fact, addOneDay=True)))
+                                fact.context.instantDatetime == self.evalDatetime(xpCtx, fact, addOneDay=True)))  # type: ignore[union-attr]
 
 
 class ModelForever(ModelFilter):
@@ -2089,7 +2089,7 @@ class ModelForever(ModelFilter):
             cmplmt: bool
         ) -> set[ModelFact]:
         return set(fact for fact in facts
-                   if cmplmt ^ (fact.isItem and fact.context.isForeverPeriod))
+                   if cmplmt ^ (fact.isItem and fact.context.isForeverPeriod))  # type: ignore[union-attr]
 
     def aspectsCovered(self, varBinding: VariableBinding) -> set[int]:
         return {Aspect.PERIOD}
@@ -2277,7 +2277,7 @@ class ModelExplicitDimension(ModelFilter):
                                          modelObject=self, dimension=dimQname)
                     return set()
                 if fact.isItem:
-                    memQname = fact.context.dimMemberQname(dimQname)
+                    memQname = fact.context.dimMemberQname(dimQname)  # type: ignore[arg-type,union-attr]
                     if memQname:
                         if len(self.memberProgs) > 0:
                             factOk = False
@@ -2290,7 +2290,7 @@ class ModelExplicitDimension(ModelFilter):
                                     otherFact = xpCtx.inScopeVars.get(memberModel.variable)
                                     # BUG: could be bound to a sequence!!!
                                     if otherFact is not None and isinstance(otherFact, ModelFact) and otherFact.isItem:
-                                        matchMemQname = otherFact.context.dimMemberQname(dimQname)
+                                        matchMemQname = otherFact.context.dimMemberQname(dimQname)  # type: ignore[arg-type,union-attr]
                                 elif memberModel.qnameExprProg:
                                     matchMemQname = xpCtx.evaluateAtomicValue(memberModel.qnameExprProg, "xs:QName", fact)
                                 memConcept = xpCtx.modelXbrl.qnameConcepts.get(matchMemQname)  # type: ignore[arg-type]
@@ -2426,11 +2426,11 @@ class ModelTypedDimension(ModelTestFilter):
         outFacts = set()
         for fact in facts:
             dimQname = self.evalDimQname(xpCtx, fact)
-            dim = fact.context.qnameDims.get(dimQname) if fact.isItem else None
+            dim = fact.context.qnameDims.get(dimQname) if fact.isItem else None  # type: ignore[arg-type,union-attr]
             if cmplmt ^ (dim is not None and
                          (not self.test or
                           # typed dimension test item is the <typedMember> element, not its contents, e.g. dim
-                          self.evalTest(xpCtx, dim))):
+                          self.evalTest(xpCtx, dim))):  # type: ignore[arg-type]
                 outFacts.add(fact)
         return outFacts
 
@@ -2473,7 +2473,7 @@ class ModelRelativeFilter(ModelFilter):
                                 aspectsMatch(xpCtx, otherFact, fact, aspectsUncovered) and  # type: ignore[no-untyped-call]
                                 (fact.isTuple or
                                  all(aspectMatches(xpCtx, otherFact, fact, dimAspect)  # type: ignore[no-untyped-call]
-                                     for dimAspect in fact.context.dimAspects(xpCtx.defaultDimensionAspects)  # type: ignore[attr-defined]
+                                     for dimAspect in fact.context.dimAspects(xpCtx.defaultDimensionAspects)  # type: ignore[attr-defined,union-attr]
                                      if (not varBinding.hasAspectValueCovered(dimAspect) and  # type: ignore[no-untyped-call]
                                          not otherVarBinding.hasAspectValueCovered(dimAspect))))
                             ))
@@ -2507,7 +2507,7 @@ class ModelSegmentFilter(ModelTestFilter):
         ) -> set[ModelFact]:
         return set(fact for fact in facts
                    if cmplmt ^ (fact.isItem and
-                                (fact.context.hasSegment and self.evalTest(xpCtx, fact.context.segment))))
+                                (fact.context.hasSegment and self.evalTest(xpCtx, fact.context.segment))))  # type: ignore[arg-type,union-attr]
 
 
 class ModelScenarioFilter(ModelTestFilter):
@@ -2526,7 +2526,7 @@ class ModelScenarioFilter(ModelTestFilter):
         ) -> set[ModelFact]:
         return set(fact for fact in facts
                    if cmplmt ^ (fact.isItem and
-                                (fact.context.hasScenario and self.evalTest(xpCtx, fact.context.scenario))))
+                                (fact.context.hasScenario and self.evalTest(xpCtx, fact.context.scenario))))  # type: ignore[arg-type,union-attr]
 
 
 class ModelAncestorFilter(ModelFilter):
@@ -2786,7 +2786,7 @@ class ModelGeneralMeasures(ModelTestFilter):
         ) -> set[ModelFact]:
         return set(fact for fact in facts
                    if cmplmt ^ (fact.isItem and
-                                (fact.isNumeric and self.evalTest(xpCtx, fact.unit))))
+                                (fact.isNumeric and self.evalTest(xpCtx, fact.unit))))  # type: ignore[arg-type]
 
 
 class ModelSingleMeasure(ModelFilter):
@@ -2841,8 +2841,8 @@ class ModelSingleMeasure(ModelFilter):
         ) -> set[ModelFact]:
         return set(fact for fact in facts
                    if cmplmt ^ (fact.isNumeric and
-                                fact.unit.isSingleMeasure and
-                                (fact.unit.measures[0][0] == self.evalQname(xpCtx, fact))))
+                                fact.unit.isSingleMeasure and  # type: ignore[union-attr]
+                                (fact.unit.measures[0][0] == self.evalQname(xpCtx, fact))))  # type: ignore[union-attr]
 
     @property
     def propertyView(self) -> tuple[tuple[str, str | QName | None] | tuple[()], ...]:  # type: ignore[override]

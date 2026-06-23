@@ -47,8 +47,8 @@ def rule_tr01(
         facts_in_error = []
         for fact in gsd_facts:
             if not (
-                fact.context.isEntityIdentifierEqualTo(cvr_fact.context) and
-                fact.context.isPeriodEqualTo(cvr_fact.context)
+                fact.context.isEntityIdentifierEqualTo(cvr_fact.context) and  # type: ignore[arg-type,union-attr]
+                fact.context.isPeriodEqualTo(cvr_fact.context)  # type: ignore[arg-type,union-attr]
             ):
                 facts_in_error.append(fact)
         if len(facts_in_error) > 0:
@@ -76,7 +76,7 @@ def rule_tr02(
     cvr_facts = val.modelXbrl.factsByQname.get(pluginData.identificationNumberCvrOfReportingEntityQn, set())
     if len(cvr_facts) > 0:
         cvr_fact = next(iter(cvr_facts))
-        if cvr_fact.context.entityIdentifier[0] != 'http://www.dcca.dk/cvr':
+        if cvr_fact.context.entityIdentifier[0] != 'http://www.dcca.dk/cvr':  # type: ignore[union-attr]
             yield Validation.error(
                 codes='DBA.TR02',
                 msg=_("IdentificationNumberCvrOfReportingEntity must have the absolute URI 'http://www.dcca.dk/cvr' as context entity identifier scheme"),
@@ -101,13 +101,13 @@ def rule_tr03(
     cvr_facts = val.modelXbrl.factsByQname.get(pluginData.identificationNumberCvrOfReportingEntityQn, set())
     if len(cvr_facts) > 0:
         cvr_fact = next(iter(cvr_facts))
-        if cvr_fact.xValid >= VALID and cvr_fact.xValue != cvr_fact.context.entityIdentifier[1]:
+        if cvr_fact.xValid >= VALID and cvr_fact.xValue != cvr_fact.context.entityIdentifier[1]:  # type: ignore[union-attr]
             yield Validation.error(
                 codes='DBA.TR03',
                 msg=_("IdentificationNumberCvrOfReportingEntity must have the CVR number({}) specified in "
                       "IdentificationNumberCvrOfReportingEntity as the context entity identifier({}).").format(
                     cvr_fact.xValue,
-                    cvr_fact.context.entityIdentifier[1]
+                    cvr_fact.context.entityIdentifier[1]  # type: ignore[union-attr]
                 ),
                 modelObject=cvr_fact
             )
@@ -129,18 +129,18 @@ def rule_tr05(
     """
     cvr_facts = val.modelXbrl.factsByQname.get(pluginData.identificationNumberCvrOfReportingEntityQn, set())
     start_date_facts = val.modelXbrl.factsByQname.get(pluginData.reportingPeriodStartDateQn, set())
-    filtered_start_date_facts = {f for f in start_date_facts if not f.context.scenDimValues}
+    filtered_start_date_facts = {f for f in start_date_facts if not f.context.scenDimValues}  # type: ignore[union-attr]
     if len(cvr_facts) > 0 and len(filtered_start_date_facts) > 0:
         cvr_fact = next(iter(cvr_facts))
-        if cvr_fact.context.startDatetime is not None:
+        if cvr_fact.context.startDatetime is not None:  # type: ignore[union-attr]
             start_date_fact = next(iter(filtered_start_date_facts))
-            if start_date_fact.xValid >= VALID and start_date_fact.xValue != cvr_fact.context.startDatetime:
+            if start_date_fact.xValid >= VALID and start_date_fact.xValue != cvr_fact.context.startDatetime:  # type: ignore[union-attr]
                 yield Validation.error(
                     codes='DBA.TR05',
                     msg=_("ReportingPeriodStartDate must specify the same date({}) as period startDate({}) in the context "
                           "of IdentificationNumberCvrOfReportingEntity").format(
                         start_date_fact.xValue,
-                        cvr_fact.context.startDatetime.date()
+                        cvr_fact.context.startDatetime.date()  # type: ignore[union-attr]
                     ),
                     modelObject=[start_date_fact, cvr_fact]
                 )
@@ -162,19 +162,19 @@ def rule_tr06(
     """
     cvr_facts = val.modelXbrl.factsByQname.get(pluginData.identificationNumberCvrOfReportingEntityQn, set())
     end_date_facts = val.modelXbrl.factsByQname.get(pluginData.reportingPeriodEndDateQn, set())
-    filtered_end_date_fact = {f for f in end_date_facts if not f.context.scenDimValues}
+    filtered_end_date_fact = {f for f in end_date_facts if not f.context.scenDimValues}  # type: ignore[union-attr]
     if len(cvr_facts) > 0 and len(filtered_end_date_fact) > 0:
         cvr_fact = next(iter(cvr_facts))
         end_date_fact = next(iter(filtered_end_date_fact))
         if (end_date_fact.xValid >= VALID and
                 isinstance(end_date_fact.xValue, ModelValue.DateTime) and
-                end_date_fact.xValue.date() != cvr_fact.context.endDate):
+                end_date_fact.xValue.date() != cvr_fact.context.endDate):  # type: ignore[union-attr]
             yield Validation.error(
                 codes='DBA.TR06',
                 msg=_("ReportingPeriodEndDate must specify the same date({}) as period endDate({}) in the context of "
                       "IdentificationNumberCvrOfReportingEntity").format(
                     end_date_fact.xValue.date(),
-                    cvr_fact.context.endDate
+                    cvr_fact.context.endDate  # type: ignore[union-attr]
                 ),
                 modelObject=[end_date_fact, cvr_fact]
             )

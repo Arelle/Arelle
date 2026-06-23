@@ -737,7 +737,7 @@ class ValidateXbrl:
                 modelObject=duplicateFactSet.facts,
                 duplicateType=duplicateType.description,
                 qname=duplicateFactSet.facts[0].qname,
-                contextIDs=", ".join(sorted(set(f.contextID for f in duplicateFactSet.facts))),
+                contextIDs=", ".join(sorted(set(f.contextID for f in duplicateFactSet.facts))),  # type: ignore[misc]
                 values=", ".join(strTruncate(f.value, 64) for f in duplicateFactSet.facts),
             )
 
@@ -775,13 +775,13 @@ class ValidateXbrl:
                                     modelObject=f, fact=f.qname, contextID=f.contextID, unitID=f.unitID)
                 precision = f.precision
                 hasPrecision = precision is not None
-                if hasPrecision and precision != "INF" and not precision.isdigit():
+                if hasPrecision and precision != "INF" and not precision.isdigit():  # type: ignore[union-attr]
                     self.modelXbrl.error("xbrl.4.6.4:precision",
                         _("Fact %(fact)s context %(contextID)s precision %(precision)s is invalid"),
                         modelObject=f, fact=f.qname, contextID=f.contextID, precision=precision)
                 decimals = f.decimals
                 hasDecimals = decimals is not None
-                if hasPrecision and not self.precisionPattern.match(precision):
+                if hasPrecision and not self.precisionPattern.match(precision):  # type: ignore[arg-type]
                     self.modelXbrl.error("xbrl.4.6.4:precision",
                         _("Fact %(fact)s context %(contextID)s precision %(precision)s is invalid"),
                         modelObject=f, fact=f.qname, contextID=f.contextID, precision=precision)
@@ -789,7 +789,7 @@ class ValidateXbrl:
                     self.modelXbrl.error("xbrl.4.6.3:bothPrecisionAndDecimals",
                         _("Fact %(fact)s context %(contextID)s can not have both precision and decimals"),
                         modelObject=f, fact=f.qname, contextID=f.contextID)
-                if hasDecimals and not self.decimalsPattern.match(decimals):
+                if hasDecimals and not self.decimalsPattern.match(decimals):  # type: ignore[arg-type]
                     self.modelXbrl.error("xbrl.4.6.5:decimals",
                         _("Fact %(fact)s context %(contextID)s decimals %(decimals)s is invalid"),
                         modelObject=f, fact=f.qname, contextID=f.contextID, decimals=decimals)
@@ -841,7 +841,7 @@ class ValidateXbrl:
                                 self.modelXbrl.error("xbrl.4.6.3:missingPrecisionDecimals",
                                     _("Fact %(fact)s context %(contextID)s is a numeric concept and must have either precision or decimals"),
                                     modelObject=f, fact=f.qname, contextID=f.contextID)
-                            elif f.concept.instanceOfType(dtrNoDecimalsItemTypes):
+                            elif f.concept.instanceOfType(dtrNoDecimalsItemTypes):  # type: ignore[union-attr]
                                 evaluatedDecimals = inferredDecimals(f)
                                 if evaluatedDecimals > 0 and not math.isinf(evaluatedDecimals):
                                     if hasDecimals:
@@ -856,17 +856,17 @@ class ValidateXbrl:
                                     _("Fact %(fact)s context %(contextID)s is a non-numeric concept and must not have precision or decimals"),
                                     modelObject=f, fact=f.qname, contextID=f.contextID)
                             if getattr(f,"xValid", 0) == 4:
-                                if f.concept.instanceOfType(dtrSQNameItemTypes):
+                                if f.concept.instanceOfType(dtrSQNameItemTypes):  # type: ignore[union-attr]
                                     if not f.nsmap.get(cast(str, f.xValue).rpartition(":")[0]):
                                         self.modelXbrl.error("dtre:SQNameItemType",
                                             _("Fact %(fact)s context %(contextID)s must have an in-scope prefix: %(value)s"),
                                             modelObject=f, fact=f.qname, contextID=f.contextID, value=cast(str, f.xValue)[:200])
-                                elif f.concept.instanceOfType(dtrSQNamesItemTypes):
+                                elif f.concept.instanceOfType(dtrSQNamesItemTypes):  # type: ignore[union-attr]
                                     if not all(f.nsmap.get(n.rpartition(":")[0]) for n in cast(str, f.xValue).split()):
                                         self.modelXbrl.error("dtre:SQNamesItemType",
                                             _("Fact %(fact)s context %(contextID)s must have an in-scope prefix: %(value)s"),
                                             modelObject=f, fact=f.qname, contextID=f.contextID, value=cast(str, f.xValue)[:200])
-                                elif f.concept.instanceOfType(dtrPrefixedContentItemTypes):
+                                elif f.concept.instanceOfType(dtrPrefixedContentItemTypes):  # type: ignore[union-attr]
                                     self.modelXbrl.error("dtre:prefixedContentItemType",
                                         _("Fact %(fact)s context %(contextID)s must not have an unrecognized subtype of dtr:prefixedContentItemType"),
                                         modelObject=f, fact=f.qname, contextID=f.contextID, value=cast(str, f.xValue)[:200])
@@ -1017,19 +1017,19 @@ class ValidateXbrl:
                         modelConcept = self.modelXbrl.qnameConcepts.get(typedMember.qname)
                         if modelConcept is not None:
                             if modelConcept.instanceOfType(dtrSQNameTypes):
-                                if not typedMember.nsmap.get(typedMember.xValue.rpartition(":")[0]):
+                                if not typedMember.nsmap.get(typedMember.xValue.rpartition(":")[0]):  # type: ignore[union-attr]
                                     self.modelXbrl.error("dtre:SQNameType",
                                         _("Context %(contextID)s dimension %(dim)s must have an in-scope prefix: %(value)s"),
-                                        modelObject=typedMember, dim=typedMember.qname, contextID=cntx.id, value=typedMember.xValue[:200])
+                                        modelObject=typedMember, dim=typedMember.qname, contextID=cntx.id, value=typedMember.xValue[:200])  # type: ignore[index]
                             elif modelConcept.instanceOfType(dtrSQNamesTypes):
-                                if not all(typedMember.nsmap.get(n.rpartition(":")[0]) for n in typedMember.xValue.split()):
+                                if not all(typedMember.nsmap.get(n.rpartition(":")[0]) for n in typedMember.xValue.split()):  # type: ignore[call-arg,union-attr]
                                     self.modelXbrl.error("dtre:SQNamesType",
                                         _("Context %(contextID)s dimension %(dim)s must have an in-scope prefix: %(value)s"),
-                                        modelObject=typedMember, dim=typedMember.qname, contextID=cntx.id, value=typedMember.xValue[:200])
+                                        modelObject=typedMember, dim=typedMember.qname, contextID=cntx.id, value=typedMember.xValue[:200])  # type: ignore[index]
                             elif modelConcept.instanceOfType(dtrPrefixedContentTypes):
                                 self.modelXbrl.error("dtre:prefixedContentType",
                                     _("Context %(contextID)s dimension %(dim)s must not have an unrecognized subtype of dtr:prefixedContentType."),
-                                    modelObject=typedMember, dim=typedMember.qname, contextID=cntx.id, value=typedMember.xValue[:200])
+                                    modelObject=typedMember, dim=typedMember.qname, contextID=cntx.id, value=typedMember.xValue[:200])  # type: ignore[index]
 
 
     def checkContextsDimensions(self, contexts: Iterable[ModelContext]) -> None:

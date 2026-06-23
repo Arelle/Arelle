@@ -963,7 +963,7 @@ class XPathContext:
             x = dateTime(v, type=DATE)
         elif baseXsdType == "dateTime":
             x = dateTime(v, type=DATETIME)
-        elif baseXsdType in GREGORIAN_TYPES and isinstance(v, GREGORIAN_TYPES):
+        elif baseXsdType in GREGORIAN_TYPES and isinstance(v, GREGORIAN_TYPES):  # type: ignore[comparison-overlap]
             x = v
         elif baseXsdType == "noContent":
             x = None  # can't be atomized

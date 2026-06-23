@@ -100,7 +100,7 @@ def pretendExpensiveOperation(
     positiveFactConcepts = pluginData.positiveFactConcepts
     if positiveFactConcepts is None:
         positiveFactConcepts = {
-            fact.concept.name
+            fact.concept.name  # type: ignore[misc,union-attr]
             for fact in val.modelXbrl.facts
             if fact.isNumeric
             and getattr(fact, "xValid", 0) >= VALID

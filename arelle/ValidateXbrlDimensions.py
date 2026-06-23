@@ -330,13 +330,13 @@ def checkContext(val: ValidateXbrl, cntx: ModelContext) -> None:
                             problem = _("multiple contents")
                         elif typedDomainConcept is None:
                             problem = _("Missing domain element schema definition for {0}").format(dimensionConcept.typedDomainRef)
-                        elif element.localName != typedDomainConcept.name or \
-                            element.namespaceURI != typedDomainConcept.modelDocument.targetNamespace:
+                        elif (element.localName != typedDomainConcept.name or  # type: ignore[attr-defined]
+                            element.namespaceURI != typedDomainConcept.modelDocument.targetNamespace):
                             problem = _("wrong content {0}").format(element.prefixedName)
                         else:
                             problem = None  # type: ignore[assignment]
                             # validate enumeration set typed dimension value here
-                            if (val.validateEnum and typedDomainConcept.isEnumeration and getattr(element,"xValid", 0) == 4 and
+                            if (val.validateEnum and typedDomainConcept.isEnumeration and getattr(element,"xValid", 0) == 4 and  # type: ignore[attr-defined]
                                 element.get("{http://www.w3.org/2001/XMLSchema-instance}nil") not in ("true","1")):
                                 qnEnums = element.xValue
                                 if not isinstance(qnEnums, list): qnEnums = (qnEnums,)  # type: ignore[assignment]
@@ -365,7 +365,7 @@ def checkContext(val: ValidateXbrl, cntx: ModelContext) -> None:
                         _("Context %(contextID)s explicit dimension %(dimension)s member %(value)s is not a global member item"),
                         modelObject=logDimAndFacts(modelDimValue), contextID=cntx.id,
                         dimension=modelDimValue.dimensionQname, value=modelDimValue.memberQname)
-                elif val.modelXbrl.dimensionDefaultConcepts.get(dimensionConcept) == memberConcept:
+                elif val.modelXbrl.dimensionDefaultConcepts.get(dimensionConcept) == memberConcept:  # type: ignore[arg-type]
                     val.modelXbrl.error("xbrldie:DefaultValueUsedInInstanceError",
                         _("Context %(contextID)s explicit dimension %(dimension)s member %(value)s is a default member item"),
                         modelObject=logDimAndFacts(modelDimValue), contextID=cntx.id,
@@ -391,7 +391,7 @@ def checkFact(val: ValidateXbrl, f: ModelFact, otherFacts: set[ModelFact] | None
     if not isFactDimensionallyValid(val, f, otherFacts=otherFacts):
         val.modelXbrl.error("xbrldie:PrimaryItemDimensionallyInvalidError",
             _("Fact %(fact)s context %(contextID)s dimensionally not valid"),
-            modelObject=f, fact=f.qname, contextID=f.context.id)
+            modelObject=f, fact=f.qname, contextID=f.context.id)  # type: ignore[union-attr]
 
 
 def isFactDimensionallyValid(
@@ -503,11 +503,11 @@ def checkFactElrHcs(
         hcIsClosed = hasHcRel.isClosed
         hcContextElement = hasHcRel.contextElement
         hcNegating = hasHcRel.arcrole == XbrlConst.notAll
-        modelDimValues = context.dimValues(hcContextElement)
+        modelDimValues = context.dimValues(hcContextElement)  # type: ignore[arg-type,union-attr]
         if setPrototypeContextElements and isinstance(context,ContextPrototype):
             oppositeContextDimValues = context.dimValues(hcContextElement, oppositeContextElement=True)
         contextElementDimSet = set(modelDimValues.keys())
-        modelNonDimValues = context.nonDimValues(hcContextElement)
+        modelNonDimValues = context.nonDimValues(hcContextElement)  # type: ignore[arg-type,union-attr]
         hcValid = True
 
         # if closed and any nonDim values, hc invalid

@@ -682,19 +682,19 @@ class ValidateUK:
         defaultFact = None
         endDateFact = None
         for fact in self._getFacts(CONCEPT_END_DATE_FOR_PERIOD_COVERED_BY_REPORT):
-            if not fact.context.qnameDims:
+            if not fact.context.qnameDims:  # type: ignore[union-attr]
                 endDateFact = fact
                 break
         if endDateFact is None:
             return CodeResult()
         for balanceSheetDateFact in self._getFacts(CONCEPT_BALANCE_SHEET_DATE):
             if self._checkValidFact(balanceSheetDateFact):
-                if not balanceSheetDateFact.context.qnameDims and balanceSheetDateFact.context.instantDate == endDateFact.context.instantDate:
+                if not balanceSheetDateFact.context.qnameDims and balanceSheetDateFact.context.instantDate == endDateFact.context.instantDate:  # type: ignore[union-attr]
                     defaultFact = balanceSheetDateFact
-                for qname, value in balanceSheetDateFact.context.qnameDims.items():
+                for qname, value in balanceSheetDateFact.context.qnameDims.items():  # type: ignore[union-attr]
                     if value.xValid < VALID:
                         continue
-                    if qname.localName == CONCEPT_GROUP_COMPANY_DATA_DIMENSION and cast(str, value.xValue.localName) == CONCEPT_CONSOLIDATED:
+                    if qname.localName == CONCEPT_GROUP_COMPANY_DATA_DIMENSION and cast(str, value.xValue.localName) == CONCEPT_CONSOLIDATED:  # type: ignore[union-attr]
                         consolidatedFact = balanceSheetDateFact
                         break
         if consolidatedFact is None or defaultFact is None or consolidatedFact.xValue != defaultFact.xValue:
@@ -817,11 +817,11 @@ class ValidateUK:
         for fact in facts:
             if not self._checkValidFact(fact):
                 continue
-            for qname, value in fact.context.qnameDims.items():
+            for qname, value in fact.context.qnameDims.items():  # type: ignore[union-attr]
                 if value.xValid < VALID:
                     continue
                 if qname.localName == dimensionLocalName:
-                    yield cast(str, value.xValue.localName)
+                    yield value.xValue.localName  # type: ignore[union-attr]
 
     def validate(self) -> None:
         """

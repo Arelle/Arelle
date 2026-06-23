@@ -617,13 +617,13 @@ class ModelXbrl:
             segAspect, scenAspect = (arelle.Aspect.Aspect.COMPLETE_SEGMENT, arelle.Aspect.Aspect.COMPLETE_SCENARIO)
         for c in self.contexts.values():
             if (c.entityIdentifier == (entityIdentScheme, entityIdentValue) and
-                ((c.isInstantPeriod and periodType == "instant" and dateUnionEqual(c.instantDatetime, periodEndInstant, instantEndDate=True)) or
-                 (c.isStartEndPeriod and periodType == "duration" and dateUnionEqual(c.startDatetime, periodStart) and dateUnionEqual(c.endDatetime, periodEndInstant, instantEndDate=True)) or
+                ((c.isInstantPeriod and periodType == "instant" and dateUnionEqual(c.instantDatetime, periodEndInstant, instantEndDate=True)) or  # type: ignore[arg-type]
+                 (c.isStartEndPeriod and periodType == "duration" and dateUnionEqual(c.startDatetime, periodStart) and dateUnionEqual(c.endDatetime, periodEndInstant, instantEndDate=True)) or  # type: ignore[arg-type]
                  (c.isForeverPeriod and periodType == "forever")) and
                  # dimensions match if dimensional model
                  (dims is None or (
                     (c.qnameDims.keys() == dims.keys()) and
-                        all([cDim.isEqualTo(dims[cDimQn]) for cDimQn, cDim in c.qnameDims.items()]))) and
+                        all([cDim.isEqualTo(dims[cDimQn]) for cDimQn, cDim in c.qnameDims.items()]))) and  # type: ignore[arg-type,index]
                  # OCCs match for either dimensional or non-dimensional modle
                  all(
                    all([sEqual(self, cOCCs[i], mOCCs[i]) for i in range(len(mOCCs))])
@@ -854,7 +854,7 @@ class ModelXbrl:
             fbpt: defaultdict[str, set[ModelFact]]
             self._factsByPeriodType = fbpt = defaultdict(set)
             for f in self.factsInInstance:
-                p = f.concept.periodType
+                p = f.concept.periodType  # type: ignore[union-attr]
                 if p:
                     fbpt[p].add(f)
             return self.factsByPeriodType(periodType)
@@ -988,7 +988,7 @@ class ModelXbrl:
             if hasattr(self, "_factsByDatatype"):
                 del self._factsByDatatype # would need to iterate derived type ancestry to populate
             if hasattr(self, "_factsByPeriodType"):
-                self._factsByPeriodType[newFact.concept.periodType].add(newFact)
+                self._factsByPeriodType[newFact.concept.periodType].add(newFact)  # type: ignore[index]
             if hasattr(self, "_factsByDimQname"):
                 del self._factsByDimQname
         self.setIsModified()

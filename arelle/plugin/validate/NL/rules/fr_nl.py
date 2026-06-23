@@ -426,8 +426,8 @@ def rule_fr_nl_3_01(
     'T' is a separator indicating that time-of-day follows the date
     """
     for context in val.modelXbrl.contexts.values():
-        eltStart = XmlUtil.child(context.period, XbrlConst.xbrli, "startDate")
-        eltEnd = XmlUtil.child(context.period, XbrlConst.xbrli, "endDate")
+        eltStart = XmlUtil.child(context.period, XbrlConst.xbrli, "startDate")  # type: ignore[arg-type]
+        eltEnd = XmlUtil.child(context.period, XbrlConst.xbrli, "endDate")  # type: ignore[arg-type]
         if ((eltStart is not None and 'T' in getattr(eltStart, 'text')) or
                 (eltEnd is not None and 'T' in getattr(eltEnd, 'text'))):
             yield Validation.error(
@@ -654,7 +654,7 @@ def rule_fr_nl_5_11(
     assert isinstance(pluginData.formattedExplanationItemTypeQn, QName)
     typeQname = pluginData.formattedExplanationItemTypeQn
     for fact in val.modelXbrl.facts:
-        validType = fact.concept.instanceOfType(typeQname)
+        validType = fact.concept.instanceOfType(typeQname)  # type: ignore[union-attr]
         wrappedContent = pluginData.textFormattingWrapper.format(fact.textValue)
         try:
             tree = etree.fromstring(wrappedContent, parser)

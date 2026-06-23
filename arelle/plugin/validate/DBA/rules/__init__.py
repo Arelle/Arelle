@@ -242,13 +242,13 @@ def getValidDateFactsWithDefaultDimension(
             memberQn = dimensionDefaultConcept.qname
     facts = getValidDateFacts(modelXbrl, factQn)
     for fact in facts:
-        factMemberQn = cast(Optional[QName], fact.context.dimMemberQname(dimensionQn))
+        factMemberQn = fact.context.dimMemberQname(dimensionQn)  # type: ignore[union-attr]
         if memberQn is None or memberQn == factMemberQn:
             results.append(fact)
     return results
 
 
-def getFactsGroupedByContextId(modelXbrl: ModelXbrl, *conceptQns: QName) -> dict[str, list[ModelFact]]:
+def getFactsGroupedByContextId(modelXbrl: ModelXbrl, *conceptQns: QName) -> dict[str | None, list[ModelFact]]:
     """
     Groups facts by their context ID.
     :return: A dictionary of context ID to list of facts.
@@ -256,7 +256,7 @@ def getFactsGroupedByContextId(modelXbrl: ModelXbrl, *conceptQns: QName) -> dict
     facts: set[ModelFact] = set()
     for conceptQn in conceptQns:
         facts.update(modelXbrl.factsByQname.get(conceptQn, set()))
-    groupedFacts: dict[str, list[ModelFact]] = {}
+    groupedFacts: dict[str | None, list[ModelFact]] = {}
     for fact in facts:
         contextId = fact.contextID
         if contextId not in groupedFacts:
@@ -273,7 +273,7 @@ def groupFactsByContextHash(facts: set[ModelFact]) -> dict[ContextHashKey, list[
     groupedFacts: defaultdict[ContextHashKey, list[ModelFact]] = defaultdict(list)
     for fact in facts:
         if fact.xValid >= VALID:
-            contextHash = ContextHashKey(fact.context, dimensionalAspectModel=True)
+            contextHash = ContextHashKey(fact.context, dimensionalAspectModel=True)  # type: ignore[arg-type]
             groupedFacts[contextHash].append(fact)
     groupedFacts.default_factory = None
     return groupedFacts
@@ -284,7 +284,7 @@ def lookup_namespaced_facts(modelXbrl: ModelXbrl, namespaceURI: str) -> set[Mode
     Returns the set of facts that are tagged with a concept from a particular namespace
     :Return: a set of facts
     """
-    return {f for f in modelXbrl.facts if f.xValid >= VALID and f.xValue is not None and f.concept.qname.namespaceURI == namespaceURI}
+    return {f for f in modelXbrl.facts if f.xValid >= VALID and f.xValue is not None and f.concept.qname.namespaceURI == namespaceURI}  # type: ignore[union-attr]
 
 
 def minimumRequiredFactsFound(

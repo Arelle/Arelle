@@ -553,7 +553,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             for measureTerm in unit.measures:
                 for measure in measureTerm:
                     ns = measure.namespaceURI
-                    if ns != XbrlConst.iso4217 and not ns.startswith("http://www.xbrl.org/"):
+                    if ns != XbrlConst.iso4217 and not ns.startswith("http://www.xbrl.org/"):  # type: ignore[union-attr]
                         if measure.localName in utrUnitIds:
                             modelXbrl.warning("ESEF.RTS.III.1.G1-7-1.customUnitInUtr",
                                 _("Custom measure SHOULD NOT duplicate a UnitID of UTR: %(measure)s"),
@@ -580,7 +580,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         f.concept.type.qname == PERCENT_TYPE or f.concept.type.isDerivedFrom(PERCENT_TYPE)):
                         modelXbrl.warning("ESEF.2.2.2.percentGreaterThan100",
                             _("A percent fact should have value <= 100: %(element)s in context %(context)s value %(value)s"),
-                            modelObject=f, element=f.qname, context=f.context.id, value=f.xValue)
+                            modelObject=f, element=f.qname, context=f.context.id, value=f.xValue)  # type: ignore[union-attr]
                 elif f.concept is not None and f.concept.type is not None:
                     if f.concept.type.isOimTextFactType:
                         lang = f.xmlLang
@@ -706,7 +706,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     ((summationItem,), "elements{}UsedForTagging{}AppliedInCalculationLinkbase", False, "calculation"),
                     ((hc_all, hc_notAll, dimensionDomain,domainMember), "elements{}UsedForTagging{}AppliedInDefinitionLinkbase", False, "definition")):
             if lbType == "calculation":
-                reportedEltsNotInLb = set(c for c in conceptsUsedByFacts if c.isNumeric)
+                reportedEltsNotInLb = set(c for c in conceptsUsedByFacts if c.isNumeric)  # type: ignore[union-attr]
             else:
                 reportedEltsNotInLb = conceptsUsedByFacts.copy()
             for arcrole in arcroles:
@@ -748,11 +748,11 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 nsExcl = val.authParam.get("lineItemsMustBeInPreLbExclusionNsPattern")
                 if nsExcl:
                     nsExclPat = re.compile(nsExcl)
-                    reportedEltsNotInLb -= set(c for c in reportedEltsNotInLb if nsExclPat.match(c.qname.namespaceURI))
+                    reportedEltsNotInLb -= set(c for c in reportedEltsNotInLb if nsExclPat.match(c.qname.namespaceURI))  # type: ignore[arg-type,union-attr]
             if reportedEltsNotInLb and lbType != "calculation":
                 modelXbrl.error("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
                     _("All concepts used by tagged facts MUST be in extension taxonomy %(linkbaseType)s relationships: %(elements)s."),
-                    modelObject=reportedEltsNotInLb, elements=", ".join(sorted((str(c.qname) for c in reportedEltsNotInLb))), linkbaseType=lbType)
+                    modelObject=reportedEltsNotInLb, elements=", ".join(sorted((str(c.qname) for c in reportedEltsNotInLb))), linkbaseType=lbType)  # type: ignore[union-attr]
         if unreportedLbElts:
             modelXbrl.error("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
                 _("All usable concepts in extension taxonomy relationships MUST be applied by tagged facts: %(elements)s."),

@@ -302,7 +302,7 @@ def rule_contextDeiRequirements(
                         elementMatch=contextDeiRequirement.elementMatch,
                         contextId=contextId,
                         deiValue=deiValue.date().isoformat(),
-                        contextValue=contextValue.date().isoformat(),
+                        contextValue=contextValue.date().isoformat(),  # type: ignore[union-attr]
                     )
 
 
@@ -423,7 +423,7 @@ def rule_EC8033W(
     latestPriorYearContext = None
     for priorYearContext in priorYearContexts:
         if latestPriorYearContext is None or \
-                priorYearContext.endDatetime > latestPriorYearContext.endDatetime:
+                priorYearContext.endDatetime > latestPriorYearContext.endDatetime:  # type: ignore[operator]
             latestPriorYearContext = priorYearContext
     if latestPriorYearContext is None:
         return
@@ -437,11 +437,11 @@ def rule_EC8033W(
     earliestCurrentYearContext = None
     for currentYearContext in currentYearContexts:
         if earliestCurrentYearContext is None or \
-                currentYearContext.endDatetime > earliestCurrentYearContext.startDatetime:
+                currentYearContext.endDatetime > earliestCurrentYearContext.startDatetime:  # type: ignore[operator]
             earliestCurrentYearContext = currentYearContext
     if earliestCurrentYearContext is None:
         return
-    if latestPriorYearContext.endDatetime > earliestCurrentYearContext.startDatetime:
+    if latestPriorYearContext.endDatetime > earliestCurrentYearContext.startDatetime:  # type: ignore[operator]
         yield Validation.warning(
             codes='EDINET.EC8033W',
             msg=_("The startDate element of the current year context (id=%(currentYearContextId)s) is "
@@ -532,7 +532,7 @@ def rule_EC8060E(
                 continue
             explicitValue = dimensionValue.xValue
             dimensionQname = dimensionValue.dimensionQname
-            defaultValue = val.modelXbrl.qnameDimensionDefaults.get(dimensionQname)
+            defaultValue = val.modelXbrl.qnameDimensionDefaults.get(dimensionQname)  # type: ignore[arg-type]
             if explicitValue == defaultValue:
                 yield Validation.build(
                     level=level,

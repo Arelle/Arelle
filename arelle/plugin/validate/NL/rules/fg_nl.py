@@ -186,16 +186,16 @@ def rule_fg_nl_05(
         for context in contextsByDocument.get(doc.filepath, []):
             for dimension in context.qnameDims.values():
                 dimensionQname = dimension.dimensionQname
-                usedPrefixes.add(dimensionQname.prefix)
+                usedPrefixes.add(dimensionQname.prefix)  # type: ignore[union-attr]
                 if dimension.isExplicit:
                     memberQname = dimension.memberQname
                 else:
-                    memberQname = dimension.typedMember.qname
+                    memberQname = dimension.typedMember.qname  # type: ignore[union-attr]
                 if memberQname:
                     usedPrefixes.add(memberQname.prefix)
         for fact in factsByDocument.get(doc.filepath, []):
             concept = fact.concept
-            if concept.typeQname in qnEnumerationItemTypes:
+            if concept.typeQname in qnEnumerationItemTypes:  # type: ignore[operator,union-attr]
                 enumQname = getattr(fact, "xValue", None) or qnameEltPfxName(fact, fact.value)
                 if enumQname:
                     usedPrefixes.add(enumQname.prefix)

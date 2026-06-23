@@ -966,7 +966,7 @@ def tzinfo(tz: str | None) -> datetime.timezone | None:
         return datetime.timezone(datetime.timedelta(hours=int(tz[0:3]), minutes=int(tz[4:6])))
 
 def datetimeValue(
-    element: ModelObject,
+    element: str | ModelObject | None,
     addOneDay: bool = False,
     none: str | None = None,
     subtractOneDay: bool = False,
@@ -1033,7 +1033,7 @@ def datetimeValue(
     return result
 
 def dateunionValue(
-    datetimeValue: Any,
+    datetimeValue: datetime.datetime | datetime.date | None,
     subtractOneDay: bool = False,
     dateOnlyHour: int | None = None
 ) -> str:

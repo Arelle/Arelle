@@ -262,12 +262,12 @@ def rule_nl_kvk_3_1_4_2 (
     registrationNumberFacts = val.modelXbrl.factsByQname.get(pluginData.chamberOfCommerceRegistrationNumberQn, set())
     if len(registrationNumberFacts) > 0:
         regFact = next(iter(registrationNumberFacts))
-        if regFact.xValid >= VALID and regFact.xValue != regFact.context.entityIdentifier[1]:
+        if regFact.xValid >= VALID and regFact.xValue != regFact.context.entityIdentifier[1]:  # type: ignore[union-attr]
             yield Validation.error(
                 codes='NL.NL-KVK-RTS_Annex_IV_Par_1_G3-1-4_2.nonIdenticalIdentifier',
                 msg=_("xbrli:identifier value must be identical to bw2-titel9:ChamberOfCommerceRegistrationNumber fact value.").format(
                     regFact.xValue,
-                    regFact.context.entityIdentifier[1]
+                    regFact.context.entityIdentifier[1]  # type: ignore[union-attr]
                 ),
                 modelObject=regFact
             )
@@ -409,14 +409,14 @@ def rule_nl_kvk_3_2_7_1 (
         msg = _('Ensure that any block-tagged facts of type textBlockItemType are assigned @escape="true", '
                 'while other data types (e.g., xbrli:stringItemType) are assigned @escape="false".')
         for fact in facts:
-            if fact.isEscaped != fact.concept.isTextBlock:
+            if fact.isEscaped != fact.concept.isTextBlock:  # type: ignore[union-attr]
                 improperlyEscapedFacts.append(fact)
     else:
         msg = _('Ensure that any block-tagged facts of type textBlockItemType or facts '
                 'containing special characters like \'&\' or \'<\' are assigned @escape="true".')
         for fact in facts:
             if not fact.isEscaped and (
-                fact.concept.isTextBlock or
+                fact.concept.isTextBlock or  # type: ignore[union-attr]
                 (fact.text and escapeWorthyStr.match(fact.text)) # Has special characters
             ):
                 improperlyEscapedFacts.append(fact)
@@ -1035,7 +1035,7 @@ def rule_nl_kvk_3_6_3_6(
     # Include contexts used on filing information facts, even if they're not defined in the filing information document.
     filingInformationFacts = pluginData.getFilingInformationFacts(val.modelXbrl)
     for fact in filingInformationFacts:
-        context = fact.context
+        context = fact.context  # type: ignore[assignment]
         if context.hasScenario or context.hasSegment:
             dimensionalContexts.add(context)
         else:
@@ -1119,7 +1119,7 @@ def rule_nl_kvk_prohibited_dimension_use(
     invalidDimensionUseFacts = []
     for qname in nonDimensionalLineItems:
         for fact in val.modelXbrl.factsByQname.get(qname, set()):
-            if fact.context.hasScenario or fact.context.hasSegment:
+            if fact.context.hasScenario or fact.context.hasSegment:  # type: ignore[union-attr]
                 invalidDimensionUseFacts.append(fact)
     if invalidDimensionUseFacts:
         yield Validation.error(
@@ -1827,7 +1827,7 @@ def rule_nl_kvk_4_4_2_5(
 
     errors = set()
     for fact in val.modelXbrl.facts:
-        if (context := fact.context) is None:
+        if (context := fact.context) is None:  # type: ignore[assignment]
             continue
         if (requiredRole := contextRequiredRoles.get(context.id)) is None:
             # Fact's context does not have a required role based on its dimensions.

@@ -280,7 +280,7 @@ class PluginValidationDataExtension(PluginData):
         for context in modelXbrl.contextsInUse:
             for dim in context.scenDimValues.values():
                 if dim.isExplicit:
-                    usedConcepts.update([dim.dimension, dim.member])
+                    usedConcepts.update([dim.dimension, dim.member])  # type: ignore[list-item]
         return usedConcepts
 
     def getBalanceSheets(self, modelXbrl: ModelXbrl, statement: Statement) -> list[BalanceSheet]:
@@ -323,9 +323,9 @@ class PluginValidationDataExtension(PluginData):
                     value = Decimal(fact.xValue)
                 else:
                     value = cast(Decimal, fact.xValue)
-                if fact.concept.balance == "debit":
+                if fact.concept.balance == "debit":  # type: ignore[union-attr]
                     debitSum += value
-                elif fact.concept.balance == "credit":
+                elif fact.concept.balance == "credit":  # type: ignore[union-attr]
                     creditSum += value
             balanceSheets.append(
                 BalanceSheet(

@@ -331,9 +331,9 @@ def rule_fr35(
         facts = modelXbrl.factsByQname.get(concept_qn, set())
         for fact in facts:
             if isValidNonNilFact(fact):
-                if not fact.context.scenDimValues:
+                if not fact.context.scenDimValues:  # type: ignore[union-attr]
                     noDimensionFacts.add(fact)
-                if pluginData.consolidatedSoloDimensionQn in [dim.qname for dim in fact.context.scenDimValues.keys()]:
+                if pluginData.consolidatedSoloDimensionQn in [dim.qname for dim in fact.context.scenDimValues.keys()]:  # type: ignore[union-attr]
                     consolidatedDimensionFacts.add(fact)
     if not checkConsolidated and len(noDimensionFacts) == 0:
         yield Validation.error(
@@ -704,22 +704,22 @@ def rule_fr57(
                         currentEndDateFact = fact
                 if currentEndDateFact is not None and currentStartDateFact is not None:
                     for asset in assetsFacts:
-                        if asset.context.endDatetime - datetime.timedelta(days=1) == currentEndDateFact.xValue:
+                        if asset.context.endDatetime - datetime.timedelta(days=1) == currentEndDateFact.xValue: # type: ignore[operator,union-attr]
                             foundCurrentAssets = asset
                             if cast(int, asset.xValue) < 0:
                                     negativeAssetFacts.append(asset)
                     for liabilitiesAndEquity in liabilitiesAndEquityFacts:
-                        if liabilitiesAndEquity.context.endDatetime - datetime.timedelta(days=1) == currentEndDateFact.xValue:
+                        if liabilitiesAndEquity.context.endDatetime - datetime.timedelta(days=1) == currentEndDateFact.xValue: # type: ignore[operator,union-attr]
                             foundCurrentLiabilitiesAndEquity = liabilitiesAndEquity
                             if cast(int, liabilitiesAndEquity.xValue) < 0:
                                 negativeLiabilitiesAndEquityFacts.append(liabilitiesAndEquity)
                     foundCurrentEquity = any(
-                        equity.context.endDatetime - datetime.timedelta(days=1) == currentEndDateFact.xValue
+                        equity.context.endDatetime - datetime.timedelta(days=1) == currentEndDateFact.xValue # type: ignore[operator,union-attr]
                         for equity in equityFacts
                     )
                     foundCurrentProfitLoss = any(
-                        profitLoss.context.startDatetime == currentStartDateFact.xValue and
-                        profitLoss.context.endDatetime - datetime.timedelta(days=1) == currentEndDateFact.xValue
+                        profitLoss.context.startDatetime == currentStartDateFact.xValue and  # type: ignore[union-attr]
+                        profitLoss.context.endDatetime - datetime.timedelta(days=1) == currentEndDateFact.xValue # type: ignore[operator,union-attr]
                         for profitLoss in profitLossFacts
                     )
                     if foundCurrentAssets is not None and foundCurrentLiabilitiesAndEquity is not None:
@@ -743,22 +743,22 @@ def rule_fr57(
                             precedingEndDateFact = fact
                     if precedingStartDateFact is not None and precedingEndDateFact is not None:
                         for asset in assetsFacts:
-                            if asset.context.endDatetime - datetime.timedelta(days=1) == precedingEndDateFact.xValue:
+                            if asset.context.endDatetime - datetime.timedelta(days=1) == precedingEndDateFact.xValue: # type: ignore[operator,union-attr]
                                 foundPreviousAssets = asset
                                 if cast(int, asset.xValue) < 0:
                                     negativeAssetFacts.append(asset)
                         for liabilitiesAndEquity in liabilitiesAndEquityFacts:
-                            if liabilitiesAndEquity.context.endDatetime - datetime.timedelta(days=1) == precedingEndDateFact.xValue:
+                            if liabilitiesAndEquity.context.endDatetime - datetime.timedelta(days=1) == precedingEndDateFact.xValue: # type: ignore[operator,union-attr]
                                 foundPreviousLiabilitiesAndEquity = liabilitiesAndEquity
                                 if cast(int, liabilitiesAndEquity.xValue) < 0:
                                     negativeLiabilitiesAndEquityFacts.append(liabilitiesAndEquity)
                         foundPreviousEquity = any(
-                            equity.context.endDatetime - datetime.timedelta(days=1) == precedingEndDateFact.xValue
+                            equity.context.endDatetime - datetime.timedelta(days=1) == precedingEndDateFact.xValue # type: ignore[operator,union-attr]
                             for equity in equityFacts
                         )
                         foundPreviousProfitLoss = any(
-                            profitLoss.context.startDatetime == precedingStartDateFact.xValue and
-                            profitLoss.context.endDatetime - datetime.timedelta(days=1) == precedingEndDateFact.xValue
+                            profitLoss.context.startDatetime == precedingStartDateFact.xValue and  # type: ignore[union-attr]
+                            profitLoss.context.endDatetime - datetime.timedelta(days=1) == precedingEndDateFact.xValue # type: ignore[operator,union-attr]
                             for profitLoss in profitLossFacts
                         )
                         if foundPreviousAssets is None:
@@ -901,9 +901,9 @@ def rule_fr59(
     consolidatedDescriptionFacts = []
     descriptionFacts = modelXbrl.factsByQname.get(pluginData.descriptionOfQualificationsOfAuditedFinancialStatementsQn, set())
     for dFact in descriptionFacts:
-        if not dFact.context.scenDimValues:
+        if not dFact.context.scenDimValues:  # type: ignore[union-attr]
             noDimensionDescriptionFacts.append(dFact)
-        if pluginData.consolidatedSoloDimensionQn in [dim.qname for dim in dFact.context.scenDimValues.keys()]:
+        if pluginData.consolidatedSoloDimensionQn in [dim.qname for dim in dFact.context.scenDimValues.keys()]:  # type: ignore[union-attr]
             consolidatedDescriptionFacts.append(dFact)
     checkConsolidated = consolidatedDimensionExists(modelXbrl, pluginData.consolidatedSoloDimensionQn)
     noDimensionIndicatorFacts = []
@@ -911,9 +911,9 @@ def rule_fr59(
     auditorFacts = modelXbrl.factsByQname.get(pluginData.typeOfAuditorAssistanceQn, set())
     for aFact in auditorFacts:
         if aFact.xValid >= VALID and aFact.xValue in validAuditorFactValues:
-            if not aFact.context.scenDimValues:
+            if not aFact.context.scenDimValues:  # type: ignore[union-attr]
                 noDimensionIndicatorFacts.append(aFact)
-            if pluginData.consolidatedSoloDimensionQn in [dim.qname for dim in aFact.context.scenDimValues.keys()]:
+            if pluginData.consolidatedSoloDimensionQn in [dim.qname for dim in aFact.context.scenDimValues.keys()]:  # type: ignore[union-attr]
                 consolidatedIndicatorFacts.append(aFact)
     if not checkConsolidated and len(noDimensionIndicatorFacts) > 0 and len(noDimensionDescriptionFacts) == 0:
         yield Validation.error(
@@ -1109,13 +1109,13 @@ def rule_fr74(
         for fact in facts:
             if fact.unit is None:
                 continue
-            if fact.qname == pluginData.equityQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:
+            if fact.qname == pluginData.equityQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:  # type: ignore[union-attr]
                 equityFact = fact
-            elif fact.qname == pluginData.liabilitiesQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:
+            elif fact.qname == pluginData.liabilitiesQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:  # type: ignore[union-attr]
                 liabilityFact = fact
-            elif fact.qname == pluginData.provisionsQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:
+            elif fact.qname == pluginData.provisionsQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:  # type: ignore[union-attr]
                 provisionFact = fact
-            elif fact.qname == pluginData.liabilitiesOtherThanProvisionsQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:
+            elif fact.qname == pluginData.liabilitiesOtherThanProvisionsQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:  # type: ignore[union-attr]
                 liabilityOtherFact = fact
         if equityFact is not None and liabilityFact is not None and provisionFact is not None and equityFact.xValid >= VALID and liabilityFact.xValid >= VALID and provisionFact.xValid >= VALID:
             if not cast(decimal.Decimal, liabilityFact.xValue) - cast(decimal.Decimal, equityFact.xValue) >= cast(decimal.Decimal, provisionFact.xValue) - ROUNDING_MARGIN:
@@ -1163,9 +1163,9 @@ def rule_fr75(
         for fact in facts:
             if fact.unit is None:
                 continue
-            if fact.qname == pluginData.employeeBenefitsExpenseQn and fact.unit.id.upper() == DANISH_CURRENCY_ID and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) >= PERSONNEL_EXPENSE_THRESHOLD:
+            if fact.qname == pluginData.employeeBenefitsExpenseQn and fact.unit.id.upper() == DANISH_CURRENCY_ID and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) >= PERSONNEL_EXPENSE_THRESHOLD:  # type: ignore[union-attr]
                 benefitsFact = fact
-            elif fact.qname == pluginData.wagesAndSalariesQn and fact.unit.id.upper() == DANISH_CURRENCY_ID and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) >= PERSONNEL_EXPENSE_THRESHOLD:
+            elif fact.qname == pluginData.wagesAndSalariesQn and fact.unit.id.upper() == DANISH_CURRENCY_ID and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) >= PERSONNEL_EXPENSE_THRESHOLD:  # type: ignore[union-attr]
                 wagesFact = fact
             elif fact.qname == pluginData.averageNumberOfEmployeesQn and fact.xValid >= VALID and cast(decimal.Decimal, fact.xValue) > 0:
                 employeesFact = fact
@@ -1201,13 +1201,13 @@ def rule_fr77(
         for fact in facts:
             if fact.unit is None:
                 continue
-            if fact.qname == pluginData.equityQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:
+            if fact.qname == pluginData.equityQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:  # type: ignore[union-attr]
                 equityFact = fact
-            elif fact.qname == pluginData.liabilitiesQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:
+            elif fact.qname == pluginData.liabilitiesQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:  # type: ignore[union-attr]
                 liabilityFact = fact
-            elif fact.qname == pluginData.longtermLiabilitiesOtherThanProvisionsQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:
+            elif fact.qname == pluginData.longtermLiabilitiesOtherThanProvisionsQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:  # type: ignore[union-attr]
                 longLiabilityFact = fact
-            elif fact.qname == pluginData.shorttermLiabilitiesOtherThanProvisionsQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:
+            elif fact.qname == pluginData.shorttermLiabilitiesOtherThanProvisionsQn and fact.unit.id.upper() == DANISH_CURRENCY_ID:  # type: ignore[union-attr]
                 shortLiabilityFact = fact
         if equityFact is not None and liabilityFact is not None and longLiabilityFact is not None and equityFact.xValid >= VALID and liabilityFact.xValid >= VALID and longLiabilityFact.xValid >= VALID:
             if not cast(decimal.Decimal, liabilityFact.xValue) - cast(decimal.Decimal, equityFact.xValue) >= cast(decimal.Decimal, longLiabilityFact.xValue) - ROUNDING_MARGIN:
@@ -1773,7 +1773,7 @@ def rule_fr118(
                 if not otherRenderingFact.isNumeric:
                     # Validated by FR117
                     continue
-                otherRenderingFactsMap[(otherRenderingFact.qname, otherRenderingFact.unitID)].add(otherRenderingFact)
+                otherRenderingFactsMap[(otherRenderingFact.qname, otherRenderingFact.unitID)].add(otherRenderingFact)  # type: ignore[index]
 
             # Iterate over each "reported value" context, matched by a key that indicates that are effectively
             # duplicate contexts except for the "other rendering" dimension member

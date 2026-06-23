@@ -157,7 +157,7 @@ class DuplicateFactSet:
         """
         :return: Whether the duplicate set consists of numeric facts.
         """
-        return cast(bool, self.facts[0].isNumeric)
+        return self.facts[0].isNumeric
 
     @cached_property
     def areWithinRoundingError(self) -> bool:
@@ -360,8 +360,8 @@ def getAspectEqualFacts(
             (
                 fact.qname,
                 (
-                    cast(str, fact.xmlLang or "").lower()
-                    if useLang and fact.concept.type.isOimTextFactType
+                    (fact.xmlLang or "").lower()
+                    if useLang and fact.concept.type.isOimTextFactType  # type: ignore[union-attr]
                     else None
                 ),
             )
@@ -382,7 +382,7 @@ def getAspectEqualFacts(
             contextUnitFacts.append(fact)
             break
         if not _matched:
-            contextUnitDict[(fact.context, fact.unit)] = [fact]
+            contextUnitDict[(fact.context, fact.unit)] = [fact]  # type: ignore[index]
     for contextUnitDict in aspectEqualFacts.values():  # dups by qname, lang
         for (
             duplicateFacts
@@ -415,7 +415,7 @@ def getDeduplicatedFacts(
                     "Deduplication of %(concept)s fact set not possible: %(message)s. concept=%(concept)s, context=%(context)s"
                 ),
                 modelObject=facts[0],
-                concept=facts[0].concept.qname,
+                concept=facts[0].concept.qname,  # type: ignore[union-attr]
                 context=facts[0].contextID,
                 message=message,
             )
@@ -466,7 +466,7 @@ def getFactValueEqualityKey(fact: ModelFact) -> TypeFactValueEqualityKey:
     if fact.isNumeric:
         if _isNanOrNone(xValue):
             return FactValueEqualityType.DEFAULT, (float("nan"),)
-    if fact.concept.isLanguage:
+    if fact.concept.isLanguage:  # type: ignore[union-attr]
         return FactValueEqualityType.LANGUAGE, (
             cast(str, xValue).lower(),
         )

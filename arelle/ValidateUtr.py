@@ -171,7 +171,7 @@ class ValidateUtr:
                                 False, unit.measures[0], unit.measures[1], _type.name, _type.modelDocument.targetNamespace)
                             if typeMatched:
                                 break
-                            _type = _type.typeDerivedFrom
+                            _type = _type.typeDerivedFrom  # type: ignore[assignment]
                             if isinstance(_type,list): # union type
                                 _type = _type[0] # for now take first of union's types
                     if typeMatched and not unitMatched:
@@ -180,7 +180,7 @@ class ValidateUtr:
                 modelXbrl.log(self.messageLevel,
                               self.messageCode,
                               _("Unit %(unitID)s disallowed on fact %(element)s of type %(typeName)s"),
-                              modelObject=fact, unitID=fact.unitID, element=fact.qname, typeName=fact.concept.type.name,
+                              modelObject=fact, unitID=fact.unitID, element=fact.qname, typeName=fact.concept.type.name,  # type: ignore[union-attr]
                               messageCodes=("utre:error-NumericFactUtrInvalid",))
 
 
