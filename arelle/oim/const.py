@@ -43,13 +43,19 @@ UNIT_PATTERN = regex.compile(
 
 XBRLCE_INVALID_IDENTIFIER = "xbrlce:invalidIdentifier"
 
-PER_ISO_PATTERN = regex.compile(
-    "([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(Z|[+-][0-2][0-9]([:]?)[0-5][0-9]+)?(/[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2})?(Z|[+-][0-2][0-9]([:]?)[0-5][0-9]+)?)$"
-)
-PER_INCLUSIVE_DATES_PATTERN = regex.compile("([0-9]{4}-[0-9]{2}-[0-9]{2})[.][.]([0-9]{4}-[0-9]{2}-[0-9]{2})$")
-PER_SINGLE_DAY_PATTERN = regex.compile("([0-9]{4}-[0-9]{2}-[0-9]{2})(@(start|end))?$")
-PER_MONTH_PATTERN = regex.compile("([0-9]{4}-[0-9]{2})(@(start|end))?$")
-PER_YEAR_PATTERN = regex.compile("([0-9]{4})(@(start|end))?$")
-PER_QTR_PATTERN = regex.compile("([0-9]{4})Q([1-4])(@(start|end))?$")
-PER_HALF_PATTERN = regex.compile("([0-9]{4})H([1-2])(@(start|end))?$")
-PER_WEEK_PATTERN = regex.compile("([0-9]{4}W[1-5]?[0-9])(@(start|end))?$")
+_YEAR = r"[0-9]{4}"
+_DATE = rf"{_YEAR}-[0-9]{{2}}-[0-9]{{2}}"
+_TIME = r"[0-9]{2}:[0-9]{2}:[0-9]{2}"
+_TZ = r"(?:Z|[+-][0-2][0-9]:?[0-5][0-9])"
+_DATETIME = rf"{_DATE}T{_TIME}(?:{_TZ})?"
+_SUFFIX = r"@(?P<suffix>start|end)"
+
+PER_TZ_PATTERN = regex.compile(rf"(?:{_TZ})$")
+PER_ISO_PATTERN = regex.compile(rf"(?P<start>{_DATETIME})(?:/(?P<end>{_DATETIME}))?$")
+PER_INCLUSIVE_DATES_PATTERN = regex.compile(rf"(?P<start>{_DATE})\.\.(?P<end>{_DATE})$")
+PER_SINGLE_DAY_PATTERN = regex.compile(rf"(?P<date>{_DATE})(?:{_SUFFIX})?$")
+PER_MONTH_PATTERN = regex.compile(rf"(?P<year>{_YEAR})-(?P<month>[0-9]{{2}})(?:{_SUFFIX})?$")
+PER_YEAR_PATTERN = regex.compile(rf"(?P<year>{_YEAR})(?:{_SUFFIX})?$")
+PER_QTR_PATTERN = regex.compile(rf"(?P<year>{_YEAR})Q(?P<quarter>[1-4])(?:{_SUFFIX})?$")
+PER_HALF_PATTERN = regex.compile(rf"(?P<year>{_YEAR})H(?P<half>[12])(?:{_SUFFIX})?$")
+PER_WEEK_PATTERN = regex.compile(rf"(?P<year>{_YEAR})W(?P<week>[0-9]{{2}})(?:{_SUFFIX})?$")

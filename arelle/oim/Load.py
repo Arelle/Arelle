@@ -548,41 +548,33 @@ def csvPeriod(cellValue, startOrEnd=None):
         if m:
             try:
                 if perType == PER_ISO:
-                    if not m.group(4) and startOrEnd: # instant date
+                    if m.group("end") is None and startOrEnd: # instant date
                         return "referenceTargetNotDuration"
                     isoDuration = cellValue
-                    startendSuffixGroup = 0
                 elif perType == PER_INCLUSIVE_DATES:
-                    isoDuration = "{}/{}".format(dateTime(m.group(1)), dateTime(m.group(2)) + ONE_DAY)
-                    startendSuffixGroup = 0
+                    isoDuration = "{}/{}".format(dateTime(m.group("start")), dateTime(m.group("end")) + ONE_DAY)
                 elif perType == PER_SINGLE_DAY:
-                    isoDuration = "{}/{}".format(dateTime(m.group(1)), dateTime(m.group(1)) + ONE_DAY)
-                    startendSuffixGroup = 3
+                    isoDuration = "{}/{}".format(dateTime(m.group("date")), dateTime(m.group("date")) + ONE_DAY)
                 elif perType == PER_MONTH:
-                    moStart = dateTime(m.group(1) + "-01")
+                    moStart = dateTime(m.group("year") + "-" + m.group("month") + "-01")
                     isoDuration = "{}/{}".format(moStart, moStart + ONE_MONTH)
-                    startendSuffixGroup = 3
                 elif perType == PER_YEAR:
-                    yrStart = dateTime(m.group(1) + "-01-01")
+                    yrStart = dateTime(m.group("year") + "-01-01")
                     isoDuration = "{}/{}".format(yrStart, yrStart + ONE_YEAR)
-                    startendSuffixGroup = 3
                 elif perType == PER_QTR:
-                    qtrStart = dateTime(m.group(1) + "-{:02}-01".format(int(m.group(2))*3 - 2))
+                    qtrStart = dateTime(m.group("year") + "-{:02}-01".format(int(m.group("quarter"))*3 - 2))
                     isoDuration = "{}/{}".format(qtrStart, qtrStart + ONE_QTR)
-                    startendSuffixGroup = 4
                 elif perType == PER_HALF:
-                    qtrStart = dateTime(m.group(1) + "-{:02}-01".format(int(m.group(2))*6 - 5))
-                    isoDuration = "{}/{}".format(qtrStart, qtrStart + ONE_HALF)
-                    startendSuffixGroup = 4
+                    halfStart = dateTime(m.group("year") + "-{:02}-01".format(int(m.group("half"))*6 - 5))
+                    isoDuration = "{}/{}".format(halfStart, halfStart + ONE_HALF)
                 elif perType == PER_WEEK:
-                    weekStart = dateTime(isodate.parse_date(m.group(1)))
+                    weekStart = dateTime(isodate.parse_date(m.group("year") + "W" + m.group("week")))
                     isoDuration = "{}T00:00:00/{}T00:00:00".format(weekStart, weekStart + datetime.timedelta(7))
-                    startendSuffixGroup = 3
-                if startendSuffixGroup and m.group(startendSuffixGroup):
+                if perType != PER_ISO and perType != PER_INCLUSIVE_DATES and m.group("suffix"):
                     if startOrEnd:
                         # period specifier is being applied to an instant date
                         return "referenceTargetNotDuration"
-                    startOrEnd = m.group(startendSuffixGroup)
+                    startOrEnd = m.group("suffix")
             except ValueError:
                 return None
         if isoDuration:
