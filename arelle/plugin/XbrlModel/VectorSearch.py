@@ -332,48 +332,100 @@ def buildXbrlVectors(
                  _("Using %(device)s.  Vectorized vocabulary size %(vocabSize)s."),
                  device=DEVICE_DESCRIPTION.get(device.type, "unrecognized device"), vocabSize=vocabSize)
 
-    txmyMdl._xbrlEmbedder = embedder = XBRLEmbedder(vocabSize, embedDim, device=device)
+    try:
+        txmyMdl._xbrlEmbedder = embedder = XBRLEmbedder(vocabSize, embedDim, device=device)
 
-    # --------- cube dimension vectors ----------
-    cubeVecsList: List[torch.Tensor] = []
-    cubeObjsList: List[int] = []
+        # --------- cube dimension vectors ----------
+        cubeVecsList: List[torch.Tensor] = []
+        cubeObjsList: List[int] = []
 
-    # cube dimensions:
-    for c, tokens in cubeTokens:
-        v = embedder.combine(tokens)
-        cubeObjsList.append(c)
-        cubeVecsList.append(v)
+        # cube dimensions:
+        for c, tokens in cubeTokens:
+            v = embedder.combine(tokens)
+            cubeObjsList.append(c)
+            cubeVecsList.append(v)
 
-    cubeVecs = None
-    if cubeVecsList:
-        cubeVecs = torch.stack(cubeVecsList, dim=0)  # (N_tax, D)
-        cubeVecs = l2NormalizeRows(cubeVecs)   # normalization on device
+        cubeVecs = None
+        if cubeVecsList:
+            cubeVecs = torch.stack(cubeVecsList, dim=0)  # (N_tax, D)
+            cubeVecs = l2NormalizeRows(cubeVecs)   # normalization on device
 
-    # --------- fact dimension vectors ----------
-    factVecsList: List[torch.Tensor] = []
-    factObjsList: List[int] = []
+        # --------- fact dimension vectors ----------
+        factVecsList: List[torch.Tensor] = []
+        factObjsList: List[int] = []
 
-    # from facts
-    for f, tokens in factTokens:
-        v = embedder.combine(tokens)
-        factObjsList.append(f)
-        factVecsList.append(v)
+        # from facts
+        for f, tokens in factTokens:
+            v = embedder.combine(tokens)
+            factObjsList.append(f)
+            factVecsList.append(v)
 
-    factVecs = None
-    if factVecsList:
-        factVecs = torch.stack(factVecsList, dim=0)     # (N_fact, D)
-        factVecs = l2NormalizeRows(factVecs)           # normalization on device
+        factVecs = None
+        if factVecsList:
+            factVecs = torch.stack(factVecsList, dim=0)     # (N_fact, D)
+            factVecs = l2NormalizeRows(factVecs)           # normalization on device
 
-    txmyMdl._xbrlVectorStore = store = XBRLVectorStore(
-        device=device,
-        embedDim=embedDim,
-        cubeVecs=cubeVecs,
-        factVecs=factVecs,
-        cubeObjsList=cubeObjsList,
-        factObjsList=factObjsList,
-        valueTokensOffset=valueTokensOffset,
-        valueTokens=valueTokens
-    )
+        txmyMdl._xbrlVectorStore = store = XBRLVectorStore(
+            device=device,
+            embedDim=embedDim,
+            cubeVecs=cubeVecs,
+            factVecs=factVecs,
+            cubeObjsList=cubeObjsList,
+            factObjsList=factObjsList,
+            valueTokensOffset=valueTokensOffset,
+            valueTokens=valueTokens
+        )
+    except torch.cuda.OutOfMemoryError:
+        # vGPU or GPU memory exhausted; fall back to CPU
+        if device.type != "cpu":
+            device = torch.device("cpu")
+            txmyMdl.info(
+                "arelle:oimModelVectorSearchOOMFallback",
+                _("GPU out of memory for vector search; falling back to CPU. This will be slower."),
+            )
+            # Rebuild embedder and vectors on CPU
+            txmyMdl._xbrlEmbedder = embedder = XBRLEmbedder(vocabSize, embedDim, device=device)
+
+            cubeVecsList = []
+            cubeObjsList = []
+            for c, tokens in cubeTokens:
+                v = embedder.combine(tokens)
+                cubeObjsList.append(c)
+                cubeVecsList.append(v)
+
+            cubeVecs = None
+            if cubeVecsList:
+                cubeVecs = torch.stack(cubeVecsList, dim=0)
+                cubeVecs = l2NormalizeRows(cubeVecs)
+
+            factVecsList = []
+            factObjsList = []
+            for f, tokens in factTokens:
+                v = embedder.combine(tokens)
+                factObjsList.append(f)
+                factVecsList.append(v)
+
+            factVecs = None
+            if factVecsList:
+                factVecs = torch.stack(factVecsList, dim=0)
+                factVecs = l2NormalizeRows(factVecs)
+
+            txmyMdl._xbrlVectorStore = store = XBRLVectorStore(
+                device=device,
+                embedDim=embedDim,
+                cubeVecs=cubeVecs,
+                factVecs=factVecs,
+                cubeObjsList=cubeObjsList,
+                factObjsList=factObjsList,
+                valueTokensOffset=valueTokensOffset,
+                valueTokens=valueTokens
+            )
+        else:
+            # Already on CPU; OOM means model is too large
+            txmyMdl.error(
+                "arelle:oimModelVectorSearchFailure",
+                _("Vector search initialization failed (out of memory even on CPU); skipping vector search."),
+            )
 
 # --------------------------------------------------------------------
 # Query aspect encoder
