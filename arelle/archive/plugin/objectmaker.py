@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 '''
+See COPYRIGHT.md for copyright information.
+
 objectmaker.py is a plug-in that will draw diagrams from linkbases
 
 ObjectMaker(r) is a registered trademark of Workiva, Inc.
 
 This product uses graphviz, which must be installed separately on the platform.
-
-See COPYRIGHT.md for copyright information.
 '''
 import os, io, time
 from tkinter import Menu

@@ -1,4 +1,7 @@
 '''
+See COPYRIGHT.md for copyright information.
+(Does not apply to the XBRL US Database schema and description.)
+
 XbrlSemanticJsonDB.py implements an JSON database interface for Arelle, based
 on a concrete realization of the Abstract Model PWD 2.0 layer.  This is a semantic
 representation of XBRL information.
@@ -16,9 +19,6 @@ Example dialog or command line parameters for operation:
     user, password:  if needed for server
     database:  the top level path segment for the JSON Server or disk file path if jsonFile
     timeout:
-
-
-See COPYRIGHT.md for copyright information.
 
 to do:
 

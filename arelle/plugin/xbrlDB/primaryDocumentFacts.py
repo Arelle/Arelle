@@ -1,5 +1,6 @@
 '''
 See COPYRIGHT.md for copyright information.
+(Does not apply to the XBRL US Database schema and description.)
 
 Represents modelFacts in an (SEC) filing primary document
 '''

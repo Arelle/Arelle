@@ -1,5 +1,5 @@
 """
-See COPYRIGHT.md Optional[for]copyright information.
+See COPYRIGHT.md for copyright information.
 """
 
 from typing import TYPE_CHECKING, Optional

@@ -1,3 +1,6 @@
+"""
+See COPYRIGHT.md for copyright information.
+"""
 from types import MappingProxyType
 
 DISCLOSURE_SYSTEM_2025 = 'EDINET-2025'

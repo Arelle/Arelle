@@ -1,8 +1,8 @@
 '''
-china.py implements an OpenSql database extension for CAS (MOF) and SASAC extensions
-
 See COPYRIGHT.md for copyright information.
+(Does not apply to the XBRL US Database schema and description.)
 
+china.py implements an OpenSql database extension for CAS (MOF) and SASAC extensions
 
 to use from command line:
    --plugins xbrlDB/ext/china.py # note this plugin imports xbrlDB plugin

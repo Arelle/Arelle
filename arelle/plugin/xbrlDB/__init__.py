@@ -1,4 +1,7 @@
 '''
+See COPYRIGHT.md for copyright information.
+(Does not apply to the XBRL US Database schema and description.)
+
 xbrlDB is an interface to XBRL databases.
 
 Two implementations are provided:
@@ -6,9 +9,6 @@ Two implementations are provided:
 (1) the XBRL Public Database schema for Postgres, published by XBRL US.
 
 (2) an graph database, based on the XBRL Abstract Model PWD 2.
-
-See COPYRIGHT.md for copyright information.
-(Does not apply to the XBRL US Database schema and description.)
 
 '''
 

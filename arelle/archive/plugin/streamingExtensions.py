@@ -1,12 +1,12 @@
 '''
+See COPYRIGHT.md for copyright information.
+
 StreamingExtensions is a plug-in to both GUI menu and command line/web service
 that provides an alternative approach to big instance documents without building a DOM, to save
 memory footprint.  lxml iterparse is used to parse the big instance.  ModelObjects are specialized by features
 for efficiency and to avoid dependency on an underlying DOM.
 
 (Note that this module is based on iterparse, the module under the installation/plugs is much faster.)
-
-See COPYRIGHT.md for copyright information.
 '''
 
 import io, sys, os, time

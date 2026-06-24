@@ -1,4 +1,6 @@
 '''
+See COPYRIGHT.md for copyright information.
+
 XBRL formula conf suite converter
    from Formula 1.0 to XF
 
@@ -6,9 +8,6 @@ XBRL formula conf suite converter
      --plugin formulaSuiteConverter
      --source-test-suite-dir {directory containing index.xml file for suite)
      --converted-test-suite-dir {directory receiving converted suite)
-
-
-See COPYRIGHT.md for copyright information.
 '''
 from arelle import ModelXbrl, XmlUtil
 from arelle.ModelDocument import Type

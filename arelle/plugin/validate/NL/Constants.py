@@ -1,3 +1,6 @@
+"""
+See COPYRIGHT.md for copyright information.
+"""
 import re
 
 from arelle.FunctionIxt import ixtNamespaces

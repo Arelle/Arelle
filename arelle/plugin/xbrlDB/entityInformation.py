@@ -1,5 +1,6 @@
 '''
 See COPYRIGHT.md for copyright information.
+(Does not apply to the XBRL US Database schema and description.)
 
 Provides entity information for an (SEC) filing including supplemental SGML document
 

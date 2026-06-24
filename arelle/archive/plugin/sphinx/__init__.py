@@ -1,4 +1,10 @@
 '''
+See COPYRIGHT.md for copyright information.
+Sphinx is a Rules Language for XBRL described by a Sphinx 2 Primer
+(c) Copyright 2012 CoreFiling, Oxford UK.
+Sphinx copyright applies to the Sphinx language, not to this software.
+Workiva, Inc. conveys neither rights nor license for the Sphinx language.
+
 sphinx is an example of a package plug-in to both GUI menu and command line/web service
 that compiles a Sphinx Rules file into an XBRL Formula Linkbase either to be saved or to
 be directly executed by Arelle XBRL Formula processing.
@@ -6,13 +12,6 @@ be directly executed by Arelle XBRL Formula processing.
 This plug-in is a python package, and can be loaded by referencing the containing
 directory (usually, "sphinx"), and selecting this "__init__.py" file within the sphinx
 directory (such as in a file chooser).
-
-See COPYRIGHT.md for copyright information.
-
-Sphinx is a Rules Language for XBRL described by a Sphinx 2 Primer
-(c) Copyright 2012 CoreFiling, Oxford UK.
-Sphinx copyright applies to the Sphinx language, not to this software.
-Workiva, Inc. conveys neither rights nor license for the Sphinx language.
 '''
 
 import time, os, io, sys

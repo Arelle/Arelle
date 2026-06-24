@@ -1,4 +1,7 @@
 '''
+See COPYRIGHT.md for copyright information.
+(Does not apply to the XBRL US Database schema and description.)
+
 XbrlPublicPostgresDB.py implements a relational database interface for Arelle, based
 on the XBRL US Public Database.  The database schema is described by "XBRL US Public Database",
 published by XBRL US, 2011.  This is a syntactic representation of XBRL information.
@@ -7,7 +10,6 @@ This module provides the execution context for saving a dts and assession in
 XBRL Public Database Tables.  It may be loaded by Arelle'sRSS feed, or by individual
 DTS and instances opened by interactive or command line/web service mode.
 
-See COPYRIGHT.md for copyright information.
 (Does not apply to the XBRL US Database schema and description.)
 
 The XBRL US Database schema and description is (c) Copyright XBRL US 2011, The

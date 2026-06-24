@@ -1,4 +1,6 @@
 '''
+See COPYRIGHT.md for copyright information.
+
 EdgarRendererAllReports.py is a supplemental plugin to EDGAR/render
 
 Its purpose is to generate an Rall.htm file of all reports with no menus.
@@ -19,8 +21,6 @@ you also want individual Html R files, reportXslt should be chanted below to Htm
 
 The resources folder must have InstanceReportTable.xslt (which is just InstanceReport.xslt
 modified to not have an instance html header on the table body in xsl:template match="/").
-
-See COPYRIGHT.md for copyright information.
 '''
 import os
 from arelle.Version import authorLabel, copyrightLabel
