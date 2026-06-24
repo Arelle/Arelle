@@ -110,7 +110,7 @@ class ValueConstraintValidator:
     def validate(self, value: str) -> bool:
         if self._effective_lexical_type is None:
             return False
-        typed_value_result = self._validate_base_type(self._effective_lexical_type, value)
+        typed_value_result = self._validate_base_type(self._effective_lexical_type, value, self._facets)
         if not typed_value_result.isXValid:
             return False
         if not self._is_patterns_valid(value):
@@ -144,11 +144,16 @@ class ValueConstraintValidator:
                 return False
         return True
 
-    def _validate_base_type(self, base_xsd_type: QName, value_string: str) -> XmlValidationResult:
+    def _validate_base_type(
+        self,
+        base_xsd_type: QName,
+        value_string: str,
+        facets: Mapping[str, Any] | None = None,
+    ) -> XmlValidationResult:
         return validateValueString(
             base_xsd_type.localName,
             value_string,
-            facets=self._facets,
+            facets=facets,
             nsmap=cast(Mapping[str | None, str], self._namespaces),
         )
 

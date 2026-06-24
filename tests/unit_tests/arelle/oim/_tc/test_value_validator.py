@@ -422,6 +422,10 @@ class TestValidateUnit:
     def test_unit_validation(self, value: str, expected: bool) -> None:
         assert _validator(tc_types.CORE_UNIT, _UNIT_NAMESPACES).validate(value) is expected
 
+    def test_unit_facets_not_applied_to_qname_parts(self) -> None:
+        assert _validator(tc_types.CORE_UNIT, _UNIT_NAMESPACES, length=11).validate("iso4217:USD") is True
+        assert _validator(tc_types.CORE_UNIT, _UNIT_NAMESPACES, length=20).validate("iso4217:USD") is False
+
 
 class TestValidateWithFacets:
     def test_length_valid(self) -> None:
