@@ -41,7 +41,7 @@ class XbrlRelationshipSet:
     def __init__(self):
         self._relationshipsFrom = self._relationshipsTo = self._roots = None
         if hasattr(self, "roots") and len(getattr(self, "roots")) > 1:
-            self._roots = getattr(self, "roots")
+            self._roots = OrderedSet(r.root if hasattr(r, "root") else r for r in self.roots)
 
     @property
     def relationshipsFrom(self):
@@ -65,7 +65,7 @@ class XbrlRelationshipSet:
     def relationshipRoots(self):
         if not hasattr(self, "_roots"):
             if hasattr(self, "roots") and len(getattr(self, "roots")) > 1:
-                self._roots = getattr(self, "roots")
+                self._roots = OrderedSet(r.root if hasattr(r, "root") else r for r in self.roots)
             else:
                 relsFrom = self.relationshipsFrom
                 relsTo = self.relationshipsTo

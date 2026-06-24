@@ -221,7 +221,7 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
 
         objectRoots = getattr(obj, "roots", None)
         if objectRoots:
-            explicitRoots.update(objectRoots)
+            explicitRoots.update(r.root if hasattr(r, "root") else r for r in objectRoots)
         relationships.update(getattr(obj, "relationships", ()) or ())
 
         relationshipsFrom = defaultdict(list)

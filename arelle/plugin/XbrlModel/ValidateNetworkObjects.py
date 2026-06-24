@@ -66,7 +66,8 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
             continue
 
         ntwkCt = {}
-        for rootQn in ntwkObj.roots or ():
+        for rootObj in ntwkObj.roots or ():
+            rootQn = rootObj.root if hasattr(rootObj, "root") else rootObj
             validateQNameReference(compMdl, ntwkObj, "roots", qnRef=rootQn,
                                    undefinedMessage=_("The network %(name)s root %(qname)s must be defined in the taxonomy model."),
                                    errorArgs={"name": ntwkObj.name, "qname": rootQn})
@@ -107,13 +108,13 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
                                        for (relFrom, relTo, prefLbl, ordr), ct in ntwkCt.items() if ct > 1))
         ntwkObj._rootsFound = sources - targets
         if ntwkObj.roots:
-            undeclaredRoots = ntwkObj._rootsFound - ntwkObj.roots
+            undeclaredRoots = ntwkObj._rootsFound - {r.root if hasattr(r, "root") else r for r in ntwkObj.roots}
             if undeclaredRoots:
                 emit_error(compMdl, "oimte:invalidNetworkRoot",
                            _("The network %(name)s network object roots property does not include these undeclared relationship roots: %(undeclaredRoots)s"),
                            xbrlObject=ntwkObj, name=ntwkObj.name,
                            undeclaredRoots=", ".join(sorted(str(r) for r in undeclaredRoots)))
-            rootsAsTargets = ntwkObj.roots & targets
+            rootsAsTargets = {r.root if hasattr(r, "root") else r for r in ntwkObj.roots} & targets
             if rootsAsTargets:
                 emit_error(compMdl, "oimte:networkCyclic",
                            _("The network %(name)s has root(s) %(roots)s appearing as relationship targets."),
