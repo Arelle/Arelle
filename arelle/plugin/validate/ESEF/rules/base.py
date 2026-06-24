@@ -1,3 +1,6 @@
+"""
+See COPYRIGHT.md for copyright information.
+"""
 import re
 from typing import Any
 
@@ -29,6 +32,9 @@ def rule_finally(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
+    Performs final ESEF validation checks after all other validation has completed.
+
+    Skips validation for unconsolidated reports or when ESEF rules are not applicable.
     """
     if not shouldRunEsefValidationRules(val):
         return
@@ -75,6 +81,9 @@ def rule_xbrl_finally(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
+    Dispatches validations to the appropriate year-specific implementation.
+
+    Skips validation when ESEF rules are not applicable.
     """
     if not shouldRunEsefValidationRules(val):
         return
