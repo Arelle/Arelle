@@ -152,6 +152,12 @@ class TestValidateWithFacets:
     def test_fraction_digits_invalid(self) -> None:
         assert _validator(tc_types.DECIMAL, fraction_digits=2).validate("1.234") is False
 
+    def test_pattern_valid(self) -> None:
+        assert _validator(tc_types.STRING, patterns=frozenset({"[a-z]+"})).validate("abc") is True
+
+    def test_pattern_invalid(self) -> None:
+        assert _validator(tc_types.STRING, patterns=frozenset({"[a-z]+"})).validate("ABC") is False
+
     def test_multiple_patterns_any_match(self) -> None:
         assert _validator(tc_types.STRING, patterns=frozenset({"[a-z]+", "[A-Z]+"})).validate("ABC") is True
 

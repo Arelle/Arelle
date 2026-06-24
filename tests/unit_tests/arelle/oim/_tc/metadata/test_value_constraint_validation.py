@@ -481,6 +481,14 @@ class TestEnumerationValues:
         )
         assert errors == []
 
+    def test_enumeration_value_violates_pattern_facet(self) -> None:
+        errors = _errors(
+            TCValueConstraint(type="xs:string", patterns=frozenset({"[a-z]+"}), enumeration_values=frozenset({"ABC"}))
+        )
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_CONSTRAINT
+        assert errors[0].json_pointers == ["/enumerationValues"]
+
 
 class TestDigitFacets:
     def test_total_digits_one_no_error(self) -> None:
