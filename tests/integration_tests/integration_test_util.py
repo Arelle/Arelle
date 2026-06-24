@@ -80,6 +80,7 @@ _S3_BASE_CONFIG = BotocoreConfig(
 
 
 _PRIVATE_S3_CLIENT: S3Client | None = None
+_S3_BUCKET_REGION = "us-east-1"
 
 
 def _get_private_s3_client() -> S3Client:
@@ -87,6 +88,7 @@ def _get_private_s3_client() -> S3Client:
     if _PRIVATE_S3_CLIENT is None:
         _PRIVATE_S3_CLIENT = boto3.client(
             service_name="s3",
+            region_name=_S3_BUCKET_REGION,
             config=_S3_BASE_CONFIG,
         )
     return _PRIVATE_S3_CLIENT
@@ -100,6 +102,7 @@ def _get_public_s3_client() -> S3Client:
     if _PUBLIC_S3_CLIENT is None:
         _PUBLIC_S3_CLIENT = boto3.client(
             service_name="s3",
+            region_name=_S3_BUCKET_REGION,
             config=_S3_BASE_CONFIG.merge(BotocoreConfig(signature_version=UNSIGNED)),
         )
     return _PUBLIC_S3_CLIENT
