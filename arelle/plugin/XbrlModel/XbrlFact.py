@@ -8,38 +8,36 @@ from decimal import Decimal
 from arelle.ModelValue import QName, AnyURI
 from ordered_set import OrderedSet
 from arelle.plugin.XbrlModel.ModelValueMore import SQName
+from arelle.plugin.XbrlModel.XbrlConcept import XbrlDataType
 from .XbrlTypes import XbrlTaxonomyModelType,XbrlModuleType, QNameKeyType, DefaultFalse, DefaultTrue, OptionalList, NonemptySet
 from .XbrlObject import XbrlObject, XbrlReportObject
 from .XbrlProperty import XbrlProperty
 from .XbrlUnit import  parseUnitString
 
+XbrlFactValueType: TypeAlias = "XbrlFactValueType"
 class XbrlFactValueSource(XbrlObject):
     """ Fact Value Source Object
         Reference: oim-taxonomy#factvaluesource-object"""
+    factValue: XbrlFactValueType
     properties: OrderedSet[XbrlProperty] # (required) A set of property objects used to specify the interface properties defined by the locatorType for the fact source.
 
 class XbrlFactValueAnchor(XbrlObject):
     """ Fact Value Anchor Object
         Reference: oim-taxonomy#factvalueanchor-object
     """
-    source: Optional[QName] # (optional) entifies the source of the document file using a QName that represents a file such as a pdf file or html file. If no source is provided the document file encapsulating the taxonomy (report) object is implied. If the model is external to the source file then the sourceMapping property of the documentInfo object is used to associate the model with a document file. A value only needs to be provided if there is more than one source file used to represent fact values.
-    medium: Optional[str] # (optional) The document medium, which may be implied when the taxonomy (report) object is encapsulated in a document file: html, pdf, tabular.
-    id: Optional[str] # (optional for HTML only) The HTML element containing mapped (inner) text content. May be an id such as #elt1, to identify inner text of that element, if present (else ineffective and contributes nothing to the value).
-    formField: Optional[str] # (optional for PDF only) The field name of a PDF form field. Identifies that field contents (if any) or default (if any) contribute to the value.
-    page: Optional[int] # (required for PDF non-form text only) The page number.
-    mcid: Optional[str] # (optional for PDF non-form structure text identified by mcid)
-    elementId: Optional[str] # (optional for PDF non-form text identified by structure element Id)
-    tabularPath: Optional[str] # (optional for tabular sources to identify a tabular path (e.g. RevenueByRegion!row[@Year=2024 and @Region='NA']/Revenue). See Appendix I for the tabularPath grammar.
+    factValue: XbrlFactValueType
+    properties: OrderedSet[XbrlProperty] # (required) A set of property objects used to specify the interface properties defined by the locatorType for the fact anchor.
 
+XbrlFactType: TypeAlias = "XbrlFactType"
 class XbrlFactValue(XbrlObject):
     """ Fact Value Object
         Reference: oim-taxonomy#factvalue-object
     """
+    fact: XbrlFactType
     name: SQName # (required) The fact SQName that identifies the fact value so it can be referenced by other objects. It is an SQName that allows a the local name to start with a number.
     value: Optional[Any] # (required if valueSources not provided) The value of the fact. This can be a numeric value, a string, or any other type of value that is valid for the fact.
     decimals: Optional[int] # An integer providing the value of the {decimals} property, or absent if the value is infinitely precise or not applicable (for nil or non-numeric facts).
     language: Optional[str] # (optional) The language of the fact value, specified using the BCP 47 standard language code (e.g., "en" for English, "fr" for French).
-    factInterfaceName: Optional[QName] # (optional) identifies the factLocatorType object that is used to identify the location of the value in the source.
     source: Optional[QName] # (optional) entifies the source of the document file using a QName that represents a file such as a pdf file or html file. If no source is provided the document file encapsulating the taxonomy (report) object is implied. If the model is external to the source file then the sourceMapping property of the documentInfo object is used to associate the model with a document file. A value only needs to be provided if there is more than one source file used to represent fact values.
     transformation: Optional[QName] # (optional for html/pdf) identifes a transformation for the document file text, such as conversion from dates in some locale format. Not relevant for workbook cells with number or date formats specified.
     scale: Optional[int] # (optional) identifies a power of 10 to multiply source text number (such as when in billions in the source document_
@@ -56,8 +54,9 @@ class XbrlFact(XbrlReportObject):
     name: QNameKeyType # (equired if no extendTargetName) The name is a QName that uniquely identifies the factspace object.
     factValues: OrderedSet[XbrlFactValue]
     factDimensions: Dict[QName, Any] # (required) A dimensions object with properties corresponding to the members of the {dimensions} property.
+    factQualifiers: Dict[QName, Any] # (optional) A fact qualifier object, that indicates additional dimensional members that are valid for the fact.
     properties: Optional[NonemptySet[XbrlProperty]] # (optional) an ordered set of property objects used to specify additional properties associated with the fact using the property object.
-    extendTargetName: Optional[QName] # (required if no name property) Names the fact object that is appended to. The fact values and dimensions of the fact with this property are appended to the end of the fact object with the name property. This property cannot be used in conjunction with the name property.
+    extends: Optional[QName] # (required if no name property) Names the fact object that is appended to. The fact values and dimensions of the fact with this property are appended to the end of the fact object with the name property. This property cannot be used in conjunction with the name property.
     isExtensible: Union[bool, DefaultTrue] # (optional) If set to false, the fact is non-extensible and no importing taxonomy may augment it using extendTargetName. If set to true or omitted, the fact may be extended. The default value is true.
     _propertyMap: ClassVar[dict[type,dict[str, str]]] = {}
 
