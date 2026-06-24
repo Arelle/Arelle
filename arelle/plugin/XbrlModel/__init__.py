@@ -18,21 +18,21 @@ For XBRL 2.1 XML schema validation purposes, saves schema files in directory if
 
 from typing import TYPE_CHECKING, cast, GenericAlias, Union, _GenericAlias, _UnionGenericAlias, get_origin, ClassVar, ForwardRef, get_args, Dict, Any
 import os, io, json, cbor2, sys, time, traceback, inspect, types
-#JSON_SCHEMA_VALIDATOR = "jsonschema" # select one of below JSON schema validator libraries (seriously different performance)
-JSON_SCHEMA_VALIDATOR = "fastjsonschema"
+JSON_SCHEMA_VALIDATOR = "jsonschema_rs" # select one of below JSON schema validator libraries (seriously different performance)
+#JSON_SCHEMA_VALIDATOR = "jsonschema"
+#JSON_SCHEMA_VALIDATOR = "fastjsonschema"
 if JSON_SCHEMA_VALIDATOR == "jsonschema": # slow and thorough
     import jsonschema
     # finds all errors in source object but can be very slow on complex schemas like ours, especially with many errors
     jsonSchemaLoaderMethod = jsonschema.Draft7Validator
-elif JSON_SCHEMA_VALIDATOR == "fastjsonschema": # may be faster if it works on our schemas
+elif JSON_SCHEMA_VALIDATOR == "fastjsonschema": # faster but only provides first schema error
     import fastjsonschema
     # only provides first schema error in source object
     # see: https://github.com/horejsek/python-fastjsonschema/issues/36
     jsonSchemaLoaderMethod = fastjsonschema.compile
-elif JSON_SCHEMA_VALIDATOR == "jsonschema_rs": # RUST implemented, does hot support Python values like long ints
+elif JSON_SCHEMA_VALIDATOR == "jsonschema_rs": # Rust implemented, fast with all errors via iter_errors
     import jsonschema_rs
-    # appears to raise RUST ValueError on us-gaap taxonomy validation
-    jsonSchemaLoaderMethod = jsonschema_rs.Draft202012Validator
+    jsonSchemaLoaderMethod = jsonschema_rs.Draft7Validator
 import regex as re
 from collections import OrderedDict, defaultdict
 from decimal import Decimal
@@ -324,19 +324,48 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                 jsonschemaValidator = jsonSchemaLoaderMethod(json.load(fh))
             modelXbrl.profileActivity("Load schema validator schema file", minTimeToShow=PROFILE_MIN_TIME)
         cntlr.showStatus(_("Schema validating: {0}").format(moduleFileBasename))
-        """ JSON Schema Validation, support multiple validator libraries based on constant at top of module
+        """ JSON Schema Validation, support multiple validator libraries based on constant at top of module.
 
-            Note that jsonschema and fastjsonschema have very different performance characteristics,
-            and jsonschema is more likely to complete validation of our complex schemas and provide all errors in the source object,
-            while fastjsonschema may be faster if it works on our schemas but only provides the first error in the source object.
-            jsonschema_rs appears to be faster than jsonschema but raises a RUST ValueError on our taxonomy validation,
-            so we catch that as a general exception and report it as an invalid JSON structure error.
+            jsonschema_rs (Rust) is the recommended default: fast and finds all errors via iter_errors().
+            jsonschema (Python) also finds all errors but is much slower on complex schemas.
+            fastjsonschema compiles to Python for speed but only reports the first error.
 
             For some error types such as missing required property or invalid property value, we attempt to map the error message
             to a more specific OIM error code, but for other errors we just report a general invalid JSON structure error with the
             error message from the validator.
         """
-        if JSON_SCHEMA_VALIDATOR == "jsonschema":
+        if JSON_SCHEMA_VALIDATOR == "jsonschema_rs":
+            try:
+                for err in jsonschemaValidator.iter_errors(moduleFileObj):
+                    path = []
+                    p_last = p_beforeLast = None
+                    for p in err.instance_path:
+                        path.append(f"[{p}]" if isinstance(p,int) else f"/{p}")
+                        p_beforeLast = p_last
+                        p_last = p
+                    msg = err.message
+                    if p_last == "allowedAsLinkProperty" and " is not of type " in msg:
+                        errCode = "oimte:invalidPropertyValue"
+                    elif " is a required property" in msg:
+                        errCode = "oimte:invalidJSONStructureMissingRequiredProperty"
+                    elif "Additional properties are not allowed " in msg:
+                        errCode = "oimte:invalidJSONStructureInvalidPropertyDefined"
+                    elif p_last == "language" and " does not match " in msg:
+                        errCode = "oimte:invalidLanguage"
+                    elif p_last == "coreDimensions" and "unique elements" in msg:
+                        errCode = "oimte:duplicateItemsInSet"
+                    elif p_beforeLast == "dimensions" and ("valid under each of" in msg or "not valid under any of" in msg):
+                        errCode = "oimte:invalidDimensionObject"
+                    else:
+                        errCode = "oime:invalidJSONStructure",
+                    error(errCode,
+                          _("Error: %(error)s, jsonObj: %(path)s"),
+                          sourceFileLine=href, error=msg, path="".join(path))
+            except jsonschema_rs.ReferencingError as ex:
+                error("jsonschema:schemaError",
+                      _("Error in json schema processing: %(error)s"),
+                      sourceFileLine=href, error=str(ex))
+        elif JSON_SCHEMA_VALIDATOR == "jsonschema":
             try:
                 for err in jsonschemaValidator.iter_errors(moduleFileObj) or ():
                     path = []
@@ -400,13 +429,6 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                 error(errCode,
                       _("Error: %(error)s, jsonObj: %(path)s"),
                       sourceFileLine=href, error=msg, path="".join(path))
-        elif JSON_SCHEMA_VALIDATOR == "jsonschema_rs":
-            try:
-                jsonschemaValidator.validate(moduleFileObj)
-            except Exception as ex: # jsonschema_rs.alidationError as ex:
-                error("oime:invalidJSONStructure",
-                      _("Error: %(error)s"),
-                      sourceFileLine=href, error=str(ex))
         modelXbrl.profileActivity(f"Json schema validation {moduleFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
         cntlr.showStatus(_("Loading model objects from: {0}").format(moduleFileBasename))
         documentInfo = jsonGet(moduleFileObj, "documentInfo", {})
