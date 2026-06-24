@@ -7,7 +7,7 @@ from typing import Optional, Union
 from arelle.ModelValue import QName, AnyURI
 from ordered_set import OrderedSet
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue, NonemptySet
+from .XbrlTypes import XbrlModuleAlias, QNameKeyType, DefaultTrue, NonemptySet
 from .ModelValueMore import SQName
 from .XbrlObject import XbrlReferencableModelObject, XbrlTaxonomyTagObject
 
@@ -15,7 +15,7 @@ class XbrlReference(XbrlTaxonomyTagObject):
     """ Reference Object
         Reference: oim-taxonomy#reference-object
     """
-    module: XbrlModuleType
+    module: XbrlModuleAlias
     name: QNameKeyType # (required if no extendTargetame) The name is a QName that uniquely identifies the reference object.
     extendTargetName: Optional[QName] # (required if no name) Names the reference object that the defined relatedNames property should be appended to. The relatedNames property in the reference with this property are appended to the end of the relatedName property defined in the target reference object. This property cannot be used in conjunction with the name property.
     isExtensible: Union[bool, DefaultTrue] # (optional) If set to false, the reference is non-extensible and no importing taxonomy may augment it using extendTargetName. If set to true or omitted, the reference may be extended. The default value is true.
@@ -32,7 +32,7 @@ class XbrlReferenceType(XbrlReferencableModelObject):
     """ Reference Type Object
         Reference: oim-taxonomy#referencetype-object
     """
-    module: XbrlModuleType
+    module: XbrlModuleAlias
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the reference type object.
     uri: Optional[AnyURI] # (optional) A uri used to identify the reference type of reference objects for backward compatability with XBRL 2.1 taxonomies.
     allowedObjects: Optional[NonemptySet[QName]] # (optional) Defines an ordered set of object types that can use the referenceType. MUST NOT be empty if provided.

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Union, Any
 
 from arelle.ModelValue import QName, AnyURI
 from ordered_set import OrderedSet
-from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue, DefaultFalse
+from .XbrlTypes import XbrlModuleAlias, QNameKeyType, DefaultTrue, DefaultFalse
 from .XbrlObject import XbrlObject, XbrlModelObject, XbrlReferencableModelObject
 
 class XbrlFilterCondition(XbrlObject):
@@ -34,7 +34,7 @@ class XbrlImportTaxonomy(XbrlModelObject):
 
         This object defines the properties and criteria for importing a taxonomy into the taxonomy model. It specifies the location of the taxonomy to be imported, the xBRL module it belongs to, and any filters or selections to be applied during the import process.
     """
-    module: XbrlModuleType
+    module: XbrlModuleAlias
     xbrlModelName: QNameKeyType # (required) The QName of the xBRL Module to import. When importing XBRL 2.1 taxonomies, the QName comprising the namespace of the taxonomy to import and a local name of taxonomy is defined (e.g., ifrs:Taxonomy).
     selections: set[XbrlStructuredSelectStatement]  # (optional) Specifies a set of string select statements or structured select objects that define the objects to be included in the import. Each select statement is a string that specifies the objects to be selected from the taxonomy model. The select statements can include object names, types, and properties. e.g., xbrl:conceptObject where periodType = "instant".
     importObjects: set[QName] # (optional) A set of object QNames that should be imported from the taxonomyName location property. Only the objects defined in the include and any dependent objects are added to the dts. This property can only be used for taxonomy files using the OIM specification. The dependents of each object are defined in this specification.
@@ -51,7 +51,7 @@ class XbrlFinalTaxonomy(XbrlReferencableModelObject):
 
         This object defines the properties and criteria for marking a taxonomy as final. A final taxonomy is a taxonomy that cannot be extended by importing other taxonomies. The final taxonomy object specifies the name of the final taxonomy, whether the entire taxonomy is final or only specific object types or objects, and any selections to be applied for identifying the final objects.
     """
-    module: XbrlModuleType
+    module: XbrlModuleAlias
     name: QNameKeyType # (required) The name of the finalTaxonomy object.
     finalTaxonomyFlag: Union[bool, DefaultFalse] # (optional) If set to true, indicates that the taxonomy is final and cannot be extended by importing taxonomies. The default value is false. No objects can be added to the taxonomy except factspace objects, footnote objects and entity objects.
     finalObjectTypes: set[QName] # (optional) A set of object type QNames that define the types of objects that are considered final. Only the object types defined in the finalObjectTypes property are considered final. Object types not included in the set can be add by an importing taxonomy. (Assuming finalTaxonomyFlag is false). An importing taxonomy cannot include object types that are defined in the finalObjectTypes property. Examples of object types include xbrl:conceptObject, xbrl:domainObject and xbrl:networkObject. Networks used for footnotes are excluded from this restriction.

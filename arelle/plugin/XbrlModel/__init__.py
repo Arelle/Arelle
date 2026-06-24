@@ -65,7 +65,7 @@ from .XbrlUnit import XbrlUnit
 from .XbrlModel import XbrlCompiledModel, castToXbrlCompiledModel
 from .XbrlModule import XbrlModule, xbrlObjectTypes
 from .XbrlObject import XbrlModelClass, XbrlObject, XbrlReferencableModelObject, XbrlTaxonomyTagObject, XbrlObjectType
-from .XbrlTypes import (XbrlTaxonomyModelType, XbrlModuleType, XbrlLayoutType, XbrlUnitTypeType,
+from .XbrlTypes import (XbrlTaxonomyModelAlias, XbrlModuleAlias, XbrlLayoutAlias, XbrlUnitTypeAlias,
                         QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse, DefaultZero, DefaultOne, OptionalList, NonemptySet)
 from .ValidateXbrlModel import validateCompiledModel
 from .ValidateFacts import validateDateResolutionConceptFacts, validateCompleteReportCubes
@@ -93,11 +93,11 @@ jsonschemaValidator = None
 
 xbrlTypeAliasClass = {
     XbrlLabelType: XbrlLabel,
-    XbrlLayoutType: XbrlLayout,
+    XbrlLayoutAlias: XbrlLayout,
     XbrlPropertyType: XbrlProperty,
-    XbrlTaxonomyModelType: XbrlCompiledModel,
-    XbrlModuleType: XbrlModule,
-    XbrlUnitTypeType: XbrlUnitType
+    XbrlTaxonomyModelAlias: XbrlCompiledModel,
+    XbrlModuleAlias: XbrlModule,
+    XbrlUnitTypeAlias: XbrlUnitType
     }
 
 EMPTY_SET = set()
@@ -768,9 +768,9 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                         objClass = ownrPropType # e.g just a Concept but no owning collection
                     if get_origin(objClass) is Union: # union of structured class or string such as select
                         objClass = objClass.__args__[0]
-                    if objClass == XbrlModuleType:
+                    if objClass == XbrlModuleAlias:
                         objClass = XbrlModule
-                    elif objClass == XbrlLayoutType:
+                    elif objClass == XbrlLayoutAlias:
                         objClass = XbrlLayout
                     if isinstance(objClass,ForwardRef) and objClass.__forward_arg__ in xbrlTypeAliasClass:
                         objClass = xbrlTypeAliasClass[objClass.__forward_arg__]

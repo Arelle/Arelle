@@ -24,7 +24,7 @@ from .XbrlDimension import XbrlDimension, XbrlMember
 from .XbrlObject import XbrlModelClass, XbrlObject
 from .XbrlModel import XbrlCompiledModel
 from .XbrlModule import XbrlModule
-from .XbrlTypes import QNameKeyType, XbrlModuleType, DefaultTrue, DefaultFalse, DefaultZero
+from .XbrlTypes import QNameKeyType, XbrlModuleAlias, DefaultTrue, DefaultFalse, DefaultZero
 
 CLASSES_SAVEABLE_TO_XML_SCHEMA = OrderedSet((
     XbrlHeading,

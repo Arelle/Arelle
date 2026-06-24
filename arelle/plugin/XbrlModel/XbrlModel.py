@@ -17,13 +17,13 @@ from .XbrlGroup import XbrlGroupContent
 from .XbrlNetwork import XbrlNetwork
 from .XbrlReference import XbrlReference
 from .XbrlFact import XbrlFact, XbrlFootnote
-from .XbrlTypes import XbrlModuleType, XbrlLayoutType, QNameKeyType, XbrlLabelType, XbrlPropertyType
+from .XbrlTypes import XbrlModuleAlias, XbrlLayoutAlias, QNameKeyType, XbrlLabelAlias, XbrlPropertyAlias
 from .XbrlObject import XbrlObject, XbrlReferencableModelObject, XbrlTaxonomyTagObject, XbrlReportObject
 
 def castToXbrlCompiledModel(modelXbrl, isReport=False):
     if not isinstance(modelXbrl, XbrlCompiledModel) and isinstance(modelXbrl, ModelXbrl):
         modelXbrl.__class__ = XbrlCompiledModel
-        modelXbrl.xbrlModels: OrderedDict[QNameKeyType, XbrlModuleType] = OrderedDict()
+        modelXbrl.xbrlModels: OrderedDict[QNameKeyType, XbrlModuleAlias] = OrderedDict()
         modelXbrl.dtsObjectIndex = 0
         modelXbrl.xbrlObjects: list[XbrlObject] = []
         modelXbrl.namedObjects: OrderedDict[QNameKeyType, XbrlReferencableModelObject] = OrderedDict() # not visible metadata
@@ -44,7 +44,7 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
         taxonomy objects in the user interface. The class is designed to be used in both taxonomy and report contexts,
         with properties that are relevant to each context.
     """
-    xbrlModels: OrderedDict[QNameKeyType, XbrlModuleType]
+    xbrlModels: OrderedDict[QNameKeyType, XbrlModuleAlias]
     xbrlObjects: list[XbrlObject] # not visible metadata
     # objects only present for XbrlReports
     factspaces: dict[str, XbrlFact] # constant factspaces in taxonomy
@@ -103,7 +103,7 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
             return str(name)
         return None
 
-    def referenceProperties(self, name: QName, referenceType: Optional[QName], lang: Optional[str] = None) -> list[XbrlPropertyType]:
+    def referenceProperties(self, name: QName, referenceType: Optional[QName], lang: Optional[str] = None) -> list[XbrlPropertyAlias]:
         refProperties = defaultdict(list)
         for tagObj in self.effectiveReferenceObjects(name, referenceType=referenceType, lang=lang):
             refProperties[tagObj.referenceType].extend(getattr(tagObj, "properties", []))

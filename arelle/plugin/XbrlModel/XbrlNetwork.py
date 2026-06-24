@@ -8,7 +8,7 @@ from collections import defaultdict
 from arelle.ModelValue import QName, AnyURI
 from ordered_set import OrderedSet
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue, NonemptySet
+from .XbrlTypes import XbrlModuleAlias, QNameKeyType, DefaultTrue, NonemptySet
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
 
 if TYPE_CHECKING:
@@ -89,7 +89,7 @@ class XbrlNetwork(XbrlReferencableModelObject, XbrlRelationshipSet):
         Reference: oim-taxonomy#network-object
         The network object represents a set of relationships that are grouped together. The network object can be used to group relationships that are related to each other, such as presentation relationships or calculation relationships. The network object can also be used to group relationships that are defined in different files or modules. The network object can be used to view the relationships in a taxonomy in a hierarchical manner, and to view the
         """
-    module: XbrlModuleType
+    module: XbrlModuleAlias
     name: QNameKeyType # (required if no extendedTargetName) The name is a QName that uniquely identifies the network object.
     relationshipTypeName: QName # (required if no extendedTargetName) The relationshipType object of the network expressed as a QName such as xbrl:parent-child
     roots: Optional[NonemptySet[XbrlRoot]] # (optional) A list of the root objects of the network object. This allows a single object to be associated with a network without the need for a relationship. The order of roots in the list indicates the order in which the roots should appear. If no root is specified for a list of relationships the roots property is inferred from the relationships defined.
@@ -153,7 +153,7 @@ class XbrlRelationshipConstraint(XbrlModelObject):
     constraint: str # (required) The constraint is a string that defines the constraint on the relationship type. The constraint is defined using a string representation.
 
 class XbrlRelationshipType(XbrlReferencableModelObject):
-    module: XbrlModuleType
+    module: XbrlModuleAlias
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the relationshipType object.
     uri: Optional[AnyURI] # (optional) The URI identifies the uri of the relationship type for historical and backward compatibility purposes.
     cycles: QName # (required) The cycles attribute indicates if the relationship when used in a hierarchy can include cycles. Possible values are any, none, and undirected. Any means cycles are allowed in the relationships, undirected means cycles are allowed, but they must be undirected, and none means cycles are not allowed in the relationships.

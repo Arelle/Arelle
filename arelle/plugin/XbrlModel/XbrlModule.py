@@ -25,7 +25,7 @@ from .XbrlFact import XbrlFact, XbrlFactLocatorType, XbrlFactValueAnchor, XbrlFa
 from .XbrlModel import XbrlCompiledModel
 from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
-from .XbrlTypes import XbrlModuleType, QNameKeyType, NonemptySet
+from .XbrlTypes import XbrlModuleAlias, QNameKeyType, NonemptySet
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
 from .XbrlLayout import XbrlLayout, XbrlDataTable, XbrlAxis, XbrlAxisHeader
 
@@ -33,7 +33,7 @@ class XbrlModelType(XbrlReferencableModelObject):
     """ Model Type Object
         Reference: oim-taxonomy#modeltype-object
     """
-    module: XbrlModuleType
+    module: XbrlModuleAlias
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the model type object.
     allowedObjects: Optional[NonemptySet[QName]] # (optional) Defines a set of QNames representing the object types that may use the modelType. If no value is provided then the modelType can be used with any object type.
     allowedProperties: Optional[NonemptySet[QName]] # (optional) Defines a set of property QNames that can be used with the model type. If no value is provided then any property can be used with the model type.
@@ -43,7 +43,7 @@ class XbrlNamespacePrefix(XbrlReferencableModelObject):
     """ Namespace Prefix Object
         Reference: oim-taxonomy#namespaceprefix-object
     """
-    module: XbrlModuleType
+    module: XbrlModuleAlias
     namespace: AnyURI # (required) The namespace URI for which preferred prefixes are being declared.
     preferredPrefixes: OrderedSet[str] # (required) An ordered set of preferred prefix strings for the namespace. Each value MUST be a valid xs:NCName. The first item is the most preferred prefix. Values MUST be unique within the set.
 
@@ -51,7 +51,7 @@ class XbrlImpliedObject(XbrlReferencableModelObject):
     """ Implied Object
         Reference: oim-taxonomy#impliedobject-object
     """
-    module: XbrlModuleType
+    module: XbrlModuleAlias
     name: QNameKeyType # (required) The name of the implied object definition. This is a QName that identifies the implied object namespace. The local name of the QName is not used for resolution; only the namespace URI is relevant.
     namespace: AnyURI # (required) This is the namespace URI that defines the implied object namespace. Any QName with this namespace is considered to resolve to an implied object of the type defined by this implied object definition.
     domainClass: QName # (required) The domain class that the implied object belongs to. This is a QName that identifies the domain class within the XBRL model.

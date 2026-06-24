@@ -7,7 +7,7 @@ from typing import Any, Optional, Union
 from arelle.ModelValue import QName
 from ordered_set import OrderedSet
 from .XbrlObject import XbrlModelClass, XbrlReferencableModelObject
-from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultFalse, NonemptySet
+from .XbrlTypes import XbrlModuleAlias, QNameKeyType, DefaultFalse, NonemptySet
 
 class XbrlProperty(XbrlModelClass):
     """ Property Object
@@ -26,7 +26,7 @@ class XbrlPropertyType(XbrlReferencableModelObject):
     """ Property Type Object
         Reference: oim-taxonomy#propertytype-object
     """
-    module: XbrlModuleType
+    module: XbrlModuleAlias
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the property type object.
     dataType: QName # (required) Indicates the dataType of the property value. These are provided as a QName based on the datatypes specified in the XBRL 2.1 specification and any custom datatype defined in the taxonomy.
     enumerationDomain: Optional[QName] # (optional) Used to specify the QName of a domain object that is used to derive enumerated domain members QNames that can be used for the property.

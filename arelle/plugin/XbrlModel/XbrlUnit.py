@@ -7,13 +7,13 @@ from typing import Optional
 from arelle.ModelValue import QName, qname
 from arelle.oim.Load import OIMException
 from ordered_set import OrderedSet
-from .XbrlTypes import XbrlModuleType, SQNameKeyType, NonemptySet
+from .XbrlTypes import XbrlModuleAlias, SQNameKeyType, NonemptySet
 from .XbrlObject import XbrlReferencableModelObject
 
 class XbrlUnit(XbrlReferencableModelObject):
     """ Unit Object
         Reference: oim-taxonomy#unit-object"""
-    module: XbrlModuleType
+    module: XbrlModuleAlias
     name: SQNameKeyType # (required) The unitQName that identifies the unit so it can be referenced by other objects.
     dataType: QName # (required) Indicates the dataType of the unit. These are provided as a QName based on the datatypes specified in the XBRL 2.1 specification and any custom datatype defined in the taxonomy.
     compositeUnitRepresentation: Optional[NonemptySet[str]] # (optional) A set of unit string representations that are equivalent to the defined unit. Multiple unit string representations can be defined for a defined unit. 

@@ -19,7 +19,7 @@ from .XbrlConst import qnBuiltInCoreObjectsTaxonomy
 from .XbrlObject import XbrlModelClass, XbrlObject
 from .XbrlModel import XbrlCompiledModel
 from .XbrlModule import XbrlModule
-from .XbrlTypes import QNameKeyType, XbrlModuleType, DefaultTrue, DefaultFalse, DefaultZero
+from .XbrlTypes import QNameKeyType, XbrlModuleAlias, DefaultTrue, DefaultFalse, DefaultZero
 
 DOCINFO = {
         "documentType": "https://xbrl.org/2025/taxonomy",
@@ -71,7 +71,7 @@ def saveableObjects(mdlObj, mdlName, **kwargs):
     for propName, propType in type(mdlObj).propertyNameTypes():
         mdlPropName = f"{mdlName}.{propName}" if mdlName else propName
         propVal = getattr(mdlObj, propName, ())
-        if propType == XbrlModuleType: # first prop which references parent
+        if propType == XbrlModuleAlias: # first prop which references parent
             continue
         if isinstance(propVal, OrderedSet) and not propVal:
             continue # empty OrderedSet, skip it

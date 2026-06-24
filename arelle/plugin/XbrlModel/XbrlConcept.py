@@ -10,7 +10,7 @@ from arelle.ModelValue import QName
 from ordered_set import OrderedSet
 from arelle.XbrlConst import xsd, isNumericXsdType
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlModuleType, QNameKeyType, DefaultTrue, DefaultFalse, NonemptySet
+from .XbrlTypes import XbrlModuleAlias, QNameKeyType, DefaultTrue, DefaultFalse, NonemptySet
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
 from arelle.FunctionFn import true
 xbrlObjectQNames = None
@@ -19,7 +19,7 @@ class XbrlConcept(XbrlReferencableModelObject):
     """ Concept Object
         Reference: oim-taxonomy.md#concept-object
     """
-    module: XbrlModuleType
+    module: XbrlModuleAlias
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the concept object.
     dataType: QName # (required) Indicates the dataType of the concept. These are provided as a QName based on the datatypes specified in the XBRL 2.1 specification and any custom datatype defined in the taxonomy.
     periodType: str # (required) Indicates the period type of the concept. The property values can be either instant or duration. If the concept can be an atemporal value it must be defined as a duration. (i.e. the value does not change with the passage of time)
@@ -39,7 +39,7 @@ class XbrlCollectionType(XbrlReferencableModelObject):
     """ Collection Type Object
         Reference: oim-taxonomy.md#collection-type-object
     """
-    module: XbrlModuleType
+    module: XbrlModuleAlias
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the collectionType object.
     dataType: QName # (required) Defines the data type that can be included in the collection. The data type is defined using the QName of the dataType object. Collection types may reference other collection types in dataType, enabling nested collections.
     uniqueValues: Union[bool, DefaultTrue] # (optional) Indicates if the values in the set must be unique. If true all values in the set must be unique. If false values can be duplicated. Defaults to true if not provided.
@@ -47,12 +47,12 @@ class XbrlCollectionType(XbrlReferencableModelObject):
     maxItems: Optional[int] # (optional) Defines an int value to indicate the maximum number of items in the collection.
     minItems: Optional[int] # (optional) Defines an int value to indicate the minimum number of items in the collection.
 
-XbrlDataTypeType: TypeAlias = "XbrlDataType"
+XbrlDataTypeAlias: TypeAlias = "XbrlDataType"
 class XbrlUnitType(XbrlModelObject):
     """ Unit Type Object
         Reference: oim-taxonomy.md#unittype-object
     """
-    dataType: XbrlDataTypeType
+    dataType: XbrlDataTypeAlias
     dataTypeNumerator: Optional[QName] # (optional) Defines the numerator data type of the data type.
     dataTypeDenominator: Optional[QName] # (optional) Defines the denominator data type used by a unit used to define a value of the data type.
     dataTypeMultiplier: Optional[QName] # (optional) Defines a multiplier data type used by a unit used to define a value of the data type.
@@ -61,7 +61,7 @@ class XbrlDataType(XbrlReferencableModelObject):
     """ Data Type Object
         Reference: oim-taxonomy.md#datatype-object
     """
-    module: XbrlModuleType
+    module: XbrlModuleAlias
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the datatype object.
     baseType: QName # (required) The base type is a QName that uniquely identifies the base datatype the datatype is based on.
     enumeration: Optional[NonemptySet[Any]] # (optional) Defines an ordered set of enumerated values of the datatype if applicable

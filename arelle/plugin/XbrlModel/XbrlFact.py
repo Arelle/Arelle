@@ -9,31 +9,31 @@ from arelle.ModelValue import QName, AnyURI
 from ordered_set import OrderedSet
 from arelle.plugin.XbrlModel.ModelValueMore import SQName
 from arelle.plugin.XbrlModel.XbrlConcept import XbrlDataType
-from .XbrlTypes import XbrlTaxonomyModelType,XbrlModuleType, QNameKeyType, DefaultFalse, DefaultTrue, OptionalList, NonemptySet
+from .XbrlTypes import XbrlTaxonomyModelAlias,XbrlModuleAlias, QNameKeyType, DefaultFalse, DefaultTrue, OptionalList, NonemptySet
 from .XbrlObject import XbrlObject, XbrlReportObject
 from .XbrlProperty import XbrlProperty
 from .XbrlUnit import  parseUnitString
 
-XbrlFactValueType: TypeAlias = "XbrlFactValueType"
+XbrlFactValueAlias: TypeAlias = "XbrlFactValue"
 class XbrlFactValueSource(XbrlObject):
     """ Fact Value Source Object
         Reference: oim-taxonomy#factvaluesource-object"""
-    factValue: XbrlFactValueType
+    factValue: XbrlFactValueAlias
     properties: OrderedSet[XbrlProperty] # (required) A set of property objects used to specify the interface properties defined by the locatorType for the fact source.
 
 class XbrlFactValueAnchor(XbrlObject):
     """ Fact Value Anchor Object
         Reference: oim-taxonomy#factvalueanchor-object
     """
-    factValue: XbrlFactValueType
+    factValue: XbrlFactValueAlias
     properties: OrderedSet[XbrlProperty] # (required) A set of property objects used to specify the interface properties defined by the locatorType for the fact anchor.
 
-XbrlFactType: TypeAlias = "XbrlFactType"
+XbrlFactAlias: TypeAlias = "XbrlFact"
 class XbrlFactValue(XbrlObject):
     """ Fact Value Object
         Reference: oim-taxonomy#factvalue-object
     """
-    fact: XbrlFactType
+    fact: XbrlFactAlias
     name: SQName # (required) The fact SQName that identifies the fact value so it can be referenced by other objects. It is an SQName that allows a the local name to start with a number.
     value: Optional[Any] # (required if valueSources not provided) The value of the fact. This can be a numeric value, a string, or any other type of value that is valid for the fact.
     decimals: Optional[int] # An integer providing the value of the {decimals} property, or absent if the value is infinitely precise or not applicable (for nil or non-numeric facts).
@@ -50,7 +50,7 @@ class XbrlFact(XbrlReportObject):
     """ Fact Object
         Reference: oim-taxonomy#fact-object
     """
-    module: XbrlModuleType  # facts in taxonomy module are owned by the txmyMdl
+    module: XbrlModuleAlias  # facts in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (equired if no extendTargetName) The name is a QName that uniquely identifies the factspace object.
     factValues: OrderedSet[XbrlFactValue]
     factDimensions: Dict[QName, Any] # (required) A dimensions object with properties corresponding to the members of the {dimensions} property.
@@ -64,49 +64,49 @@ class XbrlFootnote(XbrlReportObject):
     """ Footnote Object
         Reference: oim-taxonomy#footnote-object
     """
-    module: XbrlModuleType  # facts in taxonomy module are owned by the txmyMdl
+    module: XbrlModuleAlias  # facts in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the abstract object.
     relatedNames: OrderedSet[QName] # (required) QNames of the fact objects associated with this footnote.
     content: Optional[str] # (required) The content of the footnote.
     language: Optional[str] # ((optional) The language of the footnote text, specified using the BCP 47 standard language code (e.g., "en" for English, "fr" for French).
 
-XbrlFactSourceType: TypeAlias = "XbrlFactSource"
-XbrlXMLTemplateMapType: TypeAlias = "XbrlXMLTemplateMap"
+XbrlFactSourceAlias: TypeAlias = "XbrlFactSource"
+XbrlXMLTemplateMapAlias: TypeAlias = "XbrlXMLTemplateMap"
 class XbrlNamespaceMap(XbrlObject):
     """ Namespace Map Object
         Reference: oim-taxonomy#namespacemap-object
     """
-    parent: Union[XbrlFactSourceType, XbrlXMLTemplateMapType]
+    parent: Union[XbrlFactSourceAlias, XbrlXMLTemplateMapAlias]
     fromNamespace: AnyURI # (required) The fromNamespace property is the original namespace that is being redirected.
     toNamespace: AnyURI # (required) The toNamespace property is the new namespace that the fromNamespace is being redirected to.
 
-XbrlFactSourceDimensionSummaryType: TypeAlias = "XbrlFactSourceDimensionSummary"
+XbrlFactSourceDimensionSummaryAlias: TypeAlias = "XbrlFactSourceDimensionSummary"
 class XbrlFactSourceDimensionSummaryRange(XbrlObject):
     """ Fact Source Dimension Summary Range Object
         Reference: oim-taxonomy#factsourcedimensionsummaryrange-object
     """
-    factSourceDimensionSummary: XbrlFactSourceDimensionSummaryType
+    factSourceDimensionSummary: XbrlFactSourceDimensionSummaryAlias
     min: Any # (required) The minimum value for the dimension in the data source identified by the factSource object. For explicit dimensions, the minimum value is a QName that references a dimension member object defined in the taxonomy model. For typed dimensions, the minimum value is a typed value that is valid for the dimension.
     max: Any # (required) The maximum value for the dimension in the data source identified by the factSource object. For explicit dimensions, the maximum value is a QName that references a dimension member object defined in the taxonomy model. For typed dimensions, the maximum value is a typed value that is valid for the dimension.
 
-XbrlFactSourceMetadataType: TypeAlias = "XbrlFactSourceMetadata"
+XbrlFactSourceMetadataAlias: TypeAlias = "XbrlFactSourceMetadata"
 class XbrlFactSourceDimensionSummary(XbrlObject):
     """ Fact Source Dimension Summary Object
         Reference: oim-taxonomy#factsourcedimensionsummary-object
     """
-    factSourceMetadata: XbrlFactSourceMetadataType
+    factSourceMetadata: XbrlFactSourceMetadataAlias
     dimensionName: QName # (required) A QName that identifies the dimension.
     memberCount: int # (required) The number of unique members for the dimension in the data source identified by the factSource object. This can be used to determine the size of the data source and to optimize processing of the data source.
     isTyped: bool # (required) A boolean value that indicates whether the dimension is a typed dimension. This can be used to determine how to process the dimension values in the data source identified by the factSource object.
     sampleMembers: Optional[OrderedSet[Any]] # (optional) An ordered set of sample members for the dimension in the data source identified by the factSource object. This can be used to provide examples of the dimension values in the data source and to optimize processing of the data source. For explicit dimensions, the sample members are QNames that reference dimension member objects defined in the taxonomy model. For typed dimensions, the sample members are typed values that are valid for the dimension.
     memberRange: Optional[XbrlFactSourceDimensionSummaryRange] # (optional) A tuple that provides the range of members for the dimension in the data source identified by the factSource object. This can be used to provide information about the distribution of dimension values in the data source and to optimize processing of the data source. For explicit dimensions, the member range is a tuple of QNames that reference dimension member objects defined in the taxonomy model. For typed dimensions, the member range is a tuple of typed values that are valid for the dimension.
 
-XbrlFactSourceType: TypeAlias = "XbrlFactSource"
+XbrlFactSourceAlias: TypeAlias = "XbrlFactSource"
 class XbrlFactSourceMetadata(XbrlObject):
     """ Fact Source Metadata Object
         Reference: oim-taxonomy#factsourcemetadata-object
     """
-    factSource: XbrlFactSourceType
+    factSource: XbrlFactSourceAlias
     factCount: int # (required) The factCount property is the number of facts that are obtained from the data source identified by the factSource object. This can be used to determine the size of the data source and to optimize processing of the data source.
     validationTimestamp: str # (required) The validationTimestamp property is the date and time when the data source identified by the factSource object was last validated. This can be used to determine the freshness of the data source and to optimize processing of the data source.
     concepts: OrderedSet[QName] # (required) An ordered set of QNames that reference concept objects defined in the taxonomy model. If provided, the factSource object only applies to the facts with these concepts. If not provided, the factSource object applies to all facts in the report.
@@ -118,7 +118,7 @@ class XbrlFactSource(XbrlReportObject):
     """ Fact Source Object
         Reference: oim-taxonomy#factsource-object
     """
-    module: XbrlModuleType  # table templates in taxonomy module are owned by the txmyMdl
+    module: XbrlModuleAlias  # table templates in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the factSource object.
     factMapName: QName # (required) The fact map name is a QName that references a factMap object defined in the taxonomy model.
     cubeName: Optional[QName] # (optional) A QName that references a cube object defined in the taxonomy model. If provided, the fact source object only applies to the facts with this cube. If not provided, the fact source object applies to all facts in the report.
@@ -133,7 +133,7 @@ class XbrlTableTemplate(XbrlReportObject):
     """ Table Template Object
         Reference: oim-taxonomy#tabletemplate-object
     """
-    module: XbrlModuleType  # table templates in taxonomy module are owned by the txmyMdl
+    module: XbrlModuleAlias  # table templates in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the tableTemplate object.
     rowIdColumn: Optional[str] # (optional) An identifier specifying the name of the row ID column.
     columns: dict # (required) A columns object. (See xbrl-csv specification)
@@ -146,14 +146,14 @@ class XbrlJSONTemplateMap(XbrlReportObject):
     """ JSON Template Map Object
         Reference: oim-taxonomy#jsontemplatemap-object
     """
-    module: XbrlModuleType  # table templates in taxonomy module are owned by the txmyMdl
+    module: XbrlModuleAlias  # table templates in taxonomy module are owned by the txmyMdl
     name: Optional[QNameKeyType] # (optional) The QName that identifies the JSON template map object.
     factDimensions: dict[QName, Any] # (required) A factDimensions object that defines map dimensions.
     valuePath: str # (required) A JSONPath expression that identifies the location of the fact values in the JSON data.
     decimals: Optional[int] # (optional) A decimals value.
 
 class XbrlXMLTemplateMap(XbrlReportObject):
-    module: XbrlModuleType  # table templates in taxonomy module are owned by the txmyMdl
+    module: XbrlModuleAlias  # table templates in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The QName that identifies the XML template map object.
     factDimensions: dict[QName, Any] # (required) A factDimensions object that defines map dimensions.
     valuePath: str # (required) A JSONPath expression that identifies the location of the fact values in the JSON data.
@@ -161,12 +161,12 @@ class XbrlXMLTemplateMap(XbrlReportObject):
     namespaceMap: Optional[XbrlNamespaceMap] # (optional) A namespace mapping object that defines the namespace prefixes used in the XPath expression.
 
 class XbrlFactMap(XbrlReportObject):
-    module: XbrlModuleType  # table templates in taxonomy module are owned by the txmyMdl
+    module: XbrlModuleAlias  # table templates in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the fact map object.
     templateName: Optional[QName] # (optional) A QName that references a tableTemplate, jsonTemplateMap or xmlTemplateMap object defined in the taxonomy model. If provided, the fact map object only applies to the facts with this template. If not provided, the fact map object applies to all facts in the report.
 
 class XbrlFactLocatorType(XbrlReportObject):
-    module: XbrlModuleType  # fact locator types in taxonomy module are owned by the txmyMdl
+    module: XbrlModuleAlias  # fact locator types in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The name is a QName that uniquely identifies this locator type.
     sourceMediaType: str # (optional) Advisory MIME type or media format hint (e.g. text/html, application/pdf, text/csv). Informational only; does not restrict which source documents a locator of this type may reference.
     requiredProperties: Optional[NonemptySet[QName]] # (optional) A set of property QNames that MUST be present on any factValueSource object using this type.

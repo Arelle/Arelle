@@ -6,7 +6,7 @@ from typing import Optional, Union
 
 from arelle.ModelValue import QName
 from ordered_set import OrderedSet
-from .XbrlTypes import XbrlLayoutType, XbrlDataTableType, XbrlModuleType, QNameKeyType, DefaultFalse, DefaultOne, OptionalList, NonemptySet
+from .XbrlTypes import XbrlLayoutAlias, XbrlDataTableAlias, XbrlModuleAlias, QNameKeyType, DefaultFalse, DefaultOne, OptionalList, NonemptySet
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
 
 class XbrlAxisLabelGroupRange(XbrlModelObject):
@@ -60,7 +60,7 @@ class XbrlGridAxis(XbrlModelObject):
     axisGroups: Optional[NonemptySet[XbrlAxisGroup]] # (optional) Array of axisGroup objects that organize dimension member pairs into logical groupings.
 
 class XbrlAxis(XbrlModelObject):
-    dataTable: XbrlDataTableType
+    dataTable: XbrlDataTableAlias
     axisHeaders: Optional[NonemptySet[XbrlAxisHeader]] # (optional) Defines a set of strings that are used as the axis labels. Cannot be used with the presentationNetwork property.
     gridHeaders: Optional[NonemptySet[XbrlGridHeader]] # (optional) An array of gridHeader objects that defines the label for each column or row on a grid.
     axisLabelsGroup: Optional[XbrlAxisLabelGroup] # (optional) An optional grouping of axis labels with valueArray and/or range specifications.
@@ -72,12 +72,12 @@ class XbrlGridCoordinate(XbrlModelObject):
     zAxis: Optional[int] # (optional) The z-axis coordinate in the grid.
 
 class XbrlTablePoint(XbrlModelObject):
-    dataTable: XbrlDataTableType
+    dataTable: XbrlDataTableAlias
     gridCoordinates: XbrlGridCoordinate # (required) Grid coordinates identifying the cell location in the table.
     dimensions: dict[QName, QName] # (required) Map of dimension names to member names for this grid cell.
 
 class XbrlDataTable(XbrlReferencableModelObject):
-    layout: XbrlLayoutType
+    layout: XbrlLayoutAlias
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the data table object.
     tableType: str # (required) Specifies the layout type for the table. Valid values are "gridLayout" (uses explicit grid positioning with tablePoints) or "cubeLayout" (uses traditional cube-based rendering with axes). This property determines how the table structure is interpreted and rendered.
     cubeName: Optional[QName] # (optional) The name is a QName that identifies the cube associated with the data table.
@@ -87,7 +87,7 @@ class XbrlDataTable(XbrlReferencableModelObject):
     tablePoints: Optional[NonemptySet[XbrlTablePoint]] # (optional) Array of tablePoint objects that map dimension member pairs to specific grid cells.
 
 class XbrlLayout(XbrlReferencableModelObject):
-    txmyMdl: XbrlModuleType
+    txmyMdl: XbrlModuleAlias
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the layout object.
     tableConstruction: Optional[str] # (optional) Specifies how multiple tables in the dataTables array should be joined together.
     dataTables: Optional[NonemptySet[XbrlDataTable]] # (optional) ordered set of dataTable objects.

@@ -6,13 +6,13 @@ from typing_extensions import TypeAlias, List
 from arelle.ModelValue import QName
 from ordered_set import OrderedSet
 
-XbrlLabelType: TypeAlias = "XbrlLabel"
-XbrlLayoutType: TypeAlias = "XbrlLayout"
-XbrlDataTableType: TypeAlias = "XbrlDataTable"
-XbrlPropertyType: TypeAlias = "XbrlProperty"
-XbrlTaxonomyModelType: TypeAlias = "XbrlCompiledModel"
-XbrlModuleType: TypeAlias = "XbrlModule"
-XbrlUnitTypeType: TypeAlias = "XbrlUnitType"
+XbrlLabelAlias: TypeAlias = "XbrlLabel"
+XbrlLayoutAlias: TypeAlias = "XbrlLayout"
+XbrlDataTableAlias: TypeAlias = "XbrlDataTable"
+XbrlPropertyAlias: TypeAlias = "XbrlProperty"
+XbrlTaxonomyModelAlias: TypeAlias = "XbrlCompiledModel"
+XbrlModuleAlias: TypeAlias = "XbrlModule"
+XbrlUnitTypeAlias: TypeAlias = "XbrlUnitType"
 
 class QNameKeyType(QName): # a QName which is also the primary key for parent collection object
     pass
