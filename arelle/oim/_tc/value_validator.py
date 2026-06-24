@@ -5,16 +5,39 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import contextlib
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from types import MappingProxyType
 from typing import Any, cast
 
 import regex
 
-from arelle.ModelValue import QName, TypeXValue
+from arelle.ModelValue import DateTime, QName, TypeXValue
 from arelle.oim._tc.metadata.model import TCValueConstraint
-from arelle.oim._tc.metadata.types import CORE_ENTITY, CORE_LANGUAGE, CORE_UNIT, QNAME, resolve_effective_lexical_type
-from arelle.oim.const import PREFIXED_QNAME_PATTERN, SQNAME_PATTERN, UNIT_PATTERN, UNIT_QNAME_SUBSTITUTION_CHAR
+from arelle.oim._tc.metadata.types import (
+    CORE_ENTITY,
+    CORE_LANGUAGE,
+    CORE_PERIOD,
+    CORE_UNIT,
+    DATE,
+    DATE_TIME,
+    QNAME,
+    resolve_effective_lexical_type,
+)
+from arelle.oim.const import (
+    PER_HALF_PATTERN,
+    PER_INCLUSIVE_DATES_PATTERN,
+    PER_ISO_PATTERN,
+    PER_MONTH_PATTERN,
+    PER_QTR_PATTERN,
+    PER_SINGLE_DAY_PATTERN,
+    PER_TZ_PATTERN,
+    PER_WEEK_PATTERN,
+    PER_YEAR_PATTERN,
+    PREFIXED_QNAME_PATTERN,
+    SQNAME_PATTERN,
+    UNIT_PATTERN,
+    UNIT_QNAME_SUBSTITUTION_CHAR,
+)
 from arelle.XmlValidate import XmlValidationResult, XsdPattern, validateFacetValueString, validateValueString
 
 # TC prohibits uppercase characters in core language.
@@ -88,6 +111,13 @@ class ValueConstraintValidator:
             tc_valid_unit = self._is_valid_unit(value)
             if not tc_valid_unit:
                 return False
+        if self._constraint.type == CORE_PERIOD:
+            if self._constraint.period_type is not None:
+                validator = PERIOD_TYPE_VALIDATORS.get(self._constraint.period_type)
+                if validator is None or not validator(value):
+                    return False
+            elif not any(validator(value) for validator in _ALL_PERIOD_VALIDATORS):
+                return False
         return True
 
     def _validate_base_type(self, base_xsd_type: QName, value_string: str) -> XmlValidationResult:
@@ -144,3 +174,123 @@ class ValueConstraintValidator:
             product = product[1:-1]
         qnames = product.split("*")
         return qnames == sorted(qnames)
+
+
+def _parse_date(value: str) -> DateTime | None:
+    return _parse_date_or_datetime(value, DATE)
+
+
+def _parse_datetime(value: str) -> DateTime | None:
+    return _parse_date_or_datetime(value, DATE_TIME)
+
+
+def _parse_date_or_datetime(value: str, xsd_type: QName) -> DateTime | None:
+    stripped = PER_TZ_PATTERN.sub("", value)
+    result = validateValueString(xsd_type.localName, stripped)
+    if result.isXValid and isinstance(result.xValue, DateTime):
+        return result.xValue
+    return None
+
+
+def _is_valid_year_period(value: str) -> bool:
+    return PER_YEAR_PATTERN.fullmatch(value) is not None
+
+
+def _is_valid_half_period(value: str) -> bool:
+    return PER_HALF_PATTERN.fullmatch(value) is not None
+
+
+def _is_valid_quarter_period(value: str) -> bool:
+    return PER_QTR_PATTERN.fullmatch(value) is not None
+
+
+def _is_valid_month_period(value: str) -> bool:
+    return PER_MONTH_PATTERN.fullmatch(value) is not None
+
+
+def _is_valid_week_period(value: str) -> bool:
+    match = PER_WEEK_PATTERN.fullmatch(value)
+    if match is None:
+        return False
+    week = int(match.group("week"))
+    year = int(match.group("year"))
+    return 1 <= week <= _iso_weeks_in_year(year)
+
+
+def _iso_weeks_in_year(year: int) -> int:
+    year_minus_1 = year - 1
+    jan1_week_day = (year_minus_1 + year_minus_1 // 4 - year_minus_1 // 100 + year_minus_1 // 400) % 7
+    is_leap_year = year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
+    return 53 if (jan1_week_day == 3 or (is_leap_year and jan1_week_day == 2)) else 52
+
+
+def _is_valid_day_period(value: str) -> bool:
+    match = PER_SINGLE_DAY_PATTERN.fullmatch(value)
+    if match is None:
+        return False
+    date_group = match.group("date")
+    return _parse_date(date_group) is not None
+
+
+def _is_valid_instant_period(value: str) -> bool:
+    match = PER_ISO_PATTERN.fullmatch(value)
+    if match is not None and match.group("end") is None:
+        return _parse_datetime(match.group("start")) is not None
+    if value.endswith(("@start", "@end")):
+        return any(v(value) for v in _ABBREVIATED_PERIOD_VALIDATORS)
+    return False
+
+
+def _is_valid_duration_period(value: str) -> bool:
+    match = PER_ISO_PATTERN.fullmatch(value)
+    if match is None:
+        return False
+    start_group = match.group("start")
+    end_group = match.group("end")
+    if start_group is None or end_group is None:
+        return False
+    start_dt = _parse_datetime(start_group)
+    end_dt = _parse_datetime(end_group)
+    return start_dt is not None and end_dt is not None and start_dt < end_dt
+
+
+def _is_valid_range_period(value: str) -> bool:
+    match = PER_INCLUSIVE_DATES_PATTERN.fullmatch(value)
+    if match is None:
+        return False
+    start_dt = _parse_date(match.group("start"))
+    end_dt = _parse_date(match.group("end"))
+    return start_dt is not None and end_dt is not None and start_dt <= end_dt
+
+
+_ABBREVIATED_PERIOD_VALIDATORS: tuple[Callable[[str], bool], ...] = tuple(
+    [
+        _is_valid_year_period,
+        _is_valid_half_period,
+        _is_valid_quarter_period,
+        _is_valid_week_period,
+        _is_valid_month_period,
+        _is_valid_day_period,
+    ]
+)
+
+
+PERIOD_TYPE_VALIDATORS = MappingProxyType(
+    {
+        "year": _is_valid_year_period,
+        "half": _is_valid_half_period,
+        "quarter": _is_valid_quarter_period,
+        "week": _is_valid_week_period,
+        "month": _is_valid_month_period,
+        "day": _is_valid_day_period,
+        "instant": _is_valid_instant_period,
+    }
+)
+
+_ALL_PERIOD_VALIDATORS = tuple(
+    [
+        *PERIOD_TYPE_VALIDATORS.values(),
+        _is_valid_duration_period,
+        _is_valid_range_period,
+    ]
+)

@@ -178,6 +178,145 @@ class TestValidateEntity:
         assert _validator(tc_types.CORE_ENTITY).validate(value) is expected
 
 
+class TestValidatePeriod:
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            # Valid: years
+            ("2024", True),
+            ("2024@end", True),
+            # Valid: year-months
+            ("2024-12", True),
+            # Valid: quarters
+            ("2024Q1", True),
+            ("2024Q4", True),
+            ("2024Q1@start", True),
+            # Valid: halves
+            ("2024H1", True),
+            ("2024H2", True),
+            # Valid: weeks
+            ("2024W01", True),
+            ("2020W53", True),
+            ("2026W53", True),
+            ("2024W29@end", True),
+            # Valid: single dates
+            ("2024-01-01", True),
+            ("2024-02-29", True),
+            # Valid: datetime instants
+            ("2024-01-02T00:00:00", True),
+            ("2024-06-15T12:00:00Z", True),
+            ("2024-01-01T00:00:00+05:00", True),
+            # Valid: date ranges
+            ("2024-01-01..2024-12-31", True),
+            ("2024-01-01..2024-01-01", True),
+            # Valid: explicit durations
+            ("2024-01-01T00:00:00/2025-01-01T00:00:00", True),
+            # Invalid: empty
+            ("", False),
+            # Invalid: year zero
+            ("0000", False),
+            ("0000-01-01", False),
+            ("0000-01-01T00:00:00", False),
+            ("0000H1", False),
+            ("0000Q1", False),
+            ("0000W01", False),
+            ("0000-01", False),
+            ("0000-01-01..0000-12-31", False),
+            ("0000-01-01T00:00:00/0001-01-01T00:00:00", False),
+            # Invalid: plus sign
+            ("+12024", False),
+            ("+12024-01", False),
+            ("+12024-01-01", False),
+            ("+12024-01-01T00:00:00", False),
+            ("+12024H1", False),
+            ("+12024Q1", False),
+            ("+12024W01", False),
+            # Invalid: T24 hour
+            ("2024-01-01T24:00:00", False),
+            ("2024-02-29T24:00:00", False),
+            ("2024-02-28T24:00:00", False),
+            ("2024-01-01T24:00:01", False),
+            # Invalid: fractional seconds
+            ("2024-01-01T00:00:00.0", False),
+            ("2024-01-01T00:00:00.000", False),
+            ("2024-06-15T12:00:00.000Z", False),
+            # Invalid: timezone offset (TC only allows Z)
+            ("2024-01-01T00:00:00+00:00", False),
+            # Invalid: timezone on non-datetime
+            ("2024-02-29Z", False),
+            ("2024Z", False),
+            # Invalid: leap day in non-leap year
+            ("2025-02-29", False),
+            # Invalid: bare time
+            ("00:00:00", False),
+            # Invalid: missing leading zeros
+            ("2024-01-1", False),
+            ("2024-1-01", False),
+            # Invalid: out of range
+            ("2024-13-01", False),
+            ("2024-00", False),
+            ("2024-13", False),
+            ("2024-1", False),
+            # Invalid: duration format
+            ("P1Y2M3DT4H5M6S", False),
+            # Invalid: bare suffix
+            ("@end", False),
+            # Invalid: date range violations
+            ("2024-12-31..2024-01-01", False),
+            ("2024-01-01..2024-12-31@end", False),
+            ("2024-01-01..2024-12", False),
+            ("2024-01..2024-12", False),
+            ("2024..2025", False),
+            ("2024-01-01..2024-12-1", False),
+            ("2024-1-01..2024-12-31", False),
+            # Invalid: explicit duration violations
+            ("2025-01-01T00:00:00/2024-01-01T00:00:00", False),
+            ("2024-01-01T00:00:00/2024-01-01T00:00:00", False),
+            ("2024-01-01T00:00:00/2025-01-01T00:00:00@end", False),
+            ("2024-06-15T12:00:00Z@end", False),
+            # Invalid: half/quarter/week values
+            ("2024H0", False),
+            ("2024H3", False),
+            ("2024Q0", False),
+            ("2024Q5", False),
+            ("2024W00", False),
+            ("2024W54", False),
+            ("2024W53", False),
+            ("2025W53", False),
+            ("2024W1", False),
+        ],
+    )
+    def test_period_validation(self, value: str, expected: bool) -> None:
+        assert _validator(tc_types.CORE_PERIOD).validate(value) is expected
+
+
+class TestValidatePeriodType:
+    @pytest.mark.parametrize(
+        "period_type, value, expected",
+        [
+            ("year", "2024", True),
+            ("year", "2024@end", True),
+            ("year", "2024Q1", False),
+            ("year", "2024-01", False),
+            ("half", "2024H1", True),
+            ("half", "2024", False),
+            ("quarter", "2024Q1", True),
+            ("quarter", "2024", False),
+            ("week", "2024W29", True),
+            ("week", "2024", False),
+            ("month", "2024-01", True),
+            ("month", "2024", False),
+            ("day", "2024-01-01", True),
+            ("day", "2024", False),
+            ("instant", "2024-01-01T00:00:00", True),
+            ("instant", "2024Q1@end", True),
+            ("instant", "2024Q1", False),
+        ],
+    )
+    def test_period_type_validation(self, period_type: str, value: str, expected: bool) -> None:
+        assert _validator(tc_types.CORE_PERIOD, period_type=period_type).validate(value) is expected
+
+
 class TestValidateUnit:
     @pytest.mark.parametrize(
         "value, expected",
