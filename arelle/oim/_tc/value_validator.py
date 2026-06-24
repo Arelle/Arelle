@@ -20,7 +20,13 @@ from arelle.oim._tc.metadata.types import (
     CORE_UNIT,
     DATE,
     DATE_TIME,
+    G_DAY,
+    G_MONTH,
+    G_MONTH_DAY,
+    G_YEAR,
+    G_YEAR_MONTH,
     QNAME,
+    TIME,
     resolve_effective_lexical_type,
 )
 from arelle.oim.const import (
@@ -37,11 +43,25 @@ from arelle.oim.const import (
     SQNAME_PATTERN,
     UNIT_PATTERN,
     UNIT_QNAME_SUBSTITUTION_CHAR,
+    XSD_TZ_PATTERN,
 )
 from arelle.XmlValidate import XmlValidationResult, XsdPattern, validateFacetValueString, validateValueString
 
 # TC prohibits uppercase characters in core language.
 _TC_CORE_LANGUAGE_PATTERN = regex.compile(r"[a-z]{1,8}(-[a-z0-9]{1,8})*$")
+
+_OPTIONALLY_TIME_ZONED_TYPES: frozenset[QName] = frozenset(
+    {
+        DATE,
+        DATE_TIME,
+        TIME,
+        G_YEAR,
+        G_YEAR_MONTH,
+        G_MONTH_DAY,
+        G_MONTH,
+        G_DAY,
+    }
+)
 
 
 class ValueConstraintValidator:
@@ -96,6 +116,8 @@ class ValueConstraintValidator:
         if not self._is_patterns_valid(value):
             return False
         if not self._is_duration_type_valid(value):
+            return False
+        if not self._is_time_zone_valid(value):
             return False
         if self._effective_lexical_type == QNAME:
             tc_valid_qname = self._is_valid_qname(typed_value_result.xValue)
@@ -165,6 +187,26 @@ class ValueConstraintValidator:
         except ValueError:
             return False
         return True
+
+    def _is_time_zone_valid(self, value: str) -> bool:
+        if self._constraint.time_zone is None:
+            return True
+        if self._constraint.type == CORE_PERIOD:
+            return self._period_timezone_matches(value)
+        if self._effective_lexical_type in _OPTIONALLY_TIME_ZONED_TYPES:
+            has_tz = XSD_TZ_PATTERN.search(value) is not None
+            return self._constraint.time_zone == has_tz
+        return True
+
+    def _period_timezone_matches(self, value: str) -> bool:
+        match = PER_ISO_PATTERN.fullmatch(value)
+        if match is None:
+            return not self._constraint.time_zone
+        has_start_tz = PER_TZ_PATTERN.search(match.group("start")) is not None
+        if end_val := match.group("end"):
+            has_end_tz = PER_TZ_PATTERN.search(end_val) is not None
+            return has_start_tz == has_end_tz == self._constraint.time_zone
+        return self._constraint.time_zone == has_start_tz
 
     def _is_valid_unit(self, value: str) -> bool:
         unit_qnames = PREFIXED_QNAME_PATTERN.findall(value)

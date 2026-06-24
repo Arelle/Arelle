@@ -344,6 +344,54 @@ class TestValidateDurationType:
         assert _validator(tc_types.DURATION, duration_type=duration_type).validate(value) is expected
 
 
+class TestValidateTimeZone:
+    @pytest.mark.parametrize(
+        "constraint_type, time_zone, value, expected",
+        [
+            # xs:dateTime with timeZone=true
+            (tc_types.DATE_TIME, True, "2024-01-01T00:00:00Z", True),
+            (tc_types.DATE_TIME, True, "2024-01-01T00:00:00+05:00", True),
+            (tc_types.DATE_TIME, True, "2024-01-01T00:00:00+00:00", True),
+            (tc_types.DATE_TIME, True, "2024-01-01T00:00:00-00:00", True),
+            (tc_types.DATE_TIME, True, "2024-01-01T00:00:00", False),
+            # xs:dateTime with timeZone=false
+            (tc_types.DATE_TIME, False, "2024-01-01T00:00:00", True),
+            (tc_types.DATE_TIME, False, "2024-01-01T00:00:00Z", False),
+            (tc_types.DATE_TIME, False, "2024-01-01T00:00:00+00:00", False),
+            (tc_types.DATE_TIME, False, "2024-01-01T00:00:00-00:00", False),
+            # xs:date
+            (tc_types.DATE, True, "2024-01-01Z", True),
+            (tc_types.DATE, True, "2024-01-01+00:00", True),
+            (tc_types.DATE, True, "2024-01-01", False),
+            (tc_types.DATE, False, "2024-01-01", True),
+            (tc_types.DATE, False, "2024-01-01Z", False),
+            (tc_types.DATE, False, "2024-01-01+00:00", False),
+            # xs:gYear
+            (tc_types.G_YEAR, True, "2024Z", True),
+            (tc_types.G_YEAR, True, "2024+00:00", True),
+            (tc_types.G_YEAR, True, "2024", False),
+            (tc_types.G_YEAR, False, "2024", True),
+            (tc_types.G_YEAR, False, "2024Z", False),
+            (tc_types.G_YEAR, False, "2024+00:00", False),
+            # period instant with timeZone
+            (tc_types.CORE_PERIOD, True, "2024-01-01T00:00:00Z", True),
+            (tc_types.CORE_PERIOD, True, "2024-01-01T00:00:00", False),
+            (tc_types.CORE_PERIOD, True, "2024", False),
+            (tc_types.CORE_PERIOD, False, "2024-01-01T00:00:00", True),
+            (tc_types.CORE_PERIOD, False, "2024", True),
+            (tc_types.CORE_PERIOD, False, "2024-01-01T00:00:00Z", False),
+            # period duration with timeZone
+            (tc_types.CORE_PERIOD, True, "2024-01-01T00:00:00Z/2025-01-01T00:00:00Z", True),
+            (tc_types.CORE_PERIOD, True, "2024-01-01T00:00:00/2025-01-01T00:00:00", False),
+            (tc_types.CORE_PERIOD, True, "2024-01-01T00:00:00Z/2025-01-01T00:00:00", False),
+            (tc_types.CORE_PERIOD, False, "2024-01-01T00:00:00/2025-01-01T00:00:00", True),
+            (tc_types.CORE_PERIOD, False, "2024-01-01T00:00:00Z/2025-01-01T00:00:00Z", False),
+        ],
+    )
+    def test_time_zone_validation(self, constraint_type: str, time_zone: bool, value: str, expected: bool) -> None:
+        assert _validator(constraint_type, time_zone=time_zone).validate(value) is expected
+
+
 class TestValidateUnit:
     @pytest.mark.parametrize(
         "value, expected",
