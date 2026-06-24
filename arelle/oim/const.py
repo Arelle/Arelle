@@ -43,9 +43,9 @@ UNIT_PATTERN = regex.compile(
 
 XBRLCE_INVALID_IDENTIFIER = "xbrlce:invalidIdentifier"
 
-_YEAR = r"[0-9]{4}"
+_YEAR = r"(?!0000)[0-9]{4}"
 _DATE = rf"{_YEAR}-[0-9]{{2}}-[0-9]{{2}}"
-_TIME = r"[0-9]{2}:[0-9]{2}:[0-9]{2}"
+_TIME = r"(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]"
 # OIM periods require canonical UTC (Z), so +00:00/-00:00 are rejected.
 _PER_TZ = r"(?:Z|[+-](?!00:?00)[0-2][0-9]:?[0-5][0-9])"
 _PER_DATETIME = rf"{_DATE}T{_TIME}(?:{_PER_TZ})?"
@@ -55,8 +55,8 @@ PER_TZ_PATTERN = regex.compile(rf"(?:{_PER_TZ})$")
 PER_ISO_PATTERN = regex.compile(rf"(?P<start>{_PER_DATETIME})(?:/(?P<end>{_PER_DATETIME}))?$")
 PER_INCLUSIVE_DATES_PATTERN = regex.compile(rf"(?P<start>{_DATE})\.\.(?P<end>{_DATE})$")
 PER_SINGLE_DAY_PATTERN = regex.compile(rf"(?P<date>{_DATE})(?:{_SUFFIX})?$")
-PER_MONTH_PATTERN = regex.compile(rf"(?P<year>{_YEAR})-(?P<month>[0-9]{{2}})(?:{_SUFFIX})?$")
+PER_MONTH_PATTERN = regex.compile(rf"(?P<year>{_YEAR})-(?P<month>0[1-9]|1[0-2])(?:{_SUFFIX})?$")
 PER_YEAR_PATTERN = regex.compile(rf"(?P<year>{_YEAR})(?:{_SUFFIX})?$")
 PER_QTR_PATTERN = regex.compile(rf"(?P<year>{_YEAR})Q(?P<quarter>[1-4])(?:{_SUFFIX})?$")
 PER_HALF_PATTERN = regex.compile(rf"(?P<year>{_YEAR})H(?P<half>[12])(?:{_SUFFIX})?$")
-PER_WEEK_PATTERN = regex.compile(rf"(?P<year>{_YEAR})W(?P<week>[0-9]{{2}})(?:{_SUFFIX})?$")
+PER_WEEK_PATTERN = regex.compile(rf"(?P<year>{_YEAR})W(?P<week>0[1-9]|[1-4][0-9]|5[0-3])(?:{_SUFFIX})?$")
