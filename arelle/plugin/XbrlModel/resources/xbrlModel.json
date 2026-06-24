@@ -1,0 +1,47 @@
+{
+    "$schema": "../oim-taxonomy-schema.json",
+    "documentInfo": {
+        "documentType": "https://xbrl.org/2026/module",
+        "namespaces": {
+            "xbrl": "https://xbrl.org/2026",
+            "xbrlr":"https://xbrl.org/2026/report",
+            "xbrlm":"https://xbrl.org/2026/model",
+            "xbrla": "http://xbrl.org/accounting",
+            "xs": "http://www.w3.org/2001/XMLSchema",
+            "ref": "https://xbrl.org/2026/ref",
+            "utr": "https://xbrl.org/2026/utr",
+            "lei": "http://standards.iso.org/iso/17442",
+            "iso4217": "http://www.xbrl.org/2003/iso4217"
+            },
+        "documentNamespacePrefix":"xbrlm",
+        "description": "The base module, that collates the core XBRL data models. This module imports the XML Schema data types and the other core XBRL taxonomy modules that in aggregate define the objects comprising the XBRL data model."
+    },
+    "xbrlModel": {
+        "name": "xbrlm:baseModule",
+        "frameworkName": "Core",
+        "version": "2026",
+        "importedTaxonomies": [
+                {
+                    "xbrlModelName": "xs:XMLSchemaTypes"
+                },
+                {
+                    "xbrlModelName": "xbrl:coreModule"
+                },
+                {
+                    "xbrlModelName": "utr:unitsModule"
+                },
+                {
+                    "xbrlModelName": "xbrlr:dataTypesModule"
+                },
+                {
+                    "xbrlModelName": "ref:referencePropertiesModule"
+                },
+                {
+                    "xbrlModelName": "iso4217:iso4217Module"
+                },
+                {
+                    "xbrlModelName": "xbrla:accountingModule"
+                }
+        ]   
+    }
+}

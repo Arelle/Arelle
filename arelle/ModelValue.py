@@ -1003,6 +1003,33 @@ class IsoDuration(isodate.Duration): # type: ignore[misc]
     def __str__(self) -> str:
         return cast(str, self.sourceValue)
 
+def timeInterval(str):
+    start, _sep, end = str.rpartition("/")
+    if not start:
+        start = None
+    else:
+        start = dateTime(start)
+    end = dateTime(end)
+    return TimeInterval(start, end)
+
+class TimeInterval:
+    def __init__(self, start, end):
+        self.start = start
+        self.end = end
+
+    @property
+    def isInstant(self):
+        return self.start is None
+
+    @property
+    def isDuration(self):
+        return self.start is not None
+
+    def __repr__(self):
+        if self.start:
+            return f"{self.start}/{self.end}"
+        return f"{self.end}"
+
 class InvalidValue(str):
     def __new__(cls, value: str) -> InvalidValue:
         return str.__new__(cls, value)
