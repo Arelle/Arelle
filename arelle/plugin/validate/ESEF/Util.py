@@ -41,6 +41,8 @@ AUTHORITY_CODES: frozenset[str] = frozenset({
 
 ESEF_STANDARD_TAXONOMY_URI_PREFIXES_ATTR = "_esefStandardTaxonomyUriPrefixes"
 
+ESEF_DISCLOSURE_SYSTEM_TEST_PROPERTY = "ESEFplugin"
+
 
 def standardTaxonomyUriPrefixes(val: ValidateXbrl) -> frozenset[str]:
     taxonomyPrefixes: frozenset[str] | None = getattr(val, ESEF_STANDARD_TAXONOMY_URI_PREFIXES_ATTR, None)
@@ -199,3 +201,13 @@ def _hasEventAttributes(elt: Any, attributes: Collection[str]) -> bool:
     if isinstance(elt, _Element):
         return any(a in attributes for a in elt.keys())
     return False
+
+
+def esefDisclosureSystemSelected(modelXbrl: ModelXbrl) -> bool:
+    return getattr(modelXbrl.modelManager.disclosureSystem, ESEF_DISCLOSURE_SYSTEM_TEST_PROPERTY, False)
+
+
+def shouldRunEsefValidationRules(val: ValidateXbrl) -> bool:
+    if not val.validateDisclosureSystem:
+        return False
+    return esefDisclosureSystemSelected(val.modelXbrl)

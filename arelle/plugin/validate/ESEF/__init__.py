@@ -71,15 +71,14 @@ from arelle.utils.PluginData import PluginData
 from arelle.utils.PluginHooks import PluginHooks
 from .ESEF_2021.ValidateXbrlFinally import validateXbrlFinally as validateXbrlFinally2021
 from .ESEF_Current.ValidateXbrlFinally import validateXbrlFinally as validateXbrlFinallyCurrent
-from .Util import AUTHORITY_CODES, getDisclosureSystemYear, loadAuthorityValidations
+from .Util import AUTHORITY_CODES, getDisclosureSystemYear, loadAuthorityValidations, ESEF_DISCLOSURE_SYSTEM_TEST_PROPERTY, esefDisclosureSystemSelected, shouldRunEsefValidationRules
+from .ValidationPluginExtension import ValidationPluginExtension
+from .rules import base
 
 _: TypeGetText
 
 ESEF_PLUGIN_NAME = "Validate ESMA ESEF"
-ESEF_DISCLOSURE_SYSTEM_TEST_PROPERTY = "ESEFplugin"
-
-ixErrorPattern = re.compile(r"ix11[.]|xmlSchema[:]|(?!xbrl.5.2.5.2|xbrl.5.2.6.2)xbrl[.]|xbrld[ti]e[:]|utre[:]")
-dupIdErrorPattern = re.compile(r"xml.3.3.1:idMustBeUnique|ix11.14.1.2:uniqueIxId")
+DISCLOSURE_SYSTEM_VALIDATION_TYPE = "ESEF"
 
 
 def validateEntity(modelXbrl: ModelXbrl, filename:str, filesource: FileSource) -> None:
@@ -98,16 +97,6 @@ def validateEntity(modelXbrl: ModelXbrl, filename:str, filesource: FileSource) -
     except (UnicodeDecodeError, XMLSyntaxError):
         # probably a image or a directory
         pass
-
-
-def esefDisclosureSystemSelected(modelXbrl: ModelXbrl) -> bool:
-    return getattr(modelXbrl.modelManager.disclosureSystem, ESEF_DISCLOSURE_SYSTEM_TEST_PROPERTY, False)
-
-
-def shouldRunEsefValidationRules(val: ValidateXbrl) -> bool:
-    if not val.validateDisclosureSystem:
-        return False
-    return esefDisclosureSystemSelected(val.modelXbrl)
 
 
 def getEsefAuthority(
@@ -161,7 +150,10 @@ class ESEFPlugin(PluginHooks):
         *args: Any,
         **kwargs: Any,
     ) -> tuple[tuple[str, str], ...]:
-        return (("ESEF", ESEF_DISCLOSURE_SYSTEM_TEST_PROPERTY),)
+        return (
+            ("ESEF", ESEF_DISCLOSURE_SYSTEM_TEST_PROPERTY),
+            *validationPlugin.disclosureSystemTypes,
+        )
 
     @staticmethod
     def disclosureSystemConfigURL(
@@ -169,7 +161,7 @@ class ESEFPlugin(PluginHooks):
         *args: Any,
         **kwargs: Any,
     ) -> str:
-        return str(Path(__file__).parent / "resources" / "config.xml")
+        return validationPlugin.disclosureSystemConfigURL
 
     @staticmethod
     def cntlrCmdLineOptions(
@@ -391,12 +383,7 @@ class ESEFPlugin(PluginHooks):
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        if not shouldRunEsefValidationRules(val):
-            return None
-        disclosureSystemYear = getDisclosureSystemYear(val.modelXbrl)
-        if disclosureSystemYear == 2021:
-            return validateXbrlFinally2021(val, *args, **kwargs)
-        return validateXbrlFinallyCurrent(val, *args, **kwargs)
+        return validationPlugin.validateXbrlFinally(val, *args, **kwargs)
 
     @staticmethod
     def validateFinally(
@@ -404,31 +391,7 @@ class ESEFPlugin(PluginHooks):
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        if not shouldRunEsefValidationRules(val):
-            return None
-        if val.unconsolidated:
-            return None
-        modelXbrl = val.modelXbrl
-        modelDocument = getattr(modelXbrl, "modelDocument")
-        if (modelDocument is None or not modelXbrl.facts) and "ESEF.RTS.Art.6.a.noInlineXbrlTags" not in modelXbrl.errors:
-            modelXbrl.error("ESEF.RTS.Art.6.a.noInlineXbrlTags",
-                            _("RTS on ESEF requires inline XBRL, no facts were reported."),
-                            modelObject=modelXbrl)
-            return # never loaded properly
-
-        disclosureSystemYear = getDisclosureSystemYear(modelXbrl)
-        if disclosureSystemYear >= 2025:
-            numDupIdErrors = sum(dupIdErrorPattern.match(e) is not None for e in modelXbrl.errors if isinstance(e,str))
-            if numDupIdErrors:
-                modelXbrl.warning("ESEF.2.2.8.duplicatedIdAttribute",
-                                _("ID attributes should be unique, %(numDupIdErrors)s such errors were reported."),
-                                modelObject=modelXbrl, numDupIdErrors=numDupIdErrors)
-
-        numXbrlErrors = sum(ixErrorPattern.match(e) is not None for e in modelXbrl.errors if isinstance(e,str))
-        if numXbrlErrors:
-            modelXbrl.error("ESEF.RTS.Annex.III.Par.1.invalidInlineXBRL",
-                            _("RTS on ESEF requires valid XBRL instances, %(numXbrlErrors)s errors were reported."),
-                            modelObject=modelXbrl, numXbrlErrors=numXbrlErrors)
+        return validationPlugin.validateFinally(val, *args, **kwargs)
 
     @staticmethod
     def validateFormulaCompiled(
@@ -480,9 +443,19 @@ class ESEFPlugin(PluginHooks):
         rptPkgIxdsOptions["combineIntoSingleIxds"] = True
 
 
+validationPlugin = ValidationPluginExtension(
+    name=ESEF_PLUGIN_NAME,
+    disclosureSystemConfigUrl=Path(__file__).parent / "resources" / "config.xml",
+    validationTypes=[DISCLOSURE_SYSTEM_VALIDATION_TYPE],
+    validationRuleModules=[
+        base
+    ],
+)
+
+
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
-    "name": "Validate ESMA ESEF",
+    "name": ESEF_PLUGIN_NAME,
     "aliases": [
         # Aliases for when ESEF validation was handled by multiple plugins.
         "Validate ESMA ESEF-2022",
@@ -493,19 +466,19 @@ __pluginInfo__ = {
     "license": "Apache-2",
     "author": authorLabel,
     "copyright": copyrightLabel,
+    "import": ("inlineXbrlDocumentSet",),  # import dependent modules
+    # classes of mount points (required)
     "CntlrCmdLine.Options": ESEFPlugin.cntlrCmdLineOptions,
     "CntlrCmdLine.Utility.Run": ESEFPlugin.cntlrCmdLineUtilityRun,
     "CntlrWinMain.Menu.Validation": ESEFPlugin.cntlrWinMainMenuValidation,
-    "ModelDocument.PullLoader": ESEFPlugin.modelDocumentPullLoader,
-    "import": ("inlineXbrlDocumentSet",),  # import dependent modules
-    # classes of mount points (required)
-    "DisclosureSystem.Types": ESEFPlugin.disclosureSystemTypes,
     "DisclosureSystem.ConfigURL": ESEFPlugin.disclosureSystemConfigURL,
+    "DisclosureSystem.Types": ESEFPlugin.disclosureSystemTypes,
+    "ModelDocument.PullLoader": ESEFPlugin.modelDocumentPullLoader,
+    "ModelTestcaseVariation.ReportPackageIxdsOptions": ESEFPlugin.modelTestcaseVariationReportPackageIxdsOptions,
     "ModelXbrl.LoadComplete": ESEFPlugin.modelXbrlLoadComplete,
-    "Validate.XBRL.Start": ESEFPlugin.validateXbrlStart,
+    "Validate.Finally": ESEFPlugin.validateFinally,  # run *after* formula processing
     "Validate.XBRL.Finally": ESEFPlugin.validateXbrlFinally,  # before formula processing
+    "Validate.XBRL.Start": ESEFPlugin.validateXbrlStart,
     "ValidateFormula.Compiled": ESEFPlugin.validateFormulaCompiled,
     "ValidateFormula.Finished": ESEFPlugin.validateFormulaFinished,  # after formula processing
-    "Validate.Finally": ESEFPlugin.validateFinally,  # run *after* formula processing
-    "ModelTestcaseVariation.ReportPackageIxdsOptions": ESEFPlugin.modelTestcaseVariationReportPackageIxdsOptions,
 }
