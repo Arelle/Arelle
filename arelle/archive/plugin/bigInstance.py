@@ -1,10 +1,10 @@
 '''
+See COPYRIGHT.md for copyright information.
+
 BigInstance is an example of a plug-in to both GUI menu and command line/web service
 that provides an alternative approach to big instance documents without building a DOM, to save
 memory footprint.  SAX is used to parse the big instance.  ModelObjects are specialized by features
 for efficiency and to avoid dependency on an underlying DOM.
-
-See COPYRIGHT.md for copyright information.
 '''
 
 import xml.sax, io, sys

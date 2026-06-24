@@ -1,7 +1,8 @@
 '''
-EDGAR.py implements an OpenSql database extension for SEC's EDGAR
-
 See COPYRIGHT.md for copyright information.
+(Does not apply to the XBRL US Database schema and description.)
+
+EDGAR.py implements an OpenSql database extension for SEC's EDGAR
 
 
 to use from command line:

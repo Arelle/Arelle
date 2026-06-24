@@ -1,3 +1,6 @@
+"""
+See COPYRIGHT.md for copyright information.
+"""
 from arelle import ModelDocument
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelObject import ModelObject

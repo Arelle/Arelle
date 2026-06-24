@@ -1,4 +1,7 @@
 '''
+See COPYRIGHT.md for copyright information.
+(Does not apply to the XBRL US Database schema and description.)
+
 XbrlDpmEbaDB.py implements an SQL database interface for Arelle, based
 on the DPM EBA database.  This is a semantic data points modeling
 representation of EBA's XBRL information architecture.
@@ -16,10 +19,6 @@ Example dialog or command line parameters for operation:
     user, password:  if needed for server
     database:  the top level path segment for the SQL Server
     timeout:
-
-
-See COPYRIGHT.md for copyright information.
-
 
 to use from command line:
 

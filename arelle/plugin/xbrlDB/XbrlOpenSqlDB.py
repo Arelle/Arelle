@@ -1,4 +1,7 @@
 '''
+See COPYRIGHT.md for copyright information.
+(Does not apply to the XBRL US Database schema and description.)
+
 XbrlOpenSqlDB.py implements an SQL database interface for Arelle, based
 on a concrete realization of the Open Information Model and Abstract Model Model PWD 2.0.
 This is a semantic representation of XBRL Open Information Model (instance) and
@@ -17,10 +20,6 @@ Example dialog or command line parameters for operation:
     user, password:  if needed for server
     database:  the top level path segment for the SQL Server
     timeout:
-
-
-See COPYRIGHT.md for copyright information.
-
 
 to use from command line:
 

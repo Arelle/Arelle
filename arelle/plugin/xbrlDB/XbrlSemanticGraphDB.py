@@ -1,4 +1,7 @@
 '''
+See COPYRIGHT.md for copyright information.
+(Does not apply to the XBRL US Database schema and description.)
+
 XbrlSemanticGraphDB.py implements a graph database interface for Arelle, based
 on a concrete realization of the Abstract Model PWD 2.0 layer.  This is a semantic
 representation of XBRL information.
@@ -6,8 +9,6 @@ representation of XBRL information.
 This module provides the execution context for saving a dts and instances in
 XBRL Rexter-interfaced graph.  It may be loaded by Arelle's RSS feed, or by individual
 DTS and instances opened by interactive or command line/web service mode.
-
-See COPYRIGHT.md for copyright information.
 
 to do:
 

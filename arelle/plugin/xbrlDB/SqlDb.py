@@ -1,7 +1,8 @@
 '''
-This module provides database interfaces to postgres SQL
-
 See COPYRIGHT.md for copyright information.
+(Does not apply to the XBRL US Database schema and description.)
+
+This module provides database interfaces to postgres SQLx
 '''
 import sys, os, io, glob, time, datetime, socket, string, random
 import regex as re

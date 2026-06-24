@@ -1,3 +1,6 @@
+"""
+See COPYRIGHT.md for copyright information.
+"""
 from typing import Any, Collection
 
 from arelle.XbrlConst import xhtml

@@ -4,6 +4,8 @@ import sys
 
 import pytest
 
+from tests.unit_tests.common import THIRD_PARTY_PATH_PREFIXES
+
 KNOWN_FAILURES = frozenset([
     'arelle.CntlrProfiler',
     'arelle.FunctionXfi',
@@ -18,23 +20,7 @@ KNOWN_FAILURES = frozenset([
 ])
 
 # Don't test common third party plugins which may be copied into a developer's workspace.
-IGNORE_MODULE_PREFIXES = (
-    'arelle.plugin.EDGAR',
-    'arelle.plugin.FERC',
-    'arelle.plugin.iXBRLViewerPlugin',
-    'arelle.plugin.semanticHash',
-    'arelle.plugin.serializer',
-    'arelle.plugin.SimpleXBRLModel',
-    'arelle.plugin.validate.DQC',
-    'arelle.plugin.validate.eforms',
-    'arelle.plugin.validate.ESEF-DQC',
-    'arelle.plugin.xbrlus',
-    'arelle.plugin.xendr',
-    'arelle.plugin.Xince',
-    'arelle.plugin.xodel',
-    'arelle.plugin.xule',
-    'arelle.resources',
-)
+IGNORE_MODULE_PREFIXES = tuple(p.replace('/', '.') for p in THIRD_PARTY_PATH_PREFIXES)
 MODULE_NAMES = [
     module_name
     for g in glob.glob('arelle/**/*.py', recursive=True)

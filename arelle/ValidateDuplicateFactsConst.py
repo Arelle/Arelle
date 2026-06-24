@@ -1,9 +1,9 @@
 """
+See COPYRIGHT.md for copyright information.
+
 Constants and enums for duplicate fact validation.
 Kept in a separate module so that API and Cntlr* code can import these lightweight types
 without pulling in the heavy model/validation imports of ValidateDuplicateFacts.
-
-See COPYRIGHT.md for copyright information.
 """
 
 from __future__ import annotations
