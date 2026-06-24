@@ -254,7 +254,7 @@ class DialogRssWatch(Toplevel):
         self.options["emailAddress"] = self.cellEmailAddress.value
         if self.cellLatestPubDate.value:
             # need datetime.datetime base class for pickling, not ModelValue class (unpicklable)
-            self.options["latestPubDate"] = XmlUtil.datetimeValue(self.cellLatestPubDate.value)  # type: ignore[arg-type]
+            self.options["latestPubDate"] = XmlUtil.datetimeValue(self.cellLatestPubDate.value)
         else:
             self.options["latestPubDate"] = None
         for checkbox in self.checkboxes:

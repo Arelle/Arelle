@@ -146,7 +146,7 @@ class PluginValidationDataExtension(PluginData):
     def contextFactMap(self, modelXbrl: ModelXbrl) -> dict[str, dict[QName, ModelFact]]:
         contextFactMap: dict[str, dict[QName, ModelFact]] = defaultdict(dict)
         for fact in modelXbrl.facts:
-            contextFactMap[fact.contextID][fact.qname] = fact
+            contextFactMap[fact.contextID][fact.qname] = fact  # type: ignore[index]
         return contextFactMap
 
     @lru_cache(1)
@@ -156,7 +156,7 @@ class PluginValidationDataExtension(PluginData):
         """
         contextFactMap: dict[str, set[ModelFact]] = defaultdict(set)
         for fact in modelXbrl.facts:
-            contextFactMap[fact.contextID].add(fact)
+            contextFactMap[fact.contextID].add(fact)  # type: ignore[index]
         return contextFactMap
 
     def getCurrentAndPreviousReportingPeriodContexts(self, modelXbrl: ModelXbrl) -> list[ModelContext]:
@@ -217,7 +217,7 @@ class PluginValidationDataExtension(PluginData):
                 if context.dimMemberQname(self.consolidatedSoloDimensionQn) != self.consolidatedMemberQn:
                     continue  # Context is dimensionalized with the correct dimension but not member
             contexts.append(context)
-        return sorted(contexts, key=lambda c: c.endDatetime)
+        return sorted(contexts, key=lambda c: c.endDatetime)  # type: ignore[arg-type,return-value]
 
     def isAnnualReport(self, modelXbrl: ModelXbrl) -> bool:
         """

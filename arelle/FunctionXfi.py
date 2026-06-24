@@ -106,7 +106,7 @@ def xbrlTuple(
 
 
 def item_context(xc: XPathContext.XPathContext, args: XPathContext.ResultStack, i: int = 0) -> ModelContext | None:
-    return item(xc, args, i).context  # type: ignore[no-any-return]
+    return item(xc, args, i).context
 
 
 def item_context_element(
@@ -141,8 +141,8 @@ def unit(
     modelItem = xc.modelItem(modelObject) if isinstance(modelObject, ModelObject) else None
     if modelItem is not None:
         modelConcept = modelItem.concept
-        if modelConcept.isNumeric and not modelConcept.isFraction:
-            return modelItem.unit  # type: ignore[no-any-return]
+        if modelConcept.isNumeric and not modelConcept.isFraction:  # type: ignore[union-attr]
+            return modelItem.unit
         return []
     raise XPathContext.FunctionArgType(1, "xbrl:item")
 
@@ -407,9 +407,9 @@ def infer_precision_decimals(
     if modelItem is None:
         raise XPathContext.FunctionArgType(1, "xbrl:item")
     modelConcept = modelItem.concept
-    if modelConcept.isFraction:
+    if modelConcept.isFraction:  # type: ignore[union-attr]
         return "INF"
-    if modelConcept.isNumeric:
+    if modelConcept.isNumeric:  # type: ignore[union-attr]
         infer_precision = inferredPrecision(modelItem) if attrName == "precision" else inferredDecimals(modelItem)
         if isinf(infer_precision):
             return "INF"
@@ -706,7 +706,7 @@ def u_equal_test(modelItem1: ModelFact, modelItem2: ModelFact) -> bool:
     if modelUnit1 is None:
         return modelUnit2 is None
     else:
-        return modelUnit1.isEqualTo(modelUnit2)  # type: ignore[no-any-return]
+        return modelUnit1.isEqualTo(modelUnit2)
 
 
 def v_equal(xc: XPathContext.XPathContext, p: OperationDef, args: XPathContext.ResultStack) -> bool:
@@ -727,7 +727,7 @@ def c_equal_test(modelItem1: ModelFact, modelItem2: ModelFact) -> bool:
     if modelCntx1 is None:
         return modelCntx2 is None
     else:
-        return modelCntx1.isEqualTo(modelCntx2, dimensionalAspectModel=False)  # type: ignore[no-any-return]
+        return modelCntx1.isEqualTo(modelCntx2, dimensionalAspectModel=False)
 
 
 def identical_node_set(xc: XPathContext.XPathContext, p: OperationDef, args: XPathContext.ResultStack) -> bool:
@@ -799,7 +799,7 @@ def p_equal_test(node1: Any, node2: Any) -> bool:
         raise XPathContext.FunctionArgType(1, "xbrli:item or xbrli:tuple", errCode="xfie:ElementIsNotXbrlConcept")
     if not isinstance(node2, (ModelFact, ModelInlineFact)) or not (node1.isItem or node1.isTuple):
         raise XPathContext.FunctionArgType(2, "xbrli:item or xbrli:tuple", errCode="xfie:ElementIsNotXbrlConcept")
-    return node1.parentElement == node2.parentElement  # type: ignore[no-any-return]
+    return node1.parentElement == node2.parentElement
 
 
 def cu_equal(xc: XPathContext.XPathContext, p: OperationDef, args: XPathContext.ResultStack) -> bool:
@@ -1292,7 +1292,7 @@ def fact_dim_value(xc: XPathContext.XPathContext, p: OperationDef, args: XPathCo
             _("Argument 1 {0} is not a dimension concept QName.").format(qnDim),
         )
     if context is not None:
-        return context.dimValue(qnDim)  # type: ignore[no-untyped-call]
+        return context.dimValue(qnDim)
     raise XPathContext.FunctionArgType(1, "xbrl:item")
 
 
@@ -1327,7 +1327,7 @@ def fact_explicit_dimension_value_value(
                 "xfie:invalidExplicitDimensionQName",
                 _("dimension does not specify an explicit dimension"),
             )
-        dimValue = cast(QName, context.dimValue(qn))  # type: ignore[no-untyped-call]
+        dimValue = cast(QName, context.dimValue(qn))
         if isinstance(dimValue, ModelDimensionValue) and dimValue.isExplicit:
             return dimValue.memberQname  # known to be valid given instance is valid
         elif isinstance(dimValue, QName):  # default, check if this is valid
@@ -1383,7 +1383,7 @@ def fact_typed_dimension_value(xc: XPathContext.XPathContext, p: OperationDef, a
                 "xfie:invalidTypedDimensionQName",
                 _("dimension does not specify a typed dimension"),
             )
-        result = context.dimValue(qn)  # type: ignore[no-untyped-call]
+        result = context.dimValue(qn)
         return result if result is not None else ()
     raise XPathContext.FunctionArgType(1, "xbrl:item")
 
@@ -1407,21 +1407,21 @@ def fact_typed_dimension_simple_value(
                 "xfie:invalidTypedDimensionQName",
                 _("dimension does not specify a typed dimension"),
             )
-        result = context.dimValue(qn)  # type: ignore[no-untyped-call]
+        result = context.dimValue(qn)
         if result is None:
             return ()
-        typedMember = result.typedMember
-        if typedMember.get("{http://www.w3.org/2001/XMLSchema-instance}nil", "false") in ("true", "1"):
+        typedMember = result.typedMember  # type: ignore[union-attr]
+        if typedMember.get("{http://www.w3.org/2001/XMLSchema-instance}nil", "false") in ("true", "1"):  # type: ignore[union-attr]
             return ()
-        if typedMember.xValid == VALID_NO_CONTENT:
-            for _child in typedMember.iterchildren():  # has children
+        if typedMember.xValid == VALID_NO_CONTENT:  # type: ignore[union-attr]
+            for _child in typedMember.iterchildren():  # type: ignore[union-attr] # has children
                 raise XPathContext.XPathException(
                     p,
                     "xqt-err:FOTY0012",
                     _("dimension domain element is not atomizable"),
                 )
             return ()  # no error if no children
-        return typedMember.xValue
+        return typedMember.xValue  # type: ignore[union-attr]
     raise XPathContext.FunctionArgType(1, "xbrl:item")
 
 
@@ -1464,12 +1464,12 @@ def fact_dimension_s_equal2(xc: XPathContext.XPathContext, p: OperationDef, args
             if modelConcept is None or not modelConcept.isDimensionItem:
                 # raise XPathContext.XPathException(p, 'xfie:invalidTypedDimensionQName', _('dimension does not specify a typed dimension'))
                 return False
-            dimValue1 = context1.dimValue(qn)  # type: ignore[no-untyped-call]
-            dimValue2 = context2.dimValue(qn)  # type: ignore[no-untyped-call]
+            dimValue1 = context1.dimValue(qn)
+            dimValue2 = context2.dimValue(qn)
             if dimValue1 is not None and isinstance(dimValue1, ModelDimensionValue):
-                return dimValue1.isEqualTo(dimValue2, equalMode=XbrlUtil.S_EQUAL2)  # type: ignore[no-any-return, no-untyped-call]
+                return dimValue1.isEqualTo(dimValue2, equalMode=XbrlUtil.S_EQUAL2)  # type: ignore[arg-type]
             elif dimValue2 is not None and isinstance(dimValue2, ModelDimensionValue):
-                return dimValue2.isEqualTo(dimValue1, equalMode=XbrlUtil.S_EQUAL2)  # type: ignore[no-any-return, no-untyped-call]
+                return dimValue2.isEqualTo(dimValue1, equalMode=XbrlUtil.S_EQUAL2)  # type: ignore[arg-type]
             return dimValue1 == dimValue2
         raise XPathContext.FunctionArgType(2, "xbrl:item")
     raise XPathContext.FunctionArgType(1, "xbrl:item")
@@ -2148,7 +2148,7 @@ def filingIndicatorValues(inst: ModelXbrl, filedValue: str) -> set[str]:
     filingIndicators = set()
     for fact in inst.factsByQname[XbrlConst.qnEuFiIndFact]:
         if (
-            fact.parentElement.qname == XbrlConst.qnEuFiTuple
+            fact.parentElement.qname == XbrlConst.qnEuFiTuple  # type: ignore[union-attr]
             and fact.get(XbrlConst.cnEuFiIndAttr, "true") == filedValue
         ):
             filingIndicators.add(fact.stringValue.strip())

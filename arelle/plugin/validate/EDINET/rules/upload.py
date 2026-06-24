@@ -1225,7 +1225,7 @@ def rule_EC8023W(
             continue
         if fact.localName != 'nonFraction':
             continue
-        if fact.qname.namespaceURI == pluginData.namespaces.jpigp:
+        if fact.qname.namespaceURI == pluginData.namespaces.jpigp:  # type: ignore[union-attr]
             continue
 
         precedingChar = None

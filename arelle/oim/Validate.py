@@ -98,12 +98,12 @@ def validateOIM(modelXbrl: ModelXbrl) -> None:
             modelXbrl.error("xbrlxe:nonDimensionalSegmentScenarioContent",
                             _("Contexts MUST not contain non-dimensional content: %(contexts)s"),
                             modelObject=contextsWithNonDimContent,
-                            contexts=", ".join(sorted(c.id for c in contextsWithNonDimContent)))
+                            contexts=", ".join(sorted(c.id for c in contextsWithNonDimContent)))  # type: ignore[misc]
         if contextsWithComplexTypedDimensions:
             modelXbrl.error("xbrlxe:unsupportedComplexTypedDimension",  # this pertains only to xBRL-XML validation (JSON and CSV were checked during loading when loadedFromOIM is True)
                             _("Instance has contexts with complex typed dimensions: %(contexts)s"),
                             modelObject=contextsWithComplexTypedDimensions,
-                            contexts=", ".join(sorted(c.id for c in contextsWithComplexTypedDimensions)))
+                            contexts=", ".join(sorted(c.id for c in contextsWithComplexTypedDimensions)))  # type: ignore[misc]
 
         footnoteRels = modelXbrl.relationshipSet("XBRL-footnotes")
         # ext group and link roles

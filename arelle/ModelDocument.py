@@ -1335,13 +1335,13 @@ class ModelDocument(ModelDocumentBase):
                                         del sElt._dimension
                                     if hasattr(sElt, "_member") and sElt._member is None:
                                         del sElt._member
-                                modelContext.qnameDims[dimQn] = sElt # both seg and scen
+                                modelContext.qnameDims[dimQn] = sElt  # type: ignore[assignment] # both seg and scen
                                 if not self.skipDTS:
                                     dimension = sElt.dimension  # type: ignore[attr-defined]
                                     if dimension is not None and dimension not in containerDimValues:
-                                        containerDimValues[dimension] = sElt
+                                        containerDimValues[dimension] = sElt  # type: ignore[assignment]
                                     else:
-                                        modelContext.errorDimValues.append(sElt)
+                                        modelContext.errorDimValues.append(sElt)  # type: ignore[arg-type]
                         else:
                             containerNonDimValues.append(sElt)
 
@@ -1907,12 +1907,12 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
                         modelXbrl.error(ixMsgCode("invalidTransformation", modelInlineFact, sect="validation"),
                             _("Fact %(fact)s has unrecognized transformation namespace %(namespace)s"),
                             modelObject=modelInlineFact, fact=modelInlineFact.qname, transform=fmt, namespace=fmt.namespaceURI)
-                        modelInlineFact.setInvalid()  # type: ignore[no-untyped-call]
+                        modelInlineFact.setInvalid()
                     elif fmt.localName not in FunctionIxt.ixtNamespaceFunctions[fmt.namespaceURI]:
                         modelXbrl.error(ixMsgCode("invalidTransformation", modelInlineFact, sect="validation"),
                             _("Fact %(fact)s has unrecognized transformation name %(name)s"),
                             modelObject=modelInlineFact, fact=modelInlineFact.qname, transform=fmt, name=fmt.localName)
-                        modelInlineFact.setInvalid()  # type: ignore[no-untyped-call]
+                        modelInlineFact.setInvalid()
             else:
                 modelXbrl.error(ixMsgCode("missingReferences", modelInlineFact, name="references", sect="validation"),
                                 _("Instance fact missing schema definition: %(qname)s of Inline Element %(localName)s"),

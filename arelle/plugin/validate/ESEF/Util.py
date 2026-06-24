@@ -125,14 +125,14 @@ def checkForMultiLangDuplicates(modelXbrl: ModelXbrl) -> None:
             cuDict = _aspectEqualFacts[(f.qname, (f.xmlLang or "").lower())]
             _matched = False
             for (_cntx, _unit), fList in cuDict.items():
-                if (f.context.isEqualTo(_cntx)
+                if (f.context.isEqualTo(_cntx)  # type: ignore[union-attr]
                         and ((_unit is None and f.unit is None)
                              or (f.unit is not None and f.unit.isEqualTo(_unit)))):
                     _matched = True
                     fList.append(f)
                     break
             if not _matched:
-                cuDict[(f.context, f.unit)] = [f]
+                cuDict[(f.context, f.unit)] = [f]  # type: ignore[index]
         for cuDict in _aspectEqualFacts.values():
             for fList in cuDict.values():
                 if len(fList) > 1 and not all(f.xValue == fList[0].xValue for f in fList):

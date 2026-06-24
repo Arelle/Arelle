@@ -276,7 +276,7 @@ class PluginValidationDataExtension(PluginData):
                         for rel in footnotesRelationshipSet.toModelObject(elt):
                             if rel.fromModelObject is not None:
                                 fromObj = rel.fromModelObject
-                                lang = cast(str, elt.xmlLang)
+                                lang = elt.xmlLang
                                 factLangFootnotes[fromObj].add(lang)
                 if elt.tag == ixTupleTag:
                     tupleElements.add(elt)
@@ -307,7 +307,7 @@ class PluginValidationDataExtension(PluginData):
     def factLangs(self, modelXbrl: ModelXbrl) -> set[str]:
         factLangs = set()
         for fact in modelXbrl.facts:
-            if fact is not None:
+            if fact is not None and fact.xmlLang is not None:
                 factLangs.add(fact.xmlLang)
         return factLangs
 

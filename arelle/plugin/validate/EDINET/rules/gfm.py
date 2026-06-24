@@ -419,7 +419,7 @@ def rule_gfm_1_2_13(
             for qname, facts in qnames.items():
                 matchingQnames = languageFacts[defaultLang][qname]
                 for fact in facts:
-                    if not any(fact.context.isEqualTo(mq.context) for mq in matchingQnames):
+                    if not any(fact.context.isEqualTo(mq.context) for mq in matchingQnames):  # type: ignore[union-attr]
                         yield Validation.warning(
                             codes='EDINET.EC5700W.GFM.1.2.13',
                             msg=_('There is an element whose xml:lang attribute is in a language other than Japanese, '

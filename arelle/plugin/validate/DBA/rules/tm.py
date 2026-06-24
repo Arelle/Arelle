@@ -89,7 +89,7 @@ def rule_tm18(
     valid_facts = []
     start_date_facts = modelXbrl.factsByQname.get(pluginData.reportingPeriodStartDateQn, set())
     for fact in start_date_facts:
-        if not fact.context.scenDimValues:
+        if not fact.context.scenDimValues:  # type: ignore[union-attr]
             valid_facts.append(fact)
     if len(valid_facts) > 1:
         yield Validation.error(
@@ -119,7 +119,7 @@ def rule_tm20(
     valid_facts = []
     end_date_facts = modelXbrl.factsByQname.get(pluginData.reportingPeriodEndDateQn, set())
     for fact in end_date_facts:
-        if not fact.context.scenDimValues:
+        if not fact.context.scenDimValues:  # type: ignore[union-attr]
             valid_facts.append(fact)
     if len(valid_facts) > 1:
         yield Validation.error(
@@ -321,7 +321,7 @@ def rule_tm32(
     valid_facts = []
     start_date_facts = modelXbrl.factsByQname.get(pluginData.reportingPeriodStartDateQn, set())
     for fact in start_date_facts:
-        member = fact.context.qnameDims.get(pluginData.typeOfReportingPeriodDimensionQn)
+        member = fact.context.qnameDims.get(pluginData.typeOfReportingPeriodDimensionQn)  # type: ignore[union-attr]
         if member is not None and member.memberQname == pluginData.registeredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMemberQn:
             valid_facts.append(fact)
     if len(valid_facts) > 1:
@@ -352,7 +352,7 @@ def rule_tm33(
     valid_facts = []
     end_date_facts = modelXbrl.factsByQname.get(pluginData.reportingPeriodEndDateQn, set())
     for fact in end_date_facts:
-        member = fact.context.qnameDims.get(pluginData.typeOfReportingPeriodDimensionQn)
+        member = fact.context.qnameDims.get(pluginData.typeOfReportingPeriodDimensionQn)  # type: ignore[union-attr]
         if member is not None and member.memberQname == pluginData.registeredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMemberQn:
             valid_facts.append(fact)
     if len(valid_facts) > 1:

@@ -651,7 +651,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             for context in contextIssues.contextsWithWrongInstantDate:
                 modelXbrl.error("ESEF.2.1.2.inappropriateInstantDate",
                                 _("Instant date %(actualValue)s in context %(contextID)s shall be replaced by %(expectedValue)s to ensure a better comparability between the facts."),
-                                modelObject=context, actualValue=context.instantDate, expectedValue=context.instantDate - timedelta(days=1), contextID=context.id)
+                                modelObject=context, actualValue=context.instantDate, expectedValue=context.instantDate - timedelta(days=1), contextID=context.id)  # type: ignore[operator]
 
         # identify unique contexts and units
         mapContext = {}
@@ -667,7 +667,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             for measureTerm in unit.measures:
                 for measure in measureTerm:
                     ns = measure.namespaceURI
-                    if ns != XbrlConst.iso4217 and not ns.startswith("http://www.xbrl.org/"):
+                    if ns != XbrlConst.iso4217 and not ns.startswith("http://www.xbrl.org/"):  # type: ignore[union-attr]
                         if measure.localName in utrUnitIds:
                             modelXbrl.warning("ESEF.RTS.III.1.G1-7-1.customUnitInUtr",
                                 _("Custom measure SHOULD NOT duplicate a UnitID of UTR: %(measure)s"),
@@ -696,7 +696,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             errorMsg +=  _(" Facts with any other datatype MUST use the 'escape' attribute set to 'false'")
                             hasEscapeIssue = f.isEscaped != f.concept.isTextBlock
                         elif esefDisclosureSystemYear >= 2025:
-                            hasEscapeIssue = not f.isEscaped and (
+                            hasEscapeIssue = not f.isEscaped and (  # type: ignore[assignment]
                                 f.concept.isTextBlock or
                                 (f.value and escapeWorthyStr.match(f.value)))
                             if f.value and escapeWorthyStr.match(f.value):
@@ -718,7 +718,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         or any(f.concept.type.isDerivedFrom(percentType) for percentType in PERCENT_TYPES)):
                         modelXbrl.warning("ESEF.2.2.2.percentGreaterThan100",
                             _("A percent fact should have value <= 100: %(element)s in context %(context)s value %(value)s"),
-                            modelObject=f, element=f.qname, context=f.context.id, value=f.xValue)
+                            modelObject=f, element=f.qname, context=f.context.id, value=f.xValue)  # type: ignore[union-attr]
                 elif f.concept is not None and f.concept.type is not None:
                     if f.concept.type.isOimTextFactType:
                         lang = f.xmlLang
@@ -733,7 +733,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         reportDate = None
         for f in modelXbrl.factsByLocalName.get("NameOfReportingEntityOrOtherMeansOfIdentification", set()):
             if getattr(f, "xValid", 0) >= VALID:
-                if startDatetime := f.context.startDatetime:
+                if startDatetime := f.context.startDatetime:  # type: ignore[union-attr]
                     reportDate = startDatetime.date()
                     break
 
@@ -864,7 +864,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     ((summationItems,), "elements{}UsedForTagging{}AppliedInCalculationLinkbase", False, "calculation"),
                     ((hc_all, hc_notAll, dimensionDomain,domainMember), "elements{}UsedForTagging{}AppliedInDefinitionLinkbase", False, "definition")):
             if lbType == "calculation":
-                reportedEltsNotInLb = set(c for c in conceptsUsedByFacts if c.isNumeric)
+                reportedEltsNotInLb = set(c for c in conceptsUsedByFacts if c.isNumeric)  # type: ignore[union-attr]
             else:
                 reportedEltsNotInLb = conceptsUsedByFacts.copy()
             for arcrole in arcroles:
@@ -908,11 +908,11 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 if nsExcl:
                     nsExclPat = re.compile(nsExcl)
                 reportedEltsNotInLb -= set(c for c in reportedEltsNotInLb
-                                           if nsExclPat and nsExclPat.match(c.qname.namespaceURI))
+                                           if nsExclPat and nsExclPat.match(c.qname.namespaceURI))  # type: ignore[arg-type,union-attr]
             if reportedEltsNotInLb and lbType != "calculation":
                 modelXbrl.warning(f"ESEF.3.4.6.UsableConceptsNotIncludedIn{lbType.title()}Link",
                     _("All concepts used by tagged facts SHOULD be in extension taxonomy %(linkbaseType)s relationships: %(elements)s."),
-                    modelObject=reportedEltsNotInLb, elements=", ".join(sorted(str(c.qname) for c in reportedEltsNotInLb)), linkbaseType=lbType)
+                    modelObject=reportedEltsNotInLb, elements=", ".join(sorted(str(c.qname) for c in reportedEltsNotInLb)), linkbaseType=lbType)  # type: ignore[union-attr]
         if unreportedLbLocs:
             modelXbrl.warning("ESEF.3.4.6.UsableConceptsNotAppliedByTaggedFacts",
                 _("All usable concepts in extension taxonomy relationships SHOULD be applied by tagged facts: %(elements)s."),
@@ -1050,7 +1050,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             _declaredCurrency = unitCounts[0][0]
             for facts in modelXbrl.factsByQname.values():
                 for f0 in facts:
-                    concept = f0.concept
+                    concept = f0.concept  # type: ignore[assignment]
                     if concept is not None and concept.isMonetary:
                         hasDeclaredCurrency = False
                         for f in facts:

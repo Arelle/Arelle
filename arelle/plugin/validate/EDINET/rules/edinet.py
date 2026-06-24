@@ -191,7 +191,7 @@ def rule_EC5002E(
         if concept is None or not concept.isShares:
             continue
         unit = fact.unit
-        measures = unit.measures
+        measures = unit.measures  # type: ignore[union-attr]
         if (
                 not measures or
                 len(measures[0]) != 1 or
@@ -752,7 +752,7 @@ def rule_EC8029W(
     referencedConcepts: set[ModelConcept] = set()
     usedConcepts: set[ModelConcept] = set()
     for modelXbrl in pluginData.loadedModelXbrls:
-        usedConcepts.update(fact.concept for fact in modelXbrl.facts)
+        usedConcepts.update(fact.concept for fact in modelXbrl.facts)  # type: ignore[misc]
         relSet = modelXbrl.relationshipSet(arcroles)
         if relSet is None:
             continue

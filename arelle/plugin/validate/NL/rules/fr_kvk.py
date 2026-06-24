@@ -155,7 +155,7 @@ def rule_fr_kvk_5_01(
     """
     modelXbrl = val.modelXbrl
     for fact in modelXbrl.facts:
-        if not fact.concept.isMonetary:
+        if not fact.concept.isMonetary:  # type: ignore[union-attr]
             continue
         decimals = fact.decimals
         if decimals not in ACCEPTED_DECIMAL_VALUES:
@@ -183,7 +183,7 @@ def rule_fr_kvk_5_02(
     """
     modelXbrl = val.modelXbrl
     for fact in modelXbrl.facts:
-        if not fact.concept.isNumeric or fact.concept.isMonetary:
+        if not fact.concept.isNumeric or fact.concept.isMonetary:  # type: ignore[union-attr]
             continue
         decimals = fact.decimals
         if decimals != 'INF':

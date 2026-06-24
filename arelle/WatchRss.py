@@ -127,7 +127,7 @@ class WatchRss:
                     self.rssModelXbrl.modelManager.viewModelObject(self.rssModelXbrl, rssItem.objectId())  # type: ignore[union-attr]
                     if self.stopRequested:
                         break
-                    latestPubDate = datetimeValue(rssWatchOptions.get("latestPubDate"))  # type: ignore[arg-type]
+                    latestPubDate = datetimeValue(rssWatchOptions.get("latestPubDate"))
                     if (latestPubDate and
                         rssItem.pubDate < latestPubDate):  # type: ignore[union-attr]
                         continue
