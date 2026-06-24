@@ -11,7 +11,7 @@ from typing import Any, cast
 
 import regex
 
-from arelle.ModelValue import DateTime, QName, TypeXValue
+from arelle.ModelValue import DateTime, QName, TypeXValue, dayTimeDuration, yearMonthDuration
 from arelle.oim._tc.metadata.model import TCValueConstraint
 from arelle.oim._tc.metadata.types import (
     CORE_ENTITY,
@@ -95,6 +95,8 @@ class ValueConstraintValidator:
             return False
         if not self._is_patterns_valid(value):
             return False
+        if not self._is_duration_type_valid(value):
+            return False
         if self._effective_lexical_type == QNAME:
             tc_valid_qname = self._is_valid_qname(typed_value_result.xValue)
             if not tc_valid_qname:
@@ -150,6 +152,19 @@ class ValueConstraintValidator:
 
     def _is_valid_core_language(self, value: str) -> bool:
         return _TC_CORE_LANGUAGE_PATTERN.fullmatch(value) is not None
+
+    def _is_duration_type_valid(self, value: str) -> bool:
+        if self._constraint.duration_type is None:
+            return True
+        try:
+            match self._constraint.duration_type:
+                case "yearMonth":
+                    yearMonthDuration(value)
+                case "dayTime":
+                    dayTimeDuration(value)
+        except ValueError:
+            return False
+        return True
 
     def _is_valid_unit(self, value: str) -> bool:
         unit_qnames = PREFIXED_QNAME_PATTERN.findall(value)

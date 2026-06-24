@@ -317,6 +317,33 @@ class TestValidatePeriodType:
         assert _validator(tc_types.CORE_PERIOD, period_type=period_type).validate(value) is expected
 
 
+class TestValidateDurationType:
+    @pytest.mark.parametrize(
+        "duration_type, value, expected",
+        [
+            # yearMonth: only year and month components
+            ("yearMonth", "P1Y", True),
+            ("yearMonth", "P1M", True),
+            ("yearMonth", "P1Y2M", True),
+            ("yearMonth", "P1Y2M3D", False),
+            ("yearMonth", "P1Y2M3DT4H5M6S", False),
+            ("yearMonth", "PT1H", False),
+            ("yearMonth", "P1D", False),
+            # dayTime: only day, hour, minute, second components
+            ("dayTime", "P1D", True),
+            ("dayTime", "PT1H", True),
+            ("dayTime", "PT1M", True),
+            ("dayTime", "PT1S", True),
+            ("dayTime", "P1DT2H3M4S", True),
+            ("dayTime", "P1Y", False),
+            ("dayTime", "P1M", False),
+            ("dayTime", "P1Y2M3DT4H5M6S", False),
+        ],
+    )
+    def test_duration_type_validation(self, duration_type: str, value: str, expected: bool) -> None:
+        assert _validator(tc_types.DURATION, duration_type=duration_type).validate(value) is expected
+
+
 class TestValidateUnit:
     @pytest.mark.parametrize(
         "value, expected",
