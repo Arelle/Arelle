@@ -37,8 +37,7 @@
               "type": "object",
               "properties": {
                 "sourceName": { "$ref": "#/definitions/QName" },
-                "url": { "type": "string" },
-                "factLocatorType": { "$ref": "#/definitions/QName" }
+                "url": { "type": "string" }
               },
               "required": ["sourceName", "url"],
               "additionalProperties": false
@@ -61,11 +60,6 @@
                 },
                 "version": {
                     "type": "string"
-                },
-                "modelForm": {
-                    "type": "string",
-                    "enum": ["compiled", "module"],
-                    "description": "Indicates whether the xbrlModel is a compiled or modular model. If no value is provided the xbrlModel defaults to module."
                 },
                 "modelType": {
                    "$ref": "#/definitions/modelTypeQName" 
@@ -820,10 +814,6 @@
                               "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
                               "description": "Language of the fact value (BCP 47)."
                             },
-                            "factLocatorType": {
-                              "$ref": "#/definitions/QName",
-                              "description": "QName of the factLocatorType that defines the addressing strategy for all valueSources entries on this factValue. Inherited from the matching sourceMappings entry's factLocatorType when omitted."
-                            },
                             "source": {
                               "$ref": "#/definitions/QName",
                               "description": "QName identifying the source document via the sourceMappings array of the documentInfo object. Applied to all valueSources entries on this factValue when present."
@@ -1023,7 +1013,8 @@
                     "type": "object",
                     "properties": {
                       "name": { "$ref": "#/definitions/QName" },
-                      "templateName": { "$ref": "#/definitions/QName" }
+                      "templateName": { "$ref": "#/definitions/QName" },
+                      "factLocatorType": { "$ref": "#/definitions/QName" }
                     },
                     "required": ["name"],
                     "additionalProperties": false

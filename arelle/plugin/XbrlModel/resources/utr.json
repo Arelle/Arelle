@@ -106,7 +106,11 @@
             },
             {
                 "dataType": "xbrlr:volume",
-                "name": "utr:ft3"
+                "name": "utr:ft3",
+                "compositeUnitRepresentation": [
+                "utr:ft*utr:ft*utr:ft",
+                "utr:ft*utr:sqft"
+                ]
             },
             {
                 "dataType": "xbrlr:volume",

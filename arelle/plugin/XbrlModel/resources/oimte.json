@@ -64,7 +64,7 @@
           },
           {
             "source": "oimte:OIMErrorClassDomain",
-            "target": "oimte:cannotExtendObject",
+            "target": "oimte:illegalExtensionOfNonExtensibleObject",
             "order": 3.3
           },
           {
@@ -371,6 +371,11 @@
             "source": "oimte:OIMErrorClassDomain",
             "target": "oimte:documentNamespaceNotDefined",
             "order": 58.5
+          },
+          {
+            "source": "oimte:OIMErrorClassDomain",
+            "target": "oimte:documentNamespaceDefinedForCompiledModel",
+            "order": 58.7
           },
           {
             "source": "oimte:OIMErrorClassDomain",
@@ -1234,7 +1239,7 @@
         ]
       },
       {
-        "name": "oimte:cannotExtendObject",
+        "name": "oimte:illegalExtensionOfNonExtensibleObject",
         "domainClasses": [
           "oimte:OIMErrorClassDomain"
         ],
@@ -1823,6 +1828,30 @@
       },
       {
         "name": "oimte:importedTaxonomyDefinedForCompiledTaxonomy",
+        "domainClasses": [
+          "oimte:OIMErrorClassDomain"
+        ],
+        "properties": [
+          {
+            "property": "xbrl:severity",
+            "value": "error"
+          }
+        ]
+      },
+      {
+        "name": "oimte:importMappingDefinedForCompiledTaxonomy",
+        "domainClasses": [
+          "oimte:OIMErrorClassDomain"
+        ],
+        "properties": [
+          {
+            "property": "xbrl:severity",
+            "value": "error"
+          }
+        ]
+      },
+      {
+        "name": "oimte:documentNamespaceDefinedForCompiledModel",
         "domainClasses": [
           "oimte:OIMErrorClassDomain"
         ],
@@ -2679,7 +2708,7 @@
           },
           {
             "source": "oimte:DomainErrors",
-            "target": "oimte:cannotExtendObject",
+            "target": "oimte:illegalExtensionOfNonExtensibleObject",
             "order": 11
           },
           {
@@ -2826,6 +2855,11 @@
             "source": "oimte:DocumentInfoErrors",
             "target": "oimte:documentNamespaceNotDefined",
             "order": 9
+          },
+          {
+            "source": "oimte:DocumentInfoErrors",
+            "target": "oimte:documentNamespaceDefinedForCompiledModel",
+            "order": 10
           },
           {
             "source": "oimte:FinalTaxonomyErrors",
@@ -3187,7 +3221,7 @@
           },
           {
             "source": "xbrl:domainNetworkObject",
-            "target": "oimte:cannotExtendObject",
+            "target": "oimte:illegalExtensionOfNonExtensibleObject",
             "order": 11
           },
           {
@@ -3474,6 +3508,10 @@
           {
             "source": "xbrl:importTaxonomyObject",
             "target": "oimte:importedTaxonomyDefinedForCompiledTaxonomy"
+          },
+          {
+            "source": "xbrl:importMappingObject",
+            "target": "oimte:importMappingDefinedForCompiledTaxonomy"
           },
           {
             "source": "xbrl:domainNetworkObject",
@@ -4200,13 +4238,13 @@
       {
         "relatedName": "oimte:factValueLocatorRequiredForValueSources",
         "language": "en",
-        "value": "A factValue object with a 'valueSources' or 'valueAnchors' property must define a 'factLocatorType' either on the factValue object itself or on the corresponding sourceMappings entry in the DocumentInfo object.",
+        "value": "A factValue object with a 'valueSources' or 'valueAnchors' property must have a 'factLocatorType' defined in the factMap associated with the factSource.",
         "labelType": "xbrl:errorMessage"
       },
       {
         "relatedName": "oimte:factValueLocatorRequiredForValueSources",
         "language": "en",
-        "value": "This error is raised when a factValue object uses 'valueSources' or 'valueAnchors' but no factLocatorType is specified. The 'factLocatorType' property, which references a factLocatorType object, must be provided either directly on the factValue object or on the corresponding sourceMappings entry in the DocumentInfo object. Without a factLocatorType, the processor cannot determine how to locate and extract the value from the source document.",
+        "value": "This error is raised when a factValue object uses 'valueSources' or 'valueAnchors' but no factLocatorType is specified in the factMap associated with the factSource. The 'factLocatorType' property, which references a factLocatorType object, must be provided in the factMap linked to the factSource. Without a factLocatorType, the processor cannot determine how to locate and extract the value from the source document.",
         "labelType": "xbrl:documentation"
       },
       {
@@ -4296,13 +4334,13 @@
       {
         "relatedName": "oimte:disallowedObjectModelType",
         "language": "en",
-        "value": "Object type '{objectType}' is not allowed in modelType '{modelType}'. The object '{firstObjectName}' violates the allowedObjects constraint. This constraint only applies to objects in the document namespace when modelForm is 'module' or undefined.",
+        "value": "Object type '{objectType}' is not allowed in modelType '{modelType}'. The object '{firstObjectName}' violates the allowedObjects constraint. This constraint only applies to objects in the document namespace when documentType is 'module' or undefined.",
         "labelType": "xbrl:errorMessage"
       },
       {
         "relatedName": "oimte:disallowedObjectModelType",
         "language": "en",
-        "value": "This error occurs when an xbrlModel with a modelType attribute contains object types that are not in the modelType's allowedObjects array. The constraint only applies to objects defined in the same namespace as the xbrlModel's documentNamespacePrefix when modelForm is 'module' or undefined. Objects included via importTaxonomy are not subject to this constraint.",
+        "value": "This error occurs when an xbrlModel with a modelType attribute contains object types that are not in the modelType's allowedObjects array. The constraint only applies to objects defined in the same namespace as the xbrlModel's documentNamespacePrefix when documentType is 'module' or undefined. Objects included via importTaxonomy are not subject to this constraint.",
         "labelType": "xbrl:documentation"
       },
       {
@@ -4324,13 +4362,13 @@
         "labelType": "xbrl:documentation"
       },
       {
-        "relatedName": "oimte:cannotExtendObject",
+        "relatedName": "oimte:illegalExtensionOfNonExtensibleObject",
         "language": "en",
         "value": "Cannot Extend Non-Extensible Object",
         "labelType": "xbrl:label"
       },
       {
-        "relatedName": "oimte:cannotExtendObject",
+        "relatedName": "oimte:illegalExtensionOfNonExtensibleObject",
         "language": "en",
         "value": "The object {targetName} is marked as non-extensible and cannot be extended.",
         "labelType": "xbrl:errorMessage"
@@ -4356,7 +4394,7 @@
       {
         "relatedName": "oimte:documentNamespaceNotDefined",
         "language": "en",
-        "value": "This error occurs when an XBRL Model with a modelForm of 'module' (or where modelForm is not defined, which defaults to module) does not define the documentNamespacePrefix property in its documentInfo object. The documentNamespacePrefix property is required for modules and must be a prefix string defined as a key in the namespaces map.",
+        "value": "This error occurs when an XBRL Model with a documentType of 'module' (or where documentType is not defined, which defaults to module) does not define the documentNamespacePrefix property in its documentInfo object. The documentNamespacePrefix property is required for modules and must be a prefix string defined as a key in the namespaces map.",
         "labelType": "xbrl:documentation"
       },
       {
@@ -4906,7 +4944,7 @@
         "labelType": "xbrl:documentation"
       },
       {
-        "relatedName": "oimte:cannotExtendObject",
+        "relatedName": "oimte:illegalExtensionOfNonExtensibleObject",
         "language": "en",
         "value": "This error is generated when an attempt is made to extend an object that is marked as non-extensible using isExtensible: false. A non-extensible object cannot be augmented by an importing taxonomy, so any such attempt results in this error.",
         "labelType": "xbrl:documentation"
@@ -5527,13 +5565,13 @@
         "relatedName": "oimte:canonicalFormRequiresCompiledModel",
         "language": "en",
         "labelType": "xbrl:errorMessage",
-        "value": "Only compiled models can have canonical forms. The model '{modelName}' has modelForm '{modelForm}' which cannot be converted to canonical form."
+        "value": "Only compiled models can have canonical forms. The model '{modelName}' has documentType '{documentType}' which cannot be converted to canonical form."
       },
       {
         "relatedName": "oimte:canonicalFormRequiresCompiledModel",
         "language": "en",
         "labelType": "xbrl:documentation",
-        "value": "Raised when an attempt is made to convert a module-form model to canonical form. Canonical form is only supported for compiled models. Check that the modelForm property is set to \"compiled\" before applying canonical form processing."
+        "value": "Raised when an attempt is made to convert a module-form model to canonical form. Canonical form is only supported for compiled models. Check that the documentType property is set to 'compiled' before applying canonical form processing."
       },
       {
         "relatedName": "oimte:nonSemanticPropertyInCanonicalForm",
@@ -5599,13 +5637,49 @@
         "relatedName": "oimte:importedTaxonomyDefinedForCompiledTaxonomy",
         "language": "en",
         "labelType": "xbrl:errorMessage",
-        "value": "The model '{modelName}' has modelForm 'compiled' but contains an importTaxonomy object, which is not allowed."
+        "value": "The model '{modelName}' has documentType 'compiled' but contains an importTaxonomy object, which is not allowed."
       },
       {
         "relatedName": "oimte:importedTaxonomyDefinedForCompiledTaxonomy",
         "language": "en",
         "labelType": "xbrl:documentation",
-        "value": "Raised when an importTaxonomy object is found in a model with modelForm set to \"compiled\". Compiled models are fully self-contained and cannot import from external taxonomy modules."
+        "value": "Raised when an importTaxonomy object is found in a model with documentType set to 'compiled'. Compiled models are fully self-contained and cannot import from external taxonomy modules."
+      },
+      {
+        "relatedName": "oimte:importMappingDefinedForCompiledTaxonomy",
+        "language": "en",
+        "labelType": "xbrl:label",
+        "value": "Import Mapping Defined For Compiled Taxonomy"
+      },
+      {
+        "relatedName": "oimte:importMappingDefinedForCompiledTaxonomy",
+        "language": "en",
+        "labelType": "xbrl:errorMessage",
+        "value": "The model has documentType 'compiled' but contains an importMapping object, which is not allowed."
+      },
+      {
+        "relatedName": "oimte:importMappingDefinedForCompiledTaxonomy",
+        "language": "en",
+        "labelType": "xbrl:documentation",
+        "value": "Raised when an importMapping object is found in a documentInfo with documentType set to compiled. Compiled models are fully self-contained and must not define import mappings."
+      },
+      {
+        "relatedName": "oimte:documentNamespaceDefinedForCompiledModel",
+        "language": "en",
+        "labelType": "xbrl:label",
+        "value": "Document Namespace Defined For Compiled Model"
+      },
+      {
+        "relatedName": "oimte:documentNamespaceDefinedForCompiledModel",
+        "language": "en",
+        "labelType": "xbrl:errorMessage",
+        "value": "The model has documentType 'compiled' but defines a documentNamespacePrefix property, which is not allowed."
+      },
+      {
+        "relatedName": "oimte:documentNamespaceDefinedForCompiledModel",
+        "language": "en",
+        "labelType": "xbrl:documentation",
+        "value": "Raised when a documentNamespacePrefix property is found in a documentInfo with documentType set to compiled. Compiled models are fully self-contained and must not define a document namespace prefix."
       },
       {
         "relatedName": "oimte:extendedTargetNameDefinedForCompiledTaxonomy",
@@ -5617,7 +5691,7 @@
         "relatedName": "oimte:extendedTargetNameDefinedForCompiledTaxonomy",
         "language": "en",
         "labelType": "xbrl:errorMessage",
-        "value": "The domain '{domain}' has an extends property defined but the model modelForm is 'module', which does not allow extension."
+        "value": "The domain '{domain}' has an extends property defined but the documentType is 'module', which does not allow extension."
       },
       {
         "relatedName": "oimte:extendedTargetNameDefinedForCompiledTaxonomy",
@@ -6970,6 +7044,32 @@
           {
             "property": "xbrl:specificationErrorURI",
             "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-RequiredCubeDimensionalSpaceMissing"
+          }
+        ]
+      },
+      {
+        "name": "oimte:noFactSpaceForFactCompositeUnitStringRepresentationReference",
+        "relatedNames": [
+          "oimte:noFactSpaceForFact"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "UNIT-CompositeUnitStringRepresentation.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-FactMissingFromCompleteCube"
           }
         ]
       },
@@ -9667,7 +9767,7 @@
       {
         "name": "oimte:cannotExtendObjectReference",
         "relatedNames": [
-          "oimte:cannotExtendObject"
+          "oimte:illegalExtensionOfNonExtensibleObject"
         ],
         "referenceType": "xbrl:conformanceTestReference",
         "language": "en",
@@ -9693,7 +9793,7 @@
       {
         "name": "oimte:cannotExtendObjectCubeReference",
         "relatedNames": [
-          "oimte:cannotExtendObject"
+          "oimte:illegalExtensionOfNonExtensibleObject"
         ],
         "referenceType": "xbrl:conformanceTestReference",
         "language": "en",
@@ -9719,7 +9819,7 @@
       {
         "name": "oimte:cannotExtendObjectNetworkReference",
         "relatedNames": [
-          "oimte:cannotExtendObject"
+          "oimte:illegalExtensionOfNonExtensibleObject"
         ],
         "referenceType": "xbrl:conformanceTestReference",
         "language": "en",
@@ -9745,7 +9845,7 @@
       {
         "name": "oimte:cannotExtendObjectReferenceObjectReference",
         "relatedNames": [
-          "oimte:cannotExtendObject"
+          "oimte:illegalExtensionOfNonExtensibleObject"
         ],
         "referenceType": "xbrl:conformanceTestReference",
         "language": "en",
@@ -9771,7 +9871,7 @@
       {
         "name": "oimte:cannotExtendObjectFactReference",
         "relatedNames": [
-          "oimte:cannotExtendObject"
+          "oimte:illegalExtensionOfNonExtensibleObject"
         ],
         "referenceType": "xbrl:conformanceTestReference",
         "language": "en",
@@ -9797,7 +9897,7 @@
       {
         "name": "oimte:cannotExtendObjectTableTemplateReference",
         "relatedNames": [
-          "oimte:cannotExtendObject"
+          "oimte:illegalExtensionOfNonExtensibleObject"
         ],
         "referenceType": "xbrl:conformanceTestReference",
         "language": "en",
@@ -9823,7 +9923,7 @@
       {
         "name": "oimte:cannotExtendObjectMemberValidReference",
         "relatedNames": [
-          "oimte:cannotExtendObject"
+          "oimte:illegalExtensionOfNonExtensibleObject"
         ],
         "referenceType": "xbrl:conformanceTestReference",
         "language": "en",
@@ -15783,6 +15883,32 @@
         ]
       },
       {
+        "name": "oimte:factUnitDatatypeMismatchCompositeUnitStringRepresentationReference",
+        "relatedNames": [
+          "oimte:factUnitDatatypeMismatch"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "UNIT-CompositeUnitStringRepresentation.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-UnitDatatypeMismatch"
+          }
+        ]
+      },
+      {
         "name": "oimte:factMissingUnitDimensionConformanceReference",
         "relatedNames": [
           "oimte:factMissingUnitDimension"
@@ -17052,11 +17178,41 @@
           },
           {
             "property": "xbrl:conformanceTestDescription",
-            "value": "A factValue object uses 'valueSources' but no 'factLocatorType' is defined on the factValue object or on the sourceMappings entry. The processor must raise oimte:factValueLocatorRequiredForValueSources."
+            "value": "A factValue object uses 'valueSources' but no 'factLocatorType' is defined in the factMap associated with the factSource. The processor must raise oimte:factValueLocatorRequiredForValueSources."
           },
           {
             "property": "xbrl:specificationErrorURI",
             "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACTLOCATOR-MissingfactLocatorType"
+          }
+        ]
+      },
+      {
+        "name": "oimte:factValueLocatorRequiredForValueSourcesValidFactInterfaceReference",
+        "relatedNames": [
+          "oimte:factValueLocatorRequiredForValueSources"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "FACTLOCATOR-ValidFactInterfaceOnFactValue.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "A factValue object uses 'valueSources' but no 'factLocatorType' is defined in the factMap associated with the factSource. The processor must raise oimte:factValueLocatorRequiredForValueSources."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACTLOCATOR-ValidFactInterfaceOnFactValue"
           }
         ]
       },
@@ -17585,16 +17741,16 @@
         ]
       },
       {
-        "name": "oimte:cannotExtendObjectSpecReference",
+        "name": "oimte:illegalExtensionOfNonExtensibleObjectSpecReference",
         "relatedNames": [
-          "oimte:cannotExtendObject"
+          "oimte:illegalExtensionOfNonExtensibleObject"
         ],
         "referenceType": "xbrl:specificationErrorReference",
         "language": "en",
         "properties": [
           {
             "property": "xbrl:specificationErrorURI",
-            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-cannotextendobject"
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-illegalExtensionOfNonExtensibleObject"
           }
         ]
       },
@@ -17637,6 +17793,20 @@
           {
             "property": "xbrl:specificationErrorURI",
             "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-documentnamespacenotdefined"
+          }
+        ]
+      },
+      {
+        "name": "oimte:documentNamespaceDefinedForCompiledModelSpecReference",
+        "relatedNames": [
+          "oimte:documentNamespaceDefinedForCompiledModel"
+        ],
+        "referenceType": "xbrl:specificationErrorReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-documentnamespacedefinedforcompiledmodel"
           }
         ]
       },
@@ -21346,7 +21516,127 @@
           },
           {
             "property": "xbrl:conformanceTestDescription",
-            "value": "A model with modelForm 'compiled' defines an importedTaxonomies array, which is not permitted. Compiled models are fully self-contained and cannot import from external taxonomy modules."
+            "value": "A model with documentType 'compiled' defines an importedTaxonomies array, which is not permitted. Compiled models are fully self-contained and cannot import from external taxonomy modules."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#IMPORTTAXONOMY-CompiledModelWithImports"
+          }
+        ]
+      },
+      {
+        "name": "oimte:importMappingDefinedForCompiledTaxonomyReference",
+        "relatedNames": [
+          "oimte:importMappingDefinedForCompiledTaxonomy"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "IMPORTTAXONOMY-CompiledModelWithImportMapping.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "A compiled model documentInfo defines an importMapping, which is not permitted. Compiled models are fully self-contained and must not define import mappings."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#IMPORTTAXONOMY-CompiledModelWithImportMapping"
+          }
+        ]
+      },
+      {
+        "name": "oimte:importMappingDefinedForCompiledTaxonomyCompiledModelWithImportsReference",
+        "relatedNames": [
+          "oimte:importMappingDefinedForCompiledTaxonomy"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "IMPORTTAXONOMY-CompiledModelWithImports.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "A compiled model documentInfo defines an importMapping alongside importedTaxonomies, which is not permitted. The processor must raise oimte:importMappingDefinedForCompiledTaxonomy."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#IMPORTTAXONOMY-CompiledModelWithImports"
+          }
+        ]
+      },
+      {
+        "name": "oimte:documentNamespaceDefinedForCompiledModelReference",
+        "relatedNames": [
+          "oimte:documentNamespaceDefinedForCompiledModel"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "NAMESPACE-CompiledModelWithDocumentNamespace.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "A compiled model documentInfo defines a documentNamespacePrefix, which is not permitted. Compiled models are fully self-contained and must not define a document namespace prefix."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NAMESPACE-CompiledModelWithDocumentNamespace"
+          }
+        ]
+      },
+      {
+        "name": "oimte:documentNamespaceDefinedForCompiledModelImportsReference",
+        "relatedNames": [
+          "oimte:documentNamespaceDefinedForCompiledModel"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "IMPORTTAXONOMY-CompiledModelWithImports.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "A compiled model documentInfo defines a documentNamespacePrefix, which is not permitted. Compiled models are fully self-contained and must not define a document namespace prefix."
           },
           {
             "property": "xbrl:specificationErrorURI",
