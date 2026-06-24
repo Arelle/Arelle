@@ -42,3 +42,14 @@ UNIT_PATTERN = regex.compile(
 )
 
 XBRLCE_INVALID_IDENTIFIER = "xbrlce:invalidIdentifier"
+
+PER_ISO_PATTERN = regex.compile(
+    "([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(Z|[+-][0-2][0-9]([:]?)[0-5][0-9]+)?(/[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2})?(Z|[+-][0-2][0-9]([:]?)[0-5][0-9]+)?)$"
+)
+PER_INCLUSIVE_DATES_PATTERN = regex.compile("([0-9]{4}-[0-9]{2}-[0-9]{2})[.][.]([0-9]{4}-[0-9]{2}-[0-9]{2})$")
+PER_SINGLE_DAY_PATTERN = regex.compile("([0-9]{4}-[0-9]{2}-[0-9]{2})(@(start|end))?$")
+PER_MONTH_PATTERN = regex.compile("([0-9]{4}-[0-9]{2})(@(start|end))?$")
+PER_YEAR_PATTERN = regex.compile("([0-9]{4})(@(start|end))?$")
+PER_QTR_PATTERN = regex.compile("([0-9]{4})Q([1-4])(@(start|end))?$")
+PER_HALF_PATTERN = regex.compile("([0-9]{4})H([1-2])(@(start|end))?$")
+PER_WEEK_PATTERN = regex.compile("([0-9]{4}W[1-5]?[0-9])(@(start|end))?$")

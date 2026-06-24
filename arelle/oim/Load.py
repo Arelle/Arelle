@@ -26,6 +26,14 @@ from arelle.ModelValue import (DATETIME, dateTime, dayTimeDuration, qname,
                                yearMonthDuration)
 from arelle.oim.const import (
     IDENTIFIER_PATTERN,
+    PER_ISO_PATTERN,
+    PER_INCLUSIVE_DATES_PATTERN,
+    PER_SINGLE_DAY_PATTERN,
+    PER_MONTH_PATTERN,
+    PER_YEAR_PATTERN,
+    PER_QTR_PATTERN,
+    PER_HALF_PATTERN,
+    PER_WEEK_PATTERN,
     XBRLCE_INVALID_IDENTIFIER,
     PREFIXED_QNAME_PATTERN as PrefixedQName,
     SQNAME_PATTERN as SQNamePattern,
@@ -518,14 +526,16 @@ ONE_YEAR = yearMonthDuration("P1Y")
 ONE_QTR = yearMonthDuration("P3M")
 ONE_HALF = yearMonthDuration("P6M")
 
-periodForms = ((PER_ISO, re.compile("([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(Z|[+-][0-2][0-9]([:]?)[0-5][0-9]+)?(/[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2})?(Z|[+-][0-2][0-9]([:]?)[0-5][0-9]+)?)$")),
-               (PER_INCLUSIVE_DATES, re.compile("([0-9]{4}-[0-9]{2}-[0-9]{2})[.][.]([0-9]{4}-[0-9]{2}-[0-9]{2})$")),
-               (PER_SINGLE_DAY, re.compile("([0-9]{4}-[0-9]{2}-[0-9]{2})(@(start|end))?$")),
-               (PER_MONTH,  re.compile("([0-9]{4}-[0-9]{2})(@(start|end))?$")),
-               (PER_YEAR, re.compile("([0-9]{4})(@(start|end))?$")),
-               (PER_QTR, re.compile("([0-9]{4})Q([1-4])(@(start|end))?$")),
-               (PER_HALF, re.compile("([0-9]{4})H([1-2])(@(start|end))?$")),
-               (PER_WEEK, re.compile("([0-9]{4}W[1-5]?[0-9])(@(start|end))?$")))
+periodForms = (
+    (PER_ISO, PER_ISO_PATTERN),
+    (PER_INCLUSIVE_DATES, PER_INCLUSIVE_DATES_PATTERN),
+    (PER_SINGLE_DAY, PER_SINGLE_DAY_PATTERN),
+    (PER_MONTH, PER_MONTH_PATTERN),
+    (PER_YEAR, PER_YEAR_PATTERN),
+    (PER_QTR, PER_QTR_PATTERN),
+    (PER_HALF, PER_HALF_PATTERN),
+    (PER_WEEK, PER_WEEK_PATTERN),
+)
 
 def csvPeriod(cellValue, startOrEnd=None):
     if cellValue is EMPTY_CELL or cellValue is NONE_CELL:
