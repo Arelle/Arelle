@@ -7,6 +7,16 @@ on:
         description: 'TkTable git tag to build (e.g. tktable-2-12-1)'
         required: true
         type: string
+      tcltk_8_tag:
+        default: 'core-8-6-18'
+        description: 'Tcl/Tk 8 git tag (e.g. core-8-6-18)'
+        required: true
+        type: string
+      tcltk_9_tag:
+        default: 'core-9-0-3'
+        description: 'Tcl/Tk 9 git tag (e.g. core-9-0-3)'
+        required: true
+        type: string
 
 permissions: {}
 
@@ -93,19 +103,76 @@ jobs:
           repository: bohagan1/TkTable
           ref: ${{ inputs.tktable_tag }}
           path: TkTable
+      - name: Checkout Tcl 8
+        uses: actions/checkout@v7.0.0
+        with:
+          repository: tcltk/tcl
+          ref: ${{ inputs.tcltk_8_tag }}
+          path: tcl8-src
+      - name: Checkout Tcl 9
+        uses: actions/checkout@v7.0.0
+        with:
+          repository: tcltk/tcl
+          ref: ${{ inputs.tcltk_9_tag }}
+          path: tcl9-src
+      - name: Checkout Tk 8
+        uses: actions/checkout@v7.0.0
+        with:
+          repository: tcltk/tk
+          ref: ${{ inputs.tcltk_8_tag }}
+          path: tk8-src
+      - name: Checkout Tk 9
+        uses: actions/checkout@v7.0.0
+        with:
+          repository: tcltk/tk
+          ref: ${{ inputs.tcltk_9_tag }}
+          path: tk9-src
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y build-essential tcl-dev tk-dev
-      - name: Build
+        run: sudo apt-get update && sudo apt-get install -y build-essential zip zlib1g-dev libx11-dev libxext-dev libxft-dev libxss-dev
+      - name: Build Tcl 8
+        run: |
+          cd tcl8-src/unix
+          ./configure --prefix=$PWD/../../tcl8-install
+          make
+          make install
+      - name: Build Tcl 9
+        run: |
+          cd tcl9-src/unix
+          ./configure --prefix=$PWD/../../tcl9-install
+          make
+          make install
+      - name: Build TkTable for Tcl 8
+        run: |
+          cd tk8-src/unix
+          ./configure --prefix=$PWD/../../tcl8-install --with-tcl=$PWD/../../tcl8-install/lib
+          make
+          make install
+      - name: Build Tk 9
+        run: |
+          cd tk9-src/unix
+          ./configure --prefix=$PWD/../../tcl9-install --with-tcl=$PWD/../../tcl9-install/lib
+          make
+          make install
+      - name: Build for Tcl 8
         run: |
           cd TkTable
-          ./configure
+          ./configure --with-tcl=$PWD/../tcl8-install/lib --with-tk=$PWD/../tcl8-install/lib
           make
-      - name: Collect artifacts
+      - name: Collect Tcl 8 artifacts
         run: |
           mkdir -p output
           cp TkTable/*.so output/
           cp TkTable/pkgIndex.tcl output/
           cp TkTable/library/tkTable.tcl output/
+      - name: Build TkTable for Tcl 9
+        run: |
+          cd TkTable
+          make clean
+          ./configure --with-tcl=$PWD/../tcl9-install/lib --with-tk=$PWD/../tcl9-install/lib
+          make
+      - name: Collect Tcl 9 artifacts
+        run: |
+          cp TkTable/*.so output/
       - uses: actions/upload-artifact@v7.0.1
         with:
           name: tktable-linux-x86_64
