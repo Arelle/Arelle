@@ -3,7 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from arelle import ViewFile, XbrlConst, XmlUtil
 from arelle.typing import TypeGetText
