@@ -69,6 +69,9 @@ def resolveTableStructure(view, viewTblELR):
     try:
         for defnMdlTable in tblBrkdnRelSet.rootConcepts:
             view.rendrCntx = defnMdlTable.renderingXPathContext
+            if view.rendrCntx is None:
+                view.modelXbrl.modelManager.addToLog(_("no rendering context for {0}").format(viewTblELR))
+                return None
             strctMdlTableSet = StrctMdlTableSet(defnMdlTable)
             referencedVariables = defnMdlTable.variableRefs()
             for tblParamRel in view.modelXbrl.relationshipSet((XbrlConst.tableParameter, XbrlConst.tableParameterMMDD)).fromModelObject(defnMdlTable):

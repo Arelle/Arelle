@@ -2033,6 +2033,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                             messageCode="info", file=self.entrypointFile)  # type: ignore[arg-type]
                 if modelXbrl.hasTableRendering:
                     RenderingEvaluator.init(modelXbrl)  # type: ignore[no-untyped-call]
+                for supplementalModel in getattr(modelXbrl, "supplementalModelXbrls", []):
+                    if supplementalModel.hasTableRendering:
+                        RenderingEvaluator.init(supplementalModel)  # type: ignore[no-untyped-call]
                 if options.importFiles:
                     for importFile in options.importFiles.split("|"):
                         fileName = importFile.strip()

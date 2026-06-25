@@ -1007,7 +1007,13 @@ class CntlrWinMain(Cntlr.Cntlr):
             self.addToLog(format_string(self.modelManager.locale,
                                         _("%s in %.2f secs"),
                                         (action, statTime)))
-            modelsWithTableRendering = [model for model in loadedModels if model.hasTableRendering]
+            modelsWithTableRendering = []
+            for model in loadedModels:
+                if model.hasTableRendering:
+                    modelsWithTableRendering.append(model)
+                for supplementalModel in getattr(model, "supplementalModelXbrls", []):
+                    if supplementalModel.hasTableRendering:
+                        modelsWithTableRendering.append(supplementalModel)
             if modelsWithTableRendering:
                 self.showStatus(_("Initializing table rendering"))
                 for model in modelsWithTableRendering:

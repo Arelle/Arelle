@@ -52,6 +52,8 @@ def layoutTable(view, table = None):
 
     for tblELR in tblELRs:
         strctMdlTableSet = resolveTableStructure(view, tblELR)
+        if strctMdlTableSet is None:
+            continue
         # each table z production
         defnMdlTable = strctMdlTableSet.defnMdlNode
         view.hasTableFilters = bool(view.defnMdlTable.filterRelationships)

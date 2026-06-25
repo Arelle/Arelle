@@ -64,6 +64,8 @@ class ViewRenderedStructuralModel(ViewFile.View):
             self.zOrdinateChoices = {}
 
             strctMdlTable = resolveTableStructure(self, tblELR)
+            if strctMdlTable is None:
+                continue
 
             # uncomment below for debugging Definition and Structural Models
             def jsonStrctMdlEncoder(obj, indent="\n"):
