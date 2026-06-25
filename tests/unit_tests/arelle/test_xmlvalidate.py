@@ -79,7 +79,11 @@ BASE_XSD_TYPES = {
         {"value": "/test.test/test", "expected": ("=", "=", VALID)},
         {"value": "test.test/test", "expected": ("=", "=", VALID)},
         {"value": "\\escaped", "expected": ("=", "%5Cescaped", VALID)},
+        {"value": "http://example.com/%20valid", "expected": ("=", "=", VALID)},
+        {"value": "http://example.com/path#section", "expected": ("=", "=", VALID)},
         {"value": ":invalid:", "expected": ("=", None, INVALID)},
+        {"value": "http://example.com/%ZZ", "expected": ("=", None, INVALID)},
+        {"value": "http://example.com/path#frag1#frag2", "expected": ("=", None, INVALID)},
     ],
     "boolean": [
         {"value": "true", "expected": (True, True, VALID)},
@@ -107,6 +111,7 @@ BASE_XSD_TYPES = {
         {"value": "2025-01-02T03:04:05+1:30", "expected": ("=", None, INVALID)},
         {"value": "*invalid", "expected": ("=", None, INVALID)},
         {"value": "01/02/2025", "expected": ("=", None, INVALID)},
+        {"value": "0000-01-02", "expected": ("=", None, INVALID)},
     ],
     "dateTime": [
         {"value": "2025-01-02T03:04:05", "expected": ("=", DateTime(2025, 1, 2, 3, 4, 5), VALID)},
@@ -119,6 +124,7 @@ BASE_XSD_TYPES = {
         {"value": "2025-01-02T03:04:05+1:30", "expected": ("=", None, INVALID)},
         {"value": "*invalid", "expected": ("=", None, INVALID)},
         {"value": "01/02/2025", "expected": ("=", None, INVALID)},
+        {"value": "0000-01-02T03:04:05", "expected": ("=", None, INVALID)},
     ],
     "decimal": NON_ZERO_DECIMAL_CASES + [
         {"value": "0", "expected": (0, Decimal(0), VALID)},
@@ -234,6 +240,9 @@ BASE_XSD_TYPES = {
         {"value": "-0001+01:11", "expected": ("=", gYear(1), VALID)},
         {"value": "-0001-01:11", "expected": ("=", gYear(1), VALID)},
         {"value": "-0001-14:00", "expected": ("=", gYear(1), VALID)},
+        {"value": "0000", "expected": ("=", None, INVALID)},
+        {"value": "-0000", "expected": ("=", None, INVALID)},
+        {"value": "0000Z", "expected": ("=", None, INVALID)},
         {"value": "--0001", "expected": ("=", None, INVALID)},
         {"value": "-01", "expected": ("=", None, INVALID)},
         {"value": "-00001", "expected": ("=", None, INVALID)},
@@ -251,6 +260,9 @@ BASE_XSD_TYPES = {
         {"value": "-0001-01+01:11", "expected": ("=", gYearMonth(1, 1), VALID)},
         {"value": "-0001-01-01:11", "expected": ("=", gYearMonth(1, 1), VALID)},
         {"value": "-0001-01-14:00", "expected": ("=", gYearMonth(1, 1), VALID)},
+        {"value": "0000-01", "expected": ("=", None, INVALID)},
+        {"value": "-0000-01", "expected": ("=", None, INVALID)},
+        {"value": "0000-06Z", "expected": ("=", None, INVALID)},
         {"value": "--0001-01", "expected": ("=", None, INVALID)},
         {"value": "-01-01", "expected": ("=", None, INVALID)},
         {"value": "-00001-01", "expected": ("=", None, INVALID)},
@@ -1057,3 +1069,106 @@ class TestValidateFacetValueString:
         result = validateFacetValueString("fractionDigits", value, base_xsd_type)
         assert result.xValid == expected_x_valid
         assert result.isXValid == (expected_x_valid >= VALID)
+
+
+class TestBase64BinaryValidation:
+    @pytest.mark.parametrize("value", [
+        "",
+        "AAAA",
+        "AA==",
+        "AAA=",
+        "AAAAAAAA",
+        "dGVzdA==",
+        "A A A A",
+    ])
+    def test_valid_base64_binary(self, value: str):
+        result = validateValueString("base64Binary", value)
+        assert result.xValid == VALID
+        assert result.isXValid
+
+    @pytest.mark.parametrize("value", [
+        "AAAAA",
+        "!!!!",
+        "AAA",
+        "AA=A",
+        "====",
+        "A",
+    ])
+    def test_invalid_base64_binary(self, value: str):
+        result = validateValueString("base64Binary", value)
+        assert result.xValid == INVALID
+        assert not result.isXValid
+
+
+class TestHexBinaryValidation:
+    @pytest.mark.parametrize("value", [
+        "",
+        "FF",
+        "00",
+        "AABB",
+        "ff",
+        "aAbBcCdDeEfF",
+        "0123456789ABCDEF",
+    ])
+    def test_valid_hex_binary(self, value: str):
+        result = validateValueString("hexBinary", value)
+        assert result.xValid == VALID
+        assert result.isXValid
+
+    @pytest.mark.parametrize("value", [
+        "F",
+        "FFF",
+        "GG",
+        "FF-AA",
+        "0xFF",
+        "FFGG",
+    ])
+    def test_invalid_hex_binary(self, value: str):
+        result = validateValueString("hexBinary", value)
+        assert result.xValid == INVALID
+        assert not result.isXValid
+
+
+class TestTimezoneValidation:
+    @pytest.mark.parametrize(
+        "base_xsd_type,value",
+        [
+            ("date", "2024-01-01"),
+            ("date", "2024-01-01Z"),
+            ("date", "2024-01-01+00:00"),
+            ("date", "2024-01-01-05:00"),
+            ("date", "2024-01-01+14:00"),
+            ("date", "2024-01-01-14:00"),
+            ("dateTime", "2024-01-01T00:00:00"),
+            ("dateTime", "2024-01-01T00:00:00Z"),
+            ("dateTime", "2024-01-01T00:00:00+05:30"),
+            ("dateTime", "2024-01-01T00:00:00-14:00"),
+            ("time", "12:00:00"),
+            ("time", "12:00:00Z"),
+            ("time", "12:00:00+14:00"),
+        ],
+    )
+    def test_valid_timezone(self, base_xsd_type: str, value: str):
+        result = validateValueString(base_xsd_type, value)
+        assert result.xValid == VALID
+        assert result.isXValid
+
+    @pytest.mark.parametrize(
+        "base_xsd_type,value",
+        [
+            ("date", "2024-01-01+15:00"),
+            ("date", "2024-01-01-15:00"),
+            ("date", "2024-01-01+14:01"),
+            ("date", "2024-01-01-14:01"),
+            ("date", "2024-01-01+05:69"),
+            ("dateTime", "2024-01-01T00:00:00+15:00"),
+            ("dateTime", "2024-01-01T00:00:00+14:01"),
+            ("dateTime", "2024-01-01T00:00:00+05:69"),
+            ("time", "12:00:00+15:00"),
+            ("time", "12:00:00+14:01"),
+        ],
+    )
+    def test_invalid_timezone(self, base_xsd_type: str, value: str):
+        result = validateValueString(base_xsd_type, value)
+        assert result.xValid == INVALID
+        assert not result.isXValid

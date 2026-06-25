@@ -53,6 +53,7 @@ absoluteUrlPattern = None
 #   HF - 2020/10/07: add neg lookahead term to first path seg if relative, disallowing : in first path of regular expression, e.g., ":", "123:", 123:foo or 123:foo/bar
 # This regular expression is only partial validation.
 relativeUrlPattern = re.compile(r"^(urn:|(([a-zA-Z][a-zA-Z0-9.+-]+):)?(//([^/\?#]*))?(?![^:/]*:[^/]*(/|$)))([^\?#]*)(\?([^#]*))?(#([^#]*))?$")
+_malformedPercentEncoding = re.compile(r"%(?![0-9a-fA-F]{2})")
 
 def splitDecodeFragment(url: str) -> tuple[str, str]:
     if url is None: # urldefrag returns byte strings for none, instead of unicode strings
@@ -364,7 +365,9 @@ def isValidAbsolute(url: str) -> bool:
     return absoluteUrlPattern.match(url) is not None
 
 def isValidUriReference(url: str) -> bool:
-    return relativeUrlPattern.match(url) is not None
+    if relativeUrlPattern.match(url) is None:
+        return False
+    return _malformedPercentEncoding.search(url) is None
 
 def isAbsolute(url: str) -> bool:
     if url:

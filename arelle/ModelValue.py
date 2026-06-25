@@ -302,6 +302,28 @@ def tzinfoStr(dt: datetime.datetime | datetime.date) -> str:
             return tz[3:] or "Z"
     return ""
 
+
+@overload
+def dateTime(
+    value: str | ModelObject | DateTime | datetime.datetime | datetime.date | None,
+    time: Any = ...,
+    addOneDay: bool = ...,
+    *,
+    type: int | None = ...,
+    castException: type[Exception],
+) -> DateTime: ...
+
+
+@overload
+def dateTime(
+    value: str | ModelObject | DateTime | datetime.datetime | datetime.date | None,
+    time: Any = ...,
+    addOneDay: bool = ...,
+    type: int | None = ...,
+    castException: None = ...,
+) -> DateTime | None: ...
+
+
 def dateTime(
     value: str | ModelObject | DateTime | datetime.datetime | datetime.date | None,
     time: Any = None,
@@ -469,7 +491,8 @@ def dateunionDate(datetimeValue: datetime.date, subtractOneDay: bool = False) ->
 
 def yearMonthDuration(value: str) -> YearMonthDuration:
     durationPatternMatch = durationPattern.match(value)
-    assert durationPatternMatch is not None
+    if durationPatternMatch is None:
+        raise ValueError("invalid duration value")
     minus, hasYr, yrs, hasMo, mos, hasDay, days, hasTime, hasHr, hrs, hasMin, mins, hasSec, secs = durationPatternMatch.groups()
     if hasDay or hasHr or hasMin or hasSec: raise ValueError
     sign = -1 if minus else 1
@@ -491,7 +514,8 @@ def dayTimeDuration(value: Time | datetime.timedelta | str) -> DayTimeDuration:
     if isinstance(value,datetime.timedelta):
         return DayTimeDuration(value.days, 0, 0, value.seconds)
     durationPatternMatch = durationPattern.match(value)
-    assert durationPatternMatch is not None
+    if durationPatternMatch is None:
+        raise ValueError("invalid duration value")
     minus, hasYr, yrs, hasMo, mos, hasDay, days, hasTime, hasHr, hrs, hasMin, mins, hasSec, secs = durationPatternMatch.groups()
     if hasYr or hasMo: raise ValueError
     sign = -1 if minus else 1

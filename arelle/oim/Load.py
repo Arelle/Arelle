@@ -24,7 +24,22 @@ from arelle.ModelDocument import ModelDocument as ModelDocumentClass
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelValue import (DATETIME, dateTime, dayTimeDuration, qname,
                                yearMonthDuration)
-from arelle.oim.const import IDENTIFIER_PATTERN, XBRLCE_INVALID_IDENTIFIER
+from arelle.oim.const import (
+    IDENTIFIER_PATTERN,
+    PER_ISO_PATTERN,
+    PER_INCLUSIVE_DATES_PATTERN,
+    PER_SINGLE_DAY_PATTERN,
+    PER_MONTH_PATTERN,
+    PER_YEAR_PATTERN,
+    PER_QTR_PATTERN,
+    PER_HALF_PATTERN,
+    PER_WEEK_PATTERN,
+    XBRLCE_INVALID_IDENTIFIER,
+    PREFIXED_QNAME_PATTERN as PrefixedQName,
+    SQNAME_PATTERN as SQNamePattern,
+    UNIT_PATTERN as UnitPattern,
+    UNIT_QNAME_SUBSTITUTION_CHAR as UnitPrefixedQNameSubstitutionChar,
+)
 from arelle.oim.csv.context import XbrlCsvLoadingContext
 from arelle.oim.csv.metadata.common import CSV_DOCUMENT_TYPES
 from arelle.oim.csv.metadata.parser import parse_xbrl_csv_metadata
@@ -165,27 +180,7 @@ PeriodPattern = re.compile(
     r"^-?[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?"
     r"(/-?[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|20|21|22|23):[0-9]{2}:[0-9]{2}(\.[0-9]([0-9]*[1-9])?)?Z?)?$"
     )
-PrefixedQName = re.compile(
-    "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
-     r"[_\-\."
-     "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*:"
-    "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
-     r"[_\-\."
-     "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*")
 SpecialValuePattern = re.compile("##|#empty$|#nil$|#none$")
-SQNamePattern = re.compile(
-    "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
-     r"[_\-\."
-     "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*:"
-    r"\S+")
-UnitPrefixedQNameSubstitutionChar = "\x07" # replaces PrefixedQName in unit pattern
-UnitPattern = re.compile(
-    # QNames are replaced by \x07 in these expressions
-    # numerator only (no parentheses)
-    "(^\x07$)|(^\x07([*]\x07)+$)|"
-    # numerator and optional denominator, with parentheses if more than one term in either
-    "(^((\x07)|([(]\x07([*]\x07)+[)]))([/]((\x07)|([(]\x07([*]\x07)+[)])))?$)"
-    )
 UrlInvalidPattern = re.compile(
     r"^[ \t\n\r]+[^ \t\n\r]*|.*[^ \t\n\r][ \t\n\r]+$|" # leading or trailing whitespace
     r".*[^ \t\n\r]([\t\n\r]+|[ \t\n\r]{2,})[^ \t\n\r]|" # embedded uncollapsed whitespace
@@ -531,14 +526,16 @@ ONE_YEAR = yearMonthDuration("P1Y")
 ONE_QTR = yearMonthDuration("P3M")
 ONE_HALF = yearMonthDuration("P6M")
 
-periodForms = ((PER_ISO, re.compile("([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(Z|[+-][0-2][0-9]([:]?)[0-5][0-9]+)?(/[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2})?(Z|[+-][0-2][0-9]([:]?)[0-5][0-9]+)?)$")),
-               (PER_INCLUSIVE_DATES, re.compile("([0-9]{4}-[0-9]{2}-[0-9]{2})[.][.]([0-9]{4}-[0-9]{2}-[0-9]{2})$")),
-               (PER_SINGLE_DAY, re.compile("([0-9]{4}-[0-9]{2}-[0-9]{2})(@(start|end))?$")),
-               (PER_MONTH,  re.compile("([0-9]{4}-[0-9]{2})(@(start|end))?$")),
-               (PER_YEAR, re.compile("([0-9]{4})(@(start|end))?$")),
-               (PER_QTR, re.compile("([0-9]{4})Q([1-4])(@(start|end))?$")),
-               (PER_HALF, re.compile("([0-9]{4})H([1-2])(@(start|end))?$")),
-               (PER_WEEK, re.compile("([0-9]{4}W[1-5]?[0-9])(@(start|end))?$")))
+periodForms = (
+    (PER_ISO, PER_ISO_PATTERN),
+    (PER_INCLUSIVE_DATES, PER_INCLUSIVE_DATES_PATTERN),
+    (PER_SINGLE_DAY, PER_SINGLE_DAY_PATTERN),
+    (PER_MONTH, PER_MONTH_PATTERN),
+    (PER_YEAR, PER_YEAR_PATTERN),
+    (PER_QTR, PER_QTR_PATTERN),
+    (PER_HALF, PER_HALF_PATTERN),
+    (PER_WEEK, PER_WEEK_PATTERN),
+)
 
 def csvPeriod(cellValue, startOrEnd=None):
     if cellValue is EMPTY_CELL or cellValue is NONE_CELL:
@@ -551,41 +548,33 @@ def csvPeriod(cellValue, startOrEnd=None):
         if m:
             try:
                 if perType == PER_ISO:
-                    if not m.group(4) and startOrEnd: # instant date
+                    if m.group("end") is None and startOrEnd: # instant date
                         return "referenceTargetNotDuration"
                     isoDuration = cellValue
-                    startendSuffixGroup = 0
                 elif perType == PER_INCLUSIVE_DATES:
-                    isoDuration = "{}/{}".format(dateTime(m.group(1)), dateTime(m.group(2)) + ONE_DAY)
-                    startendSuffixGroup = 0
+                    isoDuration = "{}/{}".format(dateTime(m.group("start")), dateTime(m.group("end")) + ONE_DAY)
                 elif perType == PER_SINGLE_DAY:
-                    isoDuration = "{}/{}".format(dateTime(m.group(1)), dateTime(m.group(1)) + ONE_DAY)
-                    startendSuffixGroup = 3
+                    isoDuration = "{}/{}".format(dateTime(m.group("date")), dateTime(m.group("date")) + ONE_DAY)
                 elif perType == PER_MONTH:
-                    moStart = dateTime(m.group(1) + "-01")
+                    moStart = dateTime(m.group("year") + "-" + m.group("month") + "-01")
                     isoDuration = "{}/{}".format(moStart, moStart + ONE_MONTH)
-                    startendSuffixGroup = 3
                 elif perType == PER_YEAR:
-                    yrStart = dateTime(m.group(1) + "-01-01")
+                    yrStart = dateTime(m.group("year") + "-01-01")
                     isoDuration = "{}/{}".format(yrStart, yrStart + ONE_YEAR)
-                    startendSuffixGroup = 3
                 elif perType == PER_QTR:
-                    qtrStart = dateTime(m.group(1) + "-{:02}-01".format(int(m.group(2))*3 - 2))
+                    qtrStart = dateTime(m.group("year") + "-{:02}-01".format(int(m.group("quarter"))*3 - 2))
                     isoDuration = "{}/{}".format(qtrStart, qtrStart + ONE_QTR)
-                    startendSuffixGroup = 4
                 elif perType == PER_HALF:
-                    qtrStart = dateTime(m.group(1) + "-{:02}-01".format(int(m.group(2))*6 - 5))
-                    isoDuration = "{}/{}".format(qtrStart, qtrStart + ONE_HALF)
-                    startendSuffixGroup = 4
+                    halfStart = dateTime(m.group("year") + "-{:02}-01".format(int(m.group("half"))*6 - 5))
+                    isoDuration = "{}/{}".format(halfStart, halfStart + ONE_HALF)
                 elif perType == PER_WEEK:
-                    weekStart = dateTime(isodate.parse_date(m.group(1)))
+                    weekStart = dateTime(isodate.parse_date(m.group("year") + "W" + m.group("week")))
                     isoDuration = "{}T00:00:00/{}T00:00:00".format(weekStart, weekStart + datetime.timedelta(7))
-                    startendSuffixGroup = 3
-                if startendSuffixGroup and m.group(startendSuffixGroup):
+                if perType != PER_ISO and perType != PER_INCLUSIVE_DATES and m.group("suffix"):
                     if startOrEnd:
                         # period specifier is being applied to an instant date
                         return "referenceTargetNotDuration"
-                    startOrEnd = m.group(startendSuffixGroup)
+                    startOrEnd = m.group("suffix")
             except ValueError:
                 return None
         if isoDuration:

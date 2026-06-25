@@ -132,11 +132,13 @@ lexicalPatterns = {
     "gMonthDay": re_compile(r"--(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
     "gDay": re_compile(r"---(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
     "gMonth": re_compile(r"--(0[1-9]|1[0-2])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
+    "base64Binary": re_compile(r"((([A-Za-z0-9+/]\s?){4})*(([A-Za-z0-9+/]\s?){3}[A-Za-z0-9+/]|([A-Za-z0-9+/]\s?){2}[AEIMQUYcgkosw048]\s?=|[A-Za-z0-9+/]\s?[AQgw]\s?=\s?=))?$"),
+    "hexBinary": re_compile(r"([0-9a-fA-F]{2})*$"),
     "language": re_compile(r"[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$"),
-    "XBRLI_DATEUNION": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*$"),
-    "dateTime": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*$"),
-    "date": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}(Z|[+-][0-9]{2}:[0-9]{2})?\s*$"),
-    "time": re_compile(r"\s*-?[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})?\s*$"),
+    "XBRLI_DATEUNION": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?)?(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?\s*$"),
+    "dateTime": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
+    "date": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
+    "time": re_compile(r"\s*-?[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
     }
 
 # patterns difficult to compile into python
@@ -630,9 +632,13 @@ def _validateValueStringOrRaise(
                     xValue = gMonthDay(month, day)
                 elif baseXsdType == "gYearMonth":
                     year, month, zSign, zHrMin, zHr, zMin = match.groups()
+                    if int(year) == 0:
+                        raise ValueError("year zero is not permitted per XSD 1.0")
                     xValue = gYearMonth(year, month)
                 elif baseXsdType == "gYear":
                     year, zSign, zHrMin, zHr, zMin = match.groups()
+                    if int(year) == 0:
+                        raise ValueError("year zero is not permitted per XSD 1.0")
                     xValue = gYear(year)
                 elif baseXsdType == "gMonth":
                     month, zSign, zHrMin, zHr, zMin = match.groups()
