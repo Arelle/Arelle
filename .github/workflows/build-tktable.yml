@@ -20,19 +20,29 @@ jobs:
           ref: ${{ inputs.tktable_tag }}
           path: TkTable
       - name: Install Tcl/Tk
-        run: brew install tcl-tk@8
-      - name: Build
+        run: brew install tcl-tk@8 tcl-tk@9
+      - name: Build for Tcl 8
         run: |
           cd TkTable
           TCL_DIR=$(brew --prefix tcl-tk@8)/lib
           ./configure --with-tcl=$TCL_DIR --with-tk=$TCL_DIR
           make
-      - name: Collect artifacts
+      - name: Collect Tcl 8 artifacts
         run: |
           mkdir -p output
           cp TkTable/*.dylib output/
           cp TkTable/pkgIndex.tcl output/
           cp TkTable/library/tkTable.tcl output/
+      - name: Build for Tcl 9
+        run: |
+          cd TkTable
+          make clean
+          TCL_DIR=$(brew --prefix tcl-tk@9)/lib
+          ./configure --with-tcl=$TCL_DIR --with-tk=$TCL_DIR
+          make
+      - name: Collect Tcl 9 artifacts
+        run: |
+          cp TkTable/*.dylib output/
       - uses: actions/upload-artifact@v7.0.1
         with:
           name: tktable-macos-arm64
@@ -47,19 +57,29 @@ jobs:
           ref: ${{ inputs.tktable_tag }}
           path: TkTable
       - name: Install Tcl/Tk
-        run: brew install tcl-tk@8
-      - name: Build
+        run: brew install tcl-tk@8 tcl-tk@9
+      - name: Build for Tcl 8
         run: |
           cd TkTable
           TCL_DIR=$(brew --prefix tcl-tk@8)/lib
           ./configure --with-tcl=$TCL_DIR --with-tk=$TCL_DIR
           make
-      - name: Collect artifacts
+      - name: Collect Tcl 8 artifacts
         run: |
           mkdir -p output
           cp TkTable/*.dylib output/
           cp TkTable/pkgIndex.tcl output/
           cp TkTable/library/tkTable.tcl output/
+      - name: Build for Tcl 9
+        run: |
+          cd TkTable
+          make clean
+          TCL_DIR=$(brew --prefix tcl-tk@9)/lib
+          ./configure --with-tcl=$TCL_DIR --with-tk=$TCL_DIR
+          make
+      - name: Collect Tcl 9 artifacts
+        run: |
+          cp TkTable/*.dylib output/
       - uses: actions/upload-artifact@v7.0.1
         with:
           name: tktable-macos-x86_64
