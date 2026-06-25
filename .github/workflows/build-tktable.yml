@@ -183,45 +183,84 @@ jobs:
     steps:
       - uses: actions/checkout@v7.0.0
         with:
-          repository: tcltk/tcl
-          ref: core-8-6-17
-          path: tcl-src
-      - uses: actions/checkout@v7.0.0
-        with:
-          repository: tcltk/tk
-          ref: core-8-6-17
-          path: tk-src
-      - uses: actions/checkout@v7.0.0
-        with:
           repository: bohagan1/TkTable
           ref: ${{ inputs.tktable_tag }}
           path: TkTable
+      - name: Checkout Tcl 8
+        uses: actions/checkout@v7.0.0
+        with:
+          repository: tcltk/tcl
+          ref: ${{ inputs.tcltk_8_tag }}
+          path: tcl8-src
+      - name: Checkout Tcl 9
+        uses: actions/checkout@v7.0.0
+        with:
+          repository: tcltk/tcl
+          ref: ${{ inputs.tcltk_9_tag }}
+          path: tcl9-src
+      - name: Checkout Tk 8
+        uses: actions/checkout@v7.0.0
+        with:
+          repository: tcltk/tk
+          ref: ${{ inputs.tcltk_8_tag }}
+          path: tk8-src
+      - name: Checkout Tk 9
+        uses: actions/checkout@v7.0.0
+        with:
+          repository: tcltk/tk
+          ref: ${{ inputs.tcltk_9_tag }}
+          path: tk9-src
       - uses: ilammy/msvc-dev-cmd@v1.13.0
         with:
           arch: x64
-      - name: Build Tcl
+      - name: Build Tcl 8
         shell: cmd
         run: |
-          cd tcl-src\win
-          nmake /f makefile.vc release INSTALLDIR=%CD%\..\..\tcl-install
-          nmake /f makefile.vc install INSTALLDIR=%CD%\..\..\tcl-install
-      - name: Build Tk
+          cd tcl8-src\win
+          nmake /f makefile.vc release INSTALLDIR=%CD%\..\..\tcl8-install
+          nmake /f makefile.vc install INSTALLDIR=%CD%\..\..\tcl8-install
+      - name: Build Tk 8
         shell: cmd
         run: |
-          cd tk-src\win
-          nmake /f makefile.vc release INSTALLDIR=%CD%\..\..\tcl-install TCLDIR=%CD%\..\..\tcl-src
-          nmake /f makefile.vc install INSTALLDIR=%CD%\..\..\tcl-install TCLDIR=%CD%\..\..\tcl-src
-      - name: Build TkTable
+          cd tk8-src\win
+          nmake /f makefile.vc release INSTALLDIR=%CD%\..\..\tcl8-install TCLDIR=%CD%\..\..\tcl8-src
+          nmake /f makefile.vc install INSTALLDIR=%CD%\..\..\tcl8-install TCLDIR=%CD%\..\..\tcl8-src
+      - name: Build Tcl 9
+        shell: cmd
+        run: |
+          cd tcl9-src\win
+          nmake /f makefile.vc release INSTALLDIR=%CD%\..\..\tcl9-install
+          nmake /f makefile.vc install INSTALLDIR=%CD%\..\..\tcl9-install
+      - name: Build Tk 9
+        shell: cmd
+        run: |
+          cd tk9-src\win
+          nmake /f makefile.vc release INSTALLDIR=%CD%\..\..\tcl9-install TCLDIR=%CD%\..\..\tcl9-src
+          nmake /f makefile.vc install INSTALLDIR=%CD%\..\..\tcl9-install TCLDIR=%CD%\..\..\tcl9-src
+      - name: Build TkTable for Tcl 8
         shell: cmd
         run: |
           cd TkTable\win
-          nmake /f makefile.vc INSTALLDIR=%CD%\..\..\tcl-install TCLDIR=%CD%\..\..\tcl-src TKDIR=%CD%\..\..\tk-src
-          nmake /f makefile.vc install INSTALLDIR=%CD%\..\..\tcl-install TCLDIR=%CD%\..\..\tcl-src TKDIR=%CD%\..\..\tk-src
-      - name: Collect artifacts
+          nmake /f makefile.vc INSTALLDIR=%CD%\..\..\tcl8-install TCLDIR=%CD%\..\..\tcl8-src TKDIR=%CD%\..\..\tk8-src
+          nmake /f makefile.vc install INSTALLDIR=%CD%\..\..\tcl8-install TCLDIR=%CD%\..\..\tcl8-src TKDIR=%CD%\..\..\tk8-src
+      - name: Collect Tcl 8 artifacts
         run: |
           mkdir output -ErrorAction SilentlyContinue
-          $tktableDir = Get-ChildItem -Path "tcl-install\lib" -Directory -Filter "Tktable*" | Select-Object -First 1
-          Copy-Item "$($tktableDir.FullName)\*" output\
+          $tktableDir = Get-ChildItem -Path "tcl8-install\lib" -Directory -Filter "Tktable*" | Select-Object -First 1
+          Copy-Item "$($tktableDir.FullName)\*.dll" output\
+          Copy-Item "$($tktableDir.FullName)\pkgIndex.tcl" output\
+          Copy-Item "$($tktableDir.FullName)\tkTable.tcl" output\
+      - name: Build TkTable for Tcl 9
+        shell: cmd
+        run: |
+          cd TkTable\win
+          nmake /f makefile.vc clean
+          nmake /f makefile.vc INSTALLDIR=%CD%\..\..\tcl9-install TCLDIR=%CD%\..\..\tcl9-src TKDIR=%CD%\..\..\tk9-src
+          nmake /f makefile.vc install INSTALLDIR=%CD%\..\..\tcl9-install TCLDIR=%CD%\..\..\tcl9-src TKDIR=%CD%\..\..\tk9-src
+      - name: Collect Tcl 9 artifacts
+        run: |
+          $tktableDir = Get-ChildItem -Path "tcl9-install\lib" -Directory -Filter "Tktable*" | Select-Object -First 1
+          Copy-Item "$($tktableDir.FullName)\*.dll" output\
       - uses: actions/upload-artifact@v7.0.1
         with:
           name: tktable-win-x86_64
