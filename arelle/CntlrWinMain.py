@@ -742,7 +742,7 @@ class CntlrWinMain(Cntlr.Cntlr):
                     elif isinstance(view, ViewWinConcepts.ViewConcepts):
                         ViewFileConcepts.viewConcepts(modelXbrl, filename, labelrole=view.labelrole, lang=view.lang)
                     elif isinstance(view, ViewWinFactList.ViewFactList):
-                        ViewFileFactList.viewFacts(modelXbrl, filename, labelrole=view.labelrole, lang=view.lang)
+                        ViewFileFactList.viewFacts(modelXbrl, filename, labelrole=view.labelrole, lang=view.lang)  # type: ignore[arg-type]
                     elif isinstance(view, ViewWinFactTable.ViewFactTable):
                         ViewFileFactTable.viewFacts(modelXbrl, filename, arcrole=view.arcrole, linkrole=view.linkrole, linkqname=view.linkqname, arcqname=view.arcqname, labelrole=view.labelrole, lang=view.lang)
                     elif isinstance(view, ViewWinFormulae.ViewFormulae):

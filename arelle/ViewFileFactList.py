@@ -1,16 +1,37 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-from arelle import ViewFile, XbrlConst, XmlUtil
-from collections import defaultdict
+from __future__ import annotations
 
-def viewFacts(modelXbrl, outfile, lang=None, labelrole=None, cols=None):
+from typing import TYPE_CHECKING
+
+from arelle import ViewFile, XbrlConst, XmlUtil
+from arelle.typing import TypeGetText
+
+if TYPE_CHECKING:
+    from arelle.FileSource import FileNamedStringIO
+    from arelle.ModelDocument import ModelDocument
+    from arelle.ModelInstanceObject import ModelFact
+    from arelle.ModelXbrl import ModelXbrl
+    from arelle.ModelValue import QName
+
+_: TypeGetText
+
+
+def viewFacts(
+    modelXbrl: ModelXbrl,
+    outfile: str | FileNamedStringIO | None,
+    lang: str | None = None,
+    labelrole: str | None = None,
+    cols: str | list[str] | None = None,
+) -> None:
     modelXbrl.modelManager.showStatus(_("viewing facts"))
     view = ViewFacts(modelXbrl, outfile, labelrole, lang, cols)
     view.view(modelXbrl.modelDocument)
     view.close()
 
-COL_WIDTHS = {
+
+COL_WIDTHS: dict[str, int] = {
     "Concept": 80, # same as label
     "Label": 80,
     "Name":  40,
@@ -33,15 +54,28 @@ COL_WIDTHS = {
     "Balance": 16,
     "Documentation": 100
     }
+
+
 class ViewFacts(ViewFile.View):
-    def __init__(self, modelXbrl, outfile, labelrole, lang, cols):
+    cols: str | list[str] | None
+
+    def __init__(
+        self,
+        modelXbrl: ModelXbrl,
+        outfile: str | FileNamedStringIO | None,
+        labelrole: str | None,
+        lang: str | None,
+        cols: str | list[str] | None,
+    ) -> None:
         super(ViewFacts, self).__init__(modelXbrl, outfile, "Fact List", lang)
         self.labelrole = labelrole
         self.cols = cols
 
-    def view(self, modelDocument):
+    def view(self, modelDocument: ModelDocument | None) -> None:
+        assert self.modelXbrl is not None
         if self.cols:
-            if isinstance(self.cols,str): self.cols = self.cols.replace(',',' ').split()
+            if isinstance(self.cols, str):
+                self.cols = self.cols.replace(",", " ").split()
             unrecognizedCols = []
             for col in self.cols:
                 if col not in COL_WIDTHS:
@@ -49,12 +83,12 @@ class ViewFacts(ViewFile.View):
             if unrecognizedCols:
                 self.modelXbrl.error("arelle:unrecognizedFactListColumn",
                                      _("Unrecognized columns: %(cols)s"),
-                                     modelXbrl=self.modelXbrl, cols=','.join(unrecognizedCols))
+                                     modelXbrl=self.modelXbrl, cols=",".join(unrecognizedCols))
             if "Period" in self.cols:
                 i = self.cols.index("Period")
-                self.cols[i:i+1] = ["Start", "End/Instant"]
+                self.cols[i:i + 1] = ["Start", "End/Instant"]
         else:
-            self.cols = ["Label","contextRef","unitRef","Dec","Prec","Lang","Value"]
+            self.cols = ["Label", "contextRef", "unitRef", "Dec", "Prec", "Lang", "Value"]
         col0 = self.cols[0]
         if col0 not in ("Concept", "Label", "Name", "LocalName"):
             self.modelXbrl.error("arelle:firstFactListColumn",
@@ -71,7 +105,7 @@ class ViewFacts(ViewFile.View):
         self.setColWidths([COL_WIDTHS.get(col, 8) for col in self.cols])
         self.viewFacts(self.modelXbrl.facts, 0)
 
-    def tupleDepth(self, modelFacts, indentedCol):
+    def tupleDepth(self, modelFacts: list[ModelFact], indentedCol: int) -> None:
         if indentedCol > self.treeCols: self.treeCols = indentedCol
         for modelFact in modelFacts:
             if modelFact.context is not None:
@@ -79,67 +113,82 @@ class ViewFacts(ViewFile.View):
                 if numDims > self.maxNumDims: self.maxNumDims = numDims
             self.tupleDepth(modelFact.modelTupleFacts, indentedCol + 1)
 
-    def viewFacts(self, modelFacts, indent):
+    def viewFacts(self, modelFacts: list[ModelFact], indent: int) -> None:
+        assert self.cols is not None
         for modelFact in modelFacts:
             concept = modelFact.concept
-            xmlRowElementName = 'item'
-            attr = {"name": str(modelFact.qname)}
+            xmlRowElementName = "item"
+            attr: dict[str, str] = {"name": str(modelFact.qname)}
             lang = ""
             if concept is not None and self.isCol0Label:
                 lbl = concept.label(preferredLabel=self.labelrole, lang=self.lang, linkroleHint=XbrlConst.defaultLinkRole)
                 xmlCol0skipElt = False # provide label as a row element
                 if concept.baseXsdType in ("string", "normalizedString"):
-                    lang = modelFact.xmlLang
+                    lang = modelFact.xmlLang  # type: ignore[assignment]
             else:
-                lbl = (modelFact.qname or modelFact.prefixedName) # defective inline facts may have no qname
+                lbl = modelFact.qname or modelFact.prefixedName  # type: ignore[assignment] # defective inline facts may have no qname
                 xmlCol0skipElt = True # name is an attribute, don't do it also as an element
-            cols = [lbl]
+            cols: list[str | QName | None] = [lbl]
             if concept is not None:
                 if modelFact.isItem:
                     for col in self.cols[1:]:
                         if col in ("Concept", "Label"): # label or name may be 2nd to nth col if name or label is 1st col
-                            cols.append( concept.label(preferredLabel=self.labelrole, lang=self.lang) )
+                            cols.append(concept.label(preferredLabel=self.labelrole, lang=self.lang))
                         elif col == "Name":
-                            cols.append( modelFact.qname )
+                            cols.append(modelFact.qname)
                         elif col == "LocalName":
-                            cols.append( modelFact.qname.localName )
+                            cols.append(modelFact.qname.localName)
                         elif col == "Namespace":
-                            cols.append( modelFact.qname.namespaceURI )
+                            cols.append(modelFact.qname.namespaceURI)
                         elif col == "contextRef":
-                            cols.append( modelFact.contextID )
+                            cols.append(modelFact.contextID)
                         elif col == "unitRef":
-                            cols.append( modelFact.unitID )
+                            cols.append(modelFact.unitID)
                         elif col == "Dec":
-                            cols.append( modelFact.decimals )
+                            cols.append(modelFact.decimals)
                         elif col == "Prec":
-                            cols.append( modelFact.precision )
+                            cols.append(modelFact.precision)
                         elif col == "Lang":
-                            cols.append( lang )
+                            cols.append(lang)
                         elif col == "Value":
-                            cols.append( "(nil)" if modelFact.xsiNil == "true" else modelFact.effectiveValue )
+                            cols.append("(nil)" if modelFact.xsiNil == "true" else modelFact.effectiveValue)
                         elif col == "EntityScheme":
-                            cols.append( modelFact.context.entityIdentifier[0] )
+                            cols.append(modelFact.context.entityIdentifier[0])  # type: ignore[union-attr]
                         elif col == "EntityIdentifier":
-                            cols.append( modelFact.context.entityIdentifier[1] )
+                            cols.append(modelFact.context.entityIdentifier[1])  # type: ignore[union-attr]
                         elif col == "Start":
-                            cols.append( XmlUtil.text(XmlUtil.child(modelFact.context.period, XbrlConst.xbrli, "startDate")) )
+                            cols.append(
+                                XmlUtil.text(XmlUtil.child(modelFact.context.period, XbrlConst.xbrli, "startDate"))  # type: ignore[arg-type,union-attr]
+                                )
                         elif col == "End/Instant":
-                            cols.append( XmlUtil.text(XmlUtil.child(modelFact.context.period, XbrlConst.xbrli, ("endDate","instant"))) )
+                            cols.append(
+                                XmlUtil.text(
+                                    XmlUtil.child(modelFact.context.period, XbrlConst.xbrli, ("endDate", "instant"))  # type: ignore[arg-type,union-attr]
+                                    )
+                                )
                         elif col == "Dimensions":
-                            for dimQname in sorted(modelFact.context.qnameDims.keys()):
-                                cols.append( str(dimQname) )
-                                cols.append( str(modelFact.context.dimMemberQname(dimQname)) )
+                            for dimQname in sorted(modelFact.context.qnameDims.keys()):  # type: ignore[union-attr]
+                                cols.append(str(dimQname))
+                                cols.append(str(modelFact.context.dimMemberQname(dimQname)))  # type: ignore[union-attr]
                         elif col == "ID":
-                            cols.append( concept.id )
+                            cols.append(concept.id)
                         elif col == "Type":
-                            cols.append( concept.typeQname )
+                            cols.append(concept.typeQname)
                         elif col == "PeriodType":
-                            cols.append( concept.periodType )
+                            cols.append(concept.periodType)
                         elif col == "Balance":
-                            cols.append( concept.balance )
+                            cols.append(concept.balance)
                         elif col == "Documentation":
-                            cols.append( concept.label(preferredLabel=XbrlConst.documentationLabel, fallbackToQname=False, lang=self.lang, strip=True, linkroleHint=XbrlConst.defaultLinkRole) )
+                            cols.append(
+                                concept.label(
+                                    preferredLabel=XbrlConst.documentationLabel,
+                                    fallbackToQname=False,
+                                    lang=self.lang,
+                                    strip=True,
+                                    linkroleHint=XbrlConst.defaultLinkRole,
+                                    )
+                                )
                 elif modelFact.isTuple:
-                    xmlRowElementName = 'tuple'
+                    xmlRowElementName = "tuple"
             self.addRow(cols, treeIndent=indent, xmlRowElementName=xmlRowElementName, xmlRowEltAttr=attr, xmlCol0skipElt=xmlCol0skipElt)
             self.viewFacts(modelFact.modelTupleFacts, indent + 1)

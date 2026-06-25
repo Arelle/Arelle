@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from openpyxl.worksheet._write_only import WriteOnlyWorksheet
     from openpyxl.worksheet.worksheet import Worksheet
     from arelle.ModelXbrl import ModelXbrl
+    from arelle.ModelValue import QName
 
 
 _: TypeGetText
@@ -224,7 +225,7 @@ class View:
 
     def addRow(
             self,
-            cols: Sequence[str | int | float | Decimal | None],
+            cols: Sequence[str | int | float | QName | Decimal | None],
             asHeader: bool = False,
             treeIndent: int = 0,
             colSpan: int = 1,
