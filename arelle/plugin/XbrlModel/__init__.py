@@ -69,7 +69,7 @@ from .XbrlTypes import (XbrlTaxonomyModelAlias, XbrlModuleAlias, XbrlLayoutAlias
                         QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse, DefaultZero, DefaultOne, OptionalList, OptionalDict, NonemptySet)
 from .ValidateXbrlModel import validateCompiledModel
 from .ValidateFacts import validateDateResolutionConceptFacts, validateCompleteReportCubes
-from .SelectImportedObjects import selectImportedObjects
+from .SelectImportedObjects import validateImportSelections, applyDeferredImportPruning
 from .ModelValueMore import SQName, QNameAt
 from .ViewXbrlTaxonomyObject import viewXbrlTaxonomyObject
 from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, oimTaxonomyDocTypes, xbrlTaxonomyObjects
@@ -899,11 +899,13 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                     prefixNamespaces[_pfx] = _ns
         newModule._lastMdlObjIndex = len(xbrlCompMdl.xbrlObjects) - 1
 
-        # remove imported taxonomy objects not wanted
+        # validate import selections now (errors reported in loading context),
+        # but defer actual pruning until the entire import graph is resolved
         for impTxMdlObj in newModule.importedTaxonomies or ():
             if impTxMdlObj.xbrlModelName in impTxmyNameModuleObjs:
                 impTxMdlObj._txmyModule = impTxmyNameModuleObjs[impTxMdlObj.xbrlModelName] # used by validation
-                selectImportedObjects(xbrlCompMdl, newModule, impTxMdlObj)
+                validateImportSelections(xbrlCompMdl, newModule, impTxMdlObj)
+                xbrlCompMdl._pendingImportEntries[impTxMdlObj.xbrlModelName].append(impTxMdlObj)
 
         # Parse documentInfo.sourceMappings into a lightweight list of mapping
         # objects accessible via module._sourceMappings for FactValueResolver
@@ -1075,6 +1077,9 @@ def xbrlModelLoaded(cntlr, options, xbrlCompMdl, *args, **kwargs):
     # Stash streaming threshold from CLI option for FactPipeline consumers.
     if options is not None and getattr(options, "xbrlModelStreamThreshold", None) is not None:
         xbrlCompMdl.xbrlModelStreamThreshold = options.xbrlModelStreamThreshold
+
+    if hasattr(xbrlCompMdl, '_pendingImportEntries'):
+        applyDeferredImportPruning(xbrlCompMdl)
 
     xbrlCompMdl.groupContents = defaultdict(OrderedSet)
     for txmy in xbrlCompMdl.xbrlModels.values():

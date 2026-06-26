@@ -221,8 +221,11 @@ class XbrlObject(XbrlModelClass):
                 if isTaxonomyObject: # for Taxonomy objects, not used by OIM Instance objects
                     if propName == "properties":
                         continue
-                if isinstance(propType, GenericAlias): # set, dict, etc
-                    propValueClass = propType.__args__[-1]
+                collectionPropType = propType
+                if isinstance(propType, _UnionGenericAlias) and isinstance(getattr(propType, "__args__", (None,))[0], GenericAlias):
+                    collectionPropType = propType.__args__[0]
+                if isinstance(collectionPropType, GenericAlias): # set, dict, etc
+                    propValueClass = collectionPropType.__args__[-1]
                     if hasattr(propValueClass, "referencedObjectsAction"):
                         if isinstance(val, dict):
                             pass # unsure what to do TBD

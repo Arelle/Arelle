@@ -29,6 +29,7 @@ def castToXbrlCompiledModel(modelXbrl, isReport=False):
         modelXbrl.namedObjects: OrderedDict[QNameKeyType, XbrlReferencableModelObject] = OrderedDict() # not visible metadata
         modelXbrl.tagObjects: defaultdict[QName, list[XbrlReferencableModelObject]] = defaultdict(list) # labels and references
         modelXbrl.dateResolutionConceptNames: OrderedSet[QName] = OrderedSet()
+        modelXbrl._pendingImportEntries = defaultdict(list)
         modelXbrl._effectiveRelationshipSetCache = {}
         modelXbrl._effectiveReferenceRelatedNamesCache = {}
         modelXbrl._effectiveCubeExtensionCache = {}
@@ -67,6 +68,7 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
         self.namedObjects: OrderedDict[QNameKeyType, XbrlReferencableModelObject] = OrderedDict() # not visible metadata
         self.tagObjects: defaultdict[QName, list[XbrlReferencableModelObject]] = defaultdict(list) # labels and references
         self.dateResolutionConceptNames: OrderedSet[QName] = OrderedSet()
+        self._pendingImportEntries: defaultdict[QName, list] = defaultdict(list)
         self._effectiveRelationshipSetCache: dict[int, dict[str, Any]] = {}
         self._effectiveReferenceRelatedNamesCache: dict[int, OrderedSet[QName]] = {}
         self._effectiveCubeExtensionCache: dict[int, dict[str, OrderedSet[Any]]] = {}

@@ -51,38 +51,15 @@ def eval(obj, whereObj):
         return None
     return None
 
-def selectImportedObjects(txmyMdl, newTxmy, impTxObj):
-    """Select imported objects based on importTaxonomy selection, importObjects and importObjectTypes, and exportProfile selections.
-        Exclude objects not selected. Exclude labels if excludeLabels is true. Select referenced objects of selected objects.
-        Exclude non-selected objects from the model.
+def validateImportSelections(txmyMdl, newTxmy, impTxObj):
+    """Validate selection syntax on an import entry during loading.
+       Sets impTxObj._hasSelError = True if any selection has invalid syntax.
+       Does NOT perform any object selection or pruning.
     """
-    impTxModuleObj = impTxObj._txmyModule
-    i0 = impTxModuleObj.xbrlMdlObjIndex # object index range of imported objects
-    iL = impTxModuleObj._lastMdlObjIndex
-    selObjs = bitarray(iL - i0 + 1) # True if object is selected
-    exclObjs = bitarray(iL - i0 + 1) # True if object is excluded
-    hasSel = False # has anything selecting
-    hasExcl = False # has anything excluding
-    exclLbls = impTxObj.excludeLabels
     name = impTxObj.xbrlModelName
-    importObjects = impTxObj.importObjects
     importObjectTypes = impTxObj.importObjectTypes
     selections = impTxObj.selections
-    excludeLabels = impTxObj.excludeLabels
-    if importObjects:
-        hasSel = True
-        for impObjQn in impTxObj.importObjects:
-            obj = txmyMdl.namedObjects.get(impObjQn)
-            if obj is not None:
-                if i0 <= obj.xbrlMdlObjIndex <= iL: # applies to this taxonomy import
-                    selObjs[obj.xbrlMdlObjIndex - i0] = True
-                for obj in txmyMdl.tagObjects.get(impObjQn, ()):
-                    if i0 <= obj.xbrlMdlObjIndex <= iL and (not exclLbls or type(obj) != XbrlLabel):
-                        selObjs[obj.xbrlMdlObjIndex - i0] = True
-            else:
-                txmyMdl.error("oimte:invalidQNameReference",
-                          _("The importTaxonomy %(name)s importObject %(qname)s must identify an taxonomy object."),
-                          xbrlObject=impTxObj, name=name, qname=impObjQn)
+
     for impObjTp in importObjectTypes:
         if impObjTp == qnXbrlImportTaxonomyObj:
             txmyMdl.error("oimte:invalidReferenceToImportTaxonomyObject",
@@ -92,17 +69,7 @@ def selectImportedObjects(txmyMdl, newTxmy, impTxObj):
             txmyMdl.error("oimte:invalidImportObjectType",
                       _("The importTaxonomy %(name)s importObjectType %(qname)s must identify a referencable taxonomy component object, excluding importTaxonomyObj."),
                       xbrlObject=impTxObj, name=name, qname=impObjTp)
-    if importObjectTypes:
-        hasSel = True
-        for obj in txmyMdl.namedObjects.values():
-            if i0 <= obj.xbrlMdlObjIndex <= iL: # applies to this taxonomy import
-                if xbrlObjectQNames[type(obj)] in impTxObj.importObjectTypes:
-                    selObjs[obj.xbrlMdlObjIndex - i0] = True
-        for objs in txmyMdl.tagObjects.values():
-            for obj in objs:
-                if i0 <= obj.xbrlMdlObjIndex <= iL: # applies to this taxonomy import
-                    if xbrlObjectQNames[type(obj)] in impTxObj.importObjectTypes:
-                        selObjs[obj.xbrlMdlObjIndex - i0] = True
+
     hasSelError = False
     VALID_OPERATORS = {"==", "!=", "in", "not in", "contains", "not contains", ">", "<", ">=", "<="}
     ARRAY_OPERATORS = {"in", "not in"}
@@ -143,7 +110,6 @@ def selectImportedObjects(txmyMdl, newTxmy, impTxObj):
                           xbrlObject=impTxObj, name=name, selNbr=iSel, whNbr=iWh, operator=op)
                 hasSelError = True
                 continue
-            # array-operator: value must be a non-empty list
             if op in ARRAY_OPERATORS:
                 if not isinstance(val, list):
                     txmyMdl.error("oimte:invalidSelectionExpression",
@@ -168,20 +134,17 @@ def selectImportedObjects(txmyMdl, newTxmy, impTxObj):
                     hasSelError = True
                     continue
                 propAnn = annotations[propLocalName]
-                # unwrap Optional / Union / DefaultTrue/DefaultFalse — best-effort: detect bool
                 propTypeArgs = getattr(propAnn, "__args__", ())
                 isBool = (propAnn is bool) or any(a is bool for a in propTypeArgs) or \
                     any(getattr(a, "__name__", "") in ("DefaultTrue", "DefaultFalse") for a in propTypeArgs)
                 isStr = (propAnn is str) or any(a is str for a in propTypeArgs)
                 isQName = (propAnn is QName) or any(isinstance(a, type) and issubclass(a, QName) for a in propTypeArgs)
-                # contains/not contains are string-only operators
                 if op in STRING_ONLY_OPERATORS and not isStr:
                     txmyMdl.error("oimte:invalidSelectionExpression",
                               _("The importTaxonomy %(name)s selection[%(selNbr)s]/where[%(whNbr)s] operator %(operator)s is only valid for string properties; property %(prop)s is not a string."),
                               xbrlObject=impTxObj, name=name, selNbr=iSel, whNbr=iWh, operator=op, prop=propLocalName)
                     hasSelError = True
                     continue
-                # operator/value compatibility checks
                 if isBool:
                     if op in ORDERED_OPERATORS or op in STRING_ONLY_OPERATORS or op in ARRAY_OPERATORS:
                         txmyMdl.error("oimte:invalidSelectionExpression",
@@ -196,7 +159,6 @@ def selectImportedObjects(txmyMdl, newTxmy, impTxObj):
                         hasSelError = True
                         continue
                 elif isQName:
-                    # QName-typed property: value must look like a QName (string with optional prefix:localName)
                     def _isQNameString(v):
                         return isinstance(v, str) and ":" in v
                     if op in ARRAY_OPERATORS:
@@ -219,7 +181,6 @@ def selectImportedObjects(txmyMdl, newTxmy, impTxObj):
                                   xbrlObject=impTxObj, name=name, selNbr=iSel, whNbr=iWh, operator=op, prop=propLocalName)
                         hasSelError = True
                         continue
-                    # value must be string (for non-array operators) or list of strings (for array)
                     if op in ARRAY_OPERATORS:
                         if not all(isinstance(x, str) for x in val):
                             txmyMdl.error("oimte:invalidSelectionExpression",
@@ -233,49 +194,138 @@ def selectImportedObjects(txmyMdl, newTxmy, impTxObj):
                                   xbrlObject=impTxObj, name=name, selNbr=iSel, whNbr=iWh, value=val, prop=propLocalName)
                         hasSelError = True
                         continue
-    if selections and not hasSelError:
+    impTxObj._hasSelError = hasSelError
+
+
+def applyDeferredImportPruning(txmyMdl):
+    """After the entire import graph is resolved, compute the union of all
+       import selections per module and prune once per module.
+    """
+    for moduleName, importEntries in txmyMdl._pendingImportEntries.items():
+        moduleObj = importEntries[0]._txmyModule
+
+        unionImportObjects = set()
+        unionImportObjectTypes = set()
+        unionSelections = []
+        allExcludeLabels = True
+        allExcludeGroupContents = True
+        anyUnfiltered = False
+
+        for entry in importEntries:
+            hasFilter = bool(entry.importObjects) or bool(entry.importObjectTypes) or bool(entry.selections)
+            if not hasFilter:
+                anyUnfiltered = True
+            unionImportObjects |= entry.importObjects or set()
+            unionImportObjectTypes |= entry.importObjectTypes or set()
+            if entry.selections and not getattr(entry, "_hasSelError", False):
+                unionSelections.extend(entry.selections)
+            if not entry.excludeLabels:
+                allExcludeLabels = False
+            if not getattr(entry, "excludeGroupContents", False):
+                allExcludeGroupContents = False
+
+        if anyUnfiltered:
+            if allExcludeLabels:
+                _excludeLabelsOnly(txmyMdl, moduleObj)
+            continue
+
+        _pruneModuleObjects(txmyMdl, moduleObj,
+                           unionImportObjects, unionImportObjectTypes, unionSelections,
+                           allExcludeLabels, allExcludeGroupContents)
+
+    del txmyMdl._pendingImportEntries
+
+
+def _excludeLabelsOnly(txmyMdl, moduleObj):
+    """Exclude label objects from a module without pruning other objects."""
+    i0 = moduleObj.xbrlMdlObjIndex
+    iL = moduleObj._lastMdlObjIndex
+    for obj in [o for o in txmyMdl.namedObjects.values()]:
+        if i0 <= obj.xbrlMdlObjIndex <= iL:
+            if isinstance(obj, XbrlLabel):
+                if obj.relatedName in txmyMdl.tagObjects:
+                    del txmyMdl.tagObjects[obj.relatedName]
+                del obj
+
+
+def _pruneModuleObjects(txmyMdl, moduleObj,
+                        importObjects, importObjectTypes, selections,
+                        excludeLabels, excludeGroupContents):
+    """Core pruning logic: select objects matching the unioned filters,
+       transitively select referenced objects, then delete everything else.
+    """
+    i0 = moduleObj.xbrlMdlObjIndex
+    iL = moduleObj._lastMdlObjIndex
+    selObjs = bitarray(iL - i0 + 1)
+    hasSel = False
+
+    if importObjects:
+        hasSel = True
+        for impObjQn in importObjects:
+            obj = txmyMdl.namedObjects.get(impObjQn)
+            if obj is not None:
+                if i0 <= obj.xbrlMdlObjIndex <= iL:
+                    selObjs[obj.xbrlMdlObjIndex - i0] = True
+                for obj in txmyMdl.tagObjects.get(impObjQn, ()):
+                    if i0 <= obj.xbrlMdlObjIndex <= iL and (not excludeLabels or type(obj) != XbrlLabel):
+                        selObjs[obj.xbrlMdlObjIndex - i0] = True
+            else:
+                txmyMdl.error("oimte:invalidQNameReference",
+                          _("The importTaxonomy %(name)s importObject %(qname)s must identify a taxonomy object."),
+                          xbrlObject=moduleObj, name=moduleObj.name, qname=impObjQn)
+
+    if importObjectTypes:
         hasSel = True
         for obj in txmyMdl.namedObjects.values():
-            if i0 <= obj.xbrlMdlObjIndex <= iL: # applies to this taxonomy import
-                for selObj in impTxObj.selections:
+            if i0 <= obj.xbrlMdlObjIndex <= iL:
+                if xbrlObjectQNames[type(obj)] in importObjectTypes:
+                    selObjs[obj.xbrlMdlObjIndex - i0] = True
+        for objs in txmyMdl.tagObjects.values():
+            for obj in objs:
+                if i0 <= obj.xbrlMdlObjIndex <= iL:
+                    if xbrlObjectQNames[type(obj)] in importObjectTypes:
+                        selObjs[obj.xbrlMdlObjIndex - i0] = True
+
+    if selections:
+        hasSel = True
+        for obj in txmyMdl.namedObjects.values():
+            if i0 <= obj.xbrlMdlObjIndex <= iL:
+                for selObj in selections:
                     if xbrlObjectQNames[type(obj)] == selObj.objectType and (
                         all((eval(obj, whereObj) for whereObj in selObj.where))):
                         selObjs[obj.xbrlMdlObjIndex - i0] = True
-                        break # selections are or'ed, don't need to try more
+                        break
+
     if hasSel:
-        # select referenced objects
         moreRefObjsToSelect = [True]
         def selectReferencedObjects(obj):
-            if i0 <= obj.xbrlMdlObjIndex <= iL: # applies to this taxonomy import
+            if i0 <= obj.xbrlMdlObjIndex <= iL:
                 if not selObjs[obj.xbrlMdlObjIndex - i0] and (
-                            not isinstance(obj, XbrlLabel) or not exclLbls):
+                            not isinstance(obj, XbrlLabel) or not excludeLabels):
                     selObjs[obj.xbrlMdlObjIndex - i0] = True
                     moreRefObjsToSelect[0] = True
-            return None # no further action
+            return None
         while moreRefObjsToSelect[0]:
             moreRefObjsToSelect[0] = False
             for obj in [o for o in txmyMdl.namedObjects.values()]:
-                if i0 <= obj.xbrlMdlObjIndex <= iL: # applies to this taxonomy import
+                if i0 <= obj.xbrlMdlObjIndex <= iL:
                     if selObjs[obj.xbrlMdlObjIndex - i0]:
                         obj.referencedObjectsAction(txmyMdl, selectReferencedObjects)
-                        # select labels of objects
                         objName = getattr(obj,"name")
-                        if not exclLbls and objName in txmyMdl.tagObjects:
+                        if not excludeLabels and objName in txmyMdl.tagObjects:
                             for tagObj in txmyMdl.tagObjects[objName]:
-                                if i0 <= tagObj.xbrlMdlObjIndex <= iL: # applies to this taxonomy import
+                                if i0 <= tagObj.xbrlMdlObjIndex <= iL:
                                     selObjs[tagObj.xbrlMdlObjIndex - i0] = True
 
-        # dereference non-selection references
         def derefNonSelection(obj):
-            if i0 <= obj.xbrlMdlObjIndex <= iL: # applies to this taxonomy import
+            if i0 <= obj.xbrlMdlObjIndex <= iL:
                 if not selObjs[obj.xbrlMdlObjIndex - i0]:
-                    return DEREFERENCE_OBJECT # remove reference from the model
-            return None # no further action
-        impTxModuleObj.referencedObjectsAction(txmyMdl, derefNonSelection)
+                    return DEREFERENCE_OBJECT
+            return None
+        moduleObj.referencedObjectsAction(txmyMdl, derefNonSelection)
 
-        # exclude non-selections
         for obj in [o for o in txmyMdl.namedObjects.values()]:
-            if i0 <= obj.xbrlMdlObjIndex <= iL: # applies to this taxonomy import
+            if i0 <= obj.xbrlMdlObjIndex <= iL:
                 if not selObjs[obj.xbrlMdlObjIndex - i0]:
                     name = obj.name
                     if name in txmyMdl.namedObjects:
@@ -286,10 +336,5 @@ def selectImportedObjects(txmyMdl, newTxmy, impTxObj):
                         for refObj in refObjs:
                             del refObj
                     del obj
-    elif exclLbls:
-        for obj in [o for o in txmyMdl.namedObjects.values()]:
-            if i0 <= obj.xbrlMdlObjIndex <= iL: # applies to this taxonomy import
-                if isinstance(obj, XbrlLabel):
-                    if obj.relatedName in txmyMdl.tagObjects:
-                        del txmyMdl.tagObjects[name]
-                        del obj
+    elif excludeLabels:
+        _excludeLabelsOnly(txmyMdl, moduleObj)
