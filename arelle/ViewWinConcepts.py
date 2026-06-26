@@ -16,15 +16,15 @@ _: TypeGetText
 if TYPE_CHECKING:
     from arelle.ModelObject import ModelObject
     from arelle.ModelXbrl import ModelXbrl
-    from tkinter import Widget
+    from tkinter.ttk import Notebook
 
 
 def viewConcepts(
     modelXbrl: ModelXbrl,
-    tabWin: Widget,
+    tabWin: Notebook,
     header: str,
     lang: str | None = None,
-    altTabWin: Widget | None = None,
+    altTabWin: Notebook | None = None,
 ) -> None:
     modelXbrl.modelManager.showStatus(_("viewing concepts"))
     view = ViewConcepts(modelXbrl, tabWin, header, lang)
@@ -56,23 +56,23 @@ def viewConcepts(
     view.treeView.bind("<Leave>", view.treeviewLeave, "+")
 
     # languages menu
-    view.contextMenu()  # type: ignore[no-untyped-call]
-    view.menuAddClipboard()  # type: ignore[no-untyped-call]
-    view.menuAddLangs()  # type: ignore[no-untyped-call]
-    view.menuAddLabelRoles()  # type: ignore[no-untyped-call]
-    view.menuAddNameStyle()  # type: ignore[no-untyped-call]
-    view.menuAddViews(addClose=False, tabWin=altTabWin)  # type: ignore[no-untyped-call]
+    view.contextMenu()
+    view.menuAddClipboard()
+    view.menuAddLangs()
+    view.menuAddLabelRoles()
+    view.menuAddNameStyle()
+    view.menuAddViews(addClose=False, tabWin=altTabWin)
 
 
 class ViewConcepts(ViewWinTree.ViewTree):
-    def __init__(self, modelXbrl: ModelXbrl, tabWin: Widget, header: str, lang: str | None) -> None:
+    def __init__(self, modelXbrl: ModelXbrl, tabWin: Notebook, header: str, lang: str | None) -> None:
         super(ViewConcepts, self).__init__(modelXbrl, tabWin, header, True, lang)
         self.blockSelectEvent: int = 1
         self.blockViewModelObject: int = 0
 
     def view(self) -> None:
         # sort by labels
-        self.setColumnsSortable()  # type: ignore[no-untyped-call]
+        self.setColumnsSortable()
         lbls: defaultdict[str | None, list[str]] = defaultdict(list)
         role = self.labelrole
         lang = self.lang
@@ -84,7 +84,7 @@ class ViewConcepts(ViewWinTree.ViewTree):
         self.nodeToObjectId = {}
         self.objectIdToNode = {}
         """
-        self.clearTreeView()  # type: ignore[no-untyped-call]
+        self.clearTreeView()
         nodeNum = 1
         excludedNamespaces = XbrlConst.ixbrlAll.union(
             (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl,
