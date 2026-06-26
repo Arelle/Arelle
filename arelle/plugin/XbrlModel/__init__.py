@@ -51,7 +51,7 @@ from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlUnitType
 from .XbrlConst import qnErrorQname, builtInPrefixTaxonomies
 from .XbrlCube import (XbrlCube, XbrlCubeDimension, XbrlPeriodConstraint, XbrlDateResolution,
                        XbrlCubeType, coreDimensionsByLocalname)
-from .XbrlDimension import XbrlDimension
+from .XbrlDimension import XbrlDimension, XbrlDomainNetwork
 from .XbrlEntity import XbrlEntity
 from .XbrlGroup import XbrlGroup, XbrlGroupContent, XbrlGroupTree
 from .XbrlLabel import XbrlLabel, XbrlLabelType
@@ -572,10 +572,6 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             keyValue = None
             relatedNames = [] # to tag an object with labels or references
             oimParentTypes = (type(oimParentObj), type(oimParentObj).__name__) # allow actual type or TypeAlias type
-            if isinstance(jsonObj, str):
-                print("trace")
-            if isinstance(objClass, XbrlUnitType):
-                print("trace")
             unexpectedJsonProps = set(jsonObj.keys())
             propertyMap = getattr(objClass, "_propertyMap", EMPTY_DICT).get(type(oimParentObj), EMPTY_DICT)
             initialParentObjProp = True
@@ -746,8 +742,6 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             """"""
             # find collection owner in oimParentObj
             for objName in (jsonKey, plural(jsonKey)):
-                if jsonKey == "factDimensions":
-                    print("trace")
                 ownrPropType = inspect.get_annotations(type(oimParentObj)).get(objName)
                 if ownrPropType is not None:
                     break
@@ -934,7 +928,8 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             parsedSourceMappings.append(_ns)
         newModule._sourceMappings = parsedSourceMappings
         schemaDoc._txmyModule = newModule
-
+        if xbrlModelName is not None:
+            xbrlCompMdl.xbrlModels[xbrlModelName] = newModule
 
         if jsonEltsNotInObjClass:
             error("arelle:undeclaredOimTaxonomyJsonElements",
@@ -1116,7 +1111,8 @@ def xbrlModelViews(cntlr, xbrlCompMdl):
         initialViews.extend(((XbrlConcept, cntlr.tabWinBtm, "XBRL Concepts"),
                              (XbrlGroup, cntlr.tabWinTopRt, "XBRL Groups"),
                              (XbrlNetwork, cntlr.tabWinTopRt, "XBRL Networks"),
-                             (XbrlCube, cntlr.tabWinTopRt, "XBRL Cubes")
+                             (XbrlCube, cntlr.tabWinTopRt, "XBRL Cubes"),
+                             (XbrlDomainNetwork, cntlr.tabWinTopRt, "XBRL Domain Networks")
                             ))
         if any(xbrlCompMdl.filterNamedObjects(XbrlFact)):
             initialViews.append( (XbrlFact, cntlr.tabWinTopRt, "Taxonomy Facts") )
@@ -1124,6 +1120,7 @@ def xbrlModelViews(cntlr, xbrlCompMdl):
         additionalViews = ((XbrlHeading, cntlr.tabWinBtm, "XBRL Headings"),
                            (XbrlCubeType, cntlr.tabWinBtm, "XBRL Cube Types"),
                            (XbrlDataType, cntlr.tabWinBtm, "XBRL Data Types"),
+                           (XbrlDimension, cntlr.tabWinBtm, "XBRL Dimensions"),
                            (XbrlEntity, cntlr.tabWinBtm, "XBRL Entities"),
                            (XbrlGroupTree, cntlr.tabWinTopRt, "XBRL Group Tree"),
                            (XbrlLabel, cntlr.tabWinBtm, "XBRL Labels"),
