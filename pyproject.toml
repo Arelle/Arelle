@@ -198,7 +198,6 @@ module = [
     'arelle.ViewWinRssFeed',
     'arelle.ViewWinTests',
     'arelle.ViewWinTkTable',
-    'arelle.ViewWinTree',
     'arelle.ViewWinTupleGrid',
     'arelle.ViewWinVersReport',
     'arelle.ViewWinXml',
