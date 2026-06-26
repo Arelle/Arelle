@@ -66,7 +66,7 @@ from .XbrlModel import XbrlCompiledModel, castToXbrlCompiledModel
 from .XbrlModule import XbrlModule, xbrlObjectTypes
 from .XbrlObject import XbrlModelClass, XbrlObject, XbrlReferencableModelObject, XbrlTaxonomyTagObject, XbrlObjectType
 from .XbrlTypes import (XbrlTaxonomyModelAlias, XbrlModuleAlias, XbrlLayoutAlias, XbrlUnitTypeAlias,
-                        QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse, DefaultZero, DefaultOne, OptionalList, NonemptySet)
+                        QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse, DefaultZero, DefaultOne, OptionalList, OptionalDict, NonemptySet)
 from .ValidateXbrlModel import validateCompiledModel
 from .ValidateFacts import validateDateResolutionConceptFacts, validateCompleteReportCubes
 from .SelectImportedObjects import selectImportedObjects
@@ -281,6 +281,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             return _dict
 
         errPrefix = "oime"
+        moduleFileObj = None
         try:
             if isinstance(moduleFile, dict) and moduleFile.get("documentInfo",{}).get("documentType") in oimTaxonomyDocTypes:
                 moduleFileObj = moduleFile
@@ -318,6 +319,10 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                     "File IO error while %(action)s, %(file)s, error %(error)s",
                     file=moduleFile, action=currentAction, error=ex)
         # schema validation
+        if moduleFileObj is None:
+            raise OIMException("{}:noFile".format(errPrefix),
+                    "File not loaded for schema validation: %(file)s",
+                    file=moduleFile)
         if jsonschemaValidator is None:
             cntlr.showStatus(_("Loading schema validator schema file"))
             with io.open(OIMT_SCHEMA, mode="rt", encoding="utf-8") as fh:
@@ -591,28 +596,26 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                     if (isinstance(propType, GenericAlias) or
                         (isinstance(propType, _UnionGenericAlias) and isinstance(propType.__args__[0], GenericAlias) and propType.__args__[0].__origin__ in (OrderedSet, Dict)) or
                         (isinstance(propType, _GenericAlias) and propType.__origin__ in (list, set, OrderedSet, dict, Dict))):
+                        _keyClass = None
                         # for Optional OrderedSets where the jsonValue exists, handle as propType, _keyClass and eltClass
                         if isinstance(propType.__args__[0], GenericAlias) and len(propType.__args__[0].__args__) == 1 and propType.__args__[0].__origin__ == OrderedSet:
                             # handle as non-optional OrderedSet
                             propClass = propType.__args__[0].__origin__ # collection type such as OrderedSet
                             collectionProp = propClass()
                             setattr(newObj, propName, collectionProp) # fresh new dict or OrderedSet (even if no contents for it)
-                            _keyClass = None
                             eltClass = propType.__args__[0].__args__[0]
                         elif isinstance(propType, _GenericAlias) and propType.__origin__ in (list, set, OrderedSet):
                             propClass = propType.__origin__
                             collectionProp = propClass()
                             setattr(newObj, propName, collectionProp) # fresh new dict or OrderedSet (even if no contents for it)
-                            _keyClass = None
                             eltClass = propType.__args__[0]
-                        elif len(propType.__args__) == 2 and propType.__origin__ in (dict, Dict): # dict
+                        elif len(propType.__args__) == 2 and propType.__origin__ in (dict, Dict, OptionalDict): # dict
                             propClass = propType.__origin__
                             collectionProp = propClass()
                             setattr(newObj, propName, collectionProp) # fresh new dict or OrderedSet (even if no contents for it)
                             _keyClass = propType.__args__[0] # class of key such as QNameKey
                             eltClass = propType.__args__[1] # class of collection elements such as XbrlConcept
                         elif len(propType.__args__) == 1: # set such as OrderedSet or list
-                            _keyClass = None
                             eltClass = propType.__args__[0]
                         if isinstance(jsonValue, list):
                             for iObj, listObj in enumerate(jsonValue):
@@ -716,7 +719,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                 else: # absent json element
                     if not (propClass in (dict, set, OrderedSet, OrderedDict) or
                             (isinstance(propClass, _GenericAlias) and propClass.__origin__ == list)):
-                        if propClass not in (OptionalList, NonemptySet): # OptionalList, NonemptySet is null if completely absent, not an empty list
+                        if propClass not in (OptionalList, NonemptySet, OptionalDict): # OptionalList, NonemptySet is null if completely absent, not an empty list
                             # if this object extends another (has extendTargetName), missing scalar properties
                             # are inherited from the extension target — do not report them as missing
                             if "extendTargetName" not in jsonObj:
@@ -743,6 +746,8 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             """"""
             # find collection owner in oimParentObj
             for objName in (jsonKey, plural(jsonKey)):
+                if jsonKey == "factDimensions":
+                    print("trace")
                 ownrPropType = inspect.get_annotations(type(oimParentObj)).get(objName)
                 if ownrPropType is not None:
                     break
@@ -774,7 +779,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                         objClass = XbrlLayout
                     if isinstance(objClass,ForwardRef) and objClass.__forward_arg__ in xbrlTypeAliasClass:
                         objClass = xbrlTypeAliasClass[objClass.__forward_arg__]
-                    if issubclass(objClass, XbrlModelClass): # XBRL classes
+                    if isinstance(objClass, type) and issubclass(objClass, XbrlModelClass): # XBRL classes
                         if issubclass(objClass, XbrlObject):
                             newObj = objClass(xbrlMdlObjIndex=len(xbrlCompMdl.xbrlObjects)) # e.g. this is the new Concept
                             xbrlCompMdl.xbrlObjects.append(newObj)
@@ -904,7 +909,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         for impTxMdlObj in newModule.importedTaxonomies or ():
             if impTxMdlObj.xbrlModelName in impTxmyNameModuleObjs:
                 impTxMdlObj._txmyModule = impTxmyNameModuleObjs[impTxMdlObj.xbrlModelName] # used by validation
-            selectImportedObjects(xbrlCompMdl, newModule, impTxMdlObj)
+                selectImportedObjects(xbrlCompMdl, newModule, impTxMdlObj)
 
         # Parse documentInfo.sourceMappings into a lightweight list of mapping
         # objects accessible via module._sourceMappings for FactValueResolver

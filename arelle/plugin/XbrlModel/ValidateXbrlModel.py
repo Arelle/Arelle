@@ -726,7 +726,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                     break
                 reqProps = getattr(getattr(matchedConstr, "domainClassProperties", None), "requiredProperties", None)
                 if reqProps:
-                    domainPropQNs = set(p.property for p in getattr(domClass, "properties", ()))
+                    domainPropQNs = set(p.property for p in getattr(domClass, "properties", None) or ())
                     missingReqProps = [p for p in reqProps if p not in domainPropQNs]
                     if missingReqProps:
                         compMdl.error("oimte:missingRequiredDimensionProperty",
@@ -960,7 +960,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                     else:
                         reqProps = getattr(getattr(matchedConstr, "domainClassProperties", None), "requiredProperties", None)
                         if reqProps:
-                            domainPropQNs = set(p.property for p in getattr(domClass, "properties", ()))
+                            domainPropQNs = set(p.property for p in getattr(domClass, "properties", None) or ())
                             missingReqProps = [p for p in reqProps if p not in domainPropQNs]
                             if missingReqProps:
                                 compMdl.error("oimte:missingRequiredDimensionProperty",
@@ -981,7 +981,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                       xbrlObject=(cubeObj,cubeDimObj), name=name)
 
     # Dimension Objects
-    for dimObj in module.dimensions or ():
+    for dimObj in getattr(module, "dimensions", None) or ():
         assertObjectType(compMdl, dimObj, XbrlDimension)
         for cubeTypeQn in dimObj.cubeTypes or ():
             validateQNameReference(compMdl, dimObj, "cubeTypes", XbrlCubeType, qnRef=cubeTypeQn)

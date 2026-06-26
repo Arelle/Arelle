@@ -220,7 +220,7 @@ def validateCubeTypeFamily(compMdl, module, oimFile, *, assertObjectType, valida
                         basePropertiesAllowed = baseCubeType.effectivePropVal(compMdl, "cubeProperties", "allowedProperties")
                         basePropertiesRequired = baseCubeType.effectivePropVal(compMdl, "cubeProperties", "requiredProperties")
                         if basePropertiesRequired:
-                            removedPropsReqd = basePropertiesRequired - cubeType.cubeProperties.requiredProperties
+                            removedPropsReqd = basePropertiesRequired - (cubeType.cubeProperties.requiredProperties or EMPTY_FROZENSET)
                             if removedPropsReqd:
                                 emit_error(compMdl, "oimte:invalidPropertyRequirementRelaxation",
                                            _("The cube type %(name)s, must not remove property types required by the base type: %(qnames)s"),

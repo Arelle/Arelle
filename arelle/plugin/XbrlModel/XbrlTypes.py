@@ -28,7 +28,9 @@ class DefaultZero: # a number which if absent defaults to zero
     pass
 class DefaultOne: # a number which if absent defaults to one
     pass
-class OptionalList(List): # list of objects like OrderedSet which is present and empty when no objects
+class OptionalList(List): # list of objects like OrderedSet which is absent (None) when no objects
+    pass
+class OptionalDict(dict): # dict of objects which is absent (None) when no contents
     pass
 class NonemptySet(OrderedSet): # set of objects like OrderedSet which is present and nonempty
     pass

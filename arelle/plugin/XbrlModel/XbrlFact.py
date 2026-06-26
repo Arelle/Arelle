@@ -2,14 +2,14 @@
 See COPYRIGHT.md for copyright information.
 """
 
-from typing import TYPE_CHECKING, Optional, Any, Union, ClassVar, Dict, TypeAlias
+from typing import TYPE_CHECKING, Optional, Any, Union, ClassVar, TypeAlias
 from collections import defaultdict, OrderedDict
 from decimal import Decimal
 from arelle.ModelValue import QName, AnyURI
 from ordered_set import OrderedSet
 from arelle.plugin.XbrlModel.ModelValueMore import SQName
 from arelle.plugin.XbrlModel.XbrlConcept import XbrlDataType
-from .XbrlTypes import XbrlTaxonomyModelAlias,XbrlModuleAlias, QNameKeyType, DefaultFalse, DefaultTrue, OptionalList, NonemptySet
+from .XbrlTypes import XbrlTaxonomyModelAlias,XbrlModuleAlias, QNameKeyType, DefaultFalse, DefaultTrue, OptionalList, OptionalDict, NonemptySet
 from .XbrlObject import XbrlObject, XbrlReportObject
 from .XbrlProperty import XbrlProperty
 from .XbrlUnit import  parseUnitString
@@ -53,8 +53,8 @@ class XbrlFact(XbrlReportObject):
     module: XbrlModuleAlias  # facts in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (equired if no extendTargetName) The name is a QName that uniquely identifies the factspace object.
     factValues: OrderedSet[XbrlFactValue]
-    factDimensions: Dict[QName, Any] # (required) A dimensions object with properties corresponding to the members of the {dimensions} property.
-    factQualifiers: Dict[QName, Any] # (optional) A fact qualifier object, that indicates additional dimensional members that are valid for the fact.
+    factDimensions: OptionalDict[QName, Any] # (optional) A dimensions object with properties corresponding to the members of the {dimensions} property.
+    factQualifier: OptionalDict[QName, Any] # (optional) A fact qualifier object, that indicates additional dimensional members that are valid for the fact.
     properties: Optional[NonemptySet[XbrlProperty]] # (optional) an ordered set of property objects used to specify additional properties associated with the fact using the property object.
     extends: Optional[QName] # (required if no name property) Names the fact object that is appended to. The fact values and dimensions of the fact with this property are appended to the end of the fact object with the name property. This property cannot be used in conjunction with the name property.
     isExtensible: Union[bool, DefaultTrue] # (optional) If set to false, the fact is non-extensible and no importing taxonomy may augment it using extendTargetName. If set to true or omitted, the fact may be extended. The default value is true.
@@ -67,8 +67,8 @@ class XbrlFootnote(XbrlReportObject):
     module: XbrlModuleAlias  # facts in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the abstract object.
     relatedNames: OrderedSet[QName] # (required) QNames of the fact objects associated with this footnote.
-    content: Optional[str] # (required) The content of the footnote.
-    language: Optional[str] # ((optional) The language of the footnote text, specified using the BCP 47 standard language code (e.g., "en" for English, "fr" for French).
+    content: Optional[str] # (optional) The content of the footnote.
+    language: Optional[str] # (optional) The language of the footnote text, specified using the BCP 47 standard language code (e.g., "en" for English, "fr" for French).
 
 XbrlFactSourceAlias: TypeAlias = "XbrlFactSource"
 XbrlXMLTemplateMapAlias: TypeAlias = "XbrlXMLTemplateMap"

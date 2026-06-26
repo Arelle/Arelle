@@ -146,10 +146,10 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
     for relTpObj in module.relationshipTypes or ():
         assertObjectType(compMdl, relTpObj, XbrlRelationshipType)
         for prop in ("allowedLinkProperties", "requiredLinkProperties"):
-            for propTpQn in (getattr(relTpObj, prop) or ()):
+            for propTpQn in (getattr(relTpObj, prop, None) or ()):
                 validateQNameReference(compMdl, relTpObj, prop, XbrlPropertyType, qnRef=propTpQn)
-        if relTpObj.allowedLinkProperties:
-            reqdNotAllowed = (relTpObj.requiredLinkProperties or set()) - relTpObj.allowedLinkProperties
+        if getattr(relTpObj, "allowedLinkProperties", None):
+            reqdNotAllowed = (getattr(relTpObj, "requiredLinkProperties", None) or set()) - relTpObj.allowedLinkProperties
             if reqdNotAllowed:
                 emit_error(compMdl, "oimte:requiredPropertyNotAllowed",
                            _("The relationshipType %(name)s has required properties which are not allowed %(propTypes)s"),

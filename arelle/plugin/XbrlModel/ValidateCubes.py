@@ -41,7 +41,7 @@ def matchFactToCube(compMdl, factspace, cubeObj):
             # matching does not spuriously fail.
             if (mems and not isinstance(factDimVal, QName) and isinstance(factDimVal, str)
                     and ":" in factDimVal):
-                resolved = qname(factDimVal, getattr(factspace.parent, "_prefixNamespaces", None))
+                resolved = qname(factDimVal, getattr(getattr(factspace, "module", None), "_prefixNamespaces", None))
                 if resolved is not None:
                     factDimVal = resolved
             if mems and factDimVal not in mems:

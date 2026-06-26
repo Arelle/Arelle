@@ -33,7 +33,7 @@ def validateNamespaceFamily(compMdl, module, oimFile, *, assertObjectType, valid
                                xbrlObject=module, moduleType=module.modelType,
                                objNames=", ".join(str(p) for p in disallowedObjs))
             if modelTpObj.requiredProperties:
-                missingReqProps = modelTpObj.requiredProperties - set(p.property for p in module.properties)
+                missingReqProps = modelTpObj.requiredProperties - set(p.property for p in module.properties or ())
                 if missingReqProps:
                     emit_error(compMdl, "oimte:missingRequiredModelTypeProperty",
                                _("The modelType %(moduleType)s requires properties %(propNames)s."),

@@ -161,7 +161,7 @@ class XbrlObject(XbrlModelClass):
                                     nestedPropvals = flatPropvals
                         if nestedPropvals:
                             propVal.extend([nestedPropvals])
-                    elif len(val) > 0:
+                    elif val is not None and len(val) > 0:
                         propVal = ", ".join(str(v) for v in val)
                     else:
                         continue # omit this property
