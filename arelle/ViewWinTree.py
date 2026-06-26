@@ -292,7 +292,7 @@ class ViewTree:
         addClose: bool = True,
         tabWin: Notebook | None = None,
         additionalViews: Iterable[tuple[Any, ...]] | None = None,
-        additionalViewMethod: Callable[[ModelXbrl, tuple[Any, ...], Iterable[tuple[Any, ...]] | None], None] | None = None,
+        additionalViewMethod: Callable[..., None] | None = None,
     ) -> None:
         if self.menu:
             try:
