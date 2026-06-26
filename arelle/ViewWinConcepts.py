@@ -1,12 +1,31 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
+from __future__ import annotations
+
+from collections import defaultdict
+from typing import TYPE_CHECKING, Any
+
 from arelle import ViewWinTree, XbrlConst
 from arelle.ModelDtsObject import ModelRelationship
 from arelle.ModelInstanceObject import ModelFact
-from collections import defaultdict
+from arelle.typing import TypeGetText
 
-def viewConcepts(modelXbrl, tabWin, header, lang=None, altTabWin=None):
+_: TypeGetText
+
+if TYPE_CHECKING:
+    from arelle.ModelObject import ModelObject
+    from arelle.ModelXbrl import ModelXbrl
+    from tkinter import Widget
+
+
+def viewConcepts(
+    modelXbrl: ModelXbrl,
+    tabWin: Widget,
+    header: str,
+    lang: str | None = None,
+    altTabWin: Widget | None = None,
+) -> None:
     modelXbrl.modelManager.showStatus(_("viewing concepts"))
     view = ViewConcepts(modelXbrl, tabWin, header, lang)
     view.treeView["columns"] = ("conceptname", "id", "abstr", "subsGrp", "type", "periodType", "balance", "facets")
@@ -32,37 +51,40 @@ def viewConcepts(modelXbrl, tabWin, header, lang=None, altTabWin=None):
     view.view()
     view.blockSelectEvent = 1
     view.blockViewModelObject = 0
-    view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, '+')
-    view.treeView.bind("<Enter>", view.treeviewEnter, '+')
-    view.treeView.bind("<Leave>", view.treeviewLeave, '+')
+    view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, "+")
+    view.treeView.bind("<Enter>", view.treeviewEnter, "+")
+    view.treeView.bind("<Leave>", view.treeviewLeave, "+")
 
     # languages menu
-    menu = view.contextMenu()
-    view.menuAddClipboard()
-    view.menuAddLangs()
-    view.menuAddLabelRoles()
-    view.menuAddNameStyle()
-    view.menuAddViews(addClose=False, tabWin=altTabWin)
+    view.contextMenu()  # type: ignore[no-untyped-call]
+    view.menuAddClipboard()  # type: ignore[no-untyped-call]
+    view.menuAddLangs()  # type: ignore[no-untyped-call]
+    view.menuAddLabelRoles()  # type: ignore[no-untyped-call]
+    view.menuAddNameStyle()  # type: ignore[no-untyped-call]
+    view.menuAddViews(addClose=False, tabWin=altTabWin)  # type: ignore[no-untyped-call]
+
 
 class ViewConcepts(ViewWinTree.ViewTree):
-    def __init__(self, modelXbrl, tabWin, header, lang):
+    def __init__(self, modelXbrl: ModelXbrl, tabWin: Widget, header: str, lang: str | None) -> None:
         super(ViewConcepts, self).__init__(modelXbrl, tabWin, header, True, lang)
+        self.blockSelectEvent: int = 1
+        self.blockViewModelObject: int = 0
 
-    def view(self):
+    def view(self) -> None:
         # sort by labels
-        self.setColumnsSortable()
-        lbls = defaultdict(list)
+        self.setColumnsSortable()  # type: ignore[no-untyped-call]
+        lbls: defaultdict[str | None, list[str]] = defaultdict(list)
         role = self.labelrole
         lang = self.lang
         nameIsPrefixed = self.nameIsPrefixed
         for concept in set(self.modelXbrl.qnameConcepts.values()): # may be twice if unqualified, with and without namespace
             lbls[concept.label(role,lang=lang)].append(concept.objectId())
-        srtLbls = sorted(lbls.keys())
-        '''
+        srtLbls = sorted(lbls.keys())  # type: ignore[type-var]
+        """
         self.nodeToObjectId = {}
         self.objectIdToNode = {}
-        '''
-        self.clearTreeView()
+        """
+        self.clearTreeView()  # type: ignore[no-untyped-call]
         nodeNum = 1
         excludedNamespaces = XbrlConst.ixbrlAll.union(
             (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl,
@@ -70,9 +92,9 @@ class ViewConcepts(ViewWinTree.ViewTree):
              XbrlConst.xhtml))
         for label in srtLbls:
             for objectId in lbls[label]:
-                concept = self.modelXbrl.modelObject(objectId)
+                concept = self.modelXbrl.modelObject(objectId)  # type: ignore[assignment]
                 if concept.modelDocument.targetNamespace not in excludedNamespaces:
-                    '''
+                    """
                     node = "node{0}".format(nodeNum)
                     objectId = concept.objectId()
                     label = concept.label(lang=self.lang)
@@ -82,10 +104,10 @@ class ViewConcepts(ViewWinTree.ViewTree):
                         self.treeView.item(node, text=label)
                     else:
                         node = self.treeView.insert("", "end", node, text=label)
-                    '''
+                    """
                     node = self.treeView.insert("", "end",
                                                 concept.objectId(),
-                                                text=concept.label(role,lang=lang,linkroleHint=XbrlConst.defaultLinkRole),
+                                                text=concept.label(role, lang=lang, linkroleHint=XbrlConst.defaultLinkRole),  # type: ignore[arg-type]
                                                 tags=("odd" if nodeNum & 1 else "even",))
                     nodeNum += 1
                     self.treeView.set(node, "conceptname", concept.qname if nameIsPrefixed else concept.name)
@@ -102,34 +124,32 @@ class ViewConcepts(ViewWinTree.ViewTree):
                         self.treeView.set(node, "facets",
                             "\n".join("{0}={1}".format(
                                    name,
-                                   sorted(value.keys()) if isinstance(value,dict) else value
-                                   ) for name,value in sorted(facets.items()))
+                                   sorted(value.keys()) if isinstance(value, dict) else value
+                                   ) for name, value in sorted(facets.items()))
                             )
 
-    def treeviewEnter(self, *args):
+    def treeviewEnter(self, *args: Any) -> None:
         self.blockSelectEvent = 0
 
-    def treeviewLeave(self, *args):
+    def treeviewLeave(self, *args: Any) -> None:
         self.blockSelectEvent = 1
 
-    def treeviewSelect(self, event):
+    def treeviewSelect(self, event: Any) -> None:
         if self.blockSelectEvent == 0 and self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
-            #self.modelXbrl.viewModelObject(self.nodeToObjectId[self.treeView.selection()[0]])
             self.modelXbrl.viewModelObject(self.treeView.selection()[0])
             self.blockViewModelObject -= 1
 
-    def viewModelObject(self, modelObject):
+    def viewModelObject(self, modelObject: ModelObject | ModelRelationship | ModelFact) -> None:
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
             try:
                 if isinstance(modelObject, ModelRelationship):
-                    conceptId = modelObject.toModelObject.objectId()
+                    conceptId = modelObject.toModelObject.objectId()  # type: ignore[union-attr]
                 elif isinstance(modelObject, ModelFact):
                     conceptId = self.modelXbrl.qnameConcepts[modelObject.qname].objectId()
                 else:
                     conceptId = modelObject.objectId()
-                #node = self.objectIdToNode[conceptId]
                 node = conceptId
                 if self.treeView.exists(node):
                     self.treeView.see(node)
