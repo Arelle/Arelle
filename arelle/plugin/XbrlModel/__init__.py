@@ -672,12 +672,17 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                                 collectionProp[_valKey] = valVal
                     elif isinstance(propType, _UnionGenericAlias) and isinstance(propType.__args__[0], GenericAlias) and propType.__args__[-1] == type(None) and isinstance(jsonValue,list): # optional embdded list of objects like allowedCubeDimensions
                         eltClass = propType.__args__[0].__args__[0]
+                        propClass = propType.__args__[0].__origin__ # collection type such as OrderedSet, dict
                         for iObj, listObj in enumerate(jsonValue):
                             if iObj == 0: # create collection only if any objects for collection
-                                propClass = propType.__args__[0].__origin__ # collection type such as OrderedSet, dict
                                 collectionProp = propClass()
                                 setattr(newObj, propName, collectionProp) # fresh new dict or OrderedSet (even if no contents for it)
                             createModelObjects(propName, listObj, newObj, pathParts + [f'{propName}[{iObj}]'])
+                        if not jsonValue and propClass == NonemptySet:
+                            error("oimte:invalidEmptySet",
+                                  _("Property %(property)s is a NonemptySet but is empty: %(path)s"),
+                                  sourceFileLine=href, property=propName, path=f"{'/'.join(pathParts)}")
+                            setattr(newObj, propName, None)
                     elif isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] == type(None) and isinstance(jsonValue,dict): # optional embdded object
                         createModelObjects(propName, jsonValue, newObj, pathParts + [propName]) # object property
                     elif isinstance(propType, type) and issubclass(propType, XbrlObject) and isinstance(jsonValue,dict): # mandatory embdded object
