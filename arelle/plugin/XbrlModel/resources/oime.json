@@ -14,7 +14,8 @@
     "version": "1.0",
     "domainClasses": [
       {
-        "name": "oime:OIMErrorClassDomain"
+        "name": "oime:OIMErrorClassDomain",
+        "allowedDomainItem": "xbrl:memberObject"
       }
     ],
     "domainNetworks": [

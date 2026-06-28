@@ -12,7 +12,7 @@
         "documentNamespacePrefix":"xbrlr"
     },
     "xbrlModel": {
-        "name": "xbrlr:dataTypesModule",
+        "name": "xbrlr:dataTypes",
         "frameworkName": "types",
         "version": "2025",
         "dataTypes": [

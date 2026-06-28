@@ -12,7 +12,7 @@
     },
     "xbrlModel": {
         "frameworkName": "ref",
-        "name": "ref:referencePropertiesModule",
+        "name": "ref:referenceProperties",
         "version": "2025",
         "propertyTypes": [
             {

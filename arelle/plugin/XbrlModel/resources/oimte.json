@@ -24,7 +24,8 @@
     ],
     "domainClasses": [
       {
-        "name": "oimte:OIMErrorClassDomain"
+        "name": "oimte:OIMErrorClassDomain",
+        "allowedDomainItem": "xbrl:memberObject"
       }
     ],
     "domainNetworks": [
@@ -199,6 +200,11 @@
           },
           {
             "source": "oimte:OIMErrorClassDomain",
+            "target": "oimte:inconsistentBaseDomainClass",
+            "order": 21.5
+          },
+          {
+            "source": "oimte:OIMErrorClassDomain",
             "target": "oimte:invalidDomainClassReference",
             "order": 21.7
           },
@@ -286,11 +292,6 @@
             "source": "oimte:OIMErrorClassDomain",
             "target": "oimte:invalidConceptDomainClass",
             "order": 40
-          },
-          {
-            "source": "oimte:OIMErrorClassDomain",
-            "target": "oimte:invalidUnitDomainClass",
-            "order": 40.5
           },
           {
             "source": "oimte:OIMErrorClassDomain",
@@ -521,6 +522,11 @@
             "source": "oimte:OIMErrorClassDomain",
             "target": "oimte:nestedCollection",
             "order": 65
+          },
+          {
+            "source": "oimte:OIMErrorClassDomain",
+            "target": "oimte:missingInferredRoot",
+            "order": 66
           }
         ]
       }
@@ -999,6 +1005,18 @@
         ]
       },
       {
+        "name": "oimte:inconsistentBaseDomainClass",
+        "domainClasses": [
+          "oimte:OIMErrorClassDomain"
+        ],
+        "properties": [
+          {
+            "property": "xbrl:severity",
+            "value": "error"
+          }
+        ]
+      },
+      {
         "name": "oimte:invalidEmptySet",
         "domainClasses": [
           "oimte:OIMErrorClassDomain"
@@ -1372,18 +1390,6 @@
       },
       {
         "name": "oimte:invalidFinalTaxonomyObject",
-        "domainClasses": [
-          "oimte:OIMErrorClassDomain"
-        ],
-        "properties": [
-          {
-            "property": "xbrl:severity",
-            "value": "error"
-          }
-        ]
-      },
-      {
-        "name": "oimte:invalidUnitDomainClass",
         "domainClasses": [
           "oimte:OIMErrorClassDomain"
         ],
@@ -2271,6 +2277,18 @@
         ]
       },
       {
+        "name": "oimte:missingInferredRoot",
+        "domainClasses": [
+          "oimte:OIMErrorClassDomain"
+        ],
+        "properties": [
+          {
+            "property": "xbrl:severity",
+            "value": "error"
+          }
+        ]
+      },
+      {
         "name": "oimte:invalidRequiredLocatorProperty",
         "domainClasses": [
           "oimte:OIMErrorClassDomain"
@@ -2793,7 +2811,7 @@
           },
           {
             "source": "oimte:DomainClassErrors",
-            "target": "oimte:invalidUnitDomainClass",
+            "target": "oimte:inconsistentBaseDomainClass",
             "order": 4
           },
           {
@@ -2975,6 +2993,11 @@
             "source": "oimte:NetworkErrors",
             "target": "oimte:networkCyclic",
             "order": 1
+          },
+          {
+            "source": "oimte:NetworkErrors",
+            "target": "oimte:missingInferredRoot",
+            "order": 2
           }
         ]
       },
@@ -3326,7 +3349,7 @@
           },
           {
             "source": "xbrl:domainClassObject",
-            "target": "oimte:invalidUnitDomainClass",
+            "target": "oimte:inconsistentBaseDomainClass",
             "order": 4
           },
           {
@@ -3681,6 +3704,24 @@
         "relatedName": "oimte:networkCyclic",
         "language": "en",
         "value": "Raised when the relationships in a network object form a cycle that violates the cycle constraint of the relationship type. By default, networks must define directed acyclic graphs (DAGs). The 'cycles' property of the relationshipType object overrides this default: 'any' permits all cycles (but never self-loops); 'undirected' permits undirected cycles; 'none' prohibits any cycle (directed or undirected). Self-loops (source = target) are always prohibited regardless of the 'cycles' value.",
+        "labelType": "xbrl:documentation"
+      },
+      {
+        "relatedName": "oimte:missingInferredRoot",
+        "language": "en",
+        "value": "Missing Inferred Root",
+        "labelType": "xbrl:label"
+      },
+      {
+        "relatedName": "oimte:missingInferredRoot",
+        "language": "en",
+        "value": "The network '{networkName}' contains inferred root(s) not declared in the roots property: {missingRoots}.",
+        "labelType": "xbrl:errorMessage"
+      },
+      {
+        "relatedName": "oimte:missingInferredRoot",
+        "language": "en",
+        "value": "Raised when a network's roots property is defined and non-empty, but a source QName that is not also a target of any relationship (an inferred root) is not included in the roots property. An inferred root is a relationship source that does not appear as a target of any relationship in the same network.",
         "labelType": "xbrl:documentation"
       },
       {
@@ -4065,18 +4106,6 @@
         "relatedName": "oimte:invalidConceptDomainClass",
         "language": "en",
         "value": "The concept domain class '{domainClass}' cannot be used as the domain class on the dimension '{dimensionName}'.",
-        "labelType": "xbrl:errorMessage"
-      },
-      {
-        "relatedName": "oimte:invalidUnitDomainClass",
-        "language": "en",
-        "value": "Unit Domain Class On Non Unit Dimension",
-        "labelType": "xbrl:label"
-      },
-      {
-        "relatedName": "oimte:invalidUnitDomainClass",
-        "language": "en",
-        "value": "The unit domain class '{domainClass}' cannot be used as the domain class on the dimension '{dimensionName}'.",
         "labelType": "xbrl:errorMessage"
       },
       {
@@ -4485,6 +4514,18 @@
         "relatedName": "oimte:invalidDataTypeForDomainClass",
         "language": "en",
         "value": "The datatype '{dataType}' is not valid for domain class '{domainClass}' of domain '{domain}'.",
+        "labelType": "xbrl:errorMessage"
+      },
+      {
+        "relatedName": "oimte:inconsistentBaseDomainClass",
+        "language": "en",
+        "value": "Inconsistent Base Domain Class",
+        "labelType": "xbrl:label"
+      },
+      {
+        "relatedName": "oimte:inconsistentBaseDomainClass",
+        "language": "en",
+        "value": "The allowedDomainItem '{allowedDomainItem}' for domain class '{domainClass}' is inconsistent with the allowedDomainItem '{baseAllowedDomainItem}' of the base domain class '{baseDomainClass}'.",
         "labelType": "xbrl:errorMessage"
       },
       {
@@ -5112,12 +5153,6 @@
         "labelType": "xbrl:documentation"
       },
       {
-        "relatedName": "oimte:invalidUnitDomainClass",
-        "language": "en",
-        "value": "This error occurs when a unit domain class is used on a dimension that is not the unit dimension. The unit domain class xbrl:unitDomain can only be used with the dimension xbrl:unit.",
-        "labelType": "xbrl:documentation"
-      },
-      {
         "relatedName": "oimte:invalidLanguageDomainClass",
         "language": "en",
         "value": "This error occurs when a language domain class is used on a dimension that is not the language dimension. The language domain class xbrl:languageDomain can only be used with the dimension xbrl:language.",
@@ -5138,7 +5173,7 @@
       {
         "relatedName": "oimte:domainClassMismatchWithDomain",
         "language": "en",
-        "value": "This error occurs when a domain class defines a type for the domain using the attribute allowedDomainItems and the domain associated with the DomainClass includes a hierarchy.",
+        "value": "This error occurs when a domain class defines a type for the domain using the attribute allowedDomainItem and the domain associated with the DomainClass includes a hierarchy.",
         "labelType": "xbrl:documentation"
       },
       {
@@ -5348,13 +5383,19 @@
       {
         "relatedName": "oimte:invalidDataTypeForDomainClass",
         "language": "en",
-        "value": "This error occurs when a domainDataType property used on a cubeDimension object has a data type that is not defined in the allowedDomainItems array of the domain class object. The data types specified for the domain class must be compatible with the domainDataType assigned to the cube dimension. ",
+        "value": "This error occurs when a domainDataType property used on a cubeDimension object has a data type that is not defined in the allowedDomainItem property of the domain class object. The data type specified for the domain class must be compatible with the domainDataType assigned to the cube dimension. ",
+        "labelType": "xbrl:documentation"
+      },
+      {
+        "relatedName": "oimte:inconsistentBaseDomainClass",
+        "language": "en",
+        "value": "This error occurs when a domain class object defines a baseDomainClass property and the allowedDomainItem value is inconsistent with the base domain class's allowedDomainItem. For object type QNames, the values must be identical. For datatype QNames, the derived class's allowedDomainItem must be the same as or a subtype of the base class's allowedDomainItem. Mixing object types and datatypes always produces this error.",
         "labelType": "xbrl:documentation"
       },
       {
         "relatedName": "oimte:invalidDomainNetworkObject",
         "language": "en",
-        "value": "This error occurs when a domain network object is used when its type is prohibited by the values defined in the allowedDomainItems property of the domain class object. This covers: (1) any object used as a source or target in a domain relationship that is not permitted by the domain class's allowedDomainItems; (2) objects used as sources in a concept domain that are not a concept object, abstract object, or xbrl:conceptDomain; (3) objects used in an entity domain relationship that are not entity objects or xbrl:entityDomain; and (4) objects used in a unit domain relationship that are not unit objects or xbrl:unitDomain.",
+        "value": "This error occurs when a domain network object is used when its type is prohibited by the value defined in the allowedDomainItem property of the domain class object. This covers: (1) any object used as a source or target in a domain relationship that is not permitted by the domain class's allowedDomainItem; (2) objects used as sources in a concept domain that are not a concept object, abstract object, or xbrl:conceptDomain; (3) objects used in an entity domain relationship that are not entity objects or xbrl:entityDomain; and (4) objects used in a unit domain relationship that are not unit objects or xbrl:unitDomain.",
         "labelType": "xbrl:documentation"
       },
       {
@@ -9401,6 +9442,32 @@
         ]
       },
       {
+        "name": "oimte:invalidAllowedDomainItemHeadingObjectConformanceTest",
+        "relatedNames": [
+          "oimte:invalidObjectType"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "DOMAINCLASS-InvalidAllowedDomainItemHeadingObject.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAINCLASS-InvalidAllowedDomainItemHeadingObject"
+          }
+        ]
+      },
+      {
         "name": "oimte:invalidDomainClassReferenceConformanceTest",
         "relatedNames": [
           "oimte:invalidDomainClassReference"
@@ -9631,32 +9698,6 @@
           {
             "property": "xbrl:specificationErrorURI",
             "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAINCLASS-TaxonomyDefinedDimensionUseConceptRoot"
-          }
-        ]
-      },
-      {
-        "name": "oimte:invalidUnitDomainClassReference",
-        "relatedNames": [
-          "oimte:invalidUnitDomainClass"
-        ],
-        "referenceType": "xbrl:conformanceTestReference",
-        "language": "en",
-        "properties": [
-          {
-            "property": "xbrl:conformanceTestFileName",
-            "value": "DOMAINCLASS-TaxonomyDefinedDimensionUseUnitRoot.json"
-          },
-          {
-            "property": "xbrl:conformanceStatus",
-            "value": "\u274c Fail"
-          },
-          {
-            "property": "xbrl:conformanceErrorsProduced",
-            "value": "1"
-          },
-          {
-            "property": "xbrl:specificationErrorURI",
-            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAINCLASS-TaxonomyDefinedDimensionUseUnitRoot"
           }
         ]
       },
@@ -10130,6 +10171,32 @@
           {
             "property": "xbrl:specificationErrorURI",
             "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAINNETWORK-InvalidNonCoreDomainTarget"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidDomainTargetValidNonCoreDomainTargetUsingConceptReference",
+        "relatedNames": [
+          "oimte:invalidDomainTarget"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "DOMAINNETWORK-ValidNonCoreDomainTargetUsingConcept.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "2"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAINNETWORK-ValidNonCoreDomainTargetUsingConcept"
           }
         ]
       },
@@ -11182,6 +11249,110 @@
           {
             "property": "xbrl:specificationErrorURI",
             "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-DomainDataTypeOnConceptDimension"
+          }
+        ]
+      },
+      {
+        "name": "oimte:inconsistentBaseDomainClassDifferentDataTypeConformanceTest",
+        "relatedNames": [
+          "oimte:inconsistentBaseDomainClass"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "DOMAINCLASS-InconsistentBaseDomainClassDifferentDataType.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAINCLASS-InconsistentBaseDomainClassDifferentDataType"
+          }
+        ]
+      },
+      {
+        "name": "oimte:inconsistentBaseDomainClassObjectVsDataTypeConformanceTest",
+        "relatedNames": [
+          "oimte:inconsistentBaseDomainClass"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "DOMAINCLASS-InconsistentBaseDomainClassObjectVsDataType.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAINCLASS-InconsistentBaseDomainClassObjectVsDataType"
+          }
+        ]
+      },
+      {
+        "name": "oimte:inconsistentBaseDomainClassDifferentObjectTypeConformanceTest",
+        "relatedNames": [
+          "oimte:inconsistentBaseDomainClass"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "DOMAINCLASS-InconsistentBaseDomainClassDifferentObjectType.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAINCLASS-InconsistentBaseDomainClassDifferentObjectType"
+          }
+        ]
+      },
+      {
+        "name": "oimte:inconsistentBaseDomainClassDataTypeVsObjectConformanceTest",
+        "relatedNames": [
+          "oimte:inconsistentBaseDomainClass"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "DOMAINCLASS-InconsistentBaseDomainClassDataTypeVsObject.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAINCLASS-InconsistentBaseDomainClassDataTypeVsObject"
           }
         ]
       },
@@ -12457,6 +12628,136 @@
           {
             "property": "xbrl:specificationErrorURI",
             "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAINCLASS-EntityDomainWithNonEntityMember"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidDomainNetworkObjectValidNonCoreDomainTargetUsingConceptReference",
+        "relatedNames": [
+          "oimte:invalidDomainNetworkObject"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "DOMAINNETWORK-ValidNonCoreDomainTargetUsingConcept.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "2"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAINNETWORK-ValidNonCoreDomainTargetUsingConcept"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidDomainNetworkObjectDomainClassInTaxonomyDefinedDimensionDomainReference",
+        "relatedNames": [
+          "oimte:invalidDomainNetworkObject"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "DOMAINNETWORK-DomainClassInTaxonomyDefinedDimensionDomain.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAINNETWORK-DomainClassInTaxonomyDefinedDimensionDomain"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidDomainNetworkObjectInvalidNonCoreDomainTargetReference",
+        "relatedNames": [
+          "oimte:invalidDomainNetworkObject"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "DOMAINNETWORK-InvalidNonCoreDomainTarget.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "2"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAINNETWORK-InvalidNonCoreDomainTarget"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidDomainNetworkObjectAbstractUsedAsDimensionMemberReference",
+        "relatedNames": [
+          "oimte:invalidDomainNetworkObject"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "FACT-AbstractUsedAsDimensionMember.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "3"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-AbstractUsedAsDimensionMember"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidDomainNetworkObjectDomainClassUsedAsTargetDomainRelationshipReference",
+        "relatedNames": [
+          "oimte:invalidDomainNetworkObject"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "DOMAINCLASS-DomainClassUsedAsTargetDomainRelationship.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAINCLASS-DomainClassUsedAsTargetDomainRelationship"
           }
         ]
       },
@@ -17713,20 +18014,6 @@
         ]
       },
       {
-        "name": "oimte:invalidUnitDomainClassSpecReference",
-        "relatedNames": [
-          "oimte:invalidUnitDomainClass"
-        ],
-        "referenceType": "xbrl:specificationErrorReference",
-        "language": "en",
-        "properties": [
-          {
-            "property": "xbrl:specificationErrorURI",
-            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-invalidunitdomainclass"
-          }
-        ]
-      },
-      {
         "name": "oimte:invalidLanguageDomainClassSpecReference",
         "relatedNames": [
           "oimte:invalidLanguageDomainClass"
@@ -18965,32 +19252,6 @@
         ]
       },
       {
-        "name": "oimte:invalidEmptySetDomainClassAllowedDomainItemsReference",
-        "relatedNames": [
-          "oimte:invalidEmptySet"
-        ],
-        "referenceType": "xbrl:conformanceTestReference",
-        "language": "en",
-        "properties": [
-          {
-            "property": "xbrl:conformanceTestFileName",
-            "value": "DOMAINCLASS-EmptyAllowedDomainItems.json"
-          },
-          {
-            "property": "xbrl:conformanceStatus",
-            "value": "\u274c Fail"
-          },
-          {
-            "property": "xbrl:conformanceErrorsProduced",
-            "value": "1"
-          },
-          {
-            "property": "xbrl:specificationErrorURI",
-            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAINCLASS-EmptyAllowedDomainItems"
-          }
-        ]
-      },
-      {
         "name": "oimte:invalidEmptySetDataTypeAllowedObjectsReference",
         "relatedNames": [
           "oimte:invalidEmptySet"
@@ -19387,6 +19648,20 @@
           {
             "property": "xbrl:specificationErrorURI",
             "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-invaliddatatypefordomainclass"
+          }
+        ]
+      },
+      {
+        "name": "oimte:inconsistentBaseDomainClassSpecReference",
+        "relatedNames": [
+          "oimte:inconsistentBaseDomainClass"
+        ],
+        "referenceType": "xbrl:specificationErrorReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#error-oimte-inconsistentbasedomainclass"
           }
         ]
       },
@@ -21812,7 +22087,7 @@
           },
           {
             "property": "xbrl:conformanceErrorsProduced",
-            "value": "1"
+            "value": "2"
           },
           {
             "property": "xbrl:specificationErrorURI",
@@ -22103,6 +22378,96 @@
           {
             "property": "xbrl:specificationErrorURI",
             "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#COLLECTIONTYPE-NestedCollectionType"
+          }
+        ]
+      },
+      {
+        "name": "oimte:missingInferredRootMissingRootReference",
+        "relatedNames": [
+          "oimte:missingInferredRoot"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "ROOT-MISSING-MissingRoot.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "exp:NodeA is a source of a relationship but is not a target of any relationship (an inferred root). It is not declared in the roots property (roots contains only exp:NodeC). Since the roots property is non-empty, all inferred roots must be declared."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NETWORK-MissingInferredRoot"
+          }
+        ]
+      },
+      {
+        "name": "oimte:missingInferredRootExtraTargetRootReference",
+        "relatedNames": [
+          "oimte:missingInferredRoot"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "ROOT-MISSING-ExtraTargetRoot.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u2705 Pass"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "0"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "exp:NodeA is the only inferred root (source that is not a target). It is declared in roots alongside exp:NodeC (an extra root not in any relationship). No inferred root is missing, so oimte:missingInferredRoot is not raised."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NETWORK-MissingInferredRoot"
+          }
+        ]
+      },
+      {
+        "name": "oimte:missingInferredRootRootOfNetworkDoesNotMatchActualRootReference",
+        "relatedNames": [
+          "oimte:missingInferredRoot"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "NETWORK-RootOfNetworkDoesNotMatchActualRoot.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "2"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "exp:StatementOfIncome is the inferred root (a source that is not a target) but is not declared in the roots property. exp:Revenue is declared as a root but appears as a target (also triggers oimte:networkCyclic). Both errors are raised."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NETWORK-RootOfNetworkDoesNotMatchActualRoot"
           }
         ]
       }

@@ -539,9 +539,8 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 
                 # Validate dependent properties on domain class (for time-series typed dimensions)
                 domClass = compMdl.namedObjects.get(dimObj.domainClass)
-                if isTimeSeriesCubeType and isinstance(domClass, XbrlDomainClass) and domClass.allowedDomainItems:
-                    # Check if domain class has datetime type (either explicit or through allowedDomainItems)
-                    isDateTimeType = qnXsDateTime in domClass.allowedDomainItems or cubeDimObj.domainDataType == qnXsDateTime
+                if isTimeSeriesCubeType and isinstance(domClass, XbrlDomainClass) and domClass.allowedDomainItem:
+                    isDateTimeType = domClass.allowedDomainItem == qnXsDateTime or cubeDimObj.domainDataType == qnXsDateTime
                     if isDateTimeType:
                         # Get time-series properties from domain class
                         domClassTsProps = {timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType, completeTimeSeriesPropType} & set(p.property for p in getattr(domClass, 'properties', ()))
@@ -714,9 +713,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                         continue
                     if dimConstr.type:
                         dimConstrIsTyped = dimConstr.type == "typed"
-                        dimObjIsTyped = bool(domClass.allowedDomainItems and all(
-                            isinstance(compMdl.namedObjects.get(dt), XbrlDataType)
-                            for dt in domClass.allowedDomainItems))
+                        dimObjIsTyped = isinstance(compMdl.namedObjects.get(domClass.allowedDomainItem), XbrlDataType) if domClass.allowedDomainItem else False
                         if dimConstrIsTyped != dimObjIsTyped:
                             continue
                     if dimConstr.dataType:
@@ -734,11 +731,9 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                       xbrlObject=(cubeObj, cubeDimObj, dimObj), name=name,
                                       dimensionName=cubeDimObj.dimension, domainClass=domClass.name,
                                       requiredProperties=", ".join(str(p) for p in missingReqProps))
-            if domClass.allowedDomainItems and all(
-                    isinstance(compMdl.namedObjects.get(dt), XbrlDataType)
-                    for dt in domClass.allowedDomainItems):
+            if domClass.allowedDomainItem and isinstance(compMdl.namedObjects.get(domClass.allowedDomainItem), XbrlDataType):
                 isTyped = True
-            if isTyped and qnXsDateTime in domClass.allowedDomainItems:
+            if isTyped and domClass.allowedDomainItem == qnXsDateTime:
                 hasTimeseriesDimension = True
             cubeDimDT = cubeDimObj.domainDataType
             if cubeDimDT:
@@ -746,10 +741,10 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                               msgCode="oimte:propertyValueDataTypeMismatch", qnRef=cubeDimDT)
                 if domDtObj is not None:
                     isTyped = True
-                    if domClass.allowedDomainItems and cubeDimDT not in domClass.allowedDomainItems:
+                    if domClass.allowedDomainItem and cubeDimDT != domClass.allowedDomainItem:
                         compMdl.error("oimte:invalidDataTypeForDomainClass",
-                                      _("Cube %(name)s dimension %(dimensionName)s domainDataType %(dataType)s MUST be included in the set of allowedDomainItems defined as a property of The domain network root object: %(allowedDataItems)s."),
-                                      xbrlObject=cubeObj, name=name, dimensionName=dimName, dataType=cubeDimDT, allowedDataItems=", ".join(str(qn) for qn in domClass.allowedDomainItems))
+                                      _("Cube %(name)s dimension %(dimensionName)s domainDataType %(dataType)s MUST match the allowedDomainItem defined on the domain class: %(allowedDomainItem)s."),
+                                      xbrlObject=cubeObj, name=name, dimensionName=dimName, dataType=cubeDimDT, allowedDomainItem=domClass.allowedDomainItem)
                     if dimName == periodCoreDim:
                         compMdl.error("oimte:domainUsedOnPeriodDimension",
                                       _("Cube %(name)s dimension %(dimensionName)s domainDataType %(dataType)s MUST not be used on a period dimension."),
@@ -923,7 +918,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         if isTimeSeriesCubeType:
             typedDateTimeDims = []
             for cubeDimObj, dimObj, isTyped, cubeDimDT, domClass in timeSeriesTaxonomyDims:
-                hasDateTimeType = cubeDimDT == qnXsDateTime or qnXsDateTime in getattr(domClass, "allowedDomainItems", ())
+                hasDateTimeType = cubeDimDT == qnXsDateTime or getattr(domClass, "allowedDomainItem", None) == qnXsDateTime
                 if isTyped and hasDateTimeType:
                     typedDateTimeDims.append((cubeDimObj, dimObj))
                 else:
@@ -947,7 +942,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                 continue
                         if dimConstr.dataType:
                             actualDataType = cubeDimObj.domainDataType
-                            if actualDataType is None and _isTyped and qnXsDateTime in getattr(domClass, "allowedDomainItems", ()):
+                            if actualDataType is None and _isTyped and getattr(domClass, "allowedDomainItem", None) == qnXsDateTime:
                                 actualDataType = qnXsDateTime
                             if dimConstr.dataType != actualDataType:
                                 continue
@@ -1081,12 +1076,12 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                         compMdl.error("oimte:invalidDimensionMember",
                                   _("The domain network %(name)s relationship[%(nbr)s] %(property)s, %(propQn)s MUST be not be a member object in the taxonomy model."),
                                   xbrlObject=relObj, name=domNwkObj.name, nbr=i, property=prop, propQn=getattr(relObj, prop))
-                    if domRtObj and domRtObj.allowedDomainItems and (
-                        not _qname_in_set(xbrlObjectQNames.get(type(obj)), domRtObj.allowedDomainItems)
-                        and (prop != "source" and obj != domRtObj)):
+                    if domRtObj and domRtObj.allowedDomainItem and (
+                        xbrlObjectQNames.get(type(obj)) != domRtObj.allowedDomainItem
+                        and (prop != "source" or obj != domRtObj)):
                         compMdl.error("oimte:invalidDomainObject",
-                                  _("The domain network %(name)s relationship[%(nbr)s] %(property)s, %(propQn)s MUST be only be objects in the allowedDomainItems."),
-                                  xbrlObject=relObj, name=domNwkObj.name, nbr=i, property=prop, propQn=getattr(relObj, prop))
+                                  _("The domain network %(name)s relationship[%(nbr)s] %(property)s, %(propQn)s MUST be an object matching the allowedDomainItem %(allowedDomainItem)s."),
+                                  xbrlObject=relObj, name=domNwkObj.name, nbr=i, property=prop, propQn=getattr(relObj, prop), allowedDomainItem=domRtObj.allowedDomainItem)
             if isinstance(compMdl.namedObjects.get(tgt), XbrlDomainClass):
                 compMdl.error("oimte:invalidDomainRelationshipTarget",
                           _("The domain network %(name)s relationship target %(qname)s MUST NOT be a domainClass object."),
@@ -1127,16 +1122,15 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         assertObjectType(compMdl, domRtObj, XbrlDomainClass)
         name = domRtObj.name
         allowed_domain_object_qnames = (qnXbrlMemberObj, qnXbrlHeadingObj, qnXbrlConceptObj, qnXbrlEntityObj, qnXbrlUnitObj)
-        for allwdDomItemQn in (domRtObj.allowedDomainItems or ()):
-            allwdDomItemObj = compMdl.namedObjects.get(allwdDomItemQn)
-            if not _qname_in_set(allwdDomItemQn, allowed_domain_object_qnames) and not isinstance(allwdDomItemObj, XbrlDataType):
-                compMdl.error("oimte:invalidPropertyValue",
-                  _("DomainClass %(name)s allowedDomainItem must be a member, xbrl object, or a dataType object %(allowedDomainItem)s."),
-                  xbrlObject=domRtObj, name=name, allowedDomainItem=allwdDomItemQn)
+        allwdDomItemQn = domRtObj.allowedDomainItem
+        allwdDomItemObj = compMdl.namedObjects.get(allwdDomItemQn)
+        if not _qname_in_set(allwdDomItemQn, allowed_domain_object_qnames) and not isinstance(allwdDomItemObj, XbrlDataType):
+            compMdl.error("oimte:invalidPropertyValue",
+              _("DomainClass %(name)s allowedDomainItem must be a member, xbrl object, or a dataType object %(allowedDomainItem)s."),
+              xbrlObject=domRtObj, name=name, allowedDomainItem=allwdDomItemQn)
         validateProperties(compMdl, oimFile, module, domRtObj)
-        
-        # Validate dependent properties on domain classes with time-series properties
-        isDateTimeType = qnXsDateTime in (domRtObj.allowedDomainItems or ())
+
+        isDateTimeType = domRtObj.allowedDomainItem == qnXsDateTime
         if isDateTimeType:
             # Get time-series properties from domain class
             domClassTsProps = {timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType, completeTimeSeriesPropType} & set(p.property for p in getattr(domRtObj, 'properties') or EMPTY_FROZENSET)

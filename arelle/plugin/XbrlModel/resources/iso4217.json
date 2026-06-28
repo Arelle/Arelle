@@ -13,7 +13,7 @@
     },
     "xbrlModel": {
         "frameworkName": "iso4217",
-        "name": "iso4217:iso4217Module",
+        "name": "iso4217:currencyUnits",
         "version": "2025",
         "units": [
             {

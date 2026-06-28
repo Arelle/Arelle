@@ -450,10 +450,8 @@
                         "properties": {
                             "name": { "$ref": "#/definitions/QName" },
                             "baseDomainClass": { "$ref": "#/definitions/domainClassQName" },
-                            "allowedDomainItems": {
-                              "type": "array",
-                              "items": { "$ref": "#/definitions/QName" },
-                              "uniqueItems": true
+                            "allowedDomainItem": {
+                              "$ref": "#/definitions/QName"
                             },
                             "properties": {
                                 "type": "array",
@@ -462,7 +460,7 @@
                                 "uniqueItems": true
                               }
                         },
-                        "required": ["name"],
+                        "required": ["name", "allowedDomainItem"],
                         "additionalProperties": false
                     },
                     "uniqueItems": true

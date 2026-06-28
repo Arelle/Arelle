@@ -11,7 +11,7 @@
         "documentNamespacePrefix":"xbrltt"
   },
   "xbrlModel": {
-      "name": "xbrltt:transformsModule",
+      "name": "xbrltt:transforms",
       "frameworkName": "transforms",
       "version": "2026",
       "dataTypes": [

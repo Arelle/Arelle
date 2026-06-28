@@ -40,7 +40,7 @@ class XbrlDomainClass(XbrlReferencableModelObject):
     module: XbrlModuleAlias
     name: QNameKeyType # (required) The QName that uniquely identifies the domain root object.
     baseDomainClass: Optional[QName] # (optional) The QName of another domain class object that is the base domain class for this domain class.
-    allowedDomainItems: Optional[NonemptySet[QName]] # Optional[set]of Optional[QNames]that Optional[indicate]the Optional[cube]type Optional[the]dimension Optional[can]only Optional[apply]to. Optional[Must]be Optional[a]QName Optional[value]defined Optional[by]built Optional[in]cube Optional[types]or Optional[taxonomy]defined Optional[cube]types. Optional[For]example xbrl:eventCube, xbrl:referenceCube etc. Optional[If]not Optional[defined]the Optional[dimension]can Optional[be]applied Optional[to]any Optional[cube]type. MUST NOT be empty if provided.
+    allowedDomainItem: QName # (required) An object type QName or datatype object that can be used by dimensions associated with this domain class object. 
     properties: Optional[NonemptySet[XbrlProperty]] # (optional) an ordered set of property objects used to specify additional properties associated with the domain root object using the property object.
 
 class XbrlMember(XbrlReferencableModelObject):

@@ -13,7 +13,7 @@
         "documentNamespacePrefix":"xbrl"
     },
     "xbrlModel": {
-        "name": "xbrl:coreModule",
+        "name": "xbrl:core",
         "frameworkName": "Core",
         "version": "2026",
         "importedTaxonomies": [
@@ -21,10 +21,10 @@
                     "xbrlModelName": "xs:XMLSchemaTypes"
                 },
                 {
-                    "xbrlModelName": "xbrlr:dataTypesModule"
+                    "xbrlModelName": "xbrlr:dataTypes"
                 },
                 {
-                    "xbrlModelName": "ref:referencePropertiesModule"
+                    "xbrlModelName": "ref:referenceProperties"
                 }
             ],
         "cubeTypes" :[
@@ -112,35 +112,35 @@
         "domainClasses": [
             {
                 "name": "xbrl:conceptDomain",
-                "allowedDomainItems" : ["xbrl:conceptObject", "xbrl:headingObject"]
+                "allowedDomainItem" : "xbrl:conceptObject"
             },
             {
                 "name": "xbrl:periodDomain",
-                "allowedDomainItems" : ["xs:dateTime", "xbrlr:startEndDates", "xbrlr:periodString"]
+                "allowedDomainItem" : "xs:dateTime"
             },
             {
                 "name": "xbrl:unitDomain",
-                "allowedDomainItems" : ["xbrl:unitObject", "xbrlr:unitString"]
+                "allowedDomainItem" : "xbrl:unitObject"
             },
             {
                 "name": "xbrl:entityDomain",
-                "allowedDomainItems" : ["xbrl:entityObject"]
+                "allowedDomainItem" : "xbrl:entityObject"
             },
             {
                 "name": "xbrl:languageDomain",
-                "allowedDomainItems" : ["xbrl:languageType"]
+                "allowedDomainItem" : "xbrl:languageType"
             },
             {
                 "name": "xbrl:traitDomain",
-                "allowedDomainItems": ["xbrl:memberObject"]
+                "allowedDomainItem": "xbrl:memberObject"
             },
             {
                 "name": "xbrl:nilReasonDomainClass",
-                "allowedDomainItems": ["xbrl:memberObject"]
+                "allowedDomainItem": "xbrl:memberObject"
             },
             {
                 "name": "xbrl:checksumAlgorithmDomainClass",
-                "allowedDomainItems": ["xbrl:memberObject"]
+                "allowedDomainItem": "xbrl:memberObject"
             }
 
         ],

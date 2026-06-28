@@ -14,7 +14,8 @@
     "version": "1.0",
     "domainClasses": [
       {
-        "name": "calc11e:CALCErrorClassDomain"
+        "name": "calc11e:CALCErrorClassDomain",
+        "allowedDomainItem": "xbrl:memberObject"
       }
     ],
     "domainNetworks": [

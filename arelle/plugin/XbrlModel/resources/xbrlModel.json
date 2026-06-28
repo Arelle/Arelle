@@ -17,7 +17,7 @@
         "description": "The base module, that collates the core XBRL data models. This module imports the XML Schema data types and the other core XBRL taxonomy modules that in aggregate define the objects comprising the XBRL data model."
     },
     "xbrlModel": {
-        "name": "xbrlm:baseModule",
+        "name": "xbrlm:base",
         "frameworkName": "Core",
         "version": "2026",
         "importedTaxonomies": [
@@ -25,19 +25,19 @@
                     "xbrlModelName": "xs:XMLSchemaTypes"
                 },
                 {
-                    "xbrlModelName": "xbrl:coreModule"
+                    "xbrlModelName": "xbrl:core"
                 },
                 {
-                    "xbrlModelName": "utr:unitsModule"
+                    "xbrlModelName": "utr:units"
                 },
                 {
-                    "xbrlModelName": "xbrlr:dataTypesModule"
+                    "xbrlModelName": "xbrlr:dataTypes"
                 },
                 {
-                    "xbrlModelName": "ref:referencePropertiesModule"
+                    "xbrlModelName": "ref:referenceProperties"
                 },
                 {
-                    "xbrlModelName": "iso4217:iso4217Module"
+                    "xbrlModelName": "iso4217:currencyUnits"
                 },
                 {
                     "xbrlModelName": "xbrla:accountingModule"
