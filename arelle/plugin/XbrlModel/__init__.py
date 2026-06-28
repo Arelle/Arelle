@@ -890,19 +890,6 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         newModule = createModelObjects("xbrlModel", moduleFileObj["xbrlModel"], xbrlCompMdl, ["", "xbrlModel"])
         modelXbrl.profileActivity(f"Create taxonomy objects from {moduleFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
         newModule._prefixNamespaces = prefixNamespaces
-        # Step 8: well-known prefixes from previously-loaded baked-in modules
-        # (e.g. iso4217, utr) are made available as fallbacks for QName lookup
-        # in this module. The user's explicit declarations always win, so we
-        # only add prefixes that the user did not declare. This matches the
-        # OIM spec expectation that standard unit/datatype registries can be
-        # referenced without being repeated in every taxonomy module's
-        # documentInfo.namespaces.
-        for _otherModule in xbrlCompMdl.xbrlModels.values():
-            if _otherModule is newModule:
-                continue
-            for _pfx, _ns in (getattr(_otherModule, "_prefixNamespaces", None) or {}).items():
-                if _pfx and _ns and _pfx not in prefixNamespaces:
-                    prefixNamespaces[_pfx] = _ns
         newModule._lastMdlObjIndex = len(xbrlCompMdl.xbrlObjects) - 1
 
         # validate import selections now (errors reported in loading context),

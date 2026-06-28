@@ -742,9 +742,10 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 if domDtObj is not None:
                     isTyped = True
                     if domClass.allowedDomainItem and cubeDimDT != domClass.allowedDomainItem:
-                        compMdl.error("oimte:invalidDataTypeForDomainClass",
-                                      _("Cube %(name)s dimension %(dimensionName)s domainDataType %(dataType)s MUST match the allowedDomainItem defined on the domain class: %(allowedDomainItem)s."),
-                                      xbrlObject=cubeObj, name=name, dimensionName=dimName, dataType=cubeDimDT, allowedDomainItem=domClass.allowedDomainItem)
+                        if not domDtObj.instanceOfType(domClass.allowedDomainItem, compMdl):
+                            compMdl.error("oimte:invalidDataTypeForDomainClass",
+                                          _("Cube %(name)s dimension %(dimensionName)s domainDataType %(dataType)s MUST be the same as or derived from the allowedDomainItem defined on the domain class: %(allowedDomainItem)s."),
+                                          xbrlObject=cubeObj, name=name, dimensionName=dimName, dataType=cubeDimDT, allowedDomainItem=domClass.allowedDomainItem)
                     if dimName == periodCoreDim:
                         compMdl.error("oimte:domainNetworkUsedOnPeriodDimension",
                                       _("Cube %(name)s dimension %(dimensionName)s domainDataType %(dataType)s MUST not be used on a period dimension."),

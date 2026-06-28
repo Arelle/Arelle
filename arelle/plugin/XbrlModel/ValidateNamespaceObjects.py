@@ -1,12 +1,11 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-from typing import GenericAlias
 from arelle.ModelValue import QName
-from ordered_set import OrderedSet
 from .ErrorCatalog import emit_error
 from .XbrlConst import reservedPrefixNamespaces, qnXbrlPropertyObj
 from .XbrlModule import XbrlModule, XbrlModelType, xbrlObjectQNames
+from .XbrlTypes import collectionInfo
 
 
 def validateNamespaceFamily(compMdl, module, oimFile, *, assertObjectType, validateQNameReference, validateProperties):
@@ -22,11 +21,15 @@ def validateNamespaceFamily(compMdl, module, oimFile, *, assertObjectType, valid
         modelTpObj = validateQNameReference(compMdl, module, "modelType", XbrlModelType)
         if modelTpObj:
             if modelTpObj.allowedObjects:
-                disallowedObjs = set(
-                    xbrlObjectQNames.get(propType.__args__[0])
-                    for propName, propType in XbrlModule.propertyNameTypes(skipParentProperty=True)
-                    if isinstance(propType, GenericAlias) and issubclass(propType.__origin__, OrderedSet) and len(getattr(module, propName, ())) > 0
-                ) - modelTpObj.allowedObjects - {qnXbrlPropertyObj}
+                disallowedObjs = set()
+                for propName, propType in XbrlModule.propertyNameTypes(skipParentProperty=True):
+                    cInfo = collectionInfo(propType)
+                    if cInfo is not None and len(getattr(module, propName, None) or ()) > 0:
+                        eltType = cInfo[1]
+                        objTypeQn = xbrlObjectQNames.get(eltType)
+                        if objTypeQn is not None:
+                            disallowedObjs.add(objTypeQn)
+                disallowedObjs -= modelTpObj.allowedObjects | {qnXbrlPropertyObj}
                 if disallowedObjs:
                     emit_error(compMdl, "oimte:disallowedObjectModelType",
                                _("The modelType %(moduleType)s does not allow objects %(objNames)s."),
@@ -42,8 +45,8 @@ def validateNamespaceFamily(compMdl, module, oimFile, *, assertObjectType, valid
 
     # object-namespace checks across all module collections
     for txMdlPropName, propType in XbrlModule.propertyNameTypes(skipParentProperty=True):
-        if isinstance(propType, GenericAlias) and issubclass(propType.__origin__, OrderedSet):
-            for txMdlObj in getattr(module, txMdlPropName, ()):
+        if collectionInfo(propType) is not None:
+            for txMdlObj in getattr(module, txMdlPropName, None) or ():
                 name = getattr(txMdlObj, "name", None)
                 if isinstance(name, QName):
                     ns = name.namespaceURI
