@@ -12,8 +12,8 @@ A ``factValue`` object may provide its value in two ways:
    ``xbrl:htmlDataAttribute``, PDF ``page`` + ``mcid``, tabular ``tabularPath``)
    to point at content of an external source document (HTML / PDF / tabular).
 
-The ``factInterfaceName`` property on either the factValue itself or on the
-matching ``sourceMappings`` entry in ``documentInfo`` identifies a
+The ``factLocatorType`` is resolved via the spec chain: factValue.source →
+factSource → factMap → factMap.factLocatorType, identifying an
 ``XbrlFactLocatorType`` object that describes:
 
   * which locator properties are required (``requiredProperties``)
@@ -157,11 +157,11 @@ def getValueSourceResolver(mediaType: Optional[str]) -> Optional[ResolverFn]:
 # --------------------------------------------------------------------
 
 class LocatorPropertyRegistry:
-    """Caches `XbrlFactLocatorType` definitions per compiled model.
+    """Caches ``XbrlFactLocatorType`` definitions per compiled model.
 
-    Used to answer "for this `factInterfaceName`, which properties must / may
-    appear on a `valueSource.properties` list?" in O(1) per fact-value,
-    without re-walking the taxonomy.
+    Used to answer "for this ``factLocatorType`` QName, which properties
+    must / may appear on a ``valueSource.properties`` list?" in O(1) per
+    fact-value, without re-walking the taxonomy.
     """
 
     __slots__ = ("_byName",)
@@ -173,14 +173,13 @@ class LocatorPropertyRegistry:
             for locType in getattr(module, "factLocatorTypes", None) or ():
                 if isinstance(locType, XbrlFactLocatorType):
                     self._byName[locType.name] = locType
-        # Also pick up taxonomy-imported locator types living on the compMdl
         for obj in compMdl.filterNamedObjects(XbrlFactLocatorType):
             self._byName.setdefault(obj.name, obj)
 
-    def get(self, factInterfaceName: Optional[QName]) -> Optional["XbrlFactLocatorType"]:
-        if factInterfaceName is None:
+    def get(self, locatorTypeQn: Optional[QName]) -> Optional["XbrlFactLocatorType"]:
+        if locatorTypeQn is None:
             return None
-        return self._byName.get(factInterfaceName)
+        return self._byName.get(locatorTypeQn)
 
 
 def _registryFor(compMdl: "XbrlCompiledModel") -> LocatorPropertyRegistry:
@@ -192,36 +191,63 @@ def _registryFor(compMdl: "XbrlCompiledModel") -> LocatorPropertyRegistry:
 
 
 # --------------------------------------------------------------------
-# factInterfaceName resolution (factValue → sourceMappings fallback)
+# factLocatorType resolution
+# --------------------------------------------------------------------
+#
+# Per spec (oim-taxonomy.md §2598), when a factValue uses valueSources,
+# the factLocatorType is found through this chain:
+#
+#   factValue.source (or implied from sourceMappings)
+#     → factSource object (matched by sourceMappings[*].sourceName)
+#       → factSource.factMapName → factMap object
+#         → factMap.factLocatorType → XbrlFactLocatorType object
+#
+# The XbrlFactLocatorType defines requiredProperties, allowedProperties,
+# and sourceMediaType for the value sources.
 # --------------------------------------------------------------------
 
-def _effectiveFactInterfaceName(
+def _resolveFactLocatorType(
     factValue: "XbrlFactValue",
-    factValueSource: Optional["XbrlFactValueSource"],
     compMdl: "XbrlCompiledModel",
 ) -> Tuple[Optional[QName], Optional[QName]]:
-    """Return ``(factInterfaceName, sourceQName)`` per spec resolution order:
+    """Resolve the factLocatorType QName for a factValue that uses valueSources.
 
-      1. ``factValue.factInterfaceName`` (direct)
-      2. ``documentInfo.sourceMappings[*].factInterfaceName`` matched by
-         ``factValue.source`` (or by the factValueSource's source).
+    Follows the spec chain: factValue.source → factSource → factMap → factLocatorType.
+
+    Returns ``(factLocatorTypeQn, sourceQn)`` where factLocatorTypeQn is the
+    QName of the XbrlFactLocatorType, or None if resolution fails.
     """
-    interfaceName = getattr(factValue, "factInterfaceName", None)
-    sourceQn = getattr(factValue, "source", None)
-    if factValueSource is not None and sourceQn is None:
-        sourceQn = getattr(factValueSource, "source", None)
-    if interfaceName is None:
-        # Fall back to sourceMappings on documentInfo
+    from .XbrlFact import XbrlFactSource, XbrlFactMap
+
+    sourceQn = factValue.source
+
+    # If no explicit source, find default from sourceMappings
+    if sourceQn is None:
         for module in compMdl.xbrlModels.values():
             for mapping in getattr(module, "_sourceMappings", None) or ():
                 mappingSource = getattr(mapping, "sourceName", None)
-                if sourceQn is None or mappingSource == sourceQn:
-                    interfaceName = getattr(mapping, "factInterfaceName", None)
-                    if interfaceName is not None:
-                        break
-            if interfaceName is not None:
+                if mappingSource is not None:
+                    sourceQn = mappingSource
+                    break
+            if sourceQn is not None:
                 break
-    return interfaceName, sourceQn
+
+    if sourceQn is None:
+        return None, None
+
+    # Find the factSource object
+    factSourceObj = compMdl.namedObjects.get(sourceQn)
+    if not isinstance(factSourceObj, XbrlFactSource):
+        return None, sourceQn
+
+    # Follow factSource.factMapName → factMap
+    factMapQn = factSourceObj.factMapName
+    factMapObj = compMdl.namedObjects.get(factMapQn)
+    if not isinstance(factMapObj, XbrlFactMap):
+        return None, sourceQn
+
+    # factMap.factLocatorType is the answer
+    return factMapObj.factLocatorType, sourceQn
 
 
 # --------------------------------------------------------------------
@@ -247,8 +273,9 @@ def validateAndResolveValueSources(
     Errors raised here use these OIM-taxonomy codes:
 
       * ``oimte:factValueLocatorRequiredForValueSources`` - factValue uses
-        ``valueSources`` but no ``factInterfaceName`` is reachable.
-      * ``oimte:invalidQNameReference`` - ``factInterfaceName`` does not
+        ``valueSources`` but no ``factLocatorType`` could be resolved via
+        the source → factSource → factMap → factLocatorType chain.
+      * ``oimte:invalidQNameReference`` - ``factLocatorType`` QName does not
         resolve to a ``XbrlFactLocatorType`` object.
       * ``oimte:invalidObjectType`` - the referenced object is not a
         ``XbrlFactLocatorType``.
@@ -323,12 +350,12 @@ def validateAndResolveValueSources(
             )
             # Don't early-return; structural locator checks still apply.
 
-    interfaceName, _sourceQn = _effectiveFactInterfaceName(factValue, None, compMdl)
-    if interfaceName is None:
+    locatorTypeQn, _sourceQn = _resolveFactLocatorType(factValue, compMdl)
+    if locatorTypeQn is None:
         compMdl.error(
             "oimte:factValueLocatorRequiredForValueSources",
-            _("Fact %(fact)s factValue %(fv)s uses valueSources but no factInterfaceName is "
-              "provided on the factValue or on a matching sourceMappings entry."),
+            _("Fact %(fact)s factValue %(fv)s uses valueSources but no factLocatorType "
+              "could be resolved via source → factSource → factMap → factLocatorType."),
             xbrlObject=fact,
             fact=getattr(fact, "name", None),
             fv=getattr(factValue, "name", None),
@@ -336,29 +363,27 @@ def validateAndResolveValueSources(
         return True, None
 
     registry = _registryFor(compMdl)
-    locatorType = registry.get(interfaceName)
+    locatorType = registry.get(locatorTypeQn)
     if locatorType is None:
-        # If it does resolve to *something* but not the right type, report
-        # invalidObjectType; otherwise invalidQNameReference.
-        if interfaceName in getattr(compMdl, "namedObjects", {}):
+        if locatorTypeQn in getattr(compMdl, "namedObjects", {}):
             compMdl.error(
                 "oimte:invalidObjectType",
-                _("Fact %(fact)s factValue %(fv)s factInterfaceName %(name)s does not "
+                _("Fact %(fact)s factValue %(fv)s factLocatorType %(name)s does not "
                   "reference a factLocatorType object."),
                 xbrlObject=fact,
                 fact=getattr(fact, "name", None),
                 fv=getattr(factValue, "name", None),
-                name=interfaceName,
+                name=locatorTypeQn,
             )
         else:
             compMdl.error(
                 "oimte:invalidQNameReference",
-                _("Fact %(fact)s factValue %(fv)s factInterfaceName %(name)s does not "
+                _("Fact %(fact)s factValue %(fv)s factLocatorType %(name)s does not "
                   "resolve to any factLocatorType object."),
                 xbrlObject=fact,
                 fact=getattr(fact, "name", None),
                 fv=getattr(factValue, "name", None),
-                name=interfaceName,
+                name=locatorTypeQn,
             )
         return True, None
 

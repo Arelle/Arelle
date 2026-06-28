@@ -163,6 +163,7 @@ class XbrlXMLTemplateMap(XbrlReportObject):
 class XbrlFactMap(XbrlReportObject):
     module: XbrlModuleAlias  # table templates in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the fact map object.
+    factLocatorType: Optional[QName] # (required if valueSources used) QName referencing an XbrlFactLocatorType that defines the locator interface for fact value sources.
     templateName: Optional[QName] # (optional) A QName that references a tableTemplate, jsonTemplateMap or xmlTemplateMap object defined in the taxonomy model. If provided, the fact map object only applies to the facts with this template. If not provided, the fact map object applies to all facts in the report.
 
 class XbrlFactLocatorType(XbrlReportObject):

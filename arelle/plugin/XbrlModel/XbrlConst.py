@@ -32,7 +32,7 @@ reservedPrefixNamespaces = {
     "lei": "http://standards.iso.org/iso/17442",
     "utr": "https://xbrl.org/2025/utr",
     "ref": "https://xbrl.org/2025/ref",
-    "xbrltt": "https://xbrl.org/2025/transform-types"
+    "xbrltt": "https://xbrl.org/2026/transform-types"
     }
 
 builtInPrefixTaxonomies = { # these are in resources subdirectory
@@ -50,7 +50,7 @@ builtInPrefixTaxonomies = { # these are in resources subdirectory
     "lei": "http://standards.iso.org/iso/17442",
     "utr": "utr.json",
     "ref": "ref.json",
-    "xbrltt": "https://xbrl.org/2025/transform-types"
+    "xbrltt": "transform-types.json"
 }
 
 qnStdLabel = qname(xbrl, "xbrl:label")

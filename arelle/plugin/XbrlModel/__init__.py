@@ -890,6 +890,8 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         newModule = createModelObjects("xbrlModel", moduleFileObj["xbrlModel"], xbrlCompMdl, ["", "xbrlModel"])
         modelXbrl.profileActivity(f"Create taxonomy objects from {moduleFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
         newModule._prefixNamespaces = prefixNamespaces
+        if not newModule.modelForm and documentType == "https://xbrl.org/2026/compiled":
+            newModule.modelForm = "compiled"
         newModule._lastMdlObjIndex = len(xbrlCompMdl.xbrlObjects) - 1
 
         # validate import selections now (errors reported in loading context),
@@ -918,7 +920,6 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             _ns = types.SimpleNamespace(
                 sourceName=qname(_m.get("sourceName"), prefixNamespaces) if _m.get("sourceName") else None,
                 url=_absUrl,
-                factInterfaceName=qname(_m.get("factInterfaceName"), prefixNamespaces) if _m.get("factInterfaceName") else None,
             )
             parsedSourceMappings.append(_ns)
         newModule._sourceMappings = parsedSourceMappings
