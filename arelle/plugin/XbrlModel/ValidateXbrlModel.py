@@ -1076,12 +1076,15 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                         compMdl.error("oimte:invalidDimensionMember",
                                   _("The domain network %(name)s relationship[%(nbr)s] %(property)s, %(propQn)s MUST be not be a member object in the taxonomy model."),
                                   xbrlObject=relObj, name=domNwkObj.name, nbr=i, property=prop, propQn=getattr(relObj, prop))
-                    if domRtObj and domRtObj.allowedDomainItem and (
-                        xbrlObjectQNames.get(type(obj)) != domRtObj.allowedDomainItem
-                        and (prop != "source" or obj != domRtObj)):
-                        compMdl.error("oimte:invalidDomainObject",
-                                  _("The domain network %(name)s relationship[%(nbr)s] %(property)s, %(propQn)s MUST be an object matching the allowedDomainItem %(allowedDomainItem)s."),
-                                  xbrlObject=relObj, name=domNwkObj.name, nbr=i, property=prop, propQn=getattr(relObj, prop), allowedDomainItem=domRtObj.allowedDomainItem)
+                    if domRtObj and domRtObj.allowedDomainItem and (prop != "source" or obj != domRtObj):
+                        objTypeQn = xbrlObjectQNames.get(type(obj))
+                        allowedTypes = {domRtObj.allowedDomainItem}
+                        if domRtObj.allowedDomainItem == qnXbrlConceptObj:
+                            allowedTypes.add(qnXbrlHeadingObj)
+                        if objTypeQn not in allowedTypes and not isinstance(obj, XbrlDataType):
+                            compMdl.error("oimte:invalidDomainObject",
+                                      _("The domain network %(name)s relationship[%(nbr)s] %(property)s, %(propQn)s MUST be an object matching the allowedDomainItem %(allowedDomainItem)s."),
+                                      xbrlObject=relObj, name=domNwkObj.name, nbr=i, property=prop, propQn=getattr(relObj, prop), allowedDomainItem=domRtObj.allowedDomainItem)
             if isinstance(compMdl.namedObjects.get(tgt), XbrlDomainClass):
                 compMdl.error("oimte:invalidDomainRelationshipTarget",
                           _("The domain network %(name)s relationship target %(qname)s MUST NOT be a domainClass object."),

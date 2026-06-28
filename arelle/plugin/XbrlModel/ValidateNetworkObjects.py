@@ -8,6 +8,7 @@ from .XbrlConcept import XbrlCollectionType, XbrlDataType, XbrlConcept
 from .XbrlConst import objectsWithProperties, xbrl
 from .XbrlDimension import XbrlDomainNetwork
 from .XbrlLabel import XbrlLabelType
+from .XbrlModule import xbrlObjectQNames
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
 from .XbrlProperty import XbrlPropertyType
 
