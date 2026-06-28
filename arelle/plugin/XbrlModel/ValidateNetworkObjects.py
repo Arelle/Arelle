@@ -94,7 +94,28 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
                 targets.add(relObj.target)
                 if extendTargetObj is not None:
                     extendTargetObj.relationships.add(relObj)
+                srcObj = compMdl.namedObjects[relObj.source]
+                tgtObj = compMdl.namedObjects[relObj.target]
+                srcObjTypeQn = xbrlObjectQNames.get(type(srcObj))
+                tgtObjTypeQn = xbrlObjectQNames.get(type(tgtObj))
+                if getattr(relTypeObj, "sourceObjects", None) and srcObjTypeQn not in relTypeObj.sourceObjects:
+                    emit_error(compMdl, "oimte:invalidRelationshipSourceObject",
+                               _("The network %(name)s relationship[%(nbr)s] source %(source)s is %(sourceType)s which is not allowed by the relationship type sourceObjects."),
+                               xbrlObject=relObj, name=ntwkObj.name, nbr=i, source=relObj.source, sourceType=srcObjTypeQn)
+                if getattr(relTypeObj, "targetObjects", None) and tgtObjTypeQn not in relTypeObj.targetObjects:
+                    emit_error(compMdl, "oimte:invalidRelationshipTargetObject",
+                               _("The network %(name)s relationship[%(nbr)s] target %(target)s is %(targetType)s which is not allowed by the relationship type targetObjects."),
+                               xbrlObject=relObj, name=ntwkObj.name, nbr=i, target=relObj.target, targetType=tgtObjTypeQn)
             validateProperties(compMdl, oimFile, module, relObj)
+            reqLinkProps = getattr(relTypeObj, "requiredLinkProperties", None)
+            if reqLinkProps:
+                relPropQNs = set(p.property for p in getattr(relObj, "properties", None) or ())
+                missingProps = reqLinkProps - relPropQNs
+                if missingProps:
+                    emit_error(compMdl, "oimte:missingRequiredRelationshipProperty",
+                               _("The network %(name)s relationship[%(nbr)s] is missing required properties %(properties)s defined by relationship type %(relType)s."),
+                               xbrlObject=relObj, name=ntwkObj.name, nbr=i,
+                               properties=", ".join(str(p) for p in missingProps), relType=ntwkObj.relationshipTypeName)
             relObjPrefLbl = relObj.propertyObjectValue(qnPreferredLabel)
             if relObjPrefLbl is not None:
                 validateQNameReference(compMdl, relObj, qnPreferredLabel, XbrlLabelType, qnRef=relObjPrefLbl)
