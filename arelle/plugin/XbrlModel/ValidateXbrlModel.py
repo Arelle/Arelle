@@ -1124,16 +1124,37 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
 
 
     # DomainClass Objects
+    valid_allowedDomainItem_qnames = (qnXbrlMemberObj, qnXbrlConceptObj, qnXbrlEntityObj, qnXbrlUnitObj)
     for domRtObj in module.domainClasses or ():
         assertObjectType(compMdl, domRtObj, XbrlDomainClass)
         name = domRtObj.name
-        allowed_domain_object_qnames = (qnXbrlMemberObj, qnXbrlHeadingObj, qnXbrlConceptObj, qnXbrlEntityObj, qnXbrlUnitObj)
         allwdDomItemQn = domRtObj.allowedDomainItem
         allwdDomItemObj = compMdl.namedObjects.get(allwdDomItemQn)
-        if not _qname_in_set(allwdDomItemQn, allowed_domain_object_qnames) and not isinstance(allwdDomItemObj, XbrlDataType):
-            compMdl.error("oimte:invalidPropertyValue",
-              _("DomainClass %(name)s allowedDomainItem must be a member, xbrl object, or a dataType object %(allowedDomainItem)s."),
+        isObjectTypeItem = _qname_in_set(allwdDomItemQn, valid_allowedDomainItem_qnames)
+        isDataTypeItem = isinstance(allwdDomItemObj, XbrlDataType)
+        if not isObjectTypeItem and not isDataTypeItem:
+            compMdl.error("oimte:invalidObjectType",
+              _("DomainClass %(name)s allowedDomainItem %(allowedDomainItem)s MUST be xbrl:entityObject, xbrl:unitObject, xbrl:memberObject, xbrl:conceptObject, or a dataType object."),
               xbrlObject=domRtObj, name=name, allowedDomainItem=allwdDomItemQn)
+        if domRtObj.baseDomainClass:
+            baseDomClassObj = compMdl.namedObjects.get(domRtObj.baseDomainClass)
+            if isinstance(baseDomClassObj, XbrlDomainClass):
+                baseAllwdItem = baseDomClassObj.allowedDomainItem
+                if isObjectTypeItem:
+                    if allwdDomItemQn != baseAllwdItem:
+                        compMdl.error("oimte:inconsistentBaseDomainClass",
+                          _("DomainClass %(name)s allowedDomainItem %(allowedDomainItem)s MUST match base domain class %(base)s allowedDomainItem %(baseItem)s."),
+                          xbrlObject=domRtObj, name=name, allowedDomainItem=allwdDomItemQn, base=domRtObj.baseDomainClass, baseItem=baseAllwdItem)
+                elif isDataTypeItem:
+                    baseIsDataType = isinstance(compMdl.namedObjects.get(baseAllwdItem), XbrlDataType)
+                    if not baseIsDataType or not allwdDomItemObj.instanceOfType(baseAllwdItem, compMdl):
+                        compMdl.error("oimte:inconsistentBaseDomainClass",
+                          _("DomainClass %(name)s allowedDomainItem %(allowedDomainItem)s MUST be the same as or derived from base domain class %(base)s allowedDomainItem %(baseItem)s."),
+                          xbrlObject=domRtObj, name=name, allowedDomainItem=allwdDomItemQn, base=domRtObj.baseDomainClass, baseItem=baseAllwdItem)
+                else:
+                    compMdl.error("oimte:inconsistentBaseDomainClass",
+                      _("DomainClass %(name)s allowedDomainItem %(allowedDomainItem)s is incompatible with base domain class %(base)s allowedDomainItem %(baseItem)s."),
+                      xbrlObject=domRtObj, name=name, allowedDomainItem=allwdDomItemQn, base=domRtObj.baseDomainClass, baseItem=baseAllwdItem)
         validateProperties(compMdl, oimFile, module, domRtObj)
 
         isDateTimeType = domRtObj.allowedDomainItem == qnXsDateTime
