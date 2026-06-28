@@ -467,7 +467,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                             relMatched = True
                             ntwkMatchedConstraints.add(cnst)
                             break
-                    if not relMatched:
+                    if not relMatched and getattr(cubeNtwkConstrObj, "closed", False):
                         compMdl.error("oimte:invalidCubeNetworkRelationship",
                                       _("Cube %(name)s network %(network)s relationship %(source)s -> %(target)s violates cubeNetworkConstraints."),
                                       xbrlObject=(cubeObj, ntwk, relObj), name=name, network=ntwk.name, source=relObj.source, target=relObj.target)
@@ -1179,7 +1179,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                errorArgs={"name": grpQn}, qnRef=grpQn)
         for relName in grpCntObj.relatedNames:
             validateQNameReference(compMdl, grpCntObj, "relatedNames",
-                                   (XbrlNetwork, XbrlCube, XbrlTableTemplate, XbrlDomainNetwork),
+                                   (XbrlNetwork, XbrlCube, XbrlTableTemplate, XbrlDomainNetwork, XbrlLayout),
                                    invalidTypeMsgCode="oimte:invalidGroupContentRelatedName",
                                    undefinedMessage=_("The groupContent object %(name)s relatedName %(relName)s MUST only include QNames associated with network objects, cube objects, table template objects or layout objects."),
                                    invalidTypeMessage=_("The groupContent object %(name)s relatedName %(relName)s MUST only include QNames associated with network objects, cube objects, table template objects or layout objects."),

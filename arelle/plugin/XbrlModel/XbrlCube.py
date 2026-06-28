@@ -258,7 +258,7 @@ intervalOfMeasurementPropType = qname(xbrla, "xbrla:intervalOfMeasurement")
 intervalConventionPropType = qname(xbrla, "xbrla:intervalConvention")
 excludedIntervalsPropType = qname(xbrla, "xbrla:excludedIntervals")
 completeTimeSeriesPropType = qname(xbrla, "xbrla:completeTimeSeries")
-aggregationPropType = qname(xbrla, "xbrla:aggregation")
+aggregationPropType = qname(xbrl, "xbrl:aggregation")
 
 periodCoreDim = qname(xbrl, "xbrl:period")
 conceptCoreDim = qname(xbrl, "xbrl:concept")
