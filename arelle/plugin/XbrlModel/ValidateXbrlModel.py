@@ -1082,6 +1082,8 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                         allowedTypes = {domRtObj.allowedDomainItem}
                         if domRtObj.allowedDomainItem == qnXbrlConceptObj:
                             allowedTypes.add(qnXbrlHeadingObj)
+                        elif domRtObj.allowedDomainItem == qnXbrlMemberObj:
+                            allowedTypes.update((qnXbrlConceptObj, qnXbrlHeadingObj))
                         if objTypeQn not in allowedTypes and not isinstance(obj, XbrlDataType):
                             compMdl.error("oimte:invalidDomainNetworkObject",
                                       _("The domain network %(name)s relationship[%(nbr)s] %(property)s, %(propQn)s MUST be an object matching the allowedDomainItem %(allowedDomainItem)s."),
