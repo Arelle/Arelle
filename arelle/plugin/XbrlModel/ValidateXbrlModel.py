@@ -1005,13 +1005,14 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         extendTargetObj = None
         extendedDomClassQn = None
         if domNwkObj.extends:
-            extendTargetObj = validateQNameReference(compMdl, domNwkObj, "extends", XbrlDomainNetwork)
+            extendTargetObj = validateQNameReference(compMdl, domNwkObj, "extends", XbrlDomainNetwork,
+                                                     invalidTypeMsgCode="oimte:invalidObjectType")
             if extendTargetObj is not None:
                 if getattr(domNwkObj, "_extendResolved", False):
                     extendTargetObj = None # don't extend, already been extended
                 elif not getattr(extendTargetObj, "isExtensible", True):
-                    compMdl.error("oimte:cannotExtendCompleteDomain",
-                            _("The domain network %(name)s cannot be extended because it is a completeDomain."),
+                    compMdl.error("oimte:illegalExtensionOfNonExtensibleObject",
+                            _("The domain network %(name)s cannot be extended because it is non-extensible."),
                             xbrlObject=domNwkObj, name=extendTargetObj.name)
                     continue
                 else:
@@ -1077,13 +1078,20 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                         compMdl.error("oimte:invalidDimensionMember",
                                   _("The domain network %(name)s relationship[%(nbr)s] %(property)s, %(propQn)s MUST be not be a member object in the taxonomy model."),
                                   xbrlObject=relObj, name=domNwkObj.name, nbr=i, property=prop, propQn=getattr(relObj, prop))
+                    if isinstance(obj, XbrlMember) and domRtQn not in (conceptDomainClass, unitDomainClass, entityDomainClass, languageDomainClass):
+                        memberDomClasses = getattr(obj, "domainClasses", None) or ()
+                        if memberDomClasses and domRtQn not in memberDomClasses:
+                            compMdl.error("oimte:invalidDomainClassReference",
+                                      _("The domain network %(name)s relationship[%(nbr)s] %(property)s member %(propQn)s has domainClasses %(domainClasses)s which does not include the domain root %(root)s."),
+                                      xbrlObject=relObj, name=domNwkObj.name, nbr=i, property=prop, propQn=getattr(relObj, prop),
+                                      domainClasses=", ".join(str(dc) for dc in memberDomClasses), root=domRtQn)
                     if domRtObj and domRtObj.allowedDomainItem and (prop != "source" or obj != domRtObj):
                         objTypeQn = xbrlObjectQNames.get(type(obj))
                         allowedTypes = {domRtObj.allowedDomainItem}
                         if domRtObj.allowedDomainItem == qnXbrlConceptObj:
                             allowedTypes.add(qnXbrlHeadingObj)
                         elif domRtObj.allowedDomainItem == qnXbrlMemberObj:
-                            allowedTypes.update((qnXbrlConceptObj, qnXbrlHeadingObj))
+                            allowedTypes.add(qnXbrlConceptObj)
                         if objTypeQn not in allowedTypes and not isinstance(obj, XbrlDataType):
                             compMdl.error("oimte:invalidDomainNetworkObject",
                                       _("The domain network %(name)s relationship[%(nbr)s] %(property)s, %(propQn)s MUST be an object matching the allowedDomainItem %(allowedDomainItem)s."),
