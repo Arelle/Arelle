@@ -44,8 +44,8 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
         assertObjectType(compMdl, ntwkObj, XbrlNetwork)
         extendTargetObj = None
         relTypeObj = None
-        if ntwkObj.extendTargetName:
-            extendTargetObj = validateQNameReference(compMdl, ntwkObj, "extendTargetName", XbrlNetwork)
+        if ntwkObj.extends:
+            extendTargetObj = validateQNameReference(compMdl, ntwkObj, "extends", XbrlNetwork)
             if extendTargetObj is not None:
                 relTypeObj = validateQNameReference(compMdl, extendTargetObj, "relationshipTypeName", XbrlRelationshipType)
                 if getattr(ntwkObj, "_extendResolved", False):
@@ -59,7 +59,7 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
                             if propObj.property in targetPropMap and targetPropMap[propObj.property] != propObj.value:
                                 emit_error(compMdl, "oimte:conflictingPropertyValues",
                                            _("The network %(name)s extending %(target)s defines property %(prop)s with value %(value)s conflicting with target value %(targetValue)s."),
-                                           xbrlObject=ntwkObj, name=ntwkObj.extendTargetName, target=extendTargetObj.name,
+                                           xbrlObject=ntwkObj, name=ntwkObj.extends, target=extendTargetObj.name,
                                            prop=propObj.property, value=propObj.value, targetValue=targetPropMap[propObj.property])
         elif ntwkObj.name:
             relTypeObj = validateQNameReference(compMdl, ntwkObj, "relationshipTypeName", XbrlRelationshipType)

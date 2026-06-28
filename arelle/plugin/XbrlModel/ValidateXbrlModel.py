@@ -396,8 +396,8 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         isNegativeCubeType = cubeType and cubeType.name.localName == "negativeCube"
         isReferenceCubeType = cubeType and cubeType.name.localName == "referenceCube"
 
-        if cubeObj.extendTargetName:
-            extendCubeObj = validateQNameReference(compMdl, cubeObj, "extendTargetName", XbrlCube,
+        if cubeObj.extends:
+            extendCubeObj = validateQNameReference(compMdl, cubeObj, "extends", XbrlCube,
                                                    invalidTypeMsgCode="oimte:invalidObjectType")
             if isinstance(extendCubeObj, XbrlCube) and not extendCubeObj.isExtensible:
                 compMdl.error("oimte:cannotExtendObject",
@@ -894,7 +894,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                 dtResObj._valueValid, dtResObj._valueValue = validateValue(compMdl, module, cubeObj, dtResObj.value, "XBRLI_DATEUNION", f"/cubeDimensions[{iCubeDim}]/periodConstraints[{iPerConst}]/{dtResProp}/value", "oimte:invalidPeriodRepresentation")
 
         # Extension cubes inherit concept dimension from target; only check non-extension cubes
-        if not hasConceptDimension and not getattr(cubeObj, 'extendTargetName', None):
+        if not hasConceptDimension and not getattr(cubeObj, 'extends', None):
                 compMdl.error("oimte:cubeMissingConceptDimension",
                           _("The cubeDimensions of cube %(name)s, type %(cubeType)s, must have a concept core dimension"),
                           xbrlObject=cubeObj, name=name, cubeType=getattr(cubeType,'name',None))
@@ -1003,8 +1003,8 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         assertObjectType(compMdl, domNwkObj, XbrlDomainNetwork)
         extendTargetObj = None
         extendedDomClassQn = None
-        if domNwkObj.extendTargetName:
-            extendTargetObj = validateQNameReference(compMdl, domNwkObj, "extendTargetName", XbrlDomainNetwork)
+        if domNwkObj.extends:
+            extendTargetObj = validateQNameReference(compMdl, domNwkObj, "extends", XbrlDomainNetwork)
             if extendTargetObj is not None:
                 if getattr(domNwkObj, "_extendResolved", False):
                     extendTargetObj = None # don't extend, already been extended
@@ -1018,7 +1018,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                     extendedDomClassQn = getattr(extendTargetObj, "root", None)
         elif not domNwkObj.name:
             compMdl.error("oimte:missingRequiredProperty",
-                      _("The domain network object MUST have either a name or an extendTargetName, not neither."),
+                      _("The domain network object MUST have either a name or an extends, not neither."),
                       xbrlObject=domNwkObj)
         domRtObj = validateQNameReference(compMdl, domNwkObj, "root", XbrlDomainClass, qnDefault=extendedDomClassQn, msgCode="oimte:invalidDomainClass")
         if not domRtObj:
@@ -1082,7 +1082,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                         if domRtObj.allowedDomainItem == qnXbrlConceptObj:
                             allowedTypes.add(qnXbrlHeadingObj)
                         if objTypeQn not in allowedTypes and not isinstance(obj, XbrlDataType):
-                            compMdl.error("oimte:invalidDomainObject",
+                            compMdl.error("oimte:invalidDomainNetworkObject",
                                       _("The domain network %(name)s relationship[%(nbr)s] %(property)s, %(propQn)s MUST be an object matching the allowedDomainItem %(allowedDomainItem)s."),
                                       xbrlObject=relObj, name=domNwkObj.name, nbr=i, property=prop, propQn=getattr(relObj, prop), allowedDomainItem=domRtObj.allowedDomainItem)
             if isinstance(compMdl.namedObjects.get(tgt), XbrlDomainClass):
@@ -1222,7 +1222,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         name = refObj.name
         lang = refObj.language
         refTp = refObj.referenceType
-        extName = refObj.extendTargetName
+        extName = refObj.extends
         for relName in refObj.relatedNames or ():
             if relName not in compMdl.namedObjects:
                 refsWithInvalidRelName.append(refObj)
@@ -1235,21 +1235,21 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         if extName:
             if name:
                 compMdl.error("oimte:referenceNameRedefined",
-                          _("Referencehas both extendTargetName and name %(name)s"),
+                          _("Referencehas both extends and name %(name)s"),
                           xbrlObject=refObj, name=extName)
             else:
                 extRefObjs = compMdl.tagObjects.get(extName) or ()
                 if not all(isinstance(extRefObj, XbrlReference) for extRefObj in extRefObjs):
                     compMdl.error("oimte:invalidQNameReference",
-                              _("Reference extendTargetName must be a reference object %(name)s"),
+                              _("Reference extends must be a reference object %(name)s"),
                               xbrlObject=refObj, name=extName)
                 elif not any(extRefObj.referenceType == refTp for extRefObj in extRefObjs):
                     compMdl.error("oimte:referenceTypeRedefined",
-                              _("Reference extendTargetName reference object %(name)s must have same referenceType %(referenceType)s"),
+                              _("Reference extends reference object %(name)s must have same referenceType %(referenceType)s"),
                               xbrlObject=refObj, name=extName, referenceType=refTp)
             if lang:
                 compMdl.error("oimte:referenceLanguageRedefined",
-                          _("Referencehas both extendTargetName and language: %(name)s"),
+                          _("Referencehas both extends and language: %(name)s"),
                           xbrlObject=refObj, name=extName)
         validateProperties(compMdl, oimFile, module, refObj)
         refsDup[name].append(refObj)

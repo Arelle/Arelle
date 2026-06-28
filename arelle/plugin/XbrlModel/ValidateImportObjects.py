@@ -52,10 +52,10 @@ def validateImportFamily(compMdl, module, oimFile, *, assertObjectType, validate
                     emit_error(compMdl, "oimte:invalidFinalTaxonomyObjectType",
                                _("The importTaxonomy %(moduleName)s cannot be extended by object %(qname)s due to it's type, %(type)s, being in finalObjectTypes."),
                                xbrlObject=_impTxObj, moduleName=_impMdlName, qname=obj.name, type=xbrlObjectQNames[type(obj)])
-                elif _finalTxObj.finalObjects and getattr(obj, "extendTargetName", None) in _finalTxObj.finalObjects:
+                elif _finalTxObj.finalObjects and getattr(obj, "extends", None) in _finalTxObj.finalObjects:
                     emit_error(compMdl, "oimte:invalidFinalTaxonomyObject",
                                _("The importTaxonomy %(moduleName)s cannot be extended by object %(qname)s due to having %(name)s in finalObjects."),
-                               xbrlObject=_impTxObj, moduleName=_impMdlName, qname=xbrlObjectQNames[type(obj)], name=obj.extendTargetName)
+                               xbrlObject=_impTxObj, moduleName=_impMdlName, qname=xbrlObjectQNames[type(obj)], name=obj.extends)
                 elif _finalTxObj.selections:
                     for i, selObj in enumerate(_impTxObj.selections):
                         if xbrlObjectQNames[type(obj)] == selObj.objectType and (

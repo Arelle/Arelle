@@ -27,10 +27,10 @@ class XbrlDomainNetwork(XbrlReferencableModelObject, XbrlRelationshipSet):
         Reference: oim-taxonomy#domain-object
     """
     module: XbrlModuleAlias
-    name: Optional[QNameKeyType] # (required if no extendTargetName) The QName that uniquely identifies the domain object. The QName is used to reference the domain from extensible enumeration concepts and dimensions that use the domain.
+    name: Optional[QNameKeyType] # (required if no extends) The QName that uniquely identifies the domain object. The QName is used to reference the domain from extensible enumeration concepts and dimensions that use the domain.
     root: Optional[QName] # (required if no extendedTargetName) The QName that uniquely identifies the root of the domain object. This must be a domain root object.
     relationships: Optional[NonemptySet[XbrlRelationship]] # (optional) This is an ordered set of relationship objects that associate taxonomy objects with the domain. A list of relationships can be organised into a domain hierarchy. For typed domains (where domainDataType is present), relationships are optional as values are constrained by the data type rather than member hierarchies.
-    extendTargetName: Optional[QName] # (required Optional[if]no name) Optional[Names]the Optional[domain]object Optional[that]the Optional[defined]domain Optional[relationships]should Optional[be]appended to. Optional[The]items Optional[in]the Optional[domain]with Optional[this]property Optional[are]appended Optional[to]the Optional[end]of Optional[the]relationships Optional[defined]in Optional[the]target Optional[domain]object. Optional[This]property Optional[cannot]be Optional[used]in Optional[conjunction]with Optional[the]name property.
+    extends: Optional[QName] # (required Optional[if]no name) Optional[Names]the Optional[domain]object Optional[that]the Optional[defined]domain Optional[relationships]should Optional[be]appended to. Optional[The]items Optional[in]the Optional[domain]with Optional[this]property Optional[are]appended Optional[to]the Optional[end]of Optional[the]relationships Optional[defined]in Optional[the]target Optional[domain]object. Optional[This]property Optional[cannot]be Optional[used]in Optional[conjunction]with Optional[the]name property.
     isExtensible: Union[bool, DefaultTrue] # (optional) If set to false, the domain is considered complete and non-extensible, meaning that no importing taxonomy may add further relationships or members. If set to true or omitted, the domain may be extended by an importing taxonomy. The default value is true.
     properties: Optional[NonemptySet[XbrlProperty]] # (optional) Optional[an]ordered Optional[set]of Optional[property]objects Optional[used]to Optional[specify]additional Optional[properties]associated Optional[with]the Optional[domain]using Optional[the]property object. Optional[Only]immutable Optional[properties]as Optional[defined]in Optional[the]propertyType Optional[object]can Optional[be]added Optional[to]a domain.
 
@@ -49,7 +49,7 @@ class XbrlMember(XbrlReferencableModelObject):
     """
     module: XbrlModuleAlias
     name: QNameKeyType # (required) Optional[The]name Optional[is]a Optional[QName]that Optional[uniquely]identifies Optional[the]member object.
-    extendTargetName: Optional[QName] # (required if no name) Names the member object that this member extends.
+    extends: Optional[QName] # (required if no name) Names the member object that this member extends.
     isExtensible: Union[bool, DefaultTrue] # (optional) If false, importing taxonomies MUST NOT extend this member.
     domainClasses: Optional[NonemptySet[QName]] # (optional) The domain classes are used to group members based on shared characteristics. The member inherits properties from the domain classes it belongs to.
     properties: Optional[NonemptySet[XbrlProperty]] # (optional) Optional[an]ordered Optional[set]of Optional[property]objects Optional[used]to Optional[specify]additional Optional[properties]associated Optional[with]the Optional[member]object Optional[using]the Optional[property]object. Optional[Only]immutable Optional[properties]as Optional[defined]in Optional[the]propertyType Optional[object]can Optional[be]added Optional[to]a member.

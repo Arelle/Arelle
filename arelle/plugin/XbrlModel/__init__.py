@@ -722,9 +722,9 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                     if not (propClass in (dict, set, OrderedSet, OrderedDict) or
                             (isinstance(propClass, _GenericAlias) and propClass.__origin__ == list)):
                         if propClass not in (OptionalList, NonemptySet, OptionalDict): # OptionalList, NonemptySet is null if completely absent, not an empty list
-                            # if this object extends another (has extendTargetName), missing scalar properties
+                            # if this object extends another (has extends), missing scalar properties
                             # are inherited from the extension target — do not report them as missing
-                            if "extendTargetName" not in jsonObj:
+                            if "extends" not in jsonObj:
                                 jsonEltsReqdButMissing.append(f"{'/'.join(pathParts + [propName])}")
                         setattr(newObj, propName, None) # not defaultable but set to None anyway
                 initialParentObjProp = False

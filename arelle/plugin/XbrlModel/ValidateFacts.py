@@ -37,18 +37,18 @@ def resolveFact(txmyMdl, txmyObj, fact):
         fact._xValid = VALID
 
     def error(code, msg, **kwargs):
-        emit_error(txmyMdl, code, msg, xbrlObject=fact, name=getattr(fact, "name", None), **kwargs)
+        emit_error(txmyMdl, code, msg, xbrlObject=fact, name=fact.name, **kwargs)
 
-    # Extension facts (extendTargetName) inherit dimensions from the target fact
-    extendTargetName = getattr(fact, 'extendTargetName', None)
-    if extendTargetName is not None:
-        targetFact = txmyMdl.namedObjects.get(extendTargetName)
-        if targetFact is not None and not getattr(targetFact, 'isExtensible', True):
+    # Extension facts (extends) inherit dimensions from the target fact
+    extends = fact.extends
+    if extends is not None:
+        targetFact = txmyMdl.namedObjects.get(extends)
+        if targetFact is not None and not targetFact.isExtensible:
             txmyMdl.error("oimte:cannotExtendObject",
                           _("Fact %(target)s is not extensible (isExtensible=false) and cannot be extended."),
-                          xbrlObject=fact, name=extendTargetName, target=extendTargetName)
+                          xbrlObject=fact, name=extends, target=extends)
         return  # extension facts inherit dimensions; skip further resolution
-    if getattr(fact, 'factDimensions', None) is None:
+    if fact.factDimensions is None:
         return  # skip facts without dimensions
 
     name = fact.name
@@ -85,7 +85,7 @@ def resolveFact(txmyMdl, txmyObj, fact):
         # been emitted.
         deferred = False
         resolvedText = None
-        if getattr(factValue, "valueSources", None):
+        if factValue.valueSources:
             from .FactValueResolver import validateAndResolveValueSources
             deferred, resolvedText = validateAndResolveValueSources(txmyMdl, fact, factValue)
         if deferred and factValue.value is None:
@@ -208,8 +208,8 @@ def validateFactPosition(txmyMdl, fact):
         that a fact is valid for, such as the period dimension.
     """
     def error(code, msg, **kwargs):
-            emit_error(txmyMdl, code, msg, xbrlObject=fact, name=getattr(fact,"name"), **kwargs)
-    if not getattr(fact, "factDimensions", None):
+            emit_error(txmyMdl, code, msg, xbrlObject=fact, name=fact.name, **kwargs)
+    if not fact.factDimensions:
         return
     cQn = fact.factDimensions.get(conceptCoreDim)
     cObj = txmyMdl.namedObjects.get(cQn)
@@ -317,7 +317,7 @@ def validateDateResolutionConceptFacts(txmyMdl):
     for qn in txmyMdl.dateResolutionConceptNames:
         f = txmyMdl.namedObjects.get(qn)
         if isinstance(f, XbrlFact):
-            resolveFact(txmyMdl, getattr(f, "parent", txmyMdl), f)
+            resolveFact(txmyMdl, f.module, f)
             validateFactPosition(txmyMdl, f)
 
 # NOTE: The legacy `validateReport(reportQn, reportObj, txmyMdl)` function has been

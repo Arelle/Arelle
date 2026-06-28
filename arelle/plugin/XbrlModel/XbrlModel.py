@@ -135,10 +135,10 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
 
         visiting.add(cacheKey)
         relatedNames = OrderedSet()
-        extendTargetName = getattr(refObj, "extendTargetName", None)
-        if extendTargetName is not None:
+        extends = refObj.extends
+        if extends is not None:
             refType = getattr(refObj, "referenceType", None)
-            for targetRefObj in self._referenceObjectsByName().get(extendTargetName, ()):
+            for targetRefObj in self._referenceObjectsByName().get(extends, ()):
                 if refType is None or getattr(targetRefObj, "referenceType", None) == refType:
                     relatedNames.update(self._effectiveReferenceRelatedNames(targetRefObj, visiting))
 
@@ -187,6 +187,34 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
         """Alias for future cache invalidation expansion beyond relationships."""
         self.clearEffectiveCaches()
 
+    # ── Extends Mechanism ──────────────────────────────────────────────
+    #
+    # Several taxonomy object types support an ``extends`` property that
+    # allows one object to contribute relationships, properties, or set
+    # members to another (the "base" object).  During compilation the
+    # extending object's contributions are merged into the base, yielding
+    # a single "effective" result that includes everything from both.
+    #
+    # Object types that support extends:
+    #   XbrlNetwork / XbrlDomainNetwork  – merges relationships and roots
+    #   XbrlCube                         – merges cubeNetworks, excludeCubes,
+    #                                      requiredCubes, properties
+    #   XbrlReference                    – merges relatedNames
+    #   XbrlFact                         – merges factValues, properties
+    #   XbrlMember                       – merges properties
+    #   XbrlTableTemplate               – merges columns
+    #
+    # Resolution is recursive (an extending object may itself be extended)
+    # with cycle detection via a ``visiting`` set.  Results are cached per
+    # object in ``_effectiveRelationshipSetCache`` (networks/domains) and
+    # ``_effectiveCubeExtensionCache`` (cubes).  Both caches are cleared by
+    # ``clearEffectiveCaches()`` when the model is mutated.
+    #
+    # Validation code should use the ``effective*`` accessors below rather
+    # than reading an object's own properties directly, so that extensions
+    # are transparently included.
+    # ──────────────────────────────────────────────────────────────────
+
     def _effectiveRelationshipSet(self, obj, visiting: Optional[set[int]] = None):
         cacheKey = getattr(obj, "xbrlMdlObjIndex", None)
         if cacheKey is None:
@@ -209,9 +237,9 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
 
         relationships = OrderedSet()
         explicitRoots = OrderedSet()
-        extendTargetName = getattr(obj, "extendTargetName", None)
-        if extendTargetName is not None:
-            targetObj = self.namedObjects.get(extendTargetName)
+        extends = obj.extends
+        if extends is not None:
+            targetObj = self.namedObjects.get(extends)
             if isinstance(obj, XbrlDomainNetwork) and isinstance(targetObj, XbrlDomainNetwork) and getattr(targetObj, "isExtensible", True):
                 baseSet = self._effectiveRelationshipSet(targetObj, visiting)
                 relationships.update(baseSet["relationships"])
@@ -291,9 +319,9 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
             "properties": OrderedSet(),
         }
 
-        extendTargetName = getattr(cubeObj, "extendTargetName", None)
-        if extendTargetName is not None:
-            targetObj = self.namedObjects.get(extendTargetName)
+        extends = cubeObj.extends
+        if extends is not None:
+            targetObj = self.namedObjects.get(extends)
             if isinstance(targetObj, XbrlCube):
                 baseSet = self._effectiveCubeExtensionSet(targetObj, visiting)
                 for propName, propVals in baseSet.items():

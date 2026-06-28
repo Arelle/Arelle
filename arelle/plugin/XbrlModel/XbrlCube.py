@@ -97,7 +97,7 @@ class XbrlCube(XbrlReferencableModelObject):
         Reference: oim-taxonomy#cube-object
      """
     module: XbrlModuleAlias
-    name: QNameKeyType # (required if no extendTargetName) The name property is a QName that uniquely identifies the cube object.
+    name: QNameKeyType # (required if no extends) The name property is a QName that uniquely identifies the cube object.
     cubeType: Optional[QName] # (optional) The cubeType property identifies the type of data cube being represented. This must match a defined cubeType object or specification defined cube types of xbrl:eventCube, xbrl:positionCube, xbrl:referenceCube, xbrl:reportCube, xbrl:journalCube, xbrl:eventDetailsCube, xbrl:timeSeriesCube and xbrl:defaultCube. If no QName is provided the default is xbrl:reportCube.
     cubeDimensions: OrderedSet[XbrlCubeDimension] # (required) An ordered set of cubeDimension objects that identify the dimensions and associated domains used on the cube.
     cubeNetworks: Optional[NonemptySet[QName]] # (optional) An ordered set of network object QNames that reference network objects that are directly related to the cube.
@@ -105,7 +105,7 @@ class XbrlCube(XbrlReferencableModelObject):
     requiredCubes: Optional[NonemptySet[QName]] # (optional) An ordered set of cube object QNames that require the facts of the constraint cube to be included in the facts of the defined cube.
     duplicateFactsInCube: Optional[str] # (optional) A string value that indicates if the cube validates duplicate facts. It can be one of the following: no duplicates, complete duplicates,consistent duplicates, or inconsistent duplicates. 
     properties: Optional[NonemptySet[XbrlProperty]] # (optional) An ordered set of property objects Used to specify additional properties associated with the cube using the property object. Only immutable properties as defined in the propertyType object can be added to a cube.
-    extendTargetName: Optional[QName] # (required if no name) The cubeType QName of a cube that this cube extends. This is used to indicate that this cube is an extension of another cube and inherits the properties of the base cube. The base cube must be defined in the same taxonomy module as this cube or in a directly imported module.
+    extends: Optional[QName] # (required if no name) The cubeType QName of a cube that this cube extends. This is used to indicate that this cube is an extension of another cube and inherits the properties of the base cube. The base cube must be defined in the same taxonomy module as this cube or in a directly imported module.
     isExtensible: Union[bool, DefaultTrue] # (optional) If set to false, the cube is non-extensible, meaning that no importing taxonomy may add further relationships or members. If set to true or omitted, the cube may be extended by an importing taxonomy. The default value is true.
 
 XbrlDimensionConstraintAlias: TypeAlias = "XbrlDimensionConstraint"
