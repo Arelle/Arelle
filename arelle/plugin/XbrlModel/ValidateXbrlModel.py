@@ -467,7 +467,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                             relMatched = True
                             ntwkMatchedConstraints.add(cnst)
                             break
-                    if not relMatched and getattr(cubeNtwkConstrObj, "closed", False):
+                    if not relMatched:
                         compMdl.error("oimte:invalidCubeNetworkRelationship",
                                       _("Cube %(name)s network %(network)s relationship %(source)s -> %(target)s violates cubeNetworkConstraints."),
                                       xbrlObject=(cubeObj, ntwk, relObj), name=name, network=ntwk.name, source=relObj.source, target=relObj.target)
@@ -500,7 +500,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 tsProps = {timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType, excludedIntervalsPropType, completeTimeSeriesPropType} & set(p.property for p in (dimObj.properties or EMPTY_FROZENSET))
                 if tsProps:
                     if cubeType and cubeType.name != timeSeriesCubeType:
-                        compMdl.error("oimte:timeSeriesTypeOnNonTimeSeriesDimension" if timeSeriesPropType in tsProps else
+                        compMdl.error("oimte:invalidTaxonomyDefinedDimension" if timeSeriesPropType in tsProps else
                                       "oimte:intervalConventionOnNonTimeSeriesDimension" if intervalConventionPropType in tsProps else
                                       "oimte:intervalOfMeasurementOnNonTimeSeriesDimension" if intervalOfMeasurementPropType in tsProps else
                                       "oimte:completeTimeSeriesOnNonTimeSeriesDimension" if completeTimeSeriesPropType in tsProps else
@@ -512,7 +512,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                         domDTobj = compMdl.namedObjects.get(dimDomDTQn)
                         if not (isinstance(compMdl.namedObjects.get(dimDomDTQn), XbrlDataType) or
                                 domDTobj.instanceOfType(qnXsDateTime, compMdl)):
-                            compMdl.error("oimte:timeSeriesTypeOnNonTimeSeriesDimension" if timeSeriesPropType in tsProps else
+                            compMdl.error("oimte:invalidTaxonomyDefinedDimension" if timeSeriesPropType in tsProps else
                                       "oimte:intervalConventionOnNonTimeSeriesDimension" if intervalConventionPropType in tsProps else
                                       "oimte:intervalOfMeasurementOnNonTimeSeriesDimension" if intervalOfMeasurementPropType in tsProps else
                                       "oimte:completeTimeSeriesOnNonTimeSeriesDimension" if completeTimeSeriesPropType in tsProps else
@@ -746,7 +746,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                       _("Cube %(name)s dimension %(dimensionName)s domainDataType %(dataType)s MUST match the allowedDomainItem defined on the domain class: %(allowedDomainItem)s."),
                                       xbrlObject=cubeObj, name=name, dimensionName=dimName, dataType=cubeDimDT, allowedDomainItem=domClass.allowedDomainItem)
                     if dimName == periodCoreDim:
-                        compMdl.error("oimte:domainUsedOnPeriodDimension",
+                        compMdl.error("oimte:domainNetworkUsedOnPeriodDimension",
                                       _("Cube %(name)s dimension %(dimensionName)s domainDataType %(dataType)s MUST not be used on a period dimension."),
                                       xbrlObject=cubeObj, name=name, dimensionName=dimName, dataType=cubeDimDT)
                     elif dimName == conceptCoreDim:
@@ -757,7 +757,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             if cubeDimObj.domainNetwork:
                 if isTyped:
                     if dimName == periodCoreDim:
-                        compMdl.error("oimte:domainUsedOnPeriodDimension",
+                        compMdl.error("oimte:domainNetworkUsedOnPeriodDimension",
                                   _("Cube %(name)s dimension %(dimensionName)s domain objects MUST NOT be defined with a domainName property."),
                                   xbrlObject=cubeObj, name=name, dimensionName=dimName)
                     else:
@@ -791,7 +791,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                     if isinstance(compMdl.namedObjects.get(relObj.target,None), XbrlConcept):
                         conceptDataTypeQNs.add(compMdl.namedObjects[relObj.target].dataType)
                 if cubeDimObj.optional:
-                    compMdl.error("oimte:invalidAllowDomainFactsPropertyOnConceptDimension",
+                    compMdl.error("oimte:invalidOptionalPropertyOnConceptDimension",
                               _("Cube %(name)s conceptConstraints property MUST NOT specify allowDomainFacts."),
                               xbrlObject=(cubeObj,cubeDimObj), name=name)
             if dimName == entityCoreDim and hasValidDomainName:

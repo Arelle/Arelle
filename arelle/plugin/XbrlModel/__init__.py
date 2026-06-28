@@ -652,8 +652,9 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                                         collectionProp.append(listObj)
                             if propClass == NonemptySet and not collectionProp:
                                 error("oimte:invalidEmptySet",
-                                      _("Invalid empty set %(propName)s in jsonObj: %(path)s"),
+                                      _("Property %(propName)s is a NonemptySet but is empty: %(path)s"),
                                       sourceFileLine=href, propName=propName, path="/".join(pathParts + [propName]))
+                                setattr(newObj, propName, None)
                         elif isinstance(jsonValue, dict) and _keyClass is not None:
                             for iObj, (valKey, valVal) in enumerate(jsonValue.items()):
                                 if isinstance(_keyClass, type) and issubclass(_keyClass,QName):
