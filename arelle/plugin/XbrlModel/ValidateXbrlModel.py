@@ -400,7 +400,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             extendCubeObj = validateQNameReference(compMdl, cubeObj, "extends", XbrlCube,
                                                    invalidTypeMsgCode="oimte:invalidObjectType")
             if isinstance(extendCubeObj, XbrlCube) and not extendCubeObj.isExtensible:
-                compMdl.error("oimte:cannotExtendObject",
+                compMdl.error("oimte:illegalExtensionOfNonExtensibleObject",
                               _("The cube %(name)s cannot be extended because it is non-extensible."),
                               xbrlObject=cubeObj, name=extendCubeObj.name)
 
@@ -762,21 +762,20 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                   _("Cube %(name)s dimension %(dimensionName)s domain objects MUST NOT be defined with a domainName property."),
                                   xbrlObject=cubeObj, name=name, dimensionName=dimName)
                     else:
-                        compMdl.error("oimte:invalidDomainObject",
-                                  _("Cube %(name)s dimension %(dimensionName)s domain objects MUST NOT be defined with a typed domainClass object."),
+                        compMdl.error("oimte:invalidCubeDimensionDomainName",
+                                  _("Cube %(name)s dimension %(dimensionName)s domainNetwork MUST NOT be used with a typed dimension."),
                                   xbrlObject=cubeObj, name=name, dimensionName=dimName)
                 cubeDomNwkObj = compMdl.namedObjects.get(cubeDimObj.domainNetwork)
                 if isinstance(cubeDomNwkObj, XbrlDomainNetwork):
                     hasValidDomainName = True
+                elif cubeDomNwkObj is not None:
+                    compMdl.error("oimte:invalidObjectType",
+                              _("Cube %(name)s domainNetwork property %(domainNetwork)s MUST reference a domain network object, not %(actualType)s."),
+                              xbrlObject=cubeObj, name=name, domainNetwork=cubeDimObj.domainNetwork, actualType=type(cubeDomNwkObj).__name__)
                 else:
-                    if dimName not in coreDimensions and allowedCubeDimConstrs:
-                        compMdl.error("oimte:invalidTaxonomyDefinedDimension",
-                                  _("Cube %(name)s taxonomy-defined dimension %(dimensionName)s does not satisfy cubeType dimension constraints."),
-                                  xbrlObject=(cubeObj, cubeDimObj), name=name, dimensionName=dimName)
-                    else:
-                        compMdl.error("oimte:domainClassMismatchWithDomain",
-                                  _("Cube %(name)s domainName property MUST identify a domain object: %(domainNetworkName)s."),
-                                  xbrlObject=cubeObj, name=name, domainNetworkName=cubeDimObj.domainNetwork)
+                    compMdl.error("oimte:invalidQNameReference",
+                              _("Cube %(name)s domainNetwork property %(domainNetwork)s does not resolve to an object in the taxonomy model."),
+                              xbrlObject=cubeObj, name=name, domainNetwork=cubeDimObj.domainNetwork)
             if cubeDimObj.periodConstraints and dimName != periodCoreDim:
                 compMdl.error("oimte:invalidPeriodConstraintDimension",
                           _("Cube %(name)s periodConstraints property MUST only be used where the dimensionName property has a QName value of xbrl:period, not %(qname)s."),
