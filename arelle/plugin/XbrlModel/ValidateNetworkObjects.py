@@ -91,6 +91,13 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
                        _("The network %(name)s has duplicated roots %(roots)s"),
                        xbrlObject=ntwkObj, roots=", ".join(str(root) for root, ct in ntwkCt.items() if ct > 1))
 
+        # Snapshot base data before mutation so extends-duplicate check can compare cleanly
+        if extendTargetObj is not None:
+            _baseRootQns = frozenset(r.root if hasattr(r, "root") else r for r in getattr(extendTargetObj, "roots", None) or ())
+            _baseRelKeys = frozenset((r.source, r.target, getattr(r, "order", None)) for r in getattr(extendTargetObj, "relationships", None) or ())
+        else:
+            _baseRootQns = _baseRelKeys = frozenset()
+
         ntwkCt = {}
         sources = OrderedSet()
         targets = OrderedSet()
@@ -143,6 +150,7 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
                        names=", ".join(f"{relFrom}\u2192{relTo}{f' [{str(prefLbl)}]' if prefLbl else ''} ord {str(ordr)}"
                                        for (relFrom, relTo, prefLbl, ordr), ct in ntwkCt.items() if ct > 1))
         ntwkObj._rootsFound = sources - targets
+        ntwkObj._declaredRoots = ntwkObj.roots  # save before inference may overwrite
         if ntwkObj.roots:
             undeclaredRoots = ntwkObj._rootsFound - {r.root if hasattr(r, "root") else r for r in ntwkObj.roots}
             if undeclaredRoots:
@@ -159,23 +167,24 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
         else:
             ntwkObj.roots = ntwkObj._rootsFound  # not specified so use actual roots
 
-        # Check for duplicates in the merged (effective) set after extends resolution.
-        # Use the BASE network's effective set (the one being extended), since that
-        # is where base + extension relationships/roots are merged.
-        if ntwkObj.extends:
-            baseObj = compMdl.namedObjects.get(ntwkObj.extends)
-            if isinstance(baseObj, (XbrlNetwork, XbrlDomainNetwork)):
-                effSet = compMdl._effectiveRelationshipSet(baseObj)
-                if effSet["duplicateRoots"]:
+        # Check for duplicates introduced by extends: compare the extension's own
+        # EXPLICIT roots and relationships against the pre-mutation snapshot of the base.
+        # Inferred roots (set at line 167) are not declared duplicates.
+        if ntwkObj.extends and extendTargetObj is not None:
+            extRootQns = {r.root if hasattr(r, "root") else r for r in getattr(ntwkObj, "_declaredRoots", None) or ()}
+            dupRoots = _baseRootQns & extRootQns
+            if dupRoots:
+                emit_error(compMdl, "oimte:duplicateItemsInSet",
+                           _("The network %(name)s has duplicated roots after extends merge: %(roots)s"),
+                           xbrlObject=ntwkObj, name=ntwkObj.extends,
+                           roots=", ".join(str(r) for r in dupRoots))
+            for relObj in ntwkObj.relationships or ():
+                relKey = (relObj.source, relObj.target, getattr(relObj, "order", None))
+                if relKey in _baseRelKeys:
                     emit_error(compMdl, "oimte:duplicateItemsInSet",
-                               _("The network %(name)s has duplicated roots after extends merge: %(roots)s"),
+                               _("The network %(name)s has duplicated relationship after extends merge: %(rel)s"),
                                xbrlObject=ntwkObj, name=ntwkObj.extends,
-                               roots=", ".join(str(r) for r in effSet["duplicateRoots"]))
-                if effSet["duplicateRelationships"]:
-                    emit_error(compMdl, "oimte:duplicateItemsInSet",
-                               _("The network %(name)s has duplicated relationships after extends merge: %(rels)s"),
-                               xbrlObject=ntwkObj, name=ntwkObj.extends,
-                               rels=", ".join(f"{k[0]}→{k[1]}" for k, _ in effSet["duplicateRelationships"]))
+                               rel=f"{relObj.source}→{relObj.target}")
 
         # Cycle detection: self-loops are always invalid; directed cycles are
         # checked based on the relationship type's cycles property.
