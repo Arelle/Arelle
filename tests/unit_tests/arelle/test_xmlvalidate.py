@@ -649,12 +649,17 @@ def test_validateValue_facets_pattern(value: str, expected: tuple):
 @pytest.mark.parametrize(
     "value,expected",
     [
-        pytest.param("1", (float(1), float(1), VALID)),
-        pytest.param("1.01", (float(1.01), float(1.01), VALID)),
-        pytest.param("100", (float(100), float(100), VALID)),
+        pytest.param("1", (float(1), Decimal("1"), VALID)),
+        pytest.param("1.01", (float(1.01), Decimal("1.01"), VALID)),
+        pytest.param("100", (float(100), Decimal("100"), VALID)),
         pytest.param("1.001", ("=", None, INVALID)),
-        pytest.param("1.000", ("=", None, INVALID)),
+        # insignificant trailing zeros are not counted as significant digits.
+        pytest.param("1.000", (float(1), Decimal("1.000"), VALID)),
         pytest.param("1000", ("=", None, INVALID)),
+        # a leading sign is not a digit and must not be counted.
+        pytest.param("-100", (float(-100), Decimal("-100"), VALID)),
+        pytest.param("-1.01", (float(-1.01), Decimal("-1.01"), VALID)),
+        pytest.param("-1000", ("=", None, INVALID)),
     ],
 )
 def test_validateValue_facets_totalDigits(value: str, expected: tuple):
@@ -662,8 +667,48 @@ def test_validateValue_facets_totalDigits(value: str, expected: tuple):
     facets = {
         "totalDigits": 3
     }
-    validateValue(modelXbrl=Mock(), elt=elt, attrTag=None, baseXsdType="float", value=value, facets=facets)
+    # totalDigits only applies to xs:decimal (and its derived types); it isn't a valid
+    # constraining facet for xs:float/xs:double.
+    validateValue(modelXbrl=Mock(), elt=elt, attrTag=None, baseXsdType="decimal", value=value, facets=facets)
     _assertExpected(value, attrTag=None, elt=elt, expected=expected)
+
+
+@pytest.mark.parametrize("base_xsd_type", ["float", "double"])
+def test_validateValue_facets_totalDigits_not_applicable_to_float(base_xsd_type: str):
+    # totalDigits isn't a valid constraining facet for xs:float/xs:double, so a value
+    # with more digits than totalDigits allows must still be valid.
+    elt = Mock()
+    facets = {
+        "totalDigits": 1
+    }
+    validateValue(modelXbrl=Mock(), elt=elt, attrTag=None, baseXsdType=base_xsd_type, value="123.456", facets=facets)
+    assert elt.xValid == VALID
+    assert elt.xValue == float("123.456")
+
+
+@pytest.mark.parametrize(
+    "base_xsd_type,value,total_digits,expected_x_valid",
+    [
+        # the integer branch and the decimal branch both exclude the sign.
+        ("integer", "-6", 1, VALID),
+        ("integer", "6", 1, VALID),
+        ("integer", "-66", 1, INVALID),
+        ("integer", "-66", 2, VALID),
+        ("decimal", "-1.5", 2, VALID),
+        ("decimal", "+1.5", 2, VALID),
+        ("decimal", "-1.55", 2, INVALID),
+        # insignificant zeros (leading or trailing) are not counted as significant digits.
+        ("decimal", "-1.50", 2, VALID),
+        ("decimal", "0001.5", 2, VALID),
+        ("decimal", "0.001", 1, VALID),
+    ],
+)
+def test_validateValueString_totalDigits_excludes_sign(
+    base_xsd_type: str, value: str, total_digits: int, expected_x_valid: int
+):
+    result = validateValueString(base_xsd_type, value, facets={"totalDigits": total_digits})
+    assert result.xValid == expected_x_valid
+    assert result.isXValid == (expected_x_valid >= VALID)
 
 
 @pytest.mark.parametrize(
