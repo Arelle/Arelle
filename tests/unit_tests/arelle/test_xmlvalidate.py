@@ -778,6 +778,19 @@ def test_validateValueString(
     assert result.isXValid == (expectedXValid >= VALID)
 
 
+class TestXsdPatternNameEscapes:
+    @pytest.mark.parametrize(
+        "pattern,value,expected_match",
+        [
+            (r"\i\c*", ":foo", True),
+            (r"[\i-[:]][\c-[:]]*", ":foo", False),
+        ],
+    )
+    def test_leading_colon(self, pattern: str, value: str, expected_match: bool):
+        compiled = XsdPattern.compile(pattern)
+        assert (compiled.match(value) is not None) == expected_match
+
+
 class TestValidateFacetValueString:
     def test_length(self):
         result = validateFacetValueString("length", "3", "string")
