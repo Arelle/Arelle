@@ -294,8 +294,21 @@ def validateCompleteReportCubes(txmyMdl):
     covered by facts.  For each such required cube, ``validateCompleteCube``
     checks that at least one fact matched it.  A cube may also require itself
     (meaning all its own cells must be populated).
+
+    Taxonomy-only models (modelType=xbrl:taxonomy with no report module) are
+    exempt from completeness checks when they contain no facts.
     """
     from .ValidateCubes import validateCompleteCube, validateCubeDuplicates
+    from .XbrlConst import xbrl
+
+    qnTaxonomyModelType = qname(xbrl, "xbrl:taxonomy")
+    hasFacts = any(True for _ in txmyMdl.filterNamedObjects(XbrlFact))
+    isReportModel = any(
+        getattr(mod, "modelType", None) is not None and getattr(mod, "modelType", None) != qnTaxonomyModelType
+        for mod in txmyMdl.xbrlModels.values()
+    )
+    if not hasFacts and not isReportModel:
+        return
 
     validated = set()
     for cubeObj in txmyMdl.filterNamedObjects(XbrlCube):

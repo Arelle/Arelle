@@ -240,7 +240,7 @@ class XbrlCubeType(XbrlReferencableModelObject):
         """
         baseCubeType = compMdl.namedObjects.get(self.baseCubeType)
         if isinstance(baseCubeType, XbrlCubeType):
-            return baseCubeType.basemostCubeType
+            return baseCubeType.basemostCubeType(compMdl)
         return self.name
 
 eventCubeType = qname(xbrl, "xbrl:eventCube")

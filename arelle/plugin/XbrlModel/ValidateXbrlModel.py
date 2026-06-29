@@ -54,6 +54,18 @@ resolveFact = validateFactPosition = None
 perCnstrtFmtStartEndPattern = re.compile(r".*@(start|end)")
 
 
+def _isBaseCubeType(cubeType, targetLocalName, compMdl):
+    """Walk the baseCubeType inheritance chain to check if cubeType or any ancestor has the given localName."""
+    ct = cubeType
+    seen = set()
+    while ct is not None and isinstance(ct, XbrlCubeType) and ct.name not in seen:
+        if ct.name.localName == targetLocalName:
+            return True
+        seen.add(ct.name)
+        ct = compMdl.namedObjects.get(ct.baseCubeType) if ct.baseCubeType else None
+    return False
+
+
 def _qname_key(value):
     if isinstance(value, QName):
         return (value.namespaceURI, value.localName)
@@ -407,9 +419,9 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                          qnRef=(cubeObj.cubeType or reportCubeType))
         if cubeType is None:
             continue # can't do further checks without cube type
-        isTimeSeriesCubeType = cubeType and cubeType.name == timeSeriesCubeType
+        isTimeSeriesCubeType = cubeType and _isBaseCubeType(cubeType, "timeSeriesCube", compMdl)
         isNegativeCubeType = cubeType and cubeType.name.localName == "negativeCube"
-        isReferenceCubeType = cubeType and cubeType.name.localName == "referenceCube"
+        isReferenceCubeType = cubeType and _isBaseCubeType(cubeType, "referenceCube", compMdl)
 
         if cubeObj.extends:
             extendCubeObj = validateQNameReference(compMdl, cubeObj, "extends", XbrlCube,
@@ -437,6 +449,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         cubeNtwkConstrs = cubeType.effectivePropVal(compMdl, "cubeNetworkConstraints", "cubeNetworks")
         if cubeNtwkConstrs:
             relConstraintNetworkMatches = defaultdict(int)
+            maxZeroViolatedConstrs = set()
             for ntwk in ntwks:
                 matchingConstrs = [c for c in cubeNtwkConstrs if c.relationshipType == ntwk.relationshipTypeName]
                 ntwkMatchedConstraints = set()
@@ -447,13 +460,43 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                           _("Cube %(name)s has network %(network)s with relationship type %(relationshipType)s which is not allowed by cubeNetworkConstraints."),
                                           xbrlObject=(cubeObj, ntwk, relObj), name=name, network=ntwk.name, relationshipType=ntwk.relationshipTypeName)
                         continue
-                    if all(cnst.maxNetworks == 0 for cnst in matchingConstrs):
-                        continue
                     relSObj = compMdl.namedObjects.get(relObj.source)
                     relTObj = compMdl.namedObjects.get(relObj.target)
+                    # Check for maxNetworks==0 violations (forbidden endpoint combinations)
+                    for cnst in matchingConstrs:
+                        if cnst.maxNetworks != 0:
+                            continue
+                        srcOk = True
+                        tgtOk = True
+                        if cnst.source is not None:
+                            if cnst.source.qname and relObj.source != cnst.source.qname:
+                                srcOk = False
+                            if srcOk and cnst.source.objectType:
+                                expectedSrcType = xbrlObjectTypes.get(cnst.source.objectType)
+                                if expectedSrcType is not None and not isinstance(relSObj, expectedSrcType):
+                                    srcOk = False
+                            if srcOk and cnst.source.dataType:
+                                if getattr(relSObj, "dataType", None) != cnst.source.dataType:
+                                    srcOk = False
+                        if cnst.target is not None:
+                            if cnst.target.qname and relObj.target != cnst.target.qname:
+                                tgtOk = False
+                            if tgtOk and cnst.target.objectType:
+                                expectedTgtType = xbrlObjectTypes.get(cnst.target.objectType)
+                                if expectedTgtType is not None and not isinstance(relTObj, expectedTgtType):
+                                    tgtOk = False
+                            if tgtOk and cnst.target.dataType:
+                                if getattr(relTObj, "dataType", None) != cnst.target.dataType:
+                                    tgtOk = False
+                        if srcOk and tgtOk and cnst not in maxZeroViolatedConstrs:
+                            compMdl.error("oimte:invalidCubeRelationship",
+                                          _("Cube %(name)s network %(network)s has relationship %(source)s -> %(target)s forbidden by cubeType maxNetworks=0 constraint."),
+                                          xbrlObject=(cubeObj, ntwk, relObj), name=name, network=ntwk.name, source=relObj.source, target=relObj.target)
+                            maxZeroViolatedConstrs.add(cnst)
+                    if all(cnst.maxNetworks == 0 for cnst in matchingConstrs):
+                        continue
                     relMatched = False
                     for cnst in matchingConstrs:
-                        # Endpoint checks are irrelevant when maxNetworks is explicitly 0.
                         if cnst.maxNetworks == 0:
                             continue
                         srcOk = True
@@ -490,18 +533,13 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 for cnst in ntwkMatchedConstraints:
                     relConstraintNetworkMatches[cnst] += 1
 
-                if isReferenceCubeType and ntwk.relationshipTypeName.namespaceURI == xbrl and ntwk.relationshipTypeName.localName == "period-refDimension":
-                    compMdl.error("oimte:invalidCubeRelationship",
-                                  _("Reference cube %(name)s MUST NOT use period-refDimension networks."),
-                                  xbrlObject=(cubeObj, ntwk), name=name)
-
             for cnst in cubeNtwkConstrs:
                 if cnst.maxNetworks == 0:
                     continue
                 matchedNtws = relConstraintNetworkMatches.get(cnst, 0)
                 if cnst.minNetworks is not None and matchedNtws < cnst.minNetworks:
-                    compMdl.error("oimte:missingRequiredRelationship",
-                                  _("Cube %(name)s has %(matchedNtws)d networks for relationshipType %(relationshipType)s but cubeType requires minNetworks %(minNetworks)d."),
+                    compMdl.error("oimte:invalidCubeNetworkRelationship",
+                                  _("Cube %(name)s has %(matchedNtws)s networks for relationshipType %(relationshipType)s but cubeType requires minNetworks %(minNetworks)s."),
                                   xbrlObject=cubeObj, name=name, relationshipType=cnst.relationshipType,
                                   matchedNtws=matchedNtws, minNetworks=cnst.minNetworks)
 
@@ -514,7 +552,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 # specific cubeType dimension property validations
                 tsProps = {timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType, excludedIntervalsPropType, completeTimeSeriesPropType} & set(p.property for p in (dimObj.properties or EMPTY_FROZENSET))
                 if tsProps:
-                    if cubeType and cubeType.name != timeSeriesCubeType:
+                    if cubeType and not isTimeSeriesCubeType:
                         compMdl.error("oimte:invalidTaxonomyDefinedDimension" if timeSeriesPropType in tsProps else
                                       "oimte:intervalConventionOnNonTimeSeriesDimension" if intervalConventionPropType in tsProps else
                                       "oimte:intervalOfMeasurementOnNonTimeSeriesDimension" if intervalOfMeasurementPropType in tsProps else
@@ -557,30 +595,31 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 if isTimeSeriesCubeType and isinstance(domClass, XbrlDomainClass) and domClass.allowedDomainItem:
                     isDateTimeType = domClass.allowedDomainItem == qnXsDateTime or cubeDimObj.domainDataType == qnXsDateTime
                     if isDateTimeType:
-                        # Get time-series properties from domain class
-                        domClassTsProps = {timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType, completeTimeSeriesPropType} & set(p.property for p in getattr(domClass, 'properties', ()))
+                        # Get all domain class property QNames for existence checks
+                        allDomClassPropQns = set(p.property for p in getattr(domClass, 'properties', None) or ())
+                        domClassTsProps = {timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType, completeTimeSeriesPropType} & allDomClassPropQns
                         if domClassTsProps:
-                            # Validate dependent properties
-                            tsTypeVal = domClass.propertyObjectValue(timeSeriesPropType)
-                            iomVal = domClass.propertyObjectValue(intervalOfMeasurementPropType)
-                            icVal = domClass.propertyObjectValue(intervalConventionPropType)
-                            ctsVal = domClass.propertyObjectValue(completeTimeSeriesPropType)
-                            aggVal = domClass.propertyObjectValue(aggregationPropType)
-                            
-                            # Rule 1: timeSeriesType="Aggregated" requires xbrla:aggregation
-                            if tsTypeVal == "Aggregated" and aggVal is None:
+                            # Use raw property value lookup for value-dependent checks
+                            domClassPropVals = {p.property: p.value for p in getattr(domClass, 'properties', None) or ()}
+                            tsTypeVal = domClassPropVals.get(timeSeriesPropType)
+                            ctsVal = domClassPropVals.get(completeTimeSeriesPropType)
+                            hasIom = intervalOfMeasurementPropType in allDomClassPropQns
+                            hasAgg = aggregationPropType in allDomClassPropQns
+
+                            # Rule 1: timeSeriesType="Aggregated" requires xbrl:aggregation
+                            if tsTypeVal == "Aggregated" and not hasAgg:
                                 compMdl.error("oimte:missingDependentPropertyType",
-                                          _("Domain class %(domainClass)s with xbrla:timeSeriesType Aggregated on cube %(name)s dimension %(dimension)s MUST also have xbrla:aggregation."),
+                                          _("Domain class %(domainClass)s with xbrla:timeSeriesType Aggregated on cube %(name)s dimension %(dimension)s MUST also have xbrl:aggregation."),
                                           xbrlObject=(cubeObj, domClass), name=name, domainClass=domClass.name, dimension=dimQn)
-                            
+
                             # Rule 2: intervalConvention requires intervalOfMeasurement
-                            if intervalConventionPropType in domClassTsProps and iomVal is None:
+                            if intervalConventionPropType in domClassTsProps and not hasIom:
                                 compMdl.error("oimte:missingDependentPropertyType",
                                           _("Domain class %(domainClass)s with xbrla:intervalConvention on cube %(name)s dimension %(dimension)s MUST also have xbrla:intervalOfMeasurement."),
                                           xbrlObject=(cubeObj, domClass), name=name, domainClass=domClass.name, dimension=dimQn)
-                            
+
                             # Rule 3: completeTimeSeries=true requires intervalOfMeasurement
-                            if ctsVal is True and iomVal is None:
+                            if ctsVal is True and not hasIom:
                                 compMdl.error("oimte:missingDependentPropertyType",
                                           _("Domain class %(domainClass)s with xbrl:completeTimeSeries true on cube %(name)s dimension %(dimension)s MUST also have xbrla:intervalOfMeasurement."),
                                           xbrlObject=(cubeObj, domClass), name=name, domainClass=domClass.name, dimension=dimQn)
@@ -590,7 +629,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                       _("The cubeDimensions of cube %(name)s duplicate these dimension object(s): %(dimensions)s"),
                       xbrlObject=cubeObj, name=name, dimensions=", ".join(str(qn) for qn, ct in dimQnCounts.items() if ct > 1))
         # check cube dims against cube type
-        if cubeType.basemostCubeType != defaultCubeType and conceptCoreDim not in dimQnCounts.keys():
+        if cubeType.basemostCubeType(compMdl) != defaultCubeType and conceptCoreDim not in dimQnCounts.keys():
             compMdl.error("oimte:cubeMissingConceptDimension",
                         _("The cubeDimensions of cube %(name)s, type %(cubeType)s, must have a concept core dimension"),
                         xbrlObject=cubeObj, name=name, cubeType=cubeType.name)
@@ -634,7 +673,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                 xbrlObject=cubeObj, name=name, cubeType=cubeType.name,
                                 dimension=', '.join(str(getattr(allwdDimConstr, p)) for p in ("dimensionName", "dimensionType", "dimensionDataType") if getattr(allwdDimConstr, p, None)))
             disallowedDims = txmyDefDimsQNs - matchedDimQNs
-            if cubeDimsClosed and disallowedDims:
+            if cubeDimsClosed and disallowedDims and not isTimeSeriesCubeType:
                 compMdl.error("oimte:invalidTaxonomyDefinedDimension",
                             _("The cube %(name)s, type %(cubeType)s allowedDimensions do not allow dimension(s) %(dimension)s"),
                             xbrlObject=cubeObj, name=name, cubeType=cubeType.name, dimension=", ".join(sorted(str(d) for d in disallowedDims)))
@@ -950,11 +989,13 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                       xbrlObject=(cubeObj, cubeDimObj), name=name, dimensionName=reqDim, cubeType=cubeType.name, domainClass=reqDomClass)
 
         if isTimeSeriesCubeType:
+            if timeSeriesTaxonomyDims:
+                hasTimeseriesDimension = True
             typedDateTimeDims = []
             for cubeDimObj, dimObj, isTyped, cubeDimDT, domClass in timeSeriesTaxonomyDims:
                 hasDateTimeType = cubeDimDT == qnXsDateTime or getattr(domClass, "allowedDomainItem", None) == qnXsDateTime
                 if isTyped and hasDateTimeType:
-                    typedDateTimeDims.append((cubeDimObj, dimObj))
+                    typedDateTimeDims.append((cubeDimObj, dimObj, isTyped, cubeDimDT, domClass))
                 else:
                     compMdl.error("oimte:invalidTaxonomyDefinedDimension",
                                   _("Timeseries cube %(name)s taxonomy-defined dimension %(dimensionName)s MUST be typed xs:dateTime."),
@@ -965,7 +1006,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                               xbrlObject=cubeObj, name=name)
 
             if allowedCubeDimConstrs:
-                for cubeDimObj, dimObj, _isTyped, _cubeDimDT, domClass in timeSeriesTaxonomyDims:
+                for cubeDimObj, dimObj, _isTyped, _cubeDimDT, domClass in typedDateTimeDims:
                     matchedConstr = None
                     for dimConstr in allowedCubeDimConstrs:
                         if dimConstr.dimensionName and dimConstr.dimensionName != cubeDimObj.dimension:
@@ -1498,10 +1539,5 @@ def validateCompletedModel(compMdl):
             for f in iterModuleFacts(compMdl):
                 sink.accept(f)
 
-    # check complete cubes
-    for cubeObj in compMdl.filterNamedObjects(XbrlCube):
-        if compMdl.effectiveRequiredCubes(cubeObj):
-            validateCompleteCube(compMdl, cubeObj)
-        # Duplicate-fact validation applies to every cube.
-        from .ValidateCubes import validateCubeDuplicates
-        validateCubeDuplicates(compMdl, cubeObj)
+    # Cube completeness and duplicate-fact validation are handled by
+    # validateCompleteReportCubes(), called after vector search is built.

@@ -3,8 +3,9 @@ See COPYRIGHT.md for copyright information.
 '''
 
 from arelle.ModelValue import qname, QName
+from .XbrlConcept import XbrlConcept
 from .XbrlCube import XbrlCube, conceptCoreDim, periodCoreDim, entityCoreDim, unitCoreDim
-from .XbrlDimension import XbrlDimension
+from .XbrlDimension import XbrlDimension, XbrlDomainNetwork
 from .XbrlFact import XbrlFact
 from .VectorSearch import buildXbrlVectors, searchXbrl, searchXbrlBatchTopk, SEARCH_CUBES, SEARCH_FACTPOSITIONS, SEARCH_BOTH
 from arelle.XmlValidateConst import VALID, INVALID
@@ -107,14 +108,34 @@ def validateCubes(compMdl, factspace):
     return usableCubes
 
 def validateCompleteCube(compMdl, cubeObj):
-    # replace with vectorized search
+    """Validate that a required-complete cube has facts for every concept in its concept domain."""
     cellFacts = getattr(cubeObj, "_cellFacts", None)
-    if not any(True for _ in compMdl.filterNamedObjects(XbrlFact)):
+
+    conceptDomainConcepts = set()
+    for cubeDimObj in cubeObj.cubeDimensions:
+        if cubeDimObj.dimension == conceptCoreDim and cubeDimObj.domainNetwork:
+            domNwkObj = compMdl.namedObjects.get(cubeDimObj.domainNetwork)
+            if isinstance(domNwkObj, XbrlDomainNetwork):
+                for relObj in compMdl.effectiveRelationships(domNwkObj):
+                    tgtObj = compMdl.namedObjects.get(relObj.target)
+                    if isinstance(tgtObj, XbrlConcept):
+                        conceptDomainConcepts.add(relObj.target)
+
+    if not conceptDomainConcepts:
         return
-    if not cellFacts:
-        compMdl.error("oimte:factMissingFromCube",
-                     _("The complete cube %(name)s has no facts."),
-                      xbrlObject=cubeObj, name=cubeObj.name)
+
+    coveredConcepts = set()
+    if cellFacts:
+        for cellKey in cellFacts:
+            for dimQn, dimVal in cellKey:
+                if dimQn == conceptCoreDim:
+                    coveredConcepts.add(dimVal)
+
+    for concept in conceptDomainConcepts:
+        if concept not in coveredConcepts:
+            compMdl.error("oimte:factMissingFromCube",
+                         _("The complete cube %(name)s is missing facts for concept %(concept)s."),
+                          xbrlObject=cubeObj, name=cubeObj.name, concept=concept)
 
 
 def _effectiveDuplicatePolicy(compMdl, cubeObj):
