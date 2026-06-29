@@ -323,6 +323,7 @@ BASE_XSD_TYPES = {
     ],
     "NCName": [
         {"value": "*invalid", "expected": ("=", None, INVALID)},
+        {"value": ":invalid", "expected": ("=", None, INVALID)},
         {"value": "valid", "expected": ("=", "=", VALID)},
     ],
     "negativeInteger": [
