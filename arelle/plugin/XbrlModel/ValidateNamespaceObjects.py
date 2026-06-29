@@ -50,12 +50,12 @@ def validateNamespaceFamily(compMdl, module, oimFile, *, assertObjectType, valid
                 name = getattr(txMdlObj, "name", None)
                 if isinstance(name, QName):
                     ns = name.namespaceURI
-                    if ns != txmyNamespace:
-                        if ns in reservedPrefixNamespaces.values() and not isCompiledModel:
-                            emit_error(compMdl, "oimte:invalidObjectNamespacePrefix",
+                    if ns != txmyNamespace and not isCompiledModel:
+                        if ns in reservedPrefixNamespaces.values():
+                            emit_error(compMdl, "oimce:invalidURIForReservedAlias",
                                        _("The taxonomy module object %(name)s cannot have a reserved namespace URI."),
                                        xbrlObject=txMdlObj, name=name)
-                        if not isCompiledModel:
+                        else:
                             emit_error(compMdl, "oimte:objectNamespaceMismatch",
                                        _("The taxonomy module object %(name)s does not match the namespace %(nsPrefix)s: of the module."),
                                        xbrlObject=txMdlObj, name=name, nsPrefix=module.name.prefix)

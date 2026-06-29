@@ -3,11 +3,22 @@ See COPYRIGHT.md for copyright information.
 '''
 from .ErrorCatalog import emit_error
 from .XbrlEntity import XbrlEntity
+from .XbrlGroup import XbrlGroupTree
 from .XbrlImportTaxonomy import XbrlImportTaxonomy, XbrlFinalTaxonomy
 from .XbrlLabel import XbrlLabel
 from .XbrlModule import XbrlModule, xbrlObjectTypes, xbrlObjectQNames, referencableObjectTypes
 from .XbrlObject import XbrlReferencableModelObject
 from .XbrlFact import XbrlFact, XbrlFootnote
+
+qnXbrlLabelObject = None
+
+def _qnLabelObj():
+    global qnXbrlLabelObject
+    if qnXbrlLabelObject is None:
+        from arelle.ModelValue import qname
+        from .XbrlConst import xbrl
+        qnXbrlLabelObject = qname(xbrl, "xbrl:labelObject")
+    return qnXbrlLabelObject
 
 
 def validateImportFamily(compMdl, module, oimFile, *, assertObjectType, validateQNameReference, validateProperties):
@@ -31,6 +42,10 @@ def validateImportFamily(compMdl, module, oimFile, *, assertObjectType, validate
                     emit_error(compMdl, "oimte:invalidImportObjectType",
                                _("The importObjectTypes property MUST not include the finalTaxonomyObject: %(qname)s."),
                                xbrlObject=impTxObj, qname=qnObjType)
+                elif clsForObjType == XbrlGroupTree:
+                    emit_error(compMdl, "oimte:groupTreeNotImportable",
+                               _("The importObjectTypes property MUST not include the groupTreeObject: %(qname)s."),
+                               xbrlObject=impTxObj, qname=qnObjType)
                 elif qnObjType not in referencableObjectTypes:
                     emit_error(compMdl, "oimte:invalidImportObjectType",
                                _("The importObjectTypes property MUST specify a referencable taxonomy component object: %(qname)s is non-referencable."),
@@ -39,6 +54,14 @@ def validateImportFamily(compMdl, module, oimFile, *, assertObjectType, validate
                 emit_error(compMdl, "oimte:invalidImportObjectType",
                            _("The importObjectTypes property MUST specify valid OIM object types, %(qname)s is not valid."),
                            xbrlObject=impTxObj, qname=qnObjType)
+        # conflicting import properties: excludeLabels with label selections
+        if getattr(impTxObj, "excludeLabels", False) and getattr(impTxObj, "selections", None):
+            for selObj in impTxObj.selections:
+                if getattr(selObj, "objectType", None) == _qnLabelObj():
+                    emit_error(compMdl, "oimte:conflictingImportProperties",
+                               _("The importTaxonomy %(moduleName)s has excludeLabels=true but also has a selection for label objects."),
+                               xbrlObject=impTxObj, moduleName=impMdlName)
+                    break
 
         finalTxObj = compMdl.namedObjects.get(impMdlName)
         if isinstance(finalTxObj, XbrlFinalTaxonomy):
