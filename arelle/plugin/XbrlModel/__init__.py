@@ -985,6 +985,15 @@ def xbrlModelValidator(val, parameters):
     if not isinstance(val.modelXbrl, XbrlCompiledModel): # if no ModelCompiledXbrl give up
         return
     try:
+        # Deferred import pruning normally runs from the CntlrCmdLine.Xbrl.Loaded /
+        # CntlrWinMain.Xbrl.Views hooks (xbrlModelLoaded), which only fire when
+        # driven by the CLI or GUI. Callers that invoke validation directly via the
+        # API (e.g. test harnesses calling modelXbrl.validate()) skip those hooks,
+        # so pruning - and any oimte:invalidQNameReference errors it raises for
+        # unresolved importObjects - must also be guaranteed here.
+        if hasattr(val.modelXbrl, '_pendingImportEntries'):
+            applyDeferredImportPruning(val.modelXbrl)
+
         # validate taxonomy model
         validateCompiledModel(val.modelXbrl)
 
