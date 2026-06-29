@@ -261,11 +261,14 @@ def validateFactPosition(txmyMdl, fact):
                        _("Missing period for %(periodType)s fact %(name)s."),
                        periodType=cObj.periodType)
 
-    # find cubes which fact is valid for
+    # find cubes which fact is valid for (negative cubes don't provide valid fact space)
     matchedCubes = validateCubes(txmyMdl, fact)
-    if not matchedCubes:
+    nonNegativeCubes = [c for c in matchedCubes
+                        if getattr(txmyMdl.namedObjects.get(getattr(c, "cubeType", None)), "name", None) is None
+                        or txmyMdl.namedObjects.get(c.cubeType).name.localName != "negativeCube"]
+    if not nonNegativeCubes:
         error("oimte:noFactSpaceForFact",
-              _("Factspace %(name)s is not dimensionally valid in any cube."))
+              _("Factspace %(name)s is not dimensionally valid in any non-negative cube."))
     else:
         for cubeObj in matchedCubes:
             cellFacts = getattr(cubeObj, "_cellFacts", None)
@@ -285,12 +288,23 @@ def validateFactPosition(txmyMdl, fact):
 
 
 def validateCompleteReportCubes(txmyMdl):
-    """Validate complete cubes after facts have been matched to their effective cubes."""
+    """Validate complete cubes after facts have been matched to their effective cubes.
+
+    A cube's ``requiredCubes`` lists cubes whose dimensional space must be
+    covered by facts.  For each such required cube, ``validateCompleteCube``
+    checks that at least one fact matched it.  A cube may also require itself
+    (meaning all its own cells must be populated).
+    """
     from .ValidateCubes import validateCompleteCube, validateCubeDuplicates
 
+    validated = set()
     for cubeObj in txmyMdl.filterNamedObjects(XbrlCube):
-        if txmyMdl.effectiveRequiredCubes(cubeObj):
-            validateCompleteCube(txmyMdl, cubeObj)
+        for reqCubeQn in txmyMdl.effectiveRequiredCubes(cubeObj):
+            if reqCubeQn not in validated:
+                reqCubeObj = txmyMdl.namedObjects.get(reqCubeQn)
+                if isinstance(reqCubeObj, XbrlCube):
+                    validateCompleteCube(txmyMdl, reqCubeObj)
+                    validated.add(reqCubeQn)
         # Duplicate-fact validation applies to every cube (not just required
         # cubes) per oim-taxonomy "Duplicate fact validation".
         validateCubeDuplicates(txmyMdl, cubeObj)
