@@ -11,6 +11,7 @@ from unittest.mock import Mock
 import pytest
 import regex
 
+from arelle.ModelDtsObject import _EnumerationFacet
 from arelle.ModelValue import DateTime, QName, Time, gDay, gMonth, gMonthDay, gYear, gYearMonth, isoDuration
 from arelle.XmlValidate import (
     NCNamePattern,
@@ -556,6 +557,170 @@ def test_validateValue_facets_enumeration(value: str, expected: tuple):
     }
     validateValue(modelXbrl=Mock(), elt=elt, attrTag=None, baseXsdType="string", value=value, facets=facets)
     _assertExpected(value, attrTag=None, elt=elt, expected=expected)
+
+
+@pytest.mark.parametrize(
+    "base_xsd_type,member,value,expected_x_valid",
+    [
+        # dateTime: Z, +00:00 and -00:00 all denote UTC, so they are equal in the value
+        # space even though their lexical forms differ.
+        ("dateTime", "2002-01-01T12:01:01-00:00", "2002-01-01T12:01:01-00:00", VALID),  # lexical fast path
+        ("dateTime", "2002-01-01T12:01:01-00:00", "2002-01-01T12:01:01Z", VALID),
+        ("dateTime", "2002-01-01T12:01:01-00:00", "2002-01-01T12:01:01+00:00", VALID),
+        ("dateTime", "2002-01-01T12:01:01-00:00", "2002-01-01T12:01:02+00:00", INVALID),  # different instant
+        # date: timezone spellings that denote the same day are equal
+        ("date", "2002-01-01-00:00", "2002-01-01Z", VALID),
+        ("date", "2002-01-01-00:00", "2002-01-01+00:00", VALID),
+        ("date", "2002-01-01-00:00", "2002-01-02Z", INVALID),
+        # time: Z and -00:00 denote the same instant of day
+        ("time", "12:00:00-00:00", "12:00:00Z", VALID),
+        ("time", "12:00:00-00:00", "13:00:00Z", INVALID),
+        # gYearMonth discards the timezone at parse time, so tz spellings collapse
+        ("gYearMonth", "2002-01Z", "2002-01", VALID),
+        ("gYearMonth", "2002-01Z", "2002-01+00:00", VALID),
+        ("gYearMonth", "2002-01Z", "2002-02", INVALID),
+        # duration: PT1H and PT60M are the same magnitude
+        ("duration", "PT1H", "PT60M", VALID),
+        ("duration", "PT1H", "PT61M", INVALID),
+        # decimal: 1, 1.0 and 1.00 denote the same value
+        ("decimal", "1", "1.0", VALID),
+        ("decimal", "1", "1.00", VALID),
+        ("decimal", "1", "2", INVALID),
+        # float / double: scientific and trailing-zero spellings are equal
+        ("float", "1", "1.0", VALID),
+        ("float", "100", "1E2", VALID),
+        ("float", "1", "2", INVALID),
+        ("double", "1.5", "1.50", VALID),
+        ("double", "1.5", "1.6", INVALID),
+        # integer: leading sign and leading zeros are not part of the value
+        ("integer", "1", "+1", VALID),
+        ("integer", "1", "01", VALID),
+        ("integer", "1", "2", INVALID),
+        # boolean: {true, 1} and {false, 0}
+        ("boolean", "1", "true", VALID),
+        ("boolean", "1", "1", VALID),
+        ("boolean", "1", "false", INVALID),
+        ("boolean", "0", "false", VALID),
+        ("boolean", "0", "true", INVALID),
+    ],
+)
+def test_validateValueString_enumeration_value_space(
+    base_xsd_type: str, member: str, value: str, expected_x_valid: int
+):
+    facets = {"enumeration": {member: None}}
+    result = validateValueString(base_xsd_type, value, facets=facets, nsmap={"prefix": "namespaceURI"})
+    assert result.xValid == expected_x_valid
+    assert result.isXValid == (expected_x_valid >= VALID)
+
+
+@pytest.mark.parametrize(
+    "value,expected_x_valid",
+    [
+        ("1", VALID),      # exact lexical member (fast path)
+        ("2", VALID),      # equals member "2.0" only in the value space
+        ("3.0", VALID),    # equals member "3" only in the value space
+        ("4", INVALID),    # not equal to any member
+    ],
+)
+def test_validateValueString_enumeration_value_space_multiple_members(value: str, expected_x_valid: int):
+    # a candidate may match any member, not just the first, by value-space equality
+    facets = {"enumeration": {"1": None, "2.0": None, "3": None}}
+    result = validateValueString("decimal", value, facets=facets)
+    assert result.xValid == expected_x_valid
+
+
+@pytest.mark.parametrize(
+    "value,expected_x_valid",
+    [
+        ("p:local", VALID),   # same value as member "q:local" (both bound to urn:x)
+        ("q:local", VALID),   # exact lexical member (fast path)
+        ("p:other", INVALID), # different local name
+    ],
+)
+def test_validateValueString_enumeration_qname_prefix_independent(value: str, expected_x_valid: int):
+    # A QName's value is the (namespace, local name) pair, not its lexical prefix. With both
+    # p: and q: bound to the same namespace in the instance, p:local and q:local are equal.
+    facets = {"enumeration": {"q:local": None}}
+    nsmap = {"p": "urn:x", "q": "urn:x"}
+    result = validateValueString("QName", value, facets=facets, nsmap=nsmap)
+    assert result.xValid == expected_x_valid
+
+
+def test_validateValueString_enumeration_qname_uses_schema_facet_nsmap():
+    # A QName-lexical member's namespace bindings are fixed at the schema (the facet element),
+    # not the validated instance. The member prefix "s" is only bound on the facet element;
+    # the instance binds the same namespace under a different prefix "i". Parsing the member
+    # with the facet's own nsmap is what lets the instance value match.
+    facetElt = Mock(nsmap={"s": "urn:x"})
+    facets = {"enumeration": {"s:local": facetElt}}
+    instanceNsmap = {"i": "urn:x"}
+    match = validateValueString("QName", "i:local", facets=facets, nsmap=instanceNsmap)
+    assert match.xValid == VALID
+    mismatch = validateValueString("QName", "i:other", facets=facets, nsmap=instanceNsmap)
+    assert mismatch.xValid == INVALID
+
+
+def test_validateValueString_enumeration_value_space_is_lazily_cached():
+    enumeration = _EnumerationFacet()
+    enumeration["1"] = None
+    facets = {"enumeration": enumeration}
+
+    # The lexical fast path must not build the value-space cache at all.
+    assert validateValueString("decimal", "1", facets=facets).xValid == VALID
+    assert getattr(enumeration, "valueSpace", "unset") == "unset"
+
+    # A lexical miss that matches in the value space builds and caches the map.
+    assert validateValueString("decimal", "1.0", facets=facets).xValid == VALID
+    cached = enumeration.valueSpace
+    assert Decimal("1") in cached
+
+    # A subsequent validation reuses the same cached object rather than rebuilding it.
+    assert validateValueString("decimal", "1.00", facets=facets).xValid == VALID
+    assert enumeration.valueSpace is cached
+
+
+@pytest.mark.parametrize(
+    "value,expected_x_valid",
+    [
+        ("1.0", VALID),    # matches the parseable member "1"
+        ("2", INVALID),    # matches nothing; must not crash on the bad member
+    ],
+)
+def test_validateValueString_enumeration_skips_unparseable_member(value: str, expected_x_valid: int):
+    # A member that cannot be parsed as the datatype is skipped, not fatal.
+    facets = {"enumeration": {"not-a-decimal": None, "1": None}}
+    result = validateValueString("decimal", value, facets=facets)
+    assert result.xValid == expected_x_valid
+
+
+@pytest.mark.parametrize(
+    "value,expected_x_valid",
+    [
+        ("1.0", VALID),
+        ("3", INVALID),
+    ],
+)
+def test_validateValueString_enumeration_set_valued(value: str, expected_x_valid: int):
+    # Some enumerations are plain sets (no facet elements, no cache attribute); value-space
+    # comparison must still work and the un-cacheable cache-write must be swallowed.
+    facets = {"enumeration": {"1", "2"}}
+    result = validateValueString("decimal", value, facets=facets)
+    assert result.xValid == expected_x_valid
+
+
+@pytest.mark.parametrize(
+    "value,expected_x_valid",
+    [
+        ("p:a", VALID),    # exact lexical member (fast path, list value never compared)
+        ("p:b", INVALID),  # lexical miss -> unhashable list xValue must not crash
+    ],
+)
+def test_validateValueString_enumeration_unhashable_xvalue_does_not_crash(value: str, expected_x_valid: int):
+    # enumerationQNames produces a list xValue, which is unhashable; the value-space lookup
+    # must fall back to a linear scan instead of raising TypeError.
+    facets = {"enumeration": {"p:a": None}}
+    result = validateValueString("enumerationQNames", value, facets=facets, nsmap={"p": "urn:x"})
+    assert result.xValid == expected_x_valid
 
 
 @pytest.mark.parametrize(

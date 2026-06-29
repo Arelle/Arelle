@@ -596,8 +596,6 @@ def _validateValueStringOrRaise(
                 (not isList and pattern.match(value) is None)):
                 raise ValueError("pattern facet " + facets["pattern"].pattern if facets and "pattern" in facets else "pattern mismatch")
         if facets:
-            if "enumeration" in facets and value not in facets["enumeration"]:
-                raise ValueError("{0} is not in {1}".format(value, facets["enumeration"].keys()))
             # length/minLength/maxLength are meaningless for QName and NOTATION; per
             # XSD Datatypes 3.2.18/3.2.19 every value is facet-valid with respect to them.
             if baseXsdType not in ("QName", "NOTATION"):
@@ -767,6 +765,46 @@ def _validateValueStringOrRaise(
                     raise ValueError(" < minInclusive {0}".format(facets["minInclusive"]))
                 if "minExclusive" in facets and _orderedComparison(xValue, facets["minExclusive"]) != 1:
                     raise ValueError(" <= minExclusive {0}".format(facets["minExclusive"]))
+        if facets and "enumeration" in facets and value not in facets["enumeration"]:
+            # XSD 1.0 Datatypes 4.3.5: the enumeration facet constrains the value space, so
+            # a value is facet-valid when it equals a member in the value space even if its
+            # lexical form differs (e.g. dateTime 12:01:01+00:00 vs -00:00, decimal 1.0 vs 1).
+            enumeration = facets["enumeration"]
+            # Only a schema-derived enumeration facet (a dict of lexical value -> facetElt,
+            # possibly an _EnumerationFacet) supports the lazily-populated valueSpace cache;
+            # synthetic enumerations built in this module (e.g. for whiteSpace) are plain
+            # sets/dicts without facetElts and always fall through to a fresh parse below.
+            valueSpace = getattr(enumeration, "valueSpace", None)
+            if valueSpace is None:
+                valueSpace = {}
+                members = (
+                    enumeration.items()
+                    if isinstance(enumeration, dict)
+                    else ((m, None) for m in enumeration)
+                )
+                for member, facetElt in members:
+                    try:
+                        # Use the enumeration facet's own schema-document nsmap (not the
+                        # validated instance's) since a QName-lexical enumeration member's
+                        # namespace bindings are fixed at the schema, per XSD Part 2 §3.17.2.
+                        memberNsmap = facetElt.nsmap if facetElt is not None else nsmap
+                        parsedMember = _validateValueStringOrRaise(baseXsdType, member, nsmap=memberNsmap)
+                        valueSpace[parsedMember.xValue] = member
+                    except (ValueError, InvalidOperation, TypeError):
+                        pass
+                try: # only an _EnumerationFacet (schema-derived enumeration) supports this
+                    enumeration.valueSpace = valueSpace
+                except AttributeError:
+                    pass
+            try:
+                found = xValue in valueSpace
+            except TypeError: # xValue is unhashable (e.g. a list); fall back to linear equality scan
+                found = any(xValue == v for v in valueSpace)
+            if not found:
+                raise ValueError("{0} is not in {1}".format(value, (
+                    facets["enumeration"].keys()
+                    if isinstance(facets["enumeration"], dict)
+                    else facets["enumeration"])))
     return XmlValidationResult(sValue=sValue, xValue=xValue, xValid=xValid)
 
 
