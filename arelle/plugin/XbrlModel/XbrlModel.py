@@ -34,6 +34,7 @@ def castToXbrlCompiledModel(modelXbrl, isReport=False):
         modelXbrl._effectiveReferenceRelatedNamesCache = {}
         modelXbrl._effectiveCubeExtensionCache = {}
         modelXbrl._referenceObjectsByNameCache = None
+        modelXbrl._impliedObjectNamespaces = None
     return modelXbrl
 
 
@@ -73,6 +74,7 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
         self._effectiveReferenceRelatedNamesCache: dict[int, OrderedSet[QName]] = {}
         self._effectiveCubeExtensionCache: dict[int, dict[str, OrderedSet[Any]]] = {}
         self._referenceObjectsByNameCache: Optional[defaultdict[QName, list[XbrlReference]]] = None
+        self._impliedObjectNamespaces: Optional[dict[str, Any]] = None  # built lazily
 
 
     @property
@@ -104,6 +106,38 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
         if fallbackToName:
             return str(name)
         return None
+
+    # ── Implied Object Resolution ──────────────────────────────────────
+    #
+    # An implied object is one whose existence is determined by its namespace
+    # URI alone, without an explicit definition in any imported module.
+    # For example, LEI entity identifiers (namespace http://standards.iso.org/iso/17442)
+    # are valid entity objects identified solely by their namespace.
+    #
+    # The implied object registry maps namespace URIs to their implied object
+    # definitions (domain class, object type). It is built lazily from the
+    # impliedObjects property of loaded modules.
+    # ──────────────────────────────────────────────────────────────────
+
+    def _buildImpliedObjectRegistry(self):
+        if self._impliedObjectNamespaces is not None:
+            return
+        self._impliedObjectNamespaces = {}
+        for module in self.xbrlModels.values():
+            for implObj in getattr(module, "impliedObjects", None) or ():
+                ns = getattr(implObj, "namespace", None)
+                if ns:
+                    self._impliedObjectNamespaces[str(ns)] = implObj
+
+    def isImpliedObject(self, qname: QName) -> bool:
+        """Return True if the QName's namespace is an implied object namespace."""
+        self._buildImpliedObjectRegistry()
+        return qname.namespaceURI in self._impliedObjectNamespaces if qname else False
+
+    def impliedObjectDefinition(self, qname: QName):
+        """Return the implied object definition for a QName, or None."""
+        self._buildImpliedObjectRegistry()
+        return self._impliedObjectNamespaces.get(qname.namespaceURI) if qname else None
 
     def referenceProperties(self, name: QName, referenceType: Optional[QName], lang: Optional[str] = None) -> list[XbrlPropertyAlias]:
         refProperties = defaultdict(list)

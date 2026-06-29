@@ -119,6 +119,18 @@ def _expectedTypeName(objType):
         return " or ".join(getattr(tp, "__name__", str(tp)) for tp in objType)
     return getattr(objType, "__name__", str(objType))
 
+_LEI_NAMESPACE = "http://standards.iso.org/iso/17442"
+
+def _validateImpliedObjectLocalName(compMdl, contextObj, qnRef):
+    """Validate the local name of an implied object QName (e.g. LEI checksum)."""
+    if qnRef.namespaceURI == _LEI_NAMESPACE:
+        from arelle.LeiUtil import checkLei, LEI_VALID
+        result = checkLei(qnRef.localName)
+        if result is not LEI_VALID:
+            compMdl.error("oimte:invalidLEILocalName",
+                          _("LEI local name %(lei)s is not a valid LEI identifier (%(reason)s)."),
+                          xbrlObject=contextObj, lei=qnRef.localName, reason=result.description())
+
 
 def validateQNameReference(compMdl, contextObj, propName, objType=None, msgCode=None,
                            undefinedMsgCode=None, invalidTypeMsgCode=None,
@@ -168,6 +180,9 @@ def validateQNameReference(compMdl, contextObj, propName, objType=None, msgCode=
     resolvedObj = compMdl.namedObjects.get(qnRef)
 
     if not resolvedObj:
+        if compMdl.isImpliedObject(qnRef):
+            _validateImpliedObjectLocalName(compMdl, contextObj, qnRef)
+            return None  # implied objects are valid but not in namedObjects
         emit_error(compMdl, undefinedMsgCode or msgCode or "oimte:invalidQNameReference",
                    undefinedMessage or _("%(parentType)s %(parentName)s property %(propName)s references undefined QName '%(qnRef)s'"),
                    **messageArgs)
@@ -1224,6 +1239,9 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         if relatedName in compMdl.namedObjects:
             relatedObj = compMdl.namedObjects.get(relatedName)
         elif relatedName in xbrlObjectTypes:
+            relatedObj = relatedName
+        elif compMdl.isImpliedObject(relatedName):
+            _validateImpliedObjectLocalName(compMdl, lblObj, relatedName)
             relatedObj = relatedName
         else:
             compMdl.error("oimte:invalidQNameReference",
