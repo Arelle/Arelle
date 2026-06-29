@@ -250,6 +250,14 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
     # ──────────────────────────────────────────────────────────────────
 
     def _effectiveRelationshipSet(self, obj, visiting: Optional[set[int]] = None):
+        """Build the effective (merged) relationship set for a network or domain,
+        resolving the ``extends`` chain recursively.
+
+        Relationships and roots from the base and all extensions are merged into
+        a single set, sorted by the ``order`` property.  Duplicate roots and
+        duplicate relationships (same source, target, order, and properties) in
+        the merged set are tracked for validation.
+        """
         cacheKey = getattr(obj, "xbrlMdlObjIndex", None)
         if cacheKey is None:
             cacheKey = id(obj)
@@ -265,28 +273,70 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
                 "relationshipsFrom": defaultdict(list),
                 "relationshipsTo": defaultdict(list),
                 "roots": OrderedSet(),
+                "duplicateRoots": OrderedSet(),
+                "duplicateRelationships": [],
             }
 
         visiting.add(cacheKey)
 
-        relationships = OrderedSet()
-        explicitRoots = OrderedSet()
+        # Collect all roots as (qname, order) tuples for sorting and dedup
+        rootList = []   # [(qname, order, rootObj)]
+        relList = []    # [(relObj)]
         extends = obj.extends
         if extends is not None:
             targetObj = self.namedObjects.get(extends)
             if isinstance(obj, XbrlDomainNetwork) and isinstance(targetObj, XbrlDomainNetwork) and getattr(targetObj, "isExtensible", True):
                 baseSet = self._effectiveRelationshipSet(targetObj, visiting)
-                relationships.update(baseSet["relationships"])
-                explicitRoots.update(baseSet["roots"])
+                relList.extend(baseSet["relationships"])
+                rootList.extend((qn, None, None) for qn in baseSet["roots"])
             elif isinstance(obj, XbrlNetwork) and isinstance(targetObj, XbrlNetwork):
                 baseSet = self._effectiveRelationshipSet(targetObj, visiting)
-                relationships.update(baseSet["relationships"])
-                explicitRoots.update(baseSet["roots"])
+                relList.extend(baseSet["relationships"])
+                rootList.extend((qn, None, None) for qn in baseSet["roots"])
 
+        # Add this object's own roots and relationships
         objectRoots = getattr(obj, "roots", None)
         if objectRoots:
-            explicitRoots.update(r.root if hasattr(r, "root") else r for r in objectRoots)
-        relationships.update(getattr(obj, "relationships", ()) or ())
+            for r in objectRoots:
+                rootQn = r.root if hasattr(r, "root") else r
+                rootOrder = getattr(r, "order", None) if hasattr(r, "root") else None
+                rootList.append((rootQn, rootOrder, r))
+        relList.extend(getattr(obj, "relationships", ()) or ())
+
+        # Sort by order (None sorts last)
+        def _orderKey(item):
+            order = item[1] if isinstance(item, tuple) else getattr(item, "order", None)
+            return (0, order) if order is not None else (1, 0)
+
+        rootList.sort(key=_orderKey)
+        relList.sort(key=lambda r: _orderKey(r))
+
+        # Detect duplicate roots
+        seenRoots = set()
+        duplicateRoots = OrderedSet()
+        explicitRoots = OrderedSet()
+        for rootQn, _order, _rootObj in rootList:
+            if rootQn in seenRoots:
+                duplicateRoots.add(rootQn)
+            else:
+                seenRoots.add(rootQn)
+            explicitRoots.add(rootQn)
+
+        # Detect duplicate relationships (same source, target, order, properties)
+        relationships = OrderedSet()
+        duplicateRelationships = []
+        relKeys = {}
+        for relObj in relList:
+            relKey = getattr(relObj, "_relKey", None)
+            if relKey is None:
+                relKey = (getattr(relObj, "source", None),
+                          getattr(relObj, "target", None),
+                          getattr(relObj, "order", None))
+            if relKey in relKeys:
+                duplicateRelationships.append((relKey, relObj))
+            else:
+                relKeys[relKey] = relObj
+            relationships.add(relObj)
 
         relationshipsFrom = defaultdict(list)
         relationshipsTo = defaultdict(list)
@@ -313,6 +363,8 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
             "relationshipsFrom": relationshipsFrom,
             "relationshipsTo": relationshipsTo,
             "roots": roots,
+            "duplicateRoots": duplicateRoots,
+            "duplicateRelationships": duplicateRelationships,
         }
         self._effectiveRelationshipSetCache[cacheKey] = effectiveSet
         visiting.discard(cacheKey)

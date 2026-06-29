@@ -159,6 +159,24 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
         else:
             ntwkObj.roots = ntwkObj._rootsFound  # not specified so use actual roots
 
+        # Check for duplicates in the merged (effective) set after extends resolution.
+        # Use the BASE network's effective set (the one being extended), since that
+        # is where base + extension relationships/roots are merged.
+        if ntwkObj.extends:
+            baseObj = compMdl.namedObjects.get(ntwkObj.extends)
+            if isinstance(baseObj, (XbrlNetwork, XbrlDomainNetwork)):
+                effSet = compMdl._effectiveRelationshipSet(baseObj)
+                if effSet["duplicateRoots"]:
+                    emit_error(compMdl, "oimte:duplicateItemsInSet",
+                               _("The network %(name)s has duplicated roots after extends merge: %(roots)s"),
+                               xbrlObject=ntwkObj, name=ntwkObj.extends,
+                               roots=", ".join(str(r) for r in effSet["duplicateRoots"]))
+                if effSet["duplicateRelationships"]:
+                    emit_error(compMdl, "oimte:duplicateItemsInSet",
+                               _("The network %(name)s has duplicated relationships after extends merge: %(rels)s"),
+                               xbrlObject=ntwkObj, name=ntwkObj.extends,
+                               rels=", ".join(f"{k[0]}→{k[1]}" for k, _ in effSet["duplicateRelationships"]))
+
         # Cycle detection: self-loops are always invalid; directed cycles are
         # checked based on the relationship type's cycles property.
         _cyclesVal = getattr(relTypeObj, "cycles", None)
