@@ -523,6 +523,16 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         # The mapping key was renamed from urlMapping to importMapping in newer schemas.
         # Accept both keys and normalize values to a tuple of URLs.
         importMapping = documentInfo.get("importMapping") or EMPTY_DICT
+        isCompiledDocType = documentType == "https://xbrl.org/2026/compiled"
+        if isCompiledDocType:
+            if "importedTaxonomies" in moduleObj:
+                xbrlCompMdl.error("oimte:importedTaxonomyDefinedForCompiledTaxonomy",
+                            _("A compiled taxonomy MUST NOT define importedTaxonomies."),
+                            sourceFileLine=href)
+            elif importMapping:
+                xbrlCompMdl.error("oimte:importMappingDefinedForCompiledTaxonomy",
+                            _("A compiled taxonomy MUST NOT define importMapping."),
+                            sourceFileLine=href)
         if importMapping:
             for qn, url in importMapping.copy().items():
                 qnImpName = qname(qn, prefixNamespaces)
@@ -735,8 +745,11 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                 (isinstance(newObj, (XbrlFact, XbrlFootnote, XbrlFactSource, XbrlFactMap, XbrlTableTemplate)) and isinstance(oimParentObj, XbrlModule))): # taxonomy-owned fact / table template
                 if keyValue is not None: # otherwise expect some error occured above
                     if keyValue in xbrlCompMdl.namedObjects:
-                        namedObjectDuplicates[keyValue].add(newObj)
-                        namedObjectDuplicates[keyValue].add(xbrlCompMdl.namedObjects[keyValue])
+                        existingObj = xbrlCompMdl.namedObjects[keyValue]
+                        existingIsCompiled = getattr(getattr(existingObj, "module", None), "modelForm", None) == "compiled"
+                        if not isCompiledDocType and not existingIsCompiled:
+                            namedObjectDuplicates[keyValue].add(newObj)
+                            namedObjectDuplicates[keyValue].add(existingObj)
                     else:
                         xbrlCompMdl.namedObjects[keyValue] = newObj
             elif isinstance(newObj, XbrlTaxonomyTagObject) and relatedNames:
@@ -823,7 +836,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         
         # imported taxonomy modules are needed before creating objects in this module, so that imported objects are available for reference and validation as the module is processed. This matches the expectation in the OIM spec that imported modules are processed before the importing module.
         impTxmyNameModuleObjs = {}
-        if "importedTaxonomies" in moduleFileObj["xbrlModel"]:
+        if "importedTaxonomies" in moduleFileObj["xbrlModel"] and not isCompiledDocType:
             for impTxJsonObj in moduleFileObj["xbrlModel"]["importedTaxonomies"]:
                 impTxModelName = impTxJsonObj.get("xbrlModelName")
                 impModuleName = qname(impTxModelName, prefixNamespaces)
