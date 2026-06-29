@@ -1114,6 +1114,22 @@ class TestBase64BinaryValidation:
         assert result.xValid == INVALID
         assert not result.isXValid
 
+    @pytest.mark.parametrize("value,facet,length,expected_x_valid", [
+        # length facets count octets of decoded data, not lexical characters:
+        # "YQ==" is 4 characters but decodes to the single octet 0x61.
+        ("YQ==", "length", 1, VALID),
+        ("YQ==", "length", 4, INVALID),
+        ("YQ==", "maxLength", 1, VALID),
+        ("YQ==", "minLength", 2, INVALID),
+        ("YWI=", "length", 2, VALID),  # "ab"
+        ("YWJj", "length", 3, VALID),  # "abc"
+        ("A A A A", "length", 3, VALID),  # lexical whitespace ignored -> AAAA -> 3 octets
+    ])
+    def test_length_facets_count_octets(self, value: str, facet: str, length: int, expected_x_valid: int):
+        result = validateValueString("base64Binary", value, facets={facet: length})
+        assert result.xValid == expected_x_valid
+        assert result.isXValid == (expected_x_valid >= VALID)
+
 
 class TestHexBinaryValidation:
     @pytest.mark.parametrize("value", [
@@ -1142,6 +1158,20 @@ class TestHexBinaryValidation:
         result = validateValueString("hexBinary", value)
         assert result.xValid == INVALID
         assert not result.isXValid
+
+    @pytest.mark.parametrize("value,facet,length,expected_x_valid", [
+        # length facets count octets, not hex digits: two hex digits = one octet.
+        ("FF", "length", 1, VALID),
+        ("48656C6C6F", "length", 5, VALID),  # "Hello"
+        ("48656C6C6F", "length", 10, INVALID),
+        ("AABB", "maxLength", 2, VALID),
+        ("AABB", "maxLength", 1, INVALID),
+        ("FF", "minLength", 2, INVALID),
+    ])
+    def test_length_facets_count_octets(self, value: str, facet: str, length: int, expected_x_valid: int):
+        result = validateValueString("hexBinary", value, facets={facet: length})
+        assert result.xValid == expected_x_valid
+        assert result.isXValid == (expected_x_valid >= VALID)
 
 
 class TestTimezoneValidation:
