@@ -15,6 +15,7 @@ from .XbrlProperty import XbrlPropertyType
 
 qnXbrlClassSubclass = qname(xbrl, "xbrl:class-subclass")
 qnPreferredLabel = qname(xbrl, "xbrl:preferredLabel")
+qnXbrlTaxonomyGroup = qname(xbrl, "xbrl:taxonomy-group")
 
 
 def _qname_key(value):
@@ -46,10 +47,16 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
         extendTargetObj = None
         relTypeObj = None
         if ntwkObj.extends:
-            extendTargetObj = validateQNameReference(compMdl, ntwkObj, "extends", XbrlNetwork)
+            extendTargetObj = validateQNameReference(compMdl, ntwkObj, "extends", XbrlNetwork,
+                                                     invalidTypeMsgCode="oimte:invalidObjectType")
             if extendTargetObj is not None:
                 relTypeObj = validateQNameReference(compMdl, extendTargetObj, "relationshipTypeName", XbrlRelationshipType)
-                if getattr(ntwkObj, "_extendResolved", False):
+                if not getattr(extendTargetObj, "isExtensible", True):
+                    emit_error(compMdl, "oimte:illegalExtensionOfNonExtensibleObject",
+                               _("The network %(target)s cannot be extended because it is non-extensible."),
+                               xbrlObject=ntwkObj, target=extendTargetObj.name)
+                    extendTargetObj = None
+                elif getattr(ntwkObj, "_extendResolved", False):
                     extendTargetObj = None  # don't extend, already been extended
                 else:
                     ntwkObj._extendResolved = True
@@ -65,6 +72,11 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
         elif ntwkObj.name:
             relTypeObj = validateQNameReference(compMdl, ntwkObj, "relationshipTypeName", XbrlRelationshipType)
         if not relTypeObj:
+            continue
+        if getattr(relTypeObj, "name", None) == qnXbrlTaxonomyGroup:
+            emit_error(compMdl, "oimte:taxonomyGroupInNetwork",
+                       _("The network %(name)s uses relationship type xbrl:taxonomy-group which MUST NOT be used in network objects."),
+                       xbrlObject=ntwkObj, name=ntwkObj.name)
             continue
 
         ntwkCt = {}
@@ -120,7 +132,8 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
                                properties=", ".join(str(p) for p in missingProps), relType=ntwkObj.relationshipTypeName)
             relObjPrefLbl = relObj.propertyObjectValue(qnPreferredLabel)
             if relObjPrefLbl is not None:
-                validateQNameReference(compMdl, relObj, qnPreferredLabel, XbrlLabelType, qnRef=relObjPrefLbl)
+                validateQNameReference(compMdl, relObj, qnPreferredLabel, XbrlLabelType,
+                                       invalidTypeMsgCode="oimte:invalidObjectType", qnRef=relObjPrefLbl)
             relKey = (relObj.source, relObj.target, relObjPrefLbl, relObj.order)
             ntwkCt[relKey] = ntwkCt.get(relKey, 0) + 1
         if any(ct > 1 for relKey, ct in ntwkCt.items()):
@@ -148,7 +161,8 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
 
         # Cycle detection: self-loops are always invalid; directed cycles are
         # checked based on the relationship type's cycles property.
-        cyclesProp = getattr(relTypeObj, "cycles", "none") or "none"
+        _cyclesVal = getattr(relTypeObj, "cycles", None)
+        cyclesProp = _cyclesVal.localName if isinstance(_cyclesVal, QName) else str(_cyclesVal) if _cyclesVal else "none"
         hasSelfLoop = False
         for relObj in ntwkObj.relationships or ():
             if relObj.source == relObj.target:
