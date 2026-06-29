@@ -1013,7 +1013,7 @@ class IsoDuration(isodate.Duration): # type: ignore[misc]
     def __gt__(self,other: Any) -> bool:
         if self.avgdays > other.avgdays:
             return True
-        elif self.avgdays > other.avgdays:
+        elif self.avgdays == other.avgdays:
             if self.tdelta.seconds > other.tdelta.seconds:
                 return True
             elif self.tdelta.seconds == other.tdelta.seconds:
