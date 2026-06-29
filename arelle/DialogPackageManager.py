@@ -426,7 +426,7 @@ class DialogPackageManager(Toplevel):
             self.loadTreeViews()
         else:
             messagebox.showwarning(_("Package is not a taxonomy package."),
-                                   _("The selected file is not a taxonomy package. It does not contain a manifest file: \n\n{0}\n\n")
+                                   _("The selected file is not a taxonomy package. It does not contain a valid manifest file. See messages panel for more details. \n\n{0}\n\n")
                                    .format(url),
                                    parent=self)
 

@@ -626,7 +626,8 @@ class PackageManager:
                         self._getCntlr(), filesource, packageFileUrl, packageFilePrefix, errors
                     )
                     if parsedPackage:
-                        packageNames.append(str(parsedPackage['name']))
+                        if parsedPackage.get("name"):
+                            packageNames.append(str(parsedPackage['name']))
                         if parsedPackage.get('description'):
                             descriptions.append(str(parsedPackage['description']))
                         _remappings = parsedPackage["remappings"]
