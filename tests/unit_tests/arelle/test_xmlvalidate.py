@@ -703,6 +703,43 @@ def test_validateValue_facets_minMaxExclusive(value: str, expected: tuple):
 
 
 @pytest.mark.parametrize(
+    "base_xsd_type,value,facets,expected_x_valid",
+    [
+        # date: the four bounding facets are enforced in the value space (Fix 3); on the
+        # bound itself the inclusive variants accept and the exclusive variants reject.
+        ("date", "2009-01-01", {"maxExclusive": DateTime(2011, 10, 16)}, VALID),
+        ("date", "2011-10-16", {"maxExclusive": DateTime(2011, 10, 16)}, INVALID),
+        ("date", "2027-07-04", {"maxExclusive": DateTime(2011, 10, 16)}, INVALID),
+        ("date", "2009-01-01", {"maxInclusive": DateTime(2011, 10, 16)}, VALID),
+        ("date", "2011-10-16", {"maxInclusive": DateTime(2011, 10, 16)}, VALID),
+        ("date", "2027-07-04", {"maxInclusive": DateTime(2011, 10, 16)}, INVALID),
+        ("date", "2027-07-04", {"minInclusive": DateTime(2011, 10, 16)}, VALID),
+        ("date", "2011-10-16", {"minInclusive": DateTime(2011, 10, 16)}, VALID),
+        ("date", "2009-01-01", {"minInclusive": DateTime(2011, 10, 16)}, INVALID),
+        ("date", "2027-07-04", {"minExclusive": DateTime(2011, 10, 16)}, VALID),
+        ("date", "2011-10-16", {"minExclusive": DateTime(2011, 10, 16)}, INVALID),
+        ("date", "2009-01-01", {"minExclusive": DateTime(2011, 10, 16)}, INVALID),
+        # dateTime
+        ("dateTime", "2025-01-02T03:04:05", {"maxInclusive": DateTime(2025, 1, 2, 3, 4, 5)}, VALID),
+        ("dateTime", "2025-01-02T03:04:06", {"maxInclusive": DateTime(2025, 1, 2, 3, 4, 5)}, INVALID),
+        # gYear
+        ("gYear", "0001", {"maxInclusive": gYear(5)}, VALID),
+        ("gYear", "0009", {"maxInclusive": gYear(5)}, INVALID),
+        # duration whose bounds differ in the years/months/days part (independent of the
+        # seconds tie-break, which is Fix 6)
+        ("duration", "P6M", {"maxExclusive": isoDuration("P1Y")}, VALID),
+        ("duration", "P2Y", {"maxExclusive": isoDuration("P1Y")}, INVALID),
+    ],
+)
+def test_validateValueString_facets_ordering(
+    base_xsd_type: str, value: str, facets: dict, expected_x_valid: int
+):
+    result = validateValueString(base_xsd_type, value, facets=facets)
+    assert result.xValid == expected_x_valid
+    assert result.isXValid == (expected_x_valid >= VALID)
+
+
+@pytest.mark.parametrize(
     "whitespace,value,expected",
     [
         pytest.param("preserve", "\t\tA  B\n\nC ", ("=", "=", VALID)),

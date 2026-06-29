@@ -653,6 +653,15 @@ def _validateValueStringOrRaise(
             else: # no lexical pattern, forget compiling value
                 xValue = value
             sValue = value
+            if facets: # ordering facets on date/time/gYear/... (xValue is a comparable type)
+                if "maxInclusive" in facets and xValue > facets["maxInclusive"]:
+                    raise ValueError(" > maxInclusive {0}".format(facets["maxInclusive"]))
+                if "maxExclusive" in facets and xValue >= facets["maxExclusive"]:
+                    raise ValueError(" >= maxExclusive {0}".format(facets["maxExclusive"]))
+                if "minInclusive" in facets and xValue < facets["minInclusive"]:
+                    raise ValueError(" < minInclusive {0}".format(facets["minInclusive"]))
+                if "minExclusive" in facets and xValue <= facets["minExclusive"]:
+                    raise ValueError(" <= minExclusive {0}".format(facets["minExclusive"]))
     return XmlValidationResult(sValue=sValue, xValue=xValue, xValid=xValid)
 
 
