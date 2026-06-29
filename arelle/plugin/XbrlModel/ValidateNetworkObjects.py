@@ -1,6 +1,7 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
+from collections import defaultdict
 from ordered_set import OrderedSet
 from arelle.ModelValue import QName, qname
 from .ErrorCatalog import emit_error
@@ -144,6 +145,42 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
                            roots=", ".join(sorted(str(r) for r in rootsAsTargets)))
         else:
             ntwkObj.roots = ntwkObj._rootsFound  # not specified so use actual roots
+
+        # Cycle detection: self-loops are always invalid; directed cycles are
+        # checked based on the relationship type's cycles property.
+        cyclesProp = getattr(relTypeObj, "cycles", "none") or "none"
+        hasSelfLoop = False
+        for relObj in ntwkObj.relationships or ():
+            if relObj.source == relObj.target:
+                emit_error(compMdl, "oimte:networkCyclic",
+                           _("The network %(name)s has a self-loop: %(node)s → %(node)s."),
+                           xbrlObject=ntwkObj, name=ntwkObj.name, node=relObj.source)
+                hasSelfLoop = True
+        if not hasSelfLoop and cyclesProp != "any" and sources:
+            graph = defaultdict(set)
+            for relObj in ntwkObj.relationships or ():
+                graph[relObj.source].add(relObj.target)
+            visited = set()
+            inStack = set()
+            def _hasCycle(node):
+                if node in inStack:
+                    return True
+                if node in visited:
+                    return False
+                visited.add(node)
+                inStack.add(node)
+                for child in graph.get(node, ()):
+                    if _hasCycle(child):
+                        return True
+                inStack.discard(node)
+                return False
+            for root in (sources - targets) or sources:
+                if _hasCycle(root):
+                    emit_error(compMdl, "oimte:networkCyclic",
+                               _("The network %(name)s contains a directed cycle."),
+                               xbrlObject=ntwkObj, name=ntwkObj.name)
+                    break
+
         validateProperties(compMdl, oimFile, module, ntwkObj)
 
     # PropertyType Objects

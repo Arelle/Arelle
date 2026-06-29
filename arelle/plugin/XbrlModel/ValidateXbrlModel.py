@@ -699,6 +699,25 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                    invalidTypeMsgCode="oimte:invalidObjectType",
                                    qnRef=reqCubeQn)
 
+        # Check exclude/required cube dimensional space overlap
+        exclCubeQns = compMdl.effectiveExcludeCubes(cubeObj)
+        reqCubeQns = compMdl.effectiveRequiredCubes(cubeObj)
+        if exclCubeQns and reqCubeQns:
+            for exclQn in exclCubeQns:
+                exclObj = compMdl.namedObjects.get(exclQn)
+                if not isinstance(exclObj, XbrlCube):
+                    continue
+                exclDims = frozenset(cd.dimension for cd in exclObj.cubeDimensions)
+                for reqQn in reqCubeQns:
+                    reqObj = compMdl.namedObjects.get(reqQn)
+                    if not isinstance(reqObj, XbrlCube):
+                        continue
+                    reqDims = frozenset(cd.dimension for cd in reqObj.cubeDimensions)
+                    if exclDims == reqDims:
+                        compMdl.error("oimte:excludeCubeSharesDimensionalSpaceWithRequiredCube",
+                                      _("Cube %(name)s excludeCube %(excludeCube)s shares the same dimensional space as requiredCube %(requiredCube)s."),
+                                      xbrlObject=cubeObj, name=name, excludeCube=exclQn, requiredCube=reqQn)
+
         validateProperties(compMdl, oimFile, module, cubeObj)
         unitDataTypeQNs = set()
         conceptDataTypeQNs = set()
