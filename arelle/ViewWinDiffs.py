@@ -1,56 +1,68 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-from collections import defaultdict
-import os
-from tkinter import *
-try:
-    from tkinter.ttk import *
-except ImportError:
-    from ttk import *
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from tkinter import N, S, E, W, HORIZONTAL
+from tkinter.ttk import Notebook, PanedWindow
 from arelle.ViewWinRelationshipSet import viewRelationshipSet
 from arelle.ViewWinConcepts import viewConcepts
 from arelle import ModelVersObject, XbrlConst
+from arelle.typing import TypeGetText
+
+if TYPE_CHECKING:
+    from arelle.ModelObject import ModelObject
+    from arelle.ModelXbrl import ModelXbrl
+
+_: TypeGetText
+
 
 class ViewWinDiffs:
-    def __init__(self, modelVersReport, tabWin, lang=None):
-        self.modelVersReport = modelVersReport
+    def __init__(
+        self,
+        modelVersReport: ModelXbrl,
+        tabWin: Notebook,
+        lang: str | None = None,
+    ) -> None:
+        self.modelVersReport: ModelXbrl | None = modelVersReport
         #check for both from and to DTS
         versReport = modelVersReport.modelDocument
         if not hasattr(versReport, "xmlDocument") or not hasattr(versReport, "fromDTS") or not hasattr(versReport, "toDTS"):
             return
-        self.fromDTS = versReport.fromDTS
-        self.toDTS = versReport.toDTS
+        self.fromDTS: ModelXbrl = versReport.fromDTS  # type: ignore[union-attr]
+        self.toDTS: ModelXbrl = versReport.toDTS  # type: ignore[union-attr]
 
         self.tabWin = tabWin
-        width = int( self.tabWin.winfo_width() / 2 )
+        width = int(self.tabWin.winfo_width() / 2)
         self.paneWin = PanedWindow(tabWin, orient=HORIZONTAL)
         self.paneWin.grid(row=1, column=0, sticky=(N, S, E, W))
-        tabWin.add(self.paneWin,text="DTSes")
-        tabWin.select(self.paneWin)
+        tabWin.add(self.paneWin, text="DTSes")
+        tabWin.select(self.paneWin)  # type: ignore[no-untyped-call]
         self.tabWinBtmLf = Notebook(self.paneWin, width=width)
         self.tabWinBtmLf.grid(row=0, column=0, sticky=(N, S, E, W))
         self.paneWin.add(self.tabWinBtmLf)
         self.tabWinBtmRt = Notebook(self.paneWin, width=width)
         self.tabWinBtmRt.grid(row=0, column=0, sticky=(N, S, E, W))
         self.paneWin.add(self.tabWinBtmRt)
-        viewRelationshipSet(self.fromDTS, self.tabWinBtmLf,
+        viewRelationshipSet(self.fromDTS, self.tabWinBtmLf,  # type: ignore[no-untyped-call]
                             XbrlConst.parentChild, lang=lang,
                             treeColHdr=_("From DTS Presentation"))
-        viewRelationshipSet(self.fromDTS, self.tabWinBtmLf,
+        viewRelationshipSet(self.fromDTS, self.tabWinBtmLf,  # type: ignore[no-untyped-call]
                             XbrlConst.summationItem, lang=lang,
                             treeColHdr=_("From DTS Calculation"))
-        viewRelationshipSet(self.fromDTS, self.tabWinBtmLf,
+        viewRelationshipSet(self.fromDTS, self.tabWinBtmLf,  # type: ignore[no-untyped-call]
                             "XBRL-dimensions", lang=lang,
                             treeColHdr=_("From DTS Dimension"))
         viewConcepts(self.fromDTS, self.tabWinBtmLf, "From Concepts", lang=lang)
-        viewRelationshipSet(self.toDTS, self.tabWinBtmRt,
+        viewRelationshipSet(self.toDTS, self.tabWinBtmRt,  # type: ignore[no-untyped-call]
                             XbrlConst.parentChild, lang=lang,
                             treeColHdr=_("To DTS Presentation"))
-        viewRelationshipSet(self.toDTS, self.tabWinBtmRt,
+        viewRelationshipSet(self.toDTS, self.tabWinBtmRt,  # type: ignore[no-untyped-call]
                             XbrlConst.summationItem, lang=lang,
                             treeColHdr=_("To DTS Calculation"))
-        viewRelationshipSet(self.toDTS, self.tabWinBtmRt,
+        viewRelationshipSet(self.toDTS, self.tabWinBtmRt,  # type: ignore[no-untyped-call]
                             "XBRL-dimensions", lang=lang,
                             treeColHdr=_("To DTS Dimension"))
         viewConcepts(self.toDTS, self.tabWinBtmRt, "To Concepts", lang=lang)
@@ -62,7 +74,7 @@ class ViewWinDiffs:
         self.blockViewModelObject = 0
 
 
-    def close(self):
+    def close(self) -> None:
         if self in self.fromDTS.views:
             self.fromDTS.views.remove(self)
         if self in self.toDTS.views:
@@ -70,10 +82,10 @@ class ViewWinDiffs:
         self.fromDTS.close()
         self.toDTS.close()
         self.tabWin.forget(self.paneWin)
-        self.modelVersReport.views.remove(self)
+        self.modelVersReport.views.remove(self)  # type: ignore[union-attr]
         self.modelVersReport = None
 
-    def viewModelObject(self, modelObject):
+    def viewModelObject(self, modelObject: ModelObject) -> None:
         if self.blockViewModelObject == 0:
             try:
                 self.blockViewModelObject += 1  # prevent recursion
@@ -86,16 +98,16 @@ class ViewWinDiffs:
                         self.toDTS.viewModelObject(toConcept.objectId())
                 elif isinstance(modelObject, ModelVersObject.ModelRelationships):
                     if modelObject.isFromDTS:
-                        self.fromDTS.viewModelObject(modelObject.fromRelationship.objectId())
+                        self.fromDTS.viewModelObject(modelObject.fromRelationship.objectId())  # type: ignore[union-attr]
                     else:
-                        self.toDTS.viewModelObject(modelObject.fromRelationship.objectId())
-                elif isinstance(modelObject, (ModelVersObject.ModelInstanceAspect, ModelVersObject.ModelInstanceMemberAspect)):
+                        self.toDTS.viewModelObject(modelObject.fromRelationship.objectId())  # type: ignore[union-attr]
+                elif isinstance(modelObject, (ModelVersObject.ModelInstanceAspect, ModelVersObject.ModelRelatedConcept)):
                     if modelObject.isFromDTS:
-                        self.fromDTS.viewModelObject(modelObject.sourceDtsObject.objectId())
+                        self.fromDTS.viewModelObject(modelObject.sourceDtsObject.objectId())  # type: ignore[union-attr]
                     else:
-                        self.toDTS.viewModelObject(modelObject.sourceDtsObject.objectId())
+                        self.toDTS.viewModelObject(modelObject.sourceDtsObject.objectId())  # type: ignore[union-attr]
                 elif modelObject.modelXbrl != self.modelVersReport:  # propogate event to versiong report's modelXbrl
-                    self.modelVersReport.viewModelObject(modelObject)
+                    self.modelVersReport.viewModelObject(modelObject)  # type: ignore[arg-type,union-attr]
             except Exception:
                 pass
             self.blockViewModelObject -= 1  # unblock
