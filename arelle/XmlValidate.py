@@ -31,10 +31,11 @@ if TYPE_CHECKING:
 
 _: TypeGetText
 
-# patterns to replace \c and \i in names
-iNameChar = "[_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
-cNameChar = r"[_\-\.:"   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]"
-cMinusCNameChar = r"[_\-\."   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]"
+# XSD Part 2 Appendix F name-character escapes (\i, \c) → Python character classes.
+iNameChar = "[:_A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"  # \i
+iNameCharMinusColon = iNameChar.replace("[:", "[", 1)  # [\i-[:]]
+cNameChar = r"[:_\-\."   "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]"  # \c
+cNameCharMinusColon = cNameChar.replace("[:", "[", 1)  # [\c-[:]]
 
 def _raiseOnNonXsdRegexSyntax(p: str) -> None:
     """
@@ -59,10 +60,22 @@ class XsdPattern:
     # shim class for python wrapper of xsd pattern
     @classmethod
     def compile(cls, p: str) -> XsdPattern:
+        """Expand XSD \\i and \\c escapes to Python character classes.
+
+        Per XSD Part 2 Appendix F:
+          \\i           → NameStartChar (Letter | '_' | ':')
+          [\\i-[:]]     → NCName start (NameStartChar minus ':')
+          \\c           → NameChar (includes ':')
+          [\\c-[:]]     → NameChar minus ':'
+
+        Subtract forms are replaced first so bare \\i/\\c inside them are not touched.
+        """
         _raiseOnNonXsdRegexSyntax(p)
         if r"\i" in p or r"\c" in p:
-            p = p.replace(r"[\i-[:]]", iNameChar).replace(r"\i", iNameChar) \
-                 .replace(r"[\c-[:]]", cMinusCNameChar).replace(r"\c", cNameChar)
+            p = (p.replace(r"[\i-[:]]", iNameCharMinusColon)
+                 .replace(r"\i", iNameChar)
+                 .replace(r"[\c-[:]]", cNameCharMinusColon)
+                 .replace(r"\c", cNameChar))
         pyPattern = re_compile(p + "$") # must match whole string
         return cls(p, pyPattern)
 
