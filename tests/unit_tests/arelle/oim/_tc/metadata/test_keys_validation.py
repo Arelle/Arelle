@@ -10,6 +10,7 @@ from arelle.oim._tc.const import (
     TCME_ILLEGAL_KEY_FIELD,
     TCME_INCONSISTENT_REFERENCE_KEY_FIELDS,
     TCME_INCONSISTENT_SHARED_KEY_FIELDS,
+    TCME_INCONSISTENT_SHARED_KEY_SEVERITY,
     TCME_MISSING_KEY_PROPERTY,
     TCME_UNKNOWN_KEY,
     TCME_UNKNOWN_SEVERITY,
@@ -822,3 +823,71 @@ class TestInconsistentSharedKeyFields:
         )
         errors = list(validate_keys(TCMetadata(template_constraints={_T1: t1, _T2: t2}), _NAMESPACES))
         assert errors == []
+
+
+class TestInconsistentSharedKeySeverity:
+    def test_consistent_severity(self) -> None:
+        key = TCUniqueKey(name="k", fields=("id",), shared=True, severity="warning")
+        t1 = TCTemplateConstraints(
+            constraints={"id": TCValueConstraint(type="xs:string")},
+            keys=TCKeys(unique=(key,)),
+        )
+        t2 = TCTemplateConstraints(
+            constraints={"id": TCValueConstraint(type="xs:string")},
+            keys=TCKeys(unique=(key,)),
+        )
+        errors = list(validate_keys(TCMetadata(template_constraints={_T1: t1, _T2: t2}), _NAMESPACES))
+        assert errors == []
+
+    def test_inconsistent_severity(self) -> None:
+        k1 = TCUniqueKey(name="k", fields=("id",), shared=True, severity="error")
+        k2 = TCUniqueKey(name="k", fields=("id",), shared=True, severity="warning")
+        t1 = TCTemplateConstraints(
+            constraints={"id": TCValueConstraint(type="xs:string")},
+            keys=TCKeys(unique=(k1,)),
+        )
+        t2 = TCTemplateConstraints(
+            constraints={"id": TCValueConstraint(type="xs:string")},
+            keys=TCKeys(unique=(k2,)),
+        )
+        errors = list(validate_keys(TCMetadata(template_constraints={_T1: t1, _T2: t2}), _NAMESPACES))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_INCONSISTENT_SHARED_KEY_SEVERITY
+        assert errors[0].json_pointers == [
+            f"/tableTemplates/{_T1}/tc:keys/unique/0/severity",
+            f"/tableTemplates/{_T2}/tc:keys/unique/0/severity",
+        ]
+
+    def test_three_templates_multiple_divergence_kinds(self) -> None:
+        k1 = TCUniqueKey(name="k", fields=("a",), shared=True, severity="error")
+        k2 = TCUniqueKey(name="k", fields=("a",), shared=True, severity="warning")
+        k3 = TCUniqueKey(name="k", fields=("a",), shared=True, severity="warning")
+        t1 = TCTemplateConstraints(
+            constraints={"a": TCValueConstraint(type="xs:string")},
+            keys=TCKeys(unique=(k1,)),
+        )
+        t2 = TCTemplateConstraints(
+            constraints={"a": TCValueConstraint(type="xs:token")},
+            keys=TCKeys(unique=(k2,)),
+        )
+        t3 = TCTemplateConstraints(
+            constraints={"a": TCValueConstraint(type="xs:string")},
+            keys=TCKeys(unique=(k3,)),
+        )
+        errors = list(validate_keys(TCMetadata(template_constraints={_T1: t1, _T2: t2, _T3: t3}), _NAMESPACES))
+        assert len(errors) == 2
+        fields_errors = [e for e in errors if e.code == TCME_INCONSISTENT_SHARED_KEY_FIELDS]
+        severity_errors = [e for e in errors if e.code == TCME_INCONSISTENT_SHARED_KEY_SEVERITY]
+        assert len(fields_errors) == 1
+        assert fields_errors[0].json_pointers == [
+            f"/tableTemplates/{_T1}/tc:keys/unique/0/fields",
+            f"/tableTemplates/{_T2}/tc:keys/unique/0/fields",
+            f"/tableTemplates/{_T1}/tc:keys/unique/0/fields/0",
+            f"/tableTemplates/{_T2}/tc:keys/unique/0/fields/0",
+        ]
+        assert len(severity_errors) == 1
+        assert severity_errors[0].json_pointers == [
+            f"/tableTemplates/{_T1}/tc:keys/unique/0/severity",
+            f"/tableTemplates/{_T2}/tc:keys/unique/0/severity",
+            f"/tableTemplates/{_T3}/tc:keys/unique/0/severity",
+        ]

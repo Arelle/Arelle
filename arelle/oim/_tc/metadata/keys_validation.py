@@ -14,6 +14,7 @@ from arelle.oim._tc.const import (
     TCME_ILLEGAL_KEY_FIELD,
     TCME_INCONSISTENT_REFERENCE_KEY_FIELDS,
     TCME_INCONSISTENT_SHARED_KEY_FIELDS,
+    TCME_INCONSISTENT_SHARED_KEY_SEVERITY,
     TCME_MISSING_KEY_PROPERTY,
     TCME_UNKNOWN_KEY,
     TCME_UNKNOWN_SEVERITY,
@@ -336,4 +337,18 @@ def _validate_shared_key_consistency(
                 *first_key_fields_path,
                 code=TCME_INCONSISTENT_SHARED_KEY_FIELDS,
                 related_paths=tuple(inconsistent_field_paths),
+            )
+
+        severity_diverging_paths = [
+            (TABLE_TEMPLATES_KEY, tid, TC_KEYS_PROPERTY_NAME, "unique", str(ki), "severity")
+            for tid, ki, key in occurrences[1:]
+            if key.severity != first_key.severity
+        ]
+        if severity_diverging_paths:
+            yield TCMetadataValidationError(
+                _("Shared key '{}' has inconsistent severity across templates").format(key_name),
+                *first_key_path,
+                "severity",
+                code=TCME_INCONSISTENT_SHARED_KEY_SEVERITY,
+                related_paths=tuple(severity_diverging_paths),
             )
