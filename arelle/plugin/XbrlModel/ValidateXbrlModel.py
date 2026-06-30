@@ -19,7 +19,7 @@ from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlCollectionType, XbrlUnit
 from .XbrlConst import (xbrl, qnXbrlReferenceObj, qnXbrlLabelObj, qnXbrlHeadingObj, qnXbrlConceptObj,
                         qnXbrlMemberObj, qnXbrlEntityObj, qnXbrlUnitObj, qnXbrlImportTaxonomyObj,
                         reservedPrefixNamespaces, qnXbrlLabelObj, qnXbrlPropertyObj,
-                        qnXbrlDimensionObj, EMPTY_FROZENSET)
+                        qnXbrlDimensionObj, qnXbrlRootSource, EMPTY_FROZENSET)
 from .XbrlCube import (XbrlCube, XbrlCubeType, baseCubeTypes, XbrlCubeDimension,
                        periodCoreDim, conceptCoreDim, entityCoreDim, unitCoreDim, languageCoreDim, coreDimensions,
                     conceptDomainClass, entityDomainClass, unitDomainClass, languageDomainClass,
@@ -454,6 +454,8 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 matchingConstrs = [c for c in cubeNtwkConstrs if c.relationshipType == ntwk.relationshipTypeName]
                 ntwkMatchedConstraints = set()
                 for relObj in ntwk.relationships or ():
+                    if relObj.source == qnXbrlRootSource:
+                        continue  # rootSource is a virtual origin, not subject to constraints
                     if not matchingConstrs:
                         if getattr(cubeNtwkConstrObj, "closed", False):
                             compMdl.error("oimte:invalidCubeNetworkRelationship",

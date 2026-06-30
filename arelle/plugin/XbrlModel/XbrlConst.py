@@ -59,7 +59,6 @@ qnXsDateTime = qname(xsd, "xs:dateTime")
 qnXsDuration = qname(xsd, "xs:duration")
 qnXsQName = qname(xsd, "xs:QName")
 
-# OIM taxonomy model renamed abstractObject -> headingObject.
 qnXbrlHeadingObj = qname(xbrl, "xbrl:headingObject")
 qnXbrlConceptObj = qname(xbrl, "xbrl:conceptObject")
 qnXbrlDimensionObj = qname(xbrl, "xbrl:dimensionObject")
@@ -94,6 +93,8 @@ objectsWithProperties = {
     qnXbrlReferenceObj,
     qname(xbrl, "xbrl:relationshipObject"),
     }
+
+qnXbrlRootSource = qname(xbrl, "xbrl:rootSource")
 
 unsupportedTypedDimensionDataTypes = set(
     qname(xsd, n) for n in ("ENTITY", "ENTITIES", "ID", "IDREF", "IDREFS", "NMTOKEN", "NMTOKENS", "NOTATION"))

@@ -110,13 +110,10 @@ class ErrorCatalog:
         networkKey = self._network_key(name)
         if networkKey not in (OBJECT_TYPE_NETWORK, BASE_OBJECT_TYPE_NETWORK):
             return
-        roots = network.get("roots", ())
         relationships = network.get("relationships", ())
         groups: dict[str, list[tuple[float, str]]] = {}
-        if isinstance(roots, list):
-            for root in roots:
-                if isinstance(root, str):
-                    groups.setdefault(root, [])
+        # Roots are identified by relationships from xbrl:rootSource; all other
+        # relationships define parent→child edges within the error family hierarchy.
         if isinstance(relationships, list):
             for rel in relationships:
                 if not isinstance(rel, dict):
@@ -124,6 +121,9 @@ class ErrorCatalog:
                 source = rel.get("source")
                 target = rel.get("target")
                 if not (isinstance(source, str) and isinstance(target, str)):
+                    continue
+                if source == "xbrl:rootSource":
+                    groups.setdefault(target, [])
                     continue
                 order = rel.get("order", 0)
                 try:

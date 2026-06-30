@@ -7,6 +7,7 @@ from collections import defaultdict
 
 from arelle.ModelValue import QName, AnyURI
 from ordered_set import OrderedSet
+from .XbrlConst import qnXbrlRootSource
 from .XbrlProperty import XbrlProperty
 from .XbrlTypes import XbrlModuleAlias, QNameKeyType, DefaultTrue, NonemptySet
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
@@ -40,8 +41,6 @@ class XbrlRelationshipSet:
 
     def __init__(self):
         self._relationshipsFrom = self._relationshipsTo = self._roots = None
-        if hasattr(self, "roots") and len(getattr(self, "roots")) > 1:
-            self._roots = OrderedSet(r.root if hasattr(r, "root") else r for r in self.roots)
 
     @property
     def relationshipsFrom(self):
@@ -64,25 +63,20 @@ class XbrlRelationshipSet:
     @property
     def relationshipRoots(self):
         if not hasattr(self, "_roots"):
-            if hasattr(self, "roots") and len(getattr(self, "roots")) > 1:
-                self._roots = OrderedSet(r.root if hasattr(r, "root") else r for r in self.roots)
+            relsFrom = self.relationshipsFrom
+            rootSourceRels = relsFrom.get(qnXbrlRootSource, [])
+            if rootSourceRels:
+                self._roots = OrderedSet(rel.target for rel in rootSourceRels)
             else:
-                relsFrom = self.relationshipsFrom
                 relsTo = self.relationshipsTo
                 self._roots = [qnFrom
-                               for qnFrom, relsFrom in relsFrom.items()
-                               if qnFrom not in relsTo or
-                               (len(relsFrom) == 1 and # root-level self-looping ar
-                                len(relsTo[qnFrom]) == 1 and
-                                relsFrom[0].source == relsFrom[0].target)]
+                               for qnFrom, relsList in relsFrom.items()
+                               if qnFrom != qnXbrlRootSource and (
+                                   qnFrom not in relsTo or
+                                   (len(relsList) == 1 and
+                                    len(relsTo[qnFrom]) == 1 and
+                                    relsList[0].source == relsList[0].target))]
         return self._roots
-
-class XbrlRoot(XbrlModelObject):
-    """ Root Object
-        Reference: oim-taxonomy#root-object
-    """
-    root: QName # (required) The root is a QName that references the model object that is the root of the network.
-    order: Optional[int] # (optional) The order specifies the order of the root object within the root of the network object.
 
 class XbrlNetwork(XbrlReferencableModelObject, XbrlRelationshipSet):
     """ Network Object
@@ -92,8 +86,7 @@ class XbrlNetwork(XbrlReferencableModelObject, XbrlRelationshipSet):
     module: XbrlModuleAlias
     name: QNameKeyType # (required if no extendedTargetName) The name is a QName that uniquely identifies the network object.
     relationshipTypeName: QName # (required if no extendedTargetName) The relationshipType object of the network expressed as a QName such as xbrl:parent-child
-    roots: Optional[NonemptySet[XbrlRoot]] # (optional) A list of the root objects of the network object. This allows a single object to be associated with a network without the need for a relationship. The order of roots in the list indicates the order in which the roots should appear. If no root is specified for a list of relationships the roots property is inferred from the relationships defined.
-    relationships: Optional[NonemptySet[XbrlRelationship]] # (optional) A set of the relationship objects comprising the network.
+    relationships: Optional[NonemptySet[XbrlRelationship]] # (optional) A set of the relationship objects comprising the network. Root nodes are identified by relationships from the virtual xbrl:rootSource origin.
     extends: Optional[QName] # (required if no name) Names the network object that the defined network relationships should be appended to. The items in the network with this property are appended to the end of the relationships or roots defined in the target network object. This property cannot be used in conjunction with the relationshipTypeName and name property.
     isExtensible: Union[bool, DefaultTrue] # (optional) If set to false, the network is non-extensible and no importing taxonomy may augment it using extends. If set to true or omitted, the network may be extended. The default value is true.
     properties: Optional[NonemptySet[XbrlProperty]] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.

@@ -6,7 +6,7 @@ from ordered_set import OrderedSet
 from arelle.ModelValue import QName, qname
 from .ErrorCatalog import emit_error
 from .XbrlConcept import XbrlCollectionType, XbrlDataType, XbrlConcept
-from .XbrlConst import objectsWithProperties, xbrl
+from .XbrlConst import objectsWithProperties, qnXbrlRootSource, xbrl
 from .XbrlDimension import XbrlDomainNetwork
 from .XbrlLabel import XbrlLabelType
 from .XbrlModule import xbrlObjectQNames
@@ -79,31 +79,40 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
                        xbrlObject=ntwkObj, name=ntwkObj.name)
             continue
 
-        ntwkCt = {}
-        for rootObj in ntwkObj.roots or ():
-            rootQn = rootObj.root if hasattr(rootObj, "root") else rootObj
-            validateQNameReference(compMdl, ntwkObj, "roots", qnRef=rootQn,
-                                   undefinedMessage=_("The network %(name)s root %(qname)s must be defined in the taxonomy model."),
-                                   errorArgs={"name": ntwkObj.name, "qname": rootQn})
-            ntwkCt[rootQn] = ntwkCt.get(rootQn, 0) + 1
-        if any(ct > 1 for root, ct in ntwkCt.items()):
-            emit_error(compMdl, "oimte:duplicateItemsInSet",
-                       _("The network %(name)s has duplicated roots %(roots)s"),
-                       xbrlObject=ntwkObj, roots=", ".join(str(root) for root, ct in ntwkCt.items() if ct > 1))
-
-        # Snapshot base data before mutation so extends-duplicate check can compare cleanly
+        # Snapshot base relationships before mutation so extends-duplicate check can compare cleanly
         if extendTargetObj is not None:
-            _baseRootQns = frozenset(r.root if hasattr(r, "root") else r for r in getattr(extendTargetObj, "roots", None) or ())
             _baseRelKeys = frozenset((r.source, r.target, getattr(r, "order", None)) for r in getattr(extendTargetObj, "relationships", None) or ())
         else:
-            _baseRootQns = _baseRelKeys = frozenset()
+            _baseRelKeys = frozenset()
 
         ntwkCt = {}
         sources = OrderedSet()
         targets = OrderedSet()
+        hasRootSourceRel = False
         for i, relObj in enumerate(ntwkObj.relationships or ()):
             assertObjectType(compMdl, relObj, XbrlRelationship)
-            if relObj.source not in compMdl.namedObjects or relObj.target not in compMdl.namedObjects:
+            isRootSourceRel = relObj.source == qnXbrlRootSource
+            if isRootSourceRel:
+                hasRootSourceRel = True
+                # xbrl:rootSource is a virtual origin; validate only the target.
+                # A rootSource→rootSource self-reference is also invalid.
+                if relObj.target == qnXbrlRootSource:
+                    emit_error(compMdl, "oimte:invalidRootSourceReference",
+                               _("The network %(name)s relationship[%(nbr)s] uses xbrl:rootSource as a target; xbrl:rootSource MUST only appear as a relationship source."),
+                               xbrlObject=relObj, name=ntwkObj.name, nbr=i)
+                elif relObj.target not in compMdl.namedObjects:
+                    validateQNameReference(compMdl, relObj, "target", qnRef=relObj.target,
+                                           undefinedMessage=_("The network %(name)s rootSource relationship[%(nbr)s] target %(qname)s must be defined in the taxonomy model."),
+                                           errorArgs={"name": ntwkObj.name, "nbr": i, "qname": relObj.target})
+                else:
+                    if extendTargetObj is not None:
+                        extendTargetObj.relationships.add(relObj)
+            elif relObj.target == qnXbrlRootSource:
+                # xbrl:rootSource must never appear as a relationship target
+                emit_error(compMdl, "oimte:invalidRootSourceReference",
+                           _("The network %(name)s relationship[%(nbr)s] uses xbrl:rootSource as a target; xbrl:rootSource MUST only appear as a relationship source."),
+                           xbrlObject=relObj, name=ntwkObj.name, nbr=i)
+            elif relObj.source not in compMdl.namedObjects or relObj.target not in compMdl.namedObjects:
                 validateQNameReference(compMdl, relObj, "source", qnRef=relObj.source,
                                        undefinedMessage=_("The network %(name)s relationship[%(nbr)s] source %(qname)s must be defined in the taxonomy model."),
                                        errorArgs={"name": ntwkObj.name, "nbr": i, "qname": relObj.source})
@@ -128,15 +137,16 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
                                _("The network %(name)s relationship[%(nbr)s] target %(target)s is %(targetType)s which is not allowed by the relationship type targetObjects."),
                                xbrlObject=relObj, name=ntwkObj.name, nbr=i, target=relObj.target, targetType=tgtObjTypeQn)
             validateProperties(compMdl, oimFile, module, relObj)
-            reqLinkProps = getattr(relTypeObj, "requiredLinkProperties", None)
-            if reqLinkProps:
-                relPropQNs = set(p.property for p in getattr(relObj, "properties", None) or ())
-                missingProps = reqLinkProps - relPropQNs
-                if missingProps:
-                    emit_error(compMdl, "oimte:missingRequiredRelationshipProperty",
-                               _("The network %(name)s relationship[%(nbr)s] is missing required properties %(properties)s defined by relationship type %(relType)s."),
-                               xbrlObject=relObj, name=ntwkObj.name, nbr=i,
-                               properties=", ".join(str(p) for p in missingProps), relType=ntwkObj.relationshipTypeName)
+            if not isRootSourceRel:
+                reqLinkProps = getattr(relTypeObj, "requiredLinkProperties", None)
+                if reqLinkProps:
+                    relPropQNs = set(p.property for p in getattr(relObj, "properties", None) or ())
+                    missingProps = reqLinkProps - relPropQNs
+                    if missingProps:
+                        emit_error(compMdl, "oimte:missingRequiredRelationshipProperty",
+                                   _("The network %(name)s relationship[%(nbr)s] is missing required properties %(properties)s defined by relationship type %(relType)s."),
+                                   xbrlObject=relObj, name=ntwkObj.name, nbr=i,
+                                   properties=", ".join(str(p) for p in missingProps), relType=ntwkObj.relationshipTypeName)
             relObjPrefLbl = relObj.propertyObjectValue(qnPreferredLabel)
             if relObjPrefLbl is not None:
                 validateQNameReference(compMdl, relObj, qnPreferredLabel, XbrlLabelType,
@@ -150,34 +160,23 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
                        names=", ".join(f"{relFrom}\u2192{relTo}{f' [{str(prefLbl)}]' if prefLbl else ''} ord {str(ordr)}"
                                        for (relFrom, relTo, prefLbl, ordr), ct in ntwkCt.items() if ct > 1))
         ntwkObj._rootsFound = sources - targets
-        ntwkObj._declaredRoots = ntwkObj.roots  # save before inference may overwrite
-        if ntwkObj.roots:
-            undeclaredRoots = ntwkObj._rootsFound - {r.root if hasattr(r, "root") else r for r in ntwkObj.roots}
-            if undeclaredRoots:
-                emit_error(compMdl, "oimte:invalidNetworkRoot",
-                           _("The network %(name)s network object roots property does not include these undeclared relationship roots: %(undeclaredRoots)s"),
-                           xbrlObject=ntwkObj, name=ntwkObj.name,
-                           undeclaredRoots=", ".join(sorted(str(r) for r in undeclaredRoots)))
-            rootsAsTargets = {r.root if hasattr(r, "root") else r for r in ntwkObj.roots} & targets
-            if rootsAsTargets:
-                emit_error(compMdl, "oimte:networkCyclic",
-                           _("The network %(name)s has root(s) %(roots)s appearing as relationship targets."),
-                           xbrlObject=ntwkObj, name=ntwkObj.name,
-                           roots=", ".join(sorted(str(r) for r in rootsAsTargets)))
-        else:
-            ntwkObj.roots = ntwkObj._rootsFound  # not specified so use actual roots
 
-        # Check for duplicates introduced by extends: compare the extension's own
-        # EXPLICIT roots and relationships against the pre-mutation snapshot of the base.
-        # Inferred roots (set at line 167) are not declared duplicates.
+        # Non-extending networks with relationships must have at least one xbrl:rootSource relationship.
+        # Extending networks inherit the base's rootSource and are not required to add their own.
+        if ntwkObj.extends is None and ntwkObj.relationships and not hasRootSourceRel:
+            emit_error(compMdl, "oimte:missingRootSource",
+                       _("The network %(name)s has relationships but no xbrl:rootSource relationship; every network with relationships MUST define at least one xbrl:rootSource relationship."),
+                       xbrlObject=ntwkObj, name=ntwkObj.name)
+
+        # Collect explicit roots from xbrl:rootSource relationships
+        rootSourceTargets = OrderedSet(
+            relObj.target for relObj in (ntwkObj.relationships or ())
+            if getattr(relObj, "source", None) == qnXbrlRootSource
+        )
+
+        # Check for duplicate relationships introduced by extends (including rootSource ones).
+        # Identical (source, target, order) triples are duplicates; different orders are not.
         if ntwkObj.extends and extendTargetObj is not None:
-            extRootQns = {r.root if hasattr(r, "root") else r for r in getattr(ntwkObj, "_declaredRoots", None) or ()}
-            dupRoots = _baseRootQns & extRootQns
-            if dupRoots:
-                emit_error(compMdl, "oimte:duplicateItemsInSet",
-                           _("The network %(name)s has duplicated roots after extends merge: %(roots)s"),
-                           xbrlObject=ntwkObj, name=ntwkObj.extends,
-                           roots=", ".join(str(r) for r in dupRoots))
             for relObj in ntwkObj.relationships or ():
                 relKey = (relObj.source, relObj.target, getattr(relObj, "order", None))
                 if relKey in _baseRelKeys:
@@ -190,8 +189,28 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
         # checked based on the relationship type's cycles property.
         _cyclesVal = getattr(relTypeObj, "cycles", None)
         cyclesProp = _cyclesVal.localName if isinstance(_cyclesVal, QName) else str(_cyclesVal) if _cyclesVal else "none"
+
+        if rootSourceTargets:
+            undeclaredRoots = ntwkObj._rootsFound - rootSourceTargets
+            if undeclaredRoots:
+                emit_error(compMdl, "oimte:invalidNetworkRoot",
+                           _("The network %(name)s has undeclared relationship roots not covered by rootSource relationships: %(undeclaredRoots)s"),
+                           xbrlObject=ntwkObj, name=ntwkObj.name,
+                           undeclaredRoots=", ".join(sorted(str(r) for r in undeclaredRoots)))
+            # A declared root appearing as a target means it's in a cycle.
+            # This is only an error if the relationship type does not permit cycles.
+            if cyclesProp != "any":
+                rootsAsTargets = rootSourceTargets & targets
+                if rootsAsTargets:
+                    emit_error(compMdl, "oimte:networkCyclic",
+                               _("The network %(name)s has root(s) %(roots)s appearing as relationship targets."),
+                               xbrlObject=ntwkObj, name=ntwkObj.name,
+                               roots=", ".join(sorted(str(r) for r in rootsAsTargets)))
+
         hasSelfLoop = False
         for relObj in ntwkObj.relationships or ():
+            if relObj.source == qnXbrlRootSource:
+                continue  # virtual origin; not subject to cycle detection
             if relObj.source == relObj.target:
                 emit_error(compMdl, "oimte:networkCyclic",
                            _("The network %(name)s has a self-loop: %(node)s → %(node)s."),
@@ -200,6 +219,8 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
         if not hasSelfLoop and cyclesProp != "any" and sources:
             graph = defaultdict(set)
             for relObj in ntwkObj.relationships or ():
+                if relObj.source == qnXbrlRootSource:
+                    continue
                 graph[relObj.source].add(relObj.target)
             visited = set()
             inStack = set()

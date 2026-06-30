@@ -14,6 +14,7 @@ from .XbrlCube import XbrlCube
 from .XbrlConcept import XbrlConcept, XbrlDataType
 from .XbrlDimension import XbrlDomainNetwork
 from .XbrlGroup import XbrlGroupContent
+from .XbrlConst import qnXbrlRootSource
 from .XbrlNetwork import XbrlNetwork
 from .XbrlReference import XbrlReference
 from .XbrlFact import XbrlFact, XbrlFootnote
@@ -230,7 +231,7 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
     # a single "effective" result that includes everything from both.
     #
     # Object types that support extends:
-    #   XbrlNetwork / XbrlDomainNetwork  – merges relationships and roots
+    #   XbrlNetwork / XbrlDomainNetwork  – merges relationships (roots are xbrl:rootSource relationships)
     #   XbrlCube                         – merges cubeNetworks, excludeCubes,
     #                                      requiredCubes, properties
     #   XbrlReference                    – merges relatedNames
@@ -253,10 +254,11 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
         """Build the effective (merged) relationship set for a network or domain,
         resolving the ``extends`` chain recursively.
 
-        Relationships and roots from the base and all extensions are merged into
-        a single set, sorted by the ``order`` property.  Duplicate roots and
-        duplicate relationships (same source, target, order, and properties) in
-        the merged set are tracked for validation.
+        All relationships (including xbrl:rootSource relationships that define roots)
+        from the base and all extensions are merged into a single set, sorted by the
+        ``order`` property.  Roots are the targets of xbrl:rootSource relationships in
+        the merged set; if none exist, roots are inferred as sources with no parent.
+        Duplicate roots and duplicate relationships are tracked for validation.
         """
         cacheKey = getattr(obj, "xbrlMdlObjIndex", None)
         if cacheKey is None:
@@ -279,48 +281,25 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
 
         visiting.add(cacheKey)
 
-        # Collect all roots as (qname, order) tuples for sorting and dedup
-        rootList = []   # [(qname, order, rootObj)]
-        relList = []    # [(relObj)]
+        relList = []    # [relObj]
         extends = obj.extends
         if extends is not None:
             targetObj = self.namedObjects.get(extends)
             if isinstance(obj, XbrlDomainNetwork) and isinstance(targetObj, XbrlDomainNetwork) and getattr(targetObj, "isExtensible", True):
                 baseSet = self._effectiveRelationshipSet(targetObj, visiting)
                 relList.extend(baseSet["relationships"])
-                rootList.extend((qn, None, None) for qn in baseSet["roots"])
             elif isinstance(obj, XbrlNetwork) and isinstance(targetObj, XbrlNetwork):
                 baseSet = self._effectiveRelationshipSet(targetObj, visiting)
                 relList.extend(baseSet["relationships"])
-                rootList.extend((qn, None, None) for qn in baseSet["roots"])
 
-        # Add this object's own roots and relationships
-        objectRoots = getattr(obj, "roots", None)
-        if objectRoots:
-            for r in objectRoots:
-                rootQn = r.root if hasattr(r, "root") else r
-                rootOrder = getattr(r, "order", None) if hasattr(r, "root") else None
-                rootList.append((rootQn, rootOrder, r))
+        # Add this object's own relationships (including any xbrl:rootSource relationships)
         relList.extend(getattr(obj, "relationships", ()) or ())
 
         # Sort by order (None sorts last)
         def _orderKey(item):
-            order = item[1] if isinstance(item, tuple) else getattr(item, "order", None)
-            return (0, order) if order is not None else (1, 0)
+            return (0, item.order) if getattr(item, "order", None) is not None else (1, 0)
 
-        rootList.sort(key=_orderKey)
-        relList.sort(key=lambda r: _orderKey(r))
-
-        # Detect duplicate roots
-        seenRoots = set()
-        duplicateRoots = OrderedSet()
-        explicitRoots = OrderedSet()
-        for rootQn, _order, _rootObj in rootList:
-            if rootQn in seenRoots:
-                duplicateRoots.add(rootQn)
-            else:
-                seenRoots.add(rootQn)
-            explicitRoots.add(rootQn)
+        relList.sort(key=_orderKey)
 
         # Detect duplicate relationships (same source, target, order, properties)
         relationships = OrderedSet()
@@ -346,16 +325,28 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
             if getattr(relObj, "target", None) is not None:
                 relationshipsTo[relObj.target].append(relObj)
 
-        if explicitRoots:
-            roots = OrderedSet(explicitRoots)
+        # Roots are targets of xbrl:rootSource relationships; fall back to inference
+        rootSourceRels = relationshipsFrom.get(qnXbrlRootSource, [])
+        if rootSourceRels:
+            seenRoots = set()
+            duplicateRoots = OrderedSet()
+            roots = OrderedSet()
+            for rel in rootSourceRels:
+                if rel.target in seenRoots:
+                    duplicateRoots.add(rel.target)
+                else:
+                    seenRoots.add(rel.target)
+                    roots.add(rel.target)
         else:
+            duplicateRoots = OrderedSet()
             roots = OrderedSet(
                 qnFrom
                 for qnFrom, relsFrom in relationshipsFrom.items()
-                if qnFrom not in relationshipsTo or
-                (len(relsFrom) == 1 and
-                 len(relationshipsTo[qnFrom]) == 1 and
-                 relsFrom[0].source == relsFrom[0].target)
+                if qnFrom != qnXbrlRootSource and (
+                    qnFrom not in relationshipsTo or
+                    (len(relsFrom) == 1 and
+                     len(relationshipsTo[qnFrom]) == 1 and
+                     relsFrom[0].source == relsFrom[0].target))
             )
 
         effectiveSet = {
