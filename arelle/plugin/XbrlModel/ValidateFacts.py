@@ -9,10 +9,11 @@ from arelle.oim.Load import (UnitPrefixedQNameSubstitutionChar, UnitPattern,
 from arelle.ModelValue import QName, qname, timeInterval
 from arelle import XbrlConst
 from arelle.XmlValidateConst import VALID, INVALID
-from .XbrlConst import unsupportedTypedDimensionDataTypes
+from .XbrlConst import unsupportedTypedDimensionDataTypes, qnXbrlMemberObj
 from .XbrlConcept import XbrlConcept, XbrlDataType
-from .XbrlCube import XbrlCube, conceptCoreDim, languageCoreDim, periodCoreDim, unitCoreDim, coreDimensions
-from .XbrlDimension import XbrlDimension, XbrlMember
+from .XbrlCube import XbrlCube, conceptCoreDim, entityCoreDim, languageCoreDim, periodCoreDim, unitCoreDim, coreDimensions
+from .XbrlDimension import XbrlDimension, XbrlDomainClass, XbrlMember
+from .XbrlEntity import XbrlEntity
 from .XbrlFact import XbrlFact, XbrlTableTemplate
 from .XbrlUnit import parseUnitString, XbrlUnit
 from .ValidateXbrlModel import validateValue
@@ -261,6 +262,62 @@ def validateFactPosition(txmyMdl, fact):
                        _("Missing period for %(periodType)s fact %(name)s."),
                        periodType=cObj.periodType)
 
+    # Validate dimension member types and domain class membership.
+    # Per spec, only member objects may be used as members on taxonomy-defined dimensions,
+    # only entity objects on xbrl:entity, and members must belong to the dimension's domain class.
+    _prefixNS = getattr(getattr(fact, "module", None), "_prefixNamespaces", None)
+    hasInvalidDimMember = False
+    for dimName, dimVal in list(fact.factDimensions.items()):
+        if not isinstance(dimName, QName) or dimName in (conceptCoreDim, periodCoreDim, unitCoreDim):
+            continue
+        if dimName == entityCoreDim:
+            eQn = dimVal if isinstance(dimVal, QName) else (
+                qname(dimVal, _prefixNS) if isinstance(dimVal, str) and ":" in dimVal else None)
+            if eQn is not None:
+                eObj = txmyMdl.namedObjects.get(eQn)
+                if eObj is not None and not isinstance(eObj, XbrlEntity):
+                    error("oimte:invalidFactDimensionMember",
+                          _("The object %(memberName)s used as member on the xbrl:entity dimension is not an entity object. "
+                            "Only entity objects are permitted as the xbrl:entity dimension member on a fact."),
+                          memberName=eQn, dimensionName=dimName)
+                    hasInvalidDimMember = True
+        else:
+            dimObj = txmyMdl.namedObjects.get(dimName)
+            if not isinstance(dimObj, XbrlDimension):
+                continue
+            mQn = dimVal if isinstance(dimVal, QName) else (
+                qname(dimVal, _prefixNS) if isinstance(dimVal, str) and ":" in dimVal else None)
+            if mQn is not None:
+                mObj = txmyMdl.namedObjects.get(mQn)
+                if mObj is not None:
+                    if not isinstance(mObj, XbrlMember):
+                        error("oimte:invalidFactDimensionMember",
+                              _("The object %(memberName)s used as a member on dimension %(dimensionName)s is not appropriate. "
+                                "Only member objects are permitted as dimension members on a fact."),
+                              memberName=mQn, dimensionName=dimName)
+                        hasInvalidDimMember = True
+                    # domainClasses is empty/None when the member carries no domain-class restriction.
+                    elif mObj.domainClasses and dimObj.domainClass not in mObj.domainClasses:
+                        error("oimte:invalidFactDimensionMember",
+                              _("The object %(memberName)s used as member on dimension %(dimensionName)s is not part of "
+                                "the dimension domain %(domainClass)s."),
+                              memberName=mQn, dimensionName=dimName, domainClass=dimObj.domainClass)
+                        hasInvalidDimMember = True
+            elif isinstance(dimVal, str):
+                # Unqualified string value: explicit dimensions use QName members (handled above);
+                # a plain string here signals a typed dimension whose allowedDomainItem is a
+                # data type rather than xbrl:memberObject, so validate the value against that type.
+                domClassObj = txmyMdl.namedObjects.get(dimObj.domainClass)
+                if isinstance(domClassObj, XbrlDomainClass):
+                    allowedItem = domClassObj.allowedDomainItem
+                    if allowedItem and allowedItem != qnXbrlMemberObj:
+                        _valid, _dimVal = validateValue(txmyMdl, fact.module, fact, dimVal, allowedItem,
+                                                       "", "oimte:invalidFactDimensionMember")
+                        if _valid == INVALID:
+                            hasInvalidDimMember = True
+    if hasInvalidDimMember:
+        return  # suppress noFactSpaceForFact when a more-specific member error was already raised
+
     # find cubes which fact is valid for (negative cubes don't provide valid fact space)
     matchedCubes = validateCubes(txmyMdl, fact)
     nonNegativeCubes = [c for c in matchedCubes
@@ -268,7 +325,8 @@ def validateFactPosition(txmyMdl, fact):
                         or txmyMdl.namedObjects.get(c.cubeType).name.localName != "negativeCube"]
     if not nonNegativeCubes:
         error("oimte:noFactSpaceForFact",
-              _("Factspace %(name)s is not dimensionally valid in any non-negative cube."))
+              _("The fact %(name)s with concept %(conceptName)s does not fit within any defined cube fact space."),
+              conceptName=cQn)
     else:
         for cubeObj in matchedCubes:
             cellFacts = getattr(cubeObj, "_cellFacts", None)

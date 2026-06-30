@@ -68,8 +68,11 @@ def matchFactToCube(compMdl, factspace, cubeObj):
             isTyped = bool(cubeDimObj.domainDataType)
             if not isTyped:
                 dimMbrQn = qname(factspace.factDimensions.get(dimName), factspace.module._prefixNamespaces)
+            mems = cubeDimObj.allowedMembers(compMdl)
+            # Empty mems means no domainNetwork is set on this cube dimension:
+            # the cube imposes no member restriction, so any member value is accepted.
             if (isinstance(dimObj, XbrlDimension) and not isTyped and
-                dimMbrQn not in cubeDimObj.allowedMembers(compMdl)):
+                mems and dimMbrQn not in mems):
                 hasDims = False # skip this cube
                 break
     return hasDims
