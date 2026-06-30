@@ -41,7 +41,7 @@ class TestResolveEffectiveLexicalTypeCoreTypes:
             ("entity", "token"),
             ("period", "string"),
             ("unit", "string"),
-            ("language", "language"),
+            ("language", "string"),
             ("decimals", "integer"),
         ],
     )

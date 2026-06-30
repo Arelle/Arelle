@@ -106,7 +106,7 @@ _CORE_EFFECTIVE_LEXICAL_TYPES: Mapping[str, QName] = MappingProxyType(
         CORE_ENTITY: TOKEN,
         CORE_PERIOD: STRING,
         CORE_UNIT: STRING,
-        CORE_LANGUAGE: LANGUAGE,
+        CORE_LANGUAGE: STRING,
         CORE_DECIMALS: INTEGER,
     }
 )
