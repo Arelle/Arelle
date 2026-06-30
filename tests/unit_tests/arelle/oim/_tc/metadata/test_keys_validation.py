@@ -8,6 +8,7 @@ from arelle import XbrlConst
 from arelle.oim._tc.const import (
     TCME_DUPLICATE_KEY_NAME,
     TCME_ILLEGAL_KEY_FIELD,
+    TCME_ILLEGAL_UNIQUE_KEY_ORDER,
     TCME_INCONSISTENT_REFERENCE_KEY_FIELDS,
     TCME_INCONSISTENT_SHARED_KEY_FIELDS,
     TCME_INCONSISTENT_SHARED_KEY_SEVERITY,
@@ -891,3 +892,76 @@ class TestInconsistentSharedKeySeverity:
             f"/tableTemplates/{_T2}/tc:keys/unique/0/severity",
             f"/tableTemplates/{_T3}/tc:keys/unique/0/severity",
         ]
+
+
+class TestIllegalUniqueKeyOrder:
+    def test_column_before_parameter(self) -> None:
+        tc = TCTemplateConstraints(
+            constraints={"col": TCValueConstraint(type="xs:string")},
+            parameters={"param": TCValueConstraint(type="xs:string")},
+        )
+        keys = TCKeys(unique=(TCUniqueKey(name="k", fields=("col", "param")),))
+        errors = _errors(keys, tc)
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_UNIQUE_KEY_ORDER
+        assert errors[0].json_pointers == [f"/tableTemplates/{_T}/tc:keys/unique/0/fields/1"]
+
+    def test_parameter_before_column(self) -> None:
+        tc = TCTemplateConstraints(
+            constraints={"col": TCValueConstraint(type="xs:string")},
+            parameters={"param": TCValueConstraint(type="xs:string")},
+        )
+        keys = TCKeys(unique=(TCUniqueKey(name="k", fields=("param", "col")),))
+        assert _errors(keys, tc) == []
+
+    def test_multiple_out_of_order_parameters_one_error(self) -> None:
+        tc = TCTemplateConstraints(
+            constraints={"col": TCValueConstraint(type="xs:string")},
+            parameters={"p1": TCValueConstraint(type="xs:string"), "p2": TCValueConstraint(type="xs:string")},
+        )
+        keys = TCKeys(unique=(TCUniqueKey(name="k", fields=("col", "p1", "p2")),))
+        errors = _errors(keys, tc)
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_UNIQUE_KEY_ORDER
+        assert errors[0].json_pointers == [
+            f"/tableTemplates/{_T}/tc:keys/unique/0/fields/1",
+            f"/tableTemplates/{_T}/tc:keys/unique/0/fields/2",
+        ]
+
+    def test_interleaved_parameter_after_column(self) -> None:
+        tc = TCTemplateConstraints(
+            constraints={"col1": TCValueConstraint(type="xs:string")},
+            parameters={"p1": TCValueConstraint(type="xs:string"), "p2": TCValueConstraint(type="xs:string")},
+        )
+        keys = TCKeys(unique=(TCUniqueKey(name="k", fields=("p1", "col1", "p2")),))
+        errors = _errors(keys, tc)
+        assert len(errors) == 1
+        assert errors[0].code == TCME_ILLEGAL_UNIQUE_KEY_ORDER
+        assert errors[0].json_pointers == [f"/tableTemplates/{_T}/tc:keys/unique/0/fields/2"]
+
+    def test_parameters_only(self) -> None:
+        tc = TCTemplateConstraints(
+            parameters={"p1": TCValueConstraint(type="xs:string"), "p2": TCValueConstraint(type="xs:string")}
+        )
+        keys = TCKeys(unique=(TCUniqueKey(name="k", fields=("p1", "p2")),))
+        assert _errors(keys, tc) == []
+
+    def test_columns_only(self) -> None:
+        tc = TCTemplateConstraints(
+            constraints={"c1": TCValueConstraint(type="xs:string"), "c2": TCValueConstraint(type="xs:string")}
+        )
+        keys = TCKeys(unique=(TCUniqueKey(name="k", fields=("c1", "c2")),))
+        assert _errors(keys, tc) == []
+
+    def test_out_of_order_field_also_illegal_key_field(self) -> None:
+        tc = TCTemplateConstraints(
+            constraints={
+                "keyOne": TCValueConstraint(type="xs:string"),
+                "keyTwo": TCValueConstraint(type="xs:string"),
+            },
+            parameters={"paramThree": TCValueConstraint(type="xs:duration")},
+        )
+        keys = TCKeys(unique=(TCUniqueKey(name="k", fields=("keyOne", "keyTwo", "paramThree")),))
+        errors = _errors(keys, tc)
+        codes = {e.code for e in errors}
+        assert codes == {TCME_ILLEGAL_UNIQUE_KEY_ORDER, TCME_ILLEGAL_KEY_FIELD}

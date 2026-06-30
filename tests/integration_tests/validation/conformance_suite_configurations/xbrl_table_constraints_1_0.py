@@ -25,6 +25,11 @@ config = ConformanceSuiteConfig(
             'tcme:illegalKeyField': 1,
             'tcme:inconsistentReferenceKeyFields': 1,
         },
+        # paramThree (xs:duration without durationType) also triggers illegalUniqueKeyOrder because it follows
+        # constrained column fields keyOne and keyTwo in the unique key fields list.
+        '720-tc-report-processor/index-tc-report-table.xml:V-61': {
+            'tcme:illegalUniqueKeyOrder': 1,
+        },
         # Test cases with valid XML dates beyond the year range supported by Arelle (datetime MINYEAR and MAXYEAR).
         'generated/facets-with-invalid-values/index-tc-facets-with-invalid-values.xml:V-GEN-facetValue-period-enumerationValues-valid': {
             'tcme:illegalConstraint': 1,
@@ -37,9 +42,6 @@ config = ConformanceSuiteConfig(
         },
     }.items()},
     expected_failure_ids=frozenset(f'table-constraints-conformance-{_VERSION}/{s}' for s in [
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-887',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-887a',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-887b',
         '720-tc-report-processor/index-tc-report-table.xml:V-100',
         '720-tc-report-processor/index-tc-report-table.xml:V-25',
         '720-tc-report-processor/index-tc-report-table.xml:V-26',

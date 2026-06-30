@@ -12,6 +12,7 @@ from arelle.oim._tc.const import (
     TC_KEYS_PROPERTY_NAME,
     TCME_DUPLICATE_KEY_NAME,
     TCME_ILLEGAL_KEY_FIELD,
+    TCME_ILLEGAL_UNIQUE_KEY_ORDER,
     TCME_INCONSISTENT_REFERENCE_KEY_FIELDS,
     TCME_INCONSISTENT_SHARED_KEY_FIELDS,
     TCME_INCONSISTENT_SHARED_KEY_SEVERITY,
@@ -157,6 +158,9 @@ def _validate_key(
             "severity",
             code=TCME_UNKNOWN_SEVERITY,
         )
+    check_order = isinstance(key, TCUniqueKey)
+    seen_column_field = False
+    out_of_order: list[tuple[str, ...]] = []
     for field_j, field in enumerate(key.fields):
         constraint = _resolve_field_constraint(tc, field)
         if constraint is None:
@@ -167,6 +171,11 @@ def _validate_key(
                 code=TCME_ILLEGAL_KEY_FIELD,
             )
             continue
+        if check_order:
+            if field in tc.constraints:
+                seen_column_field = True
+            elif field in tc.parameters and seen_column_field:
+                out_of_order.append(("fields", str(field_j)))
         effective_type = resolve_effective_lexical_type(constraint.type, namespaces)
         if effective_type is None:
             continue
@@ -192,6 +201,15 @@ def _validate_key(
                 str(field_j),
                 code=TCME_ILLEGAL_KEY_FIELD,
             )
+    if out_of_order:
+        first_path = out_of_order[0]
+        related_paths = tuple(out_of_order[1:])
+        yield TCMetadataValidationError(
+            _("Parameter fields must come before constrained column fields in unique key"),
+            *first_path,
+            code=TCME_ILLEGAL_UNIQUE_KEY_ORDER,
+            related_paths=tuple(related_paths),
+        )
 
 
 def _normalized_field_type(constraint_type: str, namespaces: Mapping[str, str]) -> str | QName:
