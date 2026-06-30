@@ -11,7 +11,9 @@ from arelle.oim._tc.const import (
     TC_KEYS_PROPERTY_NAME,
     TCME_DUPLICATE_KEY_NAME,
     TCME_ILLEGAL_KEY_FIELD,
+    TCME_INCONSISTENT_REFERENCE_KEY_FIELDS,
     TCME_MISSING_KEY_PROPERTY,
+    TCME_UNKNOWN_KEY,
     TCME_UNKNOWN_SEVERITY,
 )
 from arelle.oim._tc.metadata.common import TCMetadataValidationError
@@ -58,6 +60,7 @@ def validate_keys(
                 error.prepend_path(*keys_path)
                 yield error
     yield from _validate_cross_template_key_names(tc_metadata)
+    yield from _validate_reference_key_field_consistency(tc_metadata)
 
 
 def _validate_template_keys(
@@ -97,6 +100,15 @@ def _validate_template_keys(
             code=TCME_DUPLICATE_KEY_NAME,
             related_paths=tuple(other_key_paths),
         )
+
+    if keys.sort_key is not None:
+        unique_key_names = {key.name for key in (keys.unique or ())}
+        if keys.sort_key not in unique_key_names:
+            yield TCMetadataValidationError(
+                _("Sort key '{}' does not refer to a unique key in this template").format(keys.sort_key),
+                "sortKey",
+                code=TCME_UNKNOWN_KEY,
+            )
 
 
 def _validate_cross_template_key_names(tc_metadata: TCMetadata) -> Generator[TCMetadataValidationError, None, None]:
@@ -176,3 +188,30 @@ def _validate_key(
                 str(field_j),
                 code=TCME_ILLEGAL_KEY_FIELD,
             )
+
+
+def _validate_reference_key_field_consistency(
+    tc_metadata: TCMetadata,
+) -> Generator[TCMetadataValidationError, None, None]:
+    """Validates that reference key fields are consistent with the referenced unique key's fields."""
+    unique_key_registry = set()
+    for tc in tc_metadata.template_constraints.values():
+        if tc.keys is None or tc.keys.unique is None:
+            continue
+        for key in tc.keys.unique:
+            unique_key_registry.add(key.name)
+
+    for template_id, tc in tc_metadata.template_constraints.items():
+        if tc.keys is None or tc.keys.reference is None:
+            continue
+        for ref_i, ref_key in enumerate(tc.keys.reference):
+            ref_path = (TABLE_TEMPLATES_KEY, template_id, TC_KEYS_PROPERTY_NAME, "reference", str(ref_i))
+            if ref_key.referenced_key_name not in unique_key_registry:
+                yield TCMetadataValidationError(
+                    _("Referenced key '{}' does not exist as a unique key in any template").format(
+                        ref_key.referenced_key_name
+                    ),
+                    *ref_path,
+                    "referencedKeyName",
+                    code=TCME_UNKNOWN_KEY,
+                )

@@ -9,6 +9,7 @@ from arelle.oim._tc.const import (
     TCME_DUPLICATE_KEY_NAME,
     TCME_ILLEGAL_KEY_FIELD,
     TCME_MISSING_KEY_PROPERTY,
+    TCME_UNKNOWN_KEY,
     TCME_UNKNOWN_SEVERITY,
 )
 from arelle.oim._tc.metadata.common import TCMetadataValidationError
@@ -65,7 +66,10 @@ class TestMissingKeyProperty:
         assert _errors(TCKeys(unique=(_UNIQUE_KEY,))) == []
 
     def test_reference_only(self) -> None:
-        assert _errors(TCKeys(reference=(_REFERENCE_KEY,))) == []
+        t1 = dataclasses.replace(_CONSTRAINT_C, keys=TCKeys(unique=(_UNIQUE_KEY,)))
+        t2 = dataclasses.replace(_CONSTRAINT_C, keys=TCKeys(reference=(_REFERENCE_KEY,)))
+        errors = list(validate_keys(TCMetadata(template_constraints={_T1: t1, _T2: t2}), _NAMESPACES))
+        assert errors == []
 
     def test_both_present(self) -> None:
         assert _errors(TCKeys(unique=(_UNIQUE_KEY,), reference=(_REFERENCE_KEY,))) == []
@@ -402,3 +406,62 @@ class TestUnknownSeverity:
         assert len(errors) == 1
         assert errors[0].code == TCME_UNKNOWN_SEVERITY
         assert errors[0].json_pointers == [f"/tableTemplates/{_T}/tc:keys/reference/0/severity"]
+
+
+class TestUnknownKey:
+    def test_sort_key_refers_to_existing_unique_key(self) -> None:
+        keys = TCKeys(unique=(_UNIQUE_KEY,), sort_key="k")
+        assert _errors(keys) == []
+
+    def test_sort_key_not_a_unique_key(self) -> None:
+        keys = TCKeys(unique=(_UNIQUE_KEY,), sort_key="nonexistent")
+        errors = _errors(keys)
+        assert len(errors) == 1
+        assert errors[0].code == TCME_UNKNOWN_KEY
+        assert errors[0].json_pointers == [f"/tableTemplates/{_T}/tc:keys/sortKey"]
+
+    def test_sort_key_names_a_reference_key(self) -> None:
+        keys = TCKeys(unique=(_UNIQUE_KEY,), reference=(_REFERENCE_KEY,), sort_key="r")
+        errors = _errors(keys)
+        assert len(errors) == 1
+        assert errors[0].code == TCME_UNKNOWN_KEY
+        assert errors[0].json_pointers == [f"/tableTemplates/{_T}/tc:keys/sortKey"]
+
+    def test_referenced_key_name_exists(self) -> None:
+        keys = TCKeys(unique=(_UNIQUE_KEY,), reference=(_REFERENCE_KEY,))
+        assert _errors(keys) == []
+
+    def test_referenced_key_name_not_found(self) -> None:
+        keys = TCKeys(reference=(TCReferenceKey(name="r", fields=("c",), referenced_key_name="nonexistent"),))
+        errors = _errors(keys)
+        assert len(errors) == 1
+        assert errors[0].code == TCME_UNKNOWN_KEY
+        assert errors[0].json_pointers == [f"/tableTemplates/{_T}/tc:keys/reference/0/referencedKeyName"]
+
+    def test_referenced_key_name_in_different_template(self) -> None:
+        t1_keys = TCKeys(unique=(_UNIQUE_KEY,))
+        t2_keys = TCKeys(reference=(_REFERENCE_KEY,))
+        t1 = dataclasses.replace(_CONSTRAINT_ID, constraints={"c": TCValueConstraint(type="xs:string")}, keys=t1_keys)
+        t2 = dataclasses.replace(_CONSTRAINT_ID, constraints={"c": TCValueConstraint(type="xs:string")}, keys=t2_keys)
+        errors = list(validate_keys(TCMetadata(template_constraints={_T1: t1, _T2: t2}), _NAMESPACES))
+        assert errors == []
+
+    def test_referenced_key_name_defined_in_multiple_templates(self) -> None:
+        shared = TCUniqueKey(name="k", fields=("c",), shared=True)
+        constraints = {"c": TCValueConstraint(type="xs:string")}
+        t1 = dataclasses.replace(_CONSTRAINT_ID, constraints=constraints, keys=TCKeys(unique=(shared,)))
+        t2 = dataclasses.replace(_CONSTRAINT_ID, constraints=constraints, keys=TCKeys(unique=(shared,)))
+        t3 = dataclasses.replace(_CONSTRAINT_ID, constraints=constraints, keys=TCKeys(reference=(_REFERENCE_KEY,)))
+        errors = list(validate_keys(TCMetadata(template_constraints={_T1: t1, _T2: t2, _T3: t3}), _NAMESPACES))
+        assert errors == []
+
+    def test_sort_key_in_different_template_not_matched(self) -> None:
+        t1 = dataclasses.replace(_CONSTRAINT_ID, keys=TCKeys(unique=(TCUniqueKey(name="k", fields=("id",)),)))
+        t2 = dataclasses.replace(
+            _CONSTRAINT_ID,
+            keys=TCKeys(unique=(TCUniqueKey(name="k2", fields=("id",)),), sort_key="k"),
+        )
+        errors = list(validate_keys(TCMetadata(template_constraints={_T1: t1, _T2: t2}), _NAMESPACES))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_UNKNOWN_KEY
+        assert errors[0].json_pointers == [f"/tableTemplates/{_T2}/tc:keys/sortKey"]
