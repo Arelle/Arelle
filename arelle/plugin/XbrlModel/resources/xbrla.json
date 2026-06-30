@@ -23,7 +23,7 @@
           "credit"
         ],
         "allowedObjects": [
-          "xbrl:propertyObject"
+          "xbrl:propertyTypeObject"
         ]
       },
       {
@@ -347,119 +347,119 @@
       {
         "labelType": "xbrl:label",
         "language": "en",
-        "relatedName": "xbrla:intervalConvention",
+        "forObject": "xbrla:intervalConvention",
         "value": "Interval based on start or end time"
       },
       {
         "labelType": "xbrl:label",
         "language": "en",
-        "relatedName": "xbrla:intervalOfMeasurement",
+        "forObject": "xbrla:intervalOfMeasurement",
         "value": "Measurement time interval"
       },
       {
         "labelType": "xbrl:documentation",
         "language": "en",
-        "relatedName": "xbrla:intervalOfMeasurement",
+        "forObject": "xbrla:intervalOfMeasurement",
         "value": "A property that defines the frequency interval where data is sampled for use in a time series. If the data measurement is performed every day then the frequency of measurement will be a day. For an aggregated time series type this represents the interval over which all measurements are made and an aggregated value such as maximum, minimum, average, median etc are reported. For a raw time series this represents the interval between each measurement. The datetime dimension on a time series cube must include this property."
       },
       {
         "labelType": "xbrl:documentation",
         "language": "en",
-        "relatedName": "xbrla:completeTimeSeries",
+        "forObject": "xbrla:completeTimeSeries",
         "value": "A boolean property that defines if the dimension used for a time series must have a value for every interval.  If true then every interval of the time series must have a fact. If false the time series does not have to be complete. If the property is not defined the default value is false."
       },
       {
         "labelType": "xbrl:label",
         "language": "en",
-        "relatedName": "xbrla:completeTimeSeries",
+        "forObject": "xbrla:completeTimeSeries",
         "value": "Time series is complete"
       },
       {
         "labelType": "xbrl:label",
         "language": "en",
-        "relatedName": "xbrla:timeSeriesType",
+        "forObject": "xbrla:timeSeriesType",
         "value": "Time series type (Aggregated or Raw)"
       },
       {
         "labelType": "xbrl:documentation",
         "language": "en",
-        "relatedName": "xbrla:timeSeriesType",
+        "forObject": "xbrla:timeSeriesType",
         "value": "A string property that defines if the dimension used for a time series is raw data or aggregated data. The value of the property must be either Raw or Aggregated.  If no value is provided the default is Aggregated."
       },
       {
         "labelType": "xbrl:documentation",
         "language": "en",
-        "relatedName": "xbrla:instant-accrual",
+        "forObject": "xbrla:instant-accrual",
         "value": "Relationship type linking instant and accrual concepts used for mapping or validation between instant and duration concepts."
       },
       {
         "labelType": "xbrl:documentation",
         "language": "en",
-        "relatedName": "xbrla:instant-inflow",
+        "forObject": "xbrla:instant-inflow",
         "value": "Relationship type indicating an instant concept maps to a duration inflow concept."
       },
       {
         "labelType": "xbrl:documentation",
         "language": "en",
-        "relatedName": "xbrla:instant-outflow",
+        "forObject": "xbrla:instant-outflow",
         "value": "Relationship type indicating an instant concept maps to a duration outflow concept."
       },
       {
         "labelType": "xbrl:documentation",
         "language": "en",
-        "relatedName": "xbrla:instant-contra",
+        "forObject": "xbrla:instant-contra",
         "value": "Relationship type indicating an instant concept is the contra (opposite sign) of a duration concept."
       },
       {
         "labelType": "xbrl:documentation",
         "language": "en",
-        "relatedName": "xbrla:eventCube",
+        "forObject": "xbrla:eventCube",
         "value": "Cube type for single-event facts identified by a typed dimension; does not include standard period/entity/unit core dimensions."
       },
       {
         "labelType": "xbrl:documentation",
         "language": "en",
-        "relatedName": "xbrla:eventDetailsCube",
+        "forObject": "xbrla:eventDetailsCube",
         "value": "Cube type for event detail records that reference concept-to-dimension relationships for richer typed dimensions."
       },
       {
         "labelType": "xbrl:documentation",
         "language": "en",
-        "relatedName": "xbrla:journalCube",
+        "forObject": "xbrla:journalCube",
         "value": "A specialization of eventDetailsCube intended for journal or ledger style event records."
       },
       {
         "labelType": "xbrl:documentation",
         "language": "en",
-        "relatedName": "xbrla:referenceCube",
+        "forObject": "xbrla:referenceCube",
         "value": "Cube type used for reference or lookup data where facts act as descriptions rather than periodic measurements."
       },
       {
         "labelType": "xbrl:documentation",
         "language": "en",
-        "relatedName": "xbrla:timeSeriesCube",
+        "forObject": "xbrla:timeSeriesCube",
         "value": "Cube type optimized for time-series data; requires a typed date/time dimension and typically includes the unit core-dimension."
       },
       {
         "labelType": "xbrl:documentation",
         "language": "en",
-        "relatedName": "xbrla:positionCube",
+        "forObject": "xbrla:positionCube",
         "value": "Cube type for position-style facts that typically include period, entity and unit core dimensions."
       },
       {
-        "relatedName": "xbrla:intervalConventionType",
+        "forObject": "xbrla:intervalConventionType",
         "language": "en",
         "labelType": "xbrl:documentation",
         "value": "Used to identify the duration for a time series interval. Can be used to identify the interval by its start time or by its end time. If not provided on a dimension then the default is the start time. Start time is cCommon in IoT, databases, and time series analysis.  End time is common in finance time series analysis."
       },
       {
-        "relatedName": "xbrla:timeSeriesDataType",
+        "forObject": "xbrla:timeSeriesDataType",
         "language": "en",
         "labelType": "xbrl:documentation",
         "value": "Used to identify if the time series is recording raw data or aggregated data. Possible values are Raw or Aggregated. Raw data is collected at the defined interval as a single measurement. This data is usually highly voluminous. Aggregated time series data is used with continuous or high-frequency data (say, every second), but only stores one value per interval (like an hour), the value used within that period must be an aggregation such  as: Max - the highest observed value in the hour (e.g., max temperature). Min - the lowest observed value in the hour (e.g., min heart rate). First - the earliest value recorded in that hour (open price in finance). Last - the latest value recorded in that hour (close price in finance). Mean / Sum, Median, and  Percentile are other forms of possible aggregation. The aggregation performed should be associated with the concept recording the measurement as an aggregation property."
       },
       {
-        "relatedName": "xbrla:sharesType",
+        "forObject": "xbrla:sharesType",
         "language": "en",
         "labelType": "xbrl:documentation",
         "value": "This data type serves as the data type for share based financial concepts."
@@ -467,25 +467,25 @@
       {
         "labelType": "xbrl:label",
         "language": "en",
-        "relatedName": "xbrla:MonetaryPerShare",
+        "forObject": "xbrla:MonetaryPerShare",
         "value": "Monetary/share"
       },
       {
         "labelType": "xbrl:documentation",
         "language": "en",
-        "relatedName": "xbrla:MonetaryPerShare",
+        "forObject": "xbrla:MonetaryPerShare",
         "value": "Monetary Unit / Share"
       },
       {
         "labelType": "xbrl:label",
         "language": "en",
-        "relatedName": "xbrla:shares",
+        "forObject": "xbrla:shares",
         "value": "Share"
       },
       {
         "labelType": "xbrl:documentation",
         "language": "en",
-        "relatedName": "xbrla:shares",
+        "forObject": "xbrla:shares",
         "value": "Unit of Ownership (Stock)"
       }
     ],
@@ -493,18 +493,19 @@
       {
         "name": "xbrla:dependentPropertiesNetwork",
         "relationshipTypeName": "xbrl:property-dependentProperty",
-        "roots": [
-          {
-            "root": "xbrla:intervalConvention"
-          },
-          {
-            "root": "xbrla:timeSeriesType"
-          },
-          {
-            "root": "xbrla:completeTimeSeries"
-          }
-        ],
         "relationships": [
+          {
+            "source": "xbrl:rootSource",
+            "target": "xbrla:intervalConvention"
+          },
+          {
+            "source": "xbrl:rootSource",
+            "target": "xbrla:timeSeriesType"
+          },
+          {
+            "source": "xbrl:rootSource",
+            "target": "xbrla:completeTimeSeries"
+          },
           {
             "source": "xbrla:intervalConvention",
             "target": "xbrla:intervalOfMeasurement"
@@ -535,7 +536,7 @@
     "references": [
       {
         "name": "xbrla:PerUnitAccountingReference",
-        "relatedNames": [
+        "forObjects": [
           "xbrla:MonetaryPerShare"
         ],
         "referenceType": "xbrl:dataTypeRequirement",

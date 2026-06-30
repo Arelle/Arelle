@@ -114,7 +114,7 @@ class XbrlNetwork(XbrlReferencableModelObject, XbrlRelationshipSet):
         """The XbrlGroup whose groupContents includes this network, or None.
 
         Walks the compiled model's XbrlGroupContent objects looking for one
-        whose relatedNames contains this network's name, then resolves the
+        whose forObjects contains this network's name, then resolves the
         groupContent's groupName to its XbrlGroup.
         """
         nm = getattr(self, "name", None)
@@ -129,7 +129,7 @@ class XbrlNetwork(XbrlReferencableModelObject, XbrlRelationshipSet):
                 for gc in getattr(mod, "groupContents", ()) or ():
                     gName = getattr(gc, "groupName", None)
                     grp = mdl.namedObjects.get(gName) if gName is not None else None
-                    for relName in getattr(gc, "relatedNames", ()) or ():
+                    for relName in getattr(gc, "forObjects", ()) or ():
                         cache.setdefault(relName, grp)
             mdl._networkGroupIndex = cache
         return cache.get(nm)

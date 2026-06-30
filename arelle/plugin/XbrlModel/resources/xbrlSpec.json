@@ -486,504 +486,504 @@
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:label",
+                "forObject": "xbrl:label",
                 "value": "Standard Label"
             },
             {
                 "labelType": "xbrl:iconLabel",
                 "language": "en",
-                "relatedName": "xbrl:nilReasonDomainClass",
+                "forObject": "xbrl:nilReasonDomainClass",
                 "value": "∅"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:label",
+                "forObject": "xbrl:label",
                 "value": "Standard label for an object."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:terseLabel",
+                "forObject": "xbrl:terseLabel",
                 "value": "Short label for an object, often omitting text that should be inferable when the object is reported in the context of other related objects."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:verboseLabel",
+                "forObject": "xbrl:verboseLabel",
                 "value": "Extended label for an object, making sure not to omit text that is required to enable the label to be understood on a stand alone basis."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:positiveLabel",
+                "forObject": "xbrl:positiveLabel",
                 "value": "Label for a concept, when the value being presented is positive. For example, the standard and standard positive labels might be 'profit after tax' and the standard negative labels 'loss after tax', the terse label and terse positive labels might both be 'profit', while the negative terse label might be 'loss'."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:positiveTerseLabel",
+                "forObject": "xbrl:positiveTerseLabel",
                 "value": "Label for a concept, when the value being presented is positive. For example, the standard and standard positive labels might be 'profit after tax' and the standard negative labels 'loss after tax', the terse label and terse positive labels might both be 'profit', while the negative terse label might be 'loss'."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:positiveVerboseLabel",
+                "forObject": "xbrl:positiveVerboseLabel",
                 "value": "Label for a concept, when the value being presented is positive. For example, the standard and standard positive labels might be 'profit after tax' and the standard negative labels 'loss after tax', the terse label and terse positive labels might both be 'profit', while the negative terse label might be 'loss'."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:negativeLabel",
+                "forObject": "xbrl:negativeLabel",
                 "value": "Label for a concept, when the value being presented is negative. For example, the standard and standard positive labels might be 'profit after tax' and the standard negative labels 'loss after tax', the terse label and terse positive labels might both be 'profit', while the negative terse label might be 'loss'."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:negativeTerseLabel",
+                "forObject": "xbrl:negativeTerseLabel",
                 "value": "Label for a concept, when the value being presented is negative. For example, the standard and standard positive labels might be 'profit after tax' and the standard negative labels 'loss after tax', the terse label and terse positive labels might both be 'profit', while the negative terse label might be 'loss'."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:negativeVerboseLabel",
+                "forObject": "xbrl:negativeVerboseLabel",
                 "value": "Label for a concept, when the value being presented is negative. For example, the standard and standard positive labels might be 'profit after tax' and the standard negative labels 'loss after tax', the terse label and terse positive labels might both be 'profit', while the negative terse label might be 'loss'."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:zeroLabel",
+                "forObject": "xbrl:zeroLabel",
                 "value": "Label for a concept, when the value being presented is  zero."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:zeroTerseLabel",
+                "forObject": "xbrl:zeroTerseLabel",
                 "value": "Label for a concept, when the value being presented is  zero."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:zeroVerboseLabel",
+                "forObject": "xbrl:zeroVerboseLabel",
                 "value": "Label for a concept, when the value being presented is  zero."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:totalLabel",
+                "forObject": "xbrl:totalLabel",
                 "value": "The label for a concept for use in presenting values associated with the concept when it is being reported as the total of a set of other values."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:periodStartLabel",
+                "forObject": "xbrl:periodStartLabel",
                 "value": "The label for a concept with periodType='instant' for use in presenting values associated with the concept when it is being reported as a start (end) of period value."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:periodEndLabel",
+                "forObject": "xbrl:periodEndLabel",
                 "value": "The label for a concept with periodType='instant' for use in presenting values associated with the object when it is being reported as a start (end) of period value."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:documentation",
+                "forObject": "xbrl:documentation",
                 "value": "Documentation"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:documentation",
+                "forObject": "xbrl:documentation",
                 "value": "Documentation of an object, providing an explanation of its meaning and its appropriate usage and any other documentation deemed necessary."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:definitionGuidance",
+                "forObject": "xbrl:definitionGuidance",
                 "value": "A precise definition of an object, providing an explanation of its meaning and its appropriate usage."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:disclosureGuidance",
+                "forObject": "xbrl:disclosureGuidance",
                 "value": "An explanation of the disclosure requirements relating to the object. Indicates whether the disclosure is mandatory (i.e. prescribed by authoritative literature); recommended (i.e. encouraged by authoritative literature); common practice (i.e. not prescribed by authoritative literature, but disclosure is common); structural completeness (i.e., included to complete the structure of the taxonomy)."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:presentationGuidance",
+                "forObject": "xbrl:presentationGuidance",
                 "value": "An explanation of the rules guiding presentation (placement and/or labelling) of this object in the context of other objects in one or more specific types of business reports. For example, 'Net Surplus should be disclosed on the face of the Profit and Loss statement'."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:measurementGuidance",
+                "forObject": "xbrl:measurementGuidance",
                 "value": "An explanation of the method(s) required to be used when measuring values associated with this object in business reports."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:commentaryGuidance",
+                "forObject": "xbrl:commentaryGuidance",
                 "value": "Any other general commentary on the object that assists in determining definition, disclosure, measurement, presentation or usage."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:exampleGuidance",
+                "forObject": "xbrl:exampleGuidance",
                 "value": "An example of the type of information intended to be captured by the object."
             },
         
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:commonPracticeRef",
+                "forObject": "xbrl:commonPracticeRef",
                 "value": "Reference to documentation that details common practice."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:deprecatedDateLabel",
+                "forObject": "xbrl:deprecatedDateLabel",
                 "value": "Label indicating the date when the concept was deprecated."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:deprecatedLabel",
+                "forObject": "xbrl:deprecatedLabel",
                 "value": "Label indicating that the concept is deprecated."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:negated",
+                "forObject": "xbrl:negated",
                 "value": "When this label is the preferred label on a presentation arc whose target is an element having a numeric type, a conforming processor will not only present the fact using the specified label but will also present the its fact values negated."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:negatedLabel",
+                "forObject": "xbrl:negatedLabel",
                 "value": "Label for a concept, when the value being presented should be negated (sign of the value should be 'flipped'). For example, the standard and standard positive labels might be 'profit (loss) after tax' and the negated labels 'loss (profit) after tax'."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:negatedNetLabel",
+                "forObject": "xbrl:negatedNetLabel",
                 "value": "Label indicating that the net value is negated."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:negatedPeriodEnd",
+                "forObject": "xbrl:negatedPeriodEnd",
                 "value": "Indicates that the period end value is negated."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:negatedPeriodEndLabel",
+                "forObject": "xbrl:negatedPeriodEndLabel",
                 "value": "Label for a concept, when the value being presented should be negated (sign of the value should be 'flipped'). For example, the standard and standard positive labels might be 'profit (loss) after tax' and the negated labels 'loss (profit) after tax'."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:negatedPeriodStart",
+                "forObject": "xbrl:negatedPeriodStart",
                 "value": "Indicates that the period start value is negated."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:negatedPeriodStartLabel",
+                "forObject": "xbrl:negatedPeriodStartLabel",
                 "value": "Label for a concept, when the value being presented should be negated (sign of the value should be 'flipped'). For example, the standard and standard positive labels might be 'profit (loss) after tax' and the negated labels 'loss (profit) after tax'."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:negatedTerseLabel",
+                "forObject": "xbrl:negatedTerseLabel",
                 "value": "Short label indicating that the value is negated."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:negatedTotal",
+                "forObject": "xbrl:negatedTotal",
                 "value": "Indicates that the total value is negated."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:negatedTotalLabel",
+                "forObject": "xbrl:negatedTotalLabel",
                 "value": "Label for a concept, when the value being presented should be negated (sign of the value should be 'flipped'). For example, the standard and standard positive labels might be 'profit (loss) after tax' and the negated labels 'loss (profit) after tax'."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:negativePeriodEndLabel",
+                "forObject": "xbrl:negativePeriodEndLabel",
                 "value": "Label for a concept with periodType='instant' for use in presenting values associated with the concept when it is being reported as a negative period end value."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:negativePeriodEndTotalLabel",
+                "forObject": "xbrl:negativePeriodEndTotalLabel",
                 "value": "Label for a concept with periodType='instant' for use in presenting values associated with the concept when it is being reported as a negative period end total value."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:negativePeriodStartLabel",
+                "forObject": "xbrl:negativePeriodStartLabel",
                 "value": "Label for a concept with periodType='instant' for use in presenting values associated with the concept when it is being reported as a negative period start value."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:negativePeriodStartTotalLabel",
+                "forObject": "xbrl:negativePeriodStartTotalLabel",
                 "value": "Label for a concept, when the value being presented is negative."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:netLabel",
+                "forObject": "xbrl:netLabel",
                 "value": "The label for a concept for use in presenting values associated with the concept when it is being reported as the net of a set of other values. Net labels allows for expressing different labels than the one which would be used as total label if the presentation tree represents gross/net calculation instead of traditional calculation roll-up. For example standard label for 'Property, plant and equipment' can have total label 'Total property, plant and equipment' and net label 'Net property, plant and equipment'."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:positivePeriodEndLabel",
+                "forObject": "xbrl:positivePeriodEndLabel",
                 "value": "Label for a concept, when the value being presented is positive."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:positivePeriodEndTotalLabel",
+                "forObject": "xbrl:positivePeriodEndTotalLabel",
                 "value": "Label for a concept, when the value being presented is positive."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:positivePeriodStartLabel",
+                "forObject": "xbrl:positivePeriodStartLabel",
                 "value": "Label for a concept with periodType='instant' for use in presenting values associated with the concept when it is being reported as a positive period start value."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:positivePeriodStartTotalLabel",
+                "forObject": "xbrl:positivePeriodStartTotalLabel",
                 "value": "Label for a concept, when the value being presented is positive."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:restatedLabel",
+                "forObject": "xbrl:restatedLabel",
                 "value": "At times an entity may restate certain account balances for financial reporting purposes. This may only occur according to specific reporting rules. For example, an entity may restate an equity account balance, say 'Reserves', due to an accounting change or fundamental error under International Financial Reporting Standards (IFRS). A separate label role is provided for such reporting of restated amounts, should they occur. The restated amount within a financial statement might provide a label such as 'Reserves, Restated Balance' to which this label role would be assigned to identify this type of label. Taxonomy creators would use this label role and provide a label which could be used on concepts that could be restated. Typically, these would be used on equity accounts."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:symbolLabel",
+                "forObject": "xbrl:symbolLabel",
                 "value": "Label for a unit, when the unit is represented by a symbol."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:iconLabel",
+                "forObject": "xbrl:iconLabel",
                 "value": "Icon Label"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:iconLabel",
+                "forObject": "xbrl:iconLabel",
                 "value": "Label that can be used to associate images or emoji icons with different defined objects in the taxonomy. This label type uses the emoji datatype and can be applied to any model object to provide visual representation through icons, emoji, or image references."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:reference",
+                "forObject": "xbrl:reference",
                 "value": "Standard reference for a Concept"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:definitionRef",
+                "forObject": "xbrl:definitionRef",
                 "value": "Reference to documentation that details a precise definition of the object."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:disclosureRef",
+                "forObject": "xbrl:disclosureRef",
                 "value": "Reference to documentation that details an explanation of the disclosure requirements relating to the object. Specified categories include: mandatory, recommended"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:mandatoryDisclosureRef",
+                "forObject": "xbrl:mandatoryDisclosureRef",
                 "value": "Reference to documentation that details an explanation of the disclosure requirements relating to the object. Specified categories include: mandatory"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:recommendedDisclosureRef",
+                "forObject": "xbrl:recommendedDisclosureRef",
                 "value": "Reference to documentation that details an explanation of the disclosure requirements relating to the object. Specified categories include: recommended"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:unspecifiedDisclosureRef",
+                "forObject": "xbrl:unspecifiedDisclosureRef",
                 "value": "Reference to documentation that details an explanation of the disclosure requirements relating to the object. Unspecified categories include, but are not limited to: common practice, structural completeness. The latter categories do not reference documentation but are indicated in the link role to indicate why the Concept has been included in the taxonomy."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:presentationRef",
+                "forObject": "xbrl:presentationRef",
                 "value": "Reference to documentation which details an explanation of the presentation, placement or labelling of this object in the context of other objects in one or more specific types of business reports"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:measurementRef",
+                "forObject": "xbrl:measurementRef",
                 "value": "Reference concerning the method(s) required to be used when measuring values associated with this object in business reports"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:commentaryRef",
+                "forObject": "xbrl:commentaryRef",
                 "value": "Any other general commentary on the object that assists in determining appropriate usage"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:exampleRef",
+                "forObject": "xbrl:exampleRef",
                 "value": "Reference to documentation that illustrates by example the application of the object that assists in determining appropriate usage."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:dep-concept-deprecatedConcept",
+                "forObject": "xbrl:dep-concept-deprecatedConcept",
                 "value": "Deprecated: concept - deprecated concept."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:dep-aggregateConcept-deprecatedPartConcept",
+                "forObject": "xbrl:dep-aggregateConcept-deprecatedPartConcept",
                 "value": "Deprecated: aggreate concept - deprecated part concept."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:dep-dimensionallyQualifiedConcept-deprecatedConcept",
+                "forObject": "xbrl:dep-dimensionallyQualifiedConcept-deprecatedConcept",
                 "value": "Deprecated: dimensionally qualified concept - deprecated concept."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:dep-mutuallyExclusiveConcept-deprecatedConcept",
+                "forObject": "xbrl:dep-mutuallyExclusiveConcept-deprecatedConcept",
                 "value": "Deprecated: mutually exclusive concept - deprecated concept."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:dep-partConcept-deprecatedAggregateConcept",
+                "forObject": "xbrl:dep-partConcept-deprecatedAggregateConcept",
                 "value": "Deprecated: part concept - deprecated aggregate concept."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:aggregation",
+                "forObject": "xbrl:aggregation",
                 "value": "Population Aggregation Method (sum, avg, min, max, etc.)"
             },
             {
-                "relatedName": "xbrl:concept",
+                "forObject": "xbrl:concept",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "Represents the concept core dimension in a taxonomy.  The concept dimension is used to identify concepts that have  measurable facts (for example, a numeric or textual fact). Concepts have data types, period types and may have properties and labels."
             },
             {
-                "relatedName": "xbrl:unit",
+                "forObject": "xbrl:unit",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "Represents the unit core dimension in a taxonomy. Only unit objects can be added to the unit dimension. Each unit object defines the unit of measure associated with numeric facts, for example 'USD' or 'ug/m3'. Units may be simple or composed with numerators and denominators."
             },
             {
-                "relatedName": "xbrl:period",
+                "forObject": "xbrl:period",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "The period core dimension identifies the reporting period associated with a fact. Period values may be instants, durations, or open intervals, depending on the taxonomy."
             },
             {
-                "relatedName": "xbrl:entity",
+                "forObject": "xbrl:entity",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "The entity core dimension identifies the reporting entity or subject of the fact. Entity identifiers used on this dimension may be expressed as LEIs, names or other identifiers as defined by the taxonomy."
             },
             {
-                "relatedName": "xbrl:traitDomain",
+                "forObject": "xbrl:traitDomain",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A domain used to express trait values or annotations that can be applied to objects. Trait domains are typically used to model property-like annotations in the taxonomy."
             },
             {
-                "relatedName": "xbrl:conceptDomain",
+                "forObject": "xbrl:conceptDomain",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A concept domain groups concept members that can be referenced by cubes and dimensions. It is the domain used when a cube restricts the concept dimension to a subset of concepts."
             },
             {
-                "relatedName": "xbrl:unitDomain",
+                "forObject": "xbrl:unitDomain",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A unit domain groups unit definitions for use by concepts and facts. It allows taxonomies to declare a set of preferred or allowed units."
             },
             {
-                "relatedName": "xbrl:semanticLink",
+                "forObject": "xbrl:semanticLink",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A semantic link is a relationship type used to express semantic associations between objects, for example to indicate equivalence, suggested mappings or explanatory links."
             },
             {
-                "relatedName": "xbrl:weight",
+                "forObject": "xbrl:weight",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A weight link property is used on certain relationship types (for example summation-item) to indicate the multiplier applied to the source when computing aggregates."
             },
             {
-                "relatedName": "xbrl:reconciliation",
+                "forObject": "xbrl:reconciliation",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A reconciliation link property is a boolean value used on a summation-item relationship types to indicate that the source and target xbrla:balance can be the same and have a -1 weight or be different and have a +1 weight."
             },
             {
-                "relatedName": "xbrl:preferredLabel",
+                "forObject": "xbrl:preferredLabel",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "The preferredLabel link property indicates which label role should be used as the preferred human-readable label for presentation."
             },
             {
-                "relatedName": "xbrl:reportAttribute",
+                "forObject": "xbrl:reportAttribute",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "Report attributes are properties attached to concepts objects to indicate how a concept in a taxonomy maps to standard report attributes such as reporting period end, or report type."
             },
             {
-                "relatedName": "xbrl:traitLinkType",
+                "forObject": "xbrl:traitLinkType",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A traitLinkType is a custom link property used to express typed property relationships between objects and trait domains."
             },
             {
-                "relatedName": "xbrl:parent-child",
+                "forObject": "xbrl:parent-child",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "The parent-child relationship type is used to build hierarchical structures (trees) between model objects such as concepts, members, and domains."
             },
             {
-                "relatedName": "xbrl:class-subclass",
+                "forObject": "xbrl:class-subclass",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "The class-subclass relationship type expresses a subclassing relationship between concepts indicating a tighter or more specific definition."
             },
             {
-                "relatedName": "xbrl:propertyValue-object",
+                "forObject": "xbrl:propertyValue-object",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A propertyValue-object link expresses the assignment of a property value to a target model object, used to model custom properties in the taxonomy."
             },
             {
-                "relatedName": "xbrl:concept-refDimension",
+                "forObject": "xbrl:concept-refDimension",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "The concept-refDimension relationship links a concept to a dimension indicating that the value of the concept in a detailed cube may be the key of a dimension is a summarized cube."
@@ -991,641 +991,641 @@
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:openCube",
+                "forObject": "xbrl:openCube",
                 "value": "Default generic cube type used when no other cube type is appropriate."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:reportCube",
+                "forObject": "xbrl:reportCube",
                 "value": "Cube type representing a report or statement where period and entity core dimensions are expected."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:negativeCube",
+                "forObject": "xbrl:negativeCube",
                 "value": "Negative Cube Type"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:negativeCube",
+                "forObject": "xbrl:negativeCube",
                 "value": "Cube type used for negative assertions and exclusions in validation rules. Based on xbrl:reportCube, it specifies dimensional combinations that should NOT appear in a report or are prohibited in certain contexts. Negative cubes are commonly used in taxonomy validation to define forbidden fact patterns or to express constraints on what dimensional combinations are invalid."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:language",
+                "forObject": "xbrl:language",
                 "value": "Core dimension used to indicate the language of a fact where applicable."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:summation-item",
+                "forObject": "xbrl:summation-item",
                 "value": "Relationship type that indicates the source contributes to the target as part of a summation (aggregation) with an associated weight."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:general-special",
+                "forObject": "xbrl:general-special",
                 "value": "Relationship type used to indicate a general-to-special relationship between concepts (a refinement or more specific version)."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:concept-aggDimension",
+                "forObject": "xbrl:concept-aggDimension",
                 "value": "Relationship type that links a concept to a dimension when the concept represents an aggregation over that dimension (aggregation specified on the relationship)."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:unit-factConcept",
+                "forObject": "xbrl:unit-factConcept",
                 "value": "Relationship type indicating a unit applies to a fact concept or group of concepts."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:unitFact-factConcept",
+                "forObject": "xbrl:unitFact-factConcept",
                 "value": "Relationship type used for mapping unit-fact constructs between concept objects when unit-specific facts are modelled."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:conceptObject",
+                "forObject": "xbrl:conceptObject",
                 "value": "Concept Object"
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:relationshipObject",
+                "forObject": "xbrl:relationshipObject",
                 "value": "Relationship Object"
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:referenceObject",
+                "forObject": "xbrl:referenceObject",
                 "value": "Reference Object"
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:dimensionObject",
+                "forObject": "xbrl:dimensionObject",
                 "value": "Dimension Object"
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:domainClassObject",
+                "forObject": "xbrl:domainClassObject",
                 "value": "Domain Class Object"
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:headingObject",
+                "forObject": "xbrl:headingObject",
                 "value": "Abstract Object"
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:factObject",
+                "forObject": "xbrl:factObject",
                 "value": "Fact Object"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:factObject",
+                "forObject": "xbrl:factObject",
                 "value": "Represents a fact or data point in an XBRL report. Facts contain one or more fact values along with their dimensional context (concept, period, entity, unit, and other dimensions)."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:cubeObject",
+                "forObject": "xbrl:cubeObject",
                 "value": "Cube Object"
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:unitObject",
+                "forObject": "xbrl:unitObject",
                 "value": "Unit Object"
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:networkObject",
+                "forObject": "xbrl:networkObject",
                 "value": "Network"
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:entityObject",
+                "forObject": "xbrl:entityObject",
                 "value": "Entity Object"
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:taxonomy",
+                "forObject": "xbrl:taxonomy",
                 "value": "Taxonomy Model Type"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:taxonomy",
+                "forObject": "xbrl:taxonomy",
                 "value": "The taxonomy model type defines the structure and metadata for an XBRL taxonomy. Taxonomies contain concepts, dimensions, cubes, relationships, networks, labels, references, and other objects that define the reporting framework. A taxonomy provides the semantic framework that defines what can be reported and how it should be structured."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:report",
+                "forObject": "xbrl:report",
                 "value": "Report Model Type"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:report",
+                "forObject": "xbrl:report",
                 "value": "The report model type represents an XBRL instance document or report containing actual fact data. Reports contain facts, footnotes, entities, and units that provide the actual reported information according to the rules defined in one or more taxonomies. Each report must specify a report date and typically references one or more taxonomies that define the valid reporting structures and concepts."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:specificationErrorURI",
+                "forObject": "xbrl:specificationErrorURI",
                 "value": "Spec Error URI"
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:OIM-JSON",
+                "forObject": "xbrl:OIM-JSON",
                 "value": "OIM JSON Fact Map"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:OIM-JSON",
+                "forObject": "xbrl:OIM-JSON",
                 "value": "Standard fact map for mapping facts from OIM JSON format to the XBRL model format. This map handles the transformation of JSON-based XBRL data into the Open Information Model structure."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:xBRL-XML",
+                "forObject": "xbrl:xBRL-XML",
                 "value": "xBRL-XML Fact Map"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:xBRL-XML",
+                "forObject": "xbrl:xBRL-XML",
                 "value": "Standard fact map for mapping facts from traditional XBRL 2.1 XML format to the XBRL model format. This map handles the transformation of XML-based XBRL v2.1 instance documents into the Open Information Model structure."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:cubeDimensionObject",
+                "forObject": "xbrl:cubeDimensionObject",
                 "value": "Cube Dimension Object"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:cubeDimensionObject",
+                "forObject": "xbrl:cubeDimensionObject",
                 "value": "Defines the association between a cube and a dimension, specifying which dimensions are used in a particular cube structure and any constraints on those dimensions."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:cubeTypeObject",
+                "forObject": "xbrl:cubeTypeObject",
                 "value": "Cube Type Object"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:cubeTypeObject",
+                "forObject": "xbrl:cubeTypeObject",
                 "value": "Defines a type of cube structure that specifies core dimensions and constraints. Cube types provide templates for creating cubes with predefined dimensional structures."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:dataTypeObject",
+                "forObject": "xbrl:dataTypeObject",
                 "value": "Data Type Object"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:dataTypeObject",
+                "forObject": "xbrl:dataTypeObject",
                 "value": "Defines a data type that can be used for concept values, extending or restricting XML Schema data types with XBRL-specific semantics and validation rules."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:domainNetworkObject",
+                "forObject": "xbrl:domainNetworkObject",
                 "value": "Domain Network Object"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:domainNetworkObject",
+                "forObject": "xbrl:domainNetworkObject",
                 "value": "Represents a domain member that can be used as a valid value on a dimension. Domains organize the members that categorize facts along a particular dimension."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:factMapObject",
+                "forObject": "xbrl:factMapObject",
                 "value": "Fact Map Object"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:factMapObject",
+                "forObject": "xbrl:factMapObject",
                 "value": "Defines a mapping template for transforming facts from external formats (XBRL 2.1 XML, OIM JSON, CSV, etc.) into the XBRL model format. Fact maps specify how to extract dimensions, values, and metadata from source data."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:factSourceObject",
+                "forObject": "xbrl:factSourceObject",
                 "value": "Fact Source Object"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:factSourceObject",
+                "forObject": "xbrl:factSourceObject",
                 "value": "Links a fact map to a specific data source, enabling the import of facts from external files or systems. Fact sources specify the location and format of external fact data."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:finalTaxonomyObject",
+                "forObject": "xbrl:finalTaxonomyObject",
                 "value": "Final Taxonomy Object"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:finalTaxonomyObject",
+                "forObject": "xbrl:finalTaxonomyObject",
                 "value": "Marks a taxonomy as final, preventing further imports or extensions. Final taxonomies are sealed and cannot be modified or extended by importing models."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:footnoteObject",
+                "forObject": "xbrl:footnoteObject",
                 "value": "Footnote Object"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:footnoteObject",
+                "forObject": "xbrl:footnoteObject",
                 "value": "Represents a footnote or explanatory note that provides additional context, explanations, or disclosures related to facts in the report."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:groupContentObject",
+                "forObject": "xbrl:groupContentObject",
                 "value": "Group Content Object"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:groupContentObject",
+                "forObject": "xbrl:groupContentObject",
                 "value": "Defines the content model for a group, specifying which objects or patterns can appear within the group structure."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:groupObject",
+                "forObject": "xbrl:groupObject",
                 "value": "Group Object"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:groupObject",
+                "forObject": "xbrl:groupObject",
                 "value": "Defines a reusable group of model objects that can be referenced by multiple networks or structures, promoting modularity and reuse in taxonomy design."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:groupTreeObject",
+                "forObject": "xbrl:groupTreeObject",
                 "value": "Group Tree Object"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:groupTreeObject",
+                "forObject": "xbrl:groupTreeObject",
                 "value": "Represents a specific instantiation of a group with its hierarchical tree structure, including any local modifications or extensions to the base group definition."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:importTaxonomyObject",
+                "forObject": "xbrl:importTaxonomyObject",
                 "value": "Import Taxonomy Object"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:importTaxonomyObject",
+                "forObject": "xbrl:importTaxonomyObject",
                 "value": "Declares the import of another taxonomy, making its objects and definitions available for use. Imports support modular taxonomy development and selective object inclusion."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:labelObject",
+                "forObject": "xbrl:labelObject",
                 "value": "Label Object"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:labelObject",
+                "forObject": "xbrl:labelObject",
                 "value": "Provides human-readable text labels for model objects in different languages and label types (standard, terse, verbose, documentation, etc.)."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:labelTypeObject",
+                "forObject": "xbrl:labelTypeObject",
                 "value": "Label Type Object"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:labelTypeObject",
+                "forObject": "xbrl:labelTypeObject",
                 "value": "Defines a type of label that can be associated with model objects, such as standard labels, terse labels, documentation, or custom label types for specific purposes."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:memberObject",
+                "forObject": "xbrl:memberObject",
                 "value": "Member Object"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:memberObject",
+                "forObject": "xbrl:memberObject",
                 "value": "Represents a member that can be used as a valid value for dimensions. Members provide the enumeration values for typed or explicit dimensions."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:modelTypeObject",
+                "forObject": "xbrl:modelTypeObject",
                 "value": "Model Type Object"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:modelTypeObject",
+                "forObject": "xbrl:modelTypeObject",
                 "value": "Defines constraints on XBRL models by specifying allowed object types, allowed properties, and required properties. Model types enable regulatory authorities to define specific report profiles."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:propertyObject",
+                "forObject": "xbrl:propertyObject",
                 "value": "Property Object"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:propertyObject",
+                "forObject": "xbrl:propertyObject",
                 "value": "Associates a property value with a model object, allowing the attachment of additional metadata and characteristics to concepts, dimensions, and other taxonomy elements."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:propertyTypeObject",
+                "forObject": "xbrl:propertyTypeObject",
                 "value": "Property Type Object"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:propertyTypeObject",
+                "forObject": "xbrl:propertyTypeObject",
                 "value": "Defines a type of property that can be attached to model objects, specifying the property's data type, allowed objects, and whether it is definitional."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:referenceTypeObject",
+                "forObject": "xbrl:referenceTypeObject",
                 "value": "Reference Type Object"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:referenceTypeObject",
+                "forObject": "xbrl:referenceTypeObject",
                 "value": "Defines a type of reference that can link model objects to authoritative literature, standards, or documentation sources."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:xbrlModelObject",
+                "forObject": "xbrl:xbrlModelObject",
                 "value": "XBRL Model Object"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:xbrlModelObject",
+                "forObject": "xbrl:xbrlModelObject",
                 "value": "The root model object representing an entire XBRL taxonomy or report. Contains all objects, relationships, and metadata that comprise a complete XBRL model."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:defaultLanguage",
+                "forObject": "xbrl:defaultLanguage",
                 "value": "A built-in property type that specifies the default BCP 47 language for text-valued objects (such as footnotes and text-typed facts) within the model. When a text-valued object does not declare an explicit language, processors MAY use the value of this property on the enclosing XBRL model object as the inherited language. This property may only be applied to the xbrl:xbrlModelObject."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:htmlSpanId",
+                "forObject": "xbrl:htmlSpanId",
                 "value": "The HTML id attribute value of the span element whose inner text content contributes to the fact value."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:htmlEscape",
+                "forObject": "xbrl:htmlEscape",
                 "value": "If true, the value is the escaped markup representation; otherwise the concatenated descendant text content is used. Defaults to false."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:htmlDataAttribute",
+                "forObject": "xbrl:htmlDataAttribute",
                 "value": "The name of a data-* HTML attribute on an element whose value contributes to the fact value (e.g. data-xbrl-ref)."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:pdfFormField",
+                "forObject": "xbrl:pdfFormField",
                 "value": "The field name of a PDF form field whose content contributes to the fact value."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:pdfPage",
+                "forObject": "xbrl:pdfPage",
                 "value": "The 1-based page number within the PDF document."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:pdfMcid",
+                "forObject": "xbrl:pdfMcid",
                 "value": "The Marked Content Identifier (MCID) of a PDF content item."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:pdfElementId",
+                "forObject": "xbrl:pdfElementId",
                 "value": "The structure element identifier within the PDF document's logical structure tree."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:pdfEscape",
+                "forObject": "xbrl:pdfEscape",
                 "value": "If true, the value is the escaped representation of PDF content. Defaults to false."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:tabularPath",
+                "forObject": "xbrl:tabularPath",
                 "value": "A tabularPath expression identifying a row, column, or cell in a tabular data source (CSV, spreadsheet). See the tabular path grammar appendix."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:errorMessage",
+                "forObject": "xbrl:errorMessage",
                 "value": "Error Message"
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:conformanceErrorsProduced",
+                "forObject": "xbrl:conformanceErrorsProduced",
                 "value": "Errors Produced"
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:unknownNilReason",
+                "forObject": "xbrl:unknownNilReason",
                 "value": "Unknown"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:unknownNilReason",
+                "forObject": "xbrl:unknownNilReason",
                 "value": "The value is nil for an unknown reason."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:unavailableNilReason",
+                "forObject": "xbrl:unavailableNilReason",
                 "value": "Unavailable"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:unavailableNilReason",
+                "forObject": "xbrl:unavailableNilReason",
                 "value": "The value is nil because the information is unavailable, for example because it has not yet been collected or computed."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:withheldNilReason",
+                "forObject": "xbrl:withheldNilReason",
                 "value": "Withheld"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:withheldNilReason",
+                "forObject": "xbrl:withheldNilReason",
                 "value": "The value is nil because the reporting entity has chosen not to disclose it, even though it is known."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:immaterialNilReason",
+                "forObject": "xbrl:immaterialNilReason",
                 "value": "Immaterial"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:immaterialNilReason",
+                "forObject": "xbrl:immaterialNilReason",
                 "value": "The value is nil because it is considered immaterial or insignificant in the context of the report."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:confidentialNilReason",
+                "forObject": "xbrl:confidentialNilReason",
                 "value": "Confidential"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:confidentialNilReason",
+                "forObject": "xbrl:confidentialNilReason",
                 "value": "The value is nil because it is confidential and cannot be disclosed in this report."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:redactedNilReason",
+                "forObject": "xbrl:redactedNilReason",
                 "value": "Redacted"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:redactedNilReason",
+                "forObject": "xbrl:redactedNilReason",
                 "value": "The value has been intentionally removed or obscured from the report, for example for legal or regulatory reasons."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:notApplicableNilReason",
+                "forObject": "xbrl:notApplicableNilReason",
                 "value": "Not Applicable"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:notApplicableNilReason",
+                "forObject": "xbrl:notApplicableNilReason",
                 "value": "The concept does not apply to the reporting entity or reporting period, so no value exists."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:pendingNilReason",
+                "forObject": "xbrl:pendingNilReason",
                 "value": "Pending"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:pendingNilReason",
+                "forObject": "xbrl:pendingNilReason",
                 "value": "The value is nil because it is not yet finalised and is expected to be provided in a future report."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:notRequiredNilReason",
+                "forObject": "xbrl:notRequiredNilReason",
                 "value": "Not Required"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:notRequiredNilReason",
+                "forObject": "xbrl:notRequiredNilReason",
                 "value": "The value is nil because the applicable reporting rules do not require it to be disclosed in this context."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrl:otherNilReason",
+                "forObject": "xbrl:otherNilReason",
                 "value": "Other"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrl:otherNilReason",
+                "forObject": "xbrl:otherNilReason",
                 "value": "The value is nil for a reason not covered by the other nil reason members."
             },
             {
-                "relatedName" : "xbrl:SQName",
+                "forObject" : "xbrl:SQName",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "SQName provides a simple type. This can be used to define typed dimensions domains that take SQName values. The prefix used in an SQName MUST correspond to a namespace prefix that is in scope at the point of use."
             },
             {
-                "relatedName" : "xbrl:prefixedContent",
+                "forObject" : "xbrl:prefixedContent",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "prefixedContent denotes values that rely for correct interpretation on namespace-prefix bindings in scope at the point of use. All item types that involve prefixed content should derive (directly or indirectly) from QName or prefixedContent Processors MUST raise an error if they encounter a fact with a type that is a subtype of prefixedContent that they do not recognise (unless that subtype is itself derived from a subtype that is recognised) as knowledge of the structure of the prefixed content is required to correctly preserve and present such content."
             },
             {
-                "relatedName" : "xbrl:noLangToken",
+                "forObject" : "xbrl:noLangToken",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "noLangToken is a derivation of token and is used to denote values that should not have an associated language. This is typically used for values that are unique identifiers, rather than human-readable strings."
             },
             {
-                "relatedName" : "xbrl:noLangString",
+                "forObject" : "xbrl:noLangString",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "noLangString is a derivation of string and is used to denote values that should not have an associated language. This is typically used for values that are unique identifiers, rather than human-readable strings."
@@ -2366,7 +2366,7 @@
         "references": [
             {
                 "name": "xbrl:PrefixedContentRequirementReference",
-                "relatedNames": [
+                "forObjects": [
                     "xbrl:prefixedContent"
                 ],
                 "referenceType": "xbrl:dataTypeRequirement",

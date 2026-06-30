@@ -26,7 +26,7 @@ class XbrlGroupContent(XbrlModelObject):
     """
     module: XbrlModuleAlias
     groupName: QName # (required) The QName that uniquely identifies the groupTree object. By convention, this is typically the taxonomy name with a suffix such as "GroupTree" (e.g., exp:SampleTaxonomyGroupTree).
-    relatedNames: OrderedSet[QName] # (required) An ordered set of network object or cube object QNames that are included in the group object. The order of the set determines the order they appear in the group. The set cannot be empty. The set can only include the QNames of network and cube objects.
+    forObjects: OrderedSet[QName] # (required) An ordered set of network object or cube object QNames that are included in the group object. The order of the set determines the order they appear in the group. The set cannot be empty. The set can only include the QNames of network and cube objects.
 
 class XbrlGroupTree(XbrlReferencableModelObject):
     """ Group Tree Object

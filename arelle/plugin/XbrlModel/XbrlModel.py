@@ -32,7 +32,7 @@ def castToXbrlCompiledModel(modelXbrl, isReport=False):
         modelXbrl.dateResolutionConceptNames: OrderedSet[QName] = OrderedSet()
         modelXbrl._pendingImportEntries = defaultdict(list)
         modelXbrl._effectiveRelationshipSetCache = {}
-        modelXbrl._effectiveReferenceRelatedNamesCache = {}
+        modelXbrl._effectiveReferenceForObjectsCache = {}
         modelXbrl._effectiveCubeExtensionCache = {}
         modelXbrl._referenceObjectsByNameCache = None
         modelXbrl._impliedObjectNamespaces = None
@@ -72,7 +72,7 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
         self.dateResolutionConceptNames: OrderedSet[QName] = OrderedSet()
         self._pendingImportEntries: defaultdict[QName, list] = defaultdict(list)
         self._effectiveRelationshipSetCache: dict[int, dict[str, Any]] = {}
-        self._effectiveReferenceRelatedNamesCache: dict[int, OrderedSet[QName]] = {}
+        self._effectiveReferenceForObjectsCache: dict[int, OrderedSet[QName]] = {}
         self._effectiveCubeExtensionCache: dict[int, dict[str, OrderedSet[Any]]] = {}
         self._referenceObjectsByNameCache: Optional[defaultdict[QName, list[XbrlReference]]] = None
         self._impliedObjectNamespaces: Optional[dict[str, Any]] = None  # built lazily
@@ -155,35 +155,35 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
             self._referenceObjectsByNameCache = refsByName
         return self._referenceObjectsByNameCache
 
-    def _effectiveReferenceRelatedNames(self, refObj, visiting: Optional[set[int]] = None):
+    def _effectiveReferenceForObjects(self, refObj, visiting: Optional[set[int]] = None):
         cacheKey = getattr(refObj, "xbrlMdlObjIndex", None)
         if cacheKey is None:
             cacheKey = id(refObj)
-        cached = self._effectiveReferenceRelatedNamesCache.get(cacheKey)
+        cached = self._effectiveReferenceForObjectsCache.get(cacheKey)
         if cached is not None:
             return cached
 
         if visiting is None:
             visiting = set()
         if cacheKey in visiting:
-            return OrderedSet(getattr(refObj, "relatedNames", ()) or ())
+            return OrderedSet(getattr(refObj, "forObjects", ()) or ())
 
         visiting.add(cacheKey)
-        relatedNames = OrderedSet()
+        forObjects = OrderedSet()
         extends = refObj.extends
         if extends is not None:
             refType = getattr(refObj, "referenceType", None)
             for targetRefObj in self._referenceObjectsByName().get(extends, ()):
                 if refType is None or getattr(targetRefObj, "referenceType", None) == refType:
-                    relatedNames.update(self._effectiveReferenceRelatedNames(targetRefObj, visiting))
+                    forObjects.update(self._effectiveReferenceForObjects(targetRefObj, visiting))
 
-        relatedNames.update(getattr(refObj, "relatedNames", ()) or ())
-        self._effectiveReferenceRelatedNamesCache[cacheKey] = relatedNames
+        forObjects.update(getattr(refObj, "forObjects", ()) or ())
+        self._effectiveReferenceForObjectsCache[cacheKey] = forObjects
         visiting.discard(cacheKey)
-        return relatedNames
+        return forObjects
 
-    def effectiveReferenceRelatedNames(self, refObj):
-        return self._effectiveReferenceRelatedNames(refObj)
+    def effectiveReferenceForObjects(self, refObj):
+        return self._effectiveReferenceForObjects(refObj)
 
     def effectiveReferenceObjects(self, name: QName, referenceType: Optional[QName] = None, lang: Optional[str] = None):
         if lang is None:
@@ -192,7 +192,7 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
             if isinstance(obj, XbrlReference):
                 tagLang = getattr(obj, "language", None) or lang
                 refType = getattr(obj, "referenceType", None)
-                if (name in self._effectiveReferenceRelatedNames(obj) and
+                if (name in self._effectiveReferenceForObjects(obj) and
                     refType is not None and
                     (not referenceType or referenceType == refType) and
                     (not lang or tagLang.startswith(lang) or lang.startswith(tagLang))):
@@ -206,7 +206,7 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
         products to be recomputed on demand against the updated model state.
         """
         self._effectiveRelationshipSetCache.clear()
-        self._effectiveReferenceRelatedNamesCache.clear()
+        self._effectiveReferenceForObjectsCache.clear()
         self._effectiveCubeExtensionCache.clear()
         self._referenceObjectsByNameCache = None
         for obj in self.namedObjects.values():
@@ -234,7 +234,7 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
     #   XbrlNetwork / XbrlDomainNetwork  – merges relationships (roots are xbrl:rootSource relationships)
     #   XbrlCube                         – merges cubeNetworks, excludeCubes,
     #                                      requiredCubes, properties
-    #   XbrlReference                    – merges relatedNames
+    #   XbrlReference                    – merges forObjects
     #   XbrlFact                         – merges factValues, properties
     #   XbrlMember                       – merges properties
     #   XbrlTableTemplate               – merges columns

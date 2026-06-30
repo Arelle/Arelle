@@ -243,8 +243,8 @@ def _excludeLabelsOnly(txmyMdl, moduleObj):
     for obj in [o for o in txmyMdl.namedObjects.values()]:
         if i0 <= obj.xbrlMdlObjIndex <= iL:
             if isinstance(obj, XbrlLabel):
-                if obj.relatedName in txmyMdl.tagObjects:
-                    del txmyMdl.tagObjects[obj.relatedName]
+                if obj.forObject in txmyMdl.tagObjects:
+                    del txmyMdl.tagObjects[obj.forObject]
                 del obj
 
 

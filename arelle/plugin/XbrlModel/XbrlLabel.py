@@ -17,7 +17,7 @@ class XbrlLabel(XbrlTaxonomyTagObject):
         Reference: oim-taxonomy#label-object
     """
     module: XbrlModuleAlias
-    relatedName: QName # (required) Defines a QName that the label is associated with.
+    forObject: QName # (required) Defines a QName that the label is associated with.
     labelType: QName # (required) A QName representing the label type of the label. This can be a taxonomy defined label type or a standard XBRL label type defined in specification.
     language: str # (required) Defines the language of the label using a valid BCP 47 [BCP47] language code.
     value: str # (required) The text of the label.

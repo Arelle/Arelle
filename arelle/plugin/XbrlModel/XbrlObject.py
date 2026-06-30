@@ -237,8 +237,8 @@ class XbrlObject(XbrlModelClass):
                                 if isinstance(obj, XbrlObject):
                                     if actionCallback(obj) is DEREFERENCE_OBJECT:
                                         deRefs.add(obj)
-                                        if obj.__class__.__name__ == "XbrlLabel" and getattr(obj, "relatedName", None):
-                                            deRefs.add(obj.relatedName)
+                                        if obj.__class__.__name__ == "XbrlLabel" and getattr(obj, "forObject", None):
+                                            deRefs.add(obj.forObject)
                                         if isinstance(v, QName):
                                             deRefs.add(v)
                                 if obj.__class__.__name__ == "XbrlLabel":

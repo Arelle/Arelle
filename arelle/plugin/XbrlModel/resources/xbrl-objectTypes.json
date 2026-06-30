@@ -298,7 +298,7 @@
                 "name": "xbrl:referenceObject",
                 "properties": [
                     {
-                        "name": "xbrl:referenceObjectRelatedNames",
+                        "name": "xbrl:referenceObjectForObjects",
                         "dataType": "xbrl:orderedSet",
                         "setContents": "xs:QName",
                         "required": true
@@ -774,373 +774,373 @@
         ],
         "labels": [
             {
-                "relatedName": "xbrl:conceptObject",
+                "forObject": "xbrl:conceptObject",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Concept Object"
             },
             {
-                "relatedName": "xbrl:conceptObject",
+                "forObject": "xbrl:conceptObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A concept object represents a reportable fact in the taxonomy. Concepts define the semantic meaning of facts that can be reported in an XBRL instance document."
             },
             {
-                "relatedName": "xbrl:conceptObjectName",
+                "forObject": "xbrl:conceptObjectName",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Name"
             },
             {
-                "relatedName": "xbrl:conceptObjectName",
+                "forObject": "xbrl:conceptObjectName",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "The QName that uniquely identifies the concept within the taxonomy."
             },
             {
-                "relatedName": "xbrl:conceptObjectDataType",
+                "forObject": "xbrl:conceptObjectDataType",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Data Type"
             },
             {
-                "relatedName": "xbrl:conceptObjectDataType",
+                "forObject": "xbrl:conceptObjectDataType",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "The QName of the data type that defines the value space and constraints for facts using this concept."
             },
             {
-                "relatedName": "xbrl:conceptObjectPeriodType",
+                "forObject": "xbrl:conceptObjectPeriodType",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Period Type"
             },
             {
-                "relatedName": "xbrl:conceptObjectPeriodType",
+                "forObject": "xbrl:conceptObjectPeriodType",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "Indicates whether the concept represents an instant in time or a duration period. Valid values are 'instant' or 'duration'."
             },
             {
-                "relatedName": "xbrl:conceptObjectEnumerationDomain",
+                "forObject": "xbrl:conceptObjectEnumerationDomain",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Enumeration Domain"
             },
             {
-                "relatedName": "xbrl:conceptObjectEnumerationDomain",
+                "forObject": "xbrl:conceptObjectEnumerationDomain",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "Optional QName reference to a domain that defines the allowed enumeration values for this concept."
             },
             {
-                "relatedName": "xbrl:conceptObjectNillable",
+                "forObject": "xbrl:conceptObjectNillable",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Nillable"
             },
             {
-                "relatedName": "xbrl:conceptObjectNillable",
+                "forObject": "xbrl:conceptObjectNillable",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "Boolean indicating whether facts using this concept can have a nil value to represent explicitly missing or not applicable data."
             },
             {
-                "relatedName": "xbrl:conceptObjectProperties",
+                "forObject": "xbrl:conceptObjectProperties",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Properties"
             },
             {
-                "relatedName": "xbrl:conceptObjectProperties",
+                "forObject": "xbrl:conceptObjectProperties",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "An ordered set of additional property objects that provide extended metadata about the concept."
             },
             {
-                "relatedName": "xbrl:cubeObject",
+                "forObject": "xbrl:cubeObject",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Cube Object"
             },
             {
-                "relatedName": "xbrl:cubeObject",
+                "forObject": "xbrl:cubeObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A cube object defines a multidimensional fact that specifies which dimensions and members are included for organizing and constraining facts."
             },
             {
-                "relatedName": "xbrl:dimensionObject",
+                "forObject": "xbrl:dimensionObject",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Dimension Object"
             },
             {
-                "relatedName": "xbrl:dimensionObject",
+                "forObject": "xbrl:dimensionObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A dimension object defines an axis along which facts can be categorized, either using a domain of explicit members or a typed data value."
             },
             {
-                "relatedName": "xbrl:networkObject",
+                "forObject": "xbrl:networkObject",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Network Object"
             },
             {
-                "relatedName": "xbrl:networkObject",
+                "forObject": "xbrl:networkObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A network object defines a set of relationships between taxonomy objects, organized by a specific relationship type such as presentation, calculation, or definition linkbases."
             },
             {
-                "relatedName": "xbrl:labelObject",
+                "forObject": "xbrl:labelObject",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Label Object"
             },
             {
-                "relatedName": "xbrl:labelObject",
+                "forObject": "xbrl:labelObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A label object provides human-readable text for taxonomy objects in a specific language and label role."
             },
             {
-                "relatedName": "xbrl:groupObject",
+                "forObject": "xbrl:groupObject",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Group Object"
             },
             {
-                "relatedName": "xbrl:groupObject",
+                "forObject": "xbrl:groupObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A group object organizes networks and cubes into logical groupings for presentation purposes, such as financial statement sections."
             },
             {
-                "relatedName": "xbrl:groupContentObject",
+                "forObject": "xbrl:groupContentObject",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Group Content Object"
             },
             {
-                "relatedName": "xbrl:groupContentObject",
+                "forObject": "xbrl:groupContentObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A group content object links a group to a set of networks or cubes that belong to that group."
             },
             {
-                "relatedName": "xbrl:groupTreeObject",
+                "forObject": "xbrl:groupTreeObject",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Group Tree Object"
             },
             {
-                "relatedName": "xbrl:groupTreeObject",
+                "forObject": "xbrl:groupTreeObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A group tree object defines the hierarchical organization of groups within the taxonomy through parent-child relationships."
             },
             {
-                "relatedName": "xbrl:relationshipObject",
+                "forObject": "xbrl:relationshipObject",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Relationship Object"
             },
             {
-                "relatedName": "xbrl:relationshipObject",
+                "forObject": "xbrl:relationshipObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A relationship object defines a directed connection between a source and target taxonomy object, with optional ordering and properties."
             },
             {
-                "relatedName": "xbrl:relationshipTypeObject",
+                "forObject": "xbrl:relationshipTypeObject",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Relationship Type Object"
             },
             {
-                "relatedName": "xbrl:relationshipTypeObject",
+                "forObject": "xbrl:relationshipTypeObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A relationship type object defines the rules and constraints for a specific type of relationship, including allowed source/target objects and link properties."
             },
             {
-                "relatedName": "xbrl:referenceTypeObject",
+                "forObject": "xbrl:referenceTypeObject",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Reference Type Object"
             },
             {
-                "relatedName": "xbrl:referenceTypeObject",
+                "forObject": "xbrl:referenceTypeObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A reference type object defines the structure and constraints for a specific type of reference to external documentation."
             },
             {
-                "relatedName": "xbrl:labelTypeObject",
+                "forObject": "xbrl:labelTypeObject",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Label Type Object"
             },
             {
-                "relatedName": "xbrl:labelTypeObject",
+                "forObject": "xbrl:labelTypeObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A label type object defines a specific role or type of label, such as standard label, documentation, or verbose label."
             },
             {
-                "relatedName": "xbrl:cubeDimensionObject",
+                "forObject": "xbrl:cubeDimensionObject",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Cube Dimension Object"
             },
             {
-                "relatedName": "xbrl:cubeDimensionObject",
+                "forObject": "xbrl:cubeDimensionObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A cube dimension object specifies how a dimension is used within a cube, including domain restrictions, default members, and sorting behavior."
             },
             {
-                "relatedName": "xbrl:propertyObject",
+                "forObject": "xbrl:propertyObject",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Property Object"
             },
             {
-                "relatedName": "xbrl:propertyObject",
+                "forObject": "xbrl:propertyObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A property object represents a name-value pair that provides additional metadata for taxonomy objects."
             },
             {
-                "relatedName": "xbrl:transformObject",
+                "forObject": "xbrl:transformObject",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Transform Object"
             },
             {
-                "relatedName": "xbrl:transformObject",
+                "forObject": "xbrl:transformObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A transform object defines a data transformation function that converts values from one data type to another."
             },
             {
-                "relatedName": "xbrl:factObject",
+                "forObject": "xbrl:factObject",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Factspace Object"
             },
             {
-                "relatedName": "xbrl:factObject",
+                "forObject": "xbrl:factObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A fact object defines a specific point in a cube's multidimensional space by specifying values for each dimension."
             },
             {
-                "relatedName": "xbrl:importTaxonomyObject",
+                "forObject": "xbrl:importTaxonomyObject",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Import Taxonomy Object"
             },
             {
-                "relatedName": "xbrl:importTaxonomyObject",
+                "forObject": "xbrl:importTaxonomyObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "An import taxonomy object specifies another taxonomy to be imported, with optional filtering of objects and profiles."
             },
             {
-                "relatedName": "xbrl:exportProfileObject",
+                "forObject": "xbrl:exportProfileObject",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Export Profile Object"
             },
             {
-                "relatedName": "xbrl:exportProfileObject",
+                "forObject": "xbrl:exportProfileObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "An export profile object defines a subset of taxonomy objects that can be selectively imported by other taxonomies."
             },
             {
-                "relatedName": "xbrl:factDimensionObject",
+                "forObject": "xbrl:factDimensionObject",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Fact Dimension Object"
             },
             {
-                "relatedName": "xbrl:factDimensionObject",
+                "forObject": "xbrl:factDimensionObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A fact dimension object represents a single dimension-value pair within a fact, specifying a dimension and its corresponding value."
             },
             {
-                "relatedName": "xbrl:factDimensionObjectDimension",
+                "forObject": "xbrl:factDimensionObjectDimension",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Dimension"
             },
             {
-                "relatedName": "xbrl:factDimensionObjectDimension",
+                "forObject": "xbrl:factDimensionObjectDimension",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "The QName of the dimension being specified in this fact dimension."
             },
             {
-                "relatedName": "xbrl:factDimensionObjectValue",
+                "forObject": "xbrl:factDimensionObjectValue",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Value"
             },
             {
-                "relatedName": "xbrl:factDimensionObjectValue",
+                "forObject": "xbrl:factDimensionObjectValue",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "The value for this dimension, which can be of any type depending on the dimension definition."
             },
             {
-                "relatedName": "xbrl:factValueObject",
+                "forObject": "xbrl:factValueObject",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Fact Value Object"
             },
             {
-                "relatedName": "xbrl:factValueObject",
+                "forObject": "xbrl:factValueObject",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "A fact value object represents a single fact within a fact, containing the concept, value, and optional dimension specifications."
             },
             {
-                "relatedName": "xbrl:factValueObjectConcept",
+                "forObject": "xbrl:factValueObjectConcept",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Concept"
             },
             {
-                "relatedName": "xbrl:factValueObjectConcept",
+                "forObject": "xbrl:factValueObjectConcept",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "The QName of the concept for this fact value."
             },
             {
-                "relatedName": "xbrl:factValueObjectValue",
+                "forObject": "xbrl:factValueObjectValue",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Value"
             },
             {
-                "relatedName": "xbrl:factValueObjectValue",
+                "forObject": "xbrl:factValueObjectValue",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "The actual value of the fact, which can be of any type depending on the concept's data type."
             },
             {
-                "relatedName": "xbrl:factValueObjectDimensions",
+                "forObject": "xbrl:factValueObjectDimensions",
                 "labelType": "xbrl:label",
                 "language": "en",
                 "value": "Dimensions"
             },
             {
-                "relatedName": "xbrl:factValueObjectDimensions",
+                "forObject": "xbrl:factValueObjectDimensions",
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "An ordered set of fact dimension objects that specify the dimensional context for this fact value."

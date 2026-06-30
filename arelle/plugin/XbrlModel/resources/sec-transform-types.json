@@ -24,13 +24,13 @@
       ],
       "labels": [
             {
-                "relatedName": "ixt-sec:boolballotbox",
+                "forObject": "ixt-sec:boolballotbox",
                 "language": "en",
                 "labelType": "xbrl:documentation",
                 "value": "Transforms boolean ballot box values to boolean true/false. A value of '☑' or '☒' is considered true, while '☐' is considered false."
             },
             {
-                "relatedName": "ixt-sec:exchnameen",
+                "forObject": "ixt-sec:exchnameen",
                 "language": "en",
                 "labelType": "xbrl:documentation",
                 "value": "Transforms exchange full English names to their corresponding short names. The conversion matrix is as follows : The New York Stock Exchange -> NYSE; New York Stock Exchange LLC -> NYSE; NASDAQ Global Select Market -> NASDAQ; The Nasdaq Stock Market LLC -> NASDAQ; BOX Exchange LLC -> BOX;Nasdaq BX, Inc. -> BX; Cboe C2 Exchange, Inc. -> C2; Cboe Exchange, Inc. -> CBOE; Chicago Stock Exchange, Inc. -> CHX; Cboe BYX Exchange, Inc. -> CboeBYX; Cboe BZX Exchange, Inc. -> CboeBZX; Cboe EDGA Exchange, Inc. -> CboeEDGA; Cboe EDGX Exchange, Inc. -> CboeEDGX; Nasdaq GEMX, LLC -> GEMX"

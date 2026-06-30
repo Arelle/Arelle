@@ -82,7 +82,7 @@ class ErrorCatalog:
         for label in labels:
             if not isinstance(label, dict):
                 continue
-            code = label.get("relatedName")
+            code = label.get("forObject")
             labelType = label.get("labelType")
             language = label.get("language")
             value = label.get("value")

@@ -792,1189 +792,1189 @@
       ],
       "labels": [
         {
-          "relatedName": "xbrltt:dateDayMonthnameBgType",
+          "forObject": "xbrltt:dateDayMonthnameBgType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Bulgarian date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30 февруари')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameYearBgType",
+          "forObject": "xbrltt:dateDayMonthnameYearBgType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Bulgarian date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30 февруари 2008 г.')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameYearBgType",
+          "forObject": "xbrltt:dateMonthnameYearBgType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Bulgarian date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameCsType",
+          "forObject": "xbrltt:dateDayMonthnameCsType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Czech date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30. února')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameYearCsType",
+          "forObject": "xbrltt:dateDayMonthnameYearCsType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Czech date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30. února 2008')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameYearCsType",
+          "forObject": "xbrltt:dateMonthnameYearCsType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Czech date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameCyType",
+          "forObject": "xbrltt:dateDayMonthnameCyType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Welsh date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30ain Chwefror')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameYearCyType",
+          "forObject": "xbrltt:dateDayMonthnameYearCyType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Welsh date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30ain Chwefror 2008')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameYearCyType",
+          "forObject": "xbrltt:dateMonthnameYearCyType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Welsh date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameDeType",
+          "forObject": "xbrltt:dateDayMonthnameDeType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "German date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30. Februar')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameYearDeType",
+          "forObject": "xbrltt:dateDayMonthnameYearDeType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "German date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30. Februar 2008')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameYearDeType",
+          "forObject": "xbrltt:dateMonthnameYearDeType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "German date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameElType",
+          "forObject": "xbrltt:dateDayMonthnameElType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Greek date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30 Φεβρουαρίου')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameYearElType",
+          "forObject": "xbrltt:dateDayMonthnameYearElType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Greek date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30 Φεβρουαρίου 2008')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameYearElType",
+          "forObject": "xbrltt:dateMonthnameYearElType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Greek date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameEsType",
+          "forObject": "xbrltt:dateDayMonthnameEsType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Spanish date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30 de febrero')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameYearEsType",
+          "forObject": "xbrltt:dateDayMonthnameYearEsType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Spanish date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30 de febrero de 2008')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameYearEsType",
+          "forObject": "xbrltt:dateMonthnameYearEsType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Spanish date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameEtType",
+          "forObject": "xbrltt:dateDayMonthnameEtType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Estonian date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30. veebruar')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameYearEtType",
+          "forObject": "xbrltt:dateDayMonthnameYearEtType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Estonian date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30. veebruar 2008')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameYearEtType",
+          "forObject": "xbrltt:dateMonthnameYearEtType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Estonian date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameFiType",
+          "forObject": "xbrltt:dateDayMonthnameFiType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Finnish date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30. helmikuuta')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameYearFiType",
+          "forObject": "xbrltt:dateDayMonthnameYearFiType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Finnish date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30. helmikuuta 2008')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameYearFiType",
+          "forObject": "xbrltt:dateMonthnameYearFiType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Finnish date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameFrType",
+          "forObject": "xbrltt:dateDayMonthnameFrType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "French date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30 février')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameYearFrType",
+          "forObject": "xbrltt:dateDayMonthnameYearFrType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "French date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30 février 2008')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameYearFrType",
+          "forObject": "xbrltt:dateMonthnameYearFrType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "French date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameHrType",
+          "forObject": "xbrltt:dateDayMonthnameHrType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Croatian date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30. veljače')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameYearHrType",
+          "forObject": "xbrltt:dateDayMonthnameYearHrType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Croatian date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30. veljače 2008')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameYearHrType",
+          "forObject": "xbrltt:dateMonthnameYearHrType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Croatian date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameDayHuType",
+          "forObject": "xbrltt:dateMonthnameDayHuType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Hungarian date in the order 'month day'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts 'február 30')."
         },
         {
-          "relatedName": "xbrltt:dateYearMonthnameDayHuType",
+          "forObject": "xbrltt:dateYearMonthnameDayHuType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Hungarian date in the order 'year month day'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '2008. február 30')."
         },
         {
-          "relatedName": "xbrltt:dateYearMonthnameHuType",
+          "forObject": "xbrltt:dateYearMonthnameHuType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Hungarian date in the order 'year month'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameItType",
+          "forObject": "xbrltt:dateDayMonthnameItType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Italian date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30 febbraio')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameYearItType",
+          "forObject": "xbrltt:dateDayMonthnameYearItType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Italian date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30 febbraio 2008')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameYearItType",
+          "forObject": "xbrltt:dateMonthnameYearItType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Italian date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameDayLtType",
+          "forObject": "xbrltt:dateMonthnameDayLtType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Lithuanian date in the order 'month day'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts 'Vasaris 30 d')."
         },
         {
-          "relatedName": "xbrltt:dateYearMonthnameDayLtType",
+          "forObject": "xbrltt:dateYearMonthnameDayLtType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Lithuanian date in the order 'year month day'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '2008 m. Vasaris 30 d')."
         },
         {
-          "relatedName": "xbrltt:dateYearMonthnameLtType",
+          "forObject": "xbrltt:dateYearMonthnameLtType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Lithuanian date in the order 'year month'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameLvType",
+          "forObject": "xbrltt:dateDayMonthnameLvType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Latvian date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30. februāris')."
         },
         {
-          "relatedName": "xbrltt:dateYearDayMonthnameLvType",
+          "forObject": "xbrltt:dateYearDayMonthnameLvType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Latvian date in the order 'year day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '2008. gada 30. februāris')."
         },
         {
-          "relatedName": "xbrltt:dateYearMonthnameLvType",
+          "forObject": "xbrltt:dateYearMonthnameLvType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Latvian date in the order 'year month'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameNlType",
+          "forObject": "xbrltt:dateDayMonthnameNlType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Dutch date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30 februari')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameYearNlType",
+          "forObject": "xbrltt:dateDayMonthnameYearNlType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Dutch date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30 februari 2008')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameYearNlType",
+          "forObject": "xbrltt:dateMonthnameYearNlType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Dutch date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameNoType",
+          "forObject": "xbrltt:dateDayMonthnameNoType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Norwegian date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30. februar')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameYearNoType",
+          "forObject": "xbrltt:dateDayMonthnameYearNoType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Norwegian date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30. februar 2008')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameYearNoType",
+          "forObject": "xbrltt:dateMonthnameYearNoType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Norwegian date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnamePlType",
+          "forObject": "xbrltt:dateDayMonthnamePlType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Polish date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30. lutego')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameYearPlType",
+          "forObject": "xbrltt:dateDayMonthnameYearPlType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Polish date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30. lutego 2008 r')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameYearPlType",
+          "forObject": "xbrltt:dateMonthnameYearPlType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Polish date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnamePtType",
+          "forObject": "xbrltt:dateDayMonthnamePtType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Portuguese date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30 de fevereiro')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameYearPtType",
+          "forObject": "xbrltt:dateDayMonthnameYearPtType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Portuguese date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30 de fevereiro de 2008')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameYearPtType",
+          "forObject": "xbrltt:dateMonthnameYearPtType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Portuguese date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthromanType",
+          "forObject": "xbrltt:dateDayMonthromanType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Roman date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in Roman numerals (I to XII). Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30 II')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthromanYearType",
+          "forObject": "xbrltt:dateDayMonthromanYearType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Roman date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in Roman numerals (I to XII). Accepts 1, 2, or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30 II 2008')."
         },
         {
-          "relatedName": "xbrltt:dateMonthromanYearType",
+          "forObject": "xbrltt:dateMonthromanYearType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Roman date in the order 'month year'. Accepts months in Roman numerals (I to XII). Accepts 1, 2, or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameRoType",
+          "forObject": "xbrltt:dateDayMonthnameRoType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Romanian date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30 februarie')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameYearRoType",
+          "forObject": "xbrltt:dateDayMonthnameYearRoType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Romanian date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30 februarie 2008')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameYearRoType",
+          "forObject": "xbrltt:dateMonthnameYearRoType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Romanian date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameSkType",
+          "forObject": "xbrltt:dateDayMonthnameSkType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Slovak date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30. februára')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameYearSkType",
+          "forObject": "xbrltt:dateDayMonthnameYearSkType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Slovak date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30. februára 2008')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameYearSkType",
+          "forObject": "xbrltt:dateMonthnameYearSkType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Slovak date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameSlType",
+          "forObject": "xbrltt:dateDayMonthnameSlType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Slovenian date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30. februar')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameYearSlType",
+          "forObject": "xbrltt:dateDayMonthnameYearSlType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Slovenian date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30. februar 2008')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameYearSlType",
+          "forObject": "xbrltt:dateMonthnameYearSlType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Slovenian date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameDaSvType",
+          "forObject": "xbrltt:dateDayMonthnameDaSvType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Danish or Swedish date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30. februar')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameYearDaSvType",
+          "forObject": "xbrltt:dateDayMonthnameYearDaSvType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Danish or Swedish date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30. februar 2008')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameYearDaSvType",
+          "forObject": "xbrltt:dateMonthnameYearDaSvType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Danish or Swedish date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameEnType",
+          "forObject": "xbrltt:dateDayMonthnameEnType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "English date in the order 'day month'. Accepts 1 or 2 digits for day, with optional ordinal suffix. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30th February')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameYearEnType",
+          "forObject": "xbrltt:dateDayMonthnameYearEnType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "English date in the order 'day month year'. Accepts 1 or 2 digits for day, with optional ordinal suffix. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30th February 2008')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameDayEnType",
+          "forObject": "xbrltt:dateMonthnameDayEnType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "English date in the order 'month day'. Accepts 1 or 2 digits for day, with optional ordinal suffix of one or two letters. Accepts months in full or abbreviated form. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts 'February 30th')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameDayYearEnType",
+          "forObject": "xbrltt:dateMonthnameDayYearEnType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "English date in the order 'month day year'. Accepts 1 or 2 digits for day, with optional ordinal suffix. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts 'February 30th, 2008')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameYearEnType",
+          "forObject": "xbrltt:dateMonthnameYearEnType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "English date in the order 'month year'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateYearMonthnameEnType",
+          "forObject": "xbrltt:dateYearMonthnameEnType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "English date in the order 'year month'. Accepts months in full or abbreviated form. Accepts 1, 2 or 4 digits for year. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:dateJpnEraYearMonthType",
+          "forObject": "xbrltt:dateJpnEraYearMonthType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Japanese date in the order 'era year month' (e.g., '令和元年5月')."
         },
         {
-          "relatedName": "xbrltt:dateJpnEraYearMonthDayType",
+          "forObject": "xbrltt:dateJpnEraYearMonthDayType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Japanese date in the order 'era year month day' (e.g., '令和元年5月31日')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthType",
+          "forObject": "xbrltt:dateDayMonthType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Numeric date in the order 'day month'. Accepts 1 or 2 digits for day. Accepts 1 or 2 digits for month. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '30 02')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthYearType",
+          "forObject": "xbrltt:dateDayMonthYearType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Numeric date in the order 'day month year'. Accepts 1 or 2 digits for day. Accepts 1 or 2 digits for month. Accepts 1, 2, or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '30-02-2008')."
         },
         {
-          "relatedName": "xbrltt:dateMonthDayType",
+          "forObject": "xbrltt:dateMonthDayType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Numeric date in the order 'month day'. Accepts 1 or 2 digits for day. Accepts 1 or 2 digits for month. Requires a non-numeric separator. The schema does not enforce valid day of month (e.g., it accepts '02 30')."
         },
         {
-          "relatedName": "xbrltt:dateMonthDayYearType",
+          "forObject": "xbrltt:dateMonthDayYearType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Numeric date in the order 'month day year'. Accepts 1 or 2 digits for day. Accepts 1 or 2 digits for month. Accepts 1, 2, or 4 digits for year. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '02/30/2008')."
         },
         {
-          "relatedName": "xbrltt:dateMonthYearType",
+          "forObject": "xbrltt:dateMonthYearType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Numeric date in the order 'month year'. Accepts 1 or 2 digits for month. Accepts 1, 2, or 4 digits for year. Requires a non-numeric separator. The schema does not enforce valid month (e.g., it accepts '13 2008')."
         },
         {
-          "relatedName": "xbrltt:dateYearMonthDayType",
+          "forObject": "xbrltt:dateYearMonthDayType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Numeric date in the order 'year month day'. Accepts 1 or 2 digits for day. Accepts 1 or 2 digits for month. Accepts 1, 2, or 4 digits for year. Numeric values may be represented by halfwidth or fullwidth forms. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '2008 2 30')."
         },
         {
-          "relatedName": "xbrltt:dateYearMonthType",
+          "forObject": "xbrltt:dateYearMonthType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Numeric date in the order 'year month'. Accepts 1, 2, or 4 digits for year. Accepts 1 or 2 digits for month. Requires a non-numeric separator. The schema does not enforce valid month (e.g., it accepts '2008 13')."
         },
         {
-          "relatedName": "xbrltt:dateIndDayMonthnameYearHiType",
+          "forObject": "xbrltt:dateIndDayMonthnameYearHiType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Hindi date based on the Indian National Calendar in the order 'day month year'. Accepts 1 or 2 digits for day, in Arabic or Devanagari numerals. Accepts Hindi names for Saka months or equivalent Latin transliterations. Accepts 2 or 4 digits for year, in Arabic or Devanagari numerals. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '45 Chaitra 2001')."
         },
         {
-          "relatedName": "xbrltt:dateDayMonthnameYearHiType",
+          "forObject": "xbrltt:dateDayMonthnameYearHiType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Hindi date based on the Gregorian Calendar in the order 'day month year'. Accepts 1 or 2 digits for day, in Arabic or Devanagari numerals. Accepts unabbreviated Hindi names for Gregorian Calendar months. Accepts 2 or 4 digits for year, in Arabic or Devanagari numerals. Requires non-numeric separators. The schema does not enforce valid day of month (e.g., it accepts '45 जनवरी 2001')."
         },
         {
-          "relatedName": "xbrltt:dateMonthnameYearHiType",
+          "forObject": "xbrltt:dateMonthnameYearHiType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Hindi date based on the Gregorian Calendar in the order 'month year'. Requires unabbreviated Hindi names for Gregorian Calendar months. Accepts 2 or 4 digits for year, in Arabic or Devanagari numerals. Requires a non-numeric separator."
         },
         {
-          "relatedName": "xbrltt:fixedEmptyType",
+          "forObject": "xbrltt:fixedEmptyType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "String type with no content."
         },
         {
-          "relatedName": "xbrltt:fixedFalseType",
+          "forObject": "xbrltt:fixedFalseType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Boolean type with the value false."
         },
         {
-          "relatedName": "xbrltt:fixedTrueType",
+          "forObject": "xbrltt:fixedTrueType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Boolean type with the value true."
         },
         {
-          "relatedName": "xbrltt:fixedZeroType",
+          "forObject": "xbrltt:fixedZeroType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "As xs:integer with the value zero."
         },
         {
-          "relatedName": "xbrltt:nonNegativeDecimalType",
+          "forObject": "xbrltt:nonNegativeDecimalType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "As xs:decimal but not negative."
         },
         {
-          "relatedName": "xbrltt:numCommaDecimalType",
+          "forObject": "xbrltt:numCommaDecimalType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Positive numeric values with a comma for the fraction separator. No signs or exponentials accepted. Dot, space, or no-break space allowed as optional digit separators. If there is a fraction separator, then it must be followed by at least one digit."
         },
         {
-          "relatedName": "xbrltt:numCommaDecimalAposType",
+          "forObject": "xbrltt:numCommaDecimalAposType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Positive numeric values with a comma for the fraction separator. No signs or exponentials accepted. Dot, space, no-break space, and various apostrophe-like punctuation allowed as optional digit separators. If there is a fraction separator, then it must be followed by at least one digit."
         },
         {
-          "relatedName": "xbrltt:numDotDecimalType",
+          "forObject": "xbrltt:numDotDecimalType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Positive numeric values with a dot for the fraction separator. No signs or exponentials accepted. Comma, space, or no-break space allowed as optional digit separators. If there is a fraction separator, then it must be followed by at least one digit."
         },
         {
-          "relatedName": "xbrltt:numDotDecimalAposType",
+          "forObject": "xbrltt:numDotDecimalAposType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Positive numeric values with a dot for the fraction separator. No signs or exponentials accepted. Comma, space, no-break space, and various apostrophe-like punctuation allowed as optional digit separators. If there is a fraction separator, then it must be followed by at least one digit."
         },
         {
-          "relatedName": "xbrltt:numUnitDecimalType",
+          "forObject": "xbrltt:numUnitDecimalType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Positive numeric values with unit string suffixes. No signs or exponentials accepted. Must have at least one digit before and after the first unit string suffix. The fraction part is limited to two digits and is assumed to be in hundredths. Numeric values may be represented by halfwidth or fullwidth forms. Dot, comma, or fullwidth comma allowed as optional digit separators. Unit string suffix is required after the integer part but optional after the fraction part (e.g., '３，０００円５銭', '3.000 euro 5 cent')."
         },
         {
-          "relatedName": "xbrltt:numUnitDecimalAposType",
+          "forObject": "xbrltt:numUnitDecimalAposType",
           "language": "en",
           "labelType": "xbrl:documentation",
           "value": "Positive numeric values with unit string suffixes. No signs or exponentials accepted. Must have at least one digit before and after the first unit string suffix. The fraction part is limited to two digits and is assumed to be in hundredths. Numeric values may be represented by halfwidth or fullwidth forms. Dot, comma, fullwidth comma, and various apostrophe-like characters allowed as optional digit separators. Unit string suffix is required after the integer part but optional after the fraction part (e.g., '３，０００円５銭', '3.000 euro 5 cent')."
         },
         {
-          "relatedName": "xbrltt:date-day-month",
+          "forObject": "xbrltt:date-day-month",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Numeric date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-month-year",
+          "forObject": "xbrltt:date-day-month-year",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Numeric date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-bg",
+          "forObject": "xbrltt:date-day-monthname-bg",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Bulgarian date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-cs",
+          "forObject": "xbrltt:date-day-monthname-cs",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Czech date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-cy",
+          "forObject": "xbrltt:date-day-monthname-cy",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Welsh date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-da",
+          "forObject": "xbrltt:date-day-monthname-da",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Danish date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-de",
+          "forObject": "xbrltt:date-day-monthname-de",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "German date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-el",
+          "forObject": "xbrltt:date-day-monthname-el",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Greek date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-en",
+          "forObject": "xbrltt:date-day-monthname-en",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "English date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-es",
+          "forObject": "xbrltt:date-day-monthname-es",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Spanish date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-et",
+          "forObject": "xbrltt:date-day-monthname-et",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Estonian date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-fi",
+          "forObject": "xbrltt:date-day-monthname-fi",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Finnish date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-fr",
+          "forObject": "xbrltt:date-day-monthname-fr",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "French date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-hr",
+          "forObject": "xbrltt:date-day-monthname-hr",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Croatian date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-it",
+          "forObject": "xbrltt:date-day-monthname-it",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Italian date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-lv",
+          "forObject": "xbrltt:date-day-monthname-lv",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Latvian date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-nl",
+          "forObject": "xbrltt:date-day-monthname-nl",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Dutch date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-no",
+          "forObject": "xbrltt:date-day-monthname-no",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Norwegian date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-pl",
+          "forObject": "xbrltt:date-day-monthname-pl",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Polish date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-pt",
+          "forObject": "xbrltt:date-day-monthname-pt",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Portuguese date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-ro",
+          "forObject": "xbrltt:date-day-monthname-ro",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Romanian date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-sk",
+          "forObject": "xbrltt:date-day-monthname-sk",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Slovak date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-sl",
+          "forObject": "xbrltt:date-day-monthname-sl",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Slovenian date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-sv",
+          "forObject": "xbrltt:date-day-monthname-sv",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Swedish date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-year-bg",
+          "forObject": "xbrltt:date-day-monthname-year-bg",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Bulgarian date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-year-cs",
+          "forObject": "xbrltt:date-day-monthname-year-cs",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Czech date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-year-cy",
+          "forObject": "xbrltt:date-day-monthname-year-cy",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Welsh date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-year-da",
+          "forObject": "xbrltt:date-day-monthname-year-da",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Danish date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-year-de",
+          "forObject": "xbrltt:date-day-monthname-year-de",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "German date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-year-el",
+          "forObject": "xbrltt:date-day-monthname-year-el",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Greek date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-year-en",
+          "forObject": "xbrltt:date-day-monthname-year-en",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "English date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-year-es",
+          "forObject": "xbrltt:date-day-monthname-year-es",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Spanish date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-year-et",
+          "forObject": "xbrltt:date-day-monthname-year-et",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Estonian date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-year-fi",
+          "forObject": "xbrltt:date-day-monthname-year-fi",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Finnish date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-year-fr",
+          "forObject": "xbrltt:date-day-monthname-year-fr",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "French date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-year-hi",
+          "forObject": "xbrltt:date-day-monthname-year-hi",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Hindi date day month and year, based on Gregorian Calendar"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-year-hr",
+          "forObject": "xbrltt:date-day-monthname-year-hr",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Croatian date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-year-it",
+          "forObject": "xbrltt:date-day-monthname-year-it",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Italian date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-year-nl",
+          "forObject": "xbrltt:date-day-monthname-year-nl",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Dutch date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-year-no",
+          "forObject": "xbrltt:date-day-monthname-year-no",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Norwegian date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-year-pl",
+          "forObject": "xbrltt:date-day-monthname-year-pl",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Polish date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-year-pt",
+          "forObject": "xbrltt:date-day-monthname-year-pt",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Portuguese date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-year-ro",
+          "forObject": "xbrltt:date-day-monthname-year-ro",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Romanian date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-year-sk",
+          "forObject": "xbrltt:date-day-monthname-year-sk",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Slovak date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-year-sl",
+          "forObject": "xbrltt:date-day-monthname-year-sl",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Slovenian date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-day-monthname-year-sv",
+          "forObject": "xbrltt:date-day-monthname-year-sv",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Swedish date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-day-monthroman",
+          "forObject": "xbrltt:date-day-monthroman",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Roman numeral date recurring day and month"
         },
         {
-          "relatedName": "xbrltt:date-day-monthroman-year",
+          "forObject": "xbrltt:date-day-monthroman-year",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Roman numeral date day month and year"
         },
         {
-          "relatedName": "xbrltt:date-ind-day-monthname-year-hi",
+          "forObject": "xbrltt:date-ind-day-monthname-year-hi",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Hindi date day month and year based on Indian National Calendar"
         },
         {
-          "relatedName": "xbrltt:date-jpn-era-year-month",
+          "forObject": "xbrltt:date-jpn-era-year-month",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Japanese traditional date year and month"
         },
         {
-          "relatedName": "xbrltt:date-jpn-era-year-month-day",
+          "forObject": "xbrltt:date-jpn-era-year-month-day",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Japanese traditional date year month and day"
         },
         {
-          "relatedName": "xbrltt:date-month-day",
+          "forObject": "xbrltt:date-month-day",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Numeric date recurring month and day"
         },
         {
-          "relatedName": "xbrltt:date-month-day-year",
+          "forObject": "xbrltt:date-month-day-year",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Numeric date month day and year"
         },
         {
-          "relatedName": "xbrltt:date-month-year",
+          "forObject": "xbrltt:date-month-year",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Numeric date month and year"
         },
         {
-          "relatedName": "xbrltt:date-monthname-day-en",
+          "forObject": "xbrltt:date-monthname-day-en",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "English date recurring month and day"
         },
         {
-          "relatedName": "xbrltt:date-monthname-day-hu",
+          "forObject": "xbrltt:date-monthname-day-hu",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Hungarian date recurring month and day"
         },
         {
-          "relatedName": "xbrltt:date-monthname-day-lt",
+          "forObject": "xbrltt:date-monthname-day-lt",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Lithuanian date recurring month and day"
         },
         {
-          "relatedName": "xbrltt:date-monthname-day-year-en",
+          "forObject": "xbrltt:date-monthname-day-year-en",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "English date month day and year"
         },
         {
-          "relatedName": "xbrltt:date-monthname-year-bg",
+          "forObject": "xbrltt:date-monthname-year-bg",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Bulgarian date month and year"
         },
         {
-          "relatedName": "xbrltt:date-monthname-year-cs",
+          "forObject": "xbrltt:date-monthname-year-cs",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Czech date month and year"
         },
         {
-          "relatedName": "xbrltt:date-monthname-year-cy",
+          "forObject": "xbrltt:date-monthname-year-cy",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Welsh date month and year"
         },
         {
-          "relatedName": "xbrltt:date-monthname-year-da",
+          "forObject": "xbrltt:date-monthname-year-da",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Danish date month and year"
         },
         {
-          "relatedName": "xbrltt:date-monthname-year-de",
+          "forObject": "xbrltt:date-monthname-year-de",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "German date month and year"
         },
         {
-          "relatedName": "xbrltt:date-monthname-year-el",
+          "forObject": "xbrltt:date-monthname-year-el",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Greek date month and year"
         },
         {
-          "relatedName": "xbrltt:date-monthname-year-en",
+          "forObject": "xbrltt:date-monthname-year-en",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "English date month and year"
         },
         {
-          "relatedName": "xbrltt:date-monthname-year-es",
+          "forObject": "xbrltt:date-monthname-year-es",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Spanish date month and year"
         },
         {
-          "relatedName": "xbrltt:date-monthname-year-et",
+          "forObject": "xbrltt:date-monthname-year-et",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Estonian date month and year"
         },
         {
-          "relatedName": "xbrltt:date-monthname-year-fi",
+          "forObject": "xbrltt:date-monthname-year-fi",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Finnish date month and year"
         },
         {
-          "relatedName": "xbrltt:date-monthname-year-fr",
+          "forObject": "xbrltt:date-monthname-year-fr",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "French date month and year"
         },
         {
-          "relatedName": "xbrltt:date-monthname-year-hi",
+          "forObject": "xbrltt:date-monthname-year-hi",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Hindi date month and year, based on Gregorian Calendar"
         },
         {
-          "relatedName": "xbrltt:date-monthname-year-hr",
+          "forObject": "xbrltt:date-monthname-year-hr",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Croatian date month and year"
         },
         {
-          "relatedName": "xbrltt:date-monthname-year-it",
+          "forObject": "xbrltt:date-monthname-year-it",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Italian date month and year"
         },
         {
-          "relatedName": "xbrltt:date-monthname-year-nl",
+          "forObject": "xbrltt:date-monthname-year-nl",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Dutch date month and year"
         },
         {
-          "relatedName": "xbrltt:date-monthname-year-no",
+          "forObject": "xbrltt:date-monthname-year-no",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Norwegian date month and year"
         },
         {
-          "relatedName": "xbrltt:date-monthname-year-pl",
+          "forObject": "xbrltt:date-monthname-year-pl",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Polish date month and year"
         },
         {
-          "relatedName": "xbrltt:date-monthname-year-pt",
+          "forObject": "xbrltt:date-monthname-year-pt",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Portuguese date month and year"
         },
         {
-          "relatedName": "xbrltt:date-monthname-year-ro",
+          "forObject": "xbrltt:date-monthname-year-ro",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Romanian date month and year"
         },
         {
-          "relatedName": "xbrltt:date-monthname-year-sk",
+          "forObject": "xbrltt:date-monthname-year-sk",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Slovak date month and year"
         },
         {
-          "relatedName": "xbrltt:date-monthname-year-sl",
+          "forObject": "xbrltt:date-monthname-year-sl",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Slovenian date month and year"
         },
         {
-          "relatedName": "xbrltt:date-monthname-year-sv",
+          "forObject": "xbrltt:date-monthname-year-sv",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Swedish date month and year"
         },
         {
-          "relatedName": "xbrltt:date-monthroman-year",
+          "forObject": "xbrltt:date-monthroman-year",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Roman numeral date month and year"
         },
         {
-          "relatedName": "xbrltt:date-year-day-monthname-lv",
+          "forObject": "xbrltt:date-year-day-monthname-lv",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Latvian date year day and month"
         },
         {
-          "relatedName": "xbrltt:date-year-month",
+          "forObject": "xbrltt:date-year-month",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Numeric date year and month"
         },
         {
-          "relatedName": "xbrltt:date-year-month-day",
+          "forObject": "xbrltt:date-year-month-day",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Numeric date year month and day"
         },
         {
-          "relatedName": "xbrltt:date-year-monthname-day-hu",
+          "forObject": "xbrltt:date-year-monthname-day-hu",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Hungarian date year month and day"
         },
         {
-          "relatedName": "xbrltt:date-year-monthname-day-lt",
+          "forObject": "xbrltt:date-year-monthname-day-lt",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Lithuanian date year month and day"
         },
         {
-          "relatedName": "xbrltt:date-year-monthname-en",
+          "forObject": "xbrltt:date-year-monthname-en",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "English date year and month"
         },
         {
-          "relatedName": "xbrltt:date-year-monthname-hu",
+          "forObject": "xbrltt:date-year-monthname-hu",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Hungarian date year and month"
         },
         {
-          "relatedName": "xbrltt:date-year-monthname-lt",
+          "forObject": "xbrltt:date-year-monthname-lt",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Lithuanian date year and month"
         },
         {
-          "relatedName": "xbrltt:date-year-monthname-lv",
+          "forObject": "xbrltt:date-year-monthname-lv",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Latvian date year and month"
         },
         {
-          "relatedName": "xbrltt:fixed-empty",
+          "forObject": "xbrltt:fixed-empty",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Any string"
         },
         {
-          "relatedName": "xbrltt:fixed-false",
+          "forObject": "xbrltt:fixed-false",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Any string"
         },
         {
-          "relatedName": "xbrltt:fixed-true",
+          "forObject": "xbrltt:fixed-true",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Any string"
         },
         {
-          "relatedName": "xbrltt:fixed-zero",
+          "forObject": "xbrltt:fixed-zero",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Any string"
         },
         {
-          "relatedName": "xbrltt:num-comma-decimal",
+          "forObject": "xbrltt:num-comma-decimal",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Number with comma fraction separator"
         },
         {
-          "relatedName": "xbrltt:num-dot-decimal",
+          "forObject": "xbrltt:num-dot-decimal",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Number with dot fraction separator"
         },
         {
-          "relatedName": "xbrltt:num-unit-decimal",
+          "forObject": "xbrltt:num-unit-decimal",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Number with unit strings"
         },
         {
-          "relatedName": "xbrltt:num-comma-decimal-apos",
+          "forObject": "xbrltt:num-comma-decimal-apos",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Number with comma fraction separator with apostrophes permitted as thousands separator"
         },
         {
-          "relatedName": "xbrltt:num-dot-decimal-apos",
+          "forObject": "xbrltt:num-dot-decimal-apos",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Number with dot fraction separator with apostrophes permitted as thousands separator"
         },
         {
-          "relatedName": "xbrltt:num-unit-decimal-apos",
+          "forObject": "xbrltt:num-unit-decimal-apos",
           "language": "en",
           "labelType": "xbrl:label",
           "value": "Number with unit strings with apostrophes permitted as thousands separator"

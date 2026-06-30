@@ -66,7 +66,7 @@ class XbrlFootnote(XbrlReportObject):
     """
     module: XbrlModuleAlias  # facts in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the abstract object.
-    relatedNames: OrderedSet[QName] # (required) QNames of the fact objects associated with this footnote.
+    forObjects: OrderedSet[QName] # (required) QNames of the fact objects associated with this footnote.
     content: Optional[str] # (optional) The content of the footnote.
     language: Optional[str] # (optional) The language of the footnote text, specified using the BCP 47 standard language code (e.g., "en" for English, "fr" for French).
 

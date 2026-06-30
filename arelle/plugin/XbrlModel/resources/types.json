@@ -24,7 +24,7 @@
             {   "name": "xbrlr:weightType",
                 "baseType": "xs:decimal",
                 "enumeration": [ "1", "-1" ],
-                "allowedObjects": ["xbrl:propertyObject"]
+                "allowedObjects": ["xbrl:propertyTypeObject"]
             },
             {
                 "name" : "xbrlr:duration",
@@ -200,8 +200,7 @@
             },
             {
                 "name" : "xbrlr:guidance",
-                "baseType" : "xs:string",
-                "allowedObjects": ["xbrl:headingObject"]
+                "baseType" : "xs:string"
             },
             {
                 "name" : "xbrlr:flow",
@@ -401,326 +400,326 @@
         ],
         "labels": [
             {
-                "relatedName" : "xbrlr:periodString",
+                "forObject" : "xbrlr:periodString",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The period dimension takes a value that is a time interval, which may be zero-length (i.e. an instant). This type defines a standard period string representation which can be used to express such values.The period string representation is obtained as follows: If the value is a non-zero length interval, then the representation is a pair of ISO 8601 date-time values, separated by the / character; Otherwise, the value is a single ISO 8601 date-time value. The date-time values used in this representation MUST be valid according to the xs:dateTime datatype and MUST be in the canonical lexical representation. The error code oimce:invalidPeriodRepresentation MUST be raised for values that are required to be a period string representation and which do not conform to the above format. It should be noted that unlike the xbrli:dateUnion type used in xBRL-XML, the xs:dateTime datatype used here does not allow the time component to be omitted."
             },
             {
-                "relatedName" : "xbrlr:startEndDates",
+                "forObject" : "xbrlr:startEndDates",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The start and end dates of a period defined as a single type."
             },
             {
-                "relatedName" : "xbrlr:unitString",
+                "forObject" : "xbrlr:unitString",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The unit dimension defines units in terms of the combination of QNames by defining an unordered collection of numerators and an unordered collection of denominators. This type defines a standardised unit string representation, allowing units to be captured using a unique string value. This has the property that, provided that a consistent set of namespace prefixes are used, a given unit will have a single representation meaning that equivalence of units can be determined by string comparison. The unit string representation is obtained as follows: If {denominators} is not present, the QNames representing the {numerators} are combined in lexicographic order, separated by the * character. Otherwise, lists of {numerators} and {denominators} are created by combining QNames in lexicographic order and separating with the * character, as above. If a list contains more than one item, the list is enclosed in parentheses. The final string is then obtained by concatenating the list of numerators, the / character, and the list of denominators. Whitespace is not permitted anywhere in the string representation, and the use of QNames ensures that a 1:1 mapping between prefixes and namespaces is available thus ensuring that equivalent units appearing within the same document are represented with the same string. Lexicographic order means ordered based on comparison of Unicode code point values of each character. If any QNames in the unit string representation use a prefix that is not defined in the prefix map then oimce:unboundPrefix MUST be raised."
             },
             {
-                "relatedName" : "xbrlr:aggregationType",
+                "forObject" : "xbrlr:aggregationType",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The aggregation data type is used to uniquely identify the method of aggregation used to generate a single value from a population."
             },
            
             {
-                "relatedName" : "xbrlr:monetary",
+                "forObject" : "xbrlr:monetary",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The monetary type serves as the data type for those financial concepts in a taxonomy which denote units in a currency. Instance items with this type must have a unit of measure from the ISO 4217 namespace of currencies."
             },
             {
-                "relatedName" : "xbrlr:pureType",
+                "forObject" : "xbrlr:pureType",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "This data type serves as the type for dimensionless numbers such as percentage change, growth rates, and other ratios where the numerator and denominator have the same units."
             },
             {
-                "relatedName" : "xbrlr:enumeration",
+                "forObject" : "xbrlr:enumeration",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The enumeration type defines an XBRL item type which takes an XML Name in the format 'namespace-uri#localname' as a value."
             },
             {
-                "relatedName" : "xbrlr:escaped",
+                "forObject" : "xbrlr:escaped",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "escaped specializes string. There is no constraint on whether the resulting unescaped content is well-formed or not; this base type exists so that processors know what to do with the content. It is a suitable base type for a data type whose unescaped content must be valid HTML 4.0 (which is not XML)."
             },
             {
-                "relatedName" : "xbrlr:xmlNodes",
+                "forObject" : "xbrlr:xmlNodes",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "xmlNodes specializes escaped. The unescaped content MUST be a sequence of XML text and well-formed XML nodes. This content constraint cannot be captured by a finite length regular expression."
             },
             {
-                "relatedName" : "xbrlr:xml",
+                "forObject" : "xbrlr:xml",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "xml specializes xmlNodes. The unescaped content MUST be well-formed XML. This is a suitable base type for elements whose content must conform to a specific XML Schema or DTD. "
             },
             {
-                "relatedName" : "xbrlr:textBlock",
+                "forObject" : "xbrlr:textBlock",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "textBlock specializes xmlNodes. The unescaped content MUST have mixed content containing a simple string, or a fragment of XHTML or a mixture of both."
             },
             {
-                "relatedName" : "xbrlr:percent",
+                "forObject" : "xbrlr:percent",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The percent item type is used to indicate that the value of the element is intended to be presented as a percentage. This does not contravene Specification section 4.8.2, which requires that percentages not be multiplied by 100."
             },
             {
-                "relatedName" : "xbrlr:perShare",
+                "forObject" : "xbrlr:perShare",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The per share item type indicates a monetary amount divided by a number of shares. The per share item type has a Decimal base."
             },
             {
-                "relatedName" : "xbrlr:area",
+                "forObject" : "xbrlr:area",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The area item type is used to indicate that an element represents an area."
             },
             {
-                "relatedName" : "xbrlr:volume",
+                "forObject" : "xbrlr:volume",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The Volume item type is used to indicate that an element represents a volume and can be used to express the volume of any substance, whether solid, liquid, or gas."
             },
             {
-                "relatedName" : "xbrlr:mass",
+                "forObject" : "xbrlr:mass",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The mass item type represents the mass of an object which can be measured."
             },
             {
-                "relatedName" : "xbrlr:weight",
+                "forObject" : "xbrlr:weight",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The weight item type represents the weight of an object which can be measured."
             },
             {
-                "relatedName" : "xbrlr:energy",
+                "forObject" : "xbrlr:energy",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The energy item type represents a unit of energy."
             },
             {
-                "relatedName" : "xbrlr:power",
+                "forObject" : "xbrlr:power",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "Measures a rate of energy use or energy production and is equivalent to the use or production of energy during a period of time. I.e. a watt is the equal to one joule of energy per second."
             },
             {
-                "relatedName" : "xbrlr:length",
+                "forObject" : "xbrlr:length",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The length item type is a measure of distance."
             },
             {
-                "relatedName" : "xbrlr:memory",
+                "forObject" : "xbrlr:memory",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The memory item type is a measure of memory typically used in the IT industry."
             },
             {
-                "relatedName" : "xbrlr:noDecimalsMonetary",
+                "forObject" : "xbrlr:noDecimalsMonetary",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The NoDecimalsMonetary is a restriction on the xbrlr:monetary in that it does not allow cents on the monetary value. Facts using this type MUST have an (inferred) decimals attribute value that is less than or equal to zero, or 'INF'."
             },
             {
-                "relatedName" : "xbrlr:nonNegativeMonetary",
+                "forObject" : "xbrlr:nonNegativeMonetary",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The nonNegativeMonetary is a restriction on the xbrlr:monetary in that it does not allow negative values on the monetary value."
             },
             {
-                "relatedName" : "xbrlr:nonNegativeNoDecimalsMonetary",
+                "forObject" : "xbrlr:nonNegativeNoDecimalsMonetary",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The nonNegativeNoDecimalsMonetary is a restriction on the xbrlr:monetary in that it does not allow cents or negative values on the monetary value. Facts using this type MUST have an (inferred) decimals attribute value that is less than or equal to zero, or 'INF'."
             },
             {
-                "relatedName" : "xbrlr:insolation",
+                "forObject" : "xbrlr:insolation",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : " The insolation item type is used to represent a measure of energy per area over a period of time. "
             },
             {
-                "relatedName" : "xbrlr:temperature",
+                "forObject" : "xbrlr:temperature",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The temperature item type is used to represent a measure of temperature either in absolute terms or as a difference between two temperatures."
             },
             {
-                "relatedName" : "xbrlr:pressure",
+                "forObject" : "xbrlr:pressure",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : " The pressure item type is used to represent a measure of the force applied perpendicular to the surface of an object per unit area over which that force is distributed. Units include Pascal, PSI and Bar. "
             },
             {
-                "relatedName" : "xbrlr:frequency",
+                "forObject" : "xbrlr:frequency",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : " The frequency item type is used to represent a measure of the number of occurrences of a repeating event per unit time. "
             },
             {
-                "relatedName" : "xbrlr:irradiance",
+                "forObject" : "xbrlr:irradiance",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : " The irradiance item type is used to represent a measure irradiance (power per unit area)"
             },
             {
-                "relatedName" : "xbrlr:speed",
+                "forObject" : "xbrlr:speed",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : " The speed item type is used to represent a measure of speed (distance traveled by an object per unit time). Units include knots, mach, and metres per second."
             },
             {
-                "relatedName" : "xbrlr:planeAngle",
+                "forObject" : "xbrlr:planeAngle",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The angle item type is used to represent the measurement of an angle. Units include radians, degrees and gradians."
             },
             {
-                "relatedName" : "xbrlr:voltage",
+                "forObject" : "xbrlr:voltage",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : " The voltage item type is used to represent a measure of voltage (the difference in electric potential energy between two points per unit electric charge)."
             },
             {
-                "relatedName" : "xbrlr:electricCurrent",
+                "forObject" : "xbrlr:electricCurrent",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The electric current item type is used to represent a measure of electric current (the flow of electric charge over a circuit)."
             },
             {
-                "relatedName" : "xbrlr:force",
+                "forObject" : "xbrlr:force",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The force item type is used to represent a measure of a physical force. Units include newtons. "
             },
             {
-                "relatedName" : "xbrlr:electricCharge",
+                "forObject" : "xbrlr:electricCharge",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : " The electric charge item is used to represent a measure of electric charge (the physical property of matter that causes it to experience a force when placed in an electromagnetic field) "
             },
             {
-                "relatedName" : "xbrlr:guidance",
+                "forObject" : "xbrlr:guidance",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The purpose of the guidance type is to identify 'guidance items' which provide general guidance for users of a taxonomy, particularly preparers of XBRL reports. Guidance is defined as a property value of the xbrl:abstractDataType property defined ona  a heading object. This property allows guidance to be positioned in appropriate locations in the parent-child relationship network, and is intended to help users who view the taxonomy through displays based on the parent-child relationship network. Guidance items provide general guidance which is not limited to the application of a specific tag to an individual item of data. This remains as a datatype but can only be used as a property value, to support backward compatability to XBRL 2.1 taxonomies."
             },
             {
-                "relatedName" : "xbrlr:gYearList",
+                "forObject" : "xbrlr:gYearList",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "This data type allows the reporting of a list of xsd:gYear values as a single value"
             },
             {
-                "relatedName" : "xbrlr:flow",
+                "forObject" : "xbrlr:flow",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The flow item type is used to represent a measure of volumetric flow rate."
             },
             {
-                "relatedName" : "xbrlr:massFlow",
+                "forObject" : "xbrlr:massFlow",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The mass flow item type is used to represent a measure of mass flow rate."
             },
             {
-                "relatedName" : "xbrlr:monetaryPerLength",
+                "forObject" : "xbrlr:monetaryPerLength",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The monetary per length item type is used to represent a measure of price or cost per unit length"
             },
             {
-                "relatedName" : "xbrlr:monetaryPerArea",
+                "forObject" : "xbrlr:monetaryPerArea",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The monetary per area item type is used to represent a measure of price or cost per unit area"
             },
             {
-                "relatedName" : "xbrlr:monetaryPerVolume",
+                "forObject" : "xbrlr:monetaryPerVolume",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The monetary per volume item type is used to represent a measure of price or cost per unit volume"
             },
             {
-                "relatedName" : "xbrlr:monetaryPerDuration",
+                "forObject" : "xbrlr:monetaryPerDuration",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The monetary per duration item type is used to represent a measure of price or cost per unit duration"
             },
             {
-                "relatedName" : "xbrlr:monetaryPerEnergy",
+                "forObject" : "xbrlr:monetaryPerEnergy",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The monetary per energy item type is used to represent a measure of price or cost per unit energy"
             },
             {
-                "relatedName" : "xbrlr:monetaryPerMass",
+                "forObject" : "xbrlr:monetaryPerMass",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The monetary per mass item type is used to represent a measure of price or cost per unit mass"
             },
             {
-                "relatedName" : "xbrlr:dateTime",
+                "forObject" : "xbrlr:dateTime",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "A subtype of xs:dateTime that requires a time component (as xs:dateTime does)."
             },
             {
-                "relatedName" : "xbrlr:partialDate",
+                "forObject" : "xbrlr:partialDate",
                 "language" : "en",
                 "labelType" : "xbrl:label",
                 "value" : "Partial Date"
             },
             {
-                "relatedName" : "xbrlr:partialDate",
+                "forObject" : "xbrlr:partialDate",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "An ISO 8601 truncated date/time value that may represent a year (YYYY), year-month (YYYY-MM), full date (YYYY-MM-DD), or date with hours, minutes or seconds. Used where the precision of a date or time value is not known in advance."
             },
             {
-                "relatedName" : "xbrlr:ghgEmissions",
+                "forObject" : "xbrlr:ghgEmissions",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The greenhouse gas emissions item type is used in preference to mass to measure Global Warming Potential, which is often expressed in terms of tonnes of CO2 equivalent."
             },
             {
-                "relatedName" : "xbrlr:energyPerMonetary",
+                "forObject" : "xbrlr:energyPerMonetary",
                 "language" : "en",
                 "labelType" : "xbrl:label",
                 "value" : "Energy/Monetary"
             },
             {
-                "relatedName" : "xbrlr:energyPerMonetary",
+                "forObject" : "xbrlr:energyPerMonetary",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The energy per monetary item type is used to represent a measure of energy per monetary unit."
             },
             {
-                "relatedName" : "xbrlr:ghgEmissionsPerMonetary",
+                "forObject" : "xbrlr:ghgEmissionsPerMonetary",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The emissions per monetary item type is used to represent a measure of GHG emissions per monetary unit."
             },
             {
-                "relatedName" : "xbrlr:volumePerMonetary",
+                "forObject" : "xbrlr:volumePerMonetary",
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "The volume per monetary item type is used to represent a measure of volume per monetary unit."
             },
             {
-                "relatedName" : "xbrlr:volumePerMonetary",
+                "forObject" : "xbrlr:volumePerMonetary",
                 "language" : "en",
                 "labelType" : "xbrl:label",
                 "value" : "Volume/Monetary"
@@ -728,38 +727,38 @@
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrlr:Monetary_per_Monetary",
+                "forObject": "xbrlr:Monetary_per_Monetary",
                 "value": "Monetary/Monetary"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrlr:Monetary_per_Monetary",
+                "forObject": "xbrlr:Monetary_per_Monetary",
                 "value": "Exchange Rate Expressed as: Monetary Unit / Monetary Unit"
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "relatedName": "xbrlr:emoji",
+                "forObject": "xbrlr:emoji",
                 "value": "Image or Emoji Icon"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrlr:emoji",
+                "forObject": "xbrlr:emoji",
                 "value": "A datatype for associating images or emoji icons with taxonomy objects. Values can be emoji characters, image URLs, or data URIs representing icons for visual representation of taxonomy objects."
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "relatedName": "xbrlr:realURL",
+                "forObject": "xbrlr:realURL",
                 "value": "A URL that references a real link to a resource. If used the URL must be valid."
             }
         ],
         "references": [
             {
                 "name": "xbrlr:ITARequirementReference",
-                "relatedNames": [
+                "forObjects": [
                     "xbrlr:escaped",
                     "xbrlr:xmlNodes",
                     "xbrlr:xml",
@@ -781,7 +780,7 @@
             },
             {
                 "name": "xbrlr:PartialDateRequirementReference",
-                "relatedNames": [
+                "forObjects": [
                     "xbrlr:partialDate"
                 ],
                 "referenceType": "xbrl:dataTypeRequirement",
@@ -789,7 +788,7 @@
             },
             {
                 "name": "xbrlr:PerUnitReference",
-                "relatedNames": [
+                "forObjects": [
                     "xbrlr:monetaryPerLength",
                     "xbrlr:monetaryPerArea",
                     "xbrlr:monetaryPerVolume",
@@ -803,7 +802,7 @@
             },
             {
                 "name": "xbrlr:RecStatusReference",
-                "relatedNames": [
+                "forObjects": [
                     "xbrlr:escaped",
                     "xbrlr:xmlNodes",
                     "xbrlr:xml",

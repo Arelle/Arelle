@@ -99,7 +99,7 @@ def validateCompiledModel(compMdl):
     compMdl.errorCatalog = get_error_catalog()
 
     mdlLvlChecks = attrdict(
-        labelsCt = defaultdict(list), # count of duplicated labels by relatedName, labelType and language
+        labelsCt = defaultdict(list), # count of duplicated labels by forObject, labelType and language
     )
 
     for module in compMdl.xbrlModels.values():
@@ -111,7 +111,7 @@ def validateCompiledModel(compMdl):
     for lblKey, lblObjs in mdlLvlChecks.labelsCt.items():
         if len(lblObjs) > 1:
             emit_error(compMdl, "oimte:duplicateLabelObject",
-                       _("The labels are duplicated for relatedName %(name)s type %(type)s language %(language)s"),
+                       _("The labels are duplicated for forObject %(name)s type %(type)s language %(language)s"),
                        xbrlObject=lblObjs, name=lblKey[0], type=lblKey[1], language=lblKey[2])
 
 def objType(obj):
@@ -1285,40 +1285,40 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                undefinedMessage=_("The groupContent object groupName QName %(name)s MUST be a valid group object in the taxonomy model"),
                                invalidTypeMessage=_("The groupContent object groupName QName %(name)s MUST be a valid group object in the taxonomy model"),
                                errorArgs={"name": grpQn}, qnRef=grpQn)
-        for relName in grpCntObj.relatedNames:
-            validateQNameReference(compMdl, grpCntObj, "relatedNames",
+        for relName in grpCntObj.forObjects:
+            validateQNameReference(compMdl, grpCntObj, "forObjects",
                                    (XbrlNetwork, XbrlCube, XbrlTableTemplate, XbrlDomainNetwork, XbrlLayout),
-                                   invalidTypeMsgCode="oimte:invalidGroupContentRelatedName",
-                                   undefinedMessage=_("The groupContent object %(name)s relatedName %(relName)s MUST only include QNames associated with network objects, cube objects, table template objects or layout objects."),
-                                   invalidTypeMessage=_("The groupContent object %(name)s relatedName %(relName)s MUST only include QNames associated with network objects, cube objects, table template objects or layout objects."),
+                                   invalidTypeMsgCode="oimte:invalidGroupContentForObject",
+                                   undefinedMessage=_("The groupContent object %(name)s forObject %(relName)s MUST only include QNames associated with network objects, cube objects, table template objects or layout objects."),
+                                   invalidTypeMessage=_("The groupContent object %(name)s forObject %(relName)s MUST only include QNames associated with network objects, cube objects, table template objects or layout objects."),
                                    errorArgs={"name": grpQn, "relName": relName}, qnRef=relName)
 
     # Label Objects
     for lblObj in module.labels or ():
         assertObjectType(compMdl, lblObj, XbrlLabel)
-        relatedName = lblObj.relatedName
+        forObject = lblObj.forObject
         relatedObj = None
-        if relatedName in compMdl.namedObjects:
-            relatedObj = compMdl.namedObjects.get(relatedName)
-        elif relatedName in xbrlObjectTypes:
-            relatedObj = relatedName
-        elif compMdl.isImpliedObject(relatedName):
-            _validateImpliedObjectLocalName(compMdl, lblObj, relatedName)
-            relatedObj = relatedName
+        if forObject in compMdl.namedObjects:
+            relatedObj = compMdl.namedObjects.get(forObject)
+        elif forObject in xbrlObjectTypes:
+            relatedObj = forObject
+        elif compMdl.isImpliedObject(forObject):
+            _validateImpliedObjectLocalName(compMdl, lblObj, forObject)
+            relatedObj = forObject
         else:
             compMdl.error("oimte:invalidQNameReference",
-                      _("Label has invalid related object %(relatedName)s"),
-                      xbrlObject=lblObj, relatedName=relatedName)
+                      _("Label has invalid related object %(forObject)s"),
+                      xbrlObject=lblObj, forObject=forObject)
         lblTpObj = validateQNameReference(compMdl, lblObj, "labelType", XbrlLabelType)
         if lblTpObj:
             if lblTpObj.allowedObjects and relatedObj is not None and not any(
                 type(relatedObj) == xbrlObjectTypes.get(allowedObj) for allowedObj in lblTpObj.allowedObjects):
                 compMdl.error("oimte:disallowedObjectLabelType",
-                          _("Label has disallowed related object %(relatedName)s"),
-                          xbrlObject=lblObj, relatedName=relatedName)
+                          _("Label has disallowed related object %(forObject)s"),
+                          xbrlObject=lblObj, forObject=forObject)
             lblObj._xValid, lblObj._xValue = validateValue(compMdl, module, lblObj, lblObj.value, lblTpObj.dataType, "", "oimte:invalidLabelValue")
         validateProperties(compMdl, oimFile, module, lblObj)
-        lblKey = (relatedName, lblObj.labelType, lblObj.language)
+        lblKey = (forObject, lblObj.labelType, lblObj.language)
         mdlLvlChecks.labelsCt[lblKey].append(lblObj)
 
     # Network, PropertyType and RelationshipType Objects
@@ -1334,7 +1334,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         lang = refObj.language
         refTp = refObj.referenceType
         extName = refObj.extends
-        for relName in refObj.relatedNames or ():
+        for relName in refObj.forObjects or ():
             if relName not in compMdl.namedObjects:
                 refsWithInvalidRelName.append(refObj)
                 refInvalidNames.append(relName)

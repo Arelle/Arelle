@@ -122,12 +122,11 @@
       {
         "name": "calc11e:ErrorsByObjectType",
         "relationshipTypeName": "xbrl:parent-child",
-        "roots": [
-          {
-            "root": "calc11e:CalcErrors"
-          }
-        ],
         "relationships": [
+          {
+            "source": "xbrl:rootSource",
+            "target": "calc11e:CalcErrors"
+          },
           {
             "source": "calc11e:CalcErrors",
             "target": "calc11e:inconsistentCalculationUsingRounding",
@@ -158,79 +157,79 @@
     ],
     "labels": [
       {
-        "relatedName": "calc11e:inconsistentCalculationUsingRounding",
+        "forObject": "calc11e:inconsistentCalculationUsingRounding",
         "language": "en",
         "value": "Inconsistent Calculation Using Rounding",
         "labelType": "xbrl:label"
       },
       {
-        "relatedName": "calc11e:inconsistentCalculationUsingRounding",
+        "forObject": "calc11e:inconsistentCalculationUsingRounding",
         "language": "en",
         "value": "The calculation is inconsistent due to rounding differences using round-to-nearest.",
         "labelType": "xbrl:errorMessage"
       },
       {
-        "relatedName": "calc11e:inconsistentCalculationUsingTruncation",
+        "forObject": "calc11e:inconsistentCalculationUsingTruncation",
         "language": "en",
         "value": "Inconsistent Calculation Using Truncation",
         "labelType": "xbrl:label"
       },
       {
-        "relatedName": "calc11e:inconsistentCalculationUsingTruncation",
+        "forObject": "calc11e:inconsistentCalculationUsingTruncation",
         "language": "en",
         "value": "The calculation is inconsistent due to truncation differences using truncation.",
         "labelType": "xbrl:errorMessage"
       },
       {
-        "relatedName": "calc11e:CALCErrorClassDomain",
+        "forObject": "calc11e:CALCErrorClassDomain",
         "language": "en",
-        "value": "\ud83d\udeab",
+        "value": "🚫",
         "labelType": "xbrl:iconLabel"
       },
       {
-        "relatedName": "calc11e:CalcErrors",
+        "forObject": "calc11e:CalcErrors",
         "language": "en",
         "value": "Calculation Errors",
         "labelType": "xbrl:label"
       },
       {
-        "relatedName": "calc11e:CalcErrors",
+        "forObject": "calc11e:CalcErrors",
         "language": "en",
         "value": "All identified calculation errors.",
         "labelType": "xbrl:errorMessage"
       },
       {
-        "relatedName": "calc11e:duplicateCalculationRelationships",
+        "forObject": "calc11e:duplicateCalculationRelationships",
         "language": "en",
         "value": "Duplicate Calculation Relationships",
         "labelType": "xbrl:label"
       },
       {
-        "relatedName": "calc11e:duplicateCalculationRelationships",
+        "forObject": "calc11e:duplicateCalculationRelationships",
         "language": "en",
         "value": "There must not be more than one summation-item relationship with the same total concept and the same contributing concept within a single calculation.",
         "labelType": "xbrl:errorMessage"
       },
       {
-        "relatedName": "calc11e:excessDigitsInCalculation",
+        "forObject": "calc11e:excessDigitsInCalculation",
         "language": "en",
         "value": "Excess Digits in Calculation",
         "labelType": "xbrl:label"
       },
       {
-        "relatedName": "calc11e:excessDigitsInCalculation",
+        "forObject": "calc11e:excessDigitsInCalculation",
         "language": "en",
         "value": "If a calculation fact has digits in excess of the declared decimals, then calc11e:excessDigits MUST be raised, and no further consistency checking is performed for this binding of the calculation.",
         "labelType": "xbrl:errorMessage"
       },
       {
-        "relatedName": "calc11e:disallowedDuplicateFactsUsingTruncation",
+        "forObject": "calc11e:disallowedDuplicateFactsUsingTruncation",
         "language": "en",
         "value": "Disallowed Duplicate Facts Using Truncation",
         "labelType": "xbrl:label"
       },
       {
-        "relatedName": "calc11e:disallowedDuplicateFactsUsingTruncation",
+        "forObject": "calc11e:disallowedDuplicateFactsUsingTruncation",
         "language": "en",
         "value": "If there are duplicate facts using truncation that are not allowed, then calc11e:disallowedDuplicateFactsUsingTruncation is raised.",
         "labelType": "xbrl:errorMessage"
@@ -239,7 +238,7 @@
     "references": [
       {
         "name": "calc11e:inconsistentCalculationUsingRounding1Reference",
-        "relatedNames": [
+        "forObjects": [
           "calc11e:inconsistentCalculationUsingRounding"
         ],
         "referenceType": "xbrl:conformanceTestReference",
@@ -251,7 +250,7 @@
           },
           {
             "property": "xbrl:conformanceStatus",
-            "value": "\u274c Fail"
+            "value": "❌ Fail"
           },
           {
             "property": "xbrl:conformanceErrorsProduced",
@@ -265,7 +264,7 @@
       },
       {
         "name": "calc11e:inconsistentCalculationUsingRounding2Reference",
-        "relatedNames": [
+        "forObjects": [
           "calc11e:inconsistentCalculationUsingRounding"
         ],
         "referenceType": "xbrl:conformanceTestReference",
@@ -277,7 +276,7 @@
           },
           {
             "property": "xbrl:conformanceStatus",
-            "value": "\u274c Fail"
+            "value": "❌ Fail"
           },
           {
             "property": "xbrl:conformanceErrorsProduced",
@@ -291,7 +290,7 @@
       },
       {
         "name": "calc11e:inconsistentCalculationUsingRounding3Reference",
-        "relatedNames": [
+        "forObjects": [
           "calc11e:inconsistentCalculationUsingRounding"
         ],
         "referenceType": "xbrl:conformanceTestReference",
@@ -303,7 +302,7 @@
           },
           {
             "property": "xbrl:conformanceStatus",
-            "value": "\u274c Fail"
+            "value": "❌ Fail"
           },
           {
             "property": "xbrl:conformanceErrorsProduced",
@@ -317,7 +316,7 @@
       },
       {
         "name": "calc11e:inconsistentCalculationUsingRounding4Reference",
-        "relatedNames": [
+        "forObjects": [
           "calc11e:inconsistentCalculationUsingRounding"
         ],
         "referenceType": "xbrl:conformanceTestReference",
@@ -329,7 +328,7 @@
           },
           {
             "property": "xbrl:conformanceStatus",
-            "value": "\u2705 Pass"
+            "value": "✅ Pass"
           },
           {
             "property": "xbrl:conformanceErrorsProduced",
@@ -343,7 +342,7 @@
       },
       {
         "name": "calc11e:inconsistentCalculationUsingRoundingValidChangeFactMapExternalFileReference",
-        "relatedNames": [
+        "forObjects": [
           "calc11e:inconsistentCalculationUsingRounding"
         ],
         "referenceType": "xbrl:conformanceTestReference",
@@ -355,7 +354,7 @@
           },
           {
             "property": "xbrl:conformanceStatus",
-            "value": "\u274c Fail"
+            "value": "❌ Fail"
           },
           {
             "property": "xbrl:conformanceErrorsProduced",
@@ -369,7 +368,7 @@
       },
       {
         "name": "calc11e:inconsistentCalculationUsingRoundingValidChangeFactMapExternalFileReference2",
-        "relatedNames": [
+        "forObjects": [
           "calc11e:inconsistentCalculationUsingRounding"
         ],
         "referenceType": "xbrl:conformanceTestReference",
@@ -381,7 +380,7 @@
           },
           {
             "property": "xbrl:conformanceStatus",
-            "value": "\u274c Fail"
+            "value": "❌ Fail"
           },
           {
             "property": "xbrl:conformanceErrorsProduced",
@@ -395,7 +394,7 @@
       },
       {
         "name": "calc11e:inconsistentCalculationUsingRoundingExternalFileReference",
-        "relatedNames": [
+        "forObjects": [
           "calc11e:inconsistentCalculationUsingRounding"
         ],
         "referenceType": "xbrl:conformanceTestReference",
@@ -407,7 +406,7 @@
           },
           {
             "property": "xbrl:conformanceStatus",
-            "value": "\u274c Fail"
+            "value": "❌ Fail"
           },
           {
             "property": "xbrl:conformanceErrorsProduced",
@@ -421,7 +420,7 @@
       },
       {
         "name": "calc11e:inconsistentCalculationUsingRoundingWithFootnoteReference",
-        "relatedNames": [
+        "forObjects": [
           "calc11e:inconsistentCalculationUsingRounding"
         ],
         "referenceType": "xbrl:conformanceTestReference",
@@ -433,7 +432,7 @@
           },
           {
             "property": "xbrl:conformanceStatus",
-            "value": "\u274c Fail"
+            "value": "❌ Fail"
           },
           {
             "property": "xbrl:conformanceErrorsProduced",
@@ -447,7 +446,7 @@
       },
       {
         "name": "calc11e:inconsistentCalculationUsingRoundingWithFootnoteURLReference",
-        "relatedNames": [
+        "forObjects": [
           "calc11e:inconsistentCalculationUsingRounding"
         ],
         "referenceType": "xbrl:conformanceTestReference",
@@ -459,7 +458,7 @@
           },
           {
             "property": "xbrl:conformanceStatus",
-            "value": "\u274c Fail"
+            "value": "❌ Fail"
           },
           {
             "property": "xbrl:conformanceErrorsProduced",
@@ -473,7 +472,7 @@
       },
       {
         "name": "calc11e:inconsistentCalculationUsingRoundingInvalidChangeFactMapExternalFileReference",
-        "relatedNames": [
+        "forObjects": [
           "calc11e:inconsistentCalculationUsingRounding"
         ],
         "referenceType": "xbrl:conformanceTestReference",
@@ -485,7 +484,7 @@
           },
           {
             "property": "xbrl:conformanceStatus",
-            "value": "\u274c Fail"
+            "value": "❌ Fail"
           },
           {
             "property": "xbrl:conformanceErrorsProduced",
@@ -499,7 +498,7 @@
       },
       {
         "name": "calc11e:duplicateCalculationRelationships1Reference",
-        "relatedNames": [
+        "forObjects": [
           "calc11e:duplicateCalculationRelationships"
         ],
         "referenceType": "xbrl:conformanceTestReference",
@@ -511,7 +510,7 @@
           },
           {
             "property": "xbrl:conformanceStatus",
-            "value": "\u274c Fail"
+            "value": "❌ Fail"
           },
           {
             "property": "xbrl:conformanceErrorsProduced",
@@ -525,7 +524,7 @@
       },
       {
         "name": "calc11e:duplicateCalculationRelationships2Reference",
-        "relatedNames": [
+        "forObjects": [
           "calc11e:duplicateCalculationRelationships"
         ],
         "referenceType": "xbrl:conformanceTestReference",
@@ -537,7 +536,7 @@
           },
           {
             "property": "xbrl:conformanceStatus",
-            "value": "\u274c Fail"
+            "value": "❌ Fail"
           },
           {
             "property": "xbrl:conformanceErrorsProduced",
@@ -551,7 +550,7 @@
       },
       {
         "name": "calc11e:duplicateCalculationRelationshipsReference",
-        "relatedNames": [
+        "forObjects": [
           "calc11e:duplicateCalculationRelationships"
         ],
         "referenceType": "xbrl:specificationErrorReference",

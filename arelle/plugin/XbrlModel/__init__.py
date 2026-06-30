@@ -580,7 +580,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         namedObjectDuplicates = defaultdict(OrderedSet)
         def createModelObject(jsonObj, oimParentObj, keyClass, objClass, newObj, pathParts):
             keyValue = None
-            relatedNames = [] # to tag an object with labels or references
+            forObjectsList = [] # to tag an object with labels or references
             oimParentTypes = (type(oimParentObj), type(oimParentObj).__name__) # allow actual type or TypeAlias type
             unexpectedJsonProps = set(jsonObj.keys())
             propertyMap = getattr(objClass, "_propertyMap", EMPTY_DICT).get(type(oimParentObj), EMPTY_DICT)
@@ -646,8 +646,8 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                                                   _("QName has undefined prefix: %(qname)s, jsonObj: %(path)s"),
                                                   sourceFileLine=href, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
                                             # must have None value for validation to work
-                                        if propName == "relatedNames":
-                                            relatedNames.append(listObj)
+                                        if propName == "forObjects":
+                                            forObjectsList.append(listObj)
                                     if propClass in (set, OrderedSet, NonemptySet):
                                         try:
                                             if listObj not in collectionProp:
@@ -717,8 +717,8 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                                     jsonValue = qnErrorQname # allow processing to proceed with marker bad qname
                             elif propType == QNameAt:
                                 jsonValue = QNameAt(jsonValue.prefix, jsonValue.namespaceURI, jsonValue.localName, atSuffix)
-                            if propName == "relatedName":
-                                relatedNames.append(jsonValue)
+                            if propName == "forObject":
+                                forObjectsList.append(jsonValue)
                         setattr(newObj, propName, jsonValue)
                         if (keyClass and keyClass == propType) or (not keyClass and propType in (QNameKeyType, SQNameKeyType)):
                             keyValue = jsonValue # e.g. the QNAme of the new object for parent object collection
@@ -752,8 +752,8 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                             namedObjectDuplicates[keyValue].add(existingObj)
                     else:
                         xbrlCompMdl.namedObjects[keyValue] = newObj
-            elif isinstance(newObj, XbrlTaxonomyTagObject) and relatedNames:
-                for relatedQn in relatedNames:
+            elif isinstance(newObj, XbrlTaxonomyTagObject) and forObjectsList:
+                for relatedQn in forObjectsList:
                     xbrlCompMdl.tagObjects[relatedQn].append(newObj)
             return keyValue
 
@@ -1100,7 +1100,7 @@ def xbrlModelLoaded(cntlr, options, xbrlCompMdl, *args, **kwargs):
     xbrlCompMdl.groupContents = defaultdict(OrderedSet)
     for txmy in xbrlCompMdl.xbrlModels.values():
         for grpCnts in txmy.groupContents or ():
-            for relName in getattr(grpCnts, "relatedNames", ()): # if object was invalid there are no attributes, e.g. bad QNames
+            for relName in getattr(grpCnts, "forObjects", ()): # if object was invalid there are no attributes, e.g. bad QNames
                 xbrlCompMdl.groupContents[grpCnts.groupName].add(relName)
 
     # load CSV tables: XbrlReport has been removed; tableTemplates and facts live on XbrlModule.

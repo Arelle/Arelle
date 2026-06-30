@@ -373,7 +373,7 @@ def _labelProp(label, propName: str, args, ctx) -> FormulaValue:
     if propName in ("lang", "language"):
         return _wrap(getattr(label, "language", None), FormulaValueType.STRING)
     if propName == "concept":
-        rn = getattr(label, "relatedName", None)
+        rn = getattr(label, "forObject", None)
         if rn is not None and ctx.txmyMdl is not None:
             obj = ctx.txmyMdl.namedObjects.get(rn)
             if obj is not None:
@@ -392,7 +392,7 @@ def _referenceProp(ref, propName: str, args, ctx) -> FormulaValue:
         rt = getattr(ref, "referenceType", None)
         return FormulaValue(FormulaValueType.ROLE, rt) if rt is not None else NONE_VALUE
     if propName == "concept":
-        rn = getattr(ref, "relatedName", None) or getattr(ref, "name", None)
+        rn = next(iter(getattr(ref, "forObjects", None) or ()), None) or getattr(ref, "name", None)
         if rn is not None and ctx.txmyMdl is not None:
             obj = ctx.txmyMdl.namedObjects.get(rn)
             if obj is not None:

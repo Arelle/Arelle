@@ -99,7 +99,7 @@
                       },
                       "removeOrphanedReferenceQNames": {
                         "type": "boolean",
-                        "description": "If true, any relatedNames entries in an imported reference object that refer to objects no longer present in the compiled model are silently removed from the relatedNames set. Defaults to false."
+                        "description": "If true, any forObjects entries in an imported reference object that refer to objects no longer present in the compiled model are silently removed from the forObjects set. Defaults to false."
                       }
                     },
                     "required": ["xbrlModelName"],
@@ -472,11 +472,6 @@
                       "properties": {
                         "name": { "$ref": "#/definitions/QName" },
                         "relationshipTypeName": { "$ref": "#/definitions/relationshipTypeQName" },
-                        "roots": {
-                          "type": "array",
-                          "items": { "$ref": "#/definitions/rootObject" },
-                          "uniqueItems": true
-                        },
                         "relationships": {
                           "type": "array",
                           "items": {
@@ -598,7 +593,7 @@
                     "type": "object",
                     "properties": {
                       "groupName": { "$ref": "#/definitions/groupQName" },
-                      "relatedNames": {
+                      "forObjects": {
                         "type": "array",
                         "items": { "$ref": "#/definitions/QName" },
                         "uniqueItems": true
@@ -608,7 +603,7 @@
                         "description": "The display order of this groupContent entry relative to other entries with the same groupName. Lower values are presented first."
                       }
                     },
-                    "required": ["groupName", "relatedNames"],
+                    "required": ["groupName", "forObjects"],
                     "additionalProperties": false
                   },
                   "uniqueItems": true
@@ -706,7 +701,7 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "relatedName": { "$ref": "#/definitions/SQName" },
+                      "forObject": { "$ref": "#/definitions/SQName" },
                       "labelType": { "$ref": "#/definitions/labelTypeQName" },
                       "language": {
                         "type": "string",
@@ -718,7 +713,7 @@
                         "description": "Text of the label."
                       }
                     },
-                    "required": ["relatedName", "labelType", "language", "value"],
+                    "required": ["forObject", "labelType", "language", "value"],
                     "additionalProperties": false
                   },
                     "uniqueItems": true
@@ -734,7 +729,7 @@
                           "type": "boolean",
                           "description": "Indicates whether the reference can be extended by an importing taxonomy. Defaults to true (extensible). Set to false to prevent any importing taxonomy from augmenting this reference."
                         },
-                        "relatedNames": {
+                        "forObjects": {
                           "type": "array",
                           "items": { "$ref": "#/definitions/QName" },
                           "description": "Ordered QNames the reference is associated with.",
@@ -758,7 +753,7 @@
                         {
                           "required": ["extends"],
                           "anyOf": [
-                            { "required": ["relatedNames"] },
+                            { "required": ["forObjects"] },
                             { "required": ["properties"] }
                           ]
                         }
@@ -1227,7 +1222,7 @@
                     "type": "object",
                     "properties": {
                       "name": { "$ref": "#/definitions/footnoteTypeQName" },
-                      "relatedNames": {
+                      "forObjects": {
                         "type": "array",
                         "items": { "$ref": "#/definitions/QName" },
                         "description": "QNames the footnote is associated with.",
@@ -1241,7 +1236,7 @@
                         "description": "[oimte:badlanguage] Language code (BCP 47)."
                       }
                     },
-                    "required": ["name", "relatedNames", "content", "language"],
+                    "required": ["name", "forObjects", "content", "language"],
                     "additionalProperties": false
                   },
                     "uniqueItems": true
@@ -2261,15 +2256,6 @@
           "type": "string",
           "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z0-9_.-]+$",
           "description": "QName that uniquely identifies the object."
-      },
-      "rootObject": {
-          "type": "object",
-          "properties": {
-            "root": { "$ref": "#/definitions/SQName" },
-            "order": { "type": "number" }
-          },
-          "required": ["root"],
-          "additionalProperties": false
       },
       "selectorObject":{
         "oneOf": [

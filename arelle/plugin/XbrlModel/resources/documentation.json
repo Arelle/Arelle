@@ -16,7 +16,7 @@
     "references": [
       {
         "name": "specDoc:importModelProcessing",
-        "relatedNames": [
+        "forObjects": [
           "xbrl:importTaxonomyObject"
         ],
         "referenceType": "specDoc:ProcessingModel",
@@ -30,7 +30,7 @@
       },
       {
         "name": "specDoc:importModelProcessing2",
-        "relatedNames": [
+        "forObjects": [
           "xbrl:importTaxonomyObject"
         ],
         "referenceType": "specDoc:ProcessingModel",
@@ -44,7 +44,7 @@
       },
       {
         "name": "specDoc:domainClassRationale",
-        "relatedNames": [
+        "forObjects": [
           "xbrl:domainClassObject"
         ],
         "referenceType": "specDoc:ObjectRationale",
@@ -58,7 +58,7 @@
       },
       {
         "name": "specDoc:domainRationale",
-        "relatedNames": [
+        "forObjects": [
           "xbrl:domainNetworkObject"
         ],
         "referenceType": "specDoc:ObjectRationale",
@@ -72,7 +72,7 @@
       },
       {
         "name": "specDoc:cubeTypeRationale",
-        "relatedNames": [
+        "forObjects": [
           "xbrl:cubeTypeObject"
         ],
         "referenceType": "specDoc:ObjectRationale",
@@ -86,7 +86,7 @@
       },
       {
         "name": "specDoc:factMapRationale",
-        "relatedNames": [
+        "forObjects": [
           "xbrl:factMapObject"
         ],
         "referenceType": "specDoc:ObjectRationale",
@@ -100,7 +100,7 @@
       },
       {
         "name": "specDoc:factMapProcessing",
-        "relatedNames": [
+        "forObjects": [
           "xbrl:factMapObject"
         ],
         "referenceType": "specDoc:ProcessingModel",
@@ -114,7 +114,7 @@
       },
       {
         "name": "specDoc:modelTypeRationale",
-        "relatedNames": [
+        "forObjects": [
           "xbrl:modelTypeObject"
         ],
         "referenceType": "specDoc:ObjectRationale",
@@ -129,13 +129,13 @@
     ],
     "labels": [
       {
-        "relatedName": "specDoc:ObjectRationale",
+        "forObject": "specDoc:ObjectRationale",
         "language": "en",
         "value": "Object Rationale: This reference type is used to provide documentation for the rationale behind the definition of an object in the taxonomy. It can be used to explain why a particular object was defined in a certain way, or to provide additional context for the object. This can be helpful for users of the taxonomy to understand the reasoning behind the design decisions made in the taxonomy.",
         "labelType": "xbrl:documentation"
       },
       {
-        "relatedName": "specDoc:ObjectRationale",
+        "forObject": "specDoc:ObjectRationale",
         "language": "en",
         "value": "Object Rationale",
         "labelType": "xbrl:label"
@@ -159,12 +159,11 @@
       {
         "name": "specDoc:modelObjectsList",
         "relationshipTypeName": "xbrl:parent-child",
-        "roots": [
-          {
-            "root": "xbrl:xbrlModelObject"
-          }
-        ],
         "relationships": [
+          {
+            "source": "xbrl:rootSource",
+            "target": "xbrl:xbrlModelObject"
+          },
           {
             "source": "xbrl:xbrlModelObject",
             "target": "xbrl:importTaxonomyObject",
