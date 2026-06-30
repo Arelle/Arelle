@@ -705,7 +705,7 @@ def test_validateValue_facets_minMaxExclusive(value: str, expected: tuple):
 @pytest.mark.parametrize(
     "base_xsd_type,value,facets,expected_x_valid",
     [
-        # date: the four bounding facets are enforced in the value space (Fix 3); on the
+        # date: the four bounding facets are enforced in the value space; on the
         # bound itself the inclusive variants accept and the exclusive variants reject.
         ("date", "2009-01-01", {"maxExclusive": DateTime(2011, 10, 16)}, VALID),
         ("date", "2011-10-16", {"maxExclusive": DateTime(2011, 10, 16)}, INVALID),
@@ -722,16 +722,72 @@ def test_validateValue_facets_minMaxExclusive(value: str, expected: tuple):
         # dateTime
         ("dateTime", "2025-01-02T03:04:05", {"maxInclusive": DateTime(2025, 1, 2, 3, 4, 5)}, VALID),
         ("dateTime", "2025-01-02T03:04:06", {"maxInclusive": DateTime(2025, 1, 2, 3, 4, 5)}, INVALID),
+        # time (Time, a datetime.time subclass)
+        ("time", "03:04:04", {"maxInclusive": Time(3, 4, 5)}, VALID),
+        ("time", "03:04:05", {"maxInclusive": Time(3, 4, 5)}, VALID),
+        ("time", "03:04:06", {"maxInclusive": Time(3, 4, 5)}, INVALID),
+        ("time", "03:04:05", {"maxExclusive": Time(3, 4, 5)}, INVALID),
+        ("time", "03:04:05", {"minExclusive": Time(3, 4, 5)}, INVALID),
+        ("time", "03:04:06", {"minExclusive": Time(3, 4, 5)}, VALID),
         # gYear
         ("gYear", "0001", {"maxInclusive": gYear(5)}, VALID),
         ("gYear", "0009", {"maxInclusive": gYear(5)}, INVALID),
-        # duration whose bounds differ in the years/months/days part (independent of the
-        # seconds tie-break, which is Fix 6)
+        # gYearMonth
+        ("gYearMonth", "2010-12", {"maxInclusive": gYearMonth(2011, 1)}, VALID),
+        ("gYearMonth", "2011-01", {"maxExclusive": gYearMonth(2011, 1)}, INVALID),
+        ("gYearMonth", "2011-02", {"maxInclusive": gYearMonth(2011, 1)}, INVALID),
+        # gMonth (gMonth)
+        ("gMonth", "--05", {"maxInclusive": gMonth(6)}, VALID),
+        ("gMonth", "--06", {"maxExclusive": gMonth(6)}, INVALID),
+        ("gMonth", "--05", {"minInclusive": gMonth(6)}, INVALID),
+        ("gMonth", "--07", {"minExclusive": gMonth(6)}, VALID),
+        # gMonthDay (gMonthDay)
+        ("gMonthDay", "--06-14", {"maxInclusive": gMonthDay(6, 15)}, VALID),
+        ("gMonthDay", "--06-16", {"maxInclusive": gMonthDay(6, 15)}, INVALID),
+        ("gMonthDay", "--06-15", {"minExclusive": gMonthDay(6, 15)}, INVALID),
+        ("gMonthDay", "--06-16", {"minInclusive": gMonthDay(6, 15)}, VALID),
+        # gDay (gDay)
+        ("gDay", "---14", {"maxInclusive": gDay(15)}, VALID),
+        ("gDay", "---16", {"maxInclusive": gDay(15)}, INVALID),
+        ("gDay", "---15", {"minExclusive": gDay(15)}, INVALID),
+        ("gDay", "---16", {"minInclusive": gDay(15)}, VALID),
+        # duration whose bounds differ in the years/months/days part (not the seconds
+        # tie-break)
         ("duration", "P6M", {"maxExclusive": isoDuration("P1Y")}, VALID),
         ("duration", "P2Y", {"maxExclusive": isoDuration("P1Y")}, INVALID),
     ],
 )
 def test_validateValueString_facets_ordering(
+    base_xsd_type: str, value: str, facets: dict, expected_x_valid: int
+):
+    result = validateValueString(base_xsd_type, value, facets=facets)
+    assert result.xValid == expected_x_valid
+    assert result.isXValid == (expected_x_valid >= VALID)
+
+
+@pytest.mark.parametrize(
+    "base_xsd_type,value,facets,expected_x_valid",
+    [
+        # Ordering an xs:date/time value against a bound where exactly one side carries a
+        # timezone must not crash (Python refuses to order offset-naive vs offset-aware
+        # datetimes/times). Per XSD Datatypes 3.2.7.4 the absent timezone ranges over
+        # +/-14:00: when that uncertainty straddles the bound the order is indeterminate
+        # and the facet is treated as satisfied; only a value more than 14h beyond the
+        # bound is a determinate violation.
+        # timezone-aware value vs timezone-naive bound
+        ("dateTime", "2025-01-02T03:04:05Z", {"maxInclusive": DateTime(2025, 1, 2, 3, 4, 5)}, VALID),
+        ("dateTime", "2025-01-02T03:04:05Z", {"minInclusive": DateTime(2025, 1, 2, 3, 4, 5)}, VALID),
+        ("dateTime", "2025-01-04T00:00:00Z", {"maxInclusive": DateTime(2025, 1, 2, 3, 4, 5)}, INVALID),
+        ("dateTime", "2024-12-31T00:00:00Z", {"minInclusive": DateTime(2025, 1, 2, 3, 4, 5)}, INVALID),
+        # timezone-naive value vs timezone-aware bound
+        ("dateTime", "2025-01-02T03:04:05", {"maxInclusive": DateTime(2025, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc)}, VALID),
+        ("dateTime", "2024-12-31T00:00:00", {"minInclusive": DateTime(2025, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc)}, INVALID),
+        # xs:time (no date component) with mixed timezone presence
+        ("time", "03:04:05", {"maxInclusive": Time(3, 4, 5, tzinfo=datetime.timezone.utc)}, VALID),
+        ("time", "03:04:05Z", {"minInclusive": Time(3, 4, 5)}, VALID),
+    ],
+)
+def test_validateValueString_facets_ordering_timezone(
     base_xsd_type: str, value: str, facets: dict, expected_x_valid: int
 ):
     result = validateValueString(base_xsd_type, value, facets=facets)

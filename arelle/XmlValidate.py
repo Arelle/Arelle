@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from __future__ import annotations
 
+import datetime
 from dataclasses import dataclass
 import logging
 from collections.abc import Callable, Mapping
@@ -451,6 +452,62 @@ def fractionValidateValue(value: str, fractionValue: tuple[str, str]) -> XmlVali
     return XmlValidationResult(sValue=sValue, xValue=xValue, xValid=xValid)
 
 
+# XSD Datatypes 3.2.7.4: a date/time value with no timezone may stand for any
+# timezone in the [-14:00, +14:00] range, so its instant is only known to within 14h.
+_XSD_MAX_TIMEZONE_OFFSET = datetime.timedelta(hours=14)
+
+
+def _comparableInstant(value: datetime.datetime | datetime.time) -> datetime.datetime:
+    # Express an xs:dateTime/date/time value as a single datetime so values can be
+    # ordered: timezone-aware values are normalized to (naive) UTC; an xs:time is
+    # anchored to an arbitrary fixed date (XSD Datatypes 3.2.8).
+    # Timezone-naive values are left as-is.
+    if isinstance(value, datetime.datetime):
+        dt = value
+    else:  # datetime.time (xs:time)
+        dt = datetime.datetime(2000, 1, 1, value.hour, value.minute, value.second, value.microsecond, value.tzinfo)
+    if dt.tzinfo is not None:
+        dt = dt.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+    return dt
+
+
+def _orderedComparison(value: Any, bound: Any) -> int | None:
+    """Order ``value`` against an ordering-facet ``bound``.
+
+    Returns ``-1``/``0``/``1`` when ``value`` is less than/equal to/greater than
+    ``bound``, or ``None`` when the order is indeterminate.
+
+    Ordinarily the operands' own comparison operators are used. For an xs:date/time
+    value where exactly one operand carries a timezone, Python raises ``TypeError``
+    rather than ordering offset-naive against offset-aware values; in that case apply
+    the XSD timezone-straddling rule (Datatypes 3.2.7.4) on the underlying instants,
+    yielding ``None`` when the timezone uncertainty leaves the order undetermined.
+    """
+    try:
+        if value < bound:
+            return -1
+        if value > bound:
+            return 1
+        return 0
+    except TypeError:
+        if not isinstance(value, (datetime.datetime, datetime.time)) or \
+                not isinstance(bound, (datetime.datetime, datetime.time)):
+            raise
+        valueInstant = _comparableInstant(value)
+        boundInstant = _comparableInstant(bound)
+        if value.tzinfo is not None:  # bound is the timezone-naive operand
+            if valueInstant < boundInstant - _XSD_MAX_TIMEZONE_OFFSET:
+                return -1
+            if valueInstant > boundInstant + _XSD_MAX_TIMEZONE_OFFSET:
+                return 1
+        else:  # value is the timezone-naive operand
+            if valueInstant + _XSD_MAX_TIMEZONE_OFFSET < boundInstant:
+                return -1
+            if valueInstant - _XSD_MAX_TIMEZONE_OFFSET > boundInstant:
+                return 1
+        return None
+
+
 def validateValueString(
     baseXsdType: str,
     value: str,
@@ -654,13 +711,16 @@ def _validateValueStringOrRaise(
                 xValue = value
             sValue = value
             if facets: # ordering facets on date/time/gYear/... (xValue is a comparable type)
-                if "maxInclusive" in facets and xValue > facets["maxInclusive"]:
+                # _orderedComparison tolerates xs:date/time values that mix timezoned and
+                # untimezoned operands (which Python won't order); an indeterminate order is
+                # treated as satisfying the facet rather than crashing or wrongly rejecting.
+                if "maxInclusive" in facets and _orderedComparison(xValue, facets["maxInclusive"]) == 1:
                     raise ValueError(" > maxInclusive {0}".format(facets["maxInclusive"]))
-                if "maxExclusive" in facets and xValue >= facets["maxExclusive"]:
+                if "maxExclusive" in facets and _orderedComparison(xValue, facets["maxExclusive"]) in (0, 1):
                     raise ValueError(" >= maxExclusive {0}".format(facets["maxExclusive"]))
-                if "minInclusive" in facets and xValue < facets["minInclusive"]:
+                if "minInclusive" in facets and _orderedComparison(xValue, facets["minInclusive"]) == -1:
                     raise ValueError(" < minInclusive {0}".format(facets["minInclusive"]))
-                if "minExclusive" in facets and xValue <= facets["minExclusive"]:
+                if "minExclusive" in facets and _orderedComparison(xValue, facets["minExclusive"]) in (0, -1):
                     raise ValueError(" <= minExclusive {0}".format(facets["minExclusive"]))
     return XmlValidationResult(sValue=sValue, xValue=xValue, xValid=xValid)
 
