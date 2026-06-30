@@ -12,6 +12,7 @@ from arelle.oim._tc.const import (
     TCME_DUPLICATE_KEY_NAME,
     TCME_ILLEGAL_KEY_FIELD,
     TCME_MISSING_KEY_PROPERTY,
+    TCME_UNKNOWN_SEVERITY,
 )
 from arelle.oim._tc.metadata.common import TCMetadataValidationError
 from arelle.oim._tc.metadata.model import (
@@ -33,6 +34,13 @@ from arelle.oim.csv.metadata.common import TABLE_TEMPLATES_KEY
 from arelle.typing import TypeGetText
 
 _: TypeGetText
+
+_VALID_SEVERITIES = frozenset(
+    {
+        "error",
+        "warning",
+    }
+)
 
 
 def validate_keys(
@@ -127,6 +135,12 @@ def _validate_key(
     namespaces: Mapping[str, str],
 ) -> Generator[TCMetadataValidationError, None, None]:
     """Validates a single key, yielding errors with relative path segments."""
+    if key.severity not in _VALID_SEVERITIES:
+        yield TCMetadataValidationError(
+            _("Unknown severity '{}' for key '{}'").format(key.severity, key.name),
+            "severity",
+            code=TCME_UNKNOWN_SEVERITY,
+        )
     for field_j, field in enumerate(key.fields):
         constraint = _resolve_field_constraint(tc, field)
         if constraint is None:

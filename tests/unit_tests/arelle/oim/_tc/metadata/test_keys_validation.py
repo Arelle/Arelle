@@ -5,7 +5,12 @@ import dataclasses
 import pytest
 
 from arelle import XbrlConst
-from arelle.oim._tc.const import TCME_DUPLICATE_KEY_NAME, TCME_ILLEGAL_KEY_FIELD, TCME_MISSING_KEY_PROPERTY
+from arelle.oim._tc.const import (
+    TCME_DUPLICATE_KEY_NAME,
+    TCME_ILLEGAL_KEY_FIELD,
+    TCME_MISSING_KEY_PROPERTY,
+    TCME_UNKNOWN_SEVERITY,
+)
 from arelle.oim._tc.metadata.common import TCMetadataValidationError
 from arelle.oim._tc.metadata.keys_validation import validate_keys
 from arelle.oim._tc.metadata.model import (
@@ -365,3 +370,35 @@ class TestCrossTemplateDuplicateKeyName:
             f"/tableTemplates/{_T2}/tc:keys/unique/0/name",
             f"/tableTemplates/{_T3}/tc:keys/unique/0/name",
         ]
+
+
+class TestUnknownSeverity:
+    @pytest.mark.parametrize("valid_severity", ["error", "warning"])
+    def test_valid_severity_unique_key(self, valid_severity: str) -> None:
+        keys = TCKeys(unique=(TCUniqueKey(name="k", fields=("c",), severity=valid_severity),))
+        assert _errors(keys) == []
+
+    @pytest.mark.parametrize("valid_severity", ["error", "warning"])
+    def test_valid_severity_reference_key(self, valid_severity: str) -> None:
+        keys = TCKeys(
+            unique=(_UNIQUE_KEY,),
+            reference=(TCReferenceKey(name="r", fields=("c",), referenced_key_name="k", severity=valid_severity),),
+        )
+        assert _errors(keys) == []
+
+    def test_invalid_severity_unique_key(self) -> None:
+        keys = TCKeys(unique=(TCUniqueKey(name="k", fields=("c",), severity="info"),))
+        errors = _errors(keys)
+        assert len(errors) == 1
+        assert errors[0].code == TCME_UNKNOWN_SEVERITY
+        assert errors[0].json_pointers == [f"/tableTemplates/{_T}/tc:keys/unique/0/severity"]
+
+    def test_invalid_severity_reference_key(self) -> None:
+        keys = TCKeys(
+            unique=(_UNIQUE_KEY,),
+            reference=(TCReferenceKey(name="r", fields=("c",), referenced_key_name="k", severity="critical"),),
+        )
+        errors = _errors(keys)
+        assert len(errors) == 1
+        assert errors[0].code == TCME_UNKNOWN_SEVERITY
+        assert errors[0].json_pointers == [f"/tableTemplates/{_T}/tc:keys/reference/0/severity"]
