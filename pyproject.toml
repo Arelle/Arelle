@@ -182,7 +182,6 @@ module = [
     'arelle.ViewFileTests',
     'arelle.ViewUtil',
     'arelle.ViewUtilFormulae',
-    'arelle.ViewWinDTS',
     'arelle.ViewWinDiffs',
     'arelle.ViewWinFactGrid',
     'arelle.ViewWinFactList',
