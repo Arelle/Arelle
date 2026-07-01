@@ -106,8 +106,32 @@ _CORE_EFFECTIVE_LEXICAL_TYPES: Mapping[str, QName] = MappingProxyType(
         CORE_ENTITY: TOKEN,
         CORE_PERIOD: STRING,
         CORE_UNIT: STRING,
-        CORE_LANGUAGE: LANGUAGE,
+        CORE_LANGUAGE: STRING,
         CORE_DECIMALS: INTEGER,
+    }
+)
+
+
+OPTIONALLY_TIME_ZONED_TYPES = frozenset(
+    {
+        DATE,
+        DATE_TIME,
+        TIME,
+        G_YEAR,
+        G_YEAR_MONTH,
+        G_MONTH_DAY,
+        G_MONTH,
+        G_DAY,
+    }
+)
+
+PROHIBITED_KEY_TYPES = frozenset(
+    {
+        DOUBLE,
+        FLOAT,
+        HEX_BINARY,
+        BASE64_BINARY,
+        LANGUAGE,
     }
 )
 

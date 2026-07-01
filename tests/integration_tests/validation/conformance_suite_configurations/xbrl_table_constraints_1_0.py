@@ -19,6 +19,17 @@ config = ConformanceSuiteConfig(
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-817c': {
             'arelle:notLoaded': 1,
         },
+        # Reference key includes incorporationDate (no tc:constraints, wrong field count) which also
+        # triggers illegalKeyField and inconsistentReferenceKeyFields.
+        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-13c': {
+            'tcme:illegalKeyField': 1,
+            'tcme:inconsistentReferenceKeyFields': 1,
+        },
+        # paramThree (xs:duration without durationType) also triggers illegalUniqueKeyOrder because it follows
+        # constrained column fields keyOne and keyTwo in the unique key fields list.
+        '720-tc-report-processor/index-tc-report-table.xml:V-61': {
+            'tcme:illegalUniqueKeyOrder': 1,
+        },
         # Test cases with valid XML dates beyond the year range supported by Arelle (datetime MINYEAR and MAXYEAR).
         'generated/facets-with-invalid-values/index-tc-facets-with-invalid-values.xml:V-GEN-facetValue-period-enumerationValues-valid': {
             'tcme:illegalConstraint': 1,
@@ -31,37 +42,6 @@ config = ConformanceSuiteConfig(
         },
     }.items()},
     expected_failure_ids=frozenset(f'table-constraints-conformance-{_VERSION}/{s}' for s in [
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-04',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-08a',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-08b',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-08c',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-10',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-11',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-12',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-13a',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-13b',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-13c',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-16a',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-17',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-17a',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-20',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-577-referenceKeyDuplicates',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-577-uniqueKeyDuplicates',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-789a',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-789b',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-789c',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-789d',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-798b',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-798c',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-798f',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-809e',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-809f',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-809i',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-809j',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-879',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-887',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-887a',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-887b',
         '720-tc-report-processor/index-tc-report-table.xml:V-100',
         '720-tc-report-processor/index-tc-report-table.xml:V-25',
         '720-tc-report-processor/index-tc-report-table.xml:V-26',
@@ -108,7 +88,6 @@ config = ConformanceSuiteConfig(
         '720-tc-report-processor/index-tc-report-table.xml:V-548-6',
         '720-tc-report-processor/index-tc-report-table.xml:V-548-7',
         '720-tc-report-processor/index-tc-report-table.xml:V-548-9',
-        '720-tc-report-processor/index-tc-report-table.xml:V-61',
         '720-tc-report-processor/index-tc-report-table.xml:V-63',
         '720-tc-report-processor/index-tc-report-table.xml:V-64',
         '720-tc-report-processor/index-tc-report-table.xml:V-64a',

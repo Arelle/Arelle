@@ -17,6 +17,7 @@ from arelle.oim._tc.const import (
     TCME_INVALID_NAMESPACE_PREFIX,
 )
 from arelle.oim._tc.metadata.common import TCMetadataValidationError
+from arelle.oim._tc.metadata.keys_validation import validate_keys
 from arelle.oim._tc.metadata.model import TCMetadata
 from arelle.oim._tc.metadata.value_constraint_validation import validate_value_constraint
 from arelle.oim.csv.metadata.common import COLUMNS_KEY, TABLE_TEMPLATES_KEY
@@ -37,6 +38,7 @@ class TCMetadataValidator:
         yield from self._validate_column_parameter_conflicts()
         yield from self._validate_column_order()
         yield from self._validate_value_constraints()
+        yield from self._validate_keys()
 
     def _validate_namespace_prefixes(self) -> Generator[TCMetadataValidationError, None, None]:
         for prefix, uri in self._namespaces.items():
@@ -105,3 +107,6 @@ class TCMetadataValidator:
                 for error in validate_value_constraint(constraint, self._namespaces):
                     error.prepend_path(TABLE_TEMPLATES_KEY, template_id, TC_PARAMETERS_PROPERTY_NAME, param_name)
                     yield error
+
+    def _validate_keys(self) -> Generator[TCMetadataValidationError, None, None]:
+        yield from validate_keys(self._tc_metadata, self._namespaces)
