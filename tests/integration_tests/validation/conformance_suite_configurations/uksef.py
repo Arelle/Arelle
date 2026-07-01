@@ -99,6 +99,7 @@ config = ConformanceSuiteConfig(
     ]}),
     info_url='https://www.frc.org.uk/library/standards-codes-policy/accounting-and-reporting/frc-taxonomies/frc-taxonomies-documentation-and-guidance/',
     name=PurePath(__file__).stem,
-    plugins=frozenset({'inlineXbrlDocumentSet'}),
+    disclosure_system='uksef-2025-preview',
+    plugins=frozenset({'inlineXbrlDocumentSet', 'validate/UKSEF'}),
     shards=4,
 )
