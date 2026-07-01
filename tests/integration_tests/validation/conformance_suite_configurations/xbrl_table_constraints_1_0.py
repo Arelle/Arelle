@@ -19,9 +19,11 @@ config = ConformanceSuiteConfig(
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-817c': {
             'arelle:notLoaded': 1,
         },
-        # Reference key includes incorporationDate (no tc:constraints), which also triggers illegalKeyField.
+        # Reference key includes incorporationDate (no tc:constraints, wrong field count) which also
+        # triggers illegalKeyField and inconsistentReferenceKeyFields.
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-13c': {
             'tcme:illegalKeyField': 1,
+            'tcme:inconsistentReferenceKeyFields': 1,
         },
         # Test cases with valid XML dates beyond the year range supported by Arelle (datetime MINYEAR and MAXYEAR).
         'generated/facets-with-invalid-values/index-tc-facets-with-invalid-values.xml:V-GEN-facetValue-period-enumerationValues-valid': {
@@ -36,11 +38,8 @@ config = ConformanceSuiteConfig(
     }.items()},
     expected_failure_ids=frozenset(f'table-constraints-conformance-{_VERSION}/{s}' for s in [
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-12',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-17',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-17a',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-809e',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-809f',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-809i',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-809j',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-887',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-887a',

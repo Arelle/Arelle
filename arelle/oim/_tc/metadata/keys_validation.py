@@ -7,6 +7,7 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Generator, Mapping
 
+from arelle.ModelValue import QName
 from arelle.oim._tc.const import (
     TC_KEYS_PROPERTY_NAME,
     TCME_DUPLICATE_KEY_NAME,
@@ -60,7 +61,7 @@ def validate_keys(
                 error.prepend_path(*keys_path)
                 yield error
     yield from _validate_cross_template_key_names(tc_metadata)
-    yield from _validate_reference_key_field_consistency(tc_metadata)
+    yield from _validate_reference_key_field_consistency(tc_metadata, namespaces)
 
 
 def _validate_template_keys(
@@ -190,16 +191,51 @@ def _validate_key(
             )
 
 
+def _normalized_field_type(constraint_type: str, namespaces: Mapping[str, str]) -> str | QName:
+    prefix, separator, local_name = constraint_type.partition(":")
+    if separator and (namespace_uri := namespaces.get(prefix)):
+        return QName(prefix, namespace_uri, local_name)
+    return constraint_type
+
+
+def _find_inconsistent_fields(
+    tc_a: TCTemplateConstraints,
+    fields_a: tuple[str, ...],
+    tc_b: TCTemplateConstraints,
+    fields_b: tuple[str, ...],
+    namespaces: Mapping[str, str],
+) -> tuple[int, ...]:
+    inconsistent_fields = []
+    for i, (field_a, field_b) in enumerate(zip(fields_a, fields_b, strict=True)):
+        constraint_a = _resolve_field_constraint(tc_a, field_a)
+        constraint_b = _resolve_field_constraint(tc_b, field_b)
+        if constraint_a is None or constraint_b is None:
+            continue
+        if (
+            _normalized_field_type(constraint_a.type, namespaces)
+            != _normalized_field_type(constraint_b.type, namespaces)
+            or constraint_a.time_zone != constraint_b.time_zone
+            or constraint_a.duration_type != constraint_b.duration_type
+        ):
+            inconsistent_fields.append(i)
+    return tuple(inconsistent_fields)
+
+
 def _validate_reference_key_field_consistency(
     tc_metadata: TCMetadata,
+    namespaces: Mapping[str, str],
 ) -> Generator[TCMetadataValidationError, None, None]:
     """Validates that reference key fields are consistent with the referenced unique key's fields."""
-    unique_key_registry = set()
-    for tc in tc_metadata.template_constraints.values():
+    unique_key_registry: dict[str, tuple[str, int, TCUniqueKey]] = {}
+    for template_id, tc in tc_metadata.template_constraints.items():
         if tc.keys is None or tc.keys.unique is None:
             continue
-        for key in tc.keys.unique:
-            unique_key_registry.add(key.name)
+        for key_i, key in enumerate(tc.keys.unique):
+            # When a unique key name is defined in multiple templates (a shared key), the first
+            # occurrence in template order wins. Shared keys with the same name are required to
+            # have consistent fields (tcme:inconsistentSharedKeyFields), so which occurrence is
+            # used for the reference-key consistency check does not matter for valid metadata.
+            unique_key_registry.setdefault(key.name, (template_id, key_i, key))
 
     for template_id, tc in tc_metadata.template_constraints.items():
         if tc.keys is None or tc.keys.reference is None:
@@ -214,4 +250,38 @@ def _validate_reference_key_field_consistency(
                     *ref_path,
                     "referencedKeyName",
                     code=TCME_UNKNOWN_KEY,
+                )
+                continue
+            unique_template_id, unique_key_i, unique_key = unique_key_registry[ref_key.referenced_key_name]
+            unique_tc = tc_metadata.template_constraints[unique_template_id]
+            unique_path = (TABLE_TEMPLATES_KEY, unique_template_id, TC_KEYS_PROPERTY_NAME, "unique", str(unique_key_i))
+
+            if len(ref_key.fields) != len(unique_key.fields):
+                yield TCMetadataValidationError(
+                    _("Reference key '{}' has {} fields but referenced key '{}' has {} fields").format(
+                        ref_key.name,
+                        len(ref_key.fields),
+                        ref_key.referenced_key_name,
+                        len(unique_key.fields),
+                    ),
+                    *ref_path,
+                    "fields",
+                    code=TCME_INCONSISTENT_REFERENCE_KEY_FIELDS,
+                    related_paths=((*unique_path, "fields"),),
+                )
+                continue
+
+            if fields := _find_inconsistent_fields(tc, ref_key.fields, unique_tc, unique_key.fields, namespaces):
+                related_paths: list[tuple[str, ...]] = [(*unique_path, "fields")]
+                for field_index in fields:
+                    related_paths.append((*ref_path, "fields", str(field_index)))
+                    related_paths.append((*unique_path, "fields", str(field_index)))
+                yield TCMetadataValidationError(
+                    _("Reference key '{}' has fields inconsistent with referenced unique key '{}'").format(
+                        ref_key.name, ref_key.referenced_key_name
+                    ),
+                    *ref_path,
+                    "fields",
+                    code=TCME_INCONSISTENT_REFERENCE_KEY_FIELDS,
+                    related_paths=related_paths,
                 )
