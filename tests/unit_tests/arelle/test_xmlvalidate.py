@@ -630,6 +630,10 @@ def test_validateValue_facets_pattern(value: str, expected: tuple):
         pytest.param("1.001", ("=", None, INVALID)),
         pytest.param("1.000", ("=", None, INVALID)),
         pytest.param("1000", ("=", None, INVALID)),
+        # a leading sign is not a digit and must not be counted.
+        pytest.param("-100", (float(-100), float(-100), VALID)),
+        pytest.param("-1.01", (float(-1.01), float(-1.01), VALID)),
+        pytest.param("-1000", ("=", None, INVALID)),
     ],
 )
 def test_validateValue_facets_totalDigits(value: str, expected: tuple):
@@ -639,6 +643,27 @@ def test_validateValue_facets_totalDigits(value: str, expected: tuple):
     }
     validateValue(modelXbrl=Mock(), elt=elt, attrTag=None, baseXsdType="float", value=value, facets=facets)
     _assertExpected(value, attrTag=None, elt=elt, expected=expected)
+
+
+@pytest.mark.parametrize(
+    "base_xsd_type,value,total_digits,expected_x_valid",
+    [
+        # the integer branch and the decimal/float branch both exclude the sign.
+        ("integer", "-6", 1, VALID),
+        ("integer", "6", 1, VALID),
+        ("integer", "-66", 1, INVALID),
+        ("integer", "-66", 2, VALID),
+        ("decimal", "-1.5", 2, VALID),
+        ("decimal", "+1.5", 2, VALID),
+        ("decimal", "-1.55", 2, INVALID),
+    ],
+)
+def test_validateValueString_totalDigits_excludes_sign(
+    base_xsd_type: str, value: str, total_digits: int, expected_x_valid: int
+):
+    result = validateValueString(base_xsd_type, value, facets={"totalDigits": total_digits})
+    assert result.xValid == expected_x_valid
+    assert result.isXValid == (expected_x_valid >= VALID)
 
 
 @pytest.mark.parametrize(

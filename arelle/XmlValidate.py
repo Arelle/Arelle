@@ -571,7 +571,7 @@ def _validateValueStringOrRaise(
                     raise ValueError("lexical pattern mismatch")
                 xValue = sValue = float(value)
             if facets:
-                if "totalDigits" in facets and len(value.replace(".","")) > facets["totalDigits"]:
+                if "totalDigits" in facets and len(value.lstrip("+-").replace(".","")) > facets["totalDigits"]:
                     raise ValueError("totalDigits facet {0}".format(facets["totalDigits"]))
                 if "fractionDigits" in facets and ("." in value and
                     len(value[value.index(".") + 1:]) > facets["fractionDigits"]):
@@ -591,7 +591,7 @@ def _validateValueStringOrRaise(
                 if (lowerLimit is not None and xValue < lowerLimit) or (upperLimit is not None and xValue > upperLimit):
                     raise ValueError(f"{value} is not {baseXsdType}")
             if facets:
-                if "totalDigits" in facets and len(value.replace(".","")) > facets["totalDigits"]:
+                if "totalDigits" in facets and len(value.lstrip("+-").replace(".","")) > facets["totalDigits"]:
                     raise ValueError("totalDigits facet {0}".format(facets["totalDigits"]))
                 if "fractionDigits" in facets and ("." in value and
                     len(value[value.index(".") + 1:]) > facets["fractionDigits"]):
