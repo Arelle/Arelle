@@ -1217,3 +1217,23 @@ class TestTimezoneValidation:
         result = validateValueString(base_xsd_type, value)
         assert result.xValid == INVALID
         assert not result.isXValid
+
+
+class TestIsoDurationComparison:
+    def test_gt_seconds_tiebreak_when_dates_equal(self):
+        # equal years/months/days; the value with greater seconds must compare greater
+        # via the seconds tie-break.
+        assert isoDuration("P1Y2M3DT10H36M30S") > isoDuration("P1Y2M3DT10H36M29S")
+
+    def test_not_gt_when_equal(self):
+        assert not (isoDuration("P1Y2M3DT10H36M29S") > isoDuration("P1Y2M3DT10H36M29S"))
+
+    def test_not_gt_when_seconds_less(self):
+        assert not (isoDuration("P1Y2M3DT10H36M28S") > isoDuration("P1Y2M3DT10H36M29S"))
+
+    def test_gt_when_avgdays_greater(self):
+        assert isoDuration("P2Y") > isoDuration("P1Y")
+
+    def test_ge_uses_gt(self):
+        assert isoDuration("P1Y2M3DT10H36M30S") >= isoDuration("P1Y2M3DT10H36M29S")
+        assert isoDuration("P1Y2M3DT10H36M29S") >= isoDuration("P1Y2M3DT10H36M29S")
