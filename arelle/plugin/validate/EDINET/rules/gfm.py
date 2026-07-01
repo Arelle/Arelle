@@ -1496,7 +1496,7 @@ def rule_gfm_1_5_5(
     if labelRelationshipSet is None:
         return
     for concept in val.modelXbrl.qnameConcepts.values():
-        if concept.namespaceURI is not None and not pluginData.isStandardTaxonomyUrl(concept.namespaceURI, val.modelXbrl):
+        if not pluginData.isStandardTaxonomyUrl(concept.modelDocument.uri, val.modelXbrl):
             continue
         labelRels = labelRelationshipSet.fromModelObject(concept)
         for rel in labelRels:
