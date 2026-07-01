@@ -13,6 +13,7 @@ from arelle.oim._tc.const import (
     TCME_DUPLICATE_KEY_NAME,
     TCME_ILLEGAL_KEY_FIELD,
     TCME_INCONSISTENT_REFERENCE_KEY_FIELDS,
+    TCME_INCONSISTENT_SHARED_KEY_FIELDS,
     TCME_MISSING_KEY_PROPERTY,
     TCME_UNKNOWN_KEY,
     TCME_UNKNOWN_SEVERITY,
@@ -62,6 +63,7 @@ def validate_keys(
                 yield error
     yield from _validate_cross_template_key_names(tc_metadata)
     yield from _validate_reference_key_field_consistency(tc_metadata, namespaces)
+    yield from _validate_shared_key_consistency(tc_metadata, namespaces)
 
 
 def _validate_template_keys(
@@ -285,3 +287,53 @@ def _validate_reference_key_field_consistency(
                     code=TCME_INCONSISTENT_REFERENCE_KEY_FIELDS,
                     related_paths=related_paths,
                 )
+
+
+def _validate_shared_key_consistency(
+    tc_metadata: TCMetadata,
+    namespaces: Mapping[str, str],
+) -> Generator[TCMetadataValidationError, None, None]:
+    """Validates that shared unique keys with the same name have consistent fields and severity."""
+    shared_key_occurrences: dict[str, list[tuple[str, str, TCUniqueKey]]] = defaultdict(list)
+    for template_id, tc in tc_metadata.template_constraints.items():
+        if tc.keys is None or tc.keys.unique is None:
+            continue
+        for key_i, key in enumerate(tc.keys.unique):
+            if key.shared:
+                shared_key_occurrences[key.name].append((template_id, str(key_i), key))
+
+    for key_name, occurrences in shared_key_occurrences.items():
+        if len({tid for tid, _, _ in occurrences}) < 2:
+            continue
+        first_key_occurrence, *rest_key_occurrences = occurrences
+        first_template_id, first_key_index, first_key = first_key_occurrence
+        first_tc = tc_metadata.template_constraints[first_template_id]
+        first_key_path = (
+            TABLE_TEMPLATES_KEY,
+            first_template_id,
+            TC_KEYS_PROPERTY_NAME,
+            "unique",
+            first_key_index,
+        )
+        first_key_fields_path = (*first_key_path, "fields")
+        inconsistent_field_paths: list[tuple[str, ...]] = []
+        for tid, key_index, key in rest_key_occurrences:
+            other_key_fields_path = (TABLE_TEMPLATES_KEY, tid, TC_KEYS_PROPERTY_NAME, "unique", key_index, "fields")
+            if len(key.fields) != len(first_key.fields):
+                inconsistent_field_paths.append(other_key_fields_path)
+                continue
+            this_tc = tc_metadata.template_constraints[tid]
+            if inconsistent_fields := _find_inconsistent_fields(
+                this_tc, key.fields, first_tc, first_key.fields, namespaces
+            ):
+                inconsistent_field_paths.append(other_key_fields_path)
+                for field_index in inconsistent_fields:
+                    inconsistent_field_paths.append((*first_key_fields_path, str(field_index)))
+                    inconsistent_field_paths.append((*other_key_fields_path, str(field_index)))
+        if inconsistent_field_paths:
+            yield TCMetadataValidationError(
+                _("Shared key '{}' has inconsistent fields across templates").format(key_name),
+                *first_key_fields_path,
+                code=TCME_INCONSISTENT_SHARED_KEY_FIELDS,
+                related_paths=tuple(inconsistent_field_paths),
+            )

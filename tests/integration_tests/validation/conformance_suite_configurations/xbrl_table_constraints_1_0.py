@@ -37,10 +37,8 @@ config = ConformanceSuiteConfig(
         },
     }.items()},
     expected_failure_ids=frozenset(f'table-constraints-conformance-{_VERSION}/{s}' for s in [
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-12',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-809e',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-809f',
-        '710-tc-metadata-processor/index-tc-metadata-table.xml:V-809j',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-887',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-887a',
         '710-tc-metadata-processor/index-tc-metadata-table.xml:V-887b',

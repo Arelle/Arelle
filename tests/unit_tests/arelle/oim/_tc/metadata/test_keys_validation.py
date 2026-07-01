@@ -9,6 +9,7 @@ from arelle.oim._tc.const import (
     TCME_DUPLICATE_KEY_NAME,
     TCME_ILLEGAL_KEY_FIELD,
     TCME_INCONSISTENT_REFERENCE_KEY_FIELDS,
+    TCME_INCONSISTENT_SHARED_KEY_FIELDS,
     TCME_MISSING_KEY_PROPERTY,
     TCME_UNKNOWN_KEY,
     TCME_UNKNOWN_SEVERITY,
@@ -620,6 +621,23 @@ class TestInconsistentReferenceKeyFields:
         errors = list(validate_keys(TCMetadata(template_constraints={_T1: t1, _T2: t2}), namespaces))
         assert errors == []
 
+    def test_reference_to_divergent_shared_key_reports_only_shared_error(self) -> None:
+        t1 = TCTemplateConstraints(
+            constraints={"u": TCValueConstraint(type="xs:string")},
+            keys=TCKeys(unique=(TCUniqueKey(name="k", fields=("u",), shared=True),)),
+        )
+        t2 = TCTemplateConstraints(
+            constraints={"u": TCValueConstraint(type="xs:token")},
+            keys=TCKeys(unique=(TCUniqueKey(name="k", fields=("u",), shared=True),)),
+        )
+        t3 = TCTemplateConstraints(
+            constraints={"r": TCValueConstraint(type="xs:string")},
+            keys=TCKeys(reference=(TCReferenceKey(name="ref", fields=("r",), referenced_key_name="k"),)),
+        )
+        errors = list(validate_keys(TCMetadata(template_constraints={_T1: t1, _T2: t2, _T3: t3}), _NAMESPACES))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_INCONSISTENT_SHARED_KEY_FIELDS
+
     def test_one_field_unconstrained(self) -> None:
         t1 = TCTemplateConstraints(
             constraints={"u": TCValueConstraint(type="xs:string")},
@@ -649,3 +667,158 @@ class TestInconsistentReferenceKeyFields:
         errors = list(validate_keys(TCMetadata(template_constraints={_T1: t1, _T2: t2}), _NAMESPACES))
         inconsistent_errors = [e for e in errors if e.code == TCME_INCONSISTENT_REFERENCE_KEY_FIELDS]
         assert len(inconsistent_errors) == 0
+
+
+class TestInconsistentSharedKeyFields:
+    def test_consistent_shared_keys(self) -> None:
+        key = TCUniqueKey(name="k", fields=("id",), shared=True)
+        t1 = TCTemplateConstraints(
+            constraints={"id": TCValueConstraint(type="xs:string")},
+            keys=TCKeys(unique=(key,)),
+        )
+        t2 = TCTemplateConstraints(
+            constraints={"id": TCValueConstraint(type="xs:string")},
+            keys=TCKeys(unique=(key,)),
+        )
+        errors = list(validate_keys(TCMetadata(template_constraints={_T1: t1, _T2: t2}), _NAMESPACES))
+        assert errors == []
+
+    def test_inconsistent_fields(self) -> None:
+        k1 = TCUniqueKey(name="k", fields=("a", "b"), shared=True)
+        k2 = TCUniqueKey(name="k", fields=("a",), shared=True)
+        t1 = TCTemplateConstraints(
+            constraints={
+                "a": TCValueConstraint(type="xs:string"),
+                "b": TCValueConstraint(type="xs:string"),
+            },
+            keys=TCKeys(unique=(k1,)),
+        )
+        t2 = TCTemplateConstraints(
+            constraints={"a": TCValueConstraint(type="xs:string")},
+            keys=TCKeys(unique=(k2,)),
+        )
+        errors = list(validate_keys(TCMetadata(template_constraints={_T1: t1, _T2: t2}), _NAMESPACES))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_INCONSISTENT_SHARED_KEY_FIELDS
+        assert errors[0].json_pointers == [
+            f"/tableTemplates/{_T1}/tc:keys/unique/0/fields",
+            f"/tableTemplates/{_T2}/tc:keys/unique/0/fields",
+        ]
+
+    def test_prefix_synonyms_for_same_namespace_are_consistent(self) -> None:
+        namespaces = {"xs": XbrlConst.xsd, "xsd": XbrlConst.xsd}
+        k = TCUniqueKey(name="k", fields=("d",), shared=True)
+        t1 = TCTemplateConstraints(
+            constraints={"d": TCValueConstraint(type="xs:date", time_zone=True)},
+            keys=TCKeys(unique=(k,)),
+        )
+        t2 = TCTemplateConstraints(
+            constraints={"d": TCValueConstraint(type="xsd:date", time_zone=True)},
+            keys=TCKeys(unique=(k,)),
+        )
+        errors = list(validate_keys(TCMetadata(template_constraints={_T1: t1, _T2: t2}), namespaces))
+        assert errors == []
+
+    def test_different_field_names_same_constraints_is_consistent(self) -> None:
+        k1 = TCUniqueKey(name="k", fields=("a",), shared=True)
+        k2 = TCUniqueKey(name="k", fields=("b",), shared=True)
+        t1 = TCTemplateConstraints(
+            constraints={"a": TCValueConstraint(type="xs:string")},
+            keys=TCKeys(unique=(k1,)),
+        )
+        t2 = TCTemplateConstraints(
+            constraints={"b": TCValueConstraint(type="xs:string")},
+            keys=TCKeys(unique=(k2,)),
+        )
+        errors = list(validate_keys(TCMetadata(template_constraints={_T1: t1, _T2: t2}), _NAMESPACES))
+        assert errors == []
+
+    def test_type_mismatch(self) -> None:
+        k1 = TCUniqueKey(name="k", fields=("a",), shared=True)
+        k2 = TCUniqueKey(name="k", fields=("a",), shared=True)
+        t1 = TCTemplateConstraints(
+            constraints={"a": TCValueConstraint(type="xs:string")},
+            keys=TCKeys(unique=(k1,)),
+        )
+        t2 = TCTemplateConstraints(
+            constraints={"a": TCValueConstraint(type="xs:token")},
+            keys=TCKeys(unique=(k2,)),
+        )
+        errors = list(validate_keys(TCMetadata(template_constraints={_T1: t1, _T2: t2}), _NAMESPACES))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_INCONSISTENT_SHARED_KEY_FIELDS
+        assert errors[0].json_pointers == [
+            f"/tableTemplates/{_T1}/tc:keys/unique/0/fields",
+            f"/tableTemplates/{_T2}/tc:keys/unique/0/fields",
+            f"/tableTemplates/{_T1}/tc:keys/unique/0/fields/0",
+            f"/tableTemplates/{_T2}/tc:keys/unique/0/fields/0",
+        ]
+
+    def test_duration_type_mismatch(self) -> None:
+        k1 = TCUniqueKey(name="k", fields=("a",), shared=True)
+        k2 = TCUniqueKey(name="k", fields=("a",), shared=True)
+        t1 = TCTemplateConstraints(
+            constraints={"a": TCValueConstraint(type="xs:duration", duration_type="days")},
+            keys=TCKeys(unique=(k1,)),
+        )
+        t2 = TCTemplateConstraints(
+            constraints={"a": TCValueConstraint(type="xs:duration", duration_type="months")},
+            keys=TCKeys(unique=(k2,)),
+        )
+        errors = list(validate_keys(TCMetadata(template_constraints={_T1: t1, _T2: t2}), _NAMESPACES))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_INCONSISTENT_SHARED_KEY_FIELDS
+        assert errors[0].json_pointers == [
+            f"/tableTemplates/{_T1}/tc:keys/unique/0/fields",
+            f"/tableTemplates/{_T2}/tc:keys/unique/0/fields",
+            f"/tableTemplates/{_T1}/tc:keys/unique/0/fields/0",
+            f"/tableTemplates/{_T2}/tc:keys/unique/0/fields/0",
+        ]
+
+    def test_multiple_aspects_one_error(self) -> None:
+        k1 = TCUniqueKey(name="k", fields=("a",), shared=True)
+        k2 = TCUniqueKey(name="k", fields=("a",), shared=True)
+        t1 = TCTemplateConstraints(
+            constraints={"a": TCValueConstraint(type="xs:date", time_zone=True)},
+            keys=TCKeys(unique=(k1,)),
+        )
+        t2 = TCTemplateConstraints(
+            constraints={"a": TCValueConstraint(type="xs:token", time_zone=False)},
+            keys=TCKeys(unique=(k2,)),
+        )
+        errors = list(validate_keys(TCMetadata(template_constraints={_T1: t1, _T2: t2}), _NAMESPACES))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_INCONSISTENT_SHARED_KEY_FIELDS
+
+    def test_timezone_mismatch(self) -> None:
+        k = TCUniqueKey(name="k", fields=("d",), shared=True)
+        t1 = TCTemplateConstraints(
+            constraints={"d": TCValueConstraint(type="xs:date", time_zone=True)},
+            keys=TCKeys(unique=(k,)),
+        )
+        t2 = TCTemplateConstraints(
+            constraints={"d": TCValueConstraint(type="xs:date", time_zone=False)},
+            keys=TCKeys(unique=(k,)),
+        )
+        errors = list(validate_keys(TCMetadata(template_constraints={_T1: t1, _T2: t2}), _NAMESPACES))
+        assert len(errors) == 1
+        assert errors[0].code == TCME_INCONSISTENT_SHARED_KEY_FIELDS
+        assert errors[0].json_pointers == [
+            f"/tableTemplates/{_T1}/tc:keys/unique/0/fields",
+            f"/tableTemplates/{_T2}/tc:keys/unique/0/fields",
+            f"/tableTemplates/{_T1}/tc:keys/unique/0/fields/0",
+            f"/tableTemplates/{_T2}/tc:keys/unique/0/fields/0",
+        ]
+
+    def test_matching_timezone(self) -> None:
+        k = TCUniqueKey(name="k", fields=("d",), shared=True)
+        t1 = TCTemplateConstraints(
+            constraints={"d": TCValueConstraint(type="xs:date", time_zone=True)},
+            keys=TCKeys(unique=(k,)),
+        )
+        t2 = TCTemplateConstraints(
+            constraints={"d": TCValueConstraint(type="xs:date", time_zone=True)},
+            keys=TCKeys(unique=(k,)),
+        )
+        errors = list(validate_keys(TCMetadata(template_constraints={_T1: t1, _T2: t2}), _NAMESPACES))
+        assert errors == []
