@@ -189,7 +189,6 @@ module = [
     'arelle.ViewWinFormulae',
     'arelle.ViewWinGrid',
     'arelle.ViewWinList',
-    'arelle.ViewWinPane',
     'arelle.ViewWinProperties',
     'arelle.ViewWinRelationshipSet',
     'arelle.ViewWinRenderedGrid',
