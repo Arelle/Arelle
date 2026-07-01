@@ -37,7 +37,7 @@ import regex as re
 from collections import OrderedDict, defaultdict
 from decimal import Decimal
 from arelle.ModelDocument import load, Type,  create as createModelDocument
-from arelle.ModelValue import qname, QName
+from arelle.ModelValue import qname, QName, AnyURI
 from arelle.PythonUtil import SEQUENCE_TYPES
 from ordered_set import OrderedSet
 #from arelle.Version import authorLabel, copyrightLabel
@@ -103,6 +103,9 @@ xbrlTypeAliasClass = {
 EMPTY_SET = set()
 EMPTY_DICT = {}
 UNSPECIFIABLE_STR = '\uDBFE' # impossible unicode character
+
+# Characters not permitted unencoded in xs:anyURI (RFC 2396 / RFC 2732).
+_anyURIInvalidChars = re.compile(r'[\s|<>{}\\^`]')
 
 def jsonGet(tbl, key, default=None):
     """"""
@@ -524,6 +527,26 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         # Accept both keys and normalize values to a tuple of URLs.
         importMapping = documentInfo.get("importMapping") or EMPTY_DICT
         isCompiledDocType = documentType == "https://xbrl.org/2026/compiled"
+
+        # Validate documentNamespacePrefix: required for module-type, forbidden for compiled.
+        _documentNamespaceURI = None  # resolved and stored on the module object after creation
+        _docNsPrefix = documentInfo.get("documentNamespacePrefix")
+        if _docNsPrefix:
+            if isCompiledDocType:
+                xbrlCompMdl.error("oimte:documentNamespaceDefinedForCompiledModel",
+                            _("Compiled models MUST NOT define a documentNamespacePrefix."),
+                            sourceFileLine=href)
+            elif _docNsPrefix not in prefixNamespaces:
+                xbrlCompMdl.error("oimte:documentNamespacePrefixNotDefined",
+                            _("The documentNamespacePrefix '%(prefix)s' is not defined in the namespaces map."),
+                            sourceFileLine=href, prefix=_docNsPrefix)
+            else:
+                _documentNamespaceURI = prefixNamespaces[_docNsPrefix]
+                schemaDoc.targetNamespace = _documentNamespaceURI
+        elif not isCompiledDocType and not kwargs.get("loadingBakedInObjects"):
+            xbrlCompMdl.error("oimte:documentNamespaceNotDefined",
+                        _("Module-type taxonomy must define documentNamespacePrefix."),
+                        sourceFileLine=href)
         if isCompiledDocType:
             if "importedTaxonomies" in moduleObj:
                 xbrlCompMdl.error("oimte:importedTaxonomyDefinedForCompiledTaxonomy",
@@ -642,7 +665,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                                     if eltClass in (QName, QNameKeyType, SQName, SQNameKeyType):
                                         listObj = qname(listObj, prefixNamespaces)
                                         if listObj is None:
-                                            error("oimte:objectNamespacePrefixNotDefined",
+                                            error("oimce:unboundPrefix",
                                                   _("QName has undefined prefix: %(qname)s, jsonObj: %(path)s"),
                                                   sourceFileLine=href, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
                                             # must have None value for validation to work
@@ -672,7 +695,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                                         valKey = coreDimensionsByLocalname.get(valKey, valKey) # unprefixed core dimension localNames
                                     _valKey = qname(valKey, prefixNamespaces)
                                     if _valKey is None:
-                                        error("oimte:objectNamespacePrefixNotDefined",
+                                        error("oimce:unboundPrefix",
                                               _("QName has undefined prefix: %(qname)s, jsonObj: %(path)s"),
                                               sourceFileLine=href, qname=_valKey, path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
                                         # must have None value for validation to work
@@ -708,7 +731,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                         if propType in (QName, QNameKeyType, SQName, SQNameKeyType, QNameAt):
                             jsonValue = qname(jsonValue, prefixNamespaces)
                             if jsonValue is None:
-                                error("oimte:objectNamespacePrefixNotDefined",
+                                error("oimce:unboundPrefix",
                                       _("QName has undefined prefix: %(qname)s, jsonObj: %(path)s"),
                                       sourceFileLine=href, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [propName])}")
                                 if optional:
@@ -719,6 +742,13 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                                 jsonValue = QNameAt(jsonValue.prefix, jsonValue.namespaceURI, jsonValue.localName, atSuffix)
                             if propName == "forObject":
                                 forObjectsList.append(jsonValue)
+                        elif propType == AnyURI and isinstance(jsonValue, str):
+                            # xs:anyURI forbids unencoded whitespace, pipe, and other chars invalid in RFC 2396.
+                            if not UrlUtil.isAbsolute(jsonValue) or _anyURIInvalidChars.search(jsonValue):
+                                error("oimce:invalidURI",
+                                      _("The %(propName)s value is not a valid URI: %(uri)s, jsonObj: %(path)s"),
+                                      sourceFileLine=href, propName=propName, uri=jsonValue,
+                                      path=f"{'/'.join(pathParts + [propName])}")
                         setattr(newObj, propName, jsonValue)
                         if (keyClass and keyClass == propType) or (not keyClass and propType in (QNameKeyType, SQNameKeyType)):
                             keyValue = jsonValue # e.g. the QNAme of the new object for parent object collection
@@ -903,6 +933,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         newModule = createModelObjects("xbrlModel", moduleFileObj["xbrlModel"], xbrlCompMdl, ["", "xbrlModel"])
         modelXbrl.profileActivity(f"Create taxonomy objects from {moduleFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
         newModule._prefixNamespaces = prefixNamespaces
+        newModule._documentNamespaceURI = _documentNamespaceURI  # None when documentNamespacePrefix absent/invalid
         if not newModule.modelForm and documentType == "https://xbrl.org/2026/compiled":
             newModule.modelForm = "compiled"
         newModule._lastMdlObjIndex = len(xbrlCompMdl.xbrlObjects) - 1

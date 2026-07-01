@@ -43,14 +43,19 @@ def validateNamespaceFamily(compMdl, module, oimFile, *, assertObjectType, valid
                                xbrlObject=module, moduleType=module.modelType,
                                propNames=", ".join(str(p) for p in missingReqProps))
 
-    # object-namespace checks across all module collections
+    # object-namespace checks across all module collections.
+    # Use the resolved documentNamespaceURI when available; fall back to the module name's namespace.
+    # When documentNamespacePrefix was absent (documentNamespaceNotDefined already raised),
+    # _documentNamespaceURI is None and we skip the per-object mismatch check.
+    documentNamespaceURI = getattr(module, "_documentNamespaceURI", None) or txmyNamespace
+    hasDefinedDocumentNamespace = getattr(module, "_documentNamespaceURI", None) is not None
     for txMdlPropName, propType in XbrlModule.propertyNameTypes(skipParentProperty=True):
         if collectionInfo(propType) is not None:
             for txMdlObj in getattr(module, txMdlPropName, None) or ():
                 name = getattr(txMdlObj, "name", None)
                 if isinstance(name, QName):
                     ns = name.namespaceURI
-                    if ns != txmyNamespace and not isCompiledModel:
+                    if ns != documentNamespaceURI and not isCompiledModel and hasDefinedDocumentNamespace:
                         if ns in reservedPrefixNamespaces.values():
                             emit_error(compMdl, "oimce:invalidURIForReservedAlias",
                                        _("The taxonomy module object %(name)s cannot have a reserved namespace URI."),

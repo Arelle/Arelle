@@ -939,12 +939,10 @@
                           "properties": {
                             "fromNamespace": {
                               "type": "string",
-                              "format": "uri",
                               "description": "The original namespace that is being redirected."
                             },
                             "toNamespace": {
                               "type": "string",
-                              "format": "uri",
                               "description": "The new namespace that the fromNamespace is being redirected to."
                             }
                           },
@@ -975,7 +973,6 @@
                         },
                       "factIdentifierNamespace": {
                         "type": "string",
-                        "format": "uri",
                         "description": "A URI that identifies the namespace to use for generated fact and factValue object QNames. The URI must correspond to a declared prefix in documentInfo.namespaces."
                       }
                     },
@@ -1608,7 +1605,6 @@
                       "properties": {
                         "namespace": {
                           "type": "string",
-                          "format": "uri",
                           "description": "The namespace URI for which preferred prefixes are declared."
                         },
                         "preferredPrefixes": {
