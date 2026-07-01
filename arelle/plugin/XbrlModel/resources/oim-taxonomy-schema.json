@@ -2393,10 +2393,6 @@
           "additionalProperties": false
         }
       },
-      "required" : ["documentInfo"],
-      "anyOf": [
-        { "required": ["xbrlModel"] },
-        { "required": ["layout"] }
-      ],
+      "required" : ["documentInfo", "xbrlModel"],
        "additionalProperties": false
 }
