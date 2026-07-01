@@ -7,9 +7,28 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Generator, Mapping
 
-from arelle.oim._tc.const import TC_KEYS_PROPERTY_NAME, TCME_DUPLICATE_KEY_NAME, TCME_MISSING_KEY_PROPERTY
+from arelle.oim._tc.const import (
+    TC_KEYS_PROPERTY_NAME,
+    TCME_DUPLICATE_KEY_NAME,
+    TCME_ILLEGAL_KEY_FIELD,
+    TCME_MISSING_KEY_PROPERTY,
+)
 from arelle.oim._tc.metadata.common import TCMetadataValidationError
-from arelle.oim._tc.metadata.model import TCKeys, TCMetadata, TCTemplateConstraints
+from arelle.oim._tc.metadata.model import (
+    TCKeys,
+    TCMetadata,
+    TCReferenceKey,
+    TCTemplateConstraints,
+    TCUniqueKey,
+    TCValueConstraint,
+)
+from arelle.oim._tc.metadata.types import (
+    CORE_PERIOD,
+    DURATION,
+    OPTIONALLY_TIME_ZONED_TYPES,
+    PROHIBITED_KEY_TYPES,
+    resolve_effective_lexical_type,
+)
 from arelle.oim.csv.metadata.common import TABLE_TEMPLATES_KEY
 from arelle.typing import TypeGetText
 
@@ -50,9 +69,15 @@ def _validate_template_keys(
     if keys.unique is not None:
         for i, unique_key in enumerate(keys.unique):
             paths_by_key_name[unique_key.name].append(("unique", str(i), "name"))
+            for error in _validate_key(unique_key, tc, namespaces):
+                error.prepend_path("unique", str(i))
+                yield error
     if keys.reference is not None:
         for i, reference_key in enumerate(keys.reference):
             paths_by_key_name[reference_key.name].append(("reference", str(i), "name"))
+            for error in _validate_key(reference_key, tc, namespaces):
+                error.prepend_path("reference", str(i))
+                yield error
 
     for key_name, key_paths in paths_by_key_name.items():
         if len(key_paths) < 2:
@@ -89,4 +114,51 @@ def _validate_cross_template_key_names(tc_metadata: TCMetadata) -> Generator[TCM
                 *first_path,
                 code=TCME_DUPLICATE_KEY_NAME,
                 related_paths=tuple(related_paths),
+            )
+
+
+def _resolve_field_constraint(tc: TCTemplateConstraints, field: str) -> TCValueConstraint | None:
+    return tc.constraints.get(field) or tc.parameters.get(field)
+
+
+def _validate_key(
+    key: TCUniqueKey | TCReferenceKey,
+    tc: TCTemplateConstraints,
+    namespaces: Mapping[str, str],
+) -> Generator[TCMetadataValidationError, None, None]:
+    """Validates a single key, yielding errors with relative path segments."""
+    for field_j, field in enumerate(key.fields):
+        constraint = _resolve_field_constraint(tc, field)
+        if constraint is None:
+            yield TCMetadataValidationError(
+                _("Key field '{}' does not correspond to a constrained column or defined parameter").format(field),
+                "fields",
+                str(field_j),
+                code=TCME_ILLEGAL_KEY_FIELD,
+            )
+            continue
+        effective_type = resolve_effective_lexical_type(constraint.type, namespaces)
+        if effective_type is None:
+            continue
+        if effective_type in PROHIBITED_KEY_TYPES:
+            yield TCMetadataValidationError(
+                _("Key field '{}' uses prohibited type '{}'").format(field, constraint.type),
+                "fields",
+                str(field_j),
+                code=TCME_ILLEGAL_KEY_FIELD,
+            )
+        if effective_type == DURATION and constraint.duration_type is None:
+            yield TCMetadataValidationError(
+                _("Key field '{}' has type xs:duration but no durationType is specified").format(field),
+                "fields",
+                str(field_j),
+                code=TCME_ILLEGAL_KEY_FIELD,
+            )
+        is_time_zone_type = effective_type in OPTIONALLY_TIME_ZONED_TYPES or constraint.type == CORE_PERIOD
+        if is_time_zone_type and constraint.time_zone is None:
+            yield TCMetadataValidationError(
+                _("Key field '{}' has a time-zone-applicable type but no timeZone is specified").format(field),
+                "fields",
+                str(field_j),
+                code=TCME_ILLEGAL_KEY_FIELD,
             )

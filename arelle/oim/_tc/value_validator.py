@@ -20,13 +20,8 @@ from arelle.oim._tc.metadata.types import (
     CORE_UNIT,
     DATE,
     DATE_TIME,
-    G_DAY,
-    G_MONTH,
-    G_MONTH_DAY,
-    G_YEAR,
-    G_YEAR_MONTH,
+    OPTIONALLY_TIME_ZONED_TYPES,
     QNAME,
-    TIME,
     resolve_effective_lexical_type,
 )
 from arelle.oim.const import (
@@ -49,19 +44,6 @@ from arelle.XmlValidate import XmlValidationResult, XsdPattern, validateFacetVal
 
 # TC prohibits uppercase characters in core language.
 _TC_CORE_LANGUAGE_PATTERN = regex.compile(r"[a-z]{1,8}(-[a-z0-9]{1,8})*$")
-
-_OPTIONALLY_TIME_ZONED_TYPES: frozenset[QName] = frozenset(
-    {
-        DATE,
-        DATE_TIME,
-        TIME,
-        G_YEAR,
-        G_YEAR_MONTH,
-        G_MONTH_DAY,
-        G_MONTH,
-        G_DAY,
-    }
-)
 
 
 class ValueConstraintValidator:
@@ -198,7 +180,7 @@ class ValueConstraintValidator:
             return True
         if self._constraint.type == CORE_PERIOD:
             return self._period_timezone_matches(value)
-        if self._effective_lexical_type in _OPTIONALLY_TIME_ZONED_TYPES:
+        if self._effective_lexical_type in OPTIONALLY_TIME_ZONED_TYPES:
             has_tz = XSD_TZ_PATTERN.search(value) is not None
             return self._constraint.time_zone == has_tz
         return True
