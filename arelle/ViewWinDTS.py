@@ -40,7 +40,7 @@ class ViewDTS(ViewWinTree.ViewTree):
 
     def view(self) -> None:
         self.clearTreeView()
-        self.viewDtsElement(self.modelXbrl.modelDocument, "", 1, set(), {self.modelXbrl.modelDocument})
+        self.viewDtsElement(self.modelXbrl.modelDocument, "", 1, set(), {self.modelXbrl.modelDocument})  # type: ignore[arg-type]
 
     def viewDtsElement(
         self,
