@@ -606,6 +606,31 @@ def test_validateValue_facets_maxLength(value: str, expected: tuple):
 
 
 @pytest.mark.parametrize(
+    "base_xsd_type,value,facets,expected_x_valid",
+    [
+        # length/minLength/maxLength are vacuous for QName and NOTATION: every value is
+        # facet-valid with respect to them, regardless of the (prefix-dependent) lexical
+        # length (Fix 5).
+        ("QName", "prefix:localName", {"length": 5}, VALID),
+        ("QName", "prefix:localName", {"minLength": 100}, VALID),
+        ("QName", "prefix:localName", {"maxLength": 1}, VALID),
+        ("NOTATION", "prefix:localName", {"length": 5}, VALID),
+        ("NOTATION", "prefix:localName", {"minLength": 100}, VALID),
+        ("NOTATION", "prefix:localName", {"maxLength": 1}, VALID),
+        # control: length facets are still enforced for other types
+        ("string", "abc", {"maxLength": 1}, INVALID),
+        ("string", "abc", {"length": 3}, VALID),
+    ],
+)
+def test_validateValueString_length_vacuous_for_qname_notation(
+    base_xsd_type: str, value: str, facets: dict, expected_x_valid: int
+):
+    result = validateValueString(base_xsd_type, value, facets=facets, nsmap={"prefix": "namespaceURI"})
+    assert result.xValid == expected_x_valid
+    assert result.isXValid == (expected_x_valid >= VALID)
+
+
+@pytest.mark.parametrize(
     "value,expected",
     [
         pytest.param("ABC", ("=", "=", VALID)),
