@@ -127,11 +127,37 @@ def resolveFact(txmyMdl, txmyObj, fact):
                               xbrlObject=fact, unit=uStr)
                 fact._xValid = INVALID
             else:
-                fact.factDimensions[unitCoreDim] = parseUnitString(uStr, fact, txmyObj, txmyMdl)
+                unitQnTuple = parseUnitString(uStr, fact, txmyObj, txmyMdl)
+                fact.factDimensions[unitCoreDim] = unitQnTuple
+                # Each unit measure's dataType must be the same as or a supertype of
+                # the concept's dataType (concept's type must be an instance of the
+                # unit's declared dataType).
+                for unitMeasures in unitQnTuple:
+                    for unitQn in unitMeasures:
+                        unitObj = txmyMdl.namedObjects.get(unitQn)
+                        if isinstance(unitObj, XbrlUnit) and not cDataType.instanceOfType(unitObj.dataType, txmyMdl):
+                            txmyMdl.error("oimte:factUnitDatatypeMismatch",
+                                          _("Unit %(unit)s is not valid for concept %(concept)s with dataType %(dataType)s."),
+                                          xbrlObject=fact, name=fact.name,
+                                          unit=unitQn, concept=cQn, dataType=cObj.dataType)
+                            fact._xValid = INVALID
         else:
             txmyMdl.error("oime:misplacedUnitDimension",
                           _("The unit core dimension MUST NOT be present on non-numeric facts: %(concept)s, unit %(unit)s."),
                           xbrlObject=fact, concept=cQn, unit=uStr)
+            fact._xValid = INVALID
+    elif uStr is None and cDataType.isNumeric(txmyMdl):
+        # No unit present; check if the concept's dataType requires one.
+        # Build and cache the set of dataType QNames that have at least one unit defined.
+        if not hasattr(txmyMdl, '_unitDataTypes'):
+            txmyMdl._unitDataTypes = frozenset(
+                obj.dataType for obj in txmyMdl.namedObjects.values()
+                if isinstance(obj, XbrlUnit)
+            )
+        if any(cDataType.instanceOfType(unitDt, txmyMdl) for unitDt in txmyMdl._unitDataTypes):
+            txmyMdl.error("oimte:factMissingUnitDimension",
+                          _("Fact %(name)s requires a unit dimension for concept %(concept)s with dataType %(dataType)s."),
+                          xbrlObject=fact, name=fact.name, concept=cQn, dataType=cObj.dataType)
             fact._xValid = INVALID
     updateDimVals = {} # compiled values
     for dimName, dimVal in fact.factDimensions.items():
