@@ -208,7 +208,7 @@ def _validate_key(
             _("Parameter fields must come before constrained column fields in unique key"),
             *first_path,
             code=TCME_ILLEGAL_UNIQUE_KEY_ORDER,
-            related_paths=tuple(related_paths),
+            related_paths=related_paths,
         )
 
 
@@ -304,7 +304,7 @@ def _validate_reference_key_field_consistency(
                     *ref_path,
                     "fields",
                     code=TCME_INCONSISTENT_REFERENCE_KEY_FIELDS,
-                    related_paths=related_paths,
+                    related_paths=tuple(related_paths),
                 )
 
 
