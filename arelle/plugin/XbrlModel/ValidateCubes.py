@@ -36,6 +36,10 @@ def matchFactToCube(compMdl, factspace, cubeObj):
         if dimName in coreToFactDim:
             mems = cubeDimObj.allowedMembers(compMdl)
             factDimVal = factspace.factDimensions.get(dimName)
+            # A required core dimension absent from the fact rules out this cube.
+            if factDimVal is None and not cubeDimObj.optional:
+                hasDims = False # skip this cube
+                break
             # Entity (and other core) dimension values may still be carried as
             # strings (e.g. "exp:ExampleCo") rather than resolved QNames, while
             # `mems` is a set of QName objects. Resolve on the fly so that
@@ -51,7 +55,8 @@ def matchFactToCube(compMdl, factspace, cubeObj):
         elif dimName == periodCoreDim:
             factPerVal = factspace.factDimensions.get("_periodValue")
             if factPerVal is None and not cubeDimObj.optional:
-                continue # skip forever/missing period and not allowDomainFacts
+                hasDims = False # period required but fact has no period (e.g. periodType:none concept)
+                break
             # periodConstraints are content selectors (they filter facts INTO
             # the cube for query/reporting views) and do NOT gate dimensional
             # validity. A fact whose period does not satisfy a periodConstraint

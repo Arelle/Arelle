@@ -45,7 +45,7 @@ def resolveFact(txmyMdl, txmyObj, fact):
     if extends is not None:
         targetFact = txmyMdl.namedObjects.get(extends)
         if targetFact is not None and not targetFact.isExtensible:
-            txmyMdl.error("oimte:cannotExtendObject",
+            txmyMdl.error("oimte:illegalExtensionOfNonExtensibleObject",
                           _("Fact %(target)s is not extensible (isExtensible=false) and cannot be extended."),
                           xbrlObject=fact, name=extends, target=extends)
         return  # extension facts inherit dimensions; skip further resolution
@@ -58,7 +58,7 @@ def resolveFact(txmyMdl, txmyObj, fact):
         cQn = fact.factDimensions[conceptCoreDim] = qname(cQn, txmyObj._prefixNamespaces)
     cObj = txmyMdl.namedObjects.get(cQn)
     if cObj is None:
-        txmyMdl.error("oimte:missingConceptDimension",
+        txmyMdl.error("oime:missingConceptDimension",
                       _("The concept core dimension MUST be present on fact: %(name)s and must be a taxonomy concept."),
                       xbrlObject=fact, name=fact.name)
         fact._xValid = INVALID
