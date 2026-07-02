@@ -101,13 +101,6 @@ class ViewWinDiffs:
                         self.fromDTS.viewModelObject(modelObject.fromRelationship.objectId())  # type: ignore[union-attr]
                     else:
                         self.toDTS.viewModelObject(modelObject.fromRelationship.objectId())  # type: ignore[union-attr]
-                elif isinstance(modelObject, (ModelVersObject.ModelInstanceAspect, ModelVersObject.ModelRelatedConcept)):
-                    if modelObject.isFromDTS:
-                        self.fromDTS.viewModelObject(modelObject.sourceDtsObject.objectId())  # type: ignore[union-attr]
-                    else:
-                        self.toDTS.viewModelObject(modelObject.sourceDtsObject.objectId())  # type: ignore[union-attr]
-                elif modelObject.modelXbrl != self.modelVersReport:  # propogate event to versiong report's modelXbrl
-                    self.modelVersReport.viewModelObject(modelObject)  # type: ignore[arg-type,union-attr]
             except Exception:
                 pass
             self.blockViewModelObject -= 1  # unblock
