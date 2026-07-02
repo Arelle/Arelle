@@ -745,7 +745,7 @@ class DefnMdlTable(ModelFormulaResource):
     def clear(self):
         if getattr(self, "_rendrCntx"):
             self._rendrCntx.close()
-        super(ModelTable, self).clear()  # delete children
+        super(DefnMdlTable, self).clear()  # delete children
     @property
     def isMerged(self):
         return False
