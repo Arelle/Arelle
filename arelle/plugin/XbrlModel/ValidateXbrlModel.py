@@ -38,7 +38,7 @@ from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
 from .XbrlObject import XbrlReferencableModelObject
 from .XbrlProperty import XbrlPropertyType
 from .XbrlReference import XbrlReference, XbrlReferenceType
-from .XbrlFact import XbrlFact, XbrlFootnote, XbrlTableTemplate
+from .XbrlFact import XbrlFact, XbrlFootnote, XbrlFactSource, XbrlTableTemplate
 from .XbrlModule import XbrlModule, XbrlModelType, xbrlObjectTypes, referencableObjectTypes, xbrlObjectQNames
 from .XbrlUnit import XbrlUnit, parseUnitString
 from .XbrlConst import qnXsQName, qnXsDate, qnXsDateTime, qnXsDuration, objectsWithProperties
@@ -630,8 +630,10 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             compMdl.error("oimte:duplicateDimensionsInCube",
                       _("The cubeDimensions of cube %(name)s duplicate these dimension object(s): %(dimensions)s"),
                       xbrlObject=cubeObj, name=name, dimensions=", ".join(str(qn) for qn, ct in dimQnCounts.items() if ct > 1))
-        # check cube dims against cube type
-        if cubeType.basemostCubeType(compMdl) != defaultCubeType and conceptCoreDim not in dimQnCounts.keys():
+        # check cube dims against cube type; extension cubes inherit concept dim from target
+        if (cubeType.basemostCubeType(compMdl) != defaultCubeType
+                and conceptCoreDim not in dimQnCounts.keys()
+                and not getattr(cubeObj, 'extends', None)):
             compMdl.error("oimte:cubeMissingConceptDimension",
                         _("The cubeDimensions of cube %(name)s, type %(cubeType)s, must have a concept core dimension"),
                         xbrlObject=cubeObj, name=name, cubeType=cubeType.name)
@@ -1490,6 +1492,23 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                     compMdl.error("oimte:tableTemplateDimensionColumnReference",
                               _("The table template dimension %(dimension)s is missing from the table template columns."),
                               xbrlObject=tblTmpl, dimension=dim)
+
+    # A factSource's factIdentifierNamespace must be declared in the module.
+    # Two places count: documentInfo.namespaces (in _prefixNamespaces) and
+    # xbrlModel.namespacePrefixes (XbrlNamespacePrefix objects).
+    moduleNamespaceValues = set(getattr(module, "_prefixNamespaces", {}).values())
+    moduleNamespaceValues.update(
+        str(getattr(np, "namespace", None))
+        for np in (module.namespacePrefixes or ())
+        if getattr(np, "namespace", None) is not None
+    )
+    for factSrc in module.factSources or ():
+        assertObjectType(compMdl, factSrc, XbrlFactSource)
+        fidNs = getattr(factSrc, "factIdentifierNamespace", None)
+        if fidNs is not None and str(fidNs) not in moduleNamespaceValues:
+            compMdl.error("oimte:namespaceInModelNotInDocumentNamespace",
+                          _("The factSource %(name)s factIdentifierNamespace %(namespace)s is not declared in the module's namespaces."),
+                          xbrlObject=factSrc, name=factSrc.name, namespace=fidNs)
 
 def validateCompletedModel(compMdl):
     """ Validate the completed model, including validating facts and complete cubes.

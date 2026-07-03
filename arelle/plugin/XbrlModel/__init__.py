@@ -951,6 +951,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         # (step 6 -- HTML / PDF locator-property registry).
         sourceMappingsRaw = documentInfo.get("sourceMappings") or ()
         parsedSourceMappings = []
+        seenSourceNames = set()
         for _m in sourceMappingsRaw:
             if not isinstance(_m, dict):
                 continue
@@ -961,10 +962,15 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                     _absUrl = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(_rawUrl, moduleFileName)
                 except Exception:
                     _absUrl = _rawUrl
-            _ns = types.SimpleNamespace(
-                sourceName=qname(_m.get("sourceName"), prefixNamespaces) if _m.get("sourceName") else None,
-                url=_absUrl,
-            )
+            _snQn = qname(_m.get("sourceName"), prefixNamespaces) if _m.get("sourceName") else None
+            if _snQn is not None:
+                if _snQn in seenSourceNames:
+                    error("oimte:duplicateSourceNameProperty",
+                          _("The sourceMappings array contains duplicate sourceName %(sourceName)s."),
+                          sourceFileLine=href, sourceName=_snQn)
+                else:
+                    seenSourceNames.add(_snQn)
+            _ns = types.SimpleNamespace(sourceName=_snQn, url=_absUrl)
             parsedSourceMappings.append(_ns)
         newModule._sourceMappings = parsedSourceMappings
         schemaDoc._txmyModule = newModule

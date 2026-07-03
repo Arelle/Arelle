@@ -167,6 +167,16 @@ def resolveFact(txmyMdl, txmyObj, fact):
                               _("Factspace %(name)s taxonomy-defined dimension QName not be resolved with available DTS: %(qname)s."),
                               xbrlObject=fact, qname=dimName)
                 fact._xValid = INVALID
+        elif dimName not in coreDimensions:
+            # dimName resolved to a QName (so oime:unknownDimension didn't fire)
+            # but the named object may not be an XbrlDimension — e.g. a mistyped
+            # QName that happens to match a concept or network.
+            dimObj = txmyMdl.namedObjects.get(dimName)
+            if not isinstance(dimObj, XbrlDimension):
+                txmyMdl.error("oimte:invalidQNameReference",
+                              _("Fact %(name)s uses dimension %(qname)s which is not defined as a dimension object in the taxonomy."),
+                              xbrlObject=fact, name=fact.name, qname=dimName)
+                fact._xValid = INVALID
         '''
         if isinstance(dimName, QName):
             dimObj = txmyMdl.namedObjects.get(dimName)
@@ -375,32 +385,62 @@ def validateCompleteReportCubes(txmyMdl):
     """Validate complete cubes after facts have been matched to their effective cubes.
 
     A cube's ``requiredCubes`` lists cubes whose dimensional space must be
-    covered by facts.  For each such required cube, ``validateCompleteCube``
-    checks that at least one fact matched it.  A cube may also require itself
-    (meaning all its own cells must be populated).
+    covered by facts.  The check differs by how the declaring cube is defined:
 
-    Taxonomy-only models (modelType=xbrl:taxonomy with no report module) are
-    exempt from completeness checks when they contain no facts.
+    - **Named declaring cube** (e.g. ``exp:SaleEventCube``): ``validateCompleteCube``
+      is called on each required cube and fires ``oimte:factMissingFromCube`` for
+      every concept in the required cube's domain that has no matching fact.
+    - **Anonymous extension cube** (``extends`` with no ``name``): the requirement
+      is satisfied when the model contains *any* facts at all.  If the model has
+      zero facts, ``oimte:factMissingFromCube`` fires; if it has at least one fact,
+      no error is raised even if none land in the required cube's domain.
+
+    Taxonomy-only models (every module with a ``modelType`` set to ``xbrl:taxonomy``,
+    with no co-loaded report module) are wholly exempt from completeness checks.
     """
     from .ValidateCubes import validateCompleteCube, validateCubeDuplicates
     from .XbrlConst import xbrl
 
     qnTaxonomyModelType = qname(xbrl, "xbrl:taxonomy")
     hasFacts = any(True for _ in txmyMdl.filterNamedObjects(XbrlFact))
+    # isReportModel: any module has an explicit non-taxonomy modelType (e.g. xbrl:report)
     isReportModel = any(
         getattr(mod, "modelType", None) is not None and getattr(mod, "modelType", None) != qnTaxonomyModelType
         for mod in txmyMdl.xbrlModels.values()
     )
-    if not hasFacts and not isReportModel:
+    # isTaxonomyModel: all modules with a modelType are xbrl:taxonomy (none are report)
+    isTaxonomyModel = not isReportModel and any(
+        getattr(mod, "modelType", None) == qnTaxonomyModelType
+        for mod in txmyMdl.xbrlModels.values()
+    )
+    if isTaxonomyModel:
+        return  # taxonomy-only models are exempt from cube completeness checks
+    # Collect all cubes including anonymous extension cubes (not in namedObjects).
+    allCubes = [cubeObj for mod in txmyMdl.xbrlModels.values() for cubeObj in (mod.cubes or ())]
+    # Only anonymous extension cubes (no name) with requiredCubes bypass the hasFacts guard;
+    # named cubes in taxonomy modules may declare requiredCubes for future report imports.
+    hasAnonymousRequiredCubes = any(
+        bool(txmyMdl.effectiveRequiredCubes(c))
+        for c in allCubes
+        if not getattr(c, 'name', None)
+    )
+    if not hasFacts and not isReportModel and not hasAnonymousRequiredCubes:
         return
 
     validated = set()
-    for cubeObj in txmyMdl.filterNamedObjects(XbrlCube):
+    for cubeObj in allCubes:
+        isAnonymousExtCube = not getattr(cubeObj, 'name', None)
         for reqCubeQn in txmyMdl.effectiveRequiredCubes(cubeObj):
             if reqCubeQn not in validated:
                 reqCubeObj = txmyMdl.namedObjects.get(reqCubeQn)
                 if isinstance(reqCubeObj, XbrlCube):
-                    validateCompleteCube(txmyMdl, reqCubeObj)
+                    # For anonymous extension cubes the requirement is satisfied
+                    # when the model has any facts at all (even if none fall in
+                    # the required cube's dimensional space).  Per-concept
+                    # coverage is only checked for named declaring cubes.
+                    if not (isAnonymousExtCube and hasFacts
+                            and not getattr(reqCubeObj, '_cellFacts', None)):
+                        validateCompleteCube(txmyMdl, reqCubeObj)
                     validated.add(reqCubeQn)
         # Duplicate-fact validation applies to every cube (not just required
         # cubes) per oim-taxonomy "Duplicate fact validation".
