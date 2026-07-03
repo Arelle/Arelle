@@ -317,6 +317,13 @@ def _pruneModuleObjects(txmyMdl, moduleObj,
                                 if i0 <= tagObj.xbrlMdlObjIndex <= iL:
                                     selObjs[tagObj.xbrlMdlObjIndex - i0] = True
 
+        # Collect the QNames of in-range objects that are about to be pruned
+        # (not selected), before dereferencing removes them from namedObjects.
+        prunedNames = [o.name for o in txmyMdl.namedObjects.values()
+                       if i0 <= o.xbrlMdlObjIndex <= iL
+                       and not selObjs[o.xbrlMdlObjIndex - i0]
+                       and getattr(o, "name", None) is not None]
+
         def derefNonSelection(obj):
             if i0 <= obj.xbrlMdlObjIndex <= iL:
                 if not selObjs[obj.xbrlMdlObjIndex - i0]:
@@ -336,5 +343,27 @@ def _pruneModuleObjects(txmyMdl, moduleObj,
                         for refObj in refObjs:
                             del refObj
                     del obj
+
+        # A label whose sole forObject was pruned above is now orphaned. Such a
+        # label commonly lives in a different module (e.g. a separate label
+        # module) that the dereferencing walk above does not touch, leaving it in
+        # both the tag index and its owning module's labels. Remove it so
+        # downstream validation does not report oimte:invalidQNameReference for a
+        # label whose related object was removed by selective import. (A label
+        # authored against a never-defined object is not pruned here and is still
+        # correctly reported.) References are left untouched: they may target
+        # multiple objects and have their own removeOrphanedReferenceQNames handling.
+        for prunedName in prunedNames:
+            tagObjs = txmyMdl.tagObjects.get(prunedName)
+            if not tagObjs:
+                continue
+            for tagObj in list(tagObjs):
+                if isinstance(tagObj, XbrlLabel):
+                    tagObjs.remove(tagObj)
+                    refMod = getattr(tagObj, "module", None)
+                    if refMod is not None and refMod.labels and tagObj in refMod.labels:
+                        refMod.labels.remove(tagObj)
+            if not tagObjs:
+                del txmyMdl.tagObjects[prunedName]
     elif excludeLabels:
         _excludeLabelsOnly(txmyMdl, moduleObj)
