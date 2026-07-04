@@ -8,7 +8,7 @@ from decimal import Decimal
 
 from arelle.ModelValue import QName
 from ordered_set import OrderedSet
-from arelle.XbrlConst import xsd, isNumericXsdType
+from arelle.XbrlConst import xsd, isNumericXsdType, xsdStringTypeNames, xsdNoLangTypeNames
 from .XbrlProperty import XbrlProperty
 from .XbrlTypes import XbrlModuleAlias, QNameKeyType, DefaultTrue, DefaultFalse, NonemptySet
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
@@ -160,14 +160,9 @@ class XbrlDataType(XbrlReferencableModelObject):
                     facets[facet] = value
         return facets
 
-    def isOimTextFactType(self):
-        """(str) -- True if type meets OIM requirements to be a text fact"""
-        if self.modelDocument.targetNamespace.startswith(XbrlConst.dtrTypesStartsWith):
-            return self.name not in XbrlConst.dtrNoLangItemTypeNames and self.baseXsdType in XbrlConst.xsdStringTypeNames
-        if self.modelDocument.targetNamespace == XbrlConst.xbrli:
-            return self.baseXsdType not in XbrlConst.xsdNoLangTypeNames and self.baseXsdType in XbrlConst.xsdStringTypeNames
-        qnameDerivedFrom = self.qnameDerivedFrom
-        if not isinstance(qnameDerivedFrom, ModelValue.QName): # textblock not a union type
-            return False
-        typeDerivedFrom = self.xbrlCompMdl.namedObjects.get(baseType)
-        return typeDerivedFrom.isOimTextFactType if typeDerivedFrom is not None else False
+    def isOimTextFactType(self, compMdl):
+        """(bool) -- True if type meets OIM requirements to be a text fact, i.e.
+        a string-based type that carries a language (xml:lang). Resolved through
+        the XSD base type in the same way as isNumeric()."""
+        xsBase = self.xsBaseType(compMdl)
+        return xsBase in xsdStringTypeNames and xsBase not in xsdNoLangTypeNames

@@ -9,7 +9,11 @@ from arelle.oim.Load import (UnitPrefixedQNameSubstitutionChar, UnitPattern,
 from arelle.ModelValue import QName, qname, timeInterval
 from arelle import XbrlConst
 from arelle.XmlValidateConst import VALID, INVALID
-from .XbrlConst import unsupportedTypedDimensionDataTypes, qnXbrlMemberObj
+from .XbrlConst import unsupportedTypedDimensionDataTypes, qnXbrlMemberObj, xbrl as xbrlNs
+
+# xbrl:nil property marks a fact whose value is absent (e.g. mapped from an
+# xBRL-XML xsi:nil="true" fact). Such facts carry no value to type-validate.
+qnFactNilProperty = QName("xbrl", xbrlNs, "nil")
 from .XbrlConcept import XbrlConcept, XbrlDataType
 from .XbrlCube import XbrlCube, conceptCoreDim, entityCoreDim, languageCoreDim, periodCoreDim, unitCoreDim, coreDimensions
 from .XbrlDimension import XbrlDimension, XbrlDomainClass, XbrlMember
@@ -73,7 +77,15 @@ def resolveFact(txmyMdl, txmyObj, fact):
     if cDataType is None or not isinstance(cDataType, XbrlDataType):
         # presume this error would have been reported on validating loaded taxonomy model
         return
+    factIsNil = any(getattr(p, "property", None) == qnFactNilProperty
+                    for p in (fact.properties or ()))
     for factValue in fact.factValues:
+        # A nil fact carries no value in its factValue object; there is nothing to
+        # type-validate. (An explicit value or valueSource still validates below.)
+        if factIsNil and factValue.value is None and not factValue.valueSources:
+            factValue._xValid = VALID
+            factValue._xValue = None
+            continue
         # Step 6: factValue may carry its value either literally (`value` set) or
         # externally via `valueSources` pointing into an HTML/PDF/tabular source.
         # When valueSources are present, validate the locator-property structure
@@ -124,7 +136,7 @@ def resolveFact(txmyMdl, txmyObj, fact):
             elif not UnitPattern.match( PrefixedQName.sub(UnitPrefixedQNameSubstitutionChar, uStr) ):
                 txmyMdl.error("oimce:invalidUnitStringRepresentation",
                               _("Unit string representation is lexically invalid, %(unit)s, fact id %(name)s"),
-                              xbrlObject=fact, unit=uStr)
+                              xbrlObject=fact, unit=uStr, name=fact.name)
                 fact._xValid = INVALID
             else:
                 unitQnTuple = parseUnitString(uStr, fact, txmyObj, txmyMdl)

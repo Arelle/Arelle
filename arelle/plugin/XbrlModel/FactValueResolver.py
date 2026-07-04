@@ -410,7 +410,7 @@ def validateAndResolveValueSources(
                 fact=getattr(fact, "name", None),
                 fv=getattr(factValue, "name", None),
                 missing=", ".join(str(p) for p in sorted(missing, key=str)),
-                loc=interfaceName,
+                loc=locatorTypeQn,
             )
 
         if allowed:
@@ -424,7 +424,7 @@ def validateAndResolveValueSources(
                     fact=getattr(fact, "name", None),
                     fv=getattr(factValue, "name", None),
                     extra=", ".join(str(p) for p in sorted(disallowed, key=str)),
-                    loc=interfaceName,
+                    loc=locatorTypeQn,
                 )
 
         # Try to actually resolve content via the registered backend.

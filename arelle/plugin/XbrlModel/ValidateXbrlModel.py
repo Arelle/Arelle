@@ -1462,6 +1462,13 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         for i, reqPropQn in enumerate(mdlTpObj.requiredProperties or ()):
             validateQNameReference(compMdl, mdlTpObj, f"requiredProperties[{i+1}]", XbrlPropertyType, qnDefault=reqPropQn)
 
+    # Materialize facts (and footnotes) from factSources referencing a built-in
+    # fact map (xbrl:xBRL-XML, xbrl:OIM-JSON), registering them on the module so
+    # they flow through the resolveFact / cube / vector-search passes below.
+    if module.factSources:
+        from .FactPipeline import materializeFactSourceFacts
+        materializeFactSourceFacts(compMdl, module)
+
     # Facts in taxonomy
     if module.facts:
         global resolveFact, validateFactPosition

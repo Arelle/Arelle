@@ -28,10 +28,18 @@ from __future__ import annotations
 
 from typing import Iterator, Iterable, Protocol, Optional, Callable, Any, TYPE_CHECKING
 
+from arelle.ModelValue import QName
+from .XbrlConst import xbrl as xbrlNs
+
 if TYPE_CHECKING:
     from .XbrlFact import XbrlFact, XbrlFactSource
     from .XbrlModule import XbrlModule
     from .XbrlModel import XbrlCompiledModel
+
+# Built-in fact map QNames the spec requires every processor to support without
+# any explicit factMap definition in the taxonomy model.
+qnXbrlXmlFactMap = QName("xbrl", xbrlNs, "xBRL-XML")
+qnOimJsonFactMap = QName("xbrl", xbrlNs, "OIM-JSON")
 
 
 # --------------------------------------------------------------------
@@ -174,7 +182,14 @@ def moduleLoaders(module: "XbrlModule",
     if getattr(module, "facts", None):
         yield InlineFactsLoader(module)
     if compMdl is not None:
+        builtins = _builtinFactMapParsers()
         for factSource in (getattr(module, "factSources", None) or ()):
+            # factSources bound to a built-in fact map are materialized eagerly
+            # onto module.facts (see materializeFactSourceFacts) and are already
+            # covered by InlineFactsLoader; only custom template-backed sources
+            # need the streaming lazy loader here.
+            if getattr(factSource, "factMapName", None) in builtins:
+                continue
             yield LazyFactSourceLoader(factSource, module, compMdl)
 
 
@@ -292,3 +307,72 @@ def _registerBuiltinLoaders() -> None:
 
 
 _registerBuiltinLoaders()
+
+
+# --------------------------------------------------------------------
+# Built-in fact map materialization (xbrl:xBRL-XML, xbrl:OIM-JSON)
+# --------------------------------------------------------------------
+
+# Parse functions keyed by built-in factMap QName; each returns (facts, footnotes).
+_BUILTIN_FACT_MAP_PARSERS: dict[Any, Callable[..., Any]] = {}
+
+
+def _builtinFactMapParsers() -> dict[Any, Callable[..., Any]]:
+    if not _BUILTIN_FACT_MAP_PARSERS:
+        from .LoadXbrlXmlFacts import parseXbrlXmlFacts
+        from .LoadOimJsonFacts import parseOimJsonFacts
+        _BUILTIN_FACT_MAP_PARSERS[qnXbrlXmlFactMap] = parseXbrlXmlFacts
+        _BUILTIN_FACT_MAP_PARSERS[qnOimJsonFactMap] = parseOimJsonFacts
+    return _BUILTIN_FACT_MAP_PARSERS
+
+
+def _sourceUrlForFactSource(module: "XbrlModule", factSource: "XbrlFactSource") -> Optional[str]:
+    """Resolve the source document URL for a factSource from the module's
+    documentInfo.sourceMappings (matched by sourceName == factSource.name)."""
+    for mapping in getattr(module, "_sourceMappings", None) or ():
+        if getattr(mapping, "sourceName", None) == getattr(factSource, "name", None):
+            return getattr(mapping, "url", None)
+    return None
+
+
+def materializeFactSourceFacts(compMdl: "XbrlCompiledModel", module: "XbrlModule") -> None:
+    """Generate facts (and footnotes) from a module's factSources that reference a
+    built-in fact map, and register them in the compiled model so the existing
+    resolveFact / cube / vector-search / duplicate passes run over them.
+
+    Called from validateXbrlModule before the module's facts are resolved. Custom
+    (template-backed) fact maps are handled by the streaming loader registry and
+    are not materialized here.
+    """
+    parsers = _builtinFactMapParsers()
+    for factSource in getattr(module, "factSources", None) or ():
+        parse = parsers.get(getattr(factSource, "factMapName", None))
+        if parse is None:
+            continue  # not a built-in map (custom template maps handled elsewhere)
+        url = _sourceUrlForFactSource(module, factSource)
+        if not url:
+            compMdl.error("arelle:factSourceUrlNotFound",
+                          _("The factSource %(name)s references factMap %(map)s but no "
+                            "sourceMapping provides a source document URL."),
+                          xbrlObject=factSource, name=getattr(factSource, "name", None),
+                          map=getattr(factSource, "factMapName", None))
+            continue
+        facts, footnotes = parse(compMdl, module, factSource, url)
+        for fact in facts:
+            _registerGeneratedObject(compMdl, module, fact, "facts")
+        for footnote in footnotes:
+            _registerGeneratedObject(compMdl, module, footnote, "footnotes")
+
+
+def _registerGeneratedObject(compMdl: "XbrlCompiledModel", module: "XbrlModule",
+                             obj: Any, collectionName: str) -> None:
+    obj.xbrlMdlObjIndex = len(compMdl.xbrlObjects)
+    compMdl.xbrlObjects.append(obj)
+    name = getattr(obj, "name", None)
+    if name is not None and name not in compMdl.namedObjects:
+        compMdl.namedObjects[name] = obj
+    coll = getattr(module, collectionName, None)
+    if coll is None:
+        coll = []
+        setattr(module, collectionName, coll)
+    coll.append(obj)
