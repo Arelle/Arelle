@@ -210,6 +210,7 @@ def applyDeferredImportPruning(txmyMdl):
         unionSelections = []
         allExcludeLabels = True
         allExcludeGroupContents = True
+        anyRemoveOrphanedRefQNames = False
         anyUnfiltered = False
 
         for entry in importEntries:
@@ -224,6 +225,8 @@ def applyDeferredImportPruning(txmyMdl):
                 allExcludeLabels = False
             if not getattr(entry, "excludeGroupContents", False):
                 allExcludeGroupContents = False
+            if getattr(entry, "removeOrphanedReferenceQNames", False):
+                anyRemoveOrphanedRefQNames = True
 
         if anyUnfiltered:
             if allExcludeLabels:
@@ -232,7 +235,7 @@ def applyDeferredImportPruning(txmyMdl):
 
         _pruneModuleObjects(txmyMdl, moduleObj,
                            unionImportObjects, unionImportObjectTypes, unionSelections,
-                           allExcludeLabels, allExcludeGroupContents)
+                           allExcludeLabels, allExcludeGroupContents, anyRemoveOrphanedRefQNames)
 
     del txmyMdl._pendingImportEntries
 
@@ -251,7 +254,7 @@ def _excludeLabelsOnly(txmyMdl, moduleObj):
 
 def _pruneModuleObjects(txmyMdl, moduleObj,
                         importObjects, importObjectTypes, selections,
-                        excludeLabels, excludeGroupContents):
+                        excludeLabels, excludeGroupContents, removeOrphanedRefQNames=False):
     """Core pruning logic: select objects matching the unioned filters,
        transitively select referenced objects, then delete everything else.
     """
@@ -271,9 +274,21 @@ def _pruneModuleObjects(txmyMdl, moduleObj,
                     if i0 <= obj.xbrlMdlObjIndex <= iL and (not excludeLabels or type(obj) != XbrlLabel):
                         selObjs[obj.xbrlMdlObjIndex - i0] = True
             else:
-                txmyMdl.error("oimte:invalidQNameReference",
-                          _("The importTaxonomy %(name)s importObject %(qname)s must identify a taxonomy object."),
-                          xbrlObject=moduleObj, name=moduleObj.name, qname=impObjQn)
+                # A named reference object carries its own name but, being a tag
+                # object, is registered neither in namedObjects nor (reliably) in
+                # tagObjects by that name. Scan this module's object range for a
+                # matching name before reporting the importObject as unresolved.
+                # (excludeLabels still suppresses label tag objects.)
+                found = False
+                for candObj in txmyMdl.xbrlObjects[i0:iL + 1]:
+                    if (getattr(candObj, "name", None) == impObjQn
+                            and (not excludeLabels or type(candObj) != XbrlLabel)):
+                        selObjs[candObj.xbrlMdlObjIndex - i0] = True
+                        found = True
+                if not found:
+                    txmyMdl.error("oimte:invalidQNameReference",
+                              _("The importTaxonomy %(name)s importObject %(qname)s must identify a taxonomy object."),
+                              xbrlObject=moduleObj, name=moduleObj.name, qname=impObjQn)
 
     if importObjectTypes:
         hasSel = True
@@ -305,6 +320,15 @@ def _pruneModuleObjects(txmyMdl, moduleObj,
                             not isinstance(obj, XbrlLabel) or not excludeLabels):
                     selObjs[obj.xbrlMdlObjIndex - i0] = True
                     moreRefObjsToSelect[0] = True
+                # An inline nested object (e.g. a relationship in a network or
+                # domain network) has no name of its own, so the top-level
+                # namedObjects walk below never visits it to follow its QName
+                # references. Descend here so a selected network's relationship
+                # source/target members are transitively selected too; the named
+                # objects it reaches are handled by the outer walk, so recursion
+                # terminates at the (unnamed) inline object.
+                if getattr(obj, "name", None) is None:
+                    obj.referencedObjectsAction(txmyMdl, selectReferencedObjects)
             return None
         while moreRefObjsToSelect[0]:
             moreRefObjsToSelect[0] = False
@@ -317,6 +341,15 @@ def _pruneModuleObjects(txmyMdl, moduleObj,
                             for tagObj in txmyMdl.tagObjects[objName]:
                                 if i0 <= tagObj.xbrlMdlObjIndex <= iL:
                                     selObjs[tagObj.xbrlMdlObjIndex - i0] = True
+            # Tag objects (labels, references) are not in namedObjects, so the
+            # walk above never follows their own QName references. A selected
+            # label pulled in for a selected object still points at e.g. its
+            # labelType object, which must be selected too or it is pruned and
+            # later reported as a dangling QName reference. Follow them here.
+            for tagObjs in [list(v) for v in txmyMdl.tagObjects.values()]:
+                for tagObj in tagObjs:
+                    if i0 <= tagObj.xbrlMdlObjIndex <= iL and selObjs[tagObj.xbrlMdlObjIndex - i0]:
+                        tagObj.referencedObjectsAction(txmyMdl, selectReferencedObjects)
 
         # Collect the QNames of in-range objects that are about to be pruned
         # (not selected), before dereferencing removes them from namedObjects.
@@ -366,5 +399,18 @@ def _pruneModuleObjects(txmyMdl, moduleObj,
                         refMod.labels.remove(tagObj)
             if not tagObjs:
                 del txmyMdl.tagObjects[prunedName]
+
+        # removeOrphanedReferenceQNames: a reference kept by selective import may
+        # still list forObjects that were pruned (are now absent from the model).
+        # When the import entry requested it, strip those orphaned QNames so the
+        # reference is not later reported with an invalid related object name.
+        # (Absent from an import entry, the orphan is intentionally left to be
+        # reported -- see IMPORTTAXONOMY-SelectiveConceptImportWithOrphanedReference.)
+        if removeOrphanedRefQNames:
+            for refObj in getattr(moduleObj, "references", None) or ():
+                forObjs = getattr(refObj, "forObjects", None)
+                if forObjs and i0 <= refObj.xbrlMdlObjIndex <= iL:
+                    for qn in [q for q in forObjs if q not in txmyMdl.namedObjects]:
+                        forObjs.discard(qn)
     elif excludeLabels:
         _excludeLabelsOnly(txmyMdl, moduleObj)
