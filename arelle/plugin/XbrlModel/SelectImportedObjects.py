@@ -20,7 +20,8 @@ def eval(obj, whereObj):
     if qn.namespaceURI is None:
         v1 = getattr(obj, qn.localName, None)
     else:
-        for i, propObj in enumerate(getattr(obj, "properties", ())):
+        # properties may be present-but-None (not just absent); guard the iteration
+        for i, propObj in enumerate(getattr(obj, "properties", None) or ()):
             if getattr(propObj, "property", None) == qn:
                 v1 = propObj.value # should use _xValue if _xValid >- VALID
                 break
@@ -292,7 +293,7 @@ def _pruneModuleObjects(txmyMdl, moduleObj,
             if i0 <= obj.xbrlMdlObjIndex <= iL:
                 for selObj in selections:
                     if xbrlObjectQNames[type(obj)] == selObj.objectType and (
-                        all((eval(obj, whereObj) for whereObj in selObj.where))):
+                        all((eval(obj, whereObj) for whereObj in (selObj.where or ())))):
                         selObjs[obj.xbrlMdlObjIndex - i0] = True
                         break
 

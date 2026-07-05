@@ -184,11 +184,19 @@ def moduleLoaders(module: "XbrlModule",
     if compMdl is not None:
         builtins = _builtinFactMapParsers()
         for factSource in (getattr(module, "factSources", None) or ()):
+            factMapQn = getattr(factSource, "factMapName", None)
             # factSources bound to a built-in fact map are materialized eagerly
             # onto module.facts (see materializeFactSourceFacts) and are already
-            # covered by InlineFactsLoader; only custom template-backed sources
-            # need the streaming lazy loader here.
-            if getattr(factSource, "factMapName", None) in builtins:
+            # covered by InlineFactsLoader.
+            if factMapQn in builtins:
+                continue
+            # A locator-type fact map (factLocatorType, no templateName) only
+            # binds a source document for factValue valueSource resolution -- it
+            # generates no facts, so there is no loader to run for it. Only
+            # template-backed custom maps (tableTemplate / jsonTemplateMap /
+            # xmlTemplateMap) produce facts via the streaming lazy loader.
+            factMap = compMdl.namedObjects.get(factMapQn)
+            if getattr(factMap, "templateName", None) is None:
                 continue
             yield LazyFactSourceLoader(factSource, module, compMdl)
 

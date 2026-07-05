@@ -44,20 +44,19 @@ from __future__ import annotations
 from typing import Any, Callable, Dict, Iterable, Optional, Tuple, TYPE_CHECKING
 
 from arelle.ModelValue import QName, qname
+from .XbrlConst import xbrl as _XBRL_NS
 
 if TYPE_CHECKING:
     from .XbrlFact import XbrlFact, XbrlFactValue, XbrlFactValueSource, XbrlFactLocatorType
     from .XbrlModel import XbrlCompiledModel
 
 
-# Spec namespace for built-in xbrl:* locator types
-_XBRL_NS = "https://xbrl.org/2025"
-
 # OIM transformation namespace (xbrltt:*); transform-types.json loads the
 # definitions; the actual transformation functions live in arelle.FunctionIxt
 # under the legacy inline-XBRL transformation registry namespaces. We reuse
 # the v5 registry (which is a superset of v4) for xbrltt:* localNames.
-_XBRLTT_NS = "https://xbrl.org/2025/transform-types"
+# Derived from the current xbrl namespace so it stays in step with the spec year.
+_XBRLTT_NS = _XBRL_NS + "/transform-types"
 
 
 # --------------------------------------------------------------------
