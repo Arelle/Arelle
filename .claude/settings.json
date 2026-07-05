@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m arelle.CntlrCmdLine --plugin XbrlModel --file /Users/hermf/Documents/projects/XBRL.org/oim/specifications/oim-taxonomy/conformance/SELECTION-ValidConceptsByBalance.json --logFile logToPrint)"
+    ]
+  }
+}

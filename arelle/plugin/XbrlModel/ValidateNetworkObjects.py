@@ -82,6 +82,11 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
         # Snapshot base relationships before mutation so extends-duplicate check can compare cleanly
         if extendTargetObj is not None:
             _baseRelKeys = frozenset((r.source, r.target, getattr(r, "order", None)) for r in getattr(extendTargetObj, "relationships", None) or ())
+            # The extended relationships are appended to extendTargetObj.relationships
+            # below; a base network that declared no relationships carries None, so
+            # initialise it to an empty set before extension.
+            if extendTargetObj.relationships is None:
+                extendTargetObj.relationships = OrderedSet()
         else:
             _baseRelKeys = frozenset()
 
