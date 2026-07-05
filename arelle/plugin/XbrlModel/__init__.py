@@ -757,7 +757,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                     setattr(newObj, propName, oimParentObj)
                 elif (((get_origin(propType) is Union) or isinstance(get_origin(propType), type(Union))) and # Optional[ ] type
                        propType.__args__[-1] in (type(None), DefaultTrue, DefaultFalse, DefaultZero, DefaultOne)):
-                          setattr(newObj, propName, {type(None): None, DefaultTrue: True, DefaultFalse: False, DefaultZero:0, DefaultOne:1}[propType.__args__[-1]]) # use first of union for prop value creation
+                          pass # absent Optional / Default* value already applied by XbrlObject.initDefaults
                 else: # absent json element
                     if not (propClass in (dict, set, OrderedSet, OrderedDict) or
                             (isinstance(propClass, _GenericAlias) and propClass.__origin__ == list)):
@@ -766,7 +766,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                             # are inherited from the extension target — do not report them as missing
                             if "extends" not in jsonObj:
                                 jsonEltsReqdButMissing.append(f"{'/'.join(pathParts + [propName])}")
-                        setattr(newObj, propName, None) # not defaultable but set to None anyway
+                        # absent scalar default (None) already applied by XbrlObject.initDefaults
                 initialParentObjProp = False
             if unexpectedJsonProps:
                 for propName in unexpectedJsonProps:

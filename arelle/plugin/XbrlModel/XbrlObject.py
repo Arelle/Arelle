@@ -12,6 +12,40 @@ XbrlModelObject = None # class forward reference
 EMPTY_DICT = {}
 DEREFERENCE_OBJECT = "dereferenceObject" # singleton to remove referenced object
 
+# Per-class template of property defaults, computed once from the class annotations
+# and replayed by XbrlObject.__init__ so that every object -- however it is created
+# (JSON loader, or the imperative Load* modules for CSV / xBRL-XML / OIM-JSON facts) --
+# starts with the same "absent value" contract the JSON loader establishes:
+#   * plain collections (set / OrderedSet / list / dict)          -> a fresh empty instance
+#   * NonemptySet / OptionalList / OptionalDict / Optional[coll.]  -> None (absent, not empty)
+#   * Union[..., DefaultTrue/False/Zero/One]                       -> that default value
+#   * Optional[X] and required scalars                            -> None
+# The parent back-reference (module / xbrlModel) is left for the creator to set.
+_DEFAULT_TEMPLATES = {}  # cls -> list of (propName, isFactory, valueOrFactory)
+
+def _computeDefaultTemplate(cls):
+    from .XbrlTypes import (collectionInfo, isOptionalType, NonemptySet,
+                            OptionalList, OptionalDict, DefaultTrue, DefaultFalse,
+                            DefaultZero, DefaultOne)
+    template = []
+    for propName, propType in cls.propertyNameTypes(skipParentProperty=True):
+        cInfo = collectionInfo(propType)
+        if cInfo is not None:
+            origin, _elt, _key, isOptional = cInfo
+            if isOptional or origin in (NonemptySet, OptionalList, OptionalDict):
+                template.append((propName, False, None))
+            else:
+                template.append((propName, True, origin))  # fresh empty collection per object
+        elif isOptionalType(propType):
+            template.append((propName, False, None))
+        elif isinstance(propType, _UnionGenericAlias):
+            template.append((propName, False,
+                             {DefaultTrue: True, DefaultFalse: False,
+                              DefaultZero: 0, DefaultOne: 1}.get(propType.__args__[-1])))
+        else:
+            template.append((propName, False, None))
+    return template
+
 def deleteCollectionMembers(txmyMdl, deletions, collection=None):
     if isinstance(collection, list):
         for deletion in deletions:
@@ -60,6 +94,18 @@ class XbrlModelClass:
 class XbrlObject(XbrlModelClass):
     def __init__(self, xbrlMdlObjIndex=0, **kwargs):
         self.xbrlMdlObjIndex = xbrlMdlObjIndex
+        self.initDefaults()
+
+    def initDefaults(self):
+        """Set every annotated property (except the parent back-reference) to its
+           contract default, so objects created outside the JSON loader still honour
+           the same present/absent value conventions. See _DEFAULT_TEMPLATES."""
+        cls = type(self)
+        template = _DEFAULT_TEMPLATES.get(cls)
+        if template is None:
+            template = _DEFAULT_TEMPLATES[cls] = _computeDefaultTemplate(cls)
+        for propName, isFactory, val in template:
+            setattr(self, propName, val() if isFactory else val)
 
     @property
     def xbrlCompMdl(self):
