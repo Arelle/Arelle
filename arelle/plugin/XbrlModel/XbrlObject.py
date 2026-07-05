@@ -225,7 +225,14 @@ class XbrlObject(XbrlModelClass):
                 cInfo = collectionInfo(propType)
                 if cInfo is not None:
                     propValueClass = cInfo[1]  # element type (or dict value type)
-                    if hasattr(propValueClass, "referencedObjectsAction"):
+                    # QName-valued collections (e.g. a cube's cubeNetworks / requiredCubes)
+                    # reference other objects by QName just like a single-QName property, but
+                    # QName has no referencedObjectsAction of its own. Walk them too so those
+                    # references participate in selection / dereferencing; the loop below
+                    # resolves each QName against namedObjects and ignores any that do not
+                    # resolve to an object (e.g. object-type QNames in allowedObjects).
+                    isQNameColl = isinstance(propValueClass, type) and issubclass(propValueClass, QName)
+                    if hasattr(propValueClass, "referencedObjectsAction") or isQNameColl:
                         if isinstance(val, dict):
                             pass # unsure what to do TBD
                         elif isinstance(val, (set, list, OrderedSet)):
