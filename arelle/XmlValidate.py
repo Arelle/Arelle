@@ -569,13 +569,20 @@ def _validateValueStringOrRaise(
                 sValue = float(value) # s-value uses Number (float) representation
                 if sValue == 0 and baseXsdType == "XBRLI_NONZERODECIMAL":
                     raise ValueError("zero is not allowed")
+                # totalDigits isn't a valid constraining facet for float/double (XSD Datatypes 3.2.4/3.2.5),
+                # so it's only checked here. Digits are counted from the parsed (normalized) value, excluding
+                # the sign and any insignificant zeros, per XSD Datatypes 4.3.11.
+                if facets and "totalDigits" in facets:
+                    _sign, digits, exp = xValue.normalize().as_tuple()
+                    assert isinstance(exp, int) # decimalPattern rules out NaN/Infinity, whose exponents aren't ints
+                    digitCount = len(digits) + max(0, exp)
+                    if digitCount > facets["totalDigits"]:
+                        raise ValueError("totalDigits facet {0}".format(facets["totalDigits"]))
             else:
                 if floatPattern.match(value) is None:
                     raise ValueError("lexical pattern mismatch")
                 xValue = sValue = float(value)
             if facets:
-                if "totalDigits" in facets and len(value.replace(".","")) > facets["totalDigits"]:
-                    raise ValueError("totalDigits facet {0}".format(facets["totalDigits"]))
                 if "fractionDigits" in facets and ("." in value and
                     len(value[value.index(".") + 1:]) > facets["fractionDigits"]):
                     raise ValueError("fraction digits facet {0}".format(facets["fractionDigits"]))
@@ -594,7 +601,7 @@ def _validateValueStringOrRaise(
                 if (lowerLimit is not None and xValue < lowerLimit) or (upperLimit is not None and xValue > upperLimit):
                     raise ValueError(f"{value} is not {baseXsdType}")
             if facets:
-                if "totalDigits" in facets and len(value.replace(".","")) > facets["totalDigits"]:
+                if "totalDigits" in facets and len(str(abs(xValue))) > facets["totalDigits"]:
                     raise ValueError("totalDigits facet {0}".format(facets["totalDigits"]))
                 if "fractionDigits" in facets and ("." in value and
                     len(value[value.index(".") + 1:]) > facets["fractionDigits"]):
