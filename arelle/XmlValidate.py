@@ -475,7 +475,9 @@ def _orderedComparison(value: Any, bound: Any) -> int | None:
     """Order ``value`` against an ordering-facet ``bound``.
 
     Returns ``-1``/``0``/``1`` when ``value`` is less than/equal to/greater than
-    ``bound``, or ``None`` when the order is indeterminate.
+    ``bound``, or ``None`` when the order is indeterminate. Callers should treat
+    ``None`` as failing whichever relation the facet requires (Datatypes 3.2.6.3:
+    "indeterminate comparisons should be considered as 'false'").
 
     Ordinarily the operands' own comparison operators are used. For an xs:date/time
     value where exactly one operand carries a timezone, Python raises ``TypeError``
@@ -712,15 +714,17 @@ def _validateValueStringOrRaise(
             sValue = value
             if facets: # ordering facets on date/time/gYear/... (xValue is a comparable type)
                 # _orderedComparison tolerates xs:date/time values that mix timezoned and
-                # untimezoned operands (which Python won't order); an indeterminate order is
-                # treated as satisfying the facet rather than crashing or wrongly rejecting.
-                if "maxInclusive" in facets and _orderedComparison(xValue, facets["maxInclusive"]) == 1:
+                # untimezoned operands (which Python won't order); per XSD Datatypes 3.2.6.3
+                # ("indeterminate comparisons should be considered as 'false'") an
+                # indeterminate order fails the facet test, so the value is rejected rather
+                # than accepted or crashing.
+                if "maxInclusive" in facets and _orderedComparison(xValue, facets["maxInclusive"]) not in (-1, 0):
                     raise ValueError(" > maxInclusive {0}".format(facets["maxInclusive"]))
-                if "maxExclusive" in facets and _orderedComparison(xValue, facets["maxExclusive"]) in (0, 1):
+                if "maxExclusive" in facets and _orderedComparison(xValue, facets["maxExclusive"]) != -1:
                     raise ValueError(" >= maxExclusive {0}".format(facets["maxExclusive"]))
-                if "minInclusive" in facets and _orderedComparison(xValue, facets["minInclusive"]) == -1:
+                if "minInclusive" in facets and _orderedComparison(xValue, facets["minInclusive"]) not in (0, 1):
                     raise ValueError(" < minInclusive {0}".format(facets["minInclusive"]))
-                if "minExclusive" in facets and _orderedComparison(xValue, facets["minExclusive"]) in (0, -1):
+                if "minExclusive" in facets and _orderedComparison(xValue, facets["minExclusive"]) != 1:
                     raise ValueError(" <= minExclusive {0}".format(facets["minExclusive"]))
     return XmlValidationResult(sValue=sValue, xValue=xValue, xValid=xValid)
 

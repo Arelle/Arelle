@@ -771,20 +771,27 @@ def test_validateValueString_facets_ordering(
         # Ordering an xs:date/time value against a bound where exactly one side carries a
         # timezone must not crash (Python refuses to order offset-naive vs offset-aware
         # datetimes/times). Per XSD Datatypes 3.2.7.4 the absent timezone ranges over
-        # +/-14:00: when that uncertainty straddles the bound the order is indeterminate
-        # and the facet is treated as satisfied; only a value more than 14h beyond the
-        # bound is a determinate violation.
+        # +/-14:00: when that uncertainty straddles the bound the order is indeterminate,
+        # and per Datatypes 3.2.6.3 ("indeterminate comparisons should be considered as
+        # 'false'") the facet is not satisfied, so the value is rejected. Only a value
+        # provably more than 14h beyond the bound, on the satisfying side, is a
+        # determinate acceptance; provably beyond it on the other side is a determinate
+        # violation.
         # timezone-aware value vs timezone-naive bound
-        ("dateTime", "2025-01-02T03:04:05Z", {"maxInclusive": DateTime(2025, 1, 2, 3, 4, 5)}, VALID),
-        ("dateTime", "2025-01-02T03:04:05Z", {"minInclusive": DateTime(2025, 1, 2, 3, 4, 5)}, VALID),
-        ("dateTime", "2025-01-04T00:00:00Z", {"maxInclusive": DateTime(2025, 1, 2, 3, 4, 5)}, INVALID),
-        ("dateTime", "2024-12-31T00:00:00Z", {"minInclusive": DateTime(2025, 1, 2, 3, 4, 5)}, INVALID),
+        ("dateTime", "2025-01-02T03:04:05Z", {"maxInclusive": DateTime(2025, 1, 2, 3, 4, 5)}, INVALID),  # indeterminate
+        ("dateTime", "2025-01-02T03:04:05Z", {"minInclusive": DateTime(2025, 1, 2, 3, 4, 5)}, INVALID),  # indeterminate
+        ("dateTime", "2025-01-04T00:00:00Z", {"maxInclusive": DateTime(2025, 1, 2, 3, 4, 5)}, INVALID),  # determinate violation
+        ("dateTime", "2024-12-31T00:00:00Z", {"minInclusive": DateTime(2025, 1, 2, 3, 4, 5)}, INVALID),  # determinate violation
+        ("dateTime", "2025-01-05T00:00:00Z", {"minInclusive": DateTime(2025, 1, 2, 3, 4, 5)}, VALID),  # determinate acceptance
         # timezone-naive value vs timezone-aware bound
-        ("dateTime", "2025-01-02T03:04:05", {"maxInclusive": DateTime(2025, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc)}, VALID),
-        ("dateTime", "2024-12-31T00:00:00", {"minInclusive": DateTime(2025, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc)}, INVALID),
+        ("dateTime", "2025-01-02T03:04:05", {"maxInclusive": DateTime(2025, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc)}, INVALID),  # indeterminate
+        ("dateTime", "2024-12-31T00:00:00", {"minInclusive": DateTime(2025, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc)}, INVALID),  # determinate violation
+        ("dateTime", "2025-01-01T00:00:00", {"maxInclusive": DateTime(2025, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc)}, VALID),  # determinate acceptance
         # xs:time (no date component) with mixed timezone presence
-        ("time", "03:04:05", {"maxInclusive": Time(3, 4, 5, tzinfo=datetime.timezone.utc)}, VALID),
-        ("time", "03:04:05Z", {"minInclusive": Time(3, 4, 5)}, VALID),
+        ("time", "03:04:05", {"maxInclusive": Time(3, 4, 5, tzinfo=datetime.timezone.utc)}, INVALID),  # indeterminate
+        ("time", "03:04:05Z", {"minInclusive": Time(3, 4, 5)}, INVALID),  # indeterminate
+        ("time", "23:00:00Z", {"minInclusive": Time(0, 0, 0)}, VALID),  # determinate acceptance
+        ("time", "00:00:00", {"maxInclusive": Time(23, 0, 0, tzinfo=datetime.timezone.utc)}, VALID),  # determinate acceptance
     ],
 )
 def test_validateValueString_facets_ordering_timezone(
