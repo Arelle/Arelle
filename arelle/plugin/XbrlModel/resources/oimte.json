@@ -2239,6 +2239,42 @@
         ]
       },
       {
+        "name": "oimte:inconsistentTableTypes",
+        "domainClasses": [
+          "oimte:OIMErrorClassDomain"
+        ],
+        "properties": [
+          {
+            "property": "xbrl:severity",
+            "value": "error"
+          }
+        ]
+      },
+      {
+        "name": "oimte:conflictingAxisLabelSources",
+        "domainClasses": [
+          "oimte:OIMErrorClassDomain"
+        ],
+        "properties": [
+          {
+            "property": "xbrl:severity",
+            "value": "error"
+          }
+        ]
+      },
+      {
+        "name": "oimte:gridHeaderWithAxisHeader",
+        "domainClasses": [
+          "oimte:OIMErrorClassDomain"
+        ],
+        "properties": [
+          {
+            "property": "xbrl:severity",
+            "value": "error"
+          }
+        ]
+      },
+      {
         "name": "oimte:invalidGridHeaderSpan",
         "domainClasses": [
           "oimte:OIMErrorClassDomain"

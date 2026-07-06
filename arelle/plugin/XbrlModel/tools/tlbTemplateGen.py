@@ -601,6 +601,12 @@ for ws in wb.worksheets:
                     lbl["rollUpLocation"] = "none"
             xHdrs.append(lbl)
             xhCol += span
+    # A spanning header cannot be a leaf: labelLevel 1 is the per-column level and the spec
+    # forbids a span there.  If the innermost header row spans (no per-column leaf labels),
+    # shift the whole hierarchy up one so labelLevel 1 is reserved for the (label-less) leaves.
+    if any(h["labelLevel"] == 1 and h.get("span", 1) > 1 for h in xHdrs):
+        for h in xHdrs:
+            h["labelLevel"] += 1
    # x IDs for mapping to axis items
     xIds = [cellValue(firstDataRow-1, xdCol) for xdCol in range(firstDataCol, maxDataCol+1) if cellValue(firstDataRow-1, xdCol)]
     if isOpenTable:
@@ -678,6 +684,10 @@ for ws in wb.worksheets:
                     lbl["rollUpLocation"] = "none"
             yHdrs.append(lbl)
             yhRow += span
+    # reserve labelLevel 1 for the (label-less) leaf rows when the innermost header spans
+    if any(h["labelLevel"] == 1 and h.get("span", 1) > 1 for h in yHdrs):
+        for h in yHdrs:
+            h["labelLevel"] += 1
     # y IDs for mapping to axis items
     yIds = []
     if firstYdimCol and ydimRow:

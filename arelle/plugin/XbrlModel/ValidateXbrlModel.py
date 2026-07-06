@@ -1481,13 +1481,83 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
     for layout in module.layouts or ():
         assertObjectType(compMdl, layout, XbrlLayout)
 
-        for dataTbl in layout.dataTables or ():
-            assertObjectType(compMdl, dataTbl, XbrlDataTable)
+        layoutDataTables = layout.dataTables or ()
+        # oimte:inconsistentTableTypes — every dataTable in a layout MUST share a tableType
+        tableTypes = {dt.tableType for dt in layoutDataTables if getattr(dt, "tableType", None)}
+        if len(tableTypes) > 1:
+            compMdl.error("oimte:inconsistentTableTypes",
+                _("Layout %(name)s mixes data table types (%(types)s); all dataTable objects in a layout MUST have the same tableType."),
+                xbrlObject=layout, name=layout.name, types=", ".join(sorted(tableTypes)))
 
-            for axisName, axis in (("xAxis", dataTbl.xAxis), ("yAxis", dataTbl.yAxis)):
-                assertObjectType(compMdl, axis, XbrlAxis)
+        for dataTbl in layoutDataTables:
+            assertObjectType(compMdl, dataTbl, XbrlDataTable)
+            tableType = getattr(dataTbl, "tableType", None)
+
+            axes = [("xAxis", dataTbl.xAxis), ("yAxis", dataTbl.yAxis)]
             if dataTbl.zAxis is not None:
-                assertObjectType(compMdl, dataTbl.zAxis, XbrlAxis)
+                axes.append(("zAxis", dataTbl.zAxis))
+            for axisName, axis in axes:
+                assertObjectType(compMdl, axis, XbrlAxis)
+                gridHeaders = getattr(axis, "gridHeaders", None)
+                axisHeaders = getattr(axis, "axisHeaders", None)
+                gridAxis = getattr(axis, "gridAxis", None)
+
+                # oimte:invalidGridAxisTableType — gridHeaders only in a gridLayout table
+                if gridHeaders and tableType != "gridLayout":
+                    compMdl.error("oimte:invalidGridAxisTableType",
+                        _("Data table %(name)s %(axis)s uses a gridHeader but its tableType is %(tableType)s; a gridHeader MUST only be used with a gridLayout table."),
+                        xbrlObject=dataTbl, name=dataTbl.name, axis=axisName, tableType=tableType)
+
+                # gridHeader and axisHeader MUST NOT both be defined on one axis
+                # (oim-taxonomy §Grid header object constraints).  The spec states this MUST
+                # but assigns no oimte code — oimte:gridHeaderWithAxisHeader is proposed.
+                if gridHeaders and axisHeaders:
+                    compMdl.error("oimte:gridHeaderWithAxisHeader",
+                        _("Data table %(name)s %(axis)s defines both gridHeaders and axisHeaders; a gridHeader MUST NOT be defined on an axis that also defines an axisHeader."),
+                        xbrlObject=dataTbl, name=dataTbl.name, axis=axisName)
+
+                # NB: "an axis MUST specify either axisHeaders or gridAxis" (oim-taxonomy §Axis
+                # object constraints) is already enforced by the JSON schema (an axis with
+                # neither fails the schema anyOf → oime:invalidJSONStructure), so no separate
+                # semantic check is added here.
+
+                for gh in gridHeaders or ():
+                    span = getattr(gh, "span", 1)
+                    labelLevel = getattr(gh, "labelLevel", None)
+                    # oimte:invalidGridHeaderSpan — span MUST be a positive integer
+                    if isinstance(span, int) and span < 1:
+                        compMdl.error("oimte:invalidGridHeaderSpan",
+                            _("Data table %(name)s %(axis)s gridHeader span %(span)s MUST be a positive integer."),
+                            xbrlObject=dataTbl, name=dataTbl.name, axis=axisName, span=span)
+                    # oimte:invalidGridHeaderSpanLevel — span MUST NOT be defined at labelLevel 1.
+                    # span defaults to 1 (indistinguishable from an explicit 1), so the detectable
+                    # and meaningful violation is a spanning (>1) header at level 1.
+                    if labelLevel == 1 and isinstance(span, int) and span > 1:
+                        compMdl.error("oimte:invalidGridHeaderSpanLevel",
+                            _("Data table %(name)s %(axis)s gridHeader spans %(span)s at labelLevel 1; a span MUST NOT be defined where labelLevel is 1."),
+                            xbrlObject=dataTbl, name=dataTbl.name, axis=axisName, span=span)
+
+                # oimte:conflictingAxisLabelSources — axisLabelsGroup valueArray and range are exclusive
+                alg = getattr(axis, "axisLabelsGroup", None)
+                if alg is not None and getattr(alg, "valueArray", None) and getattr(alg, "range", None):
+                    compMdl.error("oimte:conflictingAxisLabelSources",
+                        _("Data table %(name)s %(axis)s axisLabelsGroup defines both valueArray and range; these are mutually exclusive."),
+                        xbrlObject=dataTbl, name=dataTbl.name, axis=axisName)
+
+            # tablePoint constraints (gridLayout explicit-cell positioning)
+            for tp in getattr(dataTbl, "tablePoints", None) or ():
+                gc = getattr(tp, "gridCoordinates", None)
+                # oimte:missingGridCoordinates — at least xAxis and yAxis
+                if gc is None or getattr(gc, "xAxis", None) is None or getattr(gc, "yAxis", None) is None:
+                    compMdl.error("oimte:missingGridCoordinates",
+                        _("Data table %(name)s tablePoint gridCoordinates MUST specify at least xAxis and yAxis."),
+                        xbrlObject=dataTbl, name=dataTbl.name)
+                # oimte:invalidDimensionInTablePoint — each dimension QName MUST be a model dimension
+                for dimQn in (getattr(tp, "dimensions", None) or {}):
+                    if dimQn not in coreDimensions and not isinstance(compMdl.namedObjects.get(dimQn), XbrlDimension):
+                        compMdl.error("oimte:invalidDimensionInTablePoint",
+                            _("Data table %(name)s tablePoint references %(dim)s which is not a dimension defined in the model."),
+                            xbrlObject=dataTbl, name=dataTbl.name, dim=dimQn)
 
     for tblTmpl in module.tableTemplates or ():
         assertObjectType(compMdl, tblTmpl, XbrlTableTemplate)
