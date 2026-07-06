@@ -3,18 +3,18 @@ flake8-noqa==1.5.0
 
 mypy==2.1.0
 
-types-boto3[s3]==1.43.36
+types-boto3[s3]==1.43.40
 types-lxml==2026.2.16
 types-openpyxl==3.1.5.20260518
 types-PyMySQL==1.1.0.20260518
 types-python-dateutil==2.9.0.20260518
 types-pytz==2026.2.0.20260518
 types-pywin32==312.0.0.20260609
-types-regex==2026.5.9.20260518
+types-regex==2026.6.28.20260630
 types-requests==2.33.0.20260518
 types-simplejson==3.20.0.20260518
 types-ujson==5.10.0.20250822
 types-waitress==3.0.1.20260508
-typing-extensions==4.15.0
+typing-extensions==4.16.0
 
 -r requirements-test.txt
