@@ -46,23 +46,23 @@ class ViewWinDiffs:
         self.tabWinBtmRt = Notebook(self.paneWin, width=width)
         self.tabWinBtmRt.grid(row=0, column=0, sticky=(N, S, E, W))
         self.paneWin.add(self.tabWinBtmRt)
-        viewRelationshipSet(self.fromDTS, self.tabWinBtmLf,  # type: ignore[no-untyped-call]
+        viewRelationshipSet(self.fromDTS, self.tabWinBtmLf,
                             XbrlConst.parentChild, lang=lang,
                             treeColHdr=_("From DTS Presentation"))
-        viewRelationshipSet(self.fromDTS, self.tabWinBtmLf,  # type: ignore[no-untyped-call]
+        viewRelationshipSet(self.fromDTS, self.tabWinBtmLf,
                             XbrlConst.summationItem, lang=lang,
                             treeColHdr=_("From DTS Calculation"))
-        viewRelationshipSet(self.fromDTS, self.tabWinBtmLf,  # type: ignore[no-untyped-call]
+        viewRelationshipSet(self.fromDTS, self.tabWinBtmLf,
                             "XBRL-dimensions", lang=lang,
                             treeColHdr=_("From DTS Dimension"))
         viewConcepts(self.fromDTS, self.tabWinBtmLf, "From Concepts", lang=lang)
-        viewRelationshipSet(self.toDTS, self.tabWinBtmRt,  # type: ignore[no-untyped-call]
+        viewRelationshipSet(self.toDTS, self.tabWinBtmRt,
                             XbrlConst.parentChild, lang=lang,
                             treeColHdr=_("To DTS Presentation"))
-        viewRelationshipSet(self.toDTS, self.tabWinBtmRt,  # type: ignore[no-untyped-call]
+        viewRelationshipSet(self.toDTS, self.tabWinBtmRt,
                             XbrlConst.summationItem, lang=lang,
                             treeColHdr=_("To DTS Calculation"))
-        viewRelationshipSet(self.toDTS, self.tabWinBtmRt,  # type: ignore[no-untyped-call]
+        viewRelationshipSet(self.toDTS, self.tabWinBtmRt,
                             "XBRL-dimensions", lang=lang,
                             treeColHdr=_("To DTS Dimension"))
         viewConcepts(self.toDTS, self.tabWinBtmRt, "To Concepts", lang=lang)
