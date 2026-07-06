@@ -74,10 +74,11 @@ Cubes emitted per table
   period/entity/unit core dimensions.  This defines the fact space of the table.
   NB: cube dimensions use the cube-object keys ``dimension`` / ``domainNetwork``,
   NOT the axis objects' ``dimensionName``.
-* One ``xbrl:negativeCube`` per crossed-out (X) cell, referenced from the report
+* ``xbrl:negativeCube``s for crossed-out (X) cells, referenced from the report
   cube's ``excludeCubes``, so a fact in a structural-gap cell has no fact space
-  (oimte:noFactSpaceForFact).  Each pins the cell's members via deduplicated
-  single-member "solo" domains.  (Follow-up: coalesce cells into rectangles.)
+  (oimte:noFactSpaceForFact).  Blocked cells are coalesced into maximal rectangles
+  (one cube per rectangle), each pinning the spanned members via deduplicated
+  member-set domains.
 
 Format profiles
 ---------------
@@ -103,9 +104,13 @@ from collections import OrderedDict, defaultdict
 from ordered_set import OrderedSet
 
 EXCELWB = "/Users/hermf/Documents/projects/Arelle/ArelleProject/hermfischer-xb/temp/EIOPA_Solvency_II_DPM_Annotated_Templates_2.8.2_Hotfix.xlsx"
-LAYOUTFILE = "/Users/hermf/Documents/projects/Arelle/ArelleProject/hermfischer-xb/temp/eiopa.json" # "/Users/hermf/Documents/projects/XBRL.org/oim/specifications/oim-taxonomy/examples/TLB/EBA_Solvency_II_layout.json"
 FMT = "EIOPA" # EBA or EIOPA
+fmt = FMT.lower() # for model prefixes specific to this authority
 TABLEFILTER = "S.02.01.01.01" # None # None or table name to limit processing for debugging
+# Output beside the source workbook in the spec examples dir.  A debug run (TABLEFILTER
+# set) gets a per-table suffix so it does not clobber the full-workbook output.
+TLBDIR = "/Users/hermf/Documents/projects/XBRL.org/oim/specifications/oim-taxonomy/examples/TLB"
+LAYOUTFILE = f"{TLBDIR}/{FMT}_Solvency_II_layout{('_' + TABLEFILTER) if TABLEFILTER else ''}.json"
 #TABLEFILTER = "S.05.02.04.02"
 #EXCELWB = "/Users/hermf/Documents/projects/EBA/templates/20260106 Annotated Table Layout  COREP 4.2 COREP_ALMCOREP 4.2.xlsx"
 #LAYOUTFILE = "/Users/hermf/temp/corep.json"
@@ -128,6 +133,8 @@ PROFILES = {
         "entryCommentPrefix": "VariableID",
         "grayThreshold": "CCCCCC",         # fill lightness at/above which a cell is a header
         "anchorStrategy": "grayBand",
+        "conceptPrefixes": ("s2md_met",),  # namespaces whose members are xbrl:concepts (metrics)
+        "dimensionPrefixes": ("s2c_dim",), # namespaces of real dimensions (else it is a misread)
     },
     "EBA": {                               # profile stub; anchor detector not yet implemented (step 3)
         "skipSheets": ("TOC",),
@@ -138,6 +145,8 @@ PROFILES = {
         "entryCommentPrefix": "VariableID",
         "grayThreshold": "CCCCCC",
         "anchorStrategy": "rowColLabels",
+        "conceptPrefixes": (),             # EBA marks the concept via the "Main Property" dim label
+        "dimensionPrefixes": (),           # unset ⇒ no dimension-namespace discrimination (accept any)
     },
 }
 profile = PROFILES[FMT]
@@ -199,43 +208,73 @@ domains = []
 classes = []
 prefixes = set()
 
-# Single-member domains used to pin one member of a dimension inside a negativeCube
-# (exclusion cube).  Deduplicated across the whole model by (dimension, member).
-# NOTE (follow-up): the domain `root` for xbrl:concept is a placeholder and the
-# per-cell granularity should later be coalesced into rectangles; see review notes.
-soloDomains = {}
-def soloDomain(dim, mem):
-    key = (dim, mem)
-    if key not in soloDomains:
-        name = f"exp:solo{len(soloDomains)+1}"
-        root = "xbrl:concept" if dim == "xbrl:concept" else f"{dim}Cls"
+# Domains used to constrain a dimension to a specific set of members inside a
+# negativeCube (exclusion cube).  Deduplicated across the whole model by
+# (dimension, member-set).  A single-member set pins one cell coordinate; a
+# multi-member set spans a coalesced rectangle of blocked cells.
+# NOTE (follow-up): the domain `root` for xbrl:concept is a placeholder.
+exclDomains = {}
+def exclDomain(dim, members):
+    key = (dim, tuple(members))
+    if key not in exclDomains:
+        name = f"{extensionPrefix}:excl{len(exclDomains)+1}Dom"
+        root = "xbrl:conceptDomain" if dim == "xbrl:concept" else f"{dim}Cls"
         domains.append({"name": name, "root": root,
-                        "relationships": [{"source": root, "target": mem}]})
-        soloDomains[key] = name
-    return soloDomains[key]
+                        "relationships": [{"source": root, "target": m} for m in members]})
+        exclDomains[key] = name
+    return exclDomains[key]
+
+# All generated objects live in one module namespace whose prefix is the authority
+# (fmt), so different authority examples are distinguishable (eiopa:, eba:, ...).
+extensionPrefix = fmt
+targetNamespace = f"http://example.com/taxonomy/{fmt}"
 
 def qnFromLabel(qnWithLabel):
     m = re.match(r"([\w:_.]+) (?:[(](.+)[)])?", qnWithLabel)
     if m:
         q, lbl = m.groups()
         if q.endswith('.'): q = q[:-1]
-    elif re.match(r"[\w_.]+:[\w:_.]+", qnWithLabel): # 
+    elif re.match(r"[\w_.]+:[\w:_.]+", qnWithLabel): #
         q = qnWithLabel
     else:
-        q = re.sub(r"[^\w:_.]", qnWithLabel, "_") # if not a proper QName clean it up
+        q = re.sub(r"[^\w_.]", "_", qnWithLabel) # not a proper QName: clean to an NCName
+    # Fold every authority-taxonomy prefix (s2c_dim, s2md_met, s2c_GA, ...) into the
+    # single module namespace (extensionPrefix), retaining the source prefix in the local name so
+    # names stay unique and traceable.  A module may only define objects in its own
+    # namespace, so folding keeps the generated example a valid single-namespace module;
+    # a production taxonomy would instead import the authorities' published dictionaries.
+    # Bare labels with no source prefix are also placed in the module namespace.
     if not q.startswith("xbrl:"):
-        prefixes.add(q.rpartition(":")[0])
+        if ":" in q:
+            pfx, _, local = q.rpartition(":")
+            q = f"{extensionPrefix}:{pfx}_{local}"
+        else:
+            q = f"{extensionPrefix}:{q}"
     if m and lbl:
         labels[q] = lbl.rpartition("Metric:")[2]
     return q
 
+def isConceptMember(mem):
+    # A member drawn from a metrics namespace (e.g. EIOPA s2md_met:) is an xbrl:concept,
+    # regardless of the dimension label above it — some tables do not label the "Metrics"
+    # row where the parser expects, so the member namespace is the reliable signal.
+    return isinstance(mem, str) and any(mem.startswith(p + ":") for p in profile["conceptPrefixes"])
+
+def isConceptDim(dim, mem):
+    # the concept dimension is signalled by the "Metrics"/"Main Property" label, or by a
+    # metric QName appearing in either the dimension slot or the member slot (some tables
+    # put the metric in the dimension position)
+    return dim in ("Metrics", "Main Property") or isConceptMember(dim) or isConceptMember(mem)
+
 def qn(dim=None, mem=None):
     d = None
-    if dim == "Metrics":
+    if isConceptDim(dim, mem):
         q = d = "xbrl:concept"
-    elif dim:
+    elif dim and isDimension(dim):
         q = d = qnFromLabel(dim)
         dims.add(q)
+    elif dim:
+        q = qnFromLabel(dim) # misread: fold the name but do not register it as a dimension
     if mem:
         q = qnFromLabel(mem)
         if d == "xbrl:concept":
@@ -244,11 +283,28 @@ def qn(dim=None, mem=None):
             dimMems[d].add(q)
     return q
 
+def isDimension(dim):
+    # a real dimension QName (EIOPA: s2c_dim:*).  If no dimension prefixes are configured
+    # (EBA stub) accept any label, so discrimination is opt-in per profile.
+    if not profile["dimensionPrefixes"]:
+        return True
+    return isinstance(dim, str) and any(dim.startswith(p + ":") for p in profile["dimensionPrefixes"])
+
+def qnDimOf(dim, mem):
+    # the dimension QName for a (dim label, member) pair.  Concept members resolve to
+    # xbrl:concept; a non-dimension in the dim slot (an id/member/bare label misread as a
+    # dimension) returns None so the caller can skip the pair.
+    if isConceptDim(dim, mem):
+        return "xbrl:concept"
+    if not isDimension(dim):
+        return None
+    return qn(dim)
+
 for ws in wb.worksheets:
     if ws.title in profile["skipSheets"]:
         continue # skip table of contents
     tableName, _, tableTitle = ws["A1"].value.partition(" - ")
-    qnTable = f"exp:{tableName}"
+    qnTable = f"{extensionPrefix}:{tableName}"
     maxRow = ws.max_row
     maxCol = ws.max_column
     numTables += 1
@@ -316,14 +372,18 @@ for ws in wb.worksheets:
         if zTokenCol1 and cellValue(rowNum, 1) == zTokenCol1: #EIOPA style
             zDim = cellValue(rowNum, 2) # might be None
             inZ = True
+            # The "Sheets (Z)" row's column-B enumeration holds the combined Z-axis
+            # setting ("Z Axis: (id): dim mem | ...", which may include a metric/concept).
+            # This is present for BOTH the enum-list layout and the in-sheet layout (where
+            # row 1 also declares the Z dimensions) — earlier code read it only for the
+            # former, dropping concepts that sit on an in-sheet Z axis.
             if any(cellValue(1, c) for c in range(2,20)):
-                # print(f"{tableName} ====> Insheet zlist")
                 numZinSheet += 1
             else:
                 numZlists += 1
-                enumRow = sheetCellEnumRow.get((tableName, f"B{rowNum}"))
-                if enumRow:
-                    zChoices.append(enums[int(enumRow)-1])  
+            enumRow = sheetCellEnumRow.get((tableName, f"B{rowNum}"))
+            if enumRow:
+                zChoices.append(enums[int(enumRow)-1])
             continue
         elif zTokenCol2Prefix and cellValue(rowNum, 2, default="").startswith(zTokenCol2Prefix): # EBA style
             inZ = True
@@ -498,8 +558,10 @@ for ws in wb.worksheets:
                     mem = cellValue(memRow, xdCol)
                 if not dim or not mem:
                     break
+                qnDim = qnDimOf(dim, mem)
+                if qnDim is None:
+                    continue # dim slot is not a real dimension (misread id/member/label)
                 qnMem = qn(dim,mem)
-                qnDim = qn(dim)
                 xDims[-1][qnDim] = qnMem
                 # open dims with enumeration
                 if dim in ("Metrics", "Main Property"):
@@ -561,7 +623,10 @@ for ws in wb.worksheets:
                 mem = cellValue(ydRow, memCol)
                 if not dim or not mem:
                     break
-                yDims[-1][qn(dim)] = qn(dim,mem)
+                qnDim = qnDimOf(dim, mem)
+                if qnDim is None:
+                    continue # dim slot is not a real dimension (misread id/member/label)
+                yDims[-1][qnDim] = qn(dim,mem)
                 # metrics with enumeration
                 if dim in ("Metrics", "Main Property"):
                     dim = "xbrl:concept"
@@ -581,22 +646,48 @@ for ws in wb.worksheets:
             zIds.append(None)
             for zDimsChoice in zDimsChoiceList:
                 for zDim in zDimsChoice.split(' | '):
-                    m = re.match(r"Z Axis: [(](\w+)[)]: ([^)]+[)]) (.*)$", zDim)
-                    if m:
-                        id, dim, mem = m.groups()
-                        if id: zIds[-1] = id
-                        qnDim = qn(dim)
-                        qnMem = qn(dim, mem)
-                        zDimsVal[qnDim] = qnMem
+                    m = re.match(r"Z Axis: [(](\w+)[)]: (.*)$", zDim)
+                    if not m:
+                        continue
+                    zid, rest = m.groups()
+                    # rest is one or two "QName (label)" pairs: a dimension + member, or a
+                    # single metric/concept (which has no separate member).
+                    pairs = re.findall(r"[\w:_.]+ [(][^)]*[)]", rest)
+                    if len(pairs) >= 2:
+                        dim, mem = pairs[0], pairs[1]
+                    elif len(pairs) == 1:
+                        dim, mem = None, pairs[0] # a metric on the Z axis → concept member
+                    else:
+                        continue
+                    qnDim = qnDimOf(dim, mem)
+                    if qnDim is None:
+                        continue # dim slot is not a real dimension (misread id/member/label)
+                    if zid: zIds[-1] = zid
+                    zDimsVal[qnDim] = qn(dim, mem)
         
     # ---- report cube (one per table): defines the fact space assigned to this table ----
     # cubeDimensions use the cube-object property names `dimension`/`domainNetwork`
     # (NOT the axis objects' `dimensionName`).  Non-core dimensions are optional so a
     # fact need not carry every dimension.  Left unconstrained (no domainNetwork) a
     # dimension admits any member, which is sufficient to scope facts to this table.
+    # Every cube (report and negative) requires a concept core dimension, and that
+    # dimension requires a domainNetwork (its coreDomainClass is xbrl:conceptDomain).
+    # Build one concept domain per table (all its concepts), shared by the report cube
+    # and by any exclusion cube whose blocked rectangle does not itself pin the concept.
+    tableConcepts = OrderedSet(dimset["xbrl:concept"] for dimset in xDims + yDims + (zDims or [])
+                              if "xbrl:concept" in dimset)
+    conceptDomName = None
+    if tableConcepts:
+        conceptDomName = f"{qnTable}_ConceptDom"
+        domains.append({"name": conceptDomName, "root": "xbrl:conceptDomain",
+                        "relationships": [{"source": "xbrl:conceptDomain", "target": c} for c in tableConcepts]})
+
     cubeName = f"{qnTable}_Cube"
     dt["cubeName"] = cubeName
-    cubeDims = [{"dimension": "xbrl:concept"}]
+    conceptDim = {"dimension": "xbrl:concept"}
+    if conceptDomName:
+        conceptDim["domainNetwork"] = conceptDomName
+    cubeDims = [conceptDim]
     seenCubeDims = {"xbrl:concept"}
     for dimset in xDims + yDims + (zDims or []):
         for d in dimset:
@@ -610,32 +701,58 @@ for ws in wb.worksheets:
 
     # ---- exclusion cubes: crossed-out (X) cells are structural gaps with no fact space ----
     # A gridLayout renders the cross-product of the x/y axis items, so a blocked
-    # intersection would otherwise render as an input cell.  Each blocked cell becomes a
-    # negativeCube pinning that cell's dimension members; the report cube excludes them,
-    # so a fact landing there raises oimte:noFactSpaceForFact.  (Follow-up: coalesce
-    # blocked cells into rectangles rather than one cube per cell.)
+    # intersection would otherwise render as an input cell.  Blocked cells are coalesced
+    # into maximal rectangles (greedy), and each rectangle becomes one negativeCube whose
+    # dimensions are pinned to the member set spanned by the rectangle's rows/columns; the
+    # report cube excludes them, so a fact there raises oimte:noFactSpaceForFact.
+    # The cube's dimensional space is the cross-product of those member sets: it covers the
+    # rectangle exactly, and any excess only touches coordinates that are not table cells
+    # (no axis item, hence no fact), so nothing real is over-excluded.
     if not isOpenTable and xDims and yDims:
+        blocked = {(j, i) for j in range(len(yDims)) for i in range(len(xDims))
+                   if isCrossedOut(firstDataRow + j, firstDataCol + i)}
+        rects = [] # (jTop, iLeft, height, width)
+        remaining = set(blocked)
+        for j, i in sorted(blocked): # top-left first
+            if (j, i) not in remaining:
+                continue
+            w = 0
+            while (j, i + w) in remaining:
+                w += 1
+            h = 1
+            while all((j + h, i + c) in remaining for c in range(w)):
+                h += 1
+            for r in range(h):
+                for c in range(w):
+                    remaining.discard((j + r, i + c))
+            rects.append((j, i, h, w))
+
         exclNames = []
-        for j in range(len(yDims)):
-            for i in range(len(xDims)):
-                if not isCrossedOut(firstDataRow + j, firstDataCol + i):
-                    continue
-                exclDims = {**yDims[j], **xDims[i]}
-                if zDims and len(zDims) == 1:
-                    exclDims = {**exclDims, **zDims[0]}
-                if not exclDims:
-                    continue
-                exclCubeDims = []
-                for d, mem in exclDims.items():
-                    ed = {"dimension": d, "domainNetwork": soloDomain(d, mem)}
-                    if d != "xbrl:concept":
-                        ed["optional"] = True
-                    exclCubeDims.append(ed)
-                exclCubeDims.append({"dimension": "xbrl:period"})
-                exclCubeDims.append({"dimension": "xbrl:entity"})
-                exclName = f"{qnTable}_Excl{len(exclNames)+1}"
-                cubes.append({"name": exclName, "cubeType": "xbrl:negativeCube", "cubeDimensions": exclCubeDims})
-                exclNames.append(exclName)
+        for jTop, iLeft, h, w in rects:
+            rowTuples = [yDims[jTop + r] for r in range(h)]
+            colTuples = [xDims[iLeft + c] for c in range(w)]
+            # collect, per dimension, the ordered set of members spanned by the rectangle
+            dimMembersInRect = OrderedDict()
+            for tup in rowTuples + colTuples + ([zDims[0]] if zDims and len(zDims) == 1 else []):
+                for d, mem in tup.items():
+                    dimMembersInRect.setdefault(d, OrderedSet()).add(mem)
+            if not dimMembersInRect:
+                continue
+            exclCubeDims = []
+            for d, mems in dimMembersInRect.items():
+                ed = {"dimension": d, "domainNetwork": exclDomain(d, mems)}
+                if d != "xbrl:concept":
+                    ed["optional"] = True
+                exclCubeDims.append(ed)
+            # every cube needs a concept dimension; if the rectangle does not pin concept,
+            # the exclusion spans all the table's concepts (the shared concept domain)
+            if not any(cd["dimension"] == "xbrl:concept" for cd in exclCubeDims) and conceptDomName:
+                exclCubeDims.insert(0, {"dimension": "xbrl:concept", "domainNetwork": conceptDomName})
+            exclCubeDims.append({"dimension": "xbrl:period"})
+            exclCubeDims.append({"dimension": "xbrl:entity"})
+            exclName = f"{qnTable}_Excl{len(exclNames)+1}"
+            cubes.append({"name": exclName, "cubeType": "xbrl:negativeCube", "cubeDimensions": exclCubeDims})
+            exclNames.append(exclName)
         if exclNames:
             cube["excludeCubes"] = exclNames
 
@@ -644,12 +761,18 @@ for ws in wb.worksheets:
     # map each column/row id to its dimension members (the fact-to-cell assignment).
     # gridHeaders and axisHeaders MUST NOT coexist on one axis (spec grid-header
     # constraint), so this generator uses gridHeaders throughout and no axisHeaders.
+    def axisItem(ids, i, dims): # axisId is optional (schema: string) — omit rather than emit null
+        item = {}
+        if i < len(ids) and ids[i]:
+            item["axisId"] = ids[i]
+        item["dimensions"] = dims
+        return item
+
     xAxis["gridAxis"] = xga = {}
     if xHdrs:
         xAxis["gridHeaders"] = xHdrs
     if xDims:
-        xga["axisItems"] = [{"axisId": xIds[i] if i < len(xIds) else None, "dimensions": dm}
-                            for i, dm in enumerate(xDims)]
+        xga["axisItems"] = [axisItem(xIds, i, dm) for i, dm in enumerate(xDims)]
     elif xIds:
         xga["axisItems"] = [{"axisId": xId, "dimensions": {}} for xId in xIds]
 
@@ -657,41 +780,42 @@ for ws in wb.worksheets:
     if yHdrs:
         yAxis["gridHeaders"] = yHdrs
     if yDims:
-        yga["axisItems"] = [{"axisId": yIds[i] if i < len(yIds) else None, "dimensions": dm}
-                            for i, dm in enumerate(yDims)]
+        yga["axisItems"] = [axisItem(yIds, i, dm) for i, dm in enumerate(yDims)]
     elif yIds:
         yga["axisItems"] = [{"axisId": yId, "dimensions": {}} for yId in yIds]
 
     if zDims:
         zAxis["gridAxis"] = zga = {}
-        zga["axisItems"] = [{"axisId": zIds[i], "dimensions": dm} for i, dm in enumerate(zDims)]
+        zga["axisItems"] = [axisItem(zIds, i, dm) for i, dm in enumerate(zDims)]
 
 print(f"Num tables {numTables}, Num of Z in sheet = {numZinSheet}, Num Z lists {numZlists}")
 print(f"labels {labels}\nconcepts {concepts}\ndims {dims}\ndimMems {dimMems}")
 
 
-extensionPrefix = "exp"
-targetNamespace = "http://example.com/taxonomy"
-
 oimTxmy = OrderedDict()
 oimTxmy["documentInfo"] = docInfo = OrderedDict()
-docInfo["documentType"] = "https://xbrl.org/2026/compiled" # modelForm is "compiled"
+# A module (not compiled) so it can import the base taxonomy; the spec requires base
+# taxonomies to be imported.  Module type requires a documentNamespacePrefix, and all
+# defined objects must be in that single namespace (see the prefix-folding in qnFromLabel).
+docInfo["documentType"] = "https://xbrl.org/2026/module"
 docInfo["namespaces"] = namespaces = {
-    extensionPrefix: targetNamespace,
+    extensionPrefix: targetNamespace,         # the authority (fmt) namespace: every generated object
     "xbrl": "https://xbrl.org/2026",
     "xbrlr": "https://xbrl.org/2026/report",  # was xbrli:.../2025/instance
     "xbrlm": "https://xbrl.org/2026/model",
     "xs": "http://www.w3.org/2001/XMLSchema"
     }
-for p in prefixes:
-    namespaces[p] = f"{targetNamespace}/{p}"
+docInfo["documentNamespacePrefix"] = extensionPrefix
 oimTxmy["xbrlModel"] = xbrlMdl = OrderedDict()
 
 # provide consistent order to taxonomy properties and objects
 xbrlMdl["name"] = f"{extensionPrefix}:{FMT.lower()}Example"
 xbrlMdl["version"] = "0.9"
-xbrlMdl["modelForm"] = "compiled" # all namespaces crammed together
-xbrlMdl["abstracts"] = abstracts = []
+# import the base taxonomy so built-in QNames (xbrl:label, xbrlr:monetary,
+# xbrl:period/entity/unit/concept, xbrl:conceptDomain, xbrl:reportCube, ...) resolve
+xbrlMdl["importedTaxonomies"] = [{"xbrlModelName": "xbrlm:base"}]
+# NB: the schema has no `modelForm` or `abstracts` top-level properties (compiled-ness
+# was conveyed by documentType), so they are not emitted.
 def dt(qn):
     ln = qn.rpartition(":")[2]
     return {"m":"xbrlr:monetary",
@@ -713,24 +837,28 @@ for c in sorted(concepts):
         
 xbrlMdl["cubes"] = cubes
 xbrlMdl["dimensions"] = [{"name":d, "domainClass":f"{d}Cls"} for d in sorted(dims)]
-xbrlMdl["domainClasses"] = [{"name":f"{d}Cls"} for d in sorted(dims)]
+# each domainClass declares the object type its members may be (schema-required)
+xbrlMdl["domainClasses"] = [{"name":f"{d}Cls", "allowedDomainItem":"xbrl:memberObject"} for d in sorted(dims)]
 mems = set(v for vls in dimMems.values() for v in vls)
 for m in enumConceptMembers.values():
     mems.update(m)
 xbrlMdl["members"] = [{"name":f"{m}"} for m in sorted(mems)]
 doms = set(f"{c}Domain" for c in enumConceptMembers.keys())
-xbrlMdl["domains"] = domains
+xbrlMdl["domainNetworks"] = domains # schema top-level key is `domainNetworks`, not `domains`
 for d in sorted(doms):
     dom = {"name": d, "root": "xbrl:traitDomain"}
     if d.endswith("Domain") and d[:-6] in enumConceptMembers:
         dom["relationships"] = [{"source": "xbrl:traitDomain","target":m} for m in enumConceptMembers[d[:-6]]]
     domains.append(dom)
-xbrlMdl["networks"] = networks = []
-xbrlMdl["labels"] = labels = [{"relatedName":r,"language":"en","value":l,"labelType":"xbrl:label"} for r,l in labels.items()]
-xbrlMdl["labelTypes"] = labelTypes = []
-sharedLabelRefs = {}
+# label object uses `forObject` (an SQName), not `relatedName`.  A label is emitted only
+# for objects that are actually defined — a name misread into the dimension slot (and so
+# dropped) may have left a stored label that would otherwise dangle.
+definedNames = concepts | mems | dims
+xbrlMdl["labels"] = labels = [{"forObject":r,"language":"en","value":l,"labelType":"xbrl:label"}
+                              for r,l in labels.items() if r in definedNames]
+# networks / labelTypes are non-empty sets in the schema — omit them when empty
 xbrlMdl["layouts"] = [{
-    "name": f"exp:{FMT.lower()}Layout",
+    "name": f"{fmt}:{fmt}Layout",
     "tableConstruction": "topDown",
     "dataTables": dataTables
     }]
