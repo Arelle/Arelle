@@ -1011,9 +1011,12 @@ class IsoDuration(isodate.Duration): # type: ignore[misc]
     def __le__(self, other: Any) -> bool:
         return self.__lt__(other) or self.__eq__(other)
     def __gt__(self,other: Any) -> bool:
+        if not isinstance(other, IsoDuration):
+            return NotImplemented
+
         if self.avgdays > other.avgdays:
             return True
-        elif self.avgdays > other.avgdays:
+        elif self.avgdays == other.avgdays:
             if self.tdelta.seconds > other.tdelta.seconds:
                 return True
             elif self.tdelta.seconds == other.tdelta.seconds:
