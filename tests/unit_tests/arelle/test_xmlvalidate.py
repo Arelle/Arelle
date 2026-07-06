@@ -5,6 +5,7 @@ from _decimal import Decimal
 from fractions import Fraction
 from math import inf, isnan, nan
 from typing import Any
+from unittest import TestCase
 from unittest.mock import Mock
 
 import pytest
@@ -1219,7 +1220,11 @@ class TestTimezoneValidation:
         assert not result.isXValid
 
 
-class TestIsoDurationComparison:
+class TestIsoDurationComparison(TestCase):
+    def test_gt_non_iso_duration(self):
+        with self.assertRaises(TypeError):
+            _ = isoDuration("P1Y2M3DT10H36M30S") > DateTime(2025, 1, 2)
+
     def test_gt_seconds_tiebreak_when_dates_equal(self):
         # equal years/months/days; the value with greater seconds must compare greater
         # via the seconds tie-break.
@@ -1237,3 +1242,25 @@ class TestIsoDurationComparison:
     def test_ge_uses_gt(self):
         assert isoDuration("P1Y2M3DT10H36M30S") >= isoDuration("P1Y2M3DT10H36M29S")
         assert isoDuration("P1Y2M3DT10H36M29S") >= isoDuration("P1Y2M3DT10H36M29S")
+
+    def test_lt_non_iso_duration(self):
+        with self.assertRaises(TypeError):
+            _ = isoDuration("P1Y2M3DT10H36M30S") < DateTime(2025, 1, 2)
+
+    def test_lt_seconds_tiebreak_when_dates_equal(self):
+        # equal years/months/days; the value with greater seconds must compare greater
+        # via the seconds tie-break.
+        assert isoDuration("P1Y2M3DT10H36M29S") < isoDuration("P1Y2M3DT10H36M30S")
+
+    def test_not_lt_when_equal(self):
+        assert not (isoDuration("P1Y2M3DT10H36M29S") < isoDuration("P1Y2M3DT10H36M29S"))
+
+    def test_not_lt_when_seconds_greater(self):
+        assert not (isoDuration("P1Y2M3DT10H36M29S") < isoDuration("P1Y2M3DT10H36M28S"))
+
+    def test_lt_when_avgdays_less(self):
+        assert isoDuration("P1Y") < isoDuration("P2Y")
+
+    def test_le_uses_lt(self):
+        assert isoDuration("P1Y2M3DT10H36M29S") <= isoDuration("P1Y2M3DT10H36M30S")
+        assert isoDuration("P1Y2M3DT10H36M29S") <= isoDuration("P1Y2M3DT10H36M29S")
