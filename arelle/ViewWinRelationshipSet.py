@@ -70,8 +70,6 @@ def viewRelationshipSet(
 
 
 class ViewRelationshipSet(ViewWinTree.ViewTree):
-    tabName: str
-
     def __init__(
         self,
         modelXbrl: ModelXbrl,
