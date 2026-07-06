@@ -7,12 +7,14 @@ from arelle.oim._tc.const import (
     TC_NS_DRAFT,
     TC_PREFIX,
     TCME_COLUMN_PARAMETER_CONFLICT,
+    TCME_DUPLICATE_KEY_NAME,
     TCME_INCONSISTENT_COLUMN_ORDER_DEFINITION,
     TCME_INVALID_NAMESPACE_PREFIX,
+    TCME_MISSING_KEY_PROPERTY,
     TCME_UNKNOWN_TYPE,
 )
 from arelle.oim._tc.metadata.common import TCMetadataValidationError
-from arelle.oim._tc.metadata.model import TCMetadata, TCTemplateConstraints, TCValueConstraint
+from arelle.oim._tc.metadata.model import TCKeys, TCMetadata, TCTemplateConstraints, TCUniqueKey, TCValueConstraint
 from arelle.oim._tc.metadata.validate import TCMetadataValidator
 from arelle.oim.csv.metadata.model import (
     XbrlCsvColumn,
@@ -285,3 +287,47 @@ class TestValueConstraintIntegration:
         assert len(errors) == 1
         assert errors[0].code == TCME_UNKNOWN_TYPE
         assert errors[0].json_pointers == ["/tableTemplates/t1/tc:parameters/p1/type"]
+
+
+class TestKeysIntegration:
+    def test_missing_key_property_path(self) -> None:
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(keys=TCKeys()),
+            }
+        )
+        errors = list(TCMetadataValidator(_build_effective_metadata(_TC_NAMESPACES), tc_metadata).validate())
+        assert len(errors) == 1
+        assert errors[0].code == TCME_MISSING_KEY_PROPERTY
+        assert errors[0].json_pointers == ["/tableTemplates/t1/tc:keys"]
+
+    def test_no_error_with_keys_none(self) -> None:
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(),
+            }
+        )
+        errors = list(TCMetadataValidator(_build_effective_metadata(_TC_NAMESPACES), tc_metadata).validate())
+        assert errors == []
+
+    def test_cross_template_duplicate_key_name_path(self) -> None:
+        key = TCUniqueKey(name="k", fields=("c",))
+        tc_metadata = TCMetadata(
+            template_constraints={
+                "t1": TCTemplateConstraints(
+                    constraints={"c": TCValueConstraint(type="xs:string")},
+                    keys=TCKeys(unique=(key,)),
+                ),
+                "t2": TCTemplateConstraints(
+                    constraints={"c": TCValueConstraint(type="xs:string")},
+                    keys=TCKeys(unique=(key,)),
+                ),
+            }
+        )
+        errors = list(TCMetadataValidator(_build_effective_metadata(_TC_NAMESPACES), tc_metadata).validate())
+        assert len(errors) == 1
+        assert errors[0].code == TCME_DUPLICATE_KEY_NAME
+        assert errors[0].json_pointers == [
+            "/tableTemplates/t1/tc:keys/unique/0/name",
+            "/tableTemplates/t2/tc:keys/unique/0/name",
+        ]
