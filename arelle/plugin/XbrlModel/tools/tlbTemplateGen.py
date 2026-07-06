@@ -15,27 +15,34 @@ Solvency II, EBA COREP/FINREP/DORA, etc.) — the authoritative human-readable
 source for those reporting templates — rather than the TLB itself.  The workbook
 encodes table structure visually (multi-level headers, dimension/member labels,
 Z-axis sheets, rollups, crossed-out gaps) using the cell conventions described
-below.  The module decodes that structure and emits a single JSON file in the
-``https://xbrl.org/2026/compiled`` document type, containing a compiled taxonomy
-module (concepts, dimensions, members, cubes, labels) and a ``layout`` object
-whose ``dataTables`` correspond one-to-one with the Excel worksheets.
+below.  The module decodes that structure and emits a single JSON file — an
+``https://xbrl.org/2026/module`` document that imports the base taxonomy
+(``xbrlm:base``) — containing a taxonomy (concepts, dimensions, members, cubes,
+labels) and a ``layout`` object whose ``dataTables`` correspond one-to-one with
+the Excel worksheets.  All generated objects are folded into one authority-prefixed
+namespace (e.g. ``eiopa:``), because a module may only define objects in its own
+namespace; each source authority prefix (``s2c_dim``, ``s2md_met``, ...) is kept in
+the local name so names stay unique and traceable.
 
 Source Excel file
 -----------------
 ``EIOPA_Solvency_II_DPM_Annotated_Templates_2.8.2_Hotfix.xlsx``
 located at: oim/specifications/oim-taxonomy/examples/TLB/
 
-Prior sample output
--------------------
-``EIOPA_Solvency_II.json`` in the same directory.
+Sample output
+-------------
+``EIOPA_Solvency_II_layout[_<table>].json`` in the same directory (the whole
+workbook, or a single table when ``TABLEFILTER`` is set).
 
 Excel template layout conventions decoded
 -----------------------------------------
 Each worksheet represents one table. Cell A1 contains "TableName - Title".
 
 * **Z axis**: rows labelled "Sheets (Z)" (EIOPA) or "Sheet per ..." (EBA) above
-  the grid define an out-of-page (filter) dimension.  Member choices come from
-  either in-sheet dropdown lists or a shared "Enumerations" worksheet.
+  the grid define an out-of-page (filter) dimension.  The "Sheets (Z)" row's
+  column-B enumeration holds the combined Z setting ("Z Axis: (id): dim mem | ...",
+  which may include a metric); this is read for both the enum-list and the in-sheet
+  layout (where row 1 also declares the Z dimensions).
 * **X axis** (columns): the grey header band above the first data row contains
   multi-level column headers with optional rollup markers.  The row immediately
   above the first data row holds column IDs.  Rows below the header band supply
@@ -46,8 +53,14 @@ Each worksheet represents one table. Cell A1 contains "TableName - Title".
 * **Grey cells** (fill >= #CCCCCC): column/row header cells — not data entry.
 * **Crossed-out cells** (diagonal border both ways): intentionally blank data
   cells (structural gaps in the table).
-* **"Metrics" / "Main Property" dimension label**: treated as ``xbrl:concept``
-  (the standard XBRL concept dimension).
+* **Concept dimension (metrics)**: identified by the ``Metrics``/``Main Property``
+  dimension label, OR by a member in a metrics namespace (``s2md_met:`` — a profile
+  ``conceptPrefix``); metrics are concepts with numeric values.  When the band
+  heuristics miss the concept entirely, a Metrics-anchored recovery locates the
+  ``Metrics`` cell and reads its members directly (running right ⇒ concept on X,
+  down ⇒ concept on Y).
+* **Real dimensions** are recognised by their namespace (``s2c_dim:`` — a profile
+  ``dimensionPrefix``); an id/member/label misread into a dimension slot is dropped.
 * **Rollup markers**: a span with ``rollUpLocation`` = "start" or "end"
   indicates a subtotal column/row.
 
@@ -84,8 +97,10 @@ Format profiles
 ---------------
 ``PROFILES[FMT]`` collects the per-authority conventions (skip-sheets, header
 column offset, Z-axis tokens, enumeration source, entry-comment prefix, gray
-threshold, anchor strategy) so a new authority is mostly a new profile entry;
-only ``anchorStrategy`` needs code (EIOPA gray-band vs EBA "Rows"/"Columns").
+threshold, anchor strategy, ``conceptPrefixes`` = metrics namespaces, and
+``dimensionPrefixes`` = real-dimension namespaces) so a new authority is mostly a
+new profile entry; only ``anchorStrategy`` needs code (EIOPA gray-band vs EBA
+"Rows"/"Columns" — the latter not yet implemented).
 
 Configuration constants (top of module)
 ----------------------------------------
@@ -93,6 +108,56 @@ Configuration constants (top of module)
 * ``FMT`` — profile key (``"EIOPA"`` or ``"EBA"``) selecting ``PROFILES[FMT]``.
 * ``TABLEFILTER`` — set to a table name (e.g. ``"S.02.01.01.01"``) to process
   only that sheet; useful for debugging.  Set to ``None`` to process all tables.
+
+Status
+------
+The full EIOPA Solvency II workbook (599 tables) generates a single file that
+validates with no errors under Arelle's XbrlModel plugin (schema + semantic).
+Validation confirms structural well-formedness — it does NOT prove the layout
+faithfully reproduces the source templates (see Further testing).
+
+Known limitations
+-----------------
+* **Grid-detection tail (~50 tables).**  For some shapes the gray-band geometry
+  mislocates the data grid (``firstDataCol``/``firstXdimRow``/``firstYdimCol``).
+  A Metrics-anchored recovery makes these tables valid and captures the full
+  concept set, but their *non-concept* dimensions and axis-item ids may be partial
+  or misplaced.  A grid-detection refactor (anchor the bands on the ``Metrics``
+  cell up front, rather than after the fact) is the open item to close this.
+* **Only the EIOPA profile is complete.**  EBA/DORA/DNB need their ``PROFILES``
+  entries (``conceptPrefixes``, ``dimensionPrefixes``, Z tokens, ...) and the
+  ``rowColLabels`` anchor detector implemented (EBA uses explicit "Rows"/"Columns"
+  labels, not the gray band).
+* **In-sheet Z is read only partially.**  The combined "Z Axis:" setting on the
+  "Sheets (Z)" row (which carries any metric) is read, but the per-dimension member
+  *lists* on the continuation rows (e.g. S.22.01.01.01's dropdown + member tree)
+  are not — those Z dimensions' member choices are dropped.
+* **Exclusion cubes over-cover harmlessly.**  Blocked cells are coalesced into
+  greedy (not minimal) rectangles; a rectangle's cross-product may span dimensional
+  coordinates that are not table cells, but those have no axis item and no fact, so
+  nothing real is over-excluded.
+* **Dimension vs member is namespace-based.**  A dimension is recognised only by
+  ``dimensionPrefixes`` (``s2c_dim:``); any other value in a dimension slot is
+  treated as a misread and dropped.  This is correct for EIOPA but must be
+  reviewed per authority.
+* **Fragile fill test.**  ``isGrayCell`` compares an 8-char ARGB string against the
+  threshold, so it effectively tests "has a fill" (the alpha byte dominates); the
+  band detection is calibrated to that behaviour — do not "fix" it blindly.
+* **rollUpLocation** subtotal placement is heuristic and not visually validated.
+
+Further testing suggested
+-------------------------
+* **Visual / rendering round-trip.**  Validation is structural only.  Render a
+  sample of tables from the layout objects and compare against the source Excel
+  templates (and against the authority's XBRL Table Linkbase rendering, the
+  authoritative structure) to confirm the same cells are produced.
+* **Fact-to-cell.**  Load real facts into the report cubes and confirm the
+  x/y(/z) ``axisItems`` intersection assigns them to the intended cells, and that
+  a fact placed in a crossed-out cell raises ``oimte:noFactSpaceForFact``.
+* **The recovered ~50 tables** specifically, for dimension completeness (not just
+  concept) — these are the least-trustworthy outputs.
+* **Other authorities** (EBA/DORA/DNB) once their profiles are implemented, to
+  confirm the profile abstraction and anchor strategies generalise.
 """
 
 import os, csv, json
@@ -361,7 +426,7 @@ for ws in wb.worksheets:
         continue # limit for debugging
 
     # find Z and first row/col
-    firstDataRow = firstDataCol = firstXhdrRow = firstXdimRow = firstYdimCol = ydimRow = maxDataCol = None  
+    firstDataRow = firstDataCol = firstXhdrRow = firstXdimRow = firstYdimCol = ydimRow = maxDataCol = maxDataRow = None
     zDim = inZ = firstXhdrCol = pastXhdr = None
     zChoices = []
     zTokenCol1 = profile["zTokenCol1"]
@@ -482,6 +547,13 @@ for ws in wb.worksheets:
 
         else:
             maxDataRow = firstXdimRow - 1
+
+    # ensure the data bounds are defined (the band heuristics leave them unset for some
+    # shapes; the loops below index maxDataRow+1 / maxDataCol+1)
+    if maxDataRow is None:
+        maxDataRow = (firstXdimRow - 1) if firstXdimRow else firstDataRow
+    if maxDataCol is None:
+        maxDataCol = firstDataCol
 
     print(f"ws {tableName} firstXHdr {colLtr(firstDataCol)}{firstXhdrRow} firstData {colLtr(firstDataCol)}{firstDataRow} xDim {colLtr(firstDataCol-1)}{firstXdimRow} yDim {colLtr(firstYdimCol)}{ydimRow}")
     
@@ -664,7 +736,47 @@ for ws in wb.worksheets:
                         continue # dim slot is not a real dimension (misread id/member/label)
                     if zid: zIds[-1] = zid
                     zDimsVal[qnDim] = qn(dim, mem)
-        
+
+    # ---- Metrics-anchored concept recovery ----
+    # Every table carries a literal "Metrics" cell marking the concept dimension's label,
+    # but the gray-geometry band heuristics miss it in some shapes.  When no concept was
+    # captured, anchor on that cell: metric members running RIGHT of it (across data
+    # columns) put the concept on the x-axis; members running DOWN it (across data rows)
+    # put it on the y-axis.  This only fills a gap — tables that already found the concept
+    # are left untouched — so it cannot regress the tables that already validate.
+    if firstDataRow and firstDataCol and not any("xbrl:concept" in ds for ds in xDims + yDims + (zDims or [])):
+        mCell = None
+        for r in range(1, maxRow + 1):
+            for c in range(1, maxCol + 1):
+                if cellValue(r, c) == "Metrics":
+                    mCell = (r, c); break
+            if mCell:
+                break
+        if mCell:
+            rM, cM = mCell
+            # scan the whole column below and whole row right of "Metrics" for actual metric
+            # members (isConceptMember), independent of the possibly-wrong data-grid bounds
+            downMems = {r: v for r in range(rM + 1, maxRow + 1) if isConceptMember(v := cellValue(r, cM))}
+            rightMems = {c: v for c in range(cM + 1, maxCol + 1) if isConceptMember(v := cellValue(rM, c))}
+            # place each metric member on its axis item (index = offset from the data
+            # origin), extending the axis-item list as needed so every concept is captured
+            if rightMems and len(rightMems) >= len(downMems): # concept runs across columns → x-axis
+                for c, mem in rightMems.items():
+                    i = c - firstDataCol
+                    if i < 0:
+                        continue
+                    while len(xDims) <= i:
+                        xDims.append({})
+                    xDims[i]["xbrl:concept"] = qn("Metrics", mem)
+            elif downMems: # concept runs down a column → y-axis
+                for r, mem in downMems.items():
+                    j = r - firstDataRow
+                    if j < 0:
+                        continue
+                    while len(yDims) <= j:
+                        yDims.append({})
+                    yDims[j]["xbrl:concept"] = qn("Metrics", mem)
+
     # ---- report cube (one per table): defines the fact space assigned to this table ----
     # cubeDimensions use the cube-object property names `dimension`/`domainNetwork`
     # (NOT the axis objects' `dimensionName`).  Non-core dimensions are optional so a
@@ -814,8 +926,8 @@ xbrlMdl["version"] = "0.9"
 # import the base taxonomy so built-in QNames (xbrl:label, xbrlr:monetary,
 # xbrl:period/entity/unit/concept, xbrl:conceptDomain, xbrl:reportCube, ...) resolve
 xbrlMdl["importedTaxonomies"] = [{"xbrlModelName": "xbrlm:base"}]
-# NB: the schema has no `modelForm` or `abstracts` top-level properties (compiled-ness
-# was conveyed by documentType), so they are not emitted.
+# NB: the schema has no `modelForm` or `abstracts` top-level properties, so they are
+# not emitted.
 def dt(qn):
     ln = qn.rpartition(":")[2]
     return {"m":"xbrlr:monetary",
