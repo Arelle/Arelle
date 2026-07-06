@@ -1,7 +1,7 @@
 # Copyright Exbee Ltd 2026 
 # License Apache 2
 """
-tlbTemplateGen.py — XBRL Model Layout Object Feasibility Demonstrator
+tlbTemplate-eiopa.py — XBRL Model Layout Object Feasibility Demonstrator (EIOPA)
 
 Purpose
 -------
@@ -479,7 +479,7 @@ for ws in wb.worksheets:
                     isOpenTable = True
             else:
                 continue
-        for colNum in range(firstRowHdrCol+1,maxCol):
+        for colNum in range(firstRowHdrCol+1,maxCol+1): # maxCol+1: include the last column
             v = cellValue(rowNum, colNum, mergeSource=False)
             if isEntryCell(rowNum, colNum) and not isGrayCell(rowNum, colNum) and isGrayCell(rowNum-1, colNum):
                 if not firstDataCol:
