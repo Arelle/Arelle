@@ -531,22 +531,25 @@ def _validateValueStringOrRaise(
         if facets:
             if "enumeration" in facets and value not in facets["enumeration"]:
                 raise ValueError("{0} is not in {1}".format(value, facets["enumeration"].keys()))
-            # length facets count octets of binary data for hexBinary/base64Binary,
-            # characters otherwise (XSD Datatypes 4.3.1); compute the units once.
-            if baseXsdType == "hexBinary":
-                valueLength = len(value) // 2
-            elif baseXsdType == "base64Binary":
-                # ignore lexical spaces before counting octets (whitespace already collapsed to spaces)
-                data = value.replace(" ", "")
-                valueLength = len(data) * 3 // 4 - data.count("=")
-            else:
-                valueLength = len(value)
-            if "length" in facets and valueLength != facets["length"]:
-                raise ValueError("length {0}, expected {1}".format(valueLength, facets["length"]))
-            if "minLength" in facets and valueLength < facets["minLength"]:
-                raise ValueError("length {0}, minLength {1}".format(valueLength, facets["minLength"]))
-            if "maxLength" in facets and valueLength > facets["maxLength"]:
-                raise ValueError("length {0}, maxLength {1}".format(valueLength, facets["maxLength"]))
+            # length/minLength/maxLength are meaningless for QName and NOTATION; per
+            # XSD Datatypes 3.2.18/3.2.19 every value is facet-valid with respect to them.
+            if baseXsdType not in ("QName", "NOTATION"):
+                # length facets count octets of binary data for hexBinary/base64Binary,
+                # characters otherwise (XSD Datatypes 4.3.1); compute the units once.
+                if baseXsdType == "hexBinary":
+                    valueLength = len(value) // 2
+                elif baseXsdType == "base64Binary":
+                    # ignore lexical spaces before counting octets (whitespace already collapsed to spaces)
+                    data = value.replace(" ", "")
+                    valueLength = len(data) * 3 // 4 - data.count("=")
+                else:
+                    valueLength = len(value)
+                if "length" in facets and valueLength != facets["length"]:
+                    raise ValueError("length {0}, expected {1}".format(valueLength, facets["length"]))
+                if "minLength" in facets and valueLength < facets["minLength"]:
+                    raise ValueError("length {0}, minLength {1}".format(valueLength, facets["minLength"]))
+                if "maxLength" in facets and valueLength > facets["maxLength"]:
+                    raise ValueError("length {0}, maxLength {1}".format(valueLength, facets["maxLength"]))
         if baseXsdType in {"string", "normalizedString", "language", "languageOrEmpty", "token", "NMTOKEN", "Name", "NCName", "IDREF", "ENTITY"}:
             xValue = sValue = value
         elif baseXsdType == "ID":
