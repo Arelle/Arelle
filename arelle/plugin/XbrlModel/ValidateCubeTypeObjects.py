@@ -220,12 +220,18 @@ def validateCubeTypeFamily(compMdl, module, oimFile, *, assertObjectType, valida
                         basePropertiesAllowed = baseCubeType.effectivePropVal(compMdl, "cubeProperties", "allowedProperties")
                         basePropertiesRequired = baseCubeType.effectivePropVal(compMdl, "cubeProperties", "requiredProperties")
                         if basePropertiesRequired:
-                            removedPropsReqd = basePropertiesRequired - (cubeType.cubeProperties.requiredProperties or EMPTY_FROZENSET)
-                            if removedPropsReqd:
-                                emit_error(compMdl, "oimte:invalidPropertyRequirementRelaxation",
-                                           _("The cube type %(name)s, must not remove property types required by the base type: %(qnames)s"),
-                                           xbrlObject=cubeType, name=name,
-                                           qnames=", ".join(sorted(str(qn) for qn in removedPropsReqd)))
+                            # Spec: the derived cube type MUST NOT exclude base-required properties, which is
+                            # achieved by reducing allowedProperties to exclude them. Omitting requiredProperties
+                            # on the derived merely inherits the base's requirement (not a relaxation), so the test
+                            # is against the derived's effective allowedProperties, not its requiredProperties.
+                            derivedPropertiesAllowed = cubeType.effectivePropVal(compMdl, "cubeProperties", "allowedProperties")
+                            if derivedPropertiesAllowed is not None:
+                                excludedReqdProps = basePropertiesRequired - derivedPropertiesAllowed
+                                if excludedReqdProps:
+                                    emit_error(compMdl, "oimte:invalidPropertyRequirementRelaxation",
+                                               _("The cube type %(name)s, must not exclude property types required by the base type from allowedProperties: %(qnames)s"),
+                                               xbrlObject=cubeType, name=name,
+                                               qnames=", ".join(sorted(str(qn) for qn in excludedReqdProps)))
                         if basePropertiesAllowed and cubeType.cubeProperties.allowedProperties:
                             unallowedAddedProps = cubeType.cubeProperties.allowedProperties - basePropertiesAllowed
                             if unallowedAddedProps:

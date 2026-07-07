@@ -448,10 +448,13 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         cubeNtwkConstrObj = cubeType.effectivePropVal(compMdl, "cubeNetworkConstraints")
         cubeNtwkConstrs = cubeType.effectivePropVal(compMdl, "cubeNetworkConstraints", "cubeNetworks")
         if cubeNtwkConstrs:
-            relConstraintNetworkMatches = defaultdict(int)
+            relConstraintNetworkPresent = defaultdict(int)  # networks present by relationshipType (missing vs. wrong)
+            relConstraintNetworkMatches = defaultdict(int)  # networks whose endpoints satisfy the constraint
             maxZeroViolatedConstrs = set()
             for ntwk in ntwks:
                 matchingConstrs = [c for c in cubeNtwkConstrs if c.relationshipType == ntwk.relationshipTypeName]
+                for cnst in matchingConstrs:
+                    relConstraintNetworkPresent[cnst] += 1
                 ntwkMatchedConstraints = set()
                 for relObj in ntwk.relationships or ():
                     if relObj.source == qnXbrlRootSource:
@@ -538,9 +541,18 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             for cnst in cubeNtwkConstrs:
                 if cnst.maxNetworks == 0:
                     continue
+                # A constraint requires minNetworks networks of its relationshipType whose endpoints satisfy it.
                 matchedNtws = relConstraintNetworkMatches.get(cnst, 0)
                 if cnst.minNetworks is not None and matchedNtws < cnst.minNetworks:
-                    compMdl.error("oimte:invalidCubeNetworkRelationship",
+                    # Distinguish *missing* (no network of this relationshipType is present at all) from a
+                    # network that is present but whose endpoints don't satisfy this constraint. The former is
+                    # a missing required relationship; the latter is an invalid cube-network relationship (e.g.
+                    # a second same-relationshipType constraint with different source/target that no network meets).
+                    if relConstraintNetworkPresent.get(cnst, 0) == 0:
+                        errCode = "oimte:missingRequiredRelationship"
+                    else:
+                        errCode = "oimte:invalidCubeNetworkRelationship"
+                    compMdl.error(errCode,
                                   _("Cube %(name)s has %(matchedNtws)s networks for relationshipType %(relationshipType)s but cubeType requires minNetworks %(minNetworks)s."),
                                   xbrlObject=cubeObj, name=name, relationshipType=cnst.relationshipType,
                                   matchedNtws=matchedNtws, minNetworks=cnst.minNetworks)
@@ -667,10 +679,21 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 if allwdDimConstr is None:
                     continue
                 for dim in txmyDefDims:
-                    if (not getattr(allwdDimConstr, "dimensionName", None) or dim.name == allwdDimConstr.dimensionName):
-                        matchedDim = dim
-                        matchedDimQNs.add(dim.name)
-                        break
+                    if getattr(allwdDimConstr, "dimensionName", None) and dim.name != allwdDimConstr.dimensionName:
+                        continue
+                    # Spec: a taxonomy defined dimension must match the dimension, or (type and datatype)
+                    # of an allowed constraint. When the constraint fixes an explicit/typed kind, an
+                    # explicit dimension (domainClass whose allowedDomainItem is not a datatype) must not
+                    # match a "typed" constraint, and vice versa.
+                    if getattr(allwdDimConstr, "type", None):
+                        dimDomClass = compMdl.namedObjects.get(dim.domainClass)
+                        dimIsTyped = (isinstance(dimDomClass, XbrlDomainClass) and dimDomClass.allowedDomainItem and
+                                      isinstance(compMdl.namedObjects.get(dimDomClass.allowedDomainItem), XbrlDataType))
+                        if (allwdDimConstr.type == "typed") != bool(dimIsTyped):
+                            continue
+                    matchedDim = dim
+                    matchedDimQNs.add(dim.name)
+                    break
                 if not matchedDim and getattr(allwdDimConstr, "required", False):
                     compMdl.error("oimte:requiredCubeDimensionalSpaceMissingFromCube",
                                 _("The cube %(name)s, type %(cubeType)s, taxonomy defined dimensions %(dimension)s is missing"),
@@ -783,7 +806,9 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             domClass = compMdl.namedObjects.get(dimObj.domainClass)
             if not isinstance(domClass, XbrlDomainClass):
                 continue # not worth continuing, domain object missing root will be reported elsewhere
-            if allowedCubeDimConstrs and not isTimeSeriesCubeType:
+            if allowedCubeDimConstrs and not isTimeSeriesCubeType and dimName not in coreDimensions:
+                # cubeDimensionConstraints/allowed constrains taxonomy-defined dimensions only; core
+                # dimensions (xbrl:concept/period/entity/unit) are governed by coreDimensions, not these.
                 matchedConstr = None
                 for dimConstr in allowedCubeDimConstrs:
                     if dimConstr.dimensionName and dimConstr.dimensionName != dimName:
