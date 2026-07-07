@@ -474,6 +474,12 @@ def _comparableInstant(value: datetime.datetime | datetime.time) -> datetime.dat
 def _orderedComparison(value: Any, bound: Any) -> int | None:
     """Order ``value`` against an ordering-facet ``bound``.
 
+    ``value`` and ``bound`` must be the same type: they are expected to be the
+    already-validated value and facet bound for the same ``baseXsdType``, e.g. both
+    ``DateTime`` or both ``Time``. Raises ``TypeError`` if they aren't, since a type
+    mismatch indicates a caller bug (a facet compiled against the wrong base type)
+    rather than an ordering that can be resolved here.
+
     Returns ``-1``/``0``/``1`` when ``value`` is less than/equal to/greater than
     ``bound``, or ``None`` when the order is indeterminate. Callers should treat
     ``None`` as failing whichever relation the facet requires (Datatypes 3.2.6.3:
@@ -485,6 +491,8 @@ def _orderedComparison(value: Any, bound: Any) -> int | None:
     the XSD timezone-straddling rule (Datatypes 3.2.7.4) on the underlying instants,
     yielding ``None`` when the timezone uncertainty leaves the order undetermined.
     """
+    if type(value) is not type(bound):
+        raise TypeError("Value type ({}) is not comparable with bound type ({}).".format(type(value), type (bound)))
     try:
         if value < bound:
             return -1
