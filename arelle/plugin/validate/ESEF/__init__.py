@@ -101,11 +101,11 @@ def validateEntity(modelXbrl: ModelXbrl, filename:str, filesource: FileSource) -
 
 def getEsefAuthority(
     modelXbrl: ModelXbrl,
+    pluginData: ESEFPluginData,
     parameters: dict[Any, Any] | None,
 ) -> str | None:
     cntlr = modelXbrl.modelManager.cntlr
-    pluginData = cntlr.getPluginData(ESEF_PLUGIN_NAME)
-    esefAuthority = pluginData.esefAuthority if isinstance(pluginData, ESEFPluginData) else None
+    esefAuthority = pluginData.esefAuthority
     if not esefAuthority and cntlr.hasGui and cntlr.config is not None:
         esefAuthority = cntlr.config.get("esefAuthority") or None
     formulaAuthority = None
@@ -141,6 +141,16 @@ def getEsefAuthority(
 @dataclass
 class ESEFPluginData(PluginData):
     esefAuthority: str | None = None
+
+    @staticmethod
+    def get(cntlr: Cntlr) -> ESEFPluginData:
+        pluginData = cntlr.getPluginData(ESEF_PLUGIN_NAME)
+        if pluginData is None:
+            pluginData = ESEFPluginData(name=ESEF_PLUGIN_NAME)
+            cntlr.setPluginData(pluginData)
+        elif not isinstance(pluginData, ESEFPluginData):
+            raise RuntimeError(f"PluginData already set for {pluginData.name} with unexpected type {type(pluginData)}.")
+        return pluginData
 
 
 class ESEFPlugin(PluginHooks):
@@ -186,7 +196,8 @@ class ESEFPlugin(PluginHooks):
     ) -> None:
         esefAuthority = getattr(options, "esefAuthority", None)
         if esefAuthority:
-            cntlr.setPluginData(ESEFPluginData(name=ESEF_PLUGIN_NAME, esefAuthority=esefAuthority))
+            pluginData = ESEFPluginData.get(cntlr)
+            pluginData.esefAuthority = esefAuthority
 
     @staticmethod
     def cntlrWinMainMenuValidation(
@@ -326,10 +337,11 @@ class ESEFPlugin(PluginHooks):
         if not shouldRunEsefValidationRules(val):
             return None
         modelXbrl = val.modelXbrl
+        pluginData = ESEFPluginData.get(modelXbrl.modelManager.cntlr)
         val.extensionImportedUrls = set()
         val.unconsolidated = any("unconsolidated" in n for n in val.disclosureSystem.names)
         val.consolidated = not val.unconsolidated
-        val.authority = getEsefAuthority(modelXbrl, parameters)
+        val.authority = getEsefAuthority(modelXbrl, pluginData, parameters)
 
         authorityValidations = loadAuthorityValidations(val.modelXbrl)
         # loadAuthorityValidations returns either a list or a dict but in this context, we expect a dict.
