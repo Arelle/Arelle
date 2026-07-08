@@ -516,9 +516,12 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         if elt.format is not None and elt.format.namespaceURI not in allowedTRnamespaces:
                             transformRegistryErrors.add(elt)
                 ixHiddenFacts = set()
+                ixdsTarget = getattr(modelXbrl, "ixdsTarget", None)
                 for ixHiddenElt in ixdsHtmlRootElt.iterdescendants(tag=ixNStag + "hidden"):
                     for tag in (ixNStag + "nonNumeric", ixNStag+"nonFraction"):
                         for ixElt in ixHiddenElt.iterdescendants(tag=tag):
+                            if ixElt.get("target") != ixdsTarget:
+                                continue
                             if (getattr(ixElt, "xValid", 0) >= VALID  # may not be validated
                                 ): # add future "and" conditions on elements which can be in hidden
                                 if (ixElt.concept.baseXsdType not in untransformableTypes and  # type: ignore[union-attr]
@@ -534,6 +537,8 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     if styleCssHiddenPattern.match(cssHiddenElt.get("style","")):
                         for tag in (ixNStag + "nonNumeric", ixNStag+"nonFraction"):
                             for ixElt in cssHiddenElt.iterdescendants(tag=tag):
+                                if ixElt.get("target") != ixdsTarget:
+                                    continue
                                 if ixElt not in ixHiddenFacts:
                                     modelXbrl.error("ESEF.2.5.4.displayNoneUsedToHideTaggedFacts",
                                         _('CSS MUST not be used to hide tagged facts, e.g. by applying display:none style. Concept "%(concept)s", value: %(value)s - line %(sourceline)s'),
