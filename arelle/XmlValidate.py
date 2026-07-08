@@ -786,7 +786,7 @@ def _validateValueStringOrRaise(
                     try:
                         # Use the enumeration facet's own schema-document nsmap (not the
                         # validated instance's) since a QName-lexical enumeration member's
-                        # namespace bindings are fixed at the schema, per XSD Part 2 §3.17.2.
+                        # namespace bindings are fixed at the schema, per XSD Part 2 §3.2.18.
                         memberNsmap = facetElt.nsmap if facetElt is not None else nsmap
                         parsedMember = _validateValueStringOrRaise(baseXsdType, member, nsmap=memberNsmap)
                         valueSpace[parsedMember.xValue] = member
