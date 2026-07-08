@@ -11,13 +11,15 @@ from unittest.mock import Mock
 import pytest
 import regex
 
-from arelle.ModelDtsObject import _EnumerationFacet
-from arelle.ModelValue import DateTime, QName, Time, gDay, gMonth, gMonthDay, gYear, gYearMonth, isoDuration
+from arelle.ModelValue import DateTime, QName, Time, gDay, gMonth, gMonthDay, gYear, gYearMonth, isoDuration, qname
 from arelle.XmlValidate import (
     NCNamePattern,
     NMTOKENPattern,
     XsdPattern,
+    EnumerationFacet,
+    _EnumerationFacetMember,
     namePattern,
+    predefinedAttributeTypes,
     validateFacetValueString,
     validateValue,
     validateValueString,
@@ -549,11 +551,11 @@ def test_validateValue(attrTag: str, baseXsdType: str, value: str, isNillable: b
 def test_validateValue_facets_enumeration(value: str, expected: tuple):
     elt = Mock()
     facets = {
-        "enumeration": {
-            "valid1": None,
-            "valid2": None,
-            "valid3": None,
-        }
+        "enumeration": EnumerationFacet({
+            "valid1": _EnumerationFacetMember(),
+            "valid2": _EnumerationFacetMember(),
+            "valid3": _EnumerationFacetMember(),
+        })
     }
     validateValue(modelXbrl=Mock(), elt=elt, attrTag=None, baseXsdType="string", value=value, facets=facets)
     _assertExpected(value, attrTag=None, elt=elt, expected=expected)
@@ -602,7 +604,7 @@ def test_validateValue_facets_enumeration(value: str, expected: tuple):
 def test_validateValueString_enumeration_value_space(
     base_xsd_type: str, member: str, value: str, expected_x_valid: int
 ):
-    facets = {"enumeration": {member: None}}
+    facets = {"enumeration": EnumerationFacet({member: _EnumerationFacetMember()})}
     result = validateValueString(base_xsd_type, value, facets=facets, nsmap={"prefix": "namespaceURI"})
     assert result.xValid == expected_x_valid
     assert result.isXValid == (expected_x_valid >= VALID)
@@ -619,7 +621,7 @@ def test_validateValueString_enumeration_value_space(
 )
 def test_validateValueString_enumeration_value_space_multiple_members(value: str, expected_x_valid: int):
     # a candidate may match any member, not just the first, by value-space equality
-    facets = {"enumeration": {"1": None, "2.0": None, "3": None}}
+    facets = {"enumeration": EnumerationFacet({"1": _EnumerationFacetMember(), "2.0": _EnumerationFacetMember(), "3": _EnumerationFacetMember()})}
     result = validateValueString("decimal", value, facets=facets)
     assert result.xValid == expected_x_valid
 
@@ -634,9 +636,10 @@ def test_validateValueString_enumeration_value_space_multiple_members(value: str
 )
 def test_validateValueString_enumeration_qname_prefix_independent(value: str, expected_x_valid: int):
     # A QName's value is the (namespace, local name) pair, not its lexical prefix. With both
-    # p: and q: bound to the same namespace in the instance, p:local and q:local are equal.
-    facets = {"enumeration": {"q:local": None}}
+    # p: and q: bound to the same namespace (for both the member and the instance), p:local
+    # and q:local are equal.
     nsmap = {"p": "urn:x", "q": "urn:x"}
+    facets = {"enumeration": EnumerationFacet({"q:local": _EnumerationFacetMember(nsmap=nsmap)})}
     result = validateValueString("QName", value, facets=facets, nsmap=nsmap)
     assert result.xValid == expected_x_valid
 
@@ -647,7 +650,7 @@ def test_validateValueString_enumeration_qname_uses_schema_facet_nsmap():
     # the instance binds the same namespace under a different prefix "i". Parsing the member
     # with the facet's own nsmap is what lets the instance value match.
     facetElt = Mock(nsmap={"s": "urn:x"})
-    facets = {"enumeration": {"s:local": facetElt}}
+    facets = {"enumeration": EnumerationFacet({"s:local": facetElt})}
     instanceNsmap = {"i": "urn:x"}
     match = validateValueString("QName", "i:local", facets=facets, nsmap=instanceNsmap)
     assert match.xValid == VALID
@@ -656,17 +659,18 @@ def test_validateValueString_enumeration_qname_uses_schema_facet_nsmap():
 
 
 def test_validateValueString_enumeration_value_space_is_lazily_cached():
-    enumeration = _EnumerationFacet()
-    enumeration["1"] = None
+    enumeration = EnumerationFacet()
+    enumeration["1"] = _EnumerationFacetMember()
     facets = {"enumeration": enumeration}
 
     # The lexical fast path must not build the value-space cache at all.
     assert validateValueString("decimal", "1", facets=facets).xValid == VALID
-    assert getattr(enumeration, "valueSpace", "unset") == "unset"
+    assert enumeration.valueSpace is None
 
     # A lexical miss that matches in the value space builds and caches the map.
     assert validateValueString("decimal", "1.0", facets=facets).xValid == VALID
     cached = enumeration.valueSpace
+    assert cached is not None
     assert Decimal("1") in cached
 
     # A subsequent validation reuses the same cached object rather than rebuilding it.
@@ -683,7 +687,7 @@ def test_validateValueString_enumeration_value_space_is_lazily_cached():
 )
 def test_validateValueString_enumeration_skips_unparseable_member(value: str, expected_x_valid: int):
     # A member that cannot be parsed as the datatype is skipped, not fatal.
-    facets = {"enumeration": {"not-a-decimal": None, "1": None}}
+    facets = {"enumeration": EnumerationFacet({"not-a-decimal": _EnumerationFacetMember(), "1": _EnumerationFacetMember()})}
     result = validateValueString("decimal", value, facets=facets)
     assert result.xValid == expected_x_valid
 
@@ -691,15 +695,14 @@ def test_validateValueString_enumeration_skips_unparseable_member(value: str, ex
 @pytest.mark.parametrize(
     "value,expected_x_valid",
     [
-        ("1.0", VALID),
-        ("3", INVALID),
+        ("default", VALID),
+        ("preserve", VALID),
+        ("collapse", INVALID),
     ],
 )
-def test_validateValueString_enumeration_set_valued(value: str, expected_x_valid: int):
-    # Some enumerations are plain sets (no facet elements, no cache attribute); value-space
-    # comparison must still work and the un-cacheable cache-write must be swallowed.
-    facets = {"enumeration": {"1", "2"}}
-    result = validateValueString("decimal", value, facets=facets)
+def test_validateValueString_enumeration_predefined_xml_space(value: str, expected_x_valid: int):
+    baseXsdType, facets = predefinedAttributeTypes[qname("{http://www.w3.org/XML/1998/namespace}xml:space")]
+    result = validateValueString(baseXsdType, value, facets=facets)
     assert result.xValid == expected_x_valid
 
 
@@ -713,8 +716,9 @@ def test_validateValueString_enumeration_set_valued(value: str, expected_x_valid
 def test_validateValueString_enumeration_unhashable_xvalue_does_not_crash(value: str, expected_x_valid: int):
     # enumerationQNames produces a list xValue, which is unhashable; the value-space cache
     # must convert it to a (hashable) tuple rather than raise TypeError.
-    facets = {"enumeration": {"p:a": None}}
-    result = validateValueString("enumerationQNames", value, facets=facets, nsmap={"p": "urn:x"})
+    nsmap = {"p": "urn:x"}
+    facets = {"enumeration": EnumerationFacet({"p:a": _EnumerationFacetMember(nsmap=nsmap)})}
+    result = validateValueString("enumerationQNames", value, facets=facets, nsmap=nsmap)
     assert result.xValid == expected_x_valid
 
 
@@ -731,8 +735,8 @@ def test_validateValueString_enumeration_unhashable_xvalue_value_space_match(val
     # before being used as (or looked up against) a value-space dict key. Without that coercion,
     # inserting a list key raises TypeError, which is silently swallowed, so every member is
     # dropped from the cache and a value-space match (like q:a below) is wrongly rejected.
-    facets = {"enumeration": {"p:a": None}}
     nsmap = {"p": "urn:x", "q": "urn:x"}
+    facets = {"enumeration": EnumerationFacet({"p:a": _EnumerationFacetMember(nsmap=nsmap)})}
     result = validateValueString("enumerationQNames", value, facets=facets, nsmap=nsmap)
     assert result.xValid == expected_x_valid
 
@@ -1265,6 +1269,14 @@ class TestValidateFacetValueString:
         assert result.isXValid
         assert result.sValue == "collapse"
         assert result.xValue == "collapse"
+
+    def test_whiteSpace_invalid(self):
+        # whiteSpace's own enumeration facet is synthesized; an out-of-set
+        # value should still be rejected through the same enumeration logic.
+        result = validateFacetValueString("whiteSpace", "invalid", "string")
+        assert result.xValid == INVALID
+        assert not result.isXValid
+        assert result.xValue is None
 
     def test_pattern(self):
         result = validateFacetValueString("pattern", "[A-Z]+", "string")

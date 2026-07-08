@@ -192,9 +192,40 @@ _XSD_TYPE_INHERENT_INCLUSIVE_BOUNDS: dict[str, tuple[int | None, int | None]] = 
 }
 _INTEGER_BASE_XSD_TYPES = frozenset(_XSD_TYPE_INHERENT_INCLUSIVE_BOUNDS.keys() | {"integer"})
 
+
+class _EnumerationFacetMember:
+    """Stand-in for a schema enumeration facet element (a ``ModelObject``), used for
+    enumeration facets synthesized in this module (e.g. the predefined xml:space
+    attribute type, the whiteSpace facet's own permitted values) rather than derived
+    from a schema. Provides the ``nsmap`` a QName-lexical enumeration member would be
+    resolved against; empty by default since none of this module's synthetic
+    enumerations are QName-lexical types."""
+    __slots__ = ("nsmap",)
+
+    def __init__(self, nsmap: Mapping[str | None, str] | None = None) -> None:
+        self.nsmap = nsmap or {}
+
+
+class EnumerationFacet(dict[str, ModelObject | _EnumerationFacetMember]):
+    """dict of an enumeration facet's lexical value -> facet element (a schema
+    ``ModelObject`` for schema-derived enumerations, or an ``_EnumerationFacetMember``
+    for enumerations synthesized in this module), with a lazily-populated, out-of-band
+    value-space cache (xValue -> lexical value) attached via the ``valueSpace``
+    attribute. Kept off the dict's own keys/items so existing consumers that treat this
+    as a plain ``dict[str, ModelObject]`` (equivalence checks, ViewX rendering, etc.)
+    are unaffected."""
+    __slots__ = ("valueSpace",)
+    valueSpace: dict[Any, str] | None
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.valueSpace = None
+
+
 predefinedAttributeTypes = {
     qname("{http://www.w3.org/XML/1998/namespace}xml:lang"):("languageOrEmpty",None),
-    qname("{http://www.w3.org/XML/1998/namespace}xml:space"):("NCName",{"enumeration":{"default","preserve"}})}
+    qname("{http://www.w3.org/XML/1998/namespace}xml:space"):("NCName", {"enumeration": EnumerationFacet(
+        {"default": _EnumerationFacetMember(), "preserve": _EnumerationFacetMember()})})}
 xAttributesSharedEmptyDict: dict[str, ModelAttribute] = {}
 
 def validate(
@@ -778,39 +809,26 @@ def _validateValueStringOrRaise(
             # XSD 1.0 Datatypes 4.3.5: the enumeration facet constrains the value space, so
             # a value is facet-valid when it equals a member in the value space even if its
             # lexical form differs (e.g. dateTime 12:01:01+00:00 vs -00:00, decimal 1.0 vs 1).
+            # Every enumeration facet (schema-derived, via ModelType.constrainingFacets, or
+            # synthesized in this module, e.g. for whiteSpace) is an EnumerationFacet: a
+            # dict of lexical value -> facet element, with a lazily-populated valueSpace cache.
             enumeration = facets["enumeration"]
-            # Only a schema-derived enumeration facet (a dict of lexical value -> facetElt,
-            # possibly an _EnumerationFacet) supports the lazily-populated valueSpace cache;
-            # synthetic enumerations built in this module (e.g. for whiteSpace) are plain
-            # sets/dicts without facetElts and always fall through to a fresh parse below.
-            valueSpace = getattr(enumeration, "valueSpace", None)
+            valueSpace = enumeration.valueSpace
             if valueSpace is None:
                 valueSpace = {}
-                members = (
-                    enumeration.items()
-                    if isinstance(enumeration, dict)
-                    else ((m, None) for m in enumeration)
-                )
-                for member, facetElt in members:
+                for member, facetElt in enumeration.items():
                     try:
                         # Use the enumeration facet's own schema-document nsmap (not the
                         # validated instance's) since a QName-lexical enumeration member's
                         # namespace bindings are fixed at the schema, per XSD Part 2 §3.2.18.
-                        memberNsmap = facetElt.nsmap if facetElt is not None else nsmap
-                        parsedMember = _validateValueStringOrRaise(baseXsdType, member, nsmap=memberNsmap)
+                        parsedMember = _validateValueStringOrRaise(baseXsdType, member, nsmap=facetElt.nsmap)
                         valueSpace[_hashableXValue(parsedMember.xValue)] = member
                     except (ValueError, InvalidOperation, TypeError):
                         pass
-                try: # only an _EnumerationFacet (schema-derived enumeration) supports this
-                    enumeration.valueSpace = valueSpace
-                except AttributeError:
-                    pass
+                enumeration.valueSpace = valueSpace
             found = _hashableXValue(xValue) in valueSpace
             if not found:
-                raise ValueError("{0} is not in {1}".format(value, (
-                    facets["enumeration"].keys()
-                    if isinstance(facets["enumeration"], dict)
-                    else facets["enumeration"])))
+                raise ValueError("{0} is not in {1}".format(value, enumeration.keys()))
     return XmlValidationResult(sValue=sValue, xValue=xValue, xValid=xValid)
 
 
@@ -878,8 +896,8 @@ def validateValue(
         elt.sValue = sValue
 
 
-def _facetTypeAndFacets(facetName: str, baseXsdType: str) -> tuple[str, dict[str, int | set[str]] | None]:
-    facets: dict[str, int | set[str]] | None
+def _facetTypeAndFacets(facetName: str, baseXsdType: str) -> tuple[str, dict[str, int | EnumerationFacet] | None]:
+    facets: dict[str, int | EnumerationFacet] | None
     if facetName in ("length", "minLength", "maxLength"):
         baseXsdType = "nonNegativeInteger"
         facets = None
@@ -907,7 +925,8 @@ def _facetTypeAndFacets(facetName: str, baseXsdType: str) -> tuple[str, dict[str
                 facets = {"minExclusive": lowerLimit}
     elif facetName == "whiteSpace":
         baseXsdType = "string"
-        facets = {"enumeration": {"replace", "preserve", "collapse"}}
+        facets = {"enumeration": EnumerationFacet(
+            {member: _EnumerationFacetMember() for member in ("replace", "preserve", "collapse")})}
     elif facetName == "pattern":
         baseXsdType = "xsd-pattern"
         facets = None

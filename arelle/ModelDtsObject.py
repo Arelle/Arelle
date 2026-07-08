@@ -1187,14 +1187,6 @@ class ModelAttributeGroup(ModelNamableTerm):
             return self.modelXbrl.qnameAttributeGroups.get(ModelValue.qname(self, ref))
         return self
 
-class _EnumerationFacet(dict[str, ModelObject]):
-    """dict of an enumeration facet's lexical value -> facetElt, with a lazily-populated,
-    out-of-band value-space cache (xValue -> lexical value) attached via the ``valueSpace``
-    attribute. Kept off the dict's own keys/items so existing consumers that treat this as a
-    plain ``dict[str, ModelObject]`` (equivalence checks, ViewX rendering, etc.) are unaffected."""
-    __slots__ = ("valueSpace",)
-    valueSpace: dict[Any, str]
-
 class ModelType(ModelNamableTerm):
     """
     .. class:: ModelType(modelDocument)
@@ -1568,7 +1560,7 @@ class ModelType(ModelNamableTerm):
         if "enumeration" not in facetValues:
             for facetElt in XmlUtil.schemaFacets(self, ["{http://www.w3.org/2001/XMLSchema}enumeration"]):
                 assert facetElt is not None, "facetElt is None"
-                facetValues.setdefault("enumeration", _EnumerationFacet())[facetElt.get("value")] = facetElt
+                facetValues.setdefault("enumeration", XmlValidate.EnumerationFacet())[facetElt.get("value")] = facetElt
         typeDerivedFrom = self.typeDerivedFrom
         if isinstance(typeDerivedFrom, ModelType):
             typeDerivedFrom.constrainingFacets(facetValues)
