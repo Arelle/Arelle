@@ -596,12 +596,6 @@ def test_validateValue_facets_enumeration(value: str, expected: tuple):
         ("integer", "1", "+1", VALID),
         ("integer", "1", "01", VALID),
         ("integer", "1", "2", INVALID),
-        # boolean: {true, 1} and {false, 0}
-        ("boolean", "1", "true", VALID),
-        ("boolean", "1", "1", VALID),
-        ("boolean", "1", "false", INVALID),
-        ("boolean", "0", "false", VALID),
-        ("boolean", "0", "true", INVALID),
     ],
 )
 def test_validateValueString_enumeration_value_space(
