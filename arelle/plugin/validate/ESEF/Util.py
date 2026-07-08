@@ -214,6 +214,12 @@ def hasEsefTaxonomy(modelXbrl: ModelXbrl) -> bool:
 def isEsefExcludedInstance(val: ValidateXbrl) -> bool:
     if hasEsefTaxonomy(val.modelXbrl):
         return False
+    if val.authParam["ixdsMultiUsage"] == "allowed":
+        reportPackage = val.modelXbrl.fileSource.reportPackage
+        if reportPackage and reportPackage.reports and len(reportPackage.reports) > 1:
+            # Multi iXDS reports are independent models so we can't cross check here.
+            # validateComplete hook logs an error after all validation if no report in the package was validated as ESEF.
+            return True
     if not hasattr(val.modelXbrl, "ixdsTarget"):
         return False
     if val.authParam["ixTargetUsage"] != "allowed":

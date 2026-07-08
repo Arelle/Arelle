@@ -6,12 +6,18 @@ ESEF_NAMESPACE = "http://www.esma.europa.eu/taxonomy/2024-03-27/esef_cor"
 NON_ESEF_NAMESPACE = "http://xbrl.frc.org.uk/fr/2022-01-01/core"
 
 
+def make_report_package(report_count: int) -> SimpleNamespace:
+    reports = [SimpleNamespace() for _ in range(report_count)]
+    return SimpleNamespace(reports=reports)
+
+
 def make_model_xbrl(
     namespace_docs: dict | None = None,
     ixds_target: object = object,
     supplemental_models: list | None = None,
     is_supplemental: bool = False,
     primary_namespace_docs: dict | None = None,
+    report_package: SimpleNamespace | None = None,
 ) -> SimpleNamespace:
     kwargs: dict = {"namespaceDocs": namespace_docs or {}}
     if ixds_target is not object:
@@ -29,7 +35,9 @@ def make_model_xbrl(
     else:
         primary = model_xbrl
     disclosure_system = SimpleNamespace(ESEFplugin=True)
-    model_xbrl.modelManager = SimpleNamespace(modelXbrl=primary, disclosureSystem=disclosure_system)
+    file_source = SimpleNamespace(reportPackage=report_package)
+    model_xbrl.modelManager = SimpleNamespace(modelXbrl=primary, disclosureSystem=disclosure_system)  # type: ignore[attr-defined]
+    model_xbrl.fileSource = file_source
     return model_xbrl
 
 
@@ -66,17 +74,17 @@ class TestHasEsefTaxonomy:
 class TestIsEsefExcludedInstance:
     def test_not_excluded_when_esef_taxonomy_present(self) -> None:
         model_xbrl = make_model_xbrl(namespace_docs={ESEF_NAMESPACE: []}, ixds_target=None)
-        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "allowed"})
+        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "allowed", "ixdsMultiUsage": "error"})
         assert isEsefExcludedInstance(val) is False
 
     def test_not_excluded_when_not_ixds(self) -> None:
         model_xbrl = make_model_xbrl(namespace_docs={NON_ESEF_NAMESPACE: []})
-        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "allowed"})
+        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "allowed", "ixdsMultiUsage": "error"})
         assert isEsefExcludedInstance(val) is False
 
     def test_not_excluded_when_ix_target_usage_not_allowed(self) -> None:
         model_xbrl = make_model_xbrl(namespace_docs={NON_ESEF_NAMESPACE: []}, ixds_target="DKGAAP")
-        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "warning"})
+        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "warning", "ixdsMultiUsage": "error"})
         assert isEsefExcludedInstance(val) is False
 
     def test_excluded_when_multi_target_and_another_has_esef(self) -> None:
@@ -85,7 +93,7 @@ class TestIsEsefExcludedInstance:
             ixds_target="DKGAAP",
             is_supplemental=True,
         )
-        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "allowed"})
+        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "allowed", "ixdsMultiUsage": "error"})
         assert isEsefExcludedInstance(val) is True
 
     def test_not_excluded_when_no_target_has_esef(self) -> None:
@@ -94,7 +102,7 @@ class TestIsEsefExcludedInstance:
             ixds_target=None,
             supplemental_models=[],
         )
-        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "allowed"})
+        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "allowed", "ixdsMultiUsage": "error"})
         assert isEsefExcludedInstance(val) is False
 
     def test_excluded_for_supplemental_without_esef(self) -> None:
@@ -103,8 +111,52 @@ class TestIsEsefExcludedInstance:
             ixds_target="UKFRC",
             is_supplemental=True,
         )
-        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "allowed"})
+        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "allowed", "ixdsMultiUsage": "error"})
         assert isEsefExcludedInstance(val) is True
+
+    def test_excluded_when_multi_doc_and_multi_report_package(self) -> None:
+        model_xbrl = make_model_xbrl(
+            namespace_docs={NON_ESEF_NAMESPACE: []},
+            ixds_target=None,
+            report_package=make_report_package(2),
+        )
+        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "warning", "ixdsMultiUsage": "allowed"})
+        assert isEsefExcludedInstance(val) is True
+
+    def test_not_excluded_when_multi_doc_but_single_report(self) -> None:
+        model_xbrl = make_model_xbrl(
+            namespace_docs={NON_ESEF_NAMESPACE: []},
+            ixds_target=None,
+            report_package=make_report_package(1),
+        )
+        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "warning", "ixdsMultiUsage": "allowed"})
+        assert isEsefExcludedInstance(val) is False
+
+    def test_not_excluded_when_multi_doc_has_esef(self) -> None:
+        model_xbrl = make_model_xbrl(
+            namespace_docs={ESEF_NAMESPACE: []},
+            ixds_target=None,
+            report_package=make_report_package(2),
+        )
+        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "warning", "ixdsMultiUsage": "allowed"})
+        assert isEsefExcludedInstance(val) is False
+
+    def test_not_excluded_when_multi_doc_not_allowed(self) -> None:
+        model_xbrl = make_model_xbrl(
+            namespace_docs={NON_ESEF_NAMESPACE: []},
+            ixds_target=None,
+            report_package=make_report_package(2),
+        )
+        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "warning", "ixdsMultiUsage": "error"})
+        assert isEsefExcludedInstance(val) is False
+
+    def test_not_excluded_when_no_report_package(self) -> None:
+        model_xbrl = make_model_xbrl(
+            namespace_docs={NON_ESEF_NAMESPACE: []},
+            ixds_target=None,
+        )
+        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "warning", "ixdsMultiUsage": "allowed"})
+        assert isEsefExcludedInstance(val) is False
 
 
 class TestShouldRunEsefValidationRules:
@@ -114,21 +166,25 @@ class TestShouldRunEsefValidationRules:
             ixds_target="DKGAAP",
             is_supplemental=True,
         )
-        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "allowed"})
+        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "allowed", "ixdsMultiUsage": "error"})
         assert shouldRunEsefValidationRules(val) is False
 
     def test_true_when_esef_instance(self) -> None:
         model_xbrl = make_model_xbrl(namespace_docs={ESEF_NAMESPACE: []}, ixds_target=None)
-        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "allowed"})
+        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "allowed", "ixdsMultiUsage": "error"})
         assert shouldRunEsefValidationRules(val) is True
 
     def test_false_when_disclosure_system_not_validated(self) -> None:
         model_xbrl = make_model_xbrl(namespace_docs={ESEF_NAMESPACE: []}, ixds_target=None)
-        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "allowed"}, validate_disclosure_system=False)
+        val = make_val(
+            model_xbrl,
+            auth_param={"ixTargetUsage": "allowed", "ixdsMultiUsage": "error"},
+            validate_disclosure_system=False,
+        )
         assert shouldRunEsefValidationRules(val) is False
 
     def test_false_when_esef_not_selected(self) -> None:
         model_xbrl = make_model_xbrl(namespace_docs={ESEF_NAMESPACE: []}, ixds_target=None)
         model_xbrl.modelManager.disclosureSystem = SimpleNamespace(ESEFplugin=False)
-        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "allowed"})
+        val = make_val(model_xbrl, auth_param={"ixTargetUsage": "allowed", "ixdsMultiUsage": "error"})
         assert shouldRunEsefValidationRules(val) is False

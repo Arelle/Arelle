@@ -149,6 +149,8 @@ def getEsefAuthority(
 @dataclass
 class ESEFPluginData(PluginData):
     esefAuthority: str | None = None
+    esefInstanceValidated: bool = False
+    nonEsefInstanceExcluded: bool = False
 
     @staticmethod
     def get(cntlr: Cntlr) -> ESEFPluginData:
@@ -159,6 +161,11 @@ class ESEFPluginData(PluginData):
         elif not isinstance(pluginData, ESEFPluginData):
             raise RuntimeError(f"PluginData already set for {pluginData.name} with unexpected type {type(pluginData)}.")
         return pluginData
+
+    def reset(self) -> None:
+        self.esefAuthority = None
+        self.esefInstanceValidated = False
+        self.nonEsefInstanceExcluded = False
 
 
 class ESEFPlugin(PluginHooks):
@@ -379,7 +386,9 @@ class ESEFPlugin(PluginHooks):
                 val.authParam[convertListIntoSet] = set(val.authParam[convertListIntoSet])
 
         if isEsefExcludedInstance(val):
+            pluginData.nonEsefInstanceExcluded = True
             return None
+        pluginData.esefInstanceValidated = True
 
         # add in formula messages if not loaded
         formulaMsgsUrls = val.authParam.get("formulaMessagesAdditionalURLs", ())
@@ -467,6 +476,21 @@ class ESEFPlugin(PluginHooks):
         rptPkgIxdsOptions["lookOutsideReportsDirectory"] = True
         rptPkgIxdsOptions["combineIntoSingleIxds"] = True
 
+    @staticmethod
+    def validateComplete(
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        pluginData = ESEFPluginData.get(cntlr)
+        if not pluginData.esefInstanceValidated and pluginData.nonEsefInstanceExcluded:
+            cntlr.error(
+                codes="ESEF.Arelle.noEsefReportFound",
+                msg=_("ESEF validation was requested but no reports import the ESEF taxonomy."),
+                fileSource=fileSource,
+            )
+        pluginData.reset()
 
 validationPlugin = ValidationPluginExtension(
     name=ESEF_PLUGIN_NAME,
@@ -501,6 +525,7 @@ __pluginInfo__ = {
     "ModelDocument.PullLoader": ESEFPlugin.modelDocumentPullLoader,
     "ModelTestcaseVariation.ReportPackageIxdsOptions": ESEFPlugin.modelTestcaseVariationReportPackageIxdsOptions,
     "ModelXbrl.LoadComplete": ESEFPlugin.modelXbrlLoadComplete,
+    "Validate.Complete": ESEFPlugin.validateComplete,
     "Validate.Finally": ESEFPlugin.validateFinally,  # run *after* formula processing
     "Validate.XBRL.Finally": ESEFPlugin.validateXbrlFinally,  # before formula processing
     "Validate.XBRL.Start": ESEFPlugin.validateXbrlStart,
