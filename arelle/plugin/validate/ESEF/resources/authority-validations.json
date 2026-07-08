@@ -262,7 +262,8 @@
         "name": "Spain"
     },
     "FI": {
-        "name": "Finland"
+        "name": "Finland",
+        "ixTargetUsage": "allowed"
     },
     "FR": {
         "name": "France",
