@@ -71,7 +71,15 @@ from arelle.utils.PluginData import PluginData
 from arelle.utils.PluginHooks import PluginHooks
 from .ESEF_2021.ValidateXbrlFinally import validateXbrlFinally as validateXbrlFinally2021
 from .ESEF_Current.ValidateXbrlFinally import validateXbrlFinally as validateXbrlFinallyCurrent
-from .Util import AUTHORITY_CODES, getDisclosureSystemYear, loadAuthorityValidations, ESEF_DISCLOSURE_SYSTEM_TEST_PROPERTY, esefDisclosureSystemSelected, shouldRunEsefValidationRules
+from .Util import (
+    AUTHORITY_CODES,
+    ESEF_DISCLOSURE_SYSTEM_TEST_PROPERTY,
+    esefDisclosureSystemSelected,
+    getDisclosureSystemYear,
+    isEsefExcludedInstance,
+    loadAuthorityValidations,
+    shouldRunEsefValidationRules,
+)
 from .ValidationPluginExtension import ValidationPluginExtension
 from .rules import base
 
@@ -334,7 +342,9 @@ class ESEFPlugin(PluginHooks):
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        if not shouldRunEsefValidationRules(val):
+        if not val.validateDisclosureSystem:
+            return None
+        if not esefDisclosureSystemSelected(val.modelXbrl):
             return None
         modelXbrl = val.modelXbrl
         pluginData = ESEFPluginData.get(modelXbrl.modelManager.cntlr)
@@ -367,6 +377,9 @@ class ESEFPlugin(PluginHooks):
         for convertListIntoSet in ("outdatedTaxonomyURLs", "effectiveTaxonomyURLs", "standardTaxonomyURIs", "additionalMandatoryTags"):
             if convertListIntoSet in val.authParam:
                 val.authParam[convertListIntoSet] = set(val.authParam[convertListIntoSet])
+
+        if isEsefExcludedInstance(val):
+            return None
 
         # add in formula messages if not loaded
         formulaMsgsUrls = val.authParam.get("formulaMessagesAdditionalURLs", ())
