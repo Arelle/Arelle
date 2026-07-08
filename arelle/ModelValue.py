@@ -671,10 +671,60 @@ class Time(datetime.time):
         return time
 
 
+def _gTypeEqual(
+    selfFields: tuple[int, ...], selfTz: datetime.timezone | None,
+    otherFields: tuple[int, ...], otherTz: datetime.timezone | None,
+) -> bool:
+    # XSD Datatypes 3.2.7 gives dateTime (and, analogously per 3.2.10.2/3.2.11.2/etc, the
+    # g* types) a boolean "timezoned" property that is part of the value: a timezoned value
+    # is never equal to an untimezoned one, regardless of field values.
+    if selfFields != otherFields:
+        return False
+    if selfTz is None and otherTz is None:
+        return True
+    if selfTz is None or otherTz is None:
+        return False
+    return selfTz.utcoffset(None) == otherTz.utcoffset(None)
+
+
+def _gTypeOrder(
+    selfFields: tuple[int, ...], selfTz: datetime.timezone | None,
+    otherFields: tuple[int, ...], otherTz: datetime.timezone | None,
+) -> int:
+    """Order two like-typed g* values (gYear/gYearMonth/gMonthDay/gMonth/gDay), whose only
+    lexical content is numeric fields plus an optional timezone.
+
+    Returns -1/0/1 for less-than/equal/greater-than. Raises ``TypeError`` when exactly one
+    operand carries a timezone and the numeric fields are equal: over the +-14h timezone
+    range (XSD Datatypes 3.2.7.3) that difference can never bridge a whole field unit (a
+    year/month/day), so unequal ``selfFields``/``otherFields`` alone always determines the
+    order; only a field tie leaves the order genuinely dependent on the missing timezone
+    (3.2.7.4, applied to g* types per 3.2.10.2/3.2.11.2/3.2.12.2/3.2.13.2/3.2.14.2), which
+    XmlValidate's ``_orderedComparison`` resolves with the +-14h straddling rule, mirroring
+    how it already handles offset-naive vs. offset-aware ``dateTime``/``date``/``time``.
+    """
+    if selfFields != otherFields:
+        return -1 if selfFields < otherFields else 1
+    if selfTz is None and otherTz is None:
+        return 0
+    if selfTz is None or otherTz is None:
+        raise TypeError("can't order timezone-aware and timezone-naive values of this type")
+    selfOffset = selfTz.utcoffset(None)
+    otherOffset = otherTz.utcoffset(None)
+    if selfOffset == otherOffset:
+        return 0
+    # A larger UTC offset means "further ahead of UTC", so the same local wall-clock instant
+    # (each of these types' fields denote the *start* of a period, i.e. wall-clock 00:00)
+    # occurs *earlier* in UTC: 00:00+05:00 is 19:00 UTC the previous day, earlier than
+    # 00:00+04:00's 20:00 UTC.
+    return -1 if selfOffset > otherOffset else 1
+
+
 class gYearMonth:
-    def __init__(self, year: int | str, month: int | str) -> None:
+    def __init__(self, year: int | str, month: int | str, tzinfo: datetime.timezone | None = None) -> None:
         self.year = int(year)  # may be negative
         self.month = int(month)
+        self.tzinfo = tzinfo
         self._hash = hash((self.year, self.month))
 
     def __repr__(self) -> str:
@@ -686,30 +736,32 @@ class gYearMonth:
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, gYearMonth):
             return NotImplemented
-        return self.year == other.year and self.month == other.month
+        return _gTypeEqual((self.year, self.month), self.tzinfo, (other.year, other.month), other.tzinfo)
 
     def __ne__(self, other: Any) -> bool:
-        return not self.__eq__(other)
+        if not isinstance(other, gYearMonth):
+            return NotImplemented
+        return not _gTypeEqual((self.year, self.month), self.tzinfo, (other.year, other.month), other.tzinfo)
 
     def __lt__(self, other: Any) -> bool:
         if not isinstance(other, gYearMonth):
             return NotImplemented
-        return (self.year < other.year) or (self.year == other.year and self.month < other.month)
+        return _gTypeOrder((self.year, self.month), self.tzinfo, (other.year, other.month), other.tzinfo) < 0
 
     def __le__(self, other: Any) -> bool:
         if not isinstance(other, gYearMonth):
             return NotImplemented
-        return (self.year < other.year) or (self.year == other.year and self.month <= other.month)
+        return _gTypeOrder((self.year, self.month), self.tzinfo, (other.year, other.month), other.tzinfo) <= 0
 
     def __gt__(self, other: Any) -> bool:
         if not isinstance(other, gYearMonth):
             return NotImplemented
-        return (self.year > other.year) or (self.year == other.year and self.month > other.month)
+        return _gTypeOrder((self.year, self.month), self.tzinfo, (other.year, other.month), other.tzinfo) > 0
 
     def __ge__(self, other: Any) -> bool:
         if not isinstance(other, gYearMonth):
             return NotImplemented
-        return (self.year > other.year) or (self.year == other.year and self.month >= other.month)
+        return _gTypeOrder((self.year, self.month), self.tzinfo, (other.year, other.month), other.tzinfo) >= 0
 
     def __bool__(self) -> bool:
         return self.year != 0 or self.month != 0
@@ -719,9 +771,10 @@ class gYearMonth:
 
 
 class gMonthDay:
-    def __init__(self, month: int | str, day: int | str) -> None:
+    def __init__(self, month: int | str, day: int | str, tzinfo: datetime.timezone | None = None) -> None:
         self.month = int(month)
         self.day = int(day)
+        self.tzinfo = tzinfo
         self._hash = hash((self.month, self.day))
 
     def __repr__(self) -> str:
@@ -733,32 +786,32 @@ class gMonthDay:
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, gMonthDay):
             return NotImplemented
-        return self.month == other.month and self.day == other.day
+        return _gTypeEqual((self.month, self.day), self.tzinfo, (other.month, other.day), other.tzinfo)
 
     def __ne__(self, other: Any) -> bool:
         if not isinstance(other, gMonthDay):
             return NotImplemented
-        return not self.__eq__(other)
+        return not _gTypeEqual((self.month, self.day), self.tzinfo, (other.month, other.day), other.tzinfo)
 
     def __lt__(self, other: Any) -> bool:
         if not isinstance(other, gMonthDay):
             return NotImplemented
-        return (self.month < other.month) or (self.month == other.month and self.day < other.day)
+        return _gTypeOrder((self.month, self.day), self.tzinfo, (other.month, other.day), other.tzinfo) < 0
 
     def __le__(self, other: Any) -> bool:
         if not isinstance(other, gMonthDay):
             return NotImplemented
-        return (self.month < other.month) or (self.month == other.month and self.day <= other.day)
+        return _gTypeOrder((self.month, self.day), self.tzinfo, (other.month, other.day), other.tzinfo) <= 0
 
     def __gt__(self, other: Any) -> bool:
         if not isinstance(other, gMonthDay):
             return NotImplemented
-        return (self.month > other.month) or (self.month == other.month and self.day > other.day)
+        return _gTypeOrder((self.month, self.day), self.tzinfo, (other.month, other.day), other.tzinfo) > 0
 
     def __ge__(self, other: Any) -> bool:
         if not isinstance(other, gMonthDay):
             return NotImplemented
-        return (self.month > other.month) or (self.month == other.month and self.day >= other.day)
+        return _gTypeOrder((self.month, self.day), self.tzinfo, (other.month, other.day), other.tzinfo) >= 0
 
     def __bool__(self) -> bool:
         return self.month != 0 or self.day != 0
@@ -768,8 +821,9 @@ class gMonthDay:
 
 
 class gYear:
-    def __init__(self, year: int | str) -> None:
+    def __init__(self, year: int | str, tzinfo: datetime.timezone | None = None) -> None:
         self.year = int(year)  # may be negative
+        self.tzinfo = tzinfo
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -780,32 +834,32 @@ class gYear:
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, gYear):
             return NotImplemented
-        return self.year == other.year
+        return _gTypeEqual((self.year,), self.tzinfo, (other.year,), other.tzinfo)
 
     def __ne__(self, other: Any) -> bool:
         if not isinstance(other, gYear):
             return NotImplemented
-        return not self.__eq__(other)
+        return not _gTypeEqual((self.year,), self.tzinfo, (other.year,), other.tzinfo)
 
     def __lt__(self, other: Any) -> bool:
         if not isinstance(other, gYear):
             return NotImplemented
-        return self.year < other.year
+        return _gTypeOrder((self.year,), self.tzinfo, (other.year,), other.tzinfo) < 0
 
     def __le__(self, other: Any) -> bool:
         if not isinstance(other, gYear):
             return NotImplemented
-        return self.year <= other.year
+        return _gTypeOrder((self.year,), self.tzinfo, (other.year,), other.tzinfo) <= 0
 
     def __gt__(self, other: Any) -> bool:
         if not isinstance(other, gYear):
             return NotImplemented
-        return self.year > other.year
+        return _gTypeOrder((self.year,), self.tzinfo, (other.year,), other.tzinfo) > 0
 
     def __ge__(self, other: Any) -> bool:
         if not isinstance(other, gYear):
             return NotImplemented
-        return self.year >= other.year
+        return _gTypeOrder((self.year,), self.tzinfo, (other.year,), other.tzinfo) >= 0
 
     def __bool__(self) -> bool:
         return self.year != 0
@@ -815,8 +869,9 @@ class gYear:
 
 
 class gMonth:
-    def __init__(self, month: int | str) -> None:
+    def __init__(self, month: int | str, tzinfo: datetime.timezone | None = None) -> None:
         self.month = int(month)
+        self.tzinfo = tzinfo
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -827,32 +882,32 @@ class gMonth:
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, gMonth):
             return NotImplemented
-        return self.month == other.month
+        return _gTypeEqual((self.month,), self.tzinfo, (other.month,), other.tzinfo)
 
     def __ne__(self, other: Any) -> bool:
         if not isinstance(other, gMonth):
             return NotImplemented
-        return not self.__eq__(other)
+        return not _gTypeEqual((self.month,), self.tzinfo, (other.month,), other.tzinfo)
 
     def __lt__(self, other: Any) -> bool:
         if not isinstance(other, gMonth):
             return NotImplemented
-        return self.month < other.month
+        return _gTypeOrder((self.month,), self.tzinfo, (other.month,), other.tzinfo) < 0
 
     def __le__(self, other: Any) -> bool:
         if not isinstance(other, gMonth):
             return NotImplemented
-        return self.month <= other.month
+        return _gTypeOrder((self.month,), self.tzinfo, (other.month,), other.tzinfo) <= 0
 
     def __gt__(self, other: Any) -> bool:
         if not isinstance(other, gMonth):
             return NotImplemented
-        return self.month > other.month
+        return _gTypeOrder((self.month,), self.tzinfo, (other.month,), other.tzinfo) > 0
 
     def __ge__(self, other: Any) -> bool:
         if not isinstance(other, gMonth):
             return NotImplemented
-        return self.month >= other.month
+        return _gTypeOrder((self.month,), self.tzinfo, (other.month,), other.tzinfo) >= 0
 
     def __bool__(self) -> bool:
         return self.month != 0
@@ -862,8 +917,9 @@ class gMonth:
 
 
 class gDay:
-    def __init__(self, day: int | str) -> None:
+    def __init__(self, day: int | str, tzinfo: datetime.timezone | None = None) -> None:
         self.day = int(day)
+        self.tzinfo = tzinfo
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -874,32 +930,32 @@ class gDay:
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, gDay):
             return NotImplemented
-        return self.day == other.day
+        return _gTypeEqual((self.day,), self.tzinfo, (other.day,), other.tzinfo)
 
     def __ne__(self, other: Any) -> bool:
         if not isinstance(other, gDay):
             return NotImplemented
-        return not self.__eq__(other)
+        return not _gTypeEqual((self.day,), self.tzinfo, (other.day,), other.tzinfo)
 
     def __lt__(self, other: Any) -> bool:
         if not isinstance(other, gDay):
             return NotImplemented
-        return self.day < other.day
+        return _gTypeOrder((self.day,), self.tzinfo, (other.day,), other.tzinfo) < 0
 
     def __le__(self, other: Any) -> bool:
         if not isinstance(other, gDay):
             return NotImplemented
-        return self.day <= other.day
+        return _gTypeOrder((self.day,), self.tzinfo, (other.day,), other.tzinfo) <= 0
 
     def __gt__(self, other: Any) -> bool:
         if not isinstance(other, gDay):
             return NotImplemented
-        return self.day > other.day
+        return _gTypeOrder((self.day,), self.tzinfo, (other.day,), other.tzinfo) > 0
 
     def __ge__(self, other: Any) -> bool:
         if not isinstance(other, gDay):
             return NotImplemented
-        return self.day >= other.day
+        return _gTypeOrder((self.day,), self.tzinfo, (other.day,), other.tzinfo) >= 0
 
     def __bool__(self) -> bool:
         return self.day != 0

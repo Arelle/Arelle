@@ -15,7 +15,8 @@ from fractions import Fraction
 from arelle import UrlUtil, XbrlConst, XmlUtil, XmlValidateConst
 from arelle.ModelValue import (qname, qnameFromNsmap, qnameClarkName, qnameHref,
                                dateTime, DATE, DATETIME, DATEUNION, time,
-                               anyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay, isoDuration)
+                               anyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay, isoDuration,
+                               tzinfo as _parseTzinfo)
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.PythonUtil import strTruncate
 
@@ -501,15 +502,31 @@ def fractionValidateValue(value: str, fractionValue: tuple[str, str]) -> XmlVali
 _XSD_MAX_TIMEZONE_OFFSET = datetime.timedelta(hours=14)
 
 
-def _comparableInstant(value: datetime.datetime | datetime.time) -> datetime.datetime:
-    # Express an xs:dateTime/date/time value as a single datetime so values can be
-    # ordered: timezone-aware values are normalized to (naive) UTC; an xs:time is
-    # anchored to an arbitrary fixed date (XSD Datatypes 3.2.8).
-    # Timezone-naive values are left as-is.
+_GTYPE_ANCHOR_YEAR = 2000  # arbitrary leap year (XSD Datatypes 3.2.12: "in an arbitrary leap year")
+_GTYPE_ANCHOR_31DAY_MONTH = 12  # arbitrary month with 31 days (XSD Datatypes 3.2.13)
+
+
+def _comparableInstant(value: datetime.datetime | datetime.time | gYearMonth | gYear | gMonthDay | gMonth | gDay) -> datetime.datetime:
+    # Express an xs:dateTime/date/time/gYearMonth/gYear/gMonthDay/gMonth/gDay value as a
+    # single datetime so values can be ordered: timezone-aware values are normalized to
+    # (naive) UTC. xs:time and the g* types have no full calendar date of their own, so
+    # each is anchored to an arbitrary fixed point (XSD Datatypes 3.2.8 for time;
+    # 3.2.10.2/3.2.11.2/3.2.12.2/3.2.13.2/3.2.14.2 analogously for the g* types via their
+    # "starting instant", 3.2.7.4). Timezone-naive values are left as-is.
     if isinstance(value, datetime.datetime):
         dt = value
-    else:  # datetime.time (xs:time)
+    elif isinstance(value, datetime.time):  # xs:time
         dt = datetime.datetime(2000, 1, 1, value.hour, value.minute, value.second, value.microsecond, value.tzinfo)
+    elif isinstance(value, gYearMonth):
+        dt = datetime.datetime(value.year, value.month, 1, tzinfo=value.tzinfo)
+    elif isinstance(value, gYear):
+        dt = datetime.datetime(value.year, 1, 1, tzinfo=value.tzinfo)
+    elif isinstance(value, gMonthDay):
+        dt = datetime.datetime(_GTYPE_ANCHOR_YEAR, value.month, value.day, tzinfo=value.tzinfo)
+    elif isinstance(value, gMonth):
+        dt = datetime.datetime(_GTYPE_ANCHOR_YEAR, value.month, 1, tzinfo=value.tzinfo)
+    else:  # gDay
+        dt = datetime.datetime(_GTYPE_ANCHOR_YEAR, _GTYPE_ANCHOR_31DAY_MONTH, value.day, tzinfo=value.tzinfo)
     if dt.tzinfo is not None:
         dt = dt.astimezone(datetime.timezone.utc).replace(tzinfo=None)
     return dt
@@ -538,14 +555,16 @@ def _orderedComparison(value: Any, bound: Any) -> int | None:
     ``None`` as failing whichever relation the facet requires (Datatypes 3.2.6.3:
     "indeterminate comparisons should be considered as 'false'").
 
-    Ordinarily the operands' own comparison operators are used. For an xs:date/time
-    value where exactly one operand carries a timezone, Python raises ``TypeError``
-    rather than ordering offset-naive against offset-aware values; in that case apply
-    the XSD timezone-straddling rule (Datatypes 3.2.7.4) on the underlying instants,
-    yielding ``None`` when the timezone uncertainty leaves the order undetermined.
+    Ordinarily the operands' own comparison operators are used. For an xs:date/time or
+    g* (gYearMonth/gYear/gMonthDay/gMonth/gDay) value where exactly one operand carries a
+    timezone, that comparison raises ``TypeError`` rather than ordering offset-naive
+    against offset-aware values; in that case apply the XSD timezone-straddling rule
+    (Datatypes 3.2.7.4) on the underlying instants, yielding ``None`` when the timezone
+    uncertainty leaves the order undetermined.
     """
     if type(value) is not type(bound):
         raise TypeError("Value type ({}) is not comparable with bound type ({}).".format(type(value), type (bound)))
+    _orderableTypes = (datetime.datetime, datetime.time, gYearMonth, gYear, gMonthDay, gMonth, gDay)
     try:
         if value < bound:
             return -1
@@ -553,8 +572,7 @@ def _orderedComparison(value: Any, bound: Any) -> int | None:
             return 1
         return 0
     except TypeError:
-        if not isinstance(value, (datetime.datetime, datetime.time)) or \
-                not isinstance(bound, (datetime.datetime, datetime.time)):
+        if not isinstance(value, _orderableTypes) or not isinstance(bound, _orderableTypes):
             raise
         valueInstant = _comparableInstant(value)
         boundInstant = _comparableInstant(bound)
@@ -764,26 +782,28 @@ def _validateValueStringOrRaise(
                     xValue = time(value, castException=ValueError)
                     sValue = value
                 elif baseXsdType == "gMonthDay":
+                    # zSign is the whole timezone token ("Z"/"+hh:mm"/"-hh:mm"/None); the
+                    # remaining groups decompose it further but aren't needed here.
                     month, day, zSign, zHrMin, zHr, zMin = match.groups()
                     if int(day) > {2:29, 4:30, 6:30, 9:30, 11:30, 1:31, 3:31, 5:31, 7:31, 8:31, 10:31, 12:31}[int(month)]:
                         raise ValueError("invalid day {0} for month {1}".format(day, month))
-                    xValue = gMonthDay(month, day)
+                    xValue = gMonthDay(month, day, tzinfo=_parseTzinfo(zSign))
                 elif baseXsdType == "gYearMonth":
                     year, month, zSign, zHrMin, zHr, zMin = match.groups()
                     if int(year) == 0:
                         raise ValueError("year zero is not permitted per XSD 1.0")
-                    xValue = gYearMonth(year, month)
+                    xValue = gYearMonth(year, month, tzinfo=_parseTzinfo(zSign))
                 elif baseXsdType == "gYear":
                     year, zSign, zHrMin, zHr, zMin = match.groups()
                     if int(year) == 0:
                         raise ValueError("year zero is not permitted per XSD 1.0")
-                    xValue = gYear(year)
+                    xValue = gYear(year, tzinfo=_parseTzinfo(zSign))
                 elif baseXsdType == "gMonth":
                     month, zSign, zHrMin, zHr, zMin = match.groups()
-                    xValue = gMonth(month)
+                    xValue = gMonth(month, tzinfo=_parseTzinfo(zSign))
                 elif baseXsdType == "gDay":
                     day, zSign, zHrMin, zHr, zMin = match.groups()
-                    xValue = gDay(day)
+                    xValue = gDay(day, tzinfo=_parseTzinfo(zSign))
                 elif baseXsdType == "duration":
                     xValue = isoDuration(value)
                 else:
