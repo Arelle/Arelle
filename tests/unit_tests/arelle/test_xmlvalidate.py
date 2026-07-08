@@ -575,10 +575,11 @@ def test_validateValue_facets_enumeration(value: str, expected: tuple):
         # time: Z and -00:00 denote the same instant of day
         ("time", "12:00:00-00:00", "12:00:00Z", VALID),
         ("time", "12:00:00-00:00", "13:00:00Z", INVALID),
-        # gYearMonth discards the timezone at parse time, so tz spellings collapse
-        ("gYearMonth", "2002-01Z", "2002-01", VALID),
+        # gregorian date tz alternate formats are equal
+        ("gYear", "2002Z", "2002-00:00", VALID),
         ("gYearMonth", "2002-01Z", "2002-01+00:00", VALID),
-        ("gYearMonth", "2002-01Z", "2002-02", INVALID),
+        ("gMonthDay", "--01-01-00:00", "--01-01+00:00", VALID),
+        ("gMonthDay", "--01-02", "--01-01", INVALID),
         # duration: PT1H and PT60M are the same magnitude
         ("duration", "PT1H", "PT60M", VALID),
         ("duration", "PT1H", "PT61M", INVALID),
