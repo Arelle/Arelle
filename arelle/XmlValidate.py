@@ -484,6 +484,15 @@ def _comparableInstant(value: datetime.datetime | datetime.time) -> datetime.dat
     return dt
 
 
+def _hashableXValue(xValue: Any) -> Any:
+    # xValue is normally hashable, but list-valued types (e.g. enumerationHrefs/
+    # enumerationQNames, whose xValue is a list of QName) are not. Convert to a
+    # tuple so such values can still be used as (or looked up against) dict keys.
+    if isinstance(xValue, list):
+        return tuple(xValue)
+    return xValue
+
+
 def _orderedComparison(value: Any, bound: Any) -> int | None:
     """Order ``value`` against an ordering-facet ``bound``.
 
@@ -789,17 +798,14 @@ def _validateValueStringOrRaise(
                         # namespace bindings are fixed at the schema, per XSD Part 2 §3.2.18.
                         memberNsmap = facetElt.nsmap if facetElt is not None else nsmap
                         parsedMember = _validateValueStringOrRaise(baseXsdType, member, nsmap=memberNsmap)
-                        valueSpace[parsedMember.xValue] = member
+                        valueSpace[_hashableXValue(parsedMember.xValue)] = member
                     except (ValueError, InvalidOperation, TypeError):
                         pass
                 try: # only an _EnumerationFacet (schema-derived enumeration) supports this
                     enumeration.valueSpace = valueSpace
                 except AttributeError:
                     pass
-            try:
-                found = xValue in valueSpace
-            except TypeError: # xValue is unhashable (e.g. a list); fall back to linear equality scan
-                found = any(xValue == v for v in valueSpace)
+            found = _hashableXValue(xValue) in valueSpace
             if not found:
                 raise ValueError("{0} is not in {1}".format(value, (
                     facets["enumeration"].keys()

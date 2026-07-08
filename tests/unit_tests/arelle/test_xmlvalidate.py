@@ -711,10 +711,29 @@ def test_validateValueString_enumeration_set_valued(value: str, expected_x_valid
     ],
 )
 def test_validateValueString_enumeration_unhashable_xvalue_does_not_crash(value: str, expected_x_valid: int):
-    # enumerationQNames produces a list xValue, which is unhashable; the value-space lookup
-    # must fall back to a linear scan instead of raising TypeError.
+    # enumerationQNames produces a list xValue, which is unhashable; the value-space cache
+    # must convert it to a (hashable) tuple rather than raise TypeError.
     facets = {"enumeration": {"p:a": None}}
     result = validateValueString("enumerationQNames", value, facets=facets, nsmap={"p": "urn:x"})
+    assert result.xValid == expected_x_valid
+
+
+@pytest.mark.parametrize(
+    "value,expected_x_valid",
+    [
+        ("p:a", VALID),  # exact lexical member (fast path)
+        ("q:a", VALID),  # lexical miss, but the same QName (via a different prefix) matches in the value space
+        ("q:b", INVALID),  # lexical miss, different QName -> no value-space match
+    ],
+)
+def test_validateValueString_enumeration_unhashable_xvalue_value_space_match(value: str, expected_x_valid: int):
+    # A list-valued xValue (e.g. enumerationQNames) is unhashable, so it is coerced to a tuple
+    # before being used as (or looked up against) a value-space dict key. Without that coercion,
+    # inserting a list key raises TypeError, which is silently swallowed, so every member is
+    # dropped from the cache and a value-space match (like q:a below) is wrongly rejected.
+    facets = {"enumeration": {"p:a": None}}
+    nsmap = {"p": "urn:x", "q": "urn:x"}
+    result = validateValueString("enumerationQNames", value, facets=facets, nsmap=nsmap)
     assert result.xValid == expected_x_valid
 
 
