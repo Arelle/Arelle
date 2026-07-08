@@ -31,7 +31,7 @@ def matchFactToCube(compMdl, factspace, cubeObj):
     """
     hasCoreDims = True
     hasDims = True
-    for cubeDimObj in cubeObj.cubeDimensions:
+    for cubeDimObj in cubeObj.cubeDimensions or ():
         dimName = cubeDimObj.dimension
         if dimName in coreToFactDim:
             mems = cubeDimObj.allowedMembers(compMdl)
@@ -120,7 +120,7 @@ def validateCompleteCube(compMdl, cubeObj):
     cellFacts = getattr(cubeObj, "_cellFacts", None)
 
     conceptDomainConcepts = set()
-    for cubeDimObj in cubeObj.cubeDimensions:
+    for cubeDimObj in cubeObj.cubeDimensions or ():
         if cubeDimObj.dimension == conceptCoreDim and cubeDimObj.domainNetwork:
             domNwkObj = compMdl.namedObjects.get(cubeDimObj.domainNetwork)
             if isinstance(domNwkObj, XbrlDomainNetwork):

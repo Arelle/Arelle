@@ -142,7 +142,7 @@ def buildXbrlVocab(txmyMdl: XbrlCompiledModel, valueTokensOffset: int) -> Tuple[
     for cubeObj in txmyMdl.filterNamedObjects(XbrlCube):
         c = cubeObj.xbrlMdlObjIndex
         tokens = []
-        for cubeDimObj in cubeObj.cubeDimensions:
+        for cubeDimObj in cubeObj.cubeDimensions or ():
             dimQn = cubeDimObj.dimension
             dimObj = txmyMdl.namedObjects.get(dimQn)
             if dimObj:

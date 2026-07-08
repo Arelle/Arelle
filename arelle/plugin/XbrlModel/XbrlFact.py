@@ -52,7 +52,7 @@ class XbrlFact(XbrlReportObject):
     """
     module: XbrlModuleAlias  # facts in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (equired if no extends) The name is a QName that uniquely identifies the factspace object.
-    factValues: OrderedSet[XbrlFactValue]
+    factValues: Optional[NonemptySet[XbrlFactValue]]
     factDimensions: OptionalDict[QName, Any] # (optional) A dimensions object with properties corresponding to the members of the {dimensions} property.
     factQualifier: OptionalDict[QName, Any] # (optional) A fact qualifier object, that indicates additional dimensional members that are valid for the fact.
     properties: Optional[NonemptySet[XbrlProperty]] # (optional) an ordered set of property objects used to specify additional properties associated with the fact using the property object.
@@ -66,7 +66,7 @@ class XbrlFootnote(XbrlReportObject):
     """
     module: XbrlModuleAlias  # facts in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the abstract object.
-    forObjects: OrderedSet[QName] # (required) QNames of the fact objects associated with this footnote.
+    forObjects: NonemptySet[QName] # (required) QNames of the fact objects associated with this footnote.
     content: Optional[str] # (optional) The content of the footnote.
     language: Optional[str] # (optional) The language of the footnote text, specified using the BCP 47 standard language code (e.g., "en" for English, "fr" for French).
 

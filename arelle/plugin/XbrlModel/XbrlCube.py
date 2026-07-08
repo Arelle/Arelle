@@ -99,7 +99,7 @@ class XbrlCube(XbrlReferencableModelObject):
     module: XbrlModuleAlias
     name: QNameKeyType # (required if no extends) The name property is a QName that uniquely identifies the cube object.
     cubeType: Optional[QName] # (optional) The cubeType property identifies the type of data cube being represented. This must match a defined cubeType object or specification defined cube types of xbrl:eventCube, xbrl:positionCube, xbrl:referenceCube, xbrl:reportCube, xbrl:journalCube, xbrl:eventDetailsCube, xbrl:timeSeriesCube and xbrl:defaultCube. If no QName is provided the default is xbrl:reportCube.
-    cubeDimensions: OrderedSet[XbrlCubeDimension] # (required) An ordered set of cubeDimension objects that identify the dimensions and associated domains used on the cube.
+    cubeDimensions: Optional[NonemptySet[XbrlCubeDimension]] # (required) An ordered set of cubeDimension objects that identify the dimensions and associated domains used on the cube.
     cubeNetworks: Optional[NonemptySet[QName]] # (optional) An ordered set of network object QNames that reference network objects that are directly related to the cube.
     excludeCubes: Optional[NonemptySet[QName]] # (optional) An ordered set of cube object QNames that remove the facts of the constraint cube from the facts of the defined cube.
     requiredCubes: Optional[NonemptySet[QName]] # (optional) An ordered set of cube object QNames that require the facts of the constraint cube to be included in the facts of the defined cube.

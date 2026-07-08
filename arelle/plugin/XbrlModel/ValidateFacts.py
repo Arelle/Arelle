@@ -79,7 +79,7 @@ def resolveFact(txmyMdl, txmyObj, fact):
         return
     factIsNil = any(getattr(p, "property", None) == qnFactNilProperty
                     for p in (fact.properties or ()))
-    for factValue in fact.factValues:
+    for factValue in fact.factValues or ():
         # A nil fact carries no value in its factValue object; there is nothing to
         # type-validate. (An explicit value or valueSource still validates below.)
         if factIsNil and factValue.value is None and not factValue.valueSources:
@@ -386,7 +386,7 @@ def validateFactPosition(txmyMdl, fact):
             # cube-completion pass can perform duplicate-fact validation.
             cellKey = tuple(
                 (cubeDimObj.dimension, fact.factDimensions.get(cubeDimObj.dimension))
-                for cubeDimObj in cubeObj.cubeDimensions
+                for cubeDimObj in cubeObj.cubeDimensions or ()
             )
             bucket = cellFacts.setdefault(cellKey, [])
             for fv in (fact.factValues or ()):

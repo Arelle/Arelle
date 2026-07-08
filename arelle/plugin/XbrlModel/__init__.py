@@ -687,7 +687,10 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                                 error("oimte:invalidEmptySet",
                                       _("Property %(propName)s is a NonemptySet but is empty: %(path)s"),
                                       sourceFileLine=href, propName=propName, path="/".join(pathParts + [propName]))
-                                setattr(newObj, propName, None)
+                                # non-optional NonemptySet branch (GenericAlias): the correct empty value is
+                                # an empty collection, not None (the property is never absent) — keeps
+                                # downstream iteration safe. (Optional[NonemptySet] uses None; see below.)
+                                setattr(newObj, propName, propClass())
                         elif isinstance(jsonValue, dict) and _keyClass is not None:
                             for iObj, (valKey, valVal) in enumerate(jsonValue.items()):
                                 if isinstance(_keyClass, type) and issubclass(_keyClass,QName):
@@ -716,7 +719,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                             error("oimte:invalidEmptySet",
                                   _("Property %(property)s is a NonemptySet but is empty: %(path)s"),
                                   sourceFileLine=href, property=propName, path=f"{'/'.join(pathParts)}")
-                            setattr(newObj, propName, None)
+                            setattr(newObj, propName, None) # Optional[NonemptySet] branch: absent-semantics is None
                     elif isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] == type(None) and isinstance(jsonValue,dict): # optional embdded object
                         createModelObjects(propName, jsonValue, newObj, pathParts + [propName]) # object property
                     elif isinstance(propType, type) and issubclass(propType, XbrlObject) and isinstance(jsonValue,dict): # mandatory embdded object
@@ -949,6 +952,12 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         # Parse documentInfo.sourceMappings into a lightweight list of mapping
         # objects accessible via module._sourceMappings for FactValueResolver
         # (step 6 -- HTML / PDF locator-property registry).
+        # sourceMappings is a non-empty set when present; parsed manually here (not via the type-driven
+        # NonemptySet loader), so the present-but-empty check must be explicit.
+        if "sourceMappings" in documentInfo and not documentInfo["sourceMappings"]:
+            error("oimte:invalidEmptySet",
+                  _("The documentInfo sourceMappings MUST NOT be empty."),
+                  sourceFileLine=href)
         sourceMappingsRaw = documentInfo.get("sourceMappings") or ()
         parsedSourceMappings = []
         seenSourceNames = set()

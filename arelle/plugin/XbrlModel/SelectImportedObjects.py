@@ -58,8 +58,8 @@ def validateImportSelections(txmyMdl, newTxmy, impTxObj):
        Does NOT perform any object selection or pruning.
     """
     name = impTxObj.xbrlModelName
-    importObjectTypes = impTxObj.importObjectTypes
-    selections = impTxObj.selections
+    importObjectTypes = impTxObj.importObjectTypes or ()
+    selections = impTxObj.selections or ()
 
     for impObjTp in importObjectTypes:
         if impObjTp == qnXbrlImportTaxonomyObj:

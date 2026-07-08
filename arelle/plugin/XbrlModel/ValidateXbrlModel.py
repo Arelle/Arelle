@@ -558,7 +558,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                   matchedNtws=matchedNtws, minNetworks=cnst.minNetworks)
 
         dimQnCounts = {}
-        for cubeDimObj in cubeObj.cubeDimensions:
+        for cubeDimObj in cubeObj.cubeDimensions or ():
             dimQn = cubeDimObj.dimension
             dimObj = validateQNameReference(compMdl, cubeDimObj, "dimension", XbrlDimension,
                                             invalidTypeMsgCode="oimte:invalidObjectType")
@@ -643,7 +643,8 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                       _("The cubeDimensions of cube %(name)s duplicate these dimension object(s): %(dimensions)s"),
                       xbrlObject=cubeObj, name=name, dimensions=", ".join(str(qn) for qn, ct in dimQnCounts.items() if ct > 1))
         # check cube dims against cube type; extension cubes inherit concept dim from target
-        if (cubeType.basemostCubeType(compMdl) != defaultCubeType
+        if (cubeObj.cubeDimensions  # empty cubeDimensions already reported as invalidEmptySet at load
+                and cubeType.basemostCubeType(compMdl) != defaultCubeType
                 and conceptCoreDim not in dimQnCounts.keys()
                 and not getattr(cubeObj, 'extends', None)):
             compMdl.error("oimte:cubeMissingConceptDimension",
@@ -773,12 +774,12 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 exclObj = compMdl.namedObjects.get(exclQn)
                 if not isinstance(exclObj, XbrlCube):
                     continue
-                exclDims = frozenset(cd.dimension for cd in exclObj.cubeDimensions)
+                exclDims = frozenset(cd.dimension for cd in exclObj.cubeDimensions or ())
                 for reqQn in reqCubeQns:
                     reqObj = compMdl.namedObjects.get(reqQn)
                     if not isinstance(reqObj, XbrlCube):
                         continue
-                    reqDims = frozenset(cd.dimension for cd in reqObj.cubeDimensions)
+                    reqDims = frozenset(cd.dimension for cd in reqObj.cubeDimensions or ())
                     if exclDims == reqDims:
                         compMdl.error("oimte:excludeCubeSharesDimensionalSpaceWithRequiredCube",
                                       _("Cube %(name)s excludeCube %(excludeCube)s shares the same dimensional space as requiredCube %(requiredCube)s."),
@@ -790,7 +791,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         hasConceptDimension = False
         hasTimeseriesDimension = False
         timeSeriesTaxonomyDims = []
-        for iCubeDim, cubeDimObj in enumerate(cubeObj.cubeDimensions):
+        for iCubeDim, cubeDimObj in enumerate(cubeObj.cubeDimensions or ()):
             assertObjectType(compMdl, cubeDimObj, XbrlCubeDimension)
             dimName = cubeDimObj.dimension
             dimObj = validateQNameReference(compMdl, cubeDimObj, "dimension", XbrlDimension,
@@ -996,7 +997,8 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                 dtResObj._valueValid, dtResObj._valueValue = validateValue(compMdl, module, cubeObj, dtResObj.value, "XBRLI_DATEUNION", f"/cubeDimensions[{iCubeDim}]/periodConstraints[{iPerConst}]/{dtResProp}/value", "oimte:invalidPeriodRepresentation")
 
         # Extension cubes inherit concept dimension from target; only check non-extension cubes
-        if not hasConceptDimension and not getattr(cubeObj, 'extends', None):
+        # (skip empty cubeDimensions — already reported as invalidEmptySet at load)
+        if cubeObj.cubeDimensions and not hasConceptDimension and not getattr(cubeObj, 'extends', None):
                 compMdl.error("oimte:cubeMissingConceptDimension",
                           _("The cubeDimensions of cube %(name)s, type %(cubeType)s, must have a concept core dimension"),
                           xbrlObject=cubeObj, name=name, cubeType=getattr(cubeType,'name',None))
@@ -1008,7 +1010,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         }
         coreDomainClasses = set(cubeType.effectivePropVal(compMdl, "coreDomainClasses"))
         if coreDomainClasses:
-            cubeDimByName = {cd.dimension: cd for cd in cubeObj.cubeDimensions}
+            cubeDimByName = {cd.dimension: cd for cd in cubeObj.cubeDimensions or ()}
             for reqDim, reqDomClass in coreDomainClassByDimension.items():
                 if reqDomClass in coreDomainClasses:
                     cubeDimObj = cubeDimByName.get(reqDim)

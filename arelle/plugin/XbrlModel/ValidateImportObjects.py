@@ -27,7 +27,7 @@ def validateImportFamily(compMdl, module, oimFile, *, assertObjectType, validate
     for impTxObj in module.importedTaxonomies or ():
         assertObjectType(compMdl, impTxObj, XbrlImportTaxonomy)
         impMdlName = impTxObj.xbrlModelName
-        for qnObjType in impTxObj.importObjectTypes:
+        for qnObjType in impTxObj.importObjectTypes or ():
             if qnObjType in xbrlObjectTypes:
                 clsForObjType = xbrlObjectTypes[qnObjType]
                 if clsForObjType == XbrlLabel:
@@ -80,7 +80,7 @@ def validateImportFamily(compMdl, module, oimFile, *, assertObjectType, validate
                                _("The importTaxonomy %(moduleName)s cannot be extended by object %(qname)s due to having %(name)s in finalObjects."),
                                xbrlObject=_impTxObj, moduleName=_impMdlName, qname=xbrlObjectQNames[type(obj)], name=obj.extends)
                 elif _finalTxObj.selections:
-                    for i, selObj in enumerate(_impTxObj.selections):
+                    for i, selObj in enumerate(_impTxObj.selections or ()):
                         if xbrlObjectQNames[type(obj)] == selObj.objectType and (
                             all((eval(obj, whereObj) for whereObj in selObj.where))):
                             emit_error(compMdl, "oimte:invalidFinalTaxonomyObject",

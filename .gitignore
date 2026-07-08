@@ -4,6 +4,8 @@
 .eggs
 .python-version
 .tox
+.claude/
+.claude/settings.json
 /.mypy_cache/
 /.pytest_cache/
 /venv/
