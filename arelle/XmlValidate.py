@@ -822,9 +822,9 @@ def _validateValueStringOrRaise(
                         # validated instance's) since a QName-lexical enumeration member's
                         # namespace bindings are fixed at the schema, per XSD Part 2 §3.2.18.
                         parsedMember = _validateValueStringOrRaise(baseXsdType, member, nsmap=facetElt.nsmap)
-                        valueSpace[_hashableXValue(parsedMember.xValue)] = member
-                    except (ValueError, InvalidOperation, TypeError):
-                        pass
+                    except (ValueError, InvalidOperation):
+                        continue
+                    valueSpace[_hashableXValue(parsedMember.xValue)] = member
                 enumeration.valueSpace = valueSpace
             found = _hashableXValue(xValue) in valueSpace
             if not found:
