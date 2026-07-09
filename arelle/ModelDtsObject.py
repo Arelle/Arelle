@@ -1560,7 +1560,7 @@ class ModelType(ModelNamableTerm):
         if "enumeration" not in facetValues:
             for facetElt in XmlUtil.schemaFacets(self, ["{http://www.w3.org/2001/XMLSchema}enumeration"]):
                 assert facetElt is not None, "facetElt is None"
-                facetValues.setdefault("enumeration",{})[facetElt.get("value")] = facetElt
+                facetValues.setdefault("enumeration", XmlValidate.EnumerationFacet())[facetElt.get("value")] = facetElt
         typeDerivedFrom = self.typeDerivedFrom
         if isinstance(typeDerivedFrom, ModelType):
             typeDerivedFrom.constrainingFacets(facetValues)
