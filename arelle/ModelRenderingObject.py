@@ -308,8 +308,6 @@ class StrctMdlNode:
     tableNode: DefnMdlTable | None
     aspectEntryObjectId: str
     parentOrdinateContext: bool
-    primaryItemQname: QName | str
-    explicitDims: set[tuple[Any, ...]] | None
     hasOpenNode: bool
 
     def __init__(self, strctMdlParentNode: StrctMdlNode | None, defnMdlNode: DefnMdlDefinitionNode | None = None) -> None:
@@ -876,20 +874,6 @@ class StrctMdlStructuralNode(StrctMdlNode):
             self.strctMdlParentNode.setHasOpenNode()
         else:
             self.hasOpenNode = True
-
-    def inheritedPrimaryItemQname(self, view: Any) -> Any:
-        return self.primaryItemQname or self.inheritedPrimaryItemQname(self.strctMdlParentNode, view)  # type: ignore[call-arg]
-
-    def inheritedExplicitDims(self, view: Any, dims: dict[Any, Any] | None = None, nested: bool = False) -> set[tuple[Any, str]] | None:
-        if dims is None:
-            dims = {}
-        if self.parentOrdinateContext:
-            self.strctMdlParentNode.inheritedExplicitDims(view, dims, True)  # type: ignore[union-attr]
-        for dim, mem in self.explicitDims:  # type: ignore[union-attr]
-            dims[dim] = mem
-        if not nested:
-            return {(dim, mem) for dim, mem in dims.items() if mem != "omit"}
-        return None
 
     def inheritedAspectValue(
         self,
