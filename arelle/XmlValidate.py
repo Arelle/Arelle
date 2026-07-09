@@ -897,26 +897,22 @@ def validateValue(
 
 
 def _facetTypeAndFacets(facetName: str, baseXsdType: str) -> tuple[str, dict[str, int | EnumerationFacet] | None]:
-    facets: dict[str, int | EnumerationFacet] | None
+    facets: dict[str, int | EnumerationFacet] | None = None
     if facetName in ("length", "minLength", "maxLength"):
         baseXsdType = "nonNegativeInteger"
-        facets = None
     elif facetName == "fractionDigits":
         # Integer and its derived types have fractionDigits fixed at 0 while xs:decimal allows any non-negative value.
         facets = {"maxInclusive": 0} if baseXsdType in _INTEGER_BASE_XSD_TYPES else None
         baseXsdType = "nonNegativeInteger"
     elif facetName == "totalDigits":
         baseXsdType = "positiveInteger"
-        facets = None
     elif facetName in ("minInclusive", "maxInclusive"):
         baseXsdType = baseXsdType
-        facets = None
     elif facetName in ("minExclusive", "maxExclusive"):
         # Reject values at or outside of the type's bounds, e.g. minExclusive="127" for byte.
         # The facet value itself is valid as a byte but it creates an empty range (nothing > 127)
         # for the value space of the type it restricts. Inclusive bounds don't need this because they
         # overshoot the range by one (minInclusive="128" for byte), which type parsing already rejects.
-        facets = None
         if inherentBounds := _XSD_TYPE_INHERENT_INCLUSIVE_BOUNDS.get(baseXsdType):
             lowerLimit, upperLimit = inherentBounds
             if facetName == "minExclusive" and upperLimit is not None:
@@ -929,10 +925,8 @@ def _facetTypeAndFacets(facetName: str, baseXsdType: str) -> tuple[str, dict[str
             {member: _EnumerationFacetMember() for member in ("replace", "preserve", "collapse")})}
     elif facetName == "pattern":
         baseXsdType = "xsd-pattern"
-        facets = None
     else:
         baseXsdType = "string"
-        facets = None
     return baseXsdType, facets
 
 def validateFacet(typeElt: ModelType, facetElt: ModelObject) -> TypeXValue | None:
