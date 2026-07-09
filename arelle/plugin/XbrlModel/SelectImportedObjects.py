@@ -210,7 +210,6 @@ def applyDeferredImportPruning(txmyMdl):
         unionSelections = []
         allExcludeLabels = True
         allExcludeGroupContents = True
-        anyRemoveOrphanedRefQNames = False
         anyUnfiltered = False
 
         for entry in importEntries:
@@ -225,8 +224,6 @@ def applyDeferredImportPruning(txmyMdl):
                 allExcludeLabels = False
             if not getattr(entry, "excludeGroupContents", False):
                 allExcludeGroupContents = False
-            if getattr(entry, "removeOrphanedReferenceQNames", False):
-                anyRemoveOrphanedRefQNames = True
 
         if anyUnfiltered:
             if allExcludeLabels:
@@ -235,7 +232,7 @@ def applyDeferredImportPruning(txmyMdl):
 
         _pruneModuleObjects(txmyMdl, moduleObj,
                            unionImportObjects, unionImportObjectTypes, unionSelections,
-                           allExcludeLabels, allExcludeGroupContents, anyRemoveOrphanedRefQNames)
+                           allExcludeLabels, allExcludeGroupContents)
 
     del txmyMdl._pendingImportEntries
 
@@ -254,7 +251,7 @@ def _excludeLabelsOnly(txmyMdl, moduleObj):
 
 def _pruneModuleObjects(txmyMdl, moduleObj,
                         importObjects, importObjectTypes, selections,
-                        excludeLabels, excludeGroupContents, removeOrphanedRefQNames=False):
+                        excludeLabels, excludeGroupContents):
     """Core pruning logic: select objects matching the unioned filters,
        transitively select referenced objects, then delete everything else.
     """
@@ -378,15 +375,10 @@ def _pruneModuleObjects(txmyMdl, moduleObj,
                             del refObj
                     del obj
 
-        # A label whose sole forObject was pruned above is now orphaned. Such a
-        # label commonly lives in a different module (e.g. a separate label
-        # module) that the dereferencing walk above does not touch, leaving it in
-        # both the tag index and its owning module's labels. Remove it so
-        # downstream validation does not report oimte:invalidQNameReference for a
-        # label whose related object was removed by selective import. (A label
-        # authored against a never-defined object is not pruned here and is still
-        # correctly reported.) References are left untouched: they may target
-        # multiple objects and have their own removeOrphanedReferenceQNames handling.
+        # A label whose sole forObject was pruned above is now orphaned. Drop it early so the tag index
+        # stays consistent for selective import. (Orphaned labels/references/groupContents are also cleaned
+        # comprehensively over the final merged model by cleanOrphanedForObjects — oim-taxonomy orphan
+        # cleanup — so references and multi-target cases are handled there rather than per-import.)
         for prunedName in prunedNames:
             tagObjs = txmyMdl.tagObjects.get(prunedName)
             if not tagObjs:
@@ -399,18 +391,5 @@ def _pruneModuleObjects(txmyMdl, moduleObj,
                         refMod.labels.remove(tagObj)
             if not tagObjs:
                 del txmyMdl.tagObjects[prunedName]
-
-        # removeOrphanedReferenceQNames: a reference kept by selective import may
-        # still list forObjects that were pruned (are now absent from the model).
-        # When the import entry requested it, strip those orphaned QNames so the
-        # reference is not later reported with an invalid related object name.
-        # (Absent from an import entry, the orphan is intentionally left to be
-        # reported -- see IMPORTTAXONOMY-SelectiveConceptImportWithOrphanedReference.)
-        if removeOrphanedRefQNames:
-            for refObj in getattr(moduleObj, "references", None) or ():
-                forObjs = getattr(refObj, "forObjects", None)
-                if forObjs and i0 <= refObj.xbrlMdlObjIndex <= iL:
-                    for qn in [q for q in forObjs if q not in txmyMdl.namedObjects]:
-                        forObjs.discard(qn)
     elif excludeLabels:
         _excludeLabelsOnly(txmyMdl, moduleObj)

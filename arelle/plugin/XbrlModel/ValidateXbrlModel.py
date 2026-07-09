@@ -200,12 +200,57 @@ def _hashable_value(value):
     return value
 
 
+def cleanOrphanedForObjects(compMdl):
+    """Automatically clean orphaned QName references in labels, references and groupContents using the final
+       compiled-model object set (oim-taxonomy.md, model-compilation orphan cleanup). This runs after all
+       imports are merged: a `forObject`/`forObjects` entry that does not resolve to an object in the compiled
+       model is removed; a label whose `forObject` is unresolved is dropped; and a reference or groupContent
+       whose `forObjects` becomes empty after cleanup is dropped. A forObject that resolves to an object of the
+       wrong type is NOT orphaned and is left for the type-specific validations to report."""
+    def resolves(qn):
+        return qn is not None and (qn in compMdl.namedObjects or qn in xbrlObjectTypes or compMdl.isImpliedObject(qn))
+    def dropTag(qn, tagObj):
+        lst = compMdl.tagObjects.get(qn)
+        if lst and tagObj in lst:
+            lst.remove(tagObj)
+            if not lst:
+                del compMdl.tagObjects[qn]
+    for module in compMdl.xbrlModels.values():
+        if module.labels:
+            keptLabels = OrderedSet()
+            for lblObj in module.labels:
+                if resolves(lblObj.forObject):
+                    keptLabels.add(lblObj)
+                else:  # forObject cannot be resolved — drop the label
+                    dropTag(lblObj.forObject, lblObj)
+            module.labels = keptLabels or None
+        for collAttr in ("references", "groupContents"):
+            coll = getattr(module, collAttr, None)
+            if not coll:
+                continue
+            keptColl = OrderedSet()
+            for tagObj in coll:
+                forObjs = getattr(tagObj, "forObjects", None)
+                if forObjs is not None:
+                    for qn in [q for q in forObjs if not resolves(q)]:
+                        forObjs.discard(qn)
+                        dropTag(qn, tagObj)
+                    if not forObjs:  # no remaining forObjects after cleanup — drop the object
+                        continue
+                keptColl.add(tagObj)
+            setattr(module, collAttr, keptColl or None)
+
+
 def validateCompiledModel(compMdl):
     """Validate the compiled model as a whole, after all modules have been validated and combined into the compiled model.
         This is for checks that require the whole model to be available, such as checking for duplicate labels across modules.
     """
 
     compMdl.errorCatalog = get_error_catalog()
+
+    # Automatic orphan cleanup MUST run over the final merged object set before validation so that
+    # orphaned label/reference/groupContent forObjects are not reported as invalid QName references.
+    cleanOrphanedForObjects(compMdl)
 
     mdlLvlChecks = attrdict(
         labelsCt = defaultdict(list), # count of duplicated labels by forObject, labelType and language
@@ -1784,22 +1829,27 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                           _("The groupTree relationship target %(target)s MUST reference a group object."),
                           xbrlObject=module.groupTree, target=rel.target)
 
-    # A factSource's factIdentifierNamespace must be declared in the module.
-    # Two places count: documentInfo.namespaces (in _prefixNamespaces) and
-    # xbrlModel.namespacePrefixes (XbrlNamespacePrefix objects).
-    moduleNamespaceValues = set(getattr(module, "_prefixNamespaces", {}).values())
-    moduleNamespaceValues.update(
-        str(getattr(np, "namespace", None))
+    # A factSource's factIdentifierNamespacePrefix, and any namespaceMap from/toNamespacePrefix, MUST be a
+    # namespace prefix declared in documentInfo.namespaces (oim-taxonomy §factSource / namespaceMap), else
+    # oimce:unboundPrefix.
+    declaredPrefixes = set(getattr(module, "_prefixNamespaces", {}).keys())
+    declaredPrefixes.update(
+        str(getattr(np, "prefix", None))
         for np in (module.namespacePrefixes or ())
-        if getattr(np, "namespace", None) is not None
+        if getattr(np, "prefix", None) is not None
     )
+    def _checkFactSourcePrefix(obj, prefix, propName, srcName):
+        if prefix is not None and prefix not in declaredPrefixes:
+            compMdl.error("oimce:unboundPrefix",
+                          _("The factSource %(name)s %(prop)s '%(prefix)s' is not a namespace prefix declared in documentInfo.namespaces."),
+                          xbrlObject=obj, name=srcName, prop=propName, prefix=prefix)
     for factSrc in module.factSources or ():
         assertObjectType(compMdl, factSrc, XbrlFactSource)
-        fidNs = getattr(factSrc, "factIdentifierNamespace", None)
-        if fidNs is not None and str(fidNs) not in moduleNamespaceValues:
-            compMdl.error("oimte:namespaceInModelNotInDocumentNamespace",
-                          _("The factSource %(name)s factIdentifierNamespace %(namespace)s is not declared in the module's namespaces."),
-                          xbrlObject=factSrc, name=factSrc.name, namespace=fidNs)
+        srcName = getattr(factSrc, "name", None)
+        _checkFactSourcePrefix(factSrc, getattr(factSrc, "factIdentifierNamespacePrefix", None), "factIdentifierNamespacePrefix", srcName)
+        for nsMap in getattr(factSrc, "namespaceMaps", None) or ():
+            _checkFactSourcePrefix(nsMap, getattr(nsMap, "fromNamespacePrefix", None), "fromNamespacePrefix", srcName)
+            _checkFactSourcePrefix(nsMap, getattr(nsMap, "toNamespacePrefix", None), "toNamespacePrefix", srcName)
 
 def validateCompletedModel(compMdl):
     """ Validate the completed model, including validating facts and complete cubes.

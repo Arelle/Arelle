@@ -22,19 +22,10 @@
         "version": "2026",
         "importedTaxonomies": [
                 {
-                    "xbrlModelName": "xs:XMLSchemaTypes"
-                },
-                {
                     "xbrlModelName": "xbrl:core"
                 },
                 {
                     "xbrlModelName": "utr:units"
-                },
-                {
-                    "xbrlModelName": "xbrlr:dataTypes"
-                },
-                {
-                    "xbrlModelName": "ref:referenceProperties"
                 },
                 {
                     "xbrlModelName": "iso4217:currencyUnits"

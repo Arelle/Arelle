@@ -77,8 +77,8 @@ class XbrlNamespaceMap(XbrlObject):
         Reference: oim-taxonomy#namespacemap-object
     """
     parent: Union[XbrlFactSourceAlias, XbrlXMLTemplateMapAlias]
-    fromNamespace: AnyURI # (required) The fromNamespace property is the original namespace that is being redirected.
-    toNamespace: AnyURI # (required) The toNamespace property is the new namespace that the fromNamespace is being redirected to.
+    fromNamespacePrefix: Optional[str] # (optional) The original namespace prefix that is being redirected. Must be declared in documentInfo.namespaces.
+    toNamespacePrefix: str # (required) The new namespace prefix that the fromNamespacePrefix is being redirected to. Must be declared in documentInfo.namespaces.
 
 XbrlFactSourceDimensionSummaryAlias: TypeAlias = "XbrlFactSourceDimensionSummary"
 class XbrlFactSourceDimensionSummaryRange(XbrlObject):
@@ -126,7 +126,7 @@ class XbrlFactSource(XbrlReportObject):
     factNames: Optional[OrderedSet[QName]] # (optional) An ordered set of QNames that reference fact objects defined in the taxonomy model. If provided, the factSource object only applies to the facts with these names. If not provided, the factSource object applies to all facts in the report.
     hash: Optional[str] # (optional) A hash value that can be used to verify the integrity of the data source. The specific hashing algorithm used is not defined in the specification and may be determined by the implementation.
     metadata: Optional[XbrlFactSourceMetadata] # (optional) A metadata object that can contain any additional information about the fact source. The structure and content of the metadata object is not defined in the specification and may be determined by the implementation.
-    factIdentifierNamespace: Optional[AnyURI] # (optional) Namespace URI used for generated fact/factValue object names derived from this source.
+    factIdentifierNamespacePrefix: Optional[str] # (optional) Namespace prefix (declared in documentInfo.namespaces) used for generated fact/factValue object names derived from this source; if absent the model's namespace prefix is used.
     properties: Optional[NonemptySet[XbrlProperty]] # (optional) an ordered set of property objects used to specify additional properties associated with the factSource using the property object.
 
 class XbrlTableTemplate(XbrlReportObject):

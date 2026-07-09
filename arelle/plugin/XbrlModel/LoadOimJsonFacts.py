@@ -81,9 +81,9 @@ def parseOimJsonFacts(compMdl, module, factSource, url):
     if isinstance(docInfo, dict) and isinstance(docInfo.get("namespaces"), dict):
         docNamespaces = docInfo["namespaces"]
 
-    factNs = getattr(factSource, "factIdentifierNamespace", None)
-    factNs = str(factNs) if factNs else getattr(module, "_documentNamespaceURI", None)
     prefixNs = getattr(module, "_prefixNamespaces", {}) or {}
+    _factPrefix = getattr(factSource, "factIdentifierNamespacePrefix", None)
+    factNs = prefixNs.get(_factPrefix) if _factPrefix else getattr(module, "_documentNamespaceURI", None)
     # bring the report's own namespaces into scope for member/unit resolution
     for p, u in docNamespaces.items():
         if p not in prefixNs:

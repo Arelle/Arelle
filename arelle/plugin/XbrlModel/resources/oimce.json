@@ -625,16 +625,16 @@
         ]
       },
       {
-        "name": "oimce:invalidURIFactIdentifierNamespaceReference",
+        "name": "oimce:unboundPrefixFactIdentifierNamespacePrefixReference",
         "forObjects": [
-          "oimce:invalidURI"
+          "oimce:unboundPrefix"
         ],
         "referenceType": "xbrl:conformanceTestReference",
         "language": "en",
         "properties": [
           {
             "property": "xbrl:conformanceTestFileName",
-            "value": "NAMESPACE-InvalidURI-FactIdentifierNamespace.json"
+            "value": "NAMESPACE-InvalidURI-FactIdentifierNamespacePrefix.json"
           },
           {
             "property": "xbrl:conformanceStatus",
@@ -646,7 +646,7 @@
           },
           {
             "property": "xbrl:specificationErrorURI",
-            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NAMESPACE-InvalidURI-FactIdentifierNamespace"
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NAMESPACE-InvalidURI-FactIdentifierNamespacePrefix"
           }
         ]
       },
@@ -677,9 +677,9 @@
         ]
       },
       {
-        "name": "oimce:invalidURINamespaceMapReference",
+        "name": "oimce:unboundPrefixNamespaceMapReference",
         "forObjects": [
-          "oimce:invalidURI"
+          "oimce:unboundPrefix"
         ],
         "referenceType": "xbrl:conformanceTestReference",
         "language": "en",
@@ -725,6 +725,32 @@
           {
             "property": "xbrl:specificationErrorURI",
             "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NAMESPACE-PrefixNotDefined"
+          }
+        ]
+      },
+      {
+        "name": "oimce:unboundPrefixInvalidChangeFactMapExternalFileReference",
+        "forObjects": [
+          "oimce:unboundPrefix"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "FACTSET-InvalidChangeFactMapExternalFile.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "\u274c Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACTSET-InvalidFactIdentifierNamespacePrefix"
           }
         ]
       },

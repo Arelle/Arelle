@@ -663,6 +663,18 @@
         ]
       },
       {
+        "name": "oimte:invalidObjectTypeForImpliedObject",
+        "domainClasses": [
+          "oimte:OIMErrorClassDomain"
+        ],
+        "properties": [
+          {
+            "property": "xbrl:severity",
+            "value": "error"
+          }
+        ]
+      },
+      {
         "name": "oimte:invalidModelObjectType",
         "domainClasses": [
           "oimte:OIMErrorClassDomain"
@@ -2239,42 +2251,6 @@
         ]
       },
       {
-        "name": "oimte:inconsistentTableTypes",
-        "domainClasses": [
-          "oimte:OIMErrorClassDomain"
-        ],
-        "properties": [
-          {
-            "property": "xbrl:severity",
-            "value": "error"
-          }
-        ]
-      },
-      {
-        "name": "oimte:conflictingAxisLabelSources",
-        "domainClasses": [
-          "oimte:OIMErrorClassDomain"
-        ],
-        "properties": [
-          {
-            "property": "xbrl:severity",
-            "value": "error"
-          }
-        ]
-      },
-      {
-        "name": "oimte:gridHeaderWithAxisHeader",
-        "domainClasses": [
-          "oimte:OIMErrorClassDomain"
-        ],
-        "properties": [
-          {
-            "property": "xbrl:severity",
-            "value": "error"
-          }
-        ]
-      },
-      {
         "name": "oimte:invalidGridHeaderSpan",
         "domainClasses": [
           "oimte:OIMErrorClassDomain"
@@ -2384,18 +2360,6 @@
       },
       {
         "name": "oimte:referenceLanguageRedefined",
-        "domainClasses": [
-          "oimte:OIMErrorClassDomain"
-        ],
-        "properties": [
-          {
-            "property": "xbrl:severity",
-            "value": "error"
-          }
-        ]
-      },
-      {
-        "name": "oimte:namespaceInModelNotInDocumentNamespace",
         "domainClasses": [
           "oimte:OIMErrorClassDomain"
         ],
@@ -3555,6 +3519,11 @@
             "order": 8
           },
           {
+            "source": "xbrl:impliedObjectObject",
+            "target": "oimte:invalidObjectTypeForImpliedObject",
+            "order": 1
+          },
+          {
             "source": "xbrl:cubeTypeObject",
             "target": "oimte:invalidCoreDimension",
             "order": 1
@@ -4319,6 +4288,18 @@
         "language": "en",
         "value": "Invalid Included Object Type",
         "labelType": "xbrl:label"
+      },
+      {
+        "forObject": "oimte:invalidObjectTypeForImpliedObject",
+        "language": "en",
+        "value": "Invalid Object Type For Implied Object",
+        "labelType": "xbrl:label"
+      },
+      {
+        "forObject": "oimte:invalidObjectTypeForImpliedObject",
+        "language": "en",
+        "value": "The objectType '{objectType}' is not valid for implied objects. The objectType must be either xbrl:memberObject or xbrl:entityObject.",
+        "labelType": "xbrl:errorMessage"
       },
       {
         "forObject": "oimte:invalidImportObjectType",
@@ -5338,6 +5319,12 @@
         "forObject": "oimte:invalidImportObjectType",
         "language": "en",
         "value": "This error is generated when an import profile's importObjectTypes property specifies an object type that is not valid for selective import. Only certain object types can be selectively imported. The specification defines which object types support this filtering capability.",
+        "labelType": "xbrl:documentation"
+      },
+      {
+        "forObject": "oimte:invalidObjectTypeForImpliedObject",
+        "language": "en",
+        "value": "This error is raised when an implied object definition specifies an objectType that is not xbrl:memberObject or xbrl:entityObject. Implied objects can only represent member or entity object types.",
         "labelType": "xbrl:documentation"
       },
       {
@@ -13241,6 +13228,32 @@
         ]
       },
       {
+        "name": "oimte:invalidObjectTypeForImpliedObjectReference",
+        "forObjects": [
+          "oimte:invalidObjectTypeForImpliedObject"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "IMPLIEDOBJECT-InvalidObjectType.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#IMPLIEDOBJECT-InvalidObjectType"
+          }
+        ]
+      },
+      {
         "name": "oimte:invalidImportObjectTypeCubeDimensionReference",
         "forObjects": [
           "oimte:invalidImportObjectType"
@@ -15528,6 +15541,32 @@
           {
             "property": "xbrl:specificationErrorURI",
             "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBETYPE-invalidTargetObjectType"
+          }
+        ]
+      },
+      {
+        "name": "oimte:selectiveImportDependencyChainConformanceReference",
+        "forObjects": [
+          "oimte:invalidQNameReference"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "IMPORTTAXONOMY-SelectiveImportDependencyChain.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#IMPORTTAXONOMY-SelectiveImportDependencyChain"
           }
         ]
       },
@@ -18842,6 +18881,32 @@
         ]
       },
       {
+        "name": "oimte:invalidQNameReferenceImportTaxonomyLabelImportScenario3Level2Reference",
+        "forObjects": [
+          "oimte:invalidQNameReference"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "IMPORTTAXONOMY-LabelImportScenario3-level2.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "5"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#IMPORTTAXONOMY-LabelImportScenario3-level2"
+          }
+        ]
+      },
+      {
         "name": "oimte:missingRequiredPropertyReference",
         "forObjects": [
           "oimte:missingRequiredProperty"
@@ -19666,6 +19731,864 @@
           {
             "property": "xbrl:specificationErrorURI",
             "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBETYPE-EmptyAllowedCubeDimensions"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetConceptPropertiesReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "CONCEPT-EmptyProperties.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CONCEPT-EmptyProperties"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetCubeCubeDimensionsReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "CUBE-EmptyCubeDimensions.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-EmptyCubeDimensions"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetCubeCubeNetworksReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "CUBE-EmptyCubeNetworks.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-EmptyCubeNetworks"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetCubeExcludeCubesReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "CUBE-EmptyExcludeCubes.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-EmptyExcludeCubes"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetCubeRequiredCubesReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "CUBE-EmptyRequiredCubes.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-EmptyRequiredCubes"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetCubeTypeAllowedPropertiesReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "CUBETYPE-EmptyAllowedProperties.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBETYPE-EmptyAllowedProperties"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetCubeTypeCoreDimensionsReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "CUBETYPE-EmptyCoreDimensions.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBETYPE-EmptyCoreDimensions"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetCubeTypeCoreDomainClassesReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "CUBETYPE-EmptyCoreDomainClasses.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBETYPE-EmptyCoreDomainClasses"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetCubeTypeCubeNetworksReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "CUBETYPE-EmptyCubeNetworks.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBETYPE-EmptyCubeNetworks"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetCubeTypeRequiredPropertiesReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "CUBETYPE-EmptyRequiredProperties.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBETYPE-EmptyRequiredProperties"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetDataTypeEnumerationReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "DATATYPE-EmptyEnumeration.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DATATYPE-EmptyEnumeration"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetDataTypePatternsReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "DATATYPE-EmptyPatterns.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DATATYPE-EmptyPatterns"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetDimensionCubeTypesReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "DIMENSION-EmptyCubeTypes.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DIMENSION-EmptyCubeTypes"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetDocumentInfoSourceMappingsReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "DOCUMENTINFO-EmptySourceMappings.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOCUMENTINFO-EmptySourceMappings"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetDomainClassDomainClassesReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "DOMAINCLASS-EmptyDomainClasses.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAINCLASS-EmptyDomainClasses"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetDomainClassAllowedDomainItemsReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "DOMAINCLASS-EmptyAllowedDomainItems.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAINCLASS-EmptyAllowedDomainItems"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetFactFactValuesReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "FACT-EmptyFactValues.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACT-EmptyFactValues"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetFactLocatorTypeAllowedPropertiesReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "FACTLOCATORTYPE-EmptyAllowedProperties.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACTLOCATORTYPE-EmptyAllowedProperties"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetFactLocatorTypeRequiredPropertiesReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "FACTLOCATORTYPE-EmptyRequiredProperties.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACTLOCATORTYPE-EmptyRequiredProperties"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetFinalTaxonomyFinalObjectTypesReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "FINALTAXONOMY-EmptyFinalObjectTypes.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FINALTAXONOMY-EmptyFinalObjectTypes"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetFinalTaxonomyFinalObjectsReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "FINALTAXONOMY-EmptyFinalObjects.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FINALTAXONOMY-EmptyFinalObjects"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetFinalTaxonomySelectionsReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "FINALTAXONOMY-EmptySelections.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FINALTAXONOMY-EmptySelections"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetFootnoteForObjectsReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "FOOTNOTE-EmptyForObjects.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FOOTNOTE-EmptyForObjects"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetHeadingPropertiesReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "HEADING-EmptyProperties.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#HEADING-EmptyProperties"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetImportTaxonomyImportObjectTypesReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "IMPORTTAXONOMY-EmptyImportObjectTypes.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#IMPORTTAXONOMY-EmptyImportObjectTypes"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetImportTaxonomyImportObjectsReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "IMPORTTAXONOMY-EmptyImportObjects.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#IMPORTTAXONOMY-EmptyImportObjects"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetImportTaxonomySelectionsReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "IMPORTTAXONOMY-EmptySelections.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#IMPORTTAXONOMY-EmptySelections"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetLabelForObjectsReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "LABEL-EmptyForObjects.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#LABEL-EmptyForObjects"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetNetworkPropertiesReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "NETWORK-ValidEmptyProperties.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NETWORK-ValidEmptyProperties"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetRelationshipTypeConstraintsReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "RELATIONSHIPTYPE-EmptyConstraints.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#RELATIONSHIPTYPE-EmptyConstraints"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetRelationshipTypeSourceObjectsReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "RELATIONSHIPTYPE-EmptySourceObjects.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#RELATIONSHIPTYPE-EmptySourceObjects"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetRelationshipTypeTargetObjectsReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "RELATIONSHIPTYPE-EmptyTargetObjects.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#RELATIONSHIPTYPE-EmptyTargetObjects"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidEmptySetUnitCompositeUnitRepresentationReference",
+        "forObjects": [
+          "oimte:invalidEmptySet"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "UNIT-EmptyCompositeUnitRepresentation.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#UNIT-EmptyCompositeUnitRepresentation"
           }
         ]
       },
@@ -22336,32 +23259,6 @@
           {
             "property": "xbrl:specificationErrorURI",
             "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NETWORK-InvalidRootSourceReference"
-          }
-        ]
-      },
-      {
-        "name": "oimte:namespaceInModelNotInDocumentNamespaceInvalidChangeFactMapExternalFileReference",
-        "forObjects": [
-          "oimte:namespaceInModelNotInDocumentNamespace"
-        ],
-        "referenceType": "xbrl:conformanceTestReference",
-        "language": "en",
-        "properties": [
-          {
-            "property": "xbrl:conformanceTestFileName",
-            "value": "FACTSET-InvalidChangeFactMapExternalFile.json"
-          },
-          {
-            "property": "xbrl:conformanceStatus",
-            "value": "❌ Fail"
-          },
-          {
-            "property": "xbrl:conformanceErrorsProduced",
-            "value": "1"
-          },
-          {
-            "property": "xbrl:specificationErrorURI",
-            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#FACTSET-InvalidFactIdentifierNamespace"
           }
         ]
       },

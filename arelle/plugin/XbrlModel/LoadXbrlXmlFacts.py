@@ -335,17 +335,22 @@ def parseXbrlXmlFacts(compMdl, module, factSource, url):
     nsmap = dict(root.nsmap or {})
     _mergeInstanceNamespaces(module, nsmap)
 
-    # Namespace URI used for generated fact/factValue/footnote object names.
-    factNs = getattr(factSource, "factIdentifierNamespace", None)
-    factNs = str(factNs) if factNs else getattr(module, "_documentNamespaceURI", None)
+    # Namespace prefix (declared in documentInfo.namespaces) for generated fact/factValue/footnote object
+    # names, resolved to its namespace URI. If absent, use the model's namespace.
     prefixNs = getattr(module, "_prefixNamespaces", {}) or {}
-    factPrefix = next((p for p, u in prefixNs.items() if u == factNs), None)
+    factPrefix = getattr(factSource, "factIdentifierNamespacePrefix", None)
+    if factPrefix:
+        factNs = prefixNs.get(factPrefix)
+    else:
+        factNs = getattr(module, "_documentNamespaceURI", None)
+        factPrefix = next((p for p, u in prefixNs.items() if u == factNs), None)
 
-    # namespaceMaps redirection (fromNamespace -> toNamespace) for XBRL sources.
+    # namespaceMaps redirection (fromNamespacePrefix -> toNamespacePrefix) for XBRL sources; prefixes
+    # are resolved to their declared namespace URIs.
     nsRedirect = {}
     for nsMap in (getattr(factSource, "namespaceMaps", None) or ()):
-        frm = getattr(nsMap, "fromNamespace", None)
-        to = getattr(nsMap, "toNamespace", None)
+        frm = prefixNs.get(getattr(nsMap, "fromNamespacePrefix", None))
+        to = prefixNs.get(getattr(nsMap, "toNamespacePrefix", None))
         if frm and to:
             nsRedirect[str(frm)] = str(to)
 
