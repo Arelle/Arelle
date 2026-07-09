@@ -174,8 +174,8 @@ def text(element: ModelObject | PrototypeObject) -> str:
 
 def childText(
     element: ModelObject,
-    childNamespaceURIs: str | None,
-    childLocalNames: tuple[str, ...]
+    childNamespaceURIs: str | tuple[str, ...] | None,
+    childLocalNames: str | tuple[str, ...]
 ) -> str | None:
     child_element = child(element, childNamespaceURIs, childLocalNames)
     return textNotStripped(child_element).strip() if child_element is not None else None

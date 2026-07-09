@@ -333,15 +333,15 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 if isRelation:
                     self.treeView.set(childnode, "axis", modelObject.axis)  # type: ignore[attr-defined]
                     if isinstance(concept, DefnMdlRuleDefinitionNode):
-                        self.treeView.set(childnode, "priItem", concept.aspectValue(None, Aspect.CONCEPT))  # type: ignore[no-untyped-call]
+                        self.treeView.set(childnode, "priItem", concept.aspectValue(None, Aspect.CONCEPT))
                         self.treeView.set(
                             childnode, "dims", " ".join(
                                 ("{0},{1}".format(
                                     dim, dimAspectVal.stringValue if isinstance(dimAspectVal, ModelObject) else
                                     (dimAspectVal or concept.variableRefs())
                                     )
-                                 for dim in (concept.aspectValue(None, Aspect.DIMENSIONS, inherit=False) or [])  # type: ignore[no-untyped-call]
-                                 for dimAspectVal in (concept.aspectValue(None, dim),)  # type: ignore[no-untyped-call]
+                                 for dim in (concept.aspectValue(None, Aspect.DIMENSIONS, inherit=False) or [])
+                                 for dimAspectVal in (concept.aspectValue(None, dim),)
                                  if dimAspectVal is not None)
                             )
                         )
