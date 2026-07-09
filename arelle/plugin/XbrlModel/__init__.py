@@ -511,7 +511,12 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             if ns and prefix:
                 namespacePrefixes[ns] = prefix
                 prefixNamespaces[prefix] = ns
-                setXmlns(schemaDoc, prefix, ns)
+                try:
+                    setXmlns(schemaDoc, prefix, ns)
+                except ValueError:
+                    # invalid namespace URI (already reported as oimce:invalidURI / oime:invalidJSONStructure);
+                    # lxml rejects it when building the nsmap — skip registration rather than abort the load
+                    pass
         if "documentNamespace" in documentInfo:
             pfx = documentInfo["documentNamespace"]
             # must be a prefix or URL in namespaces

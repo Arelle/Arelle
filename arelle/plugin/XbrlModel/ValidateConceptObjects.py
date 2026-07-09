@@ -2,11 +2,17 @@
 See COPYRIGHT.md for copyright information.
 '''
 
+from arelle.ModelValue import qname
 from .ErrorCatalog import emit_error
 from .XbrlHeading import XbrlHeading
 from .XbrlConcept import XbrlCollectionType, XbrlConcept, XbrlDataType, XbrlUnitType
-from .XbrlConst import qnXbrlConceptObj
+from .XbrlConst import qnXbrlConceptObj, xbrl
 from .XbrlDimension import XbrlDomainNetwork
+
+# Object types that may carry a dataType property (oim-taxonomy §dataType object allowedObjects).
+_DATATYPE_ALLOWED_OBJECT_TYPES = frozenset(qname(xbrl, "xbrl:" + ln) for ln in (
+    "conceptObject", "domainClassObject", "cubeDimension", "unitObject", "transformObject",
+    "collectionTypeObject", "propertyTypeObject", "dimensionConstraintObject", "cubeNetworkConstraintObject"))
 
 
 def validateConceptFamily(compMdl, module, oimFile, *, assertObjectType, validateQNameReference, validateProperties):
@@ -46,11 +52,25 @@ def validateConceptFamily(compMdl, module, oimFile, *, assertObjectType, validat
             assertObjectType(compMdl, utObj, XbrlUnitType)
             for utProp in ("dataTypeNumerator", "dataTypeDenominator", "dataTypeMultiplier"):
                 validateQNameReference(compMdl, utObj, utProp, XbrlDataType, isOptional=True)
+        # allowedObjects MUST be limited to object types that carry a dataType property
+        badAllowed = [ao for ao in (dtObj.allowedObjects or ()) if ao not in _DATATYPE_ALLOWED_OBJECT_TYPES]
+        if badAllowed:
+            emit_error(compMdl, "oimte:objectHasNoDatatype",
+                       _("The dataType %(name)s allowedObjects reference object type(s) %(objectTypes)s that do not have a dataType property."),
+                       xbrlObject=dtObj, name=dtObj.name, objectTypes=", ".join(sorted(str(o) for o in badAllowed)))
         _validateFacetRestrictions(compMdl, dtObj)
 
     for collObj in module.collectionTypes or ():
         assertObjectType(compMdl, collObj, XbrlCollectionType)
-        validateQNameReference(compMdl, collObj, "dataType", (XbrlDataType, XbrlCollectionType))
+        # a collectionType MUST NOT reference another collectionType as its dataType (no nested collections)
+        collDtObj = compMdl.namedObjects.get(collObj.dataType) if collObj.dataType else None
+        if isinstance(collDtObj, XbrlCollectionType):
+            emit_error(compMdl, "oimte:nestedCollection",
+                       _("The collectionType %(name)s dataType %(dataType)s references another collectionType, which is not permitted (nested collection)."),
+                       xbrlObject=collObj, name=collObj.name, dataType=collObj.dataType)
+        else:
+            validateQNameReference(compMdl, collObj, "dataType", XbrlDataType,
+                                   invalidTypeMsgCode="oimte:invalidObjectType")
         minItems = getattr(collObj, "minItems", None)
         maxItems = getattr(collObj, "maxItems", None)
         if minItems is not None and maxItems is not None and maxItems < minItems:

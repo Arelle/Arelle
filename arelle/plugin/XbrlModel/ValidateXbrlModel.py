@@ -6,7 +6,7 @@ import regex as re, dateutil
 from collections import defaultdict
 from decimal import Decimal
 from typing import GenericAlias, _GenericAlias, _UnionGenericAlias
-from arelle.ModelValue import QName, timeInterval
+from arelle.ModelValue import QName, timeInterval, qname
 from arelle.PythonUtil import attrdict
 from arelle.XmlValidate import languagePattern, validateValue as validateXmlValue,\
     INVALID, VALID, NONE
@@ -22,7 +22,7 @@ from .XbrlConst import (xbrl, qnXbrlReferenceObj, qnXbrlLabelObj, qnXbrlHeadingO
                         qnXbrlDimensionObj, qnXbrlRootSource, EMPTY_FROZENSET)
 from .XbrlCube import (XbrlCube, XbrlCubeType, baseCubeTypes, XbrlCubeDimension,
                        periodCoreDim, conceptCoreDim, entityCoreDim, unitCoreDim, languageCoreDim, coreDimensions,
-                    conceptDomainClass, entityDomainClass, unitDomainClass, languageDomainClass,
+                    conceptDomainClass, entityDomainClass, unitDomainClass, languageDomainClass, periodDomainClass,
                     defaultCubeType, reportCubeType, timeSeriesCubeType,
                     timeSeriesPropType, intervalOfMeasurementPropType, intervalConventionPropType, excludedIntervalsPropType,
                     completeTimeSeriesPropType, aggregationPropType,
@@ -50,6 +50,115 @@ from .ValidateNetworkObjects import validateNetworkFamily
 from arelle.FunctionFn import true
 from .ErrorCatalog import emit_error, get_error_catalog
 resolveFact = validateFactPosition = None
+
+qnConceptRefDimension = qname(xbrl, "xbrl:concept-refDimension")
+qnReferenceCubeName = qname(xbrl, "xbrl:referenceCubeName")
+
+def validateRefDimensions(compMdl, module):
+    """Validate xbrl:concept-refDimension relationships carrying an xbrl:referenceCubeName property
+       (oim-taxonomy.md §concept-refDimension). When referenceCubeName is present the reference dimension
+       MUST exist on that cube (oimte:missingRefDimension); if it exists, every fact value of the source
+       concept MUST be a valid foreign key — an explicit-domain member of the reference dimension, or (for a
+       typed reference dimension) a value carried on some fact in the reference cube (oimte:missingForeignKey)."""
+    from .ValidateCubes import matchFactToCube
+    prefixNs = getattr(module, "_prefixNamespaces", None)
+    for ntwkObj in module.networks or ():
+        if getattr(ntwkObj, "relationshipTypeName", None) != qnConceptRefDimension:
+            continue
+        for relObj in ntwkObj.relationships or ():
+            if relObj.source == qnXbrlRootSource:
+                continue
+            refCubeVal = next((p.value for p in getattr(relObj, "properties", None) or ()
+                               if p.property == qnReferenceCubeName), None)
+            if not refCubeVal:
+                continue  # referenceCubeName absent → relationship is documentation-only, no validation
+            refCubeQn = qname(refCubeVal, prefixNs) if isinstance(refCubeVal, str) else refCubeVal
+            refCube = compMdl.namedObjects.get(refCubeQn)
+            if not isinstance(refCube, XbrlCube):
+                continue
+            targetDim = relObj.target
+            if targetDim in coreDimensions:
+                continue  # core-dimension targets (e.g. xbrl:period) have separate rules
+            refCubeDim = next((cd for cd in refCube.cubeDimensions or () if cd.dimension == targetDim), None)
+            if refCubeDim is None:
+                compMdl.error("oimte:missingRefDimension",
+                          _("The concept-refDimension relationship %(src)s→%(tgt)s references cube %(cube)s which does not define the reference dimension %(tgt)s."),
+                          xbrlObject=(ntwkObj, relObj), src=relObj.source, tgt=targetDim, cube=refCubeQn)
+                continue
+            sourceConcept = relObj.source
+            srcFactValues = []  # (fact, factValue.value) for facts of the source concept
+            for fact in module.facts or ():
+                fd = getattr(fact, "factDimensions", None)
+                if not fd:
+                    continue
+                cQn = fd.get(conceptCoreDim)
+                if isinstance(cQn, str) and ":" in cQn:
+                    cQn = qname(cQn, prefixNs)
+                if cQn != sourceConcept:
+                    continue
+                for fv in getattr(fact, "factValues", None) or ():
+                    srcFactValues.append((fact, getattr(fv, "value", None)))
+            if bool(refCubeDim.domainDataType):  # typed reference dimension
+                refTypedValues = set()
+                for fact in module.facts or ():
+                    fd = getattr(fact, "factDimensions", None)
+                    if fd and targetDim in fd and matchFactToCube(compMdl, fact, refCube):
+                        refTypedValues.add(fd.get(targetDim))
+                for fact, val in srcFactValues:
+                    if val not in refTypedValues:
+                        compMdl.error("oimte:missingForeignKey",
+                                  _("The concept-refDimension source concept %(src)s fact value %(val)s has no matching fact with dimension %(tgt)s in reference cube %(cube)s."),
+                                  xbrlObject=(ntwkObj, relObj, fact), src=sourceConcept, val=val, tgt=targetDim, cube=refCubeQn)
+            else:  # explicit reference dimension — value must be a domain member
+                validMembers = refCubeDim.allowedMembers(compMdl)
+                for fact, val in srcFactValues:
+                    valQn = qname(val, prefixNs) if isinstance(val, str) and ":" in val else val
+                    if valQn not in validMembers:
+                        compMdl.error("oimte:missingForeignKey",
+                                  _("The concept-refDimension source concept %(src)s fact value %(val)s is not a member of reference dimension %(tgt)s in cube %(cube)s."),
+                                  xbrlObject=(ntwkObj, relObj, fact), src=sourceConcept, val=val, tgt=targetDim, cube=refCubeQn)
+
+def validateFactQualifiers(compMdl, module):
+    """Validate factQualifier objects (oim-taxonomy.md §factQualifier object):
+       (1) a dimension named in a fact's factQualifier MUST NOT also appear in that fact's factDimensions
+           (oimte:invalidFactQualifierDimensionMember); and
+       (2) facts whose effective dimensions (factDimensions merged with factQualifier) coincide MUST report
+           the same value where at least one participates via a factQualifier (oimte:factInconsistentWithFactQualifier)."""
+    byEffKey = defaultdict(list)  # effective-dimension key -> list of (fact, frozenset(values), hasQualifier)
+    for fact in module.facts or ():
+        factDims = getattr(fact, "factDimensions", None)
+        if not factDims:
+            continue
+        factQual = getattr(fact, "factQualifier", None)
+        if factQual:
+            overlap = set(factQual) & set(factDims)
+            if overlap:
+                compMdl.error("oimte:invalidFactQualifierDimensionMember",
+                          _("The fact %(name)s defines dimension(s) %(dims)s in both its factDimensions and factQualifier."),
+                          xbrlObject=fact, name=getattr(fact, "name", None),
+                          dims=", ".join(sorted(str(d) for d in overlap)))
+        eff = dict(factDims)
+        if factQual:
+            eff.update(factQual)
+        # internal helper keys (e.g. _periodValue) are derived from real dimensions and identical across
+        # facts with the same period, so exclude them to compare on the declared dimensional pairs only
+        effKey = frozenset((str(k), str(v)) for k, v in eff.items() if not str(k).startswith("_"))
+        vals = frozenset(str(getattr(fv, "value", None)) for fv in getattr(fact, "factValues", None) or ())
+        byEffKey[effKey].append((fact, vals, bool(factQual)))
+    for effKey, entries in byEffKey.items():
+        if len(entries) < 2:
+            continue
+        if not any(hasQual for _f, _v, hasQual in entries):
+            continue  # not a factQualifier consistency case (plain duplicates handled elsewhere)
+        allValues = set()
+        for _f, vals, _hq in entries:
+            allValues |= vals
+        if len(allValues) > 1:
+            compMdl.error("oimte:factInconsistentWithFactQualifier",
+                      _("Facts %(names)s share the same effective dimensions (via factQualifier) but report conflicting values %(values)s."),
+                      xbrlObject=[f for f, _v, _hq in entries],
+                      names=", ".join(str(getattr(f, "name", None)) for f, _v, _hq in entries),
+                      values=", ".join(sorted(allValues)))
 
 perCnstrtFmtStartEndPattern = re.compile(r".*@(start|end)")
 
@@ -355,7 +464,7 @@ def validateProperties(compMdl, oimFile, module, obj):
                           file=oimFile, parentObjName=objType(obj), parentName=parentName,
                           name=propTypeQn, propertyType=propTypeQn)
             else:
-                compMdl.error("oimte:invalidQNameReference",
+                compMdl.error("oimte:invalidObjectType",
                           _("%(parentObjName)s %(parentName)s property %(name)s has invalid property type object %(propertyType)s"),
                           file=oimFile, parentObjName=objType(obj), parentName=parentName,
                           name=propTypeQn, propertyType=propTypeQn)
@@ -1085,7 +1194,8 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
     for dimObj in getattr(module, "dimensions", None) or ():
         assertObjectType(compMdl, dimObj, XbrlDimension)
         for cubeTypeQn in dimObj.cubeTypes or ():
-            validateQNameReference(compMdl, dimObj, "cubeTypes", XbrlCubeType, qnRef=cubeTypeQn)
+            validateQNameReference(compMdl, dimObj, "cubeTypes", XbrlCubeType, qnRef=cubeTypeQn,
+                                   invalidTypeMsgCode="oimte:invalidObjectType")
         domRtObj = validateQNameReference(compMdl, dimObj, "domainClass", XbrlDomainClass, msgCode="oimte:invalidDomainClass")
         if (dimObj.domainClass in (conceptDomainClass, entityDomainClass, unitDomainClass, languageDomainClass) and
                                    (dimObj.name.namespaceURI != xbrl or not dimObj.domainClass.localName.startswith(dimObj.name.localName))):
@@ -1238,6 +1348,23 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
 
     # DomainClass Objects
     valid_allowedDomainItem_qnames = (qnXbrlMemberObj, qnXbrlConceptObj, qnXbrlEntityObj, qnXbrlUnitObj)
+    for implObj in module.impliedObjects or ():
+        implObjType = getattr(implObj, "objectType", None)
+        if implObjType is not None and implObjType not in (qnXbrlMemberObj, qnXbrlEntityObj):
+            compMdl.error("oimte:invalidObjectTypeForImpliedObject",
+                      _("The implied object %(name)s objectType %(objectType)s MUST be xbrl:memberObject or xbrl:entityObject."),
+                      xbrlObject=implObj, name=getattr(implObj, "name", None), objectType=implObjType)
+
+    reservedCoreDomainClasses = frozenset((conceptDomainClass, entityDomainClass, unitDomainClass,
+                                           languageDomainClass, periodDomainClass))
+    for mbrObj in module.members or ():
+        assertObjectType(compMdl, mbrObj, XbrlMember)
+        for domClsQn in mbrObj.domainClasses or ():
+            if domClsQn in reservedCoreDomainClasses:
+                compMdl.error("oimte:invalidDomainClassReference",
+                          _("The member %(name)s domainClass %(domainClass)s is reserved for a core dimension and MUST NOT be referenced by a member object."),
+                          xbrlObject=mbrObj, name=mbrObj.name, domainClass=domClsQn)
+
     for domRtObj in module.domainClasses or ():
         assertObjectType(compMdl, domRtObj, XbrlDomainClass)
         name = domRtObj.name
@@ -1372,6 +1499,24 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                    undefinedMessage=_("The reference %(name)s reference %(qname)s MUST be a referenceType object."),
                                    invalidTypeMessage=_("The reference %(name)s reference %(qname)s MUST be a referenceType object."),
                                    errorArgs={"name": name, "qname": refTp}, qnRef=refTp)
+        refTypeObj = compMdl.namedObjects.get(refTp) if refTp else None
+        if isinstance(refTypeObj, XbrlReferenceType):
+            # a reference MUST NOT be defined for an object type not allowed by its referenceType
+            if refTypeObj.allowedObjects:
+                for relName in refObj.forObjects or ():
+                    relatedObj = compMdl.namedObjects.get(relName)
+                    if relatedObj is not None and not _qname_in_set(xbrlObjectQNames.get(type(relatedObj)), refTypeObj.allowedObjects):
+                        compMdl.error("oimte:disallowedObjectReferenceType",
+                                  _("The reference %(name)s forObject %(forObject)s has an object type not permitted by referenceType %(refType)s allowedObjects."),
+                                  xbrlObject=refObj, name=name, forObject=relName, refType=refTp)
+            # a reference MUST include all properties required by its referenceType
+            if refTypeObj.requiredProperties:
+                refPropQns = set(p.property for p in refObj.properties or ())
+                missingReqProps = [p for p in refTypeObj.requiredProperties if p not in refPropQns]
+                if missingReqProps:
+                    compMdl.error("oimte:missingRequiredProperty",
+                              _("The reference %(name)s is missing required propert(ies) %(props)s defined by referenceType %(refType)s."),
+                              xbrlObject=refObj, name=name, props=", ".join(sorted(str(p) for p in missingReqProps)), refType=refTp)
         if extName:
             if name:
                 compMdl.error("oimte:referenceNameRedefined",
@@ -1408,7 +1553,8 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
     lblTpCt = {}
     for lblObj in module.labelTypes or ():
         assertObjectType(compMdl, lblObj, XbrlLabelType)
-        dataTypeObj = validateQNameReference(compMdl, lblObj, "dataType", (XbrlDataType, XbrlCollectionType))
+        dataTypeObj = validateQNameReference(compMdl, lblObj, "dataType", (XbrlDataType, XbrlCollectionType),
+                                             invalidTypeMsgCode="oimte:invalidObjectType")
         if lblObj.allowedObjects is not None:
             if not lblObj.allowedObjects:
                 compMdl.error("oimte:invalidEmptySet",
@@ -1474,7 +1620,9 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             for md in uMeas:
                 for m in md:
                     if m not in compMdl.namedObjects:
-                        compMdl.error("oimte:invalidQNameReference",
+                        # a measure in a compositeUnitRepresentation string that resolves to no defined
+                        # unit is an invalid unit string representation (not a bare QName reference)
+                        compMdl.error("oimce:invalidUnitStringRepresentation",
                                   _("The unit %(name)s measure %(measure)s must exist in the taxonomy model."),
                                   xbrlObject=unitObj, name=unitObj.name, measure=m)
 
@@ -1503,6 +1651,10 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             from .ValidateFacts import resolveFact, validateFactPosition
         for factPosition in module.facts:
             resolveFact(compMdl, module, factPosition)
+
+    # concept-refDimension foreign-key / reference-dimension validation (needs resolved fact dimensions)
+    validateRefDimensions(compMdl, module)
+    validateFactQualifiers(compMdl, module)
 
     # Layouts in XbrlModel
     for layout in module.layouts or ():
@@ -1589,6 +1741,22 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
     for tblTmpl in module.tableTemplates or ():
         assertObjectType(compMdl, tblTmpl, XbrlTableTemplate)
 
+        if tblTmpl.extends is not None:
+            extTmpl = compMdl.namedObjects.get(tblTmpl.extends)
+            if isinstance(extTmpl, XbrlTableTemplate) and not getattr(extTmpl, "isExtensible", True):
+                compMdl.error("oimte:illegalExtensionOfNonExtensibleObject",
+                          _("The tableTemplate cannot extend %(target)s because it is non-extensible."),
+                          xbrlObject=tblTmpl, target=extTmpl.name)
+
+        # columnName MUST be a valid NCName and MUST NOT contain the '.' character (oim-taxonomy §columnName)
+        cols = getattr(tblTmpl, "columns", None)
+        for col in (cols.values() if isinstance(cols, dict) else (cols or ())):
+            colName = col.get("columnName") if isinstance(col, dict) else getattr(col, "columnName", None)
+            if colName and "." in str(colName):
+                compMdl.error("oimte:invalidColumnName",
+                          _("The tableTemplate %(name)s columnName %(columnName)s MUST be a valid NCName and MUST NOT contain the '.' character."),
+                          xbrlObject=tblTmpl, name=getattr(tblTmpl, "name", None), columnName=colName)
+
         for dim in tblTmpl.factDimensions:
             if dim.localName.startswith('$'):
                 colName = dim[1:]
@@ -1596,6 +1764,25 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                     compMdl.error("oimte:tableTemplateDimensionColumnReference",
                               _("The table template dimension %(dimension)s is missing from the table template columns."),
                               xbrlObject=tblTmpl, dimension=dim)
+
+    # Group tree object: taxonomy-group relationship source may be an XBRL Model object or a group
+    # object; the target MUST be a group object (oim-taxonomy §group tree object).
+    # The group tree object is NOT imported (oim-taxonomy §group tree object), so an imported module's
+    # groupTree targets may be pruned/remapped and resolve to None here — only flag a source/target that
+    # actually resolves to a wrong-type object, not one that is simply unresolved.
+    if module.groupTree is not None:
+        for rel in getattr(module.groupTree, "relationships", None) or ():
+            srcObj = compMdl.namedObjects.get(rel.source)
+            if (srcObj is not None and not isinstance(srcObj, (XbrlGroup, XbrlModule))
+                    and rel.source != module.name):
+                compMdl.error("oimte:invalidTaxonomyGroupSource",
+                          _("The groupTree relationship source %(source)s MUST be an XBRL Model object or a group object."),
+                          xbrlObject=module.groupTree, source=rel.source)
+            tgtObj = compMdl.namedObjects.get(rel.target)
+            if tgtObj is not None and not isinstance(tgtObj, XbrlGroup):
+                compMdl.error("oimte:invalidTaxonomyGroupTarget",
+                          _("The groupTree relationship target %(target)s MUST reference a group object."),
+                          xbrlObject=module.groupTree, target=rel.target)
 
     # A factSource's factIdentifierNamespace must be declared in the module.
     # Two places count: documentInfo.namespaces (in _prefixNamespaces) and

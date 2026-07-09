@@ -6,7 +6,7 @@ from ordered_set import OrderedSet
 from arelle.ModelValue import QName, qname
 from .ErrorCatalog import emit_error
 from .XbrlConcept import XbrlCollectionType, XbrlDataType, XbrlConcept
-from .XbrlConst import objectsWithProperties, qnXbrlRootSource, xbrl
+from .XbrlConst import objectsWithProperties, qnXbrlRootSource, xbrl, xbrla
 from .XbrlDimension import XbrlDomainNetwork
 from .XbrlLabel import XbrlLabelType
 from .XbrlModule import xbrlObjectQNames
@@ -16,6 +16,25 @@ from .XbrlProperty import XbrlPropertyType
 qnXbrlClassSubclass = qname(xbrl, "xbrl:class-subclass")
 qnPreferredLabel = qname(xbrl, "xbrl:preferredLabel")
 qnXbrlTaxonomyGroup = qname(xbrl, "xbrl:taxonomy-group")
+qnXbrlaBalance = qname(xbrla, "xbrla:balance")
+
+# Flow relationship-type constraints from oim-taxonomy.md (§instant-inflow/outflow/accrual/contra).
+# Each entry: (required source periodType, required target periodType, balance rule) where the balance
+# rule is one of: "sameIfBoth" (equal if both define balance), "diffIfBoth" (differ if both define),
+# "bothRequired" (both MUST define balance), "bothRequiredDiff" (both MUST define AND differ).
+_FLOW_RULES = {
+    qname(xbrla, "xbrla:instant-inflow"):  ("instant", "duration", "sameIfBoth"),
+    qname(xbrla, "xbrla:instant-outflow"): ("instant", "duration", "diffIfBoth"),
+    qname(xbrla, "xbrla:instant-accrual"): ("instant", "duration", "bothRequired"),
+    qname(xbrla, "xbrla:instant-contra"):  ("instant", "instant",  "bothRequiredDiff"),
+}
+
+def _conceptBalance(conceptObj):
+    """Return the raw xbrla:balance property value of a concept, or None if not defined."""
+    for propObj in getattr(conceptObj, "properties", None) or ():
+        if propObj.property == qnXbrlaBalance:
+            return getattr(propObj, "value", None)
+    return None
 
 
 def _qname_key(value):
@@ -78,6 +97,41 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
                        _("The network %(name)s uses relationship type xbrl:taxonomy-group which MUST NOT be used in network objects."),
                        xbrlObject=ntwkObj, name=ntwkObj.name)
             continue
+
+        flowRule = _FLOW_RULES.get(getattr(relTypeObj, "name", None))
+        if flowRule is not None:
+            reqSrcPeriod, reqTgtPeriod, balanceRule = flowRule
+            for relObj in ntwkObj.relationships or ():
+                if relObj.source == qnXbrlRootSource:
+                    continue  # virtual origin, not a concept-to-concept flow relationship
+                srcObj = compMdl.namedObjects.get(relObj.source)
+                tgtObj = compMdl.namedObjects.get(relObj.target)
+                if not isinstance(srcObj, XbrlConcept) or not isinstance(tgtObj, XbrlConcept):
+                    continue  # non-concept endpoints reported by generic source/target checks
+                relName = f"{relObj.source}→{relObj.target}"
+                if getattr(srcObj, "periodType", None) != reqSrcPeriod:
+                    emit_error(compMdl, "oimte:conceptPropertiesInconsistentWithRelationship",
+                               _("The %(relType)s network %(name)s relationship %(rel)s source concept %(concept)s MUST have periodType '%(req)s'."),
+                               xbrlObject=ntwkObj, relType=relTypeObj.name, name=ntwkObj.name, rel=relName, concept=relObj.source, req=reqSrcPeriod)
+                if getattr(tgtObj, "periodType", None) != reqTgtPeriod:
+                    emit_error(compMdl, "oimte:conceptPropertiesInconsistentWithRelationship",
+                               _("The %(relType)s network %(name)s relationship %(rel)s target concept %(concept)s MUST have periodType '%(req)s'."),
+                               xbrlObject=ntwkObj, relType=relTypeObj.name, name=ntwkObj.name, rel=relName, concept=relObj.target, req=reqTgtPeriod)
+                srcBal = _conceptBalance(srcObj)
+                tgtBal = _conceptBalance(tgtObj)
+                if balanceRule in ("bothRequired", "bothRequiredDiff") and (srcBal is None or tgtBal is None):
+                    emit_error(compMdl, "oimte:conceptPropertiesInconsistentWithRelationship",
+                               _("The %(relType)s network %(name)s relationship %(rel)s source and target concepts MUST both define an xbrla:balance property."),
+                               xbrlObject=ntwkObj, relType=relTypeObj.name, name=ntwkObj.name, rel=relName)
+                if srcBal is not None and tgtBal is not None:
+                    if balanceRule == "sameIfBoth" and srcBal != tgtBal:
+                        emit_error(compMdl, "oimte:conceptPropertiesInconsistentWithRelationship",
+                                   _("The %(relType)s network %(name)s relationship %(rel)s source and target xbrla:balance MUST be the same value."),
+                                   xbrlObject=ntwkObj, relType=relTypeObj.name, name=ntwkObj.name, rel=relName)
+                    elif balanceRule in ("diffIfBoth", "bothRequiredDiff") and srcBal == tgtBal:
+                        emit_error(compMdl, "oimte:conceptPropertiesInconsistentWithRelationship",
+                                   _("The %(relType)s network %(name)s relationship %(rel)s source and target xbrla:balance MUST have different values."),
+                                   xbrlObject=ntwkObj, relType=relTypeObj.name, name=ntwkObj.name, rel=relName)
 
         # Snapshot base relationships before mutation so extends-duplicate check can compare cleanly
         if extendTargetObj is not None:

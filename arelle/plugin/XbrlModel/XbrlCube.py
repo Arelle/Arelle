@@ -273,4 +273,6 @@ conceptDomainClass = qname(xbrl, "xbrl:conceptDomain")
 entityDomainClass = qname(xbrl, "xbrl:entityDomain")
 unitDomainClass = qname(xbrl, "xbrl:unitDomain")
 languageDomainClass = qname(xbrl, "xbrl:languageDomain")
+periodDomainClass = qname(xbrl, "xbrl:periodDomain")
+coreDomainClasses = frozenset((conceptDomainClass, entityDomainClass, unitDomainClass, languageDomainClass, periodDomainClass))
 
