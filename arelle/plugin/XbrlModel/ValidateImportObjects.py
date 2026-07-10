@@ -9,6 +9,7 @@ from .XbrlLabel import XbrlLabel
 from .XbrlModule import XbrlModule, xbrlObjectTypes, xbrlObjectQNames, referencableObjectTypes
 from .XbrlObject import XbrlReferencableModelObject
 from .XbrlFact import XbrlFact, XbrlFootnote
+from .XbrlConst import builtInPrefixTaxonomies
 
 qnXbrlLabelObject = None
 
@@ -24,16 +25,24 @@ def _qnLabelObj():
 def validateImportFamily(compMdl, module, oimFile, *, assertObjectType, validateQNameReference, validateProperties):
     """Validate importedTaxonomies on the taxonomy module: importObjectTypes correctness and
        finalTaxonomy-driven extension restrictions."""
+    # oim-taxonomy §322: import mappings MUST NOT be defined for built-in models. Any importMapping
+    # entry whose xbrlModelName resolves to a built-in taxonomy prefix is illegal.
+    for mapQn in getattr(module, "_importMapping", None) or ():
+        if mapQn.prefix in builtInPrefixTaxonomies:
+            emit_error(compMdl, "oimte:illegalImportMappingForBuiltInTaxonomy",
+                       _("The importMapping MUST NOT define an entry for the built-in taxonomy %(qname)s."),
+                       xbrlObject=module, qname=mapQn)
     for impTxObj in module.importedTaxonomies or ():
         assertObjectType(compMdl, impTxObj, XbrlImportTaxonomy)
         impMdlName = impTxObj.xbrlModelName
         for qnObjType in impTxObj.importObjectTypes or ():
             if qnObjType in xbrlObjectTypes:
                 clsForObjType = xbrlObjectTypes[qnObjType]
+                # xbrl:labelObject is explicitly importable (oim-taxonomy §5919 — used to side-load
+                # labels, e.g. in additional languages); it is not in the forbidden list (§5966-5968)
+                # even though it is a non-referencable object type.
                 if clsForObjType == XbrlLabel:
-                    emit_error(compMdl, "oimte:invalidImportObjectType",
-                               _("The importObjectTypes property MUST not include the label object."),
-                               xbrlObject=impTxObj)
+                    pass
                 elif clsForObjType == XbrlModule:
                     emit_error(compMdl, "oimte:invalidImportObjectType",
                                _("The importObjectTypes property MUST not include the xbrlModelObject (taxonomy root): %(qname)s."),
@@ -46,7 +55,7 @@ def validateImportFamily(compMdl, module, oimFile, *, assertObjectType, validate
                     emit_error(compMdl, "oimte:groupTreeNotImportable",
                                _("The importObjectTypes property MUST not include the groupTreeObject: %(qname)s."),
                                xbrlObject=impTxObj, qname=qnObjType)
-                elif qnObjType not in referencableObjectTypes:
+                elif qnObjType not in referencableObjectTypes and clsForObjType != XbrlLabel:
                     emit_error(compMdl, "oimte:invalidImportObjectType",
                                _("The importObjectTypes property MUST specify a referencable taxonomy component object: %(qname)s is non-referencable."),
                                xbrlObject=impTxObj, qname=qnObjType)
