@@ -106,7 +106,7 @@ class ViewFactsGrid(ViewWinGrid.ViewGrid):
             self.modelXbrl.modelManager.addToLog(_("no relationships for {0}").format(self.arcrole))  # type: ignore[union-attr]
             return False
 
-        factConcepts = set(fact.concept for fact in self.modelXbrl.factsInInstance).append(fact)  # type: ignore[union-attr,attr-defined,name-defined]
+        factConcepts = {fact.concept for fact in self.modelXbrl.factsInInstance if fact.concept is not None}  # type: ignore[union-attr]
 
         definedLinkroles: list[tuple[str, str]] = []
         for linkrole in set(rel.linkrole
