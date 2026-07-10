@@ -246,7 +246,7 @@ class LytMdlBodyCell:
         self.lytMdlParent = lytMdlParent
         self.isOpenAspectEntrySurrogate = isOpenAspectEntrySurrogate
         lytMdlParent.lytMdlBodyChildren.append(self)
-        self.facts: tuple[tuple[ModelFact, Any, str], ...] | tuple[()] = ()  # bound facts
+        self.facts: tuple[tuple[ModelFact, Any, str], ...] = ()  # bound facts
 
     def __repr__(self) -> str:
         return f"LytMdlBodyCell[{', '.join(v for f, v, j in self.facts)}]"
@@ -684,7 +684,7 @@ class StrctMdlBreakdown(StrctMdlNode):
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, StrctMdlBreakdown):
-            raise NotImplementedError
+            return NotImplemented
         return self.defnMdlNode == other.defnMdlNode
 
 
