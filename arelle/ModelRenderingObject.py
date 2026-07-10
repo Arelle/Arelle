@@ -184,9 +184,9 @@ class LytMdlHeader:
 class LytMdlCell:
     def __init__(self) -> None:
         self.lytMdlParentHeader: LytMdlHeader | None = None
-        self.labels: list[str] = []
+        self.labels: list[tuple[str, str | None, str | None]] = []
         self.span: int = 1
-        self.rollup: bool | None = None
+        self.rollup: int | bool | None = None
         self.id: str | None = None
         self.isOpenAspectEntrySurrogate: bool | None = None
         self.lytMdlConstraints: list[LytMdlConstraint] = []
@@ -230,7 +230,7 @@ class LytMdlConstraint:
 
 
 class LytMdlBodyCells:
-    def __init__(self, lytMdlParent: LytMdlTable, axis: str) -> None:
+    def __init__(self, lytMdlParent: LytMdlTable | LytMdlBodyCells, axis: str) -> None:
         self.lytMdlParent = lytMdlParent
         self.axis = axis
         # z body cells contain y's body cells; y body cells contain x's body cells; x's body cells contain individual cells
@@ -246,7 +246,7 @@ class LytMdlBodyCell:
         self.lytMdlParent = lytMdlParent
         self.isOpenAspectEntrySurrogate = isOpenAspectEntrySurrogate
         lytMdlParent.lytMdlBodyChildren.append(self)
-        self.facts: tuple[tuple[ModelFact, str, str]] | tuple[()] = ()  # bound facts
+        self.facts: tuple[tuple[ModelFact, Any, str], ...] | tuple[()] = ()  # bound facts
 
     def __repr__(self) -> str:
         return f"LytMdlBodyCell[{', '.join(v for f, v, j in self.facts)}]"
@@ -274,15 +274,15 @@ def aspectStrctNodes(strctNode: StrctMdlNode | None) -> dict[int, set[Any]]:
         return EMPTY_DICT
     _aspectStrctNodes: defaultdict[int, set[Any]] = defaultdict(set)
     for aspect in aspectModels["dimensional"]:
-        strctNodeDefiningAspect = strctNode.hasAspect(aspect)  # type: ignore[func-returns-value]
+        strctNodeDefiningAspect = strctNode.hasAspect(aspect)
         if not strctNodeDefiningAspect:
             for a in aspectRuleAspects.get(aspect, ()):
-                strctNodeDefiningAspect = strctNode.hasAspect(a)  # type: ignore[func-returns-value]
+                strctNodeDefiningAspect = strctNode.hasAspect(a)
                 if strctNodeDefiningAspect:
                     break
         if strctNodeDefiningAspect:
             if aspect == Aspect.DIMENSIONS:
-                for dim in (strctNode.aspectValue(Aspect.DIMENSIONS) or ()):
+                for dim in (strctNode.aspectValue(Aspect.DIMENSIONS) or ()):  # type: ignore[attr-defined]
                     _aspectStrctNodes[dim].add(strctNodeDefiningAspect)
             else:
                 if aspect in aspectRuleAspects:
@@ -321,7 +321,7 @@ class StrctMdlNode:
         self.contextItemBinding: VariableBinding | None = None
         self.variables: dict[QName, Any] = {}
         self.zInheritance: Any = None
-        self.rollup: bool = False  # true when this is the rollup node among its siblings
+        self.rollup: int | bool = False  # true when this is the rollup node among its siblings
         self.choiceNodeIndex: int = 0
         self.tagSelector: str | None = getattr(defnMdlNode, "tagSelector", None)
         self.isUnreported: bool = False
@@ -337,7 +337,7 @@ class StrctMdlNode:
     def aspectsCovered(self, inherit: bool = False) -> set[Any]:
         return EMPTY_SET
 
-    def hasAspect(self, aspect: int, inherit: bool = True) -> None:
+    def hasAspect(self, aspect: int, inherit: bool = True) -> Self | None:
         return None  # if aspect found would return its defining structural node
 
     @property
@@ -682,7 +682,9 @@ class StrctMdlBreakdown(StrctMdlNode):
     def __hash__(self) -> int:
         return self.defnMdlNode.__hash__()
 
-    def __eq__(self, other: StrctMdlBreakdown) -> bool:  # type: ignore[override]
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, StrctMdlBreakdown):
+            raise NotImplementedError
         return self.defnMdlNode == other.defnMdlNode
 
 
@@ -778,7 +780,7 @@ class StrctMdlStructuralNode(StrctMdlNode):
             aspectsCovered |= self.strctMdlParentNode.strctMdlParentNode.aspectsCovered(inherit=inherit)  # type: ignore[union-attr]
         return aspectsCovered
 
-    def hasAspect(self, aspect: int, inherit: bool = True) -> Self | None:  # type: ignore[override]
+    def hasAspect(self, aspect: int, inherit: bool = True) -> Self | None:
         if (aspect in self.aspects or
             (self.defnMdlNode is not None and self.defnMdlNode.hasAspect(self, aspect))):
             return self
@@ -790,7 +792,7 @@ class StrctMdlStructuralNode(StrctMdlNode):
             if isinstance(self.strctMdlParentNode, StrctMdlStructuralNode):
                 return self.strctMdlParentNode.hasAspect(aspect, inherit)  # type: ignore[return-value]
             if isinstance(self.strctMdlParentNode, StrctMdlBreakdown):
-                return self.strctMdlParentNode.strctMdlParentNode.hasAspect(aspect, inherit)  # type: ignore[union-attr]
+                return self.strctMdlParentNode.strctMdlParentNode.hasAspect(aspect, inherit)  # type: ignore[union-attr,return-value]
         return None
 
     def dimRAV(self, aspect: Any, value: Any) -> Any:  # dimensional rollup aspect value (None for a rollup node)
