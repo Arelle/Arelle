@@ -1,28 +1,44 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
 
 from arelle.UiUtil import scrolledHeaderedFrame
 from arelle.ViewWinPane import ViewPane
 
+if TYPE_CHECKING:
+    from tkinter import Menu
+    from tkinter.ttk import Notebook
+
+    from arelle.ModelXbrl import ModelXbrl
+
+
 class ViewGrid(ViewPane):
-    def __init__(self, modelXbrl, tabWin, tabTitle,
-                 hasToolTip=False, lang=None):
+    def __init__(
+        self,
+        modelXbrl: ModelXbrl | None,
+        tabWin: Notebook,
+        tabTitle: str,
+        hasToolTip: bool = False,
+        lang: str | None = None,
+    ) -> None:
         contentView = scrolledHeaderedFrame(tabWin)
         super(ViewGrid, self).__init__(modelXbrl, tabWin, tabTitle,
-                                       contentView, hasToolTip=hasToolTip,
+                                       contentView, hasToolTip=hasToolTip,  # type: ignore[arg-type]
                                        lang=lang)
-        self.gridTblHdr = self.viewFrame.tblHdrInterior
-        self.gridColHdr = self.viewFrame.colHdrInterior
-        self.gridRowHdr = self.viewFrame.rowHdrInterior
-        self.gridBody = self.viewFrame.bodyInterior
+        self.gridTblHdr = self.viewFrame.tblHdrInterior  # type: ignore[attr-defined]
+        self.gridColHdr = self.viewFrame.colHdrInterior  # type: ignore[attr-defined]
+        self.gridRowHdr = self.viewFrame.rowHdrInterior  # type: ignore[attr-defined]
+        self.gridBody = self.viewFrame.bodyInterior  # type: ignore[attr-defined]
 
         self.gridTblHdr.contextMenuClick = self.contextMenuClick
         self.gridColHdr.contextMenuClick = self.contextMenuClick
         self.gridRowHdr.contextMenuClick = self.contextMenuClick
         self.gridBody.contextMenuClick = self.contextMenuClick
 
-    def motion(self, *args):
+    def motion(self, *args: Any) -> None:
         '''
         tvColId = self.gridBody.identify_column(args[0].x)
         tvRowId = self.gridBody.identify_row(args[0].y)
@@ -44,11 +60,11 @@ class ViewGrid(ViewPane):
             self.setToolTip(newValue, tvColId)
         '''
 
-    def setToolTip(self, text, colId="#0"):
+    def setToolTip(self, text: str | None, colId: str = "#0") -> None:
         self.toolTip._hide()
-        if isinstance(text,str) and len(text) > 0:
-            width = self.gridBody.column(colId,"width")
-            if len(text) * 8 > width or '\n' in text:
+        if isinstance(text, str) and len(text) > 0:
+            width = self.gridBody.column(colId, "width")
+            if len(text) * 8 > width or "\n" in text:
                 self.toolTipText.set(text)
                 self.toolTip.configure(state="normal")
                 self.toolTip._schedule()
@@ -59,7 +75,7 @@ class ViewGrid(ViewPane):
             self.toolTipText.set("")
             self.toolTip.configure(state="disabled")
 
-    def contextMenu(self):
+    def contextMenu(self) -> Menu:
         super(ViewGrid, self).contextMenu()
         self.bindContextMenu(self.gridBody)
         self.bindContextMenu(self.gridTblHdr)
