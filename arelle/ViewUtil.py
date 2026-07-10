@@ -15,6 +15,8 @@ from arelle.ModelRelationshipSet import ModelRelationshipSet
 from arelle.typing import TypeGetText
 
 if TYPE_CHECKING:
+    from arelle.ModelDtsObject import ModelConcept
+    from arelle.ModelValue import QName
     from arelle.ModelXbrl import ModelXbrl
 
 _: TypeGetText
@@ -54,14 +56,14 @@ def labelroleLabel(role: str) -> str:  # with sort char in first position
             return "3" + titleFromUri(role)
 
 
-def baseSetArcroles(modelXbrl: ModelXbrl):
+def baseSetArcroles(modelXbrl: ModelXbrl) -> list[tuple[str, str]]:
     # returns sorted list of tuples of arcrole basename and uri
     return sorted(
         set((baseSetArcroleLabel(b[0]), b[0]) for b in modelXbrl.baseSets.keys())
     )
 
 
-def labelroles(modelXbrl: ModelXbrl, includeConceptName=False) -> list[tuple[str, str]]:
+def labelroles(modelXbrl: ModelXbrl, includeConceptName: bool = False) -> list[tuple[str, str]]:
     # returns sorted list of tuples of arcrole basename and uri
     allRoles: set[str] = (
         (modelXbrl.labelroles | {XbrlConst.conceptNameLabelRole})
@@ -72,21 +74,21 @@ def labelroles(modelXbrl: ModelXbrl, includeConceptName=False) -> list[tuple[str
 
 
 # clean references for viewability
-def viewReferences(concept):
+def viewReferences(concept: ModelConcept) -> str:
     return ", ".join(
         ref.viewText()
-        for refrel in concept.modelXbrl.relationshipSet(
+        for refrel in concept.modelXbrl.relationshipSet(  # type: ignore[union-attr]
             XbrlConst.conceptReference
         ).fromModelObject(concept)
         if (ref := refrel.toModelObject) is not None
     )
 
 
-def referenceURI(concept):
+def referenceURI(concept: ModelConcept) -> str | None:
     return next(
         (
             XmlUtil.text(resourceElt)
-            for refrel in concept.modelXbrl.relationshipSet(
+            for refrel in concept.modelXbrl.relationshipSet(  # type: ignore[union-attr]
                 XbrlConst.conceptReference
             ).fromModelObject(concept)
             if (ref := refrel.toModelObject) is not None
@@ -97,7 +99,13 @@ def referenceURI(concept):
     )
 
 
-def groupRelationshipSet(modelXbrl, arcrole, linkrole, linkqname, arcqname):
+def groupRelationshipSet(
+    modelXbrl: ModelXbrl,
+    arcrole: str | list[str] | tuple[str, list[str]],
+    linkrole: str | None,
+    linkqname: QName | None,
+    arcqname: QName | None,
+) -> ModelRelationshipSet:
     if isinstance(arcrole, (list, tuple)):  # (group-name, [arcroles])
         arcroles = arcrole[1]
         relationshipSet = ModelRelationshipSet(
@@ -118,7 +126,7 @@ def groupRelationshipSet(modelXbrl, arcrole, linkrole, linkqname, arcqname):
     return relationshipSet
 
 
-def groupRelationshipLabel(arcrole):
+def groupRelationshipLabel(arcrole: str | list[str] | tuple[str, list[str]]) -> str:
     if isinstance(arcrole, (list, tuple)):  # (group-name, [arcroles])
         arcroleName = arcrole[0]
     else:
@@ -126,7 +134,7 @@ def groupRelationshipLabel(arcrole):
     return arcroleName
 
 
-def sortCountExpected(expected):
+def sortCountExpected(expected: str | list[str]) -> str | list[str]:
     if isinstance(expected, list):
         return [
             s if qty == 1 else f"{s} ({qty})"
