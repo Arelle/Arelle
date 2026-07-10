@@ -17,6 +17,7 @@
         "minExternalResourceSizekB: minimal file size in kB for allowing external resources, 0 if no minimum requirement and -1 if external resources are forbidden",
         "reportPackageMeasurement: \"zipped\" or \"unzipped\"",
         "ixTargetUsage: allowed, warning or error",
+        "ixdsMultiUsage: allowed or error; controls whether non-ESEF reports in the same report package are permitted",
         "extensionAbstractContexts: allowed, warning or error",
         "lineItemsNotDimQualExclusionNsPattern: concepts namespace pattern excluded from check for extensionTaxonomyLineItemNotLinkedToAnyHypercube",
         "lineItemsMustBeInPreLbExclusionNsPattern: concepts namespace pattern excluded from check for required presence in presentation linkbase",
@@ -46,6 +47,7 @@
         "reportPackageExtensionTaxonomyDirectoryPrefix": null,
         "identifierScheme": "http://standards.iso.org/iso/17442",
         "ixTargetUsage": "warning",
+        "ixdsMultiUsage": "error",
         "extensionAbstractContexts": "warning",
         "LC3AllowCapitalsInWord": true,
         "reportFileNamePattern": null,
@@ -262,7 +264,9 @@
         "name": "Spain"
     },
     "FI": {
-        "name": "Finland"
+        "name": "Finland",
+        "ixTargetUsage": "allowed",
+        "ixdsMultiUsage": "allowed"
     },
     "FR": {
         "name": "France",

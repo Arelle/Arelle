@@ -71,7 +71,15 @@ from arelle.utils.PluginData import PluginData
 from arelle.utils.PluginHooks import PluginHooks
 from .ESEF_2021.ValidateXbrlFinally import validateXbrlFinally as validateXbrlFinally2021
 from .ESEF_Current.ValidateXbrlFinally import validateXbrlFinally as validateXbrlFinallyCurrent
-from .Util import AUTHORITY_CODES, getDisclosureSystemYear, loadAuthorityValidations, ESEF_DISCLOSURE_SYSTEM_TEST_PROPERTY, esefDisclosureSystemSelected, shouldRunEsefValidationRules
+from .Util import (
+    AUTHORITY_CODES,
+    ESEF_DISCLOSURE_SYSTEM_TEST_PROPERTY,
+    esefDisclosureSystemSelected,
+    getDisclosureSystemYear,
+    isEsefExcludedInstance,
+    loadAuthorityValidations,
+    shouldRunEsefValidationRules,
+)
 from .ValidationPluginExtension import ValidationPluginExtension
 from .rules import base
 
@@ -101,11 +109,11 @@ def validateEntity(modelXbrl: ModelXbrl, filename:str, filesource: FileSource) -
 
 def getEsefAuthority(
     modelXbrl: ModelXbrl,
+    pluginData: ESEFPluginData,
     parameters: dict[Any, Any] | None,
 ) -> str | None:
     cntlr = modelXbrl.modelManager.cntlr
-    pluginData = cntlr.getPluginData(ESEF_PLUGIN_NAME)
-    esefAuthority = pluginData.esefAuthority if isinstance(pluginData, ESEFPluginData) else None
+    esefAuthority = pluginData.esefAuthority
     if not esefAuthority and cntlr.hasGui and cntlr.config is not None:
         esefAuthority = cntlr.config.get("esefAuthority") or None
     formulaAuthority = None
@@ -141,6 +149,23 @@ def getEsefAuthority(
 @dataclass
 class ESEFPluginData(PluginData):
     esefAuthority: str | None = None
+    esefInstanceValidated: bool = False
+    nonEsefInstanceExcluded: bool = False
+
+    @staticmethod
+    def get(cntlr: Cntlr) -> ESEFPluginData:
+        pluginData = cntlr.getPluginData(ESEF_PLUGIN_NAME)
+        if pluginData is None:
+            pluginData = ESEFPluginData(name=ESEF_PLUGIN_NAME)
+            cntlr.setPluginData(pluginData)
+        elif not isinstance(pluginData, ESEFPluginData):
+            raise RuntimeError(f"PluginData already set for {pluginData.name} with unexpected type {type(pluginData)}.")
+        return pluginData
+
+    def reset(self) -> None:
+        self.esefAuthority = None
+        self.esefInstanceValidated = False
+        self.nonEsefInstanceExcluded = False
 
 
 class ESEFPlugin(PluginHooks):
@@ -186,7 +211,8 @@ class ESEFPlugin(PluginHooks):
     ) -> None:
         esefAuthority = getattr(options, "esefAuthority", None)
         if esefAuthority:
-            cntlr.setPluginData(ESEFPluginData(name=ESEF_PLUGIN_NAME, esefAuthority=esefAuthority))
+            pluginData = ESEFPluginData.get(cntlr)
+            pluginData.esefAuthority = esefAuthority
 
     @staticmethod
     def cntlrWinMainMenuValidation(
@@ -323,13 +349,16 @@ class ESEFPlugin(PluginHooks):
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        if not shouldRunEsefValidationRules(val):
+        if not val.validateDisclosureSystem:
+            return None
+        if not esefDisclosureSystemSelected(val.modelXbrl):
             return None
         modelXbrl = val.modelXbrl
+        pluginData = ESEFPluginData.get(modelXbrl.modelManager.cntlr)
         val.extensionImportedUrls = set()
         val.unconsolidated = any("unconsolidated" in n for n in val.disclosureSystem.names)
         val.consolidated = not val.unconsolidated
-        val.authority = getEsefAuthority(modelXbrl, parameters)
+        val.authority = getEsefAuthority(modelXbrl, pluginData, parameters)
 
         authorityValidations = loadAuthorityValidations(val.modelXbrl)
         # loadAuthorityValidations returns either a list or a dict but in this context, we expect a dict.
@@ -355,6 +384,11 @@ class ESEFPlugin(PluginHooks):
         for convertListIntoSet in ("outdatedTaxonomyURLs", "effectiveTaxonomyURLs", "standardTaxonomyURIs", "additionalMandatoryTags"):
             if convertListIntoSet in val.authParam:
                 val.authParam[convertListIntoSet] = set(val.authParam[convertListIntoSet])
+
+        if isEsefExcludedInstance(val):
+            pluginData.nonEsefInstanceExcluded = True
+            return None
+        pluginData.esefInstanceValidated = True
 
         # add in formula messages if not loaded
         formulaMsgsUrls = val.authParam.get("formulaMessagesAdditionalURLs", ())
@@ -442,6 +476,21 @@ class ESEFPlugin(PluginHooks):
         rptPkgIxdsOptions["lookOutsideReportsDirectory"] = True
         rptPkgIxdsOptions["combineIntoSingleIxds"] = True
 
+    @staticmethod
+    def validateComplete(
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        pluginData = ESEFPluginData.get(cntlr)
+        if not pluginData.esefInstanceValidated and pluginData.nonEsefInstanceExcluded:
+            cntlr.error(
+                codes="ESEF.Arelle.noEsefReportFound",
+                msg=_("ESEF validation was requested but no reports import the ESEF taxonomy."),
+                fileSource=fileSource,
+            )
+        pluginData.reset()
 
 validationPlugin = ValidationPluginExtension(
     name=ESEF_PLUGIN_NAME,
@@ -476,6 +525,7 @@ __pluginInfo__ = {
     "ModelDocument.PullLoader": ESEFPlugin.modelDocumentPullLoader,
     "ModelTestcaseVariation.ReportPackageIxdsOptions": ESEFPlugin.modelTestcaseVariationReportPackageIxdsOptions,
     "ModelXbrl.LoadComplete": ESEFPlugin.modelXbrlLoadComplete,
+    "Validate.Complete": ESEFPlugin.validateComplete,
     "Validate.Finally": ESEFPlugin.validateFinally,  # run *after* formula processing
     "Validate.XBRL.Finally": ESEFPlugin.validateXbrlFinally,  # before formula processing
     "Validate.XBRL.Start": ESEFPlugin.validateXbrlStart,
