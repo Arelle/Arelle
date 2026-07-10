@@ -360,7 +360,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                         errCode = "oimte:invalidJSONStructureInvalidPropertyDefined"
                     elif p_last == "language" and " does not match " in msg:
                         errCode = "oimte:invalidLanguage"
-                    elif p_last == "coreDimensions" and "unique elements" in msg:
+                    elif "unique elements" in msg: # any uniqueItems violation is a duplicate set item
                         errCode = "oimte:duplicateItemsInSet"
                     elif p_beforeLast == "dimensions" and ("valid under each of" in msg or "not valid under any of" in msg):
                         errCode = "oimte:invalidDimensionObject"
@@ -391,7 +391,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                         errCode = "oimte:invalidJSONStructureInvalidPropertyDefined"
                     elif p_last == "language" and " does not match " in msg:
                         errCode = "oimte:invalidLanguage"
-                    elif p_last == "coreDimensions" and "unique elements" in msg:
+                    elif "unique elements" in msg: # any uniqueItems violation is a duplicate set item
                         errCode = "oimte:duplicateItemsInSet"
                     elif p_beforeLast == "dimensions" and " valid under each of {'required': ['domainClass']}, {'required': ['domainDataType']}" in msg:
                         errCode = "oimte:invalidDimensionObject"
@@ -428,7 +428,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                     errCode = "oimte:invalidJSONStructureInvalidPropertyDefined"
                 elif p_last == "language" and " must match " in msg:
                     errCode = "oimte:invalidLanguage"
-                elif p_last == "coreDimensions" and " unique items" in msg:
+                elif " unique items" in msg: # any uniqueItems violation is a duplicate set item
                     errCode = "oimte:duplicateItemsInSet"
                 elif p_beforeLast == "dimensions" and isinstance(ex.rule_definition, list) and all(k == "required" for o in ex.rule_definition for k in o.keys()):
                     errCode = "oimte:invalidDimensionObject"
@@ -561,6 +561,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                 xbrlCompMdl.error("oimte:importMappingDefinedForCompiledTaxonomy",
                             _("A compiled taxonomy MUST NOT define importMapping."),
                             sourceFileLine=href)
+        resolvedImportMapping = {} # QName xbrlModelName -> URL, for the cross-module consistency check
         if importMapping:
             for qn, url in importMapping.copy().items():
                 qnImpName = qname(qn, prefixNamespaces)
@@ -570,6 +571,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                                 sourceFileLine=href, qname=qn)
                 else:
                     importMapping[qnImpName] = url
+                    resolvedImportMapping[qnImpName] = url
         xbrlModelName = qname(moduleObj.get("name"), prefixNamespaces)
         if not xbrlModelName:
             xbrlCompMdl.error("oimte:invalidJSONStructureMissingRequiredProperty",
@@ -987,6 +989,12 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             _ns = types.SimpleNamespace(sourceName=_snQn, url=_absUrl)
             parsedSourceMappings.append(_ns)
         newModule._sourceMappings = parsedSourceMappings
+        # Retain the documentInfo.description so the compiled-model validation can check any
+        # RESOLVED:{...} expected object-count block a conformance test may declare in it.
+        newModule._description = documentInfo.get("description")
+        # Retain the resolved importMapping (xbrlModelName QName -> URL) so the compiled-model
+        # validation can verify all modules map each xbrlModelName to the same URL.
+        newModule._importMapping = resolvedImportMapping
         schemaDoc._txmyModule = newModule
         if xbrlModelName is not None:
             xbrlCompMdl.xbrlModels[xbrlModelName] = newModule

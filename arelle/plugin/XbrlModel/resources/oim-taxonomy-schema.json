@@ -740,8 +740,7 @@
                                             },
                                             "minItems": 1,
                                             "description": "Additional properties associated with the label.",
-                                            "uniqueItems": true,
-                                            "minItems": 1
+                                            "uniqueItems": true
                                         }
                                     },
                                     "required": [
@@ -1042,8 +1041,7 @@
                             }
                         },
                         "required": [
-                            "name",
-                            "cycles"
+                            "name"
                         ],
                         "additionalProperties": false
                     },
@@ -1742,7 +1740,7 @@
                     "uniqueItems": true,
                     "minItems": 1
                 },
-                "jsonTemplateMaps": {
+                "JSONTemplateMaps": {
                     "type": "array",
                     "items": {
                         "type": "object",
@@ -1812,6 +1810,7 @@
                             }
                         },
                         "required": [
+                            "name",
                             "factDimensions",
                             "valuePath"
                         ],
@@ -1820,7 +1819,7 @@
                     "uniqueItems": true,
                     "minItems": 1
                 },
-                "xmlTemplateMaps": {
+                "XMLTemplateMaps": {
                     "type": "array",
                     "items": {
                         "type": "object",
@@ -1924,13 +1923,16 @@
                                 "type": "string",
                                 "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
                                 "description": "[oimte:badlanguage] Language code (BCP 47)."
+                            },
+                            "annotationType": {
+                                "$ref": "#/definitions/QName",
+                                "description": "The type of the annotation."
                             }
                         },
                         "required": [
                             "name",
                             "forObjects",
-                            "content",
-                            "language"
+                            "content"
                         ],
                         "additionalProperties": false
                     },
@@ -2413,15 +2415,6 @@
                                 "type": "integer",
                                 "minimum": 0,
                                 "description": "Minimum number of items required in the collection."
-                            },
-                            "properties": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/propertyObject"
-                                },
-                                "minItems": 1,
-                                "description": "Additional properties associated with the collectionType object.",
-                                "uniqueItems": true
                             }
                         },
                         "required": [
@@ -2488,7 +2481,7 @@
                                 "$ref": "#/definitions/QName",
                                 "description": "The object type that the implied object represents."
                             },
-                            "dataType": {
+                            "localNameConstraint": {
                                 "$ref": "#/definitions/dataTypeQName",
                                 "description": "Optional QName referencing a dataType or collectionType object that constrains the data type of the implied object's local name."
                             }
@@ -3095,6 +3088,9 @@
                     "description": "Indicates where the span starts or ends relative to the axis number. The default is 'start', meaning the header applies to the axis number and the following axes. If 'end', the header applies to the preceding axes up to and including the axis number."
                 }
             },
+            "required": [
+                "label"
+            ],
             "additionalProperties": false
         },
         "tablePointObject": {

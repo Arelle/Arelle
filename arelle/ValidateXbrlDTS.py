@@ -1483,6 +1483,11 @@ def checkNamespaceSchemaConnectivity(val: ValidateXbrl) -> None:
     schemaUrisByNamespace: defaultdict[str, list[str]] = defaultdict(list)
     seenXbrlOrgGroups: defaultdict[str, set[tuple[str, ...]]] = defaultdict(set)
     for uri, doc in val.modelXbrl.urlDocs.items():
+        # OIM taxonomy modules (JSON) are compiled as schema documents but are composed via OIM
+        # import objects, not xs:include, so the XBRL 2.1 xs:include-connectivity rule does not apply
+        # and multiple modules legitimately share a targetNamespace. Skip them here.
+        if getattr(doc, "_txmyModule", None) is not None:
+            continue
         if doc.type == ModelDocumentType.SCHEMA and doc.targetNamespace:
             # Skip xbrl.org URIs that differ only by http/https or www
             # subdomain from a URI already collected for this namespace.

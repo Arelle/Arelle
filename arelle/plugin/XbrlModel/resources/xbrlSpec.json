@@ -2224,7 +2224,7 @@
                 "namespace" : "http://standards.iso.org/iso/17442",
                 "domainClass": "xbrl:entityDomain",
                 "objectType": "xbrl:entityObject",
-                "dataType": "xbrl:LEICdataType"
+                "localNameConstraint": "xbrl:LEICdataType"
             }
         ],
         "dataTypes": [

@@ -443,8 +443,13 @@ def _validateClassSubclassConsistency(compMdl, module):
                            _("Concept %(name)s %(prop)s value %(subVal)s conflicts with inherited value %(ancVal)s from class %(ancName)s."),
                            xbrlObject=subObj, name=subObj.name, prop=scalarProp,
                            subVal=subVal, ancVal=anc[1], ancName=anc[0].name)
-        # Compare named properties
+        # Compare named properties. Only *definitional* properties are inherited by a subclass and
+        # therefore subject to the conflict rule (oim-taxonomy §property-inheritance / §4113-4122); a
+        # non-definitional property may be overridden with a different value on the subclass.
         for pq, subVal in subPropMap.items():
+            propTpObj = compMdl.namedObjects.get(pq)
+            if not (isinstance(propTpObj, XbrlPropertyType) and getattr(propTpObj, "definitional", False)):
+                continue
             anc = ancestorPropDefs.get(pq)
             if anc is not None and subVal != anc[1]:
                 emit_error(compMdl, "oimte:conflictingPropertyValues",

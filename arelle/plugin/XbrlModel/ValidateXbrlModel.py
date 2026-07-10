@@ -241,12 +241,92 @@ def cleanOrphanedForObjects(compMdl):
             setattr(module, collAttr, keptColl or None)
 
 
+# Each key of a conformance test's RESOLVED:{...} expected-object-count block (declared in the module
+# documentInfo.description) names a compiled-module object collection. The collection attribute is the
+# key with a lowercased initial (Concepts->concepts, DomainNetworks->domainNetworks, GroupContents->
+# groupContents, ...), so no explicit map is needed.
+_RESOLVED_COUNT_KEYS = frozenset((
+    "Concepts", "Headings", "Members", "Cubes", "Dimensions", "DomainNetworks", "DomainClasses",
+    "Networks", "Labels", "References", "PropertyTypes", "ModelTypes", "LabelTypes", "ReferenceTypes",
+    "RelationshipTypes", "CubeTypes", "DataTypes", "Units", "Entities", "Groups", "GroupContents",
+    "Facts", "Transforms", "FactMaps", "FactSources", "Layouts", "TableTemplates", "CollectionTypes",
+    "ImpliedObjects", "Footnotes"))
+_RESOLVED_COUNT_RE = re.compile(r"RESOLVED:\s*\{([^}]*)\}")
+
+def _importClosureModules(compMdl, module):
+    """Return the module and all of its transitively imported modules (the import sub-tree)."""
+    closure = {}
+    pending = [module]
+    while pending:
+        mod = pending.pop()
+        if id(mod) in closure:
+            continue
+        closure[id(mod)] = mod
+        for impTx in getattr(mod, "importedTaxonomies", None) or ():
+            impMod = getattr(impTx, "_txmyModule", None) or compMdl.xbrlModels.get(getattr(impTx, "xbrlModelName", None))
+            if impMod is not None:
+                pending.append(impMod)
+    return list(closure.values())
+
+def checkExpectedObjectCounts(compMdl):
+    """If a module's documentInfo.description declares a RESOLVED:{Key:count,...} block of expected
+    object counts, compare it against the objects remaining (after pruning) in the compilation of that
+    module's import sub-tree — the module itself plus its transitively imported taxonomies — and emit a
+    (non-fatal) warning listing any per-type mismatch. This surfaces stale or incorrect expected-count
+    metadata in the conformance tests without affecting the pass/fail error codes.
+    """
+    for module in compMdl.xbrlModels.values():
+        description = getattr(module, "_description", None) or ""
+        m = _RESOLVED_COUNT_RE.search(description)
+        if not m:
+            continue
+        expected = {}
+        for pair in m.group(1).split(","):
+            key, _sep, val = pair.partition(":")
+            key, val = key.strip(), val.strip()
+            if key and val.lstrip("-").isdigit():
+                expected[key] = int(val)
+        closureModules = _importClosureModules(compMdl, module)
+        mismatches = []
+        for key, expCt in expected.items():
+            if key not in _RESOLVED_COUNT_KEYS:
+                continue # unknown key in the RESOLVED block — ignore rather than mis-report
+            collAttr = key[0].lower() + key[1:]
+            actCt = sum(len(getattr(mod, collAttr, None) or ()) for mod in closureModules)
+            if actCt != expCt:
+                mismatches.append((key, expCt, actCt))
+        if mismatches:
+            compMdl.warning("arelle:expectedObjectCountMismatch",
+                        _("Compiled object counts differ from the RESOLVED expectation in %(module)s: %(mismatches)s."),
+                        xbrlObject=module, module=module.name,
+                        mismatches="; ".join(f"{k} expected {e} got {a}" for k, e, a in mismatches))
+
+def checkConsistentTaxonomyURLs(compMdl):
+    """oim-taxonomy §import: the importMapping objects of all modules comprising a model MUST map each
+    xbrlModelName to the same URL (oimte:inconsistentTaxonomyURL). Collect every module's resolved
+    importMapping and report any xbrlModelName mapped to more than one URL across the modules.
+    """
+    urlsByModelName = defaultdict(dict) # xbrlModelName -> {url: firstModule}
+    for module in compMdl.xbrlModels.values():
+        for modelName, url in (getattr(module, "_importMapping", None) or {}).items():
+            urlsByModelName[modelName].setdefault(url, module)
+    for modelName, urlModules in urlsByModelName.items():
+        if len(urlModules) > 1:
+            compMdl.error("oimte:inconsistentTaxonomyURL",
+                      _("The importMapping for %(modelName)s maps to inconsistent URLs across modules: %(urls)s."),
+                      xbrlObject=list(urlModules.values()), modelName=modelName,
+                      urls=", ".join(sorted(urlModules)))
+
 def validateCompiledModel(compMdl):
     """Validate the compiled model as a whole, after all modules have been validated and combined into the compiled model.
         This is for checks that require the whole model to be available, such as checking for duplicate labels across modules.
     """
 
     compMdl.errorCatalog = get_error_catalog()
+
+    checkExpectedObjectCounts(compMdl)
+
+    checkConsistentTaxonomyURLs(compMdl)
 
     # Automatic orphan cleanup MUST run over the final merged object set before validation so that
     # orphaned label/reference/groupContent forObjects are not reported as invalid QName references.
@@ -1242,7 +1322,10 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             validateQNameReference(compMdl, dimObj, "cubeTypes", XbrlCubeType, qnRef=cubeTypeQn,
                                    invalidTypeMsgCode="oimte:invalidObjectType")
         domRtObj = validateQNameReference(compMdl, dimObj, "domainClass", XbrlDomainClass, msgCode="oimte:invalidDomainClass")
-        if (dimObj.domainClass in (conceptDomainClass, entityDomainClass, unitDomainClass, languageDomainClass) and
+        # Only xbrl:conceptDomain and xbrl:languageDomain are restricted to their matching core
+        # dimension (oim-taxonomy §1266/§1334/§1338). xbrl:entityDomain and xbrl:unitDomain MAY be
+        # used on taxonomy-defined dimensions (§1184, e.g. a legal-entity dimension).
+        if (dimObj.domainClass in (conceptDomainClass, languageDomainClass) and
                                    (dimObj.name.namespaceURI != xbrl or not dimObj.domainClass.localName.startswith(dimObj.name.localName))):
             compMdl.error(f"oimte:invalid{dimObj.domainClass.localName[:-6].title()}DomainClass",
                         _("The dimension domainClass object QName MUST not be %(name)s."),
@@ -1348,14 +1431,25 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                     if domRtObj and domRtObj.allowedDomainItem and (prop != "source" or obj != domRtObj):
                         objTypeQn = xbrlObjectQNames.get(type(obj))
                         allowedTypes = {domRtObj.allowedDomainItem}
+                        # §oim-taxonomy: a heading object is always permitted as a target in a
+                        # domain network whose root is xbrl:conceptDomain, irrespective of allowedDomainItem.
                         if domRtObj.allowedDomainItem == qnXbrlConceptObj:
                             allowedTypes.add(qnXbrlHeadingObj)
-                        elif domRtObj.allowedDomainItem == qnXbrlMemberObj:
-                            allowedTypes.add(qnXbrlConceptObj)
                         if objTypeQn not in allowedTypes and not isinstance(obj, XbrlDataType):
                             compMdl.error("oimte:invalidDomainNetworkObject",
                                       _("The domain network %(name)s relationship[%(nbr)s] %(property)s, %(propQn)s MUST be an object matching the allowedDomainItem %(allowedDomainItem)s."),
                                       xbrlObject=relObj, name=domNwkObj.name, nbr=i, property=prop, propQn=getattr(relObj, prop), allowedDomainItem=domRtObj.allowedDomainItem)
+                        # §oim-taxonomy: if the root is NOT a core domain (concept/entity/unit/language),
+                        # a target MUST NOT be a concept or unit object unless expressly permitted by the
+                        # domain class's allowedDomainItem. (oimte:invalidDomainTarget)
+                        if (prop == "target"
+                                and domRtQn not in (conceptDomainClass, entityDomainClass, unitDomainClass, languageDomainClass)
+                                and isinstance(obj, (XbrlConcept, XbrlUnit))
+                                and objTypeQn != domRtObj.allowedDomainItem):
+                            compMdl.error("oimte:invalidDomainTarget",
+                                      _("The domain network %(name)s relationship[%(nbr)s] target, %(propQn)s, is a %(objType)s which is not permitted by the domain class allowedDomainItem %(allowedDomainItem)s."),
+                                      xbrlObject=relObj, name=domNwkObj.name, nbr=i, propQn=getattr(relObj, prop),
+                                      objType=objTypeQn, allowedDomainItem=domRtObj.allowedDomainItem)
             if isinstance(compMdl.namedObjects.get(tgt), XbrlDomainClass):
                 compMdl.error("oimte:invalidDomainRelationshipTarget",
                           _("The domain network %(name)s relationship target %(qname)s MUST NOT be a domainClass object."),
@@ -1618,7 +1712,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         assertObjectType(compMdl, refObj, XbrlReferenceType)
         for allowedObj in (refObj.allowedObjects or ()):
             if allowedObj not in referencableObjectTypes:
-                compMdl.error("oimte:invalidObjectType",
+                compMdl.error("oimte:invalidAllowedObject",
                           _("The referenceType %(name)s allowedObject %(allowedObject)s MUST be a referenceable taxonomy model object."),
                           xbrlObject=refObj, name=refObj.name, allowedObject=allowedObj)
         for prop, msgCode in (("orderedProperties","oimte:invalidOrderedProperty"),
@@ -1659,7 +1753,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         unitObj._unitsMeasures = [parseUnitString(uStr, unitObj, module, compMdl) for uStr in unitObj.compositeUnitRepresentation or ()]
         for uMeas in unitObj._unitsMeasures:
             if any(m == name for md in uMeas for m in md):
-                compMdl.error("oimte:invalidPropertyValue",
+                compMdl.error("oimte:unitDataTypeUsedInDefinition",
                           _("The unit %(name)s must not contain itself as a measure."),
                           xbrlObject=unitObj, name=unitObj.name)
             for md in uMeas:
