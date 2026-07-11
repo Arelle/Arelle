@@ -1697,12 +1697,18 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                           _("Referencehas both extends and name %(name)s"),
                           xbrlObject=refObj, name=extName)
             else:
-                extRefObjs = compMdl.tagObjects.get(extName) or ()
-                if not all(isinstance(extRefObj, XbrlReference) for extRefObj in extRefObjs):
+                extRefObjs = compMdl._referenceObjectsByName().get(extName) or ()
+                if not extRefObjs or not all(isinstance(extRefObj, XbrlReference) for extRefObj in extRefObjs):
                     compMdl.error("oimte:invalidQNameReference",
                               _("Reference extends must be a reference object %(name)s"),
                               xbrlObject=refObj, name=extName)
-                elif not any(extRefObj.referenceType == refTp for extRefObj in extRefObjs):
+                elif any(not getattr(extRefObj, "isExtensible", True) for extRefObj in extRefObjs):
+                    compMdl.error("oimte:illegalExtensionOfNonExtensibleObject",
+                              _("Reference cannot extend %(name)s because it is non-extensible."),
+                              xbrlObject=refObj, name=extName)
+                # An extending reference that omits referenceType inherits the base's; only a
+                # differing referenceType is a redefinition.
+                elif refTp is not None and not any(extRefObj.referenceType == refTp for extRefObj in extRefObjs):
                     compMdl.error("oimte:referenceTypeRedefined",
                               _("Reference extends reference object %(name)s must have same referenceType %(referenceType)s"),
                               xbrlObject=refObj, name=extName, referenceType=refTp)
