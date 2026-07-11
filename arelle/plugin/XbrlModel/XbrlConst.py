@@ -7,12 +7,14 @@ from arelle.XbrlConst import xsd
 
 # MERGE TO arelle.XbrlConst when promoting plugin to infrastructure
 
-oimTaxonomyDocTypePattern = re.compile(r"\s*\{.*\"documentType\"\s*:\s*\"https://xbrl.org/[0-9]{4}/(?:module|compiled|archive)\"", flags=re.DOTALL)
+oimTaxonomyDocTypePattern = re.compile(r"\s*\{.*\"documentType\"\s*:\s*\"https://xbrl.org/[0-9]{4}/(?:module|compiled|archive|bundle)\"", flags=re.DOTALL)
 oimTaxonomyDocTypes = (
         "https://xbrl.org/2026/module",
         "https://xbrl.org/2026/compiled",
         "https://xbrl.org/2026/archive",
+        "https://xbrl.org/2026/bundle",
     )
+oimBundleDocType = "https://xbrl.org/2026/bundle"
 
 xbrl = "https://xbrl.org/2026"
 xbrla = "http://xbrl.org/accounting"

@@ -216,7 +216,11 @@ def cleanOrphanedForObjects(compMdl):
             if not lst:
                 del compMdl.tagObjects[qn]
     for module in compMdl.xbrlModels.values():
-        if module.labels:
+        # A standalone (entry-point) bundle validates its labels against its referenced model: an
+        # unresolved forObject is a genuine error (reported by the label-object validation), so its
+        # labels are NOT orphan-cleaned here. Bundle labels bound into a host model via import still go
+        # through normal orphan cleanup below (unresolved ones are dropped, not errored).
+        if module.labels and not getattr(module, "_isEntryBundle", False):
             keptLabels = OrderedSet()
             for lblObj in module.labels:
                 if resolves(lblObj.forObject):
@@ -317,6 +321,28 @@ def checkConsistentTaxonomyURLs(compMdl):
                       xbrlObject=list(urlModules.values()), modelName=modelName,
                       urls=", ".join(sorted(urlModules)))
 
+def validateBundleModules(compMdl):
+    """Validate the bundle-module constraints (oim-taxonomy §46, §239, §1005-1006): a bundle module
+    (documentType https://xbrl.org/2026/bundle) MUST define only label objects and MUST define a
+    referenceModel property naming the model whose objects its labels annotate."""
+    for module in compMdl.xbrlModels.values():
+        if not getattr(module, "_isBundle", False):
+            continue
+        # A bundle may define only label objects; any other populated top-level object collection
+        # (concepts, cubes, references, …) is disallowed.
+        for key in _RESOLVED_COUNT_KEYS:
+            if key == "Labels":
+                continue
+            collAttr = key[0].lower() + key[1:]
+            if getattr(module, collAttr, None):
+                compMdl.error("oimte:invalidBundleModuleContent",
+                          _("The bundle module %(name)s MUST contain only label objects, but also defines a %(objectType)s array."),
+                          xbrlObject=module, name=module.name, objectType=key)
+        if getattr(module, "referenceModel", None) is None:
+            compMdl.error("oimte:missingBundleModuleReferenceModel",
+                      _("The bundle module %(name)s MUST define a referenceModel property."),
+                      xbrlObject=module, name=module.name)
+
 def validateCompiledModel(compMdl):
     """Validate the compiled model as a whole, after all modules have been validated and combined into the compiled model.
         This is for checks that require the whole model to be available, such as checking for duplicate labels across modules.
@@ -324,13 +350,17 @@ def validateCompiledModel(compMdl):
 
     compMdl.errorCatalog = get_error_catalog()
 
-    checkExpectedObjectCounts(compMdl)
-
     checkConsistentTaxonomyURLs(compMdl)
+
+    validateBundleModules(compMdl)
 
     # Automatic orphan cleanup MUST run over the final merged object set before validation so that
     # orphaned label/reference/groupContent forObjects are not reported as invalid QName references.
     cleanOrphanedForObjects(compMdl)
+
+    # Object-count check runs after orphan cleanup so the counts reflect the final compiled model
+    # (e.g. bundle/imported labels dropped when their forObject is unresolved).
+    checkExpectedObjectCounts(compMdl)
 
     mdlLvlChecks = attrdict(
         labelsCt = defaultdict(list), # count of duplicated labels by forObject, labelType and language

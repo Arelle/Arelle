@@ -537,6 +537,16 @@
             "source": "oimte:OIMErrorClassDomain",
             "target": "oimte:invalidRootSourceReference",
             "order": 67
+          },
+          {
+            "source": "oimte:OIMErrorClassDomain",
+            "target": "oimte:invalidBundleModuleContent",
+            "order": 68
+          },
+          {
+            "source": "oimte:OIMErrorClassDomain",
+            "target": "oimte:missingBundleModuleReferenceModel",
+            "order": 68.2
           }
         ]
       }
@@ -2191,18 +2201,6 @@
         ]
       },
       {
-        "name": "oimte:invalidGroupObject",
-        "domainClasses": [
-          "oimte:OIMErrorClassDomain"
-        ],
-        "properties": [
-          {
-            "property": "xbrl:severity",
-            "value": "error"
-          }
-        ]
-      },
-      {
         "name": "oimte:invalidGroupContentForObject",
         "domainClasses": [
           "oimte:OIMErrorClassDomain"
@@ -2432,6 +2430,30 @@
       },
       {
         "name": "oimte:nestedCollection",
+        "domainClasses": [
+          "oimte:OIMErrorClassDomain"
+        ],
+        "properties": [
+          {
+            "property": "xbrl:severity",
+            "value": "error"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidBundleModuleContent",
+        "domainClasses": [
+          "oimte:OIMErrorClassDomain"
+        ],
+        "properties": [
+          {
+            "property": "xbrl:severity",
+            "value": "error"
+          }
+        ]
+      },
+      {
+        "name": "oimte:missingBundleModuleReferenceModel",
         "domainClasses": [
           "oimte:OIMErrorClassDomain"
         ],
@@ -3721,7 +3743,7 @@
           },
           {
             "source": "xbrl:groupTreeObject",
-            "target": "oimte:invalidGroupObject"
+            "target": "oimte:invalidObjectType"
           },
           {
             "source": "xbrl:factSourceObject",
@@ -4533,6 +4555,12 @@
         "forObject": "oimte:documentNamespacePrefixNotDefined",
         "language": "en",
         "value": "The documentNamespacePrefix '{documentNamespacePrefix}' does not match any defined namespace prefix in the namespaces declaration.",
+        "labelType": "xbrl:errorMessage"
+      },
+      {
+        "forObject": "oimte:documentNamespacePrefixNotDefined",
+        "language": "en",
+        "value": "Bundle module does not define the documentNamespacePrefix property. Bundle modules MUST define a documentNamespacePrefix.",
         "labelType": "xbrl:errorMessage"
       },
       {
@@ -5456,7 +5484,7 @@
       {
         "forObject": "oimte:documentNamespacePrefixNotDefined",
         "language": "en",
-        "value": "This error occurs when the documentNamespacePrefix property specifies a prefix that is not defined in the namespaces declaration. The documentNamespacePrefix must reference a valid prefix that exists in the namespaces map.",
+        "value": "This error occurs when the documentNamespacePrefix property specifies a prefix that is not defined in the namespaces declaration, or when a bundle module does not define the documentNamespacePrefix property. The documentNamespacePrefix must reference a valid prefix that exists in the namespaces map. Bundle modules MUST define a documentNamespacePrefix.",
         "labelType": "xbrl:documentation"
       },
       {
@@ -6306,19 +6334,19 @@
         "value": "Raised when a calculation relationship in a network references a concept that is not in the domain of the cube associated with the network. Calculation relationships are only validated against cubes."
       },
       {
-        "forObject": "oimte:invalidGroupObject",
+        "forObject": "oimte:invalidObjectType",
         "language": "en",
         "labelType": "xbrl:label",
-        "value": "Invalid Group Object"
+        "value": "Invalid Object Type"
       },
       {
-        "forObject": "oimte:invalidGroupObject",
+        "forObject": "oimte:invalidObjectType",
         "language": "en",
         "labelType": "xbrl:errorMessage",
         "value": "The groupName '{groupName}' in the groupContent object does not reference a valid group object in the XBRL model."
       },
       {
-        "forObject": "oimte:invalidGroupObject",
+        "forObject": "oimte:invalidObjectType",
         "language": "en",
         "labelType": "xbrl:documentation",
         "value": "Raised when a groupContent object references a group QName that does not correspond to a valid group object in the XBRL model."
@@ -6502,6 +6530,42 @@
         "language": "en",
         "labelType": "xbrl:documentation",
         "value": "Raised when a collectionType object's dataType property references another collectionType object, creating a nested collection. Collection types must reference a datatype object or a built-in XML Schema type, not another collection type."
+      },
+      {
+        "forObject": "oimte:invalidBundleModuleContent",
+        "language": "en",
+        "labelType": "xbrl:label",
+        "value": "Invalid Bundle Module Content"
+      },
+      {
+        "forObject": "oimte:invalidBundleModuleContent",
+        "language": "en",
+        "labelType": "xbrl:errorMessage",
+        "value": "Bundle module '{modelName}' contains non-label object(s): {invalidProperties}. Bundle modules must only contain label objects."
+      },
+      {
+        "forObject": "oimte:invalidBundleModuleContent",
+        "language": "en",
+        "labelType": "xbrl:documentation",
+        "value": "Raised when a bundle module (documentType 'https://xbrl.org/2026/bundle') contains object types other than label objects. Bundle modules are restricted to defining only label objects."
+      },
+      {
+        "forObject": "oimte:missingBundleModuleReferenceModel",
+        "language": "en",
+        "labelType": "xbrl:label",
+        "value": "Missing Bundle Module Reference Model"
+      },
+      {
+        "forObject": "oimte:missingBundleModuleReferenceModel",
+        "language": "en",
+        "labelType": "xbrl:errorMessage",
+        "value": "Bundle module '{modelName}' does not define the required referenceModel property."
+      },
+      {
+        "forObject": "oimte:missingBundleModuleReferenceModel",
+        "language": "en",
+        "labelType": "xbrl:documentation",
+        "value": "Raised when a bundle module (documentType 'https://xbrl.org/2026/bundle') does not define the referenceModel property. Bundle modules must define a referenceModel property that references the target XBRL model."
       }
     ],
     "references": [
@@ -10398,6 +10462,36 @@
         ]
       },
       {
+        "name": "oimte:documentNamespacePrefixNotDefinedBundleReference",
+        "forObjects": [
+          "oimte:documentNamespacePrefixNotDefined"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "BUNDLE-MissingBundleDocumentNamespacePrefix.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "A bundle module does not define the documentNamespacePrefix property."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#BUNDLE-MissingBundleDocumentNamespacePrefix"
+          }
+        ]
+      },
+      {
         "name": "oimte:documentNamespaceNotDefinedReference",
         "forObjects": [
           "oimte:documentNamespaceNotDefined"
@@ -10498,6 +10592,96 @@
           {
             "property": "xbrl:specificationErrorURI",
             "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-InvalidCubeType"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidQNameBundleMissingReferencedModelReference",
+        "forObjects": [
+          "oimte:invalidQNameReference"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "BUNDLE-InvalidBundleMissingReferencedModel.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "5"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "A bundle module has QName references in referenceModel and forObject properties that cannot be resolved."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#BUNDLE-InvalidBundleMissingReferencedModel"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidQNameBundleMissingReferenceModelReference",
+        "forObjects": [
+          "oimte:invalidQNameReference"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "BUNDLE-MissingBundleModuleReferenceModel.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "5"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "A bundle module without a referenceModel has QName references in forObject properties that cannot be resolved."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#BUNDLE-MissingBundleModuleReferenceModel"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidQNameBundleInvalidBundleModuleContentRefsBadQNameReference",
+        "forObjects": [
+          "oimte:invalidQNameReference"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "BUNDLE-InvalidBundleModuleContentRefsBadQName.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "A bundle module has a label with a forObject QName that is not defined in the referenced model."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#BUNDLE-InvalidBundleModuleContentRefsBadQName"
           }
         ]
       },
@@ -12148,6 +12332,36 @@
           {
             "property": "xbrl:specificationErrorURI",
             "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#IMPORTTAXONOMY-TaxonomyNotFoundNoQname"
+          }
+        ]
+      },
+      {
+        "name": "oimte:taxonomyNotFoundBundleMissingReferencedModelReference",
+        "forObjects": [
+          "oimte:taxonomyNotFound"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "BUNDLE-InvalidBundleMissingReferencedModel.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "A bundle module fails to define the location of the reference model."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#BUNDLE-InvalidBundleMissingReferencedModel"
           }
         ]
       },
@@ -19049,9 +19263,9 @@
         ]
       },
       {
-        "name": "oimte:invalidGroupObjectReference",
+        "name": "oimte:invalidObjectTypeReference",
         "forObjects": [
-          "oimte:invalidGroupObject"
+          "oimte:invalidObjectType"
         ],
         "referenceType": "xbrl:conformanceTestReference",
         "language": "en",
@@ -19100,7 +19314,7 @@
           },
           {
             "property": "xbrl:conformanceTestDescription",
-            "value": "The groupContent forObjects contains 'exp:Revenue', which is a concept object. Only network, cube, or tableTemplate object QNames are permitted."
+            "value": "The groupContent forObject 'exp:Revenue' is a concept object. Only network, cube, or tableTemplate object QNames are permitted as groupContent forObject."
           },
           {
             "property": "xbrl:specificationErrorURI",
@@ -19130,7 +19344,7 @@
           },
           {
             "property": "xbrl:conformanceTestDescription",
-            "value": "A valid groupContent with forObjects containing only network and cube object QNames."
+            "value": "A valid groupContent with forObject referencing a network and a cube object QName."
           },
           {
             "property": "xbrl:specificationErrorURI",
@@ -23579,6 +23793,66 @@
           {
             "property": "xbrl:specificationErrorURI",
             "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#NETWORK-InvalidRootSourceReference"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidBundleModuleContentReference",
+        "forObjects": [
+          "oimte:invalidBundleModuleContent"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "BUNDLE-InvalidBundleModuleContent.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "A bundle module contains a concepts array, which is not allowed. Bundle modules must only contain label objects."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#BUNDLE-InvalidBundleModuleContent"
+          }
+        ]
+      },
+      {
+        "name": "oimte:missingBundleModuleReferenceModelReference",
+        "forObjects": [
+          "oimte:missingBundleModuleReferenceModel"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "BUNDLE-MissingBundleModuleReferenceModel.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "A bundle module does not define the required referenceModel property."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#BUNDLE-MissingBundleModuleReferenceModel"
           }
         ]
       }

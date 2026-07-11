@@ -72,7 +72,7 @@ from .ValidateFacts import validateDateResolutionConceptFacts, validateCompleteR
 from .SelectImportedObjects import validateImportSelections, applyDeferredImportPruning
 from .ModelValueMore import SQName, QNameAt
 from .ViewXbrlTaxonomyObject import viewXbrlTaxonomyObject
-from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, oimTaxonomyDocTypes, xbrlTaxonomyObjects
+from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, oimBundleDocType, xbrlTaxonomyObjects
 from .ParseSelectionWhereClause import parseSelectionWhereClause
 from .LoadCsvTable import csvTableRowFacts
 from .SaveModel import xbrlModelSave
@@ -532,8 +532,10 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         # Accept both keys and normalize values to a tuple of URLs.
         importMapping = documentInfo.get("importMapping") or EMPTY_DICT
         isCompiledDocType = documentType == "https://xbrl.org/2026/compiled"
+        isBundleDocType = documentType == oimBundleDocType
 
-        # Validate documentNamespacePrefix: required for module-type, forbidden for compiled.
+        # Validate documentNamespacePrefix: required for module-type and bundle, forbidden for compiled.
+        # (A bundle module defines its own namespace like a module; oim-taxonomy bundle tests.)
         _documentNamespaceURI = None  # resolved and stored on the module object after creation
         _docNsPrefix = documentInfo.get("documentNamespacePrefix")
         if _docNsPrefix:
@@ -548,6 +550,10 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             else:
                 _documentNamespaceURI = prefixNamespaces[_docNsPrefix]
                 schemaDoc.targetNamespace = _documentNamespaceURI
+        elif isBundleDocType:
+            xbrlCompMdl.error("oimte:documentNamespacePrefixNotDefined",
+                        _("A bundle module MUST define a documentNamespacePrefix."),
+                        sourceFileLine=href)
         elif not isCompiledDocType and not kwargs.get("loadingBakedInObjects"):
             xbrlCompMdl.error("oimte:documentNamespaceNotDefined",
                         _("Module-type taxonomy must define documentNamespacePrefix."),
@@ -876,8 +882,30 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         
         # imported taxonomy modules are needed before creating objects in this module, so that imported objects are available for reference and validation as the module is processed. This matches the expectation in the OIM spec that imported modules are processed before the importing module.
         impTxmyNameModuleObjs = {}
-        if "importedTaxonomies" in moduleFileObj["xbrlModel"] and not isCompiledDocType:
-            for impTxJsonObj in moduleFileObj["xbrlModel"]["importedTaxonomies"]:
+        importedTaxonomiesJson = list(moduleFileObj["xbrlModel"].get("importedTaxonomies") or [])
+        # A bundle loaded on its own (not imported into a host model) loads the model named by its
+        # referenceModel property (located via importMapping) so its label forObjects can be resolved
+        # and validated against the referenced model. When the bundle is itself imported into a host
+        # model, the host provides that context and the bundle does NOT reload its referenceModel.
+        _bundleRefModelQn = None
+        if isBundleDocType and not importingTxmyObj:
+            # A standalone (entry-point) bundle always imports xbrlm:base so its label objects resolve
+            # the built-in labelTypes (xbrl:label, …). It additionally loads its referenceModel (located
+            # via importMapping) so its label forObjects resolve against the referenced model — but only
+            # when the bundle is well-formed (labels only). A malformed bundle that also defines content
+            # objects is already reported (invalidBundleModuleContent); loading its referenceModel would
+            # just cascade duplicate-object errors.
+            importedTaxonomiesJson.append({"xbrlModelName": "xbrlm:base"})
+            _bundleAllowedKeys = {"name", "version", "frameworkName", "modelForm", "modelType",
+                                  "duplicateFactsInModel", "referenceModel", "importedTaxonomies",
+                                  "labels", "namespacePrefixes"}
+            _bundleContentOnlyLabels = not (set(moduleFileObj["xbrlModel"].keys()) - _bundleAllowedKeys)
+            _refModelName = moduleFileObj["xbrlModel"].get("referenceModel")
+            if _refModelName and _bundleContentOnlyLabels:
+                _bundleRefModelQn = qname(_refModelName, prefixNamespaces)
+                importedTaxonomiesJson.append({"xbrlModelName": _refModelName})
+        if importedTaxonomiesJson and not isCompiledDocType:
+            for impTxJsonObj in importedTaxonomiesJson:
                 impTxModelName = impTxJsonObj.get("xbrlModelName")
                 impModuleName = qname(impTxModelName, prefixNamespaces)
                 if impModuleName:
@@ -995,6 +1023,16 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         # Retain the resolved importMapping (xbrlModelName QName -> URL) so the compiled-model
         # validation can verify all modules map each xbrlModelName to the same URL.
         newModule._importMapping = resolvedImportMapping
+        # Mark bundle modules (documentType https://xbrl.org/2026/bundle): they contain only label
+        # objects. A standalone bundle whose referenceModel was located and loaded has its labels
+        # validated against that model (so unresolved forObjects error rather than being silently
+        # orphan-cleaned); see cleanOrphanedForObjects.
+        newModule._isBundle = isBundleDocType
+        # An entry-point (non-imported) bundle validates its own labels against the referenced model:
+        # an unresolved forObject is a genuine error, so its labels are NOT orphan-cleaned. A bundle
+        # that is itself imported into a host model instead binds to the host and its unresolved labels
+        # are silently dropped.
+        newModule._isEntryBundle = isBundleDocType and not importingTxmyObj
         schemaDoc._txmyModule = newModule
         if xbrlModelName is not None:
             xbrlCompMdl.xbrlModels[xbrlModelName] = newModule

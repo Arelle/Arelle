@@ -103,6 +103,7 @@ class XbrlModule(XbrlModelObject):
     units: Optional[NonemptySet[XbrlUnit]] # ordered set of unit objects.
     xmlTemplateMaps: Optional[NonemptySet[XbrlXMLTemplateMap]] # (optional) ordered set of XML template map objects that define mappings from taxonomy objects to XML templates for rendering in user interfaces or forms.
     importedTaxonomies: Optional[NonemptySet[XbrlImportTaxonomy]] # ordered set of importTaxonomy objects that can comprise QName of the taxonomy to be imported, an object type or a taxonomy object referenced by its QName.
+    referenceModel: Optional[QName] # (optional) A QName that references a XBRL model object. The referenceModel property is only used with a model that has a documentType of https://xbrl.org/2026/bundle.
     finalTaxonomy: Optional[XbrlFinalTaxonomy] # (optional) A final taxonomy object that indicates those components of the taxonomy that are final and cannot be amended or added by an importing taxonomy.
     namespacePrefixes: Optional[NonemptySet[XbrlNamespacePrefix]] # (optional) ordered set of namespace prefix objects that define preferred prefixes for namespaces used within the taxonomy.
     impliedObjects: Optional[NonemptySet[XbrlImpliedObject]] # (optional) A set of implied Objects that defines objects that are implied by the model but not explicitly defined.
