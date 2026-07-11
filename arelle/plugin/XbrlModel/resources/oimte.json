@@ -7116,6 +7116,32 @@
         ]
       },
       {
+        "name": "oimte:cubeMissingConceptDimension4Reference",
+        "forObjects": [
+          "oimte:cubeMissingConceptDimension"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "CUBE-EmptyCubeDimensions.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-EmptyCubeDimensions"
+          }
+        ]
+      },
+      {
         "name": "oimte:factMissingFromCubeReference",
         "forObjects": [
           "oimte:factMissingFromCube"
@@ -10592,36 +10618,6 @@
           {
             "property": "xbrl:specificationErrorURI",
             "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CUBE-InvalidCubeType"
-          }
-        ]
-      },
-      {
-        "name": "oimte:invalidQNameBundleMissingReferencedModelReference",
-        "forObjects": [
-          "oimte:invalidQNameReference"
-        ],
-        "referenceType": "xbrl:conformanceTestReference",
-        "language": "en",
-        "properties": [
-          {
-            "property": "xbrl:conformanceTestFileName",
-            "value": "BUNDLE-InvalidBundleMissingReferencedModel.json"
-          },
-          {
-            "property": "xbrl:conformanceStatus",
-            "value": "❌ Fail"
-          },
-          {
-            "property": "xbrl:conformanceErrorsProduced",
-            "value": "5"
-          },
-          {
-            "property": "xbrl:conformanceTestDescription",
-            "value": "A bundle module has QName references in referenceModel and forObject properties that cannot be resolved."
-          },
-          {
-            "property": "xbrl:specificationErrorURI",
-            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#BUNDLE-InvalidBundleMissingReferencedModel"
           }
         ]
       },

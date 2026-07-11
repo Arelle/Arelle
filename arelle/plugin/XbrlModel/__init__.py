@@ -362,6 +362,8 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                         errCode = "oimte:invalidLanguage"
                     elif "unique elements" in msg: # any uniqueItems violation is a duplicate set item
                         errCode = "oimte:duplicateItemsInSet"
+                    elif "less than 1 item" in msg: # minItems:1 violated by an empty array is an empty set
+                        errCode = "oimte:invalidEmptySet"
                     elif p_beforeLast == "dimensions" and ("valid under each of" in msg or "not valid under any of" in msg):
                         errCode = "oimte:invalidDimensionObject"
                     else:
@@ -393,6 +395,8 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                         errCode = "oimte:invalidLanguage"
                     elif "unique elements" in msg: # any uniqueItems violation is a duplicate set item
                         errCode = "oimte:duplicateItemsInSet"
+                    elif "too short" in msg: # minItems:1 violated by an empty array is an empty set
+                        errCode = "oimte:invalidEmptySet"
                     elif p_beforeLast == "dimensions" and " valid under each of {'required': ['domainClass']}, {'required': ['domainDataType']}" in msg:
                         errCode = "oimte:invalidDimensionObject"
                     else:
@@ -430,6 +434,8 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                     errCode = "oimte:invalidLanguage"
                 elif " unique items" in msg: # any uniqueItems violation is a duplicate set item
                     errCode = "oimte:duplicateItemsInSet"
+                elif "at least 1 item" in msg: # minItems:1 violated by an empty array is an empty set
+                    errCode = "oimte:invalidEmptySet"
                 elif p_beforeLast == "dimensions" and isinstance(ex.rule_definition, list) and all(k == "required" for o in ex.rule_definition for k in o.keys()):
                     errCode = "oimte:invalidDimensionObject"
                 else:
@@ -1028,11 +1034,16 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         # validated against that model (so unresolved forObjects error rather than being silently
         # orphan-cleaned); see cleanOrphanedForObjects.
         newModule._isBundle = isBundleDocType
-        # An entry-point (non-imported) bundle validates its own labels against the referenced model:
-        # an unresolved forObject is a genuine error, so its labels are NOT orphan-cleaned. A bundle
-        # that is itself imported into a host model instead binds to the host and its unresolved labels
-        # are silently dropped.
-        newModule._isEntryBundle = isBundleDocType and not importingTxmyObj
+        # Decide whether an entry-point (non-imported) bundle's labels are validated (unresolved
+        # forObject -> oimte:invalidQNameReference) versus silently orphan-cleaned. Labels ARE validated
+        # when the bundle declares no referenceModel (the labels are simply invalid) OR its referenceModel
+        # was located and loaded. When a declared referenceModel cannot be located (oimte:taxonomyNotFound),
+        # the labels cannot be checked and are dropped rather than piling on invalidQNameReference. A bundle
+        # imported into a host model binds to the host and its unresolved labels are always dropped.
+        _refModelDeclared = moduleFileObj["xbrlModel"].get("referenceModel") is not None
+        _referenceModelLoaded = _bundleRefModelQn is not None and _bundleRefModelQn in impTxmyNameModuleObjs
+        newModule._bundleValidateLabels = (isBundleDocType and not importingTxmyObj
+                                           and (not _refModelDeclared or _referenceModelLoaded))
         schemaDoc._txmyModule = newModule
         if xbrlModelName is not None:
             xbrlCompMdl.xbrlModels[xbrlModelName] = newModule

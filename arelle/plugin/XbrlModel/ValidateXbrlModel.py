@@ -216,11 +216,12 @@ def cleanOrphanedForObjects(compMdl):
             if not lst:
                 del compMdl.tagObjects[qn]
     for module in compMdl.xbrlModels.values():
-        # A standalone (entry-point) bundle validates its labels against its referenced model: an
-        # unresolved forObject is a genuine error (reported by the label-object validation), so its
-        # labels are NOT orphan-cleaned here. Bundle labels bound into a host model via import still go
+        # A standalone (entry-point) bundle whose labels can be checked (no referenceModel, or one that
+        # loaded) validates them: an unresolved forObject is a genuine error (reported by the label-object
+        # validation), so its labels are NOT orphan-cleaned here. Bundle labels bound into a host model via
+        # import — or those of a bundle whose declared referenceModel could not be located — still go
         # through normal orphan cleanup below (unresolved ones are dropped, not errored).
-        if module.labels and not getattr(module, "_isEntryBundle", False):
+        if module.labels and not getattr(module, "_bundleValidateLabels", False):
             keptLabels = OrderedSet()
             for lblObj in module.labels:
                 if resolves(lblObj.forObject):
@@ -910,9 +911,10 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             compMdl.error("oimte:duplicateDimensionsInCube",
                       _("The cubeDimensions of cube %(name)s duplicate these dimension object(s): %(dimensions)s"),
                       xbrlObject=cubeObj, name=name, dimensions=", ".join(str(qn) for qn, ct in dimQnCounts.items() if ct > 1))
-        # check cube dims against cube type; extension cubes inherit concept dim from target
-        if (cubeObj.cubeDimensions  # empty cubeDimensions already reported as invalidEmptySet at load
-                and cubeType.basemostCubeType(compMdl) != defaultCubeType
+        # check cube dims against cube type; extension cubes inherit concept dim from target.
+        # An empty cubeDimensions is also missing the concept core dimension (reported here in
+        # addition to the invalidEmptySet raised at load).
+        if (cubeType.basemostCubeType(compMdl) != defaultCubeType
                 and conceptCoreDim not in dimQnCounts.keys()
                 and not getattr(cubeObj, 'extends', None)):
             compMdl.error("oimte:cubeMissingConceptDimension",
