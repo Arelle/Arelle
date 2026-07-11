@@ -228,21 +228,25 @@ def cleanOrphanedForObjects(compMdl):
                 else:  # forObject cannot be resolved — drop the label
                     dropTag(lblObj.forObject, lblObj)
             module.labels = keptLabels or None
-        for collAttr in ("references", "groupContents"):
-            coll = getattr(module, collAttr, None)
-            if not coll:
-                continue
-            keptColl = OrderedSet()
-            for tagObj in coll:
-                forObjs = getattr(tagObj, "forObjects", None)
+        # A reference object holds a set of forObjects: unresolved entries are removed and the reference
+        # is dropped only if none remain.
+        if module.references:
+            keptRefs = OrderedSet()
+            for refObj in module.references:
+                forObjs = getattr(refObj, "forObjects", None)
                 if forObjs is not None:
                     for qn in [q for q in forObjs if not resolves(q)]:
                         forObjs.discard(qn)
-                        dropTag(qn, tagObj)
+                        dropTag(qn, refObj)
                     if not forObjs:  # no remaining forObjects after cleanup — drop the object
                         continue
-                keptColl.add(tagObj)
-            setattr(module, collAttr, keptColl or None)
+                keptRefs.add(refObj)
+            module.references = keptRefs or None
+        # A group content object references a single forObject: drop it when the forObject is unresolved
+        # (oim-taxonomy §group content object — orphan values are dropped on object resolution).
+        if module.groupContents:
+            module.groupContents = OrderedSet(
+                gc for gc in module.groupContents if resolves(getattr(gc, "forObject", None))) or None
 
 
 # Each key of a conformance test's RESOLVED:{...} expected-object-count block (declared in the module
@@ -1606,12 +1610,13 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
         assertObjectType(compMdl, grpCntObj, XbrlGroupContent)
         grpQn = grpCntObj.groupName
         validateQNameReference(compMdl, grpCntObj, "groupName", XbrlGroup,
-                               invalidTypeMsgCode="oimte:invalidGroupObject",
+                               invalidTypeMsgCode="oimte:invalidObjectType",
                                undefinedMessage=_("The groupContent object groupName QName %(name)s MUST be a valid group object in the taxonomy model"),
                                invalidTypeMessage=_("The groupContent object groupName QName %(name)s MUST be a valid group object in the taxonomy model"),
                                errorArgs={"name": grpQn}, qnRef=grpQn)
-        for relName in grpCntObj.forObjects:
-            validateQNameReference(compMdl, grpCntObj, "forObjects",
+        relName = grpCntObj.forObject
+        if relName is not None:
+            validateQNameReference(compMdl, grpCntObj, "forObject",
                                    (XbrlNetwork, XbrlCube, XbrlTableTemplate, XbrlDomainNetwork, XbrlLayout),
                                    invalidTypeMsgCode="oimte:invalidGroupContentForObject",
                                    undefinedMessage=_("The groupContent object %(name)s forObject %(relName)s MUST only include QNames associated with network objects, cube objects, table template objects or layout objects."),

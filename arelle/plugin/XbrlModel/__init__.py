@@ -1197,7 +1197,8 @@ def xbrlModelLoaded(cntlr, options, xbrlCompMdl, *args, **kwargs):
     xbrlCompMdl.groupContents = defaultdict(OrderedSet)
     for txmy in xbrlCompMdl.xbrlModels.values():
         for grpCnts in txmy.groupContents or ():
-            for relName in getattr(grpCnts, "forObjects", ()): # if object was invalid there are no attributes, e.g. bad QNames
+            relName = getattr(grpCnts, "forObject", None) # None if object was invalid, e.g. bad QName
+            if relName is not None:
                 xbrlCompMdl.groupContents[grpCnts.groupName].add(relName)
 
     # load CSV tables: XbrlReport has been removed; tableTemplates and facts live on XbrlModule.
