@@ -483,8 +483,7 @@ def getHashEquivalentFactGroups(facts: list[ModelFact]) -> list[list[ModelFact]]
     :param facts:
     :return: List of hash-equivalent fact lists
     """
-    hashDict = defaultdict(list)
-    unhashableGroups = []
+    hashDict: dict[int | object, list[ModelFact]] = defaultdict(list)
     for f in facts:
         if (
             (
@@ -498,8 +497,8 @@ def getHashEquivalentFactGroups(facts: list[ModelFact]) -> list[list[ModelFact]]
         ):
             hashDict[f.conceptContextUnitHash].append(f)
         else:
-            unhashableGroups.append([f])
-    return list(hashDict.values()) + unhashableGroups
+            hashDict[object()].append(f)
+    return list(hashDict.values())
 
 
 def logDeduplicatedFact(modelXbrl: ModelXbrl, fact: ModelFact) -> None:
