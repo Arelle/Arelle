@@ -179,7 +179,6 @@ module = [
     'arelle.ViewFileRoleTypes',
     'arelle.ViewFileRssFeed',
     'arelle.ViewFileTests',
-    'arelle.ViewUtil',
     'arelle.ViewUtilFormulae',
     'arelle.ViewWinFactGrid',
     'arelle.ViewWinFactList',
