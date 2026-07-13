@@ -1998,8 +1998,11 @@ def rule_nl_kvk_4_4_5_2(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    NL-KVK.4.4.5.2: Extension taxonomy elements SHOULD be assigned with at most one label for any combination of role and language.
-    Additionally, extension taxonomies shall not override or replace standard labels of elements referenced in the KVK taxonomy.
+    NL-KVK.4.4.5.2: Each element (both base and extension) in an extension taxonomy shall be defined with at most one
+    label for any combination of ‘xlink:role’ and ‘xml:lang’ attribute.
+    The above recommendation should not prevent legal entities from defining entity-specific labels for elements
+    referenced in the KVK taxonomy to better align with the human readable layer, providing that they are defined in
+    ‘xlink:role’ other than already defined labels in the KVK taxonomy (e.g. verboseLabel).
     """
     labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
     extensionData = pluginData.getExtensionData(val.modelXbrl)
