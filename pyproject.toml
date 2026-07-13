@@ -183,7 +183,6 @@ module = [
     'arelle.ViewUtilFormulae',
     'arelle.ViewWinFactGrid',
     'arelle.ViewWinFactList',
-    'arelle.ViewWinFactTable',
     'arelle.ViewWinFormulae',
     'arelle.ViewWinList',
     'arelle.ViewWinProperties',
