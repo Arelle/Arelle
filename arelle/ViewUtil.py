@@ -7,7 +7,7 @@ from __future__ import annotations
 import os
 from collections import Counter
 from operator import attrgetter
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence
 
 from arelle import XbrlConst, XmlUtil
 from arelle.ModelObject import ModelObject
@@ -101,7 +101,7 @@ def referenceURI(concept: ModelConcept) -> str | None:
 
 def groupRelationshipSet(
     modelXbrl: ModelXbrl,
-    arcrole: str | list[str] | tuple[str, list[str]],
+    arcrole: str | tuple[str, Sequence[str]],
     linkrole: str | None,
     linkqname: QName | None,
     arcqname: QName | None,
