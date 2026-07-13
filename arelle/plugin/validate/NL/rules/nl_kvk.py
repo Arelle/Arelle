@@ -1998,44 +1998,32 @@ def rule_nl_kvk_4_4_5_2(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    NL-KVK.4.4.5.2: Extension taxonomy elements SHOULD be assigned with at most one label for any combination of role and language.
-    Additionally, extension taxonomies shall not override or replace standard labels of elements referenced in the KVK taxonomy.
+    NL-KVK.4.4.5.2: Each element (both base and extension) in an extension taxonomy shall be defined with at most one
+    label for any combination of ‘xlink:role’ and ‘xml:lang’ attribute.
+    The above recommendation should not prevent legal entities from defining entity-specific labels for elements
+    referenced in the KVK taxonomy to better align with the human readable layer, providing that they are defined in
+    ‘xlink:role’ other than already defined labels in the KVK taxonomy (e.g. verboseLabel).
     """
     labelsRelationshipSet = val.modelXbrl.relationshipSet(XbrlConst.conceptLabel)
-    extensionData = pluginData.getExtensionData(val.modelXbrl)
-    extensionConcepts = extensionData.extensionConcepts
     for concept in val.modelXbrl.qnameConcepts.values():
         conceptLangRoleLabels = defaultdict(list)
         labelRels = labelsRelationshipSet.fromModelObject(concept)
         for labelRel in labelRels:
-            label = cast(ModelResource, labelRel.toModelObject)
-            conceptLangRoleLabels[(label.xmlLang, label.role)].append(labelRel.toModelObject)
+            if isinstance(labelRel.toModelObject, ModelResource):
+                label = labelRel.toModelObject
+                conceptLangRoleLabels[(label.xmlLang, label.role)].append(label)
         for (lang, labelRole), labels in conceptLangRoleLabels.items():
-            if concept in extensionConcepts and len(labels) > 1:
-                yield Validation.warning(
-                    codes='NL.NL-KVK.4.4.5.2.taxonomyElementDuplicateLabels',
-                    msg=_('A concept was found with more than one label role for related language. '
-                          'Update to only one combination. Language: %(lang)s, Role: %(labelRole)s, Concept: %(concept)s.'),
-                    modelObject=[concept]+labels, concept=concept.qname, lang=lang, labelRole=labelRole,
-                )
-            elif labelRole == XbrlConst.standardLabel:
-                hasCoreLabel = False
-                hasExtensionLabel = False
-                for label in labels:  # type: ignore[assignment]
-                    if isExtensionUri(label.modelDocument.uri, val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
-                        hasExtensionLabel = True
-                    else:
-                        hasCoreLabel = True
-                if hasCoreLabel and hasExtensionLabel:
-                    labels_files = ['"%s": %s' % (l.text, l.modelDocument.basename) for l in labels]  # type: ignore[union-attr]
-                    yield Validation.warning(
-                        codes='NL.NL-KVK.4.4.5.2.taxonomyElementDuplicateLabels',
-                        msg=_("An extension taxonomy defines a standard label for a concept "
-                              "already labeled by the base taxonomy. Language: %(lang)s, "
-                              "Role: %(labelRole)s, Concept: %(concept)s, Labels: %(labels)s"),
-                        modelObject=[concept]+labels, concept=concept.qname, lang=lang,
-                        labelRole=labelRole, labels=", ".join(labels_files),
-                    )
+            if len(labels) <= 1:
+                continue
+            labelFiles = [f'"{label.text}": {label.modelDocument.basename}' for label in labels]
+            yield Validation.warning(
+                codes='NL.NL-KVK.4.4.5.2.taxonomyElementDuplicateLabels',
+                msg=_("A concept was found with more than one label for the same role and language. "
+                      "Update to only one label per combination. Language: %(lang)s, "
+                      "Role: %(labelRole)s, Concept: %(concept)s, Labels: %(labels)s"),
+                modelObject=[concept]+labels, concept=concept.qname, lang=lang,
+                labelRole=labelRole, labels=", ".join(labelFiles),
+            )
 
 
 @validation(
