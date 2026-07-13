@@ -1,15 +1,49 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
-import datetime
-from tkinter import Menu, constants, BooleanVar
-from arelle import ViewWinGrid, ModelObject, XbrlConst
-from arelle.UiUtil import (gridBorder, gridSpacer, gridHdr, gridCell, gridCombobox,
-                     label, checkbox,
-                     TOPBORDER, LEFTBORDER, RIGHTBORDER, BOTTOMBORDER, CENTERCELL)
-from collections import defaultdict
+"""
+from __future__ import annotations
 
-def viewFactsGrid(modelXbrl, tabWin, header="Fact Grid", arcrole=XbrlConst.parentChild, linkrole=None, linkqname=None, arcqname=None, lang=None):
+import datetime
+from collections import defaultdict
+from tkinter import Menu, BooleanVar
+from typing import TYPE_CHECKING, Any
+
+from arelle import ViewWinGrid, XbrlConst
+from arelle.ModelInstanceObject import ModelFact
+from arelle.UiUtil import (
+    gridBorder,
+    gridSpacer,
+    gridHdr,
+    gridCell,
+    gridCombobox,
+    TOPBORDER,
+    LEFTBORDER,
+    RIGHTBORDER,
+    BOTTOMBORDER,
+    CENTERCELL,
+    )
+from arelle.typing import TypeGetText
+
+if TYPE_CHECKING:
+    from tkinter import Event
+    from tkinter.ttk import Treeview, Notebook
+    from arelle.ModelXbrl import ModelXbrl
+    from arelle.ModelValue import QName
+    from arelle.ModelDtsObject import ModelConcept
+
+_: TypeGetText
+
+
+def viewFactsGrid(
+    modelXbrl: ModelXbrl,
+    tabWin: Notebook,
+    header: str = "Fact Grid",
+    arcrole: str = XbrlConst.parentChild,
+    linkrole: str | None = None,
+    linkqname: str | None = None,
+    arcqname: str | None = None,
+    lang: str | None = None,
+) -> None:
     modelXbrl.modelManager.showStatus(_("viewing facts"))
     view = ViewFactsGrid(modelXbrl, tabWin, header, arcrole, linkrole, linkqname, arcqname, lang)
     if view.tableSetup():
@@ -30,41 +64,62 @@ def viewFactsGrid(modelXbrl, tabWin, header="Fact Grid", arcrole=XbrlConst.paren
         view.view()
         view.blockSelectEvent = 1
         view.blockViewModelObject = 0
-        view.viewFrame.bind("<Enter>", view.cellEnter, '+')
-        view.viewFrame.bind("<Leave>", view.cellLeave, '+')
+        view.viewFrame.bind("<Enter>", view.cellEnter, "+")
+        view.viewFrame.bind("<Leave>", view.cellLeave, "+")
+
 
 class ViewFactsGrid(ViewWinGrid.ViewGrid):
-    def __init__(self, modelXbrl, tabWin, header, arcrole, linkrole=None, linkqname=None, arcqname=None, lang=None):
+    # Attributes set elsewhere (in base class or dynamically); declared for mypy.
+    ignoreDims: BooleanVar
+    showDimDefaults: BooleanVar
+    parentFacts: list[ModelFact]
+    tupleFact: ModelFact
+    tupleConcept: ModelConcept
+    definedLinkroles: list[tuple[str, str]]
+    zFilterIndex: int
+    treeView: Treeview
+
+    def __init__(
+        self,
+        modelXbrl: ModelXbrl,
+        tabWin: Notebook,
+        header: str,
+        arcrole: str,
+        linkrole: str | None = None,
+        linkqname: str | None = None,
+        arcqname: str | None = None,
+        lang: str | None = None,
+    ) -> None:
         super(ViewFactsGrid, self).__init__(modelXbrl, tabWin, header, True, lang)
         self.arcrole = arcrole
         self.linkrole = linkrole
         self.linkqname = linkqname
         self.arcqname = arcqname
 
-    def tableSetup(self):
+    def tableSetup(self) -> bool:
         self.blockSelectEvent = 1
         self.blockViewModelObject = 0
-        self.tag_has = defaultdict(list) # temporary until Tk 8.6
+        self.tag_has: defaultdict[str, list[str]] = defaultdict(list)  # temporary until Tk 8.6
         # relationship set based on linkrole parameter, to determine applicable linkroles
-        relationshipSet = self.modelXbrl.relationshipSet(self.arcrole, self.linkrole, self.linkqname, self.arcqname)
+        relationshipSet = self.modelXbrl.relationshipSet(self.arcrole, self.linkrole, self.linkqname, self.arcqname)  # type: ignore[union-attr,arg-type]
         if not relationshipSet:
-            self.modelXbrl.modelManager.addToLog(_("no relationships for {0}").format(self.arcrole))
+            self.modelXbrl.modelManager.addToLog(_("no relationships for {0}").format(self.arcrole))  # type: ignore[union-attr]
             return False
 
-        factConcepts = set(fact.concept for fact in self.modelXbrl.factsInInstance).append(fact)
+        factConcepts = {fact.concept for fact in self.modelXbrl.factsInInstance if fact.concept is not None}  # type: ignore[union-attr]
 
-        definedLinkroles = []
+        definedLinkroles: list[tuple[str, str]] = []
         for linkrole in set(rel.linkrole
                             for rel in relationshipSet.modelRelationships
                             if rel.fromModelObject in factConcepts or rel.toModelObject in factConcepts):
-            modelRoleTypes = self.modelXbrl.roleTypes.get(linkrole)
+            modelRoleTypes = self.modelXbrl.roleTypes.get(linkrole)  # type: ignore[union-attr,arg-type]
             if modelRoleTypes:
                 roledefinition = modelRoleTypes[0].definition
                 if not roledefinition:
                     roledefinition = linkrole
             else:
                 roledefinition = linkrole
-            definedLinkroles.append((roledefinition,linkrole))
+            definedLinkroles.append((roledefinition, linkrole))  # type: ignore[arg-type]
         definedLinkroles.sort()
         if not definedLinkroles:
             return False
@@ -72,44 +127,44 @@ class ViewFactsGrid(ViewWinGrid.ViewGrid):
         self.linkroleSetup()
         return True
 
-    def linkroleSetup(self):
+    def linkroleSetup(self) -> bool:
         # determine facs in this linkrole
-        relationshipSet = self.modelXbrl.relationshipSet(self.arcrole, self.linkrole, self.linkqname, self.arcqname)
+        relationshipSet = self.modelXbrl.relationshipSet(self.arcrole, self.linkrole, self.linkqname, self.arcqname)  # type: ignore[union-attr,arg-type]
         conceptsInLinkrole = set()
-        for rel in relationshipSet:
+        for rel in relationshipSet:  # type: ignore[union-attr]
             conceptsInLinkrole.add(rel.fromModelObject)
             conceptsInLinkrole.add(rel.toModelObject)
 
         # set up facts
-        self.conceptFacts = defaultdict(list)
-        self.periodContexts = defaultdict(set)
-        contextStartDatetimes = {}
-        for fact in self.modelXbrl.facts:
+        self.conceptFacts: defaultdict[QName, list[ModelFact]] = defaultdict(list)
+        self.periodContexts: defaultdict[datetime.datetime | None, set[str]] = defaultdict(set)
+        contextStartDatetimes: dict[str, datetime.datetime | None] = {}
+        for fact in self.modelXbrl.facts:  # type: ignore[union-attr]
             if fact.concept in conceptsInLinkrole:
                 self.conceptFacts[fact.qname].append(fact)
                 context = fact.context
-                if context.isForeverPeriod:
-                    contextkey = datetime.datetime(datetime.MINYEAR,1,1)
+                if context.isForeverPeriod:  # type: ignore[union-attr]
+                    contextkey: datetime.datetime | None = datetime.datetime(datetime.MINYEAR, 1, 1)
                 else:
-                    contextkey = context.endDatetime
-                objectId = context.objectId()
+                    contextkey = context.endDatetime  # type: ignore[union-attr]
+                objectId = context.objectId()  # type: ignore[union-attr]
                 self.periodContexts[contextkey].add(objectId)
-                if context.isStartEndPeriod:
-                    contextStartDatetimes[objectId] = context.startDatetime
+                if context.isStartEndPeriod:  # type: ignore[union-attr]
+                    contextStartDatetimes[objectId] = context.startDatetime  # type: ignore[union-attr]
 
         # sort contexts by period
         self.periodKeys = list(self.periodContexts.keys())
         self.periodKeys.sort()
         # set up treeView widget and tabbed pane
-        columnIds = []
-        columnIdHeadings = []
-        self.contextColId = {}
-        self.startdatetimeColId = {}
+        columnIds: list[str] = []
+        columnIdHeadings: list[tuple[str, datetime.datetime | None]] = []
+        self.contextColId: dict[str, str] = {}
+        self.startdatetimeColId: dict[datetime.datetime | None, str] = {}
         self.numCols = 1
         for periodKey in self.periodKeys:
             colId = "#{0}".format(self.numCols)
             columnIds.append(colId)
-            columnIdHeadings.append((colId,periodKey))
+            columnIdHeadings.append((colId, periodKey))
             for contextId in self.periodContexts[periodKey]:
                 self.contextColId[contextId] = colId
                 if contextId in contextStartDatetimes:
@@ -117,6 +172,7 @@ class ViewFactsGrid(ViewWinGrid.ViewGrid):
             self.numCols += 1
         self.treeView["columns"] = columnIds
         for colId, colHeading in columnIdHeadings:
+            assert colHeading is not None
             self.treeView.column(colId, width=60, anchor="w")
             if colHeading.year == datetime.MINYEAR:
                 date = "forever"
@@ -125,9 +181,9 @@ class ViewFactsGrid(ViewWinGrid.ViewGrid):
             self.treeView.heading(colId, text=date)
         return True
 
-    def view(self):
+    def view(self, *args: Any) -> None:
         # remove old widgets
-        self.viewFrame.clearGrid()
+        self.viewFrame.clearGrid()  # type: ignore[attr-defined]
 
         # table name
         self.zAxisRows = 1
@@ -135,7 +191,7 @@ class ViewFactsGrid(ViewWinGrid.ViewGrid):
         self.dataRows = 0
         self.colHdrRows = 0
         self.dataRows = 0
-        xFilters = []
+        xFilters: list[ModelConcept] = []
 
         self.analyzeColHdrs(self.parentFacts, 1)
         self.colHdrTopRow = self.zAxisRows + (2 if self.zAxisRows else 1)
@@ -143,29 +199,25 @@ class ViewFactsGrid(ViewWinGrid.ViewGrid):
         self.dataFirstCol = 2
 
         gridHdr(self.gridTblHdr, 0, 0,
-                self.tupleFact.concept.label(lang=self.lang),
+                self.tupleFact.concept.label(lang=self.lang),  # type: ignore[union-attr]
                 anchor="nw",
-                #columnspan=(self.dataFirstCol - 1),
-                rowspan=(self.dataFirstRow),
+                rowspan=self.dataFirstRow,
                 wraplength=200)
         self.zAxis()
         self.xAxis(self.dataFirstCol, self.colHdrTopRow, self.colHdrTopRow + self.colHdrRows - 1,
                    self.tupleFact.modelTupleFacts, xFilters, True, True, True)
         self.bodyCells(self.dataFirstRow, 0, self.parentFacts, xFilters, True)
 
-        # data cells
-
-        #self.gridView.config(scrollregion=self.gridView.bbox(constants.ALL))
-
-    def analyzeColHdrs(self, tupleFacts, depth):
+    def analyzeColHdrs(self, tupleFacts: list[ModelFact], depth: int) -> None:
         for xAxisChildObj in tupleFacts:
             isItem = xAxisChildObj.isItem
             if isItem:
                 self.dataCols += 1
-            if depth > self.colHdrRows: self.colHdrRows = depth
-            self.analyzeColHdrs(xAxisChildObj.modelTupleFacts, depth+1) #recurse
+            if depth > self.colHdrRows:
+                self.colHdrRows = depth
+            self.analyzeColHdrs(xAxisChildObj.modelTupleFacts, depth + 1)  # recurse
 
-    def zAxis(self, row):
+    def zAxis(self, row: int | None = None) -> None:
         if row is not None:
             gridBorder(self.gridColHdr, self.dataFirstCol, row, TOPBORDER, columnspan=2)
             gridBorder(self.gridColHdr, self.dataFirstCol, row, LEFTBORDER)
@@ -178,37 +230,43 @@ class ViewFactsGrid(ViewWinGrid.ViewGrid):
                     onClick=self.onClick)
             self.combobox = gridCombobox(
                          self.gridColHdr, self.dataFirstCol + 2, row,
-                         values=[definition for definition,linkrole in self.definedLinkroles],
+                         values=[definition for definition, linkrole in self.definedLinkroles],
                          selectindex=self.zFilterIndex,
                          comboboxselected=self.comboBoxSelected)
             gridBorder(self.gridColHdr, self.dataFirstCol + 2, row, RIGHTBORDER)
             row += 1
 
-
-    def comboBoxSelected(self, *args):
+    def comboBoxSelected(self, *args: Any) -> None:
         self.linkrole = self.definedLinkroles[self.combobox.valueIndex][1]
-        self.view() # redraw grid
+        self.view()  # redraw grid
 
-
-    def xAxis(self, leftCol, topRow, rowBelow, tupleFacts, xFilters, childrenFirst, renderNow, atTop):
+    def xAxis(
+        self,
+        leftCol: int,
+        topRow: int,
+        rowBelow: int,
+        tupleFacts: list[ModelFact],
+        xFilters: list[ModelConcept],
+        childrenFirst: bool,
+        renderNow: bool,
+        atTop: bool,
+    ) -> tuple[int, int, int, bool]:
         parentRow = rowBelow
         noDescendants = True
         rightCol = leftCol
         widthToSpanParent = 0
-        sideBorder = not xFilters
+        sideBorder: bool | int = not xFilters
         if atTop and sideBorder and childrenFirst:
             gridBorder(self.gridColHdr, self.dataFirstCol, 1, LEFTBORDER, rowspan=self.dataFirstRow)
         for xAxisChildObj in tupleFacts:
             isItem = xAxisChildObj.isItem
             noDescendants = False
-            rightCol, row, width, leafNode = self.xAxis(leftCol, topRow + 1, rowBelow, xAxisChildObj.modelTupleFacts, xFilters, # nested items before totals
+            rightCol, row, width, leafNode = self.xAxis(leftCol, topRow + 1, rowBelow, xAxisChildObj.modelTupleFacts, xFilters,  # nested items before totals
                                                         childrenFirst, childrenFirst, False)
             if row - 1 < parentRow:
                 parentRow = row - 1
-            #if not leafNode:
-            #    rightCol -= 1
             widthToSpanParent += width
-            label = xAxisChildObj.concept.label(lang=self.lang)
+            label = xAxisChildObj.concept.label(lang=self.lang)  # type: ignore[union-attr]
             if childrenFirst:
                 thisCol = rightCol
                 sideBorder = RIGHTBORDER
@@ -216,33 +274,32 @@ class ViewFactsGrid(ViewWinGrid.ViewGrid):
                 thisCol = leftCol
                 sideBorder = LEFTBORDER
             if renderNow:
-                columnspan = (rightCol - leftCol + (1 if isItem else 0))
+                columnspan = (rightCol - leftCol + isItem)
                 gridBorder(self.gridColHdr, leftCol, topRow, TOPBORDER, columnspan=columnspan)
                 gridBorder(self.gridColHdr, leftCol, topRow,
                            sideBorder, columnspan=columnspan,
-                           rowspan=(rowBelow - topRow + 1) )
+                           rowspan=(rowBelow - topRow + 1))
                 gridHdr(self.gridColHdr, leftCol, topRow,
                         label if label else "         ",
                         anchor="center",
-                        columnspan=(rightCol - leftCol + (1 if isItem else 0)),
+                        columnspan=(rightCol - leftCol + isItem),
                         rowspan=(row - topRow + 1) if leafNode else 1,
                         wraplength=width,
                         objectId=xAxisChildObj.objectId(),
                         onClick=self.onClick)
                 if isItem:
                     gridBorder(self.gridColHdr, thisCol, self.dataFirstRow - 1, BOTTOMBORDER)
-                    xFilters.append(xAxisChildObj.concept,
-                                     )
+                    xFilters.append(xAxisChildObj.concept)  # type: ignore[arg-type]
             if isItem:
                 rightCol += 1
             if renderNow and not childrenFirst:
-                self.xAxis(leftCol + (1 if isItem else 0), topRow + 1, rowBelow, xAxisChildObj.modelTupleFacts, xFilters, childrenFirst, True, False) # render on this pass
+                self.xAxis(leftCol + isItem, topRow + 1, rowBelow, xAxisChildObj.modelTupleFacts, xFilters, childrenFirst, True, False)  # render on this pass
             leftCol = rightCol
         if atTop and sideBorder and not childrenFirst:
             gridBorder(self.gridColHdr, rightCol - 1, 1, RIGHTBORDER, rowspan=self.dataFirstRow)
-        return (rightCol, parentRow, widthToSpanParent, noDescendants)
+        return rightCol, parentRow, widthToSpanParent, noDescendants
 
-    def tupleDescendant(self, tupleParent, descendantConcept):
+    def tupleDescendant(self, tupleParent: ModelFact, descendantConcept: ModelConcept | None) -> ModelFact | None:
         for tupleChild in tupleParent.modelTupleFacts:
             if tupleChild.concept == descendantConcept:
                 return tupleChild
@@ -251,11 +308,12 @@ class ViewFactsGrid(ViewWinGrid.ViewGrid):
                 return tupleDescendant
         return None
 
-    def bodyCells(self, row, indent, tupleFacts, xFilters, zFilters):
+    def bodyCells(self, row: int, indent: int, tupleFacts: list[ModelFact], xFilters: list[ModelConcept], zFilters: bool) -> int:
         for modelTupleFact in tupleFacts:
             if modelTupleFact.concept == self.tupleConcept:
                 for i, xColConcept in enumerate(xFilters):
                     fact = self.tupleDescendant(modelTupleFact, xColConcept)
+                    justify: str | None = None
                     if fact:
                         value = fact.effectiveValue
                         objectId = fact.objectId()
@@ -273,23 +331,21 @@ class ViewFactsGrid(ViewWinGrid.ViewGrid):
                 row += 1
         return row
 
-    def onClick(self, event):
-        self.modelXbrl.viewModelObject(event.widget.objectId)
+    def onClick(self, event: Event[Any]) -> None:
+        self.modelXbrl.viewModelObject(event.widget.objectId)  # type: ignore[union-attr]
 
-    def cellEnter(self, *args):
+    def cellEnter(self, *args: Any) -> None:
         self.blockSelectEvent = 0
 
-    def cellLeave(self, *args):
+    def cellLeave(self, *args: Any) -> None:
         self.blockSelectEvent = 1
 
-    def cellSelect(self, *args):
+    def cellSelect(self, *args: Any) -> None:
         if self.blockSelectEvent == 0 and self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
-            #self.modelXbrl.viewModelObject(self.nodeToObjectId[self.treeView.selection()[0]])
-            #self.modelXbrl.viewModelObject(self.treeView.selection()[0])
             self.blockViewModelObject -= 1
 
-    def viewModelObject(self, modelObject):
+    def viewModelObject(self, modelObject: Any) -> None:
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
             '''

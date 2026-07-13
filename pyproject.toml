@@ -180,7 +180,6 @@ module = [
     'arelle.ViewFileRssFeed',
     'arelle.ViewFileTests',
     'arelle.ViewUtilFormulae',
-    'arelle.ViewWinFactGrid',
     'arelle.ViewWinFactList',
     'arelle.ViewWinFactTable',
     'arelle.ViewWinFormulae',
