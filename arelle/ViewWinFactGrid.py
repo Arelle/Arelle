@@ -25,8 +25,8 @@ from arelle.UiUtil import (
 from arelle.typing import TypeGetText
 
 if TYPE_CHECKING:
-    from tkinter import Widget, Event
-    from tkinter.ttk import Treeview
+    from tkinter import Event
+    from tkinter.ttk import Treeview, Notebook
     from arelle.ModelXbrl import ModelXbrl
     from arelle.ModelValue import QName
     from arelle.ModelDtsObject import ModelConcept
@@ -36,7 +36,7 @@ _: TypeGetText
 
 def viewFactsGrid(
     modelXbrl: ModelXbrl,
-    tabWin: Widget,
+    tabWin: Notebook,
     header: str = "Fact Grid",
     arcrole: str = XbrlConst.parentChild,
     linkrole: str | None = None,
@@ -52,7 +52,7 @@ def viewFactsGrid(
         view.showDimDefaults = BooleanVar(value=False)
 
         # context menu
-        menu = view.contextMenu()  # type: ignore[no-untyped-call]
+        menu = view.contextMenu()
         optionsMenu = Menu(view.viewFrame, tearoff=0)
         view.ignoreDims.trace_add("write", view.view)
         optionsMenu.add_checkbutton(label=_("Ignore Dimensions"), underline=0, variable=view.ignoreDims, onvalue=True, offvalue=False)
@@ -82,7 +82,7 @@ class ViewFactsGrid(ViewWinGrid.ViewGrid):
     def __init__(
         self,
         modelXbrl: ModelXbrl,
-        tabWin: Widget,
+        tabWin: Notebook,
         header: str,
         arcrole: str,
         linkrole: str | None = None,
@@ -90,7 +90,7 @@ class ViewFactsGrid(ViewWinGrid.ViewGrid):
         arcqname: str | None = None,
         lang: str | None = None,
     ) -> None:
-        super(ViewFactsGrid, self).__init__(modelXbrl, tabWin, header, True, lang)  # type: ignore[no-untyped-call]
+        super(ViewFactsGrid, self).__init__(modelXbrl, tabWin, header, True, lang)
         self.arcrole = arcrole
         self.linkrole = linkrole
         self.linkqname = linkqname
