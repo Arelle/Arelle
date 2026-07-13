@@ -126,7 +126,7 @@ def groupRelationshipSet(
     return relationshipSet
 
 
-def groupRelationshipLabel(arcrole: str | list[str] | tuple[str, list[str]]) -> str:
+def groupRelationshipLabel(arcrole: str | tuple[str, Sequence[str]]) -> str:
     if isinstance(arcrole, (list, tuple)):  # (group-name, [arcroles])
         arcroleName = arcrole[0]
     else:

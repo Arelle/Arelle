@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 import os
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Sequence
 
 from arelle import ViewWinTree, XbrlConst, Locale
 from arelle.ModelInstanceObject import ModelFact
@@ -29,7 +29,7 @@ _: TypeGetText
 def viewRelationshipSet(
     modelXbrl: ModelXbrl,
     tabWin: Notebook,
-    arcrole: str | list[Any] | tuple[Any, ...],
+    arcrole: str | tuple[str, Sequence[str]],
     linkrole: str | None = None,
     linkqname: QName | None = None,
     arcqname: QName | None = None,
@@ -74,7 +74,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
         self,
         modelXbrl: ModelXbrl,
         tabWin: Notebook,
-        arcrole: str | list[Any] | tuple[Any, ...],
+        arcrole: str | tuple[str, Sequence[str]],
         linkrole: str | None = None,
         linkqname: QName | None = None,
         arcqname: QName | None = None,
