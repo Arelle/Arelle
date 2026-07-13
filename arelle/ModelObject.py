@@ -150,11 +150,11 @@ class ModelObject(etree.ElementBase, ModelObjectBase):
         if id:
             modelDocument.idObjects[id] = self
 
-    def objectId(self, refId: str = "") -> str:
+    def objectId(self, refId: str | int = "") -> str:
         """Returns a string surrogate representing the object index of the model document,
         prepended by the refId string.
         :param refId: A string to prefix the refId for uniqueless (such as to use in tags for tkinter)
-        :type refId: str
+        :type refId: str | int
         """
         return f"_{refId}_{getattr(self, 'objectIndex', 'None')}"
 

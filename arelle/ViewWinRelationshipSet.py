@@ -196,7 +196,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
             if modelRoleTypes:
                 roledefinition = ((self.hasTableIndex and getattr(modelRoleTypes[0], "_tableIndex", False)) or
                                   self.modelXbrl.roleTypeDefinition(linkroleUri, self.lang))
-                roleId = modelRoleTypes[0].objectId(self.id)  # type: ignore[arg-type]
+                roleId = modelRoleTypes[0].objectId(self.id)
                 if (self.hasTableIndex and hasattr(modelRoleTypes[0], "_tableChildren")):
                     linkroleUriChildren[linkroleUri] = [roleType.roleURI
                                                         for roleType in modelRoleTypes[0]._tableChildren]
@@ -294,7 +294,7 @@ class ViewRelationshipSet(ViewWinTree.ViewTree):
                 # add recognized attributes
                 if concept.localName == "enumeration" and concept.get("value"):
                     text += ' {}="{}"'.format("value", concept.get("value"))
-            childnode = self.treeView.insert(parentnode, "end", modelObject.objectId(self.id), text=text, tags=("odd" if n & 1 else "even",))  # type: ignore[arg-type]
+            childnode = self.treeView.insert(parentnode, "end", modelObject.objectId(self.id), text=text, tags=("odd" if n & 1 else "even",))
             childRelationshipSet = relationshipSet
             if self.arcrole == XbrlConst.parentChild: # extra columns
                 if isRelation:
