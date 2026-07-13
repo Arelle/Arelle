@@ -3,11 +3,13 @@ See XbrlModel/COPYRIGHT.md for copyright information.
 
 ## Overview
 
-The saveOIMFactspaces plugin saves OIM Model Factspaces from Inline XBRL or other XBRL documents.
+The saveOIMFacts plugin saves an OIM Taxonomy (XbrlModel) fact set from Inline XBRL or other XBRL
+documents. It can alternatively save an xBRL-JSON report (see the `--oimJSON` option below).
 
 ## Key Features
 
 - Preserves Inline source value mapping, scaling and transformation.
+- Output is written as JSON.
 
 ## Usage Instructions
 
@@ -16,13 +18,14 @@ The saveOIMFactspaces plugin saves OIM Model Factspaces from Inline XBRL or othe
 - **Single-Instance Mode**:
   Save a file in single-instance mode by specifying the file path and extension:
   ```bash
-  python arelleCmdLine.py --plugins SaveOIMFactspace --file filing-documents.zip --SaveOIMFactspace example.json
+  python arelleCmdLine.py --plugins saveOIMFacts --file filing-documents.zip --SaveOIMFactspace example.json
   ```
 
 - **Test Case Operation**:
-  Augment test case operations by specifying a suffix for the read-me-first file in a test suite:
+  Save an OIM file alongside each validated test-case variation, named by appending the given suffix to
+  the variation instance's file name:
   ```bash
-  python arelleCmdLine.py --plugins SaveOIMFactspace --file filing-documents.zip --saveTestcaseOimFileSuffix -savedOim.csv
+  python arelleCmdLine.py --plugins saveOIMFacts --file testcases-index.xml --saveTestcaseOIM -savedOim.json
   ```
 
 - **Deduplicate facts**
@@ -30,14 +33,15 @@ The saveOIMFactspaces plugin saves OIM Model Factspaces from Inline XBRL or othe
   the inline value sources for the duplicate entries.
 
 - **Text block options**
-  Default is to provide valueSources to all ix:continuations
-  Option is to also capture inner text in value property
+  Default is to record each fact's own element id and any ix:continuation element ids in its value
+  source (they concatenate to form the value).
+  Option is to also capture the inner text in the value property.
 
   To request inner text values for text blocks:
       in GUI operation provide a formula parameter named inlineText containing true
       in command line mode specify --inlineText
   
-  To request xBRL-JSON instead of XbrlModel factPositions
+  To request xBRL-JSON instead of the OIM Taxonomy (XbrlModel) fact set
       in GUI operation provide a formula parameter named oimJSON containing true
       in command line mode specify --oimJSON
 
@@ -46,7 +50,7 @@ The saveOIMFactspaces plugin saves OIM Model Factspaces from Inline XBRL or othe
   For details on what eaxctly consitutes a duplicate fact and why there are multiple options read the
   [Fact Deduplication][fact-deduplication] documentation.
   ```bash
-  python arelleCmdLine.py --plugins SaveOIMFactspace --file filing-documents.zip --SaveOIMFactspace example.json --deduplicateOimFacts complete
+  python arelleCmdLine.py --plugins saveOIMFacts --file filing-documents.zip --SaveOIMFactspace example.json --deduplicateOimFacts complete
   ```
 
 [fact-deduplication]: project:/user_guides/fact_deduplication.md
@@ -55,8 +59,8 @@ The saveOIMFactspaces plugin saves OIM Model Factspaces from Inline XBRL or othe
 
 - **Save Re-Loadable Output**:
   1. Load the desired report in Arelle.
-  2. Go to `Tools` > `Save Loadable OIM`.
-  3. Specify a filename and choose the desired file format (JSON, CBOR).
+  2. Go to `Tools` > `Save OIM Factspace`.
+  3. Specify a filename (the output is written as JSON).
 
 ## Additional Notes
 
@@ -262,13 +266,19 @@ def saveOIMFacts(
         qnUnitCoreDim = qname("unit", noPrefixIsNoNamespace=True)
     else:
         oimErrorPattern = re.compile("oime|oimce|xbrlje|xbrlce")
-        xbrl = "https://xbrl.org/2025"
+        xbrl = "https://xbrl.org/2026"
         reservedUriAliases[xbrl] = "xbrl"
         qnConceptCoreDim = qname(xbrl, "xbrl:concept")
         qnLangCoreDim = qname(xbrl, "xbrl:language")
         qnPeriodCoreDim = qname(xbrl, "xbrl:period")
         qnEntityCoreDim = qname(xbrl, "xbrl:entity")
         qnUnitCoreDim = qname(xbrl, "xbrl:unit")
+
+    # OIM Taxonomy (XbrlModel) fact-source model constants (oim-taxonomy.md §"Fact locator types").
+    # Inline value sources are located by the html element id locator; scale/sign/transformation/escape
+    # are carried on the fact value object itself.
+    htmlElementLocatorType = "xbrl:htmlElementLocatorType"
+    htmlElementIdProperty = "xbrl:htmlElementId"
 
     namespacePrefixes = NamespacePrefixes({xbrl: "xbrl"})
     if extensionPrefixes:
@@ -350,6 +360,7 @@ def saveOIMFacts(
     hasLang = False
     hasUnits = False
     hasNumeric = False
+    inlineFactDocBasenames = OrderedSet()  # inline (html) documents that carry fact value sources
 
     footnotesRelationshipSet = ModelRelationshipSet(modelXbrl, "XBRL-footnotes")
 
@@ -370,6 +381,7 @@ def saveOIMFacts(
         if fact.modelTupleFacts:
             hasTuple = True
         if isinstance(fact, ModelInlineFact) and not any(True for e in fact.iterancestors("{http://www.xbrl.org/2013/inlineXBRL}hidden")):
+            inlineFactDocBasenames.add(fact.modelDocument.basename)
             if fact.format:
                 namespacePrefixes.addNamespace(fact.format.namespaceURI, fact.format.prefix)
     if hasTuple:
@@ -443,6 +455,26 @@ def saveOIMFacts(
                 if doc.type == ModelDocument.Type.SCHEMA:
                     importedTaxonomies.add(doc.basename)
                 break
+
+    # Report (extension) prefix used to name the model, fact sources and fact maps; when the extension
+    # schema was not identified, fall back to the prefix of the report's primary referenced taxonomy so
+    # these names use a declared namespace prefix (consistent with the prefix used for the fact names).
+    reportPrefix = extensionPrefix
+    if not reportPrefix:
+        for refDoc in modelXbrl.modelDocument.referencesDocument:
+            refPrefix = namespacePrefixes.getPrefix(refDoc.targetNamespace) if refDoc.targetNamespace else None
+            if refPrefix:
+                reportPrefix = refPrefix
+                break
+    reportPrefix = reportPrefix or "report"
+    # Each inline source document becomes a factSourceMapping (documentInfo.sourceMappings) whose
+    # sourceName is referenced by the factSource/factMap that declares the html element locator type.
+    sourceNameByBasename = OrderedDict(
+        (basename, f"{reportPrefix}:{os.path.splitext(basename)[0]}Source")
+        for basename in inlineFactDocBasenames
+    )
+    hasInlineSources = bool(sourceNameByBasename)
+    multiSource = len(sourceNameByBasename) > 1
 
     footnoteObjects = {} # OIM Taxonomy objects
     factFootnoteRels = set()
@@ -535,12 +567,10 @@ def saveOIMFacts(
     def factDimensions(fact: ModelFact, factPositions, factspacesByDims) -> dict[str, Any]:
         factDims = {}
         concept = fact.concept
-        isNumeric = False
         if concept is not None:
             factDims[str(qnConceptCoreDim)] = oimValue(concept.qname)
             if concept.type is not None and concept.type.isOimTextFactType and fact.xmlLang:
                 factDims[str(qnLangCoreDim)] = fact.xmlLang
-            isNumeric = concept.isNumeric
         cntx = fact.context
         if cntx is not None:
             if cntx.entityIdentifierElement is not None and cntx.entityIdentifier != ENTITY_NA_QNAME:
@@ -571,29 +601,39 @@ def saveOIMFacts(
             if _sUnit != "xbrli:pure":
                 factDims[str(qnUnitCoreDim)] = _sUnit
         if saveOimJson:
-            facts[f"{fact.id or fact.objectIndex}"] = fact = {}
-            fact["dimensions"] = factDims
+            factPositions[f"{fact.id or fact.objectIndex}"] = newFact = {}
+            newFact["dimensions"] = factDims
         else:
-            # build dims key
-            dimsKey = tuple(sorted(factDims.items(), key=lambda k:k[0]))
-            fact = factsByDims.get(dimsKey)
-            if fact is None or saveOimJson:
-                fact = {}
-                fact["name"] = f"{getPrefix(fact)}:fs_{fact.id or fact.objectIndex}"
-                fact["factDimensions"] = factDims
-                fact["factValues"] = []
-                factsByDims[dimsKey] = fact
-                facts.append(fact)
-        return fact
+            # group facts that share identical dimensions into a single factSet (fs_) object,
+            # each contributing a fact value object to its factValues array
+            dimsKey = tuple(sorted(factDims.items(), key=lambda k: k[0]))
+            newFact = factspacesByDims.get(dimsKey)
+            if newFact is None:
+                newFact = {
+                    "name": f"{getPrefix(fact)}:fs_{fact.id or f'f{fact.objectIndex}'}",
+                    "factDimensions": factDims,
+                    "factValues": [],
+                }
+                factspacesByDims[dimsKey] = newFact
+                factPositions.append(newFact)
+        return newFact
     
     def appendFactToFactspace(fact: ModelFact, newFact: dict[str, Any]) -> None:
+        factValue = None
+        # only items with a resolved concept yield a fact value (skip tuples and, e.g. when the
+        # taxonomy did not load, facts with an unresolved concept)
         if fact.concept is not None and fact.isItem:
             if saveOimJson:
                 factValue = newFact
-                factValue["name"] = f"{getPrefix(fact)}:{fact.id or fact.objectIndex}"
+                factValue["name"] = f"{getPrefix(fact)}:{fact.id or f'f{fact.objectIndex}'}"
             else:
-                factValue = {"name": f"{getPrefix(fact)}:{fact.id or fact.objectIndex}_val"}
-            if isinstance(fact, ModelInlineFact) and not any(True for e in fact.iterancestors("{http://www.xbrl.org/2013/inlineXBRL}hidden")):
+                factValue = {"name": f"{getPrefix(fact)}:{fact.id or f'f{fact.objectIndex}'}_val"}
+            isInlineSource = (
+                isinstance(fact, ModelInlineFact)
+                and not any(True for e in fact.iterancestors("{http://www.xbrl.org/2013/inlineXBRL}hidden"))
+            )
+            if isInlineSource and saveOimJson:
+                # xBRL-JSON: value sources as href/medium (unchanged)
                 factValue["valueSources"] = valueSources = []
                 vs = {
                     "href": f"{fact.modelDocument.basename}#{fact.id if fact.id else fact.objectIndex}",
@@ -609,11 +649,9 @@ def saveOIMFacts(
                     vs["escape"] = True
                 valueSources.append(vs)
                 if fact.concept.isTextBlock and saveInlineTextValue:
-                    stringValues = [super(ModelFact,fact).stringValue]
+                    stringValues = [super(ModelFact, fact).stringValue]
                 contElt = getattr(fact, "_continuationElement", None)
-                iCont = 0
                 while contElt is not None:
-                    iCont += 1
                     vs = {"href": f"{fact.modelDocument.basename}#{contElt.id}"}
                     valueSources.append(vs)
                     if fact.concept.isTextBlock and saveInlineTextValue:
@@ -621,21 +659,44 @@ def saveOIMFacts(
                     contElt = getattr(contElt, "_continuationElement", None)
                 if fact.concept.isTextBlock and saveInlineTextValue:
                     factValue["value"] = "".join(stringValues)
-                    del stringValues # dereference big chunks of text
-            else: #  non-inline fact
-                if fact.isNil:
-                    _value = None
-                else:
-                    _value = oimValue(fact.xValue)
-                    factValue["value"] = str(_value)
+                    del stringValues  # dereference big chunks of text
+            elif isInlineSource:
+                # OIM Taxonomy (XbrlModel): a single fact value source object whose html element id
+                # locator lists the fact element followed by any ix:continuation element ids (the
+                # locator concatenates them). Transformation/scale/sign/escape are fact value properties.
+                elementIds = [fact.id if fact.id else f"{fact.objectIndex}"]
+                if fact.concept.isTextBlock and saveInlineTextValue:
+                    stringValues = [super(ModelFact, fact).stringValue]
+                contElt = getattr(fact, "_continuationElement", None)
+                while contElt is not None:
+                    elementIds.append(contElt.id)
+                    if fact.concept.isTextBlock and saveInlineTextValue:
+                        stringValues.append(contElt.stringValue)
+                    contElt = getattr(contElt, "_continuationElement", None)
+                factValue["valueSources"] = [
+                    {"properties": [{"property": htmlElementIdProperty, "value": elementIds}]}
+                ]
+                if multiSource:
+                    factValue["source"] = sourceNameByBasename.get(fact.modelDocument.basename)
+                if fact.format:
+                    factValue["transformation"] = oimValue(fact.format)
+                if fact.scaleInt:
+                    factValue["scale"] = fact.scaleInt
+                if fact.sign:
+                    factValue["sign"] = fact.sign
+                if fact.get("escape") in ("true", "1"):
+                    factValue["escape"] = True
+                if fact.concept.isTextBlock and saveInlineTextValue:
+                    factValue["value"] = "".join(stringValues)
+                    del stringValues  # dereference big chunks of text
+            else:  # non-inline fact: literal value
+                if not fact.isNil:
+                    factValue["value"] = str(oimValue(fact.xValue))
             if fact.concept.isNumeric and not fact.isNil:
                 _inferredDecimals = inferredDecimals(fact)
-                _numValue = fact.xValue
-                if isinstance(_numValue, Decimal) and not isinf(_numValue) and not isnan(_numValue):
-                    _numValue = int(_numValue) if _numValue == _numValue.to_integral() else float(_numValue)
-                if not fact.isNil and not isinf(_inferredDecimals):  # accuracy omitted if infinite
+                if not isinf(_inferredDecimals):  # accuracy omitted if infinite
                     factValue["decimals"] = _inferredDecimals
-        if not saveOimJson:
+        if not saveOimJson and factValue is not None:
             newFact["factValues"].append(factValue)
 
     ixDocs = {}
@@ -669,16 +730,33 @@ def saveOIMFacts(
     if saveOimJson:
         oimDocInfo["documentType"] = "https://xbrl.org/2021/xbrl-json"
     else:
-        oimDocInfo["documentType"] = "https://xbrl.org/2025/taxonomy"
-        oimModel["xbrlModel"] = {
-            "name": f"{extensionPrefix}:{os.path.splitext(modelXbrl.modelDocument.basename)[0]}"
+        oimDocInfo["documentType"] = "https://xbrl.org/2026/module"
+        oimDocInfo["documentNamespacePrefix"] = reportPrefix
+        oimModel["xbrlModel"] = xbrlModelObject = {
+            "name": f"{reportPrefix}:{os.path.splitext(modelXbrl.modelDocument.basename)[0]}"
             }
         if importedTaxonomies:
-            oimDocInfo["urlMapping"] = OrderedDict()
-            oimModel["xbrlModel"]["importedTaxonomies"] = []
+            oimDocInfo["importMapping"] = OrderedDict()
+            xbrlModelObject["importedTaxonomies"] = []
         for txmyBasename in importedTaxonomies:
-            oimDocInfo["urlMapping"][extensionPrefix] = [txmyBasename]
-            oimModel["xbrlModel"]["importedTaxonomies"].append({"xbrlModelName":f"{extensionPrefix}:{os.path.splitext(txmyBasename)[0]}"})
+            xbrlModelName = f"{reportPrefix}:{os.path.splitext(txmyBasename)[0]}"
+            oimDocInfo["importMapping"][xbrlModelName] = txmyBasename
+            xbrlModelObject["importedTaxonomies"].append({"xbrlModelName": xbrlModelName})
+        if hasInlineSources:
+            # documentInfo.sourceMappings locates the source document(s); the factSource/factMap
+            # declare the html element locator type used by the fact value source objects.
+            oimDocInfo["sourceMappings"] = [
+                {"sourceName": sourceName, "url": basename}
+                for basename, sourceName in sourceNameByBasename.items()
+            ]
+            factMapName = f"{reportPrefix}:htmlElementFactMap"
+            xbrlModelObject["factSources"] = [
+                {"name": sourceName, "factMapName": factMapName}
+                for sourceName in sourceNameByBasename.values()
+            ]
+            xbrlModelObject["factMaps"] = [
+                {"name": factMapName, "factLocatorType": htmlElementLocatorType}
+            ]
     if saveOimJson:
         if linkTypeAliases:
             oimDocInfo["linkTypes"] = {a: u for u, a in sorted(linkTypeAliases.items(), key=operator.itemgetter(1))}
@@ -712,6 +790,10 @@ def saveOIMFacts(
 
     def saveJsonFacts(facts: list[ModelFact]) -> None:
         for fact in facts:
+            if fact.concept is None or not fact.isItem:
+                # concept could not be resolved (e.g. its taxonomy did not load) so the fact cannot be
+                # represented as a factSet with an xbrl:concept dimension; skip it (already logged by load)
+                continue
             newFact = factDimensions(fact, newFacts, newFactsByDims)
             appendFactToFactspace(fact, newFact)
             # add in fact level extension objects
@@ -735,21 +817,26 @@ def saveOIMFacts(
             if ftObj.xmlLang:
                 fact["dimensions"]["language"] = ftObj.xmlLang.lower()
     elif footnoteObjects:
-        oimModel["taxonomy"]["footnotes"] = [f for f in footnoteObjects.values()]
-        if factFootnoteRels:
-            oimModel["taxonomy"]["networks"] = footnoteNetwork = {
-                "name": f"{footnoteNetworkNamePrefixes[0]}:FootnoteNetwork",
-                "relationshipTypeName": "xbrl:fact-footnote",
-                "roots": [r[0] for r in sorted(factFootnoteRels)],
-                "relationships": [{"source":r[0],"target":r[1]} for r in sorted(factFootnoteRels)]
-                }
+        # Text footnotes become footnote objects; the facts they annotate are listed in forObjects.
+        footnotesOut = []
+        for tgtName, footnote in footnoteObjects.items():
+            entry = {"name": footnote["name"]}
+            forObjects = [r[0] for r in sorted(factFootnoteRels) if r[1] == tgtName]
+            if forObjects:
+                entry["forObjects"] = forObjects
+            entry["content"] = footnote["content"]
+            if "language" in footnote:
+                entry["language"] = footnote["language"]
+            footnotesOut.append(entry)
+        oimModel["xbrlModel"]["footnotes"] = footnotesOut
+        # Fact-to-fact footnote relationships become a network.
         if factFactFootnoteRels:
-            oimModel["taxonomy"]["networks"] = footnoteNetwork = {
-                "name": f"{footnoteNetworkNamePrefixes[1]}:FactFactFootnoteNetwork",
+            networkPrefix = footnoteNetworkNamePrefixes[0] or reportPrefix
+            oimModel["xbrlModel"]["networks"] = [{
+                "name": f"{networkPrefix}:FactFactFootnoteNetwork",
                 "relationshipTypeName": "xbrl:fact-fact",
-                "roots": [r[0] for r in sorted(factFactFootnoteRels)],
-                "relationships": [{"source":r[0],"target":r[1]} for r in sorted(factFactFootnoteRels)]
-                }
+                "relationships": [{"source": r[0], "target": r[1]} for r in sorted(factFactFootnoteRels)]
+                }]
 
     # allow extension report final editing before writing json structure
     # (possible example, reorganize facts into array vs object)
@@ -880,19 +967,19 @@ class SaveOIMFactspacePlugin(PluginHooks):
             "--SaveOIMFactspace",
             action="store",
             dest="saveOIMFacts",
-            help=_("Save Loadable OIM file (JSON, CSV or XLSX)"),
+            help=_("Save Loadable OIM file (JSON)"),
         )
         parser.add_option(
             "--SaveOIMFactspaceDirectory",
             action="store",
             dest="saveOIMFactspaceDirectory",
-            help=_("Directory to export all supported OIM formats (JSON and CSV)"),
+            help=_("Directory into which to save the OIM file (JSON)"),
         )
         parser.add_option(
             "--saveTestcaseOIM",
             action="store",
             dest="saveTestcaseOimFileSuffix",
-            help=_("Save Testcase Variation OIM file (argument file suffix and type, such as -savedOim.csv"),
+            help=_("Save Testcase Variation OIM file (argument is the file-name suffix, such as -savedOim.json)"),
         )
         parser.add_option(
             "--deduplicateOimFacts",
