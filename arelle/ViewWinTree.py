@@ -324,7 +324,7 @@ class ViewTree:
     def newView(self, arcrole: str, tabWin: Notebook) -> None:
         if arcrole in ("!CustomRoleTypes!", "!CustomArcroleTypes!"):
             from arelle import ViewWinRoleTypes
-            ViewWinRoleTypes.viewRoleTypes(self.modelXbrl, tabWin, arcrole=="!CustomArcroleTypes!", lang=self.lang)  # type: ignore[no-untyped-call]
+            ViewWinRoleTypes.viewRoleTypes(self.modelXbrl, tabWin, arcrole=="!CustomArcroleTypes!", lang=self.lang)
         else:
             from arelle import ViewWinRelationshipSet
             ViewWinRelationshipSet.viewRelationshipSet(self.modelXbrl, tabWin, arcrole, lang=self.lang)

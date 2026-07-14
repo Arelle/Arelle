@@ -183,7 +183,6 @@ module = [
     'arelle.ViewWinList',
     'arelle.ViewWinProperties',
     'arelle.ViewWinRenderedGrid',
-    'arelle.ViewWinRoleTypes',
     'arelle.ViewWinRssFeed',
     'arelle.ViewWinTests',
     'arelle.ViewWinTkTable',

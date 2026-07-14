@@ -1,10 +1,30 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
-from collections import defaultdict
-from arelle import ViewWinTree, ModelDtsObject, XbrlConst, XmlUtil, Locale
+"""
+from __future__ import annotations
 
-def viewRoleTypes(modelXbrl, tabWin, isArcrole=False, lang=None):
+from collections import defaultdict
+from typing import TYPE_CHECKING, Any
+
+from arelle import ViewWinTree
+from arelle.ModelDtsObject import ModelRoleType
+from arelle.typing import TypeGetText
+
+_: TypeGetText
+
+if TYPE_CHECKING:
+    from tkinter.ttk import Notebook
+
+    from arelle.ModelObject import ModelObject
+    from arelle.ModelXbrl import ModelXbrl
+
+
+def viewRoleTypes(
+    modelXbrl: ModelXbrl,
+    tabWin: Notebook,
+    isArcrole: bool = False,
+    lang: str | None = None,
+) -> None:
     modelXbrl.modelManager.showStatus(_("viewing arcrole types") if isArcrole else _("viewing role types"))
     view = ViewRoleTypes(modelXbrl,
                          tabWin,
@@ -12,12 +32,12 @@ def viewRoleTypes(modelXbrl, tabWin, isArcrole=False, lang=None):
                          isArcrole,
                          lang)
     view.view(firstTime=True)
-    view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, '+')
-    view.treeView.bind("<Enter>", view.treeviewEnter, '+')
-    view.treeView.bind("<Leave>", view.treeviewLeave, '+')
+    view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, "+")
+    view.treeView.bind("<Enter>", view.treeviewEnter, "+")
+    view.treeView.bind("<Leave>", view.treeviewLeave, "+")
 
     # pop up menu
-    menu = view.contextMenu()
+    view.contextMenu()
     view.menuAddClipboard()
     view.menuAddLangs()
     view.menuAddLabelRoles(includeConceptName=True)
@@ -25,14 +45,21 @@ def viewRoleTypes(modelXbrl, tabWin, isArcrole=False, lang=None):
 
 
 class ViewRoleTypes(ViewWinTree.ViewTree):
-    def __init__(self, modelXbrl, tabWin, header, isArcrole, lang=None):
+    def __init__(
+        self,
+        modelXbrl: ModelXbrl,
+        tabWin: Notebook,
+        header: str,
+        isArcrole: bool,
+        lang: str | None = None,
+    ) -> None:
         super(ViewRoleTypes, self).__init__(modelXbrl, tabWin, header, True, lang)
         self.isArcrole = isArcrole
 
-    def view(self, firstTime=False):
+    def view(self, firstTime: bool = False) -> bool | None:  # type: ignore[override]
         self.blockSelectEvent = 1
         self.blockViewModelObject = 0
-        self.tag_has = defaultdict(list) # temporary until Tk 8.6
+        self.tag_has: defaultdict[str, list[str]] = defaultdict(list) # temporary until Tk 8.6
 
         roletypes = self.modelXbrl.arcroleTypes if self.isArcrole else self.modelXbrl.roleTypes
         if not roletypes:
@@ -62,45 +89,44 @@ class ViewRoleTypes(ViewWinTree.ViewTree):
         if roletypes:
             for roleUri in sorted(roletypes.keys()):
                 for modelRoleType in roletypes[roleUri]:
-                    roleId = modelRoleType.objectId(self.id)
                     node = self.treeView.insert("", "end", modelRoleType.objectId(self.id), text=roleUri, tags=("odd" if nodeNum & 1 else "even",))
                     nodeNum += 1
-                    self.treeView.set(node, "definition", modelRoleType.genLabel(lang=self.lang, strip=True) or modelRoleType.definition or '')
+                    self.treeView.set(node, "definition", modelRoleType.genLabel(lang=self.lang, strip=True) or modelRoleType.definition or "")
                     if self.isArcrole:
                         self.treeView.set(node, "cyclesAllowed", modelRoleType.cyclesAllowed)
-                    self.treeView.set(node, "usedOn", ', '.join(str(usedOn)
+                    self.treeView.set(node, "usedOn", ", ".join(str(usedOn)
                                                                for usedOn in modelRoleType.usedOns))
+        return None
 
-    def getToolTip(self, tvRowId, tvColId):
+    def getToolTip(self, tvRowId: str, tvColId: str) -> str | None:
         # override tool tip when appropriate
         return None
 
-    def treeviewEnter(self, *args):
+    def treeviewEnter(self, *args: Any) -> None:
         self.blockSelectEvent = 0
 
-    def treeviewLeave(self, *args):
+    def treeviewLeave(self, *args: Any) -> None:
         self.blockSelectEvent = 1
 
-    def treeviewSelect(self, *args):
+    def treeviewSelect(self, *args: Any) -> None:
         if self.blockSelectEvent == 0 and self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
             self.modelXbrl.viewModelObject(self.treeView.selection()[0])
             self.blockViewModelObject -= 1
 
-    def viewModelObject(self, modelObject):
+    def viewModelObject(self, modelObject: ModelObject) -> None:
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
             try:
                 # check if modelObject is a relationship in given linkrole
-                if isinstance(modelObject, ModelDtsObject.ModelRoleType):
+                if isinstance(modelObject, ModelRoleType):
                     roleId = modelObject.objectId()
                 else:
                     roleId = None
                 # get concept of fact or toConcept of relationship, role obj if roleType
-                node = roleId
-                if self.treeView.exists(node):
-                    self.treeView.see(node)
-                    self.treeView.selection_set(node)
+                if self.treeView.exists(roleId):  # type: ignore[arg-type]
+                    self.treeView.see(roleId)  # type: ignore[arg-type]
+                    self.treeView.selection_set(roleId)  # type: ignore[arg-type]
             except (AttributeError, KeyError):
                     self.treeView.selection_set(())
             self.blockViewModelObject -= 1
