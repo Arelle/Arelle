@@ -189,7 +189,6 @@ module = [
     'arelle.ViewWinTests',
     'arelle.ViewWinTkTable',
     'arelle.ViewWinTupleGrid',
-    'arelle.ViewWinVersReport',
     'arelle.ViewWinXml',
     'arelle.XmlValidateParticles',
     'arelle.archive.CustomLogger',
