@@ -1,21 +1,35 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
+from __future__ import annotations
+
 from collections import defaultdict
 import os
+from typing import TYPE_CHECKING, Any
+
 from arelle import ViewWinTree
 from arelle.ModelDtsObject import ModelRelationship
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelVersObject import ModelRelationshipSetChange, ModelInstanceAspectsChange
+from arelle.typing import TypeGetText
 
-def viewVersReport(modelXbrl, tabWin):
+_: TypeGetText
+
+if TYPE_CHECKING:
+    from tkinter.ttk import Notebook
+    from arelle.ModelObject import ModelObject
+    from arelle.ModelVersReport import ModelVersReport
+    from arelle.ModelXbrl import ModelXbrl
+
+
+def viewVersReport(modelXbrl: ModelXbrl, tabWin: Notebook) -> None:
     modelXbrl.modelManager.showStatus(_("viewing versioning report"))
     view = ViewVersReport(modelXbrl, tabWin)
     view.view()
     # pop up menu
     menu = view.contextMenu()
-    menu.add_cascade(label=_("Expand"), underline=0, command=view.expand)
-    menu.add_cascade(label=_("Collapse"), underline=0, command=view.collapse)
+    menu.add_cascade(label=_("Expand"), underline=0, command=view.expand)  # type: ignore[union-attr]
+    menu.add_cascade(label=_("Collapse"), underline=0, command=view.collapse)  # type: ignore[union-attr]
     # set up treeView widget and tabbed pane
     view.treeView.column("#0", width=300, anchor="w")
     view.treeView.heading("#0", text=_("Versioning Report"))
@@ -24,26 +38,27 @@ def viewVersReport(modelXbrl, tabWin):
     view.menuAddLabelRoles(includeConceptName=True,menulabel=_("Concept Label Role"))
 
     # sort URIs by definition
-    view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, '+')
-    view.treeView.bind("<Enter>", view.treeviewEnter, '+')
-    view.treeView.bind("<Leave>", view.treeviewLeave, '+')
+    view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, "+")
+    view.treeView.bind("<Enter>", view.treeviewEnter, "+")
+    view.treeView.bind("<Leave>", view.treeviewLeave, "+")
+
 
 class ViewVersReport(ViewWinTree.ViewTree):
-    def __init__(self, modelXbrl, tabWin):
+    def __init__(self, modelXbrl: ModelXbrl, tabWin: Notebook) -> None:
         super(ViewVersReport, self).__init__(modelXbrl, tabWin, "Versioning Report", True)
 
-    def view(self):
+    def view(self) -> None:
         self.blockSelectEvent = 1
         self.blockViewModelObject = 0
-        self.tag_has = defaultdict(list) # temporary until Tk 8.6
+        self.tag_has: defaultdict[str, list[str]] = defaultdict(list) # temporary until Tk 8.6
 
         self.clearTreeView()
 
-        versReport = self.modelXbrl.modelDocument
+        versReport: ModelVersReport = self.modelXbrl.modelDocument  # type: ignore[assignment]
         # root node for tree view
         self.id = 1
-        rootnode = self.treeView.insert("", "end", versReport.objectId(),
-                    text=os.path.basename(self.modelXbrl.modelDocument.basename),
+        self.treeView.insert("", "end", versReport.objectId(),
+                    text=os.path.basename(versReport.basename),
                     tags=("odd",))
         nsRenamingsNode = self.treeView.insert("", "end", "node_{0}".format(self.id),
                     text=_("namespace renamings"),
@@ -52,7 +67,7 @@ class ViewVersReport(ViewWinTree.ViewTree):
         srtfromURIs = sorted(versReport.namespaceRenameFrom)
         for i, fromURI in enumerate(srtfromURIs):
             nsRenaming = versReport.namespaceRenameFrom[fromURI]
-            self.treeView.insert(nsRenamingsNode, "end", nsRenaming.objectId('ns'),
+            self.treeView.insert(nsRenamingsNode, "end", nsRenaming.objectId("ns"),
                         text=nsRenaming.viewText(),
                         tags=("even" if i & 1 else "odd",))
 
@@ -64,7 +79,7 @@ class ViewVersReport(ViewWinTree.ViewTree):
         srtfromURIs.sort()
         for i, fromRole in enumerate(srtfromURIs):
             roleChange = versReport.roleChanges[fromRole]
-            self.treeView.insert(roleChangesNode, "end", roleChange.objectId('role'),
+            self.treeView.insert(roleChangesNode, "end", roleChange.objectId("role"),
                         text=roleChange.viewText(),
                         tags=("odd" if i & 1 else "even",))
 
@@ -76,9 +91,6 @@ class ViewVersReport(ViewWinTree.ViewTree):
         srtAssignmentIds.sort()
         for i, assignmentId in enumerate(srtAssignmentIds):
             assignment = versReport.assignments[assignmentId]
-            text = "{0}: {1} {2}".format(assignmentId,
-                                         assignment.genLabel(lang=self.lang) or "",
-                                         assignment.categoryQName)
             label = assignment.genLabel(lang=self.lang)
             text = (assignmentId + ": " + label) if label else assignmentId
             self.treeView.insert(assignmentsNode, "end", assignment.objectId(),
@@ -141,31 +153,28 @@ class ViewVersReport(ViewWinTree.ViewTree):
                                          text=text + " " + event.viewText(self.labelrole, self.lang),
                                          tags=("even" if i+j & 1 else "odd",))
 
-    def treeviewEnter(self, *args):
+    def treeviewEnter(self, *args: Any) -> None:
         self.blockSelectEvent = 0
 
-    def treeviewLeave(self, *args):
+    def treeviewLeave(self, *args: Any) -> None:
         self.blockSelectEvent = 1
 
-    def treeviewSelect(self, *args):
+    def treeviewSelect(self, *args: Any) -> None:
         if self.blockSelectEvent == 0 and self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
             self.modelXbrl.viewModelObject(self.treeView.selection()[0])
             self.blockViewModelObject -= 1
 
-    def viewModelObject(self, modelObject):
+    def viewModelObject(self, modelObject: ModelObject) -> None:
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
             try:
                 if isinstance(modelObject, ModelRelationship):
-                    conceptId = modelObject.toModelObject.objectId()
+                    conceptId = modelObject.toModelObject.objectId()  # type: ignore[union-attr]
                 elif isinstance(modelObject, ModelFact):
                     conceptId = self.modelXbrl.qnameConcepts[modelObject.qname].objectId()
                 else:
                     conceptId = modelObject.objectId()
-                    '''
-                items = self.treeView.tag_has(conceptId)
-                    '''
                 items = self.tag_has.get(conceptId)
                 if items is not None and self.treeView.exists(items[0]):
                     self.treeView.see(items[0])
