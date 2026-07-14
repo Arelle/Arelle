@@ -115,7 +115,7 @@ class ViewFactList(ViewWinTree.ViewTree):
                 else:
                     lbl = (modelFact.qname or modelFact.prefixedName) # defective inline facts may have no qname
                     objectIds = (modelFact.objectId(),)
-                node = self.treeView.insert(parentNode, "end", modelFact.objectId(self.id),  # type: ignore[arg-type]
+                node = self.treeView.insert(parentNode, "end", modelFact.objectId(self.id),
                                             text=lbl,  # type: ignore[arg-type]
                                             tags=("odd" if n & 1 else "even",))
                 for tag in objectIds:
