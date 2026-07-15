@@ -90,6 +90,31 @@ def parseOimJsonFacts(compMdl, module, factSource, url):
             prefixNs[p] = u
     factPrefix = next((p for p, u in prefixNs.items() if u == factNs), None)
 
+    # namespaceMaps redirection (fromNamespacePrefix -> toNamespacePrefix) for XBRL-format sources;
+    # prefixes are resolved to their declared namespace URIs (declared in the module document namespaces).
+    # When a namespaceMap omits fromNamespacePrefix, the toNamespacePrefix namespace is applied
+    # irrespective of the namespace in the source (oim-taxonomy namespace map object). Mirrors the
+    # xBRL-XML fact map (LoadXbrlXmlFacts.py): applied to the concept and to taxonomy-defined dimension /
+    # member QNames, not to the core entity / period / unit dimensions.
+    nsRedirect = {}
+    nsRedirectAll = None
+    for nsMap in (getattr(factSource, "namespaceMaps", None) or ()):
+        frm = prefixNs.get(getattr(nsMap, "fromNamespacePrefix", None))
+        to = prefixNs.get(getattr(nsMap, "toNamespacePrefix", None))
+        if to:
+            if frm:
+                nsRedirect[str(frm)] = str(to)
+            elif getattr(nsMap, "fromNamespacePrefix", None) is None:
+                nsRedirectAll = str(to)
+
+    def redirect(qn: Optional[QName]) -> Optional[QName]:
+        if qn is not None:
+            if qn.namespaceURI in nsRedirect:
+                return QName(qn.prefix, nsRedirect[qn.namespaceURI], qn.localName)
+            if nsRedirectAll is not None and qn.namespaceURI != nsRedirectAll:
+                return QName(qn.prefix, nsRedirectAll, qn.localName)
+        return qn
+
     for factId, factObj in jsonFacts.items():
         if not isinstance(factObj, dict):
             continue
@@ -106,6 +131,9 @@ def parseOimJsonFacts(compMdl, module, factSource, url):
             footnotes.append(fnObj)
             continue
 
+        # migrate the source concept namespace (note detection above uses the un-redirected QName so a
+        # no-fromNamespacePrefix remap-all cannot swallow the reserved xbrl:note concept)
+        conceptQn = redirect(conceptQn)
         conceptObj = compMdl.namedObjects.get(conceptQn)
         if not isinstance(conceptObj, XbrlConcept):
             continue
@@ -121,7 +149,9 @@ def parseOimJsonFacts(compMdl, module, factSource, url):
         for dimName, dimVal in dimensions.items():
             if dimName in _coreByJsonName:
                 coreQn = _coreByJsonName[dimName]
-                if dimName in ("concept", "entity", "unit"):
+                if dimName == "concept":  # migrated like the concept above; entity/unit are not redirected
+                    fact.factDimensions[coreQn] = redirect(qname(dimVal, docNamespaces)) or dimVal
+                elif dimName in ("entity", "unit"):
                     fact.factDimensions[coreQn] = qname(dimVal, docNamespaces) or dimVal
                 else:
                     fact.factDimensions[coreQn] = dimVal
@@ -129,7 +159,7 @@ def parseOimJsonFacts(compMdl, module, factSource, url):
                 dQn = qname(dimName, docNamespaces)
                 if dQn is not None:
                     memQn = qname(dimVal, docNamespaces) if isinstance(dimVal, str) and ':' in dimVal else dimVal
-                    fact.factDimensions[dQn] = memQn
+                    fact.factDimensions[redirect(dQn)] = redirect(memQn) if isinstance(memQn, QName) else memQn
 
         fv = XbrlFactValue()
         fv.fact = fact
