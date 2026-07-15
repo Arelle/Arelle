@@ -346,17 +346,26 @@ def parseXbrlXmlFacts(compMdl, module, factSource, url):
         factPrefix = next((p for p, u in prefixNs.items() if u == factNs), None)
 
     # namespaceMaps redirection (fromNamespacePrefix -> toNamespacePrefix) for XBRL sources; prefixes
-    # are resolved to their declared namespace URIs.
+    # are resolved to their declared namespace URIs. When a namespaceMap omits fromNamespacePrefix, the
+    # toNamespacePrefix namespace is applied to the fact source object irrespective of the namespace in
+    # the source (oim-taxonomy namespace map object): every source concept namespace is remapped to it.
     nsRedirect = {}
+    nsRedirectAll = None
     for nsMap in (getattr(factSource, "namespaceMaps", None) or ()):
         frm = prefixNs.get(getattr(nsMap, "fromNamespacePrefix", None))
         to = prefixNs.get(getattr(nsMap, "toNamespacePrefix", None))
-        if frm and to:
-            nsRedirect[str(frm)] = str(to)
+        if to:
+            if frm:
+                nsRedirect[str(frm)] = str(to)
+            elif getattr(nsMap, "fromNamespacePrefix", None) is None:
+                nsRedirectAll = str(to)
 
     def redirect(qn: Optional[QName]) -> Optional[QName]:
-        if qn is not None and qn.namespaceURI in nsRedirect:
-            return QName(qn.prefix, nsRedirect[qn.namespaceURI], qn.localName)
+        if qn is not None:
+            if qn.namespaceURI in nsRedirect:
+                return QName(qn.prefix, nsRedirect[qn.namespaceURI], qn.localName)
+            if nsRedirectAll is not None and qn.namespaceURI != nsRedirectAll:
+                return QName(qn.prefix, nsRedirectAll, qn.localName)
         return qn
 
     contexts = _parseContexts(root)

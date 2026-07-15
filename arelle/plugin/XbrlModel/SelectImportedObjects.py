@@ -298,6 +298,17 @@ def _pruneModuleObjects(txmyMdl, moduleObj,
                 if i0 <= obj.xbrlMdlObjIndex <= iL:
                     if xbrlObjectQNames[type(obj)] in importObjectTypes:
                         selObjs[obj.xbrlMdlObjIndex - i0] = True
+        # Nameless tag-like objects (e.g. group content objects) are registered in neither
+        # namedObjects nor tagObjects, so the two scans above never reach them. Select those
+        # whose object type is in importObjectTypes by walking this module's object range
+        # directly. An imported group content's forObject is NOT pulled in as a dependent
+        # (referencedObjectsAction skips it); an orphaned group content is then dropped by
+        # cleanOrphanedForObjects. (Labels are nameless too but already covered above; a
+        # second select here is idempotent.)
+        for obj in txmyMdl.xbrlObjects[i0:iL + 1]:
+            if getattr(obj, "name", None) is None and type(obj) in xbrlObjectQNames \
+                    and xbrlObjectQNames[type(obj)] in importObjectTypes:
+                selObjs[obj.xbrlMdlObjIndex - i0] = True
 
     if selections:
         hasSel = True

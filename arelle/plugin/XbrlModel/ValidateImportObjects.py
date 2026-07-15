@@ -3,7 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 from .ErrorCatalog import emit_error
 from .XbrlEntity import XbrlEntity
-from .XbrlGroup import XbrlGroupTree
+from .XbrlGroup import XbrlGroupTree, XbrlGroupContent
 from .XbrlImportTaxonomy import XbrlImportTaxonomy, XbrlFinalTaxonomy
 from .XbrlLabel import XbrlLabel
 from .XbrlModule import XbrlModule, xbrlObjectTypes, xbrlObjectQNames, referencableObjectTypes
@@ -40,8 +40,12 @@ def validateImportFamily(compMdl, module, oimFile, *, assertObjectType, validate
                 clsForObjType = xbrlObjectTypes[qnObjType]
                 # xbrl:labelObject is explicitly importable (oim-taxonomy §5919 — used to side-load
                 # labels, e.g. in additional languages); it is not in the forbidden list (§5966-5968)
-                # even though it is a non-referencable object type.
-                if clsForObjType == XbrlLabel:
+                # even though it is a non-referencable object type. xbrl:groupContentObject is likewise
+                # importable by type (selective group-content import): an imported group content object
+                # does not import the object QName in its forObject as a dependent object, so an orphaned
+                # group content is dropped by orphan cleanup rather than pulling in its forObject target.
+                # (xbrl:referenceObject is already referencable, so it passes the check below.)
+                if clsForObjType in (XbrlLabel, XbrlGroupContent):
                     pass
                 elif clsForObjType == XbrlModule:
                     emit_error(compMdl, "oimte:invalidImportObjectType",

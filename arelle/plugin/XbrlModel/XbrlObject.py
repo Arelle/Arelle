@@ -262,6 +262,16 @@ class XbrlObject(XbrlModelClass):
                     continue
             if propType.__name__ == "QNameKeyType":
                 continue
+            # forObject / forObjects on labels, group content and reference objects name the
+            # object(s) the tag DESCRIBES, not dependencies it pulls in. Per the oim-taxonomy
+            # import rules, an imported label/groupContent/reference does NOT import its
+            # forObject(s) as a dependent object; an orphaned tag (whose forObject target was not
+            # itself imported) is dropped by cleanOrphanedForObjects. Skip these properties during
+            # reference traversal so selection does not transitively pull in the forObject target.
+            # (Class names are matched as strings to avoid importing the tag classes here.)
+            if propName in ("forObject", "forObjects") and \
+                    type(self).__name__ in ("XbrlLabel", "XbrlGroupContent", "XbrlReference"):
+                continue
             if hasattr(self, propName):
                 val = getattr(self, propName)
                 if isTaxonomyObject: # for Taxonomy objects, not used by OIM Instance objects
