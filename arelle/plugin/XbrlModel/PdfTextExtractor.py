@@ -121,25 +121,99 @@ class PdfTextExtractor:
             return self._mcidCache
         cache: Dict[Tuple[int, int], str] = {}
         if self._open():
-            try:
-                # Reuse the reference walker -- imported lazily so this module
-                # stays usable when the loadFromPDF plugin is absent.
-                from arelle.plugin.loadFromPDF import (  # type: ignore
-                    loadFromPDF as _loadFromPDF,  # noqa: F401
-                )
-                # The reference walker is heavyweight; the slim path below is
-                # enough for the locator use case. If a full mapping is ever
-                # needed it can call _loadFromPDF directly.
-                cache = self._walkMcidQuick()
-            except Exception:
-                cache = {}
+            # ``_walkMcidQuick`` is self-contained (pikepdf only) and guards its
+            # own failures; it must NOT be gated behind an import of the
+            # optional ``loadFromPDF`` plugin, which silently returned an empty
+            # cache whenever arelle was not importable (e.g. stand-alone tools).
+            cache = self._walkMcidQuick()
         self._mcidCache = cache
         return cache
 
+    def _fontsFromResources(self, resources) -> Dict[str, Dict[str, Any]]:
+        """Build a per-name font decoding table from a page/form Resources
+        dictionary. Each entry provides a ``/ToUnicode`` mapping (``bfchars`` +
+        ``bfranges``) and the CID code width, so composite (Type0/Identity-H)
+        fonts embedded by tools such as WeasyPrint decode to real Unicode
+        rather than raw glyph codes. Mirrors the reference walker in
+        ``loadFromPDF``; kept narrow for the locator use case."""
+        from pikepdf import Operator, parse_content_stream, Dictionary, _core
+        fonts: Dict[str, Dict[str, Any]] = {}
+        try:
+            fontDict = resources.get("/Font", {}) or {}
+        except Exception:
+            return fonts
+        for name, font in fontDict.items():
+            try:
+                # Composite fonts encode text as 2-byte codes (Identity-H);
+                # simple fonts as single bytes. Default to 1 and widen to 2
+                # when the font is Type0.
+                codeWidth = 2 if str(font.get("/Subtype")) == "/Type0" else 1
+                entry: Dict[str, Any] = {"bfchars": {}, "bfranges": [],
+                                         "codeWidth": codeWidth}
+                if "/ToUnicode" in font:
+                    fm = entry["bfchars"]
+                    fr = entry["bfranges"]
+                    for i in parse_content_stream(font["/ToUnicode"]):
+                        if i.operator == Operator("endbfrange"):
+                            for l in range(0, len(i.operands), 3):
+                                startChar = i.operands[l].__bytes__()
+                                endChar = i.operands[l + 1].__bytes__()
+                                dst = i.operands[l + 2]
+                                if isinstance(dst, _core._ObjectList):
+                                    fr.append([startChar, endChar,
+                                               [d.__bytes__().decode("UTF-16BE") for d in dst]])
+                                else:
+                                    fr.append([startChar, endChar,
+                                               dst.__bytes__().decode("UTF-16BE")])
+                        elif i.operator == Operator("endbfchar"):
+                            c = None
+                            for l in i.operands:
+                                if c is None:
+                                    c = l.__bytes__()
+                                else:
+                                    fm[c] = l.__bytes__().decode("UTF-16BE")
+                                    c = None
+                fonts[str(name)] = entry
+            except Exception:
+                continue
+        return fonts
+
+    def _decodeShowText(self, raw: bytes, font: Optional[Dict[str, Any]]) -> str:
+        """Decode a Tj/TJ string operand through the active font's ToUnicode
+        map. Falls back to a Latin-1 rendering when no font info is present."""
+        if font is None:
+            try:
+                return raw.decode("latin-1")
+            except Exception:
+                return ""
+        width = font.get("codeWidth", 1)
+        bfchars = font["bfchars"]
+        bfranges = font["bfranges"]
+        chars = []
+        for pos in range(0, len(raw), width):
+            code = raw[pos:pos + width]
+            ch = bfchars.get(code)
+            if ch is None:
+                for start, end, op in bfranges:
+                    if start <= code <= end:
+                        offset = int.from_bytes(code, "big") - int.from_bytes(start, "big")
+                        if isinstance(op, list):
+                            ch = op[offset] if 0 <= offset < len(op) else ""
+                        else:
+                            # op is the decoded destination-start string; increment
+                            # its first code point across the range.
+                            ch = chr(ord(op[0]) + offset) if op else ""
+                        break
+            if ch is None:
+                # unmapped code: single-byte fonts often use the byte directly
+                ch = raw[pos:pos + width].decode("latin-1", "ignore") if width == 1 else ""
+            chars.append(ch)
+        return "".join(chars)
+
     def _walkMcidQuick(self) -> Dict[Tuple[int, int], str]:
-        """Lightweight MCID walker: handle simple `Tj` / `TJ` text-show ops
-        within BDC/EMC pairs. Sufficient for tagged PDF/A reports where the
-        spec's xbrl:pdfMcid locator is used."""
+        """MCID walker: collect text within BDC/EMC pairs, decoding `Tj`/`TJ`
+        show operands through each font's ToUnicode CMap. Sufficient for tagged
+        PDF reports where the spec's xbrl:pdfMcid locator is used."""
         out: Dict[Tuple[int, int], str] = {}
         try:
             pikepdf = self._pikepdf
@@ -151,10 +225,12 @@ class PdfTextExtractor:
             pageNum = pIdx + 1
             try:
                 resources = page.get("/Resources", {})
+                fonts = self._fontsFromResources(resources)
                 instructions = parse_content_stream(page)
             except Exception:
                 continue
             stack: list = []
+            activeFont: Optional[Dict[str, Any]] = None
             for i in instructions:
                 op = i.operator
                 if op == Operator("BDC"):
@@ -177,10 +253,13 @@ class PdfTextExtractor:
                         frame = stack.pop()
                         if frame["mcid"] is not None:
                             out[(pageNum, frame["mcid"])] = "".join(frame["txt"])
+                elif op == Operator("Tf"):
+                    if i.operands:
+                        activeFont = fonts.get(str(i.operands[0]))
                 elif op == Operator("Tj") and stack:
                     for s in i.operands:
                         try:
-                            stack[-1]["txt"].append(str(s))
+                            stack[-1]["txt"].append(self._decodeShowText(s.__bytes__(), activeFont))
                         except Exception:
                             pass
                 elif op == Operator("TJ") and stack:
@@ -188,8 +267,8 @@ class PdfTextExtractor:
                         try:
                             for el in arr:
                                 # numeric kerning operands are not text
-                                if hasattr(el, "__bytes__") or isinstance(el, str):
-                                    stack[-1]["txt"].append(str(el))
+                                if hasattr(el, "__bytes__"):
+                                    stack[-1]["txt"].append(self._decodeShowText(el.__bytes__(), activeFont))
                         except Exception:
                             continue
         return out
