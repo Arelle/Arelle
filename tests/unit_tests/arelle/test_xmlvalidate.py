@@ -1065,12 +1065,26 @@ def test_validateValueString_facets_ordering(
         ("gMonthDay", "--06-15Z", {"maxInclusive": gMonthDay(6, 15)}, INVALID),  # indeterminate
         ("gMonthDay", "--06-20Z", {"maxInclusive": gMonthDay(6, 15)}, INVALID),  # determinate violation
         ("gMonthDay", "--06-10Z", {"maxInclusive": gMonthDay(6, 15)}, VALID),  # determinate acceptance
+        # gMonthDay with *both* sides explicitly timezoned, on adjacent days: --06-14 at
+        # -10:00 and --06-15 at +14:00 denote the *same* instant (00:00-10:00 on the 14th
+        # = 10:00 UTC = 00:00+14:00 on the 15th), since the combined +-14h swing of two
+        # opposite extreme offsets (28h) exceeds the 24h gap between adjacent days. A
+        # naive field-only comparison (14 < 15) would wrongly call this determinate
+        # "less than"; it must instead resolve as equal.
+        ("gMonthDay", "--06-14-10:00", {"maxExclusive": gMonthDay(6, 15, tzinfo=datetime.timezone(datetime.timedelta(hours=14)))}, INVALID),  # equal, not strictly less
+        ("gMonthDay", "--06-14-10:00", {"maxInclusive": gMonthDay(6, 15, tzinfo=datetime.timezone(datetime.timedelta(hours=14)))}, VALID),  # equal, satisfies <=
+        ("gMonthDay", "--06-15+14:00", {"minExclusive": gMonthDay(6, 14, tzinfo=datetime.timezone(datetime.timedelta(hours=-10)))}, INVALID),  # equal, not strictly greater
+        ("gMonthDay", "--06-15+14:00", {"minInclusive": gMonthDay(6, 14, tzinfo=datetime.timezone(datetime.timedelta(hours=-10)))}, VALID),  # equal, satisfies >=
         # gMonth
         ("gMonth", "--06Z", {"maxInclusive": gMonth(6)}, INVALID),  # indeterminate
         ("gMonth", "--05Z", {"maxInclusive": gMonth(6)}, VALID),  # determinate acceptance
         # gDay
         ("gDay", "---15Z", {"maxInclusive": gDay(15)}, INVALID),  # indeterminate
         ("gDay", "---10Z", {"maxInclusive": gDay(15)}, VALID),  # determinate acceptance
+        # gDay with both sides explicitly timezoned, on adjacent days: the same
+        # combined-offset equivalence as gMonthDay above.
+        ("gDay", "---14-10:00", {"maxExclusive": gDay(15, tzinfo=datetime.timezone(datetime.timedelta(hours=14)))}, INVALID),  # equal, not strictly less
+        ("gDay", "---14-10:00", {"maxInclusive": gDay(15, tzinfo=datetime.timezone(datetime.timedelta(hours=14)))}, VALID),  # equal, satisfies <=
     ],
 )
 def test_validateValueString_facets_ordering_timezone(

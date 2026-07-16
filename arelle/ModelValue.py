@@ -671,6 +671,11 @@ class Time(datetime.time):
         return time
 
 
+GTYPE_ANCHOR_YEAR = 2000  # arbitrary leap year (XSD Datatypes 3.2.12: "in an arbitrary leap year")
+GTYPE_ANCHOR_MONTH = 1  # arbitrary month with 31 days (XSD Datatypes 3.2.13)
+GTYPE_ANCHOR_DAY = 1  # arbitrary day <= 28
+
+
 def _gTypeEqual(
     selfFields: tuple[int, ...], selfTz: datetime.timezone | None,
     otherFields: tuple[int, ...], otherTz: datetime.timezone | None,
@@ -691,17 +696,19 @@ def _gTypeOrder(
     selfFields: tuple[int, ...], selfTz: datetime.timezone | None,
     otherFields: tuple[int, ...], otherTz: datetime.timezone | None,
 ) -> int:
-    """Order two like-typed g* values (gYear/gYearMonth/gMonthDay/gMonth/gDay), whose only
-    lexical content is numeric fields plus an optional timezone.
+    """Order two like-typed g* values whose only lexical content is numeric fields plus
+    an optional timezone -- for ``gYear``/``gYearMonth``/``gMonth`` *only*. (``gMonthDay``/
+    ``gDay`` instead compare real anchored ``datetime`` instants via ``_gMonthDayInstant``/
+    ``_gDayInstant`` below: see the note there.)
 
     Returns -1/0/1 for less-than/equal/greater-than. Raises ``TypeError`` when exactly one
     operand carries a timezone and the numeric fields are equal: over the +-14h timezone
     range (XSD Datatypes 3.2.7.3) that difference can never bridge a whole field unit (a
-    year/month/day), so unequal ``selfFields``/``otherFields`` alone always determines the
+    year or month), so unequal ``selfFields``/``otherFields`` alone always determines the
     order; only a field tie leaves the order genuinely dependent on the missing timezone
-    (3.2.7.4, applied to g* types per 3.2.10.2/3.2.11.2/3.2.12.2/3.2.13.2/3.2.14.2), which
-    XmlValidate's ``_orderedComparison`` resolves with the +-14h straddling rule, mirroring
-    how it already handles offset-naive vs. offset-aware ``dateTime``/``date``/``time``.
+    (3.2.7.4, applied to g* types per 3.2.10.2/3.2.11.2/3.2.14.2), which XmlValidate's
+    ``_orderedComparison`` resolves with the +-14h straddling rule, mirroring how it
+    already handles offset-naive vs. offset-aware ``dateTime``/``date``/``time``.
     """
     if selfFields != otherFields:
         return -1 if selfFields < otherFields else 1
@@ -718,6 +725,14 @@ def _gTypeOrder(
     # occurs *earlier* in UTC: 00:00+05:00 is 19:00 UTC the previous day, earlier than
     # 00:00+04:00's 20:00 UTC.
     return -1 if selfOffset > otherOffset else 1
+
+
+def _gMonthDayInstant(month: int, day: int, tz: datetime.timezone | None) -> datetime.datetime:
+    return datetime.datetime(GTYPE_ANCHOR_YEAR, month, day, tzinfo=tz)
+
+
+def _gDayInstant(day: int, tz: datetime.timezone | None) -> datetime.datetime:
+    return datetime.datetime(GTYPE_ANCHOR_YEAR, GTYPE_ANCHOR_MONTH, day, tzinfo=tz)
 
 
 class gYearMonth:
@@ -775,7 +790,11 @@ class gMonthDay:
         self.month = int(month)
         self.day = int(day)
         self.tzinfo = tzinfo
-        self._hash = hash((self.month, self.day))
+        # Hashed via the anchor instant (not the raw fields): two different (month, day)
+        # pairs with different timezones can denote the *same* instant (see the note on
+        # _gTypeOrder), and Python's own aware-datetime hash already makes such equal
+        # instants hash equal regardless of offset, keeping __hash__/__eq__ consistent.
+        self._hash = hash(_gMonthDayInstant(self.month, self.day, self.tzinfo))
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -786,32 +805,32 @@ class gMonthDay:
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, gMonthDay):
             return NotImplemented
-        return _gTypeEqual((self.month, self.day), self.tzinfo, (other.month, other.day), other.tzinfo)
+        return _gMonthDayInstant(self.month, self.day, self.tzinfo) == _gMonthDayInstant(other.month, other.day, other.tzinfo)
 
     def __ne__(self, other: Any) -> bool:
         if not isinstance(other, gMonthDay):
             return NotImplemented
-        return not _gTypeEqual((self.month, self.day), self.tzinfo, (other.month, other.day), other.tzinfo)
+        return _gMonthDayInstant(self.month, self.day, self.tzinfo) != _gMonthDayInstant(other.month, other.day, other.tzinfo)
 
     def __lt__(self, other: Any) -> bool:
         if not isinstance(other, gMonthDay):
             return NotImplemented
-        return _gTypeOrder((self.month, self.day), self.tzinfo, (other.month, other.day), other.tzinfo) < 0
+        return _gMonthDayInstant(self.month, self.day, self.tzinfo) < _gMonthDayInstant(other.month, other.day, other.tzinfo)
 
     def __le__(self, other: Any) -> bool:
         if not isinstance(other, gMonthDay):
             return NotImplemented
-        return _gTypeOrder((self.month, self.day), self.tzinfo, (other.month, other.day), other.tzinfo) <= 0
+        return _gMonthDayInstant(self.month, self.day, self.tzinfo) <= _gMonthDayInstant(other.month, other.day, other.tzinfo)
 
     def __gt__(self, other: Any) -> bool:
         if not isinstance(other, gMonthDay):
             return NotImplemented
-        return _gTypeOrder((self.month, self.day), self.tzinfo, (other.month, other.day), other.tzinfo) > 0
+        return _gMonthDayInstant(self.month, self.day, self.tzinfo) > _gMonthDayInstant(other.month, other.day, other.tzinfo)
 
     def __ge__(self, other: Any) -> bool:
         if not isinstance(other, gMonthDay):
             return NotImplemented
-        return _gTypeOrder((self.month, self.day), self.tzinfo, (other.month, other.day), other.tzinfo) >= 0
+        return _gMonthDayInstant(self.month, self.day, self.tzinfo) >= _gMonthDayInstant(other.month, other.day, other.tzinfo)
 
     def __bool__(self) -> bool:
         return self.month != 0 or self.day != 0
@@ -920,6 +939,11 @@ class gDay:
     def __init__(self, day: int | str, tzinfo: datetime.timezone | None = None) -> None:
         self.day = int(day)
         self.tzinfo = tzinfo
+        # Hashed via the anchor instant, not the raw day, for the same reason as
+        # gMonthDay: two different days with different timezones can denote the same
+        # instant (see the note on _gTypeOrder above), and Python's own aware-datetime
+        # hash already makes such equal instants hash equal regardless of offset.
+        self._hash = hash(_gDayInstant(self.day, self.tzinfo))
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -930,38 +954,38 @@ class gDay:
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, gDay):
             return NotImplemented
-        return _gTypeEqual((self.day,), self.tzinfo, (other.day,), other.tzinfo)
+        return _gDayInstant(self.day, self.tzinfo) == _gDayInstant(other.day, other.tzinfo)
 
     def __ne__(self, other: Any) -> bool:
         if not isinstance(other, gDay):
             return NotImplemented
-        return not _gTypeEqual((self.day,), self.tzinfo, (other.day,), other.tzinfo)
+        return _gDayInstant(self.day, self.tzinfo) != _gDayInstant(other.day, other.tzinfo)
 
     def __lt__(self, other: Any) -> bool:
         if not isinstance(other, gDay):
             return NotImplemented
-        return _gTypeOrder((self.day,), self.tzinfo, (other.day,), other.tzinfo) < 0
+        return _gDayInstant(self.day, self.tzinfo) < _gDayInstant(other.day, other.tzinfo)
 
     def __le__(self, other: Any) -> bool:
         if not isinstance(other, gDay):
             return NotImplemented
-        return _gTypeOrder((self.day,), self.tzinfo, (other.day,), other.tzinfo) <= 0
+        return _gDayInstant(self.day, self.tzinfo) <= _gDayInstant(other.day, other.tzinfo)
 
     def __gt__(self, other: Any) -> bool:
         if not isinstance(other, gDay):
             return NotImplemented
-        return _gTypeOrder((self.day,), self.tzinfo, (other.day,), other.tzinfo) > 0
+        return _gDayInstant(self.day, self.tzinfo) > _gDayInstant(other.day, other.tzinfo)
 
     def __ge__(self, other: Any) -> bool:
         if not isinstance(other, gDay):
             return NotImplemented
-        return _gTypeOrder((self.day,), self.tzinfo, (other.day,), other.tzinfo) >= 0
+        return _gDayInstant(self.day, self.tzinfo) >= _gDayInstant(other.day, other.tzinfo)
 
     def __bool__(self) -> bool:
         return self.day != 0
 
     def __hash__(self) -> int:
-        return self.day
+        return self._hash
 
 
 isoDurationPattern = re.compile(

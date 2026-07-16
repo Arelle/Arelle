@@ -16,7 +16,7 @@ from arelle import UrlUtil, XbrlConst, XmlUtil, XmlValidateConst
 from arelle.ModelValue import (qname, qnameFromNsmap, qnameClarkName, qnameHref,
                                dateTime, DATE, DATETIME, DATEUNION, time,
                                anyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay, isoDuration,
-                               tzinfo as _parseTzinfo)
+                               tzinfo as _parseTzinfo, GTYPE_ANCHOR_YEAR, GTYPE_ANCHOR_MONTH, GTYPE_ANCHOR_DAY)
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.PythonUtil import strTruncate
 
@@ -502,11 +502,6 @@ def fractionValidateValue(value: str, fractionValue: tuple[str, str]) -> XmlVali
 _XSD_MAX_TIMEZONE_OFFSET = datetime.timedelta(hours=14)
 
 
-_GTYPE_ANCHOR_YEAR = 2000  # arbitrary leap year (XSD Datatypes 3.2.12: "in an arbitrary leap year")
-_GTYPE_ANCHOR_MONTH = 1  # arbitrary month with 31 days (XSD Datatypes 3.2.13)
-_GTYPE_ANCHOR_DAY = 1  # arbitrary day <= 28
-
-
 def _comparableInstant(value: datetime.datetime | datetime.time | gYearMonth | gYear | gMonthDay | gMonth | gDay) -> datetime.datetime:
     # Express an xs:dateTime/date/time/gYearMonth/gYear/gMonthDay/gMonth/gDay value as a
     # single datetime so values can be ordered: timezone-aware values are normalized to
@@ -518,19 +513,19 @@ def _comparableInstant(value: datetime.datetime | datetime.time | gYearMonth | g
         dt = value
     elif isinstance(value, datetime.time):  # xs:time
         dt = datetime.datetime(
-            _GTYPE_ANCHOR_YEAR, _GTYPE_ANCHOR_MONTH, _GTYPE_ANCHOR_DAY,
+            GTYPE_ANCHOR_YEAR, GTYPE_ANCHOR_MONTH, GTYPE_ANCHOR_DAY,
             value.hour, value.minute, value.second, value.microsecond, value.tzinfo
         )
     elif isinstance(value, gYearMonth):
-        dt = datetime.datetime(value.year, value.month, _GTYPE_ANCHOR_DAY, tzinfo=value.tzinfo)
+        dt = datetime.datetime(value.year, value.month, GTYPE_ANCHOR_DAY, tzinfo=value.tzinfo)
     elif isinstance(value, gYear):
-        dt = datetime.datetime(value.year, _GTYPE_ANCHOR_MONTH, _GTYPE_ANCHOR_DAY, tzinfo=value.tzinfo)
+        dt = datetime.datetime(value.year, GTYPE_ANCHOR_MONTH, GTYPE_ANCHOR_DAY, tzinfo=value.tzinfo)
     elif isinstance(value, gMonthDay):
-        dt = datetime.datetime(_GTYPE_ANCHOR_YEAR, value.month, value.day, tzinfo=value.tzinfo)
+        dt = datetime.datetime(GTYPE_ANCHOR_YEAR, value.month, value.day, tzinfo=value.tzinfo)
     elif isinstance(value, gMonth):
-        dt = datetime.datetime(_GTYPE_ANCHOR_YEAR, value.month, _GTYPE_ANCHOR_DAY, tzinfo=value.tzinfo)
+        dt = datetime.datetime(GTYPE_ANCHOR_YEAR, value.month, GTYPE_ANCHOR_DAY, tzinfo=value.tzinfo)
     else:  # gDay
-        dt = datetime.datetime(_GTYPE_ANCHOR_YEAR, _GTYPE_ANCHOR_MONTH, value.day, tzinfo=value.tzinfo)
+        dt = datetime.datetime(GTYPE_ANCHOR_YEAR, GTYPE_ANCHOR_MONTH, value.day, tzinfo=value.tzinfo)
     if dt.tzinfo is not None:
         dt = dt.astimezone(datetime.timezone.utc).replace(tzinfo=None)
     return dt
