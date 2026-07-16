@@ -503,7 +503,8 @@ _XSD_MAX_TIMEZONE_OFFSET = datetime.timedelta(hours=14)
 
 
 _GTYPE_ANCHOR_YEAR = 2000  # arbitrary leap year (XSD Datatypes 3.2.12: "in an arbitrary leap year")
-_GTYPE_ANCHOR_31DAY_MONTH = 12  # arbitrary month with 31 days (XSD Datatypes 3.2.13)
+_GTYPE_ANCHOR_MONTH = 1  # arbitrary month with 31 days (XSD Datatypes 3.2.13)
+_GTYPE_ANCHOR_DAY = 1  # arbitrary day <= 28
 
 
 def _comparableInstant(value: datetime.datetime | datetime.time | gYearMonth | gYear | gMonthDay | gMonth | gDay) -> datetime.datetime:
@@ -516,17 +517,20 @@ def _comparableInstant(value: datetime.datetime | datetime.time | gYearMonth | g
     if isinstance(value, datetime.datetime):
         dt = value
     elif isinstance(value, datetime.time):  # xs:time
-        dt = datetime.datetime(2000, 1, 1, value.hour, value.minute, value.second, value.microsecond, value.tzinfo)
+        dt = datetime.datetime(
+            _GTYPE_ANCHOR_YEAR, _GTYPE_ANCHOR_MONTH, _GTYPE_ANCHOR_DAY,
+            value.hour, value.minute, value.second, value.microsecond, value.tzinfo
+        )
     elif isinstance(value, gYearMonth):
-        dt = datetime.datetime(value.year, value.month, 1, tzinfo=value.tzinfo)
+        dt = datetime.datetime(value.year, value.month, _GTYPE_ANCHOR_DAY, tzinfo=value.tzinfo)
     elif isinstance(value, gYear):
-        dt = datetime.datetime(value.year, 1, 1, tzinfo=value.tzinfo)
+        dt = datetime.datetime(value.year, _GTYPE_ANCHOR_MONTH, _GTYPE_ANCHOR_DAY, tzinfo=value.tzinfo)
     elif isinstance(value, gMonthDay):
         dt = datetime.datetime(_GTYPE_ANCHOR_YEAR, value.month, value.day, tzinfo=value.tzinfo)
     elif isinstance(value, gMonth):
-        dt = datetime.datetime(_GTYPE_ANCHOR_YEAR, value.month, 1, tzinfo=value.tzinfo)
+        dt = datetime.datetime(_GTYPE_ANCHOR_YEAR, value.month, _GTYPE_ANCHOR_DAY, tzinfo=value.tzinfo)
     else:  # gDay
-        dt = datetime.datetime(_GTYPE_ANCHOR_YEAR, _GTYPE_ANCHOR_31DAY_MONTH, value.day, tzinfo=value.tzinfo)
+        dt = datetime.datetime(_GTYPE_ANCHOR_YEAR, _GTYPE_ANCHOR_MONTH, value.day, tzinfo=value.tzinfo)
     if dt.tzinfo is not None:
         dt = dt.astimezone(datetime.timezone.utc).replace(tzinfo=None)
     return dt
