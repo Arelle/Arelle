@@ -26,5 +26,5 @@ config = ConformanceSuiteConfig(
     info_url='https://github.com/Arelle/xbrl-xsdtests',
     name=PurePath(__file__).stem,
     test_case_result_options='match-all',
-    shards=4,
+    shards=3,  # Fits on single macos GHA runner's 3 cores
 )
