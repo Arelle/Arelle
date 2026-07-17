@@ -786,9 +786,6 @@ class gYearMonth:
             return NotImplemented
         return _gTypeOrder((self.year, self.month), self.tzinfo, (other.year, other.month), other.tzinfo) >= 0
 
-    def __bool__(self) -> bool:
-        return self.year != 0 or self.month != 0
-
     def __hash__(self) -> int:
         return self._hash
 
@@ -840,9 +837,6 @@ class gMonthDay:
             return NotImplemented
         return _gMonthDayInstant(self.month, self.day, self.tzinfo) >= _gMonthDayInstant(other.month, other.day, other.tzinfo)
 
-    def __bool__(self) -> bool:
-        return self.month != 0 or self.day != 0
-
     def __hash__(self) -> int:
         return self._hash
 
@@ -889,9 +883,6 @@ class gYear:
             return NotImplemented
         return _gTypeOrder((self.year,), self.tzinfo, (other.year,), other.tzinfo) >= 0
 
-    def __bool__(self) -> bool:
-        return self.year != 0
-
     def __hash__(self) -> int:
         return self._hash
 
@@ -937,9 +928,6 @@ class gMonth:
         if not isinstance(other, gMonth):
             return NotImplemented
         return _gTypeOrder((self.month,), self.tzinfo, (other.month,), other.tzinfo) >= 0
-
-    def __bool__(self) -> bool:
-        return self.month != 0
 
     def __hash__(self) -> int:
         return self._hash
@@ -990,9 +978,6 @@ class gDay:
         if not isinstance(other, gDay):
             return NotImplemented
         return _gDayInstant(self.day, self.tzinfo) >= _gDayInstant(other.day, other.tzinfo)
-
-    def __bool__(self) -> bool:
-        return self.day != 0
 
     def __hash__(self) -> int:
         return self._hash
