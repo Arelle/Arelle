@@ -295,11 +295,15 @@ def tzinfo(tz: str | None) -> datetime.timezone | None:
     else:
         return datetime.timezone(datetime.timedelta(hours=int(tz[0:3]), minutes=int(tz[0]+tz[4:6])))
 
+def _tzSuffix(tz: datetime.tzinfo | None) -> str:
+    s = str(tz or "")
+    if s.startswith("UTC"):
+        return s[3:] or "Z"
+    return ""
+
 def tzinfoStr(dt: datetime.datetime | datetime.date) -> str:
     if isinstance(dt, datetime.datetime):
-        tz = str(dt.tzinfo or "")
-        if tz.startswith("UTC"):
-            return tz[3:] or "Z"
+        return _tzSuffix(dt.tzinfo)
     return ""
 
 
@@ -750,7 +754,7 @@ class gYearMonth:
         return self.__str__()
 
     def __str__(self) -> str:
-        return "{0:0{2}}-{1:02}".format(self.year, self.month, 5 if self.year < 0 else 4)  # may be negative
+        return "{0:0{2}}-{1:02}{3}".format(self.year, self.month, 5 if self.year < 0 else 4, _tzSuffix(self.tzinfo))  # may be negative
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, gYearMonth):
@@ -804,7 +808,7 @@ class gMonthDay:
         return self.__str__()
 
     def __str__(self) -> str:
-        return "--{0:02}-{1:02}".format(self.month, self.day)
+        return "--{0:02}-{1:02}{2}".format(self.month, self.day, _tzSuffix(self.tzinfo))
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, gMonthDay):
@@ -853,7 +857,7 @@ class gYear:
         return self.__str__()
 
     def __str__(self) -> str:
-        return "{0:0{1}}".format(self.year, 5 if self.year < 0 else 4)  # may be negative
+        return "{0:0{1}}{2}".format(self.year, 5 if self.year < 0 else 4, _tzSuffix(self.tzinfo))  # may be negative
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, gYear):
@@ -902,7 +906,7 @@ class gMonth:
         return self.__str__()
 
     def __str__(self) -> str:
-        return "--{0:02}".format(self.month)
+        return "--{0:02}{1}".format(self.month, _tzSuffix(self.tzinfo))
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, gMonth):
@@ -955,7 +959,7 @@ class gDay:
         return self.__str__()
 
     def __str__(self) -> str:
-        return "---{0:02}".format(self.day)
+        return "---{0:02}{1}".format(self.day, _tzSuffix(self.tzinfo))
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, gDay):
