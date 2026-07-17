@@ -12,7 +12,8 @@
                 "documentType": {
                     "type": "string",
                     "enum": [
-                        "https://xbrl.org/2026/bundle",
+                        "https://xbrl.org/2026/labelBundle",
+                        "https://xbrl.org/2026/referenceBundle",
                         "https://xbrl.org/2026/compiled",
                         "https://xbrl.org/2026/module"
                     ]
@@ -127,6 +128,35 @@
                             "excludeGroupContents": {
                                 "type": "boolean",
                                 "description": "If set to true, all groupContent objects from the imported model are excluded from the compiled XBRL Model. Default is false."
+                            },
+                            "bundleManifest": {
+                                "type": "object",
+                                "description": "Metadata about a label bundle or reference bundle being imported. Only applicable when importing a label bundle module (documentType 'https://xbrl.org/2026/labelBundle') or a reference bundle module (documentType 'https://xbrl.org/2026/referenceBundle').",
+                                "properties": {
+                                    "language": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "uniqueItems": true,
+                                        "minItems": 1,
+                                        "description": "Set of BCP 47 language codes indicating the languages provided by the bundle."
+                                    },
+                                    "bundleTypes": {
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/definitions/QName"
+                                        },
+                                        "uniqueItems": true,
+                                        "minItems": 1,
+                                        "description": "Set of QNames indicating the label or reference types provided by the bundle."
+                                    }
+                                },
+                                "required": [
+                                    "language",
+                                    "bundleTypes"
+                                ],
+                                "additionalProperties": false
                             }
                         },
                         "required": [
@@ -139,7 +169,7 @@
                 },
                 "referenceModel": {
                     "$ref": "#/definitions/QName",
-                    "description": "A QName that references an XBRL model object. Only used with a model that has a documentType of 'https://xbrl.org/2026/bundle'."
+                    "description": "A QName that references an XBRL model object. Only used with a model that has a documentType of 'https://xbrl.org/2026/labelBundle' or 'https://xbrl.org/2026/referenceBundle'."
                 },
                 "finalTaxonomy": {
                     "type": "object",

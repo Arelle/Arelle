@@ -3553,7 +3553,7 @@
             "order": 8
           },
           {
-            "source": "xbrl:impliedObjectObject",
+            "source": "xbrl:impliedObject",
             "target": "oimte:invalidObjectTypeForImpliedObject",
             "order": 1
           },
@@ -3956,12 +3956,6 @@
         "language": "en",
         "value": "The referenced QName '{qname}' cannot be found in the XBRL model.",
         "labelType": "xbrl:errorMessage"
-      },
-      {
-        "forObject": "oimte:invalidObjectType",
-        "language": "en",
-        "value": "Invalid QName Object Type",
-        "labelType": "xbrl:label"
       },
       {
         "forObject": "oimte:invalidObjectType",
@@ -4567,12 +4561,6 @@
         "forObject": "oimte:documentNamespacePrefixNotDefined",
         "language": "en",
         "value": "The documentNamespacePrefix '{documentNamespacePrefix}' does not match any defined namespace prefix in the namespaces declaration.",
-        "labelType": "xbrl:errorMessage"
-      },
-      {
-        "forObject": "oimte:documentNamespacePrefixNotDefined",
-        "language": "en",
-        "value": "Bundle module does not define the documentNamespacePrefix property. Bundle modules MUST define a documentNamespacePrefix.",
         "labelType": "xbrl:errorMessage"
       },
       {
@@ -6352,18 +6340,6 @@
         "value": "Invalid Object Type"
       },
       {
-        "forObject": "oimte:invalidObjectType",
-        "language": "en",
-        "labelType": "xbrl:errorMessage",
-        "value": "The groupName '{groupName}' in the groupContent object does not reference a valid group object in the XBRL model."
-      },
-      {
-        "forObject": "oimte:invalidObjectType",
-        "language": "en",
-        "labelType": "xbrl:documentation",
-        "value": "Raised when a groupContent object references a group QName that does not correspond to a valid group object in the XBRL model."
-      },
-      {
         "forObject": "oimte:unsupportedDecimalSuffixFeature",
         "language": "en",
         "labelType": "xbrl:label",
@@ -6553,13 +6529,13 @@
         "forObject": "oimte:invalidBundleModuleContent",
         "language": "en",
         "labelType": "xbrl:errorMessage",
-        "value": "Bundle module '{modelName}' contains non-label object(s): {invalidProperties}. Bundle modules must only contain label objects."
+        "value": "Bundle module '{modelName}' contains non-label/reference object(s): {invalidProperties}. Bundle modules must only contain label or reference objects."
       },
       {
         "forObject": "oimte:invalidBundleModuleContent",
         "language": "en",
         "labelType": "xbrl:documentation",
-        "value": "Raised when a bundle module (documentType 'https://xbrl.org/2026/bundle') contains object types other than label objects. Bundle modules are restricted to defining only label objects."
+        "value": "Raised when a bundle module (documentType 'https://xbrl.org/2026/labelBundle' or 'https://xbrl.org/2026/referenceBundle') contains object types other than label or reference objects. Bundle modules are restricted to defining only label or reference objects."
       },
       {
         "forObject": "oimte:missingBundleModuleReferenceModel",
@@ -6577,7 +6553,7 @@
         "forObject": "oimte:missingBundleModuleReferenceModel",
         "language": "en",
         "labelType": "xbrl:documentation",
-        "value": "Raised when a bundle module (documentType 'https://xbrl.org/2026/bundle') does not define the referenceModel property. Bundle modules must define a referenceModel property that references the target XBRL model."
+        "value": "Raised when a bundle module (documentType 'https://xbrl.org/2026/labelBundle' or 'https://xbrl.org/2026/referenceBundle') does not define the referenceModel property. Bundle modules must define a referenceModel property that references the target XBRL model."
       }
     ],
     "references": [
@@ -19271,7 +19247,7 @@
         ]
       },
       {
-        "name": "oimte:invalidObjectTypeReference",
+        "name": "oimte:invalidObjectTypeReference2",
         "forObjects": [
           "oimte:invalidObjectType"
         ],

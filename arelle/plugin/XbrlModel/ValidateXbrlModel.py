@@ -230,8 +230,10 @@ def cleanOrphanedForObjects(compMdl):
                     dropTag(lblObj.forObject, lblObj)
             module.labels = keptLabels or None
         # A reference object holds a set of forObjects: unresolved entries are removed and the reference
-        # is dropped only if none remain.
-        if module.references:
+        # is dropped only if none remain. A standalone (entry-point) referenceBundle whose references can
+        # be checked is exempt (like bundle labels above): an unresolved forObject is a genuine error
+        # (reported by the reference-object validation), so its references are NOT orphan-cleaned here.
+        if module.references and not getattr(module, "_bundleValidateReferences", False):
             keptRefs = OrderedSet()
             for refObj in module.references:
                 forObjs = getattr(refObj, "forObjects", None)
@@ -327,22 +329,26 @@ def checkConsistentTaxonomyURLs(compMdl):
                       urls=", ".join(sorted(urlModules)))
 
 def validateBundleModules(compMdl):
-    """Validate the bundle-module constraints (oim-taxonomy §46, §239, §1005-1006): a bundle module
-    (documentType https://xbrl.org/2026/bundle) MUST define only label objects and MUST define a
-    referenceModel property naming the model whose objects its labels annotate."""
+    """Validate the bundle-module constraints (oim-taxonomy §bundle module constraints): a labelBundle
+    module (documentType https://xbrl.org/2026/labelBundle) MUST define only label objects; a
+    referenceBundle module (https://xbrl.org/2026/referenceBundle) MUST define only reference objects.
+    Both MUST define a referenceModel property naming the model whose objects the bundle annotates."""
     for module in compMdl.xbrlModels.values():
         if not getattr(module, "_isBundle", False):
             continue
-        # A bundle may define only label objects; any other populated top-level object collection
-        # (concepts, cubes, references, …) is disallowed.
+        # A labelBundle may define only label objects, a referenceBundle only reference objects; any
+        # other populated top-level object collection (concepts, cubes, …) is disallowed.
+        isRefBundle = getattr(module, "_isReferenceBundle", False)
+        allowedKey = "References" if isRefBundle else "Labels"
+        allowedObjectDesc = "reference" if isRefBundle else "label"
         for key in _RESOLVED_COUNT_KEYS:
-            if key == "Labels":
+            if key == allowedKey:
                 continue
             collAttr = key[0].lower() + key[1:]
             if getattr(module, collAttr, None):
                 compMdl.error("oimte:invalidBundleModuleContent",
-                          _("The bundle module %(name)s MUST contain only label objects, but also defines a %(objectType)s array."),
-                          xbrlObject=module, name=module.name, objectType=key)
+                          _("The bundle module %(name)s MUST contain only %(allowed)s objects, but also defines a %(objectType)s array."),
+                          xbrlObject=module, name=module.name, allowed=allowedObjectDesc, objectType=key)
         if getattr(module, "referenceModel", None) is None:
             compMdl.error("oimte:missingBundleModuleReferenceModel",
                       _("The bundle module %(name)s MUST define a referenceModel property."),

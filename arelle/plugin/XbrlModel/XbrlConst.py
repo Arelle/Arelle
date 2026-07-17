@@ -7,14 +7,19 @@ from arelle.XbrlConst import xsd
 
 # MERGE TO arelle.XbrlConst when promoting plugin to infrastructure
 
-oimTaxonomyDocTypePattern = re.compile(r"\s*\{.*\"documentType\"\s*:\s*\"https://xbrl.org/[0-9]{4}/(?:module|compiled|archive|bundle)\"", flags=re.DOTALL)
+oimTaxonomyDocTypePattern = re.compile(r"\s*\{.*\"documentType\"\s*:\s*\"https://xbrl.org/[0-9]{4}/(?:module|compiled|archive|labelBundle|referenceBundle)\"", flags=re.DOTALL)
+# Bundle doctypes: a labelBundle contains only label objects, a referenceBundle only reference objects
+# (oim-taxonomy §bundle module constraints). "bundle" was renamed to "labelBundle" (2026-07-17).
+oimLabelBundleDocType = "https://xbrl.org/2026/labelBundle"
+oimReferenceBundleDocType = "https://xbrl.org/2026/referenceBundle"
+oimBundleDocTypes = (oimLabelBundleDocType, oimReferenceBundleDocType)
 oimTaxonomyDocTypes = (
         "https://xbrl.org/2026/module",
         "https://xbrl.org/2026/compiled",
         "https://xbrl.org/2026/archive",
-        "https://xbrl.org/2026/bundle",
+        oimLabelBundleDocType,
+        oimReferenceBundleDocType,
     )
-oimBundleDocType = "https://xbrl.org/2026/bundle"
 
 xbrl = "https://xbrl.org/2026"
 xbrla = "http://xbrl.org/accounting"

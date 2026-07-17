@@ -49,13 +49,18 @@ def validateNamespaceFamily(compMdl, module, oimFile, *, assertObjectType, valid
     # _documentNamespaceURI is None and we skip the per-object mismatch check.
     documentNamespaceURI = getattr(module, "_documentNamespaceURI", None) or txmyNamespace
     hasDefinedDocumentNamespace = getattr(module, "_documentNamespaceURI", None) is not None
+    # A bundle module (labelBundle / referenceBundle) is an overlay that annotates objects of ANOTHER
+    # model; its labels are nameless and its references are named in the target model's namespace, so the
+    # "objects MUST be in the documentNamespacePrefix namespace" rule (stated only for module documentType)
+    # does not apply. Skip the per-object namespace-mismatch check for bundle modules.
+    isBundleModule = getattr(module, "_isBundle", False)
     for txMdlPropName, propType in XbrlModule.propertyNameTypes(skipParentProperty=True):
         if collectionInfo(propType) is not None:
             for txMdlObj in getattr(module, txMdlPropName, None) or ():
                 name = getattr(txMdlObj, "name", None)
                 if isinstance(name, QName):
                     ns = name.namespaceURI
-                    if ns != documentNamespaceURI and not isCompiledModel and hasDefinedDocumentNamespace:
+                    if ns != documentNamespaceURI and not isCompiledModel and hasDefinedDocumentNamespace and not isBundleModule:
                         if ns in reservedPrefixNamespaces.values():
                             emit_error(compMdl, "oimce:invalidURIForReservedAlias",
                                        _("The taxonomy module object %(name)s cannot have a reserved namespace URI."),

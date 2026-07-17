@@ -41,6 +41,7 @@ class XbrlImportTaxonomy(XbrlModelObject):
     importObjectTypes: Optional[NonemptySet[QName]] # (optional) A set of object type QNames that should be imported from the taxonomyName location property. Examples include xbrl:conceptObject and xbrl:memberObject. All objects of the specified object types from the taxonomyName and any dependent objects will be imported. This property can only be used for taxonomy files using the OIM specification. The includeObjectTypes cannot include the label object.
     excludeLabels: Union[bool, DefaultFalse] # (optional) If set to true, any labels attached to the objects comprising the taxonomy model deriving from the taxonomyName property will be excluded from the taxonomy model. The default value is false.
     excludeGroupContents: Union[bool, DefaultFalse] # (optional) If set to true, all groupContent objects comprising the XBRL Model deriving from the xbrlModelName property will be excluded from the XBRL Model. The default value is false.
+    bundleManifest: Optional[dict] # (optional) Metadata about a label bundle or reference bundle being imported: language (set of BCP 47 codes) and bundleTypes (set of label/reference type QNames) provided by the bundle. Modeled as a plain object (no OIM object-type QName), so kept as a dict.
 
     # _txmyModule: XbrlModule of the import
 

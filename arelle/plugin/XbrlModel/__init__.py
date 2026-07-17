@@ -72,7 +72,7 @@ from .ValidateFacts import validateDateResolutionConceptFacts, validateCompleteR
 from .SelectImportedObjects import validateImportSelections, applyDeferredImportPruning
 from .ModelValueMore import SQName, QNameAt
 from .ViewXbrlTaxonomyObject import viewXbrlTaxonomyObject
-from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, oimBundleDocType, xbrlTaxonomyObjects
+from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, oimBundleDocTypes, oimReferenceBundleDocType, xbrlTaxonomyObjects
 from .ParseSelectionWhereClause import parseSelectionWhereClause
 from .LoadCsvTable import csvTableRowFacts
 from .SaveModel import xbrlModelSave
@@ -538,7 +538,8 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         # Accept both keys and normalize values to a tuple of URLs.
         importMapping = documentInfo.get("importMapping") or EMPTY_DICT
         isCompiledDocType = documentType == "https://xbrl.org/2026/compiled"
-        isBundleDocType = documentType == oimBundleDocType
+        isBundleDocType = documentType in oimBundleDocTypes
+        isReferenceBundle = documentType == oimReferenceBundleDocType
 
         # Validate documentNamespacePrefix: required for module-type and bundle, forbidden for compiled.
         # (A bundle module defines its own namespace like a module; oim-taxonomy bundle tests.)
@@ -895,19 +896,21 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         # model, the host provides that context and the bundle does NOT reload its referenceModel.
         _bundleRefModelQn = None
         if isBundleDocType and not importingTxmyObj:
-            # A standalone (entry-point) bundle always imports xbrlm:base so its label objects resolve
-            # the built-in labelTypes (xbrl:label, …). It additionally loads its referenceModel (located
-            # via importMapping) so its label forObjects resolve against the referenced model — but only
-            # when the bundle is well-formed (labels only). A malformed bundle that also defines content
-            # objects is already reported (invalidBundleModuleContent); loading its referenceModel would
-            # just cascade duplicate-object errors.
+            # A standalone (entry-point) bundle always imports xbrlm:base so its label / reference objects
+            # resolve the built-in label / reference types (xbrl:label, …). It additionally loads its
+            # referenceModel (located via importMapping) so its labels'/references' forObjects resolve
+            # against the referenced model — but only when the bundle is well-formed (its one permitted
+            # content collection only: labels for a labelBundle, references for a referenceBundle). A
+            # malformed bundle that also defines other content objects is already reported
+            # (invalidBundleModuleContent); loading its referenceModel would just cascade duplicate errors.
             importedTaxonomiesJson.append({"xbrlModelName": "xbrlm:base"})
+            _bundleContentKey = "references" if isReferenceBundle else "labels"
             _bundleAllowedKeys = {"name", "version", "frameworkName", "modelForm", "modelType",
                                   "duplicateFactsInModel", "referenceModel", "importedTaxonomies",
-                                  "labels", "namespacePrefixes"}
-            _bundleContentOnlyLabels = not (set(moduleFileObj["xbrlModel"].keys()) - _bundleAllowedKeys)
+                                  _bundleContentKey, "namespacePrefixes"}
+            _bundleContentOnly = not (set(moduleFileObj["xbrlModel"].keys()) - _bundleAllowedKeys)
             _refModelName = moduleFileObj["xbrlModel"].get("referenceModel")
-            if _refModelName and _bundleContentOnlyLabels:
+            if _refModelName and _bundleContentOnly:
                 _bundleRefModelQn = qname(_refModelName, prefixNamespaces)
                 importedTaxonomiesJson.append({"xbrlModelName": _refModelName})
         if importedTaxonomiesJson and not isCompiledDocType:
@@ -1034,16 +1037,20 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         # validated against that model (so unresolved forObjects error rather than being silently
         # orphan-cleaned); see cleanOrphanedForObjects.
         newModule._isBundle = isBundleDocType
-        # Decide whether an entry-point (non-imported) bundle's labels are validated (unresolved
-        # forObject -> oimte:invalidQNameReference) versus silently orphan-cleaned. Labels ARE validated
-        # when the bundle declares no referenceModel (the labels are simply invalid) OR its referenceModel
-        # was located and loaded. When a declared referenceModel cannot be located (oimte:taxonomyNotFound),
-        # the labels cannot be checked and are dropped rather than piling on invalidQNameReference. A bundle
-        # imported into a host model binds to the host and its unresolved labels are always dropped.
+        newModule._isReferenceBundle = isReferenceBundle
+        # Decide whether an entry-point (non-imported) bundle's labels / references are validated
+        # (unresolved forObject -> oimte:invalidQNameReference) versus silently orphan-cleaned. They ARE
+        # validated when the bundle declares no referenceModel (the objects are simply invalid) OR its
+        # referenceModel was located and loaded. When a declared referenceModel cannot be located
+        # (oimte:taxonomyNotFound), the objects cannot be checked and are dropped rather than piling on
+        # invalidQNameReference. A bundle imported into a host model binds to the host and its unresolved
+        # objects are always dropped. A labelBundle validates its labels; a referenceBundle its references.
         _refModelDeclared = moduleFileObj["xbrlModel"].get("referenceModel") is not None
         _referenceModelLoaded = _bundleRefModelQn is not None and _bundleRefModelQn in impTxmyNameModuleObjs
-        newModule._bundleValidateLabels = (isBundleDocType and not importingTxmyObj
-                                           and (not _refModelDeclared or _referenceModelLoaded))
+        _bundleValidate = (isBundleDocType and not importingTxmyObj
+                           and (not _refModelDeclared or _referenceModelLoaded))
+        newModule._bundleValidateLabels = _bundleValidate and not isReferenceBundle
+        newModule._bundleValidateReferences = _bundleValidate and isReferenceBundle
         schemaDoc._txmyModule = newModule
         if xbrlModelName is not None:
             xbrlCompMdl.xbrlModels[xbrlModelName] = newModule
