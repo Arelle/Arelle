@@ -33,7 +33,8 @@ class XbrlLabelType(XbrlReferencableModelObject):
     module: XbrlModuleAlias
     name: QNameKeyType # (required) The name is a QName that uniquely identifies the label type object.
     uri: Optional[AnyURI] # (optional) A uri used to identify the label type of label objects for backward compatability with XBRL 2.1 taxonomies.
-    dataType: QName # (required) Specifies the datatype of the value. The value MUST be a QName referencing either: - a built-in XML Schema simple type, - a datatype defined in this specification, - or a custom datatype defined in the taxonomy model.
+    formatType: str # (required) Specifies the content format of label values. MUST be one of: text, html, markdown, xbrl:xhtml, structured. (Replaced the former dataType property.)
+    contentConstraints: Optional[dict] # (optional) An object constraining label values: maxLength, minLength (xs:integer) and/or pattern (xs:string regex). Modeled as a plain object (no OIM object-type QName), so kept as a dict.
     allowedObjects: Optional[NonemptySet[QName]] # (optional) Defines an ordered set of object types that can use the labelType.  None means absent from input, empty set means [] on input which raises an error.
 
 preferredLabel = qname(xbrl, "xbrl:preferredLabel")

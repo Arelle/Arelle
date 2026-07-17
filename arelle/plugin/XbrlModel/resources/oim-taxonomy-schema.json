@@ -1951,8 +1951,26 @@
                                 "format": "uri",
                                 "description": "URI for backward compatibility with XBRL 2.1 taxonomies."
                             },
-                            "dataType": {
-                                "$ref": "#/definitions/dataTypeQName"
+                            "formatType": {
+                                "type": "string",
+                                "description": "Specifies the content format of label values. Valid values: text, html, markdown, xbrl:xhtml, structured."
+                            },
+                            "contentConstraints": {
+                                "type": "object",
+                                "properties": {
+                                    "maxLength": {
+                                        "type": "integer",
+                                        "minimum": 0
+                                    },
+                                    "minLength": {
+                                        "type": "integer",
+                                        "minimum": 0
+                                    },
+                                    "pattern": {
+                                        "type": "string"
+                                    }
+                                },
+                                "additionalProperties": false
                             },
                             "allowedObjects": {
                                 "type": "array",
@@ -1966,7 +1984,7 @@
                         },
                         "required": [
                             "name",
-                            "dataType"
+                            "formatType"
                         ],
                         "additionalProperties": false
                     },
@@ -2371,7 +2389,7 @@
                             },
                             "checksumAlgorithm": {
                                 "$ref": "#/definitions/QName",
-                                "description": "Optional QName that MUST resolve to a xbrl:memberObject identifying a checksum algorithm used to validate string values or the local-name portion of QName-based values (e.g. xbrl:luhnMod97-10 for ISO 17442 LEI validation)."
+                                "description": "Optional QName that MUST resolve to a xbrl:memberObject identifying a checksum algorithm used to validate string values or the local-name portion of QName-based values (e.g. xbrl:iso7064-Mod-97-10 for ISO 17442 LEI validation)."
                             }
                         },
                         "required": [

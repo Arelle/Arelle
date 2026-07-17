@@ -148,22 +148,22 @@
             {
                 "name": "xbrl:label",
                 "uri": "http://www.xbrl.org/2003/role/label",
-                "dataType": "xs:string"
+                "formatType": "text"
             },
             {
                 "name": "xbrl:terseLabel",
                 "uri": "http://www.xbrl.org/2003/role/terseLabel",
-                "dataType": "xs:string"
+                "formatType": "text"
             },
             {
                 "name": "xbrl:verboseLabel",
                 "uri": "http://www.xbrl.org/2003/role/verboseLabel",
-                "dataType": "xs:string"
+                "formatType": "text"
             },
             {
                 "name": "xbrl:positiveLabel",
                 "uri": "http://www.xbrl.org/2003/role/positiveLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -171,7 +171,7 @@
             {
                 "name": "xbrl:positiveTerseLabel",
                 "uri": "http://www.xbrl.org/2003/role/positiveTerseLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -179,7 +179,7 @@
             {
                 "name": "xbrl:positiveVerboseLabel",
                 "uri": "http://www.xbrl.org/2003/role/positiveVerboseLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -187,7 +187,7 @@
             {
                 "name": "xbrl:negativeLabel",
                 "uri": "http://www.xbrl.org/2003/role/negativeLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -195,7 +195,7 @@
             {
                 "name": "xbrl:negativeTerseLabel",
                 "uri": "http://www.xbrl.org/2003/role/negativeTerseLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -203,7 +203,7 @@
             {
                 "name": "xbrl:negativeVerboseLabel",
                 "uri": "http://www.xbrl.org/2003/role/negativeVerboseLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -211,7 +211,7 @@
             {
                 "name": "xbrl:zeroLabel",
                 "uri": "http://www.xbrl.org/2003/role/zeroLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -219,7 +219,7 @@
             {
                 "name": "xbrl:zeroTerseLabel",
                 "uri": "http://www.xbrl.org/2003/role/zeroTerseLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -227,7 +227,7 @@
             {
                 "name": "xbrl:zeroVerboseLabel",
                 "uri": "http://www.xbrl.org/2003/role/zeroVerboseLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -235,7 +235,7 @@
             {
                 "name": "xbrl:totalLabel",
                 "uri": "http://www.xbrl.org/2003/role/totalLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -243,7 +243,7 @@
             {
                 "name": "xbrl:periodStartLabel",
                 "uri": "http://www.xbrl.org/2003/role/periodStartLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -251,7 +251,7 @@
             {
                 "name": "xbrl:periodEndLabel",
                 "uri": "http://www.xbrl.org/2003/role/periodEndLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -259,57 +259,57 @@
             {
                 "name": "xbrl:documentation",
                 "uri": "http://www.xbrl.org/2003/role/documentation",
-                "dataType": "xs:string"
+                "formatType": "text"
             },
             {
                 "name": "xbrl:definitionGuidance",
                 "uri": "http://www.xbrl.org/2003/role/definitionGuidance",
-                "dataType": "xs:string"
+                "formatType": "text"
             },
             {
                 "name": "xbrl:disclosureGuidance",
                 "uri": "http://www.xbrl.org/2003/role/disclosureGuidance",
-                "dataType": "xs:string"
+                "formatType": "text"
                 
             },
             {
                 "name": "xbrl:presentationGuidance",
                 "uri": "http://www.xbrl.org/2003/role/presentationGuidance",
-                "dataType": "xs:string"
+                "formatType": "text"
                 
             },
             {
                 "name": "xbrl:measurementGuidance",
                 "uri": "http://www.xbrl.org/2003/role/measurementGuidance",
-                "dataType": "xs:string"
+                "formatType": "text"
                 
             },
             {
                 "name": "xbrl:commentaryGuidance",
                 "uri": "http://www.xbrl.org/2003/role/commentaryGuidance",
-                "dataType": "xs:string"
+                "formatType": "text"
                 
             },
             {
                 "name": "xbrl:exampleGuidance",
                 "uri": "http://www.xbrl.org/2003/role/exampleGuidance",
-                "dataType": "xs:string"
+                "formatType": "text"
                 
             },
             {
                 "name": "xbrl:deprecatedDateLabel",
                 "uri": "http://www.xbrl.org/2009/role/deprecatedDateLabel",
-                "dataType": "xs:string"
+                "formatType": "text"
             },
             {
                 "name": "xbrl:deprecatedLabel",
                 "uri": "http://www.xbrl.org/2009/role/deprecatedLabel",
-                "dataType": "xs:string"
+                "formatType": "text"
             },
             {
                 "name": "xbrl:negated",
                 "uri": "http://xbrl.us/us-gaap/role/label/negated",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -317,7 +317,7 @@
             {
                 "name": "xbrl:negatedLabel",
                 "uri": "http://www.xbrl.org/2009/role/negatedLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -325,7 +325,7 @@
             {
                 "name": "xbrl:negatedNetLabel",
                 "uri": "http://www.xbrl.org/2009/role/negatedNetLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -333,7 +333,7 @@
             {
                 "name": "xbrl:negatedPeriodEnd",
                 "uri": "http://xbrl.us/us-gaap/role/label/negatedPeriodEnd",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -341,7 +341,7 @@
             {
                 "name": "xbrl:negatedPeriodEndLabel",
                 "uri": "http://www.xbrl.org/2009/role/negatedPeriodEndLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -349,7 +349,7 @@
             {
                 "name": "xbrl:negatedPeriodStart",
                 "uri": "http://xbrl.us/us-gaap/role/label/negatedPeriodStart",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -357,7 +357,7 @@
             {
                 "name": "xbrl:negatedPeriodStartLabel",
                 "uri": "http://www.xbrl.org/2009/role/negatedPeriodStartLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -365,7 +365,7 @@
             {
                 "name": "xbrl:negatedTerseLabel",
                 "uri": "http://www.xbrl.org/2009/role/negatedTerseLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -373,7 +373,7 @@
             {
                 "name": "xbrl:negatedTotal",
                 "uri": "http://xbrl.us/us-gaap/role/label/negatedTotal",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -381,7 +381,7 @@
             {
                 "name": "xbrl:negatedTotalLabel",
                 "uri": "http://www.xbrl.org/2009/role/negatedTotalLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -389,7 +389,7 @@
             {
                 "name": "xbrl:negativePeriodEndLabel",
                 "uri": "http://www.xbrl.org/2009/role/negativePeriodEndTotalLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -397,7 +397,7 @@
             {
                 "name": "xbrl:negativePeriodEndTotalLabel",
                 "uri": "http://www.xbrl.org/2009/role/negativePeriodEndTotalLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -405,7 +405,7 @@
             {
                 "name": "xbrl:negativePeriodStartLabel",
                 "uri": "http://www.xbrl.org/2009/role/negativePeriodStartLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -413,7 +413,7 @@
             {
                 "name": "xbrl:negativePeriodStartTotalLabel",
                 "uri": "http://www.xbrl.org/2009/role/negativePeriodStartTotalLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -421,7 +421,7 @@
             {
                 "name": "xbrl:netLabel",
                 "uri": "http://www.xbrl.org/2009/role/netLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -429,7 +429,7 @@
             {
                 "name": "xbrl:positivePeriodEndLabel",
                 "uri": "http://www.xbrl.org/2009/role/positivePeriodEndLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -437,7 +437,7 @@
             {
                 "name": "xbrl:positivePeriodEndTotalLabel",
                 "uri": "http://www.xbrl.org/2009/role/positivePeriodStartTotalLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -445,7 +445,7 @@
             {
                 "name": "xbrl:positivePeriodStartLabel",
                 "uri": "http://www.xbrl.org/2009/role/positivePeriodStartLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -453,7 +453,7 @@
             {
                 "name": "xbrl:positivePeriodStartTotalLabel",
                 "uri": "http://www.xbrl.org/2009/role/positivePeriodStartTotalLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
@@ -461,25 +461,25 @@
             {
                 "name": "xbrl:restatedLabel",
                 "uri": "http://www.xbrl.org/2006/role/restatedLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:conceptObject"
                 ]
             },
             {
                 "name": "xbrl:symbolLabel",
-                "dataType": "xs:string",
+                "formatType": "text",
                 "allowedObjects": [
                     "xbrl:unitObject"
                 ]
             },
             {
                 "name": "xbrl:iconLabel",
-                "dataType": "xbrlr:emoji"
+                "formatType": "text"
             },
             {
                 "name": "xbrl:errorMessage",
-                "dataType": "xs:string"
+                "formatType": "text"
             }
         ],
         "labels": [
@@ -2231,7 +2231,7 @@
             {
                 "name": "xbrl:LEICdataType",
                 "baseType": "xs:QName",
-                "checksumAlgorithm": "xbrl:luhnMod97-10"
+                "checksumAlgorithm": "xbrl:iso7064-Mod-97-10"
             },
             {
                 "name": "xbrl:languageType",
@@ -2351,7 +2351,7 @@
                 "domainClasses": ["xbrl:nilReasonDomainClass"]
             },
             {
-                "name": "xbrl:luhnMod97-10",
+                "name": "xbrl:iso7064-Mod-97-10",
                 "domainClasses": ["xbrl:checksumAlgorithmDomainClass"]
             }
         ],

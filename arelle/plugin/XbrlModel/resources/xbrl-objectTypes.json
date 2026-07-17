@@ -564,8 +564,8 @@
                         "required": true
                     },
                     {
-                        "name": "xbrl:labelTypeObjectDataType",
-                        "dataType": "xs:QName",
+                        "name": "xbrl:labelTypeObjectFormatType",
+                        "dataType": "xs:string",
                         "required": true
                     },
                     {

@@ -402,6 +402,9 @@ def _expectedTypeName(objType):
 
 _LEI_NAMESPACE = "http://standards.iso.org/iso/17442"
 
+# Permitted labelType formatType values (oim-taxonomy label type object; replaced the former dataType).
+_LABEL_FORMAT_TYPES = frozenset(("text", "html", "markdown", "xbrl:xhtml", "structured"))
+
 def _validateImpliedObjectLocalName(compMdl, contextObj, qnRef):
     """Validate the local name of an implied object QName (e.g. LEI checksum)."""
     if qnRef.namespaceURI == _LEI_NAMESPACE:
@@ -1648,7 +1651,20 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 compMdl.error("oimte:disallowedObjectLabelType",
                           _("Label has disallowed related object %(forObject)s"),
                           xbrlObject=lblObj, forObject=forObject)
-            lblObj._xValid, lblObj._xValue = validateValue(compMdl, module, lblObj, lblObj.value, lblTpObj.dataType, "", "oimte:invalidLabelValue")
+            # The label value MUST conform to the labelType's contentConstraints (maxLength / minLength /
+            # pattern), replacing the former dataType conformance check.
+            cc = getattr(lblTpObj, "contentConstraints", None)
+            val = lblObj.value
+            if cc and isinstance(val, str):
+                maxLen = cc.get("maxLength")
+                minLen = cc.get("minLength")
+                pat = cc.get("pattern")
+                if ((maxLen is not None and len(val) > maxLen)
+                        or (minLen is not None and len(val) < minLen)
+                        or (pat is not None and re.match(f"(?:{pat})$", val) is None)):
+                    compMdl.error("oimte:invalidLabelValue",
+                              _("The value '%(labelValue)s' for label associated with '%(forObject)s' does not conform to the contentConstraints defined by its labelType '%(labelType)s'."),
+                              xbrlObject=lblObj, labelValue=val, forObject=forObject, labelType=lblObj.labelType)
         validateProperties(compMdl, oimFile, module, lblObj)
         lblKey = (forObject, lblObj.labelType, lblObj.language)
         mdlLvlChecks.labelsCt[lblKey].append(lblObj)
@@ -1735,8 +1751,11 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
     lblTpCt = {}
     for lblObj in module.labelTypes or ():
         assertObjectType(compMdl, lblObj, XbrlLabelType)
-        dataTypeObj = validateQNameReference(compMdl, lblObj, "dataType", (XbrlDataType, XbrlCollectionType),
-                                             invalidTypeMsgCode="oimte:invalidObjectType")
+        # labelType now carries a formatType (content format) rather than a dataType QName reference.
+        if getattr(lblObj, "formatType", None) not in _LABEL_FORMAT_TYPES:
+            compMdl.error("oimte:invalidFormatType",
+                      _("The labelType %(name)s formatType %(formatType)s MUST be one of: text, html, markdown, xbrl:xhtml, structured."),
+                      xbrlObject=lblObj, name=lblObj.name, formatType=getattr(lblObj, "formatType", None))
         if lblObj.allowedObjects is not None:
             if not lblObj.allowedObjects:
                 compMdl.error("oimte:invalidEmptySet",

@@ -937,6 +937,18 @@
         ]
       },
       {
+        "name": "oimte:invalidFormatType",
+        "domainClasses": [
+          "oimte:OIMErrorClassDomain"
+        ],
+        "properties": [
+          {
+            "property": "xbrl:severity",
+            "value": "error"
+          }
+        ]
+      },
+      {
         "name": "oimte:invalidLanguage",
         "domainClasses": [
           "oimte:OIMErrorClassDomain"
@@ -4188,7 +4200,7 @@
       {
         "forObject": "oimte:invalidLabelValue",
         "language": "en",
-        "value": "The value '{labelValue}' for label associated with '{forObject}' does not conform to the dataType '{dataType}' defined by its labelType '{labelType}'.",
+        "value": "The value '{labelValue}' for label associated with '{forObject}' does not conform to the contentConstraints defined by its labelType '{labelType}'.",
         "labelType": "xbrl:errorMessage"
       },
       {
@@ -11154,9 +11166,9 @@
         ]
       },
       {
-        "name": "oimte:invalidObjectTypeLabelInvalidDatatypeObjectConformanceReference",
+        "name": "oimte:invalidFormatTypeLabelInvalidDatatypeObjectConformanceReference",
         "forObjects": [
-          "oimte:invalidObjectType"
+          "oimte:invalidFormatType"
         ],
         "referenceType": "xbrl:conformanceTestReference",
         "language": "en",
@@ -18675,9 +18687,9 @@
         ]
       },
       {
-        "name": "oimte:invalidQNameReferenceLabelTypeInvalidDataTypeReference",
+        "name": "oimte:invalidFormatTypeLabelTypeInvalidDataTypeReference",
         "forObjects": [
-          "oimte:invalidQNameReference"
+          "oimte:invalidFormatType"
         ],
         "referenceType": "xbrl:conformanceTestReference",
         "language": "en",
