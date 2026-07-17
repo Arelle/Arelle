@@ -287,7 +287,6 @@ class XbrlTable(TkTableWrapper.Table):
             widget.moveCell(top - row, left - col)  # type: ignore[attr-defined]
         return "break" # do not execute other handlers!
 
-
     def cellDown(self, event: Event, *args: Any) -> str:
         widget = event.widget
         titleRows = int(widget.cget("titlerows"))
@@ -325,7 +324,6 @@ class XbrlTable(TkTableWrapper.Table):
         else:
             widget.moveCell(top - row, left - col)  # type: ignore[attr-defined]
         return "break" # do not insert return in cell content
-
 
     def _valueCommand(self, event: Event) -> str:
         widget = event.widget
@@ -498,8 +496,6 @@ class XbrlTable(TkTableWrapper.Table):
         # Return (and Enter): go down
         self.bind("<Tab>", func=self.cellRight)
         self.bind("<Return>", func=self.cellDown)
-        if False:
-            self.bind("<Motion>", func=self.mouseMotion)
 
         # Configure the graphical appearance of the cells by using tags
         self.tag_configure("sel", background = "#b00e00e60",  # type: ignore[no-untyped-call]
@@ -525,7 +521,6 @@ class XbrlTable(TkTableWrapper.Table):
             indexValue = {topCell: tableName}
             self.set(**indexValue)
 
-
     def _applyFormat(self, tagname: str, option: str) -> None:
         self.tag_raise(tagname, abovethis="title")  # type: ignore[no-untyped-call]
         if option in XbrlTable.BORDERWIDTHS:
@@ -546,12 +541,10 @@ class XbrlTable(TkTableWrapper.Table):
             self.tag_configure(tagname,  # type: ignore[no-untyped-call]
                                justify=XbrlTable.JUSTIFICATIONS[option])
 
-
     def format_cell(self, option: str, index: str) -> None:
         tagname = XbrlTable.TG_PREFIX + index
         self.tag_cell(tagname, index)  # type: ignore[no-untyped-call]
         self._applyFormat(tagname, option)
-
 
     def set(self, rc: Any = None, index: str | None = None, objectId: str | None = None, *args: Any, **kwargs: Any) -> None:
         super(XbrlTable, self).set(rc, index, *args, **kwargs)  # type: ignore[no-untyped-call]
@@ -562,31 +555,24 @@ class XbrlTable(TkTableWrapper.Table):
             col = self.index(index, "col")  # type: ignore[no-untyped-call]
             self.objectIds[row, col] = objectId
 
-
     def clearModificationStatus(self) -> None:
         self.modifiedCells.clear()
-
 
     def getObjectId(self, coordinate: Coordinate) -> str:
         return str(self.objectIds[coordinate.y, coordinate.x])
 
-
     def setObjectId(self, coordinate: Coordinate, objectId: str) -> None:
         self.objectIds[coordinate.y, coordinate.x] = objectId
 
-
     def getTableValue(self, coordinate: Coordinate) -> str:
         return self.data[coordinate.y, coordinate.x]  # type: ignore[no-any-return]
-
 
     def isHeaderCell(self, coordinate: Coordinate) -> bool:
         return (coordinate.y < self.titleRows
                 or coordinate.x < self.titleColumns)
 
-
     def getCoordinatesOfModifiedCells(self) -> Any:
         return self.modifiedCells.keys()
-
 
     def getCurrentCellCoordinates(self) -> Coordinate | None:
         return self.currentCellCoordinates
@@ -606,7 +592,7 @@ class XbrlTable(TkTableWrapper.Table):
         cellIndex = "%i,%i" % (y, x)
         if justification in XbrlTable.ANCHOR_POSITIONS:
             self.format_cell(justification, cellIndex)
-        if ((backgroundColourTag is not None)
+        if (backgroundColourTag is not None
             and backgroundColourTag in XbrlTable.COLOURS):
             self.format_cell(backgroundColourTag, cellIndex)
         self.format_cell(XbrlTable.TG_BORDER_ALL, cellIndex)
@@ -615,13 +601,11 @@ class XbrlTable(TkTableWrapper.Table):
         indexValue = {cellIndex: value}
         self.set(objectId=objectId, **indexValue)
 
-
     def _setValueFromCombobox(self, event: Event) -> str:
         combobox = event.widget
         indexValue = {combobox.tableIndex:combobox.get()}  # type: ignore[attr-defined]
         self.set(**indexValue)
         return "OK"
-
 
     def initCellCombobox(
             self,
@@ -669,7 +653,6 @@ class XbrlTable(TkTableWrapper.Table):
         self.set(objectId=objectId, **indexValue)
         combobox.objectId = objectId  # type: ignore[attr-defined]
         return combobox
-
 
     def initReadonlyCell(self, x: int, y: int) -> None:
         """
@@ -771,7 +754,6 @@ class XbrlTable(TkTableWrapper.Table):
             if USE_resizeTableCells:
                 self._updateMaxSizes(value, x, y, colspan, rowspan)
 
-
     def initCellSpan(self, x: int, y: int, colspan: int, rowspan: int) -> None:
         """
         Set the row and column span for the given cell
@@ -779,7 +761,6 @@ class XbrlTable(TkTableWrapper.Table):
         if colspan > 0 or rowspan > 0:
             cellSpans = {"%i,%i" % (y, x): "%i,%i" % (rowspan, colspan)}
             self.spans(index=None, **cellSpans)  # type: ignore[no-untyped-call]
-
 
     def initHeaderCombobox(
             self,
@@ -815,7 +796,6 @@ class XbrlTable(TkTableWrapper.Table):
                                      comboboxselected=comboboxselected,
                                      codes=codes)
 
-
     def drawBordersAroundCell(self, x: int, y: int, borders: int) -> None:
         """
         The borders are coded in an integer:
@@ -827,7 +807,6 @@ class XbrlTable(TkTableWrapper.Table):
         if borders > 0:
             cellIndex = "%i,%i" % (y, x)
             self.format_cell(XbrlTable.BORDER_NAMES[borders], cellIndex)
-
 
     def initHeaderBorder(
             self,
@@ -870,7 +849,6 @@ class XbrlTable(TkTableWrapper.Table):
             for j in range(y, lastY + 1):
                 self.drawBordersAroundCell(x, j, currentBorder)
 
-
     def resizeTable(
             self,
             rows: int,
@@ -899,21 +877,21 @@ class XbrlTable(TkTableWrapper.Table):
                 self.maxRowHeights.resize(rows, refcheck=False)
             if deltaRows > 0:
                 self.insert_rows("end", deltaRows)  # type: ignore[no-untyped-call]
-                self.config(rows=rows)  # type: ignore[attr-defined]
+                self.configure(rows=rows)  # type: ignore[call-arg]
             elif deltaRows < 0:
                 self.delete_rows("end", count=abs(deltaRows))  # type: ignore[no-untyped-call]
-                self.config(rows=rows)  # type: ignore[attr-defined]
+                self.configure(rows=rows)  # type: ignore[call-arg]
             if deltaCols > 0:
                 self.insert_cols("end", deltaCols)  # type: ignore[no-untyped-call]
-                self.config(cols=columns)  # type: ignore[attr-defined]
+                self.configure(cols=columns)  # type: ignore[call-arg]
             elif deltaCols < 0:
                 self.delete_cols("end", count=abs(deltaCols))  # type: ignore[no-untyped-call]
-                self.config(cols=columns)  # type: ignore[attr-defined]
+                self.configure(cols=columns)  # type: ignore[call-arg]
             if titleRows >= 0:
-                self.config(titlerows=titleRows)  # type: ignore[attr-defined]
+                self.configure(titlerows=titleRows)  # type: ignore[call-arg]
                 self.titleRows = titleRows
             if titleColumns >= 0:
-                self.config(titlecols=titleColumns)  # type: ignore[attr-defined]
+                self.configure(titlecols=titleColumns)  # type: ignore[call-arg]
                 self.titleColumns = titleColumns
             if clearData:
                 # reset the data whatever the resize pattern is.
@@ -926,7 +904,6 @@ class XbrlTable(TkTableWrapper.Table):
             messagebox.showwarning(_("arelle - Error"),
                         "Failed resize table:\n{0}".format(err),
                         parent=self.master.view.modelXbrl.modelManager.cntlr.parent)  # type: ignore[attr-defined]
-
 
     def clearSpans(self) -> None:
         cellSpans = dict()
@@ -941,11 +918,9 @@ class XbrlTable(TkTableWrapper.Table):
         if len(cellSpans) > 0:
             self.spans(index=None, **cellSpans)  # type: ignore[no-untyped-call]
 
-
     def clearTags(self) -> None:
         for tagname in self.tag_names(XbrlTable.TG_PREFIX + "*"):  # type: ignore[no-untyped-call]
             self.tag_delete(tagname)  # type: ignore[no-untyped-call]
-
 
     def disableUnusedCells(self) -> None:
         rows, cols = self.objectIds.shape
@@ -984,6 +959,7 @@ class XbrlTable(TkTableWrapper.Table):
             self.height(**rowsToResize)  # type: ignore[no-untyped-call]
             rowsToResize.clear()
 
+
 class ScrolledTkTableFrame(Frame):
     def __init__(self, parent: Misc, browseCmd: Callable[..., Any] | None, *args: Any, **kw: Any) -> None:
         Frame.__init__(self, parent, *args, **kw)
@@ -999,8 +975,8 @@ class ScrolledTkTableFrame(Frame):
         self.horizontalScrollbar = Scrollbar(self, orient="horizontal",
                                              command=table.xview_scroll)
         if table.isInitialized:
-            table.config(xscrollcommand=self.horizontalScrollbar.set,  # type: ignore[attr-defined]
-                         yscrollcommand=self.verticalScrollbar.set)
+            table.configure(xscrollcommand=self.horizontalScrollbar.set,  # type: ignore[call-arg]
+                            yscrollcommand=self.verticalScrollbar.set)
             self.table.grid(column="0", row="0", sticky=(N, W, S, E))  # type: ignore[arg-type]
         self.verticalScrollbar.grid(column="1", row="0", sticky=(N, S))  # type: ignore[arg-type]
         self.horizontalScrollbar.grid(column="0", row="1", sticky=(W, E))  # type: ignore[arg-type]
