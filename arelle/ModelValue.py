@@ -735,12 +735,16 @@ def _gDayInstant(day: int, tz: datetime.timezone | None) -> datetime.datetime:
     return datetime.datetime(GTYPE_ANCHOR_YEAR, GTYPE_ANCHOR_MONTH, day, tzinfo=tz)
 
 
+def _gTypeHash(fields: tuple[int, ...], tz: datetime.timezone | None) -> int:
+    return hash((fields, tz.utcoffset(None) if tz is not None else None))
+
+
 class gYearMonth:
     def __init__(self, year: int | str, month: int | str, tzinfo: datetime.timezone | None = None) -> None:
         self.year = int(year)  # may be negative
         self.month = int(month)
         self.tzinfo = tzinfo
-        self._hash = hash((self.year, self.month))
+        self._hash = _gTypeHash((self.year, self.month), tzinfo)
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -843,6 +847,7 @@ class gYear:
     def __init__(self, year: int | str, tzinfo: datetime.timezone | None = None) -> None:
         self.year = int(year)  # may be negative
         self.tzinfo = tzinfo
+        self._hash = _gTypeHash((self.year,), tzinfo)
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -884,13 +889,14 @@ class gYear:
         return self.year != 0
 
     def __hash__(self) -> int:
-        return self.year
+        return self._hash
 
 
 class gMonth:
     def __init__(self, month: int | str, tzinfo: datetime.timezone | None = None) -> None:
         self.month = int(month)
         self.tzinfo = tzinfo
+        self._hash = _gTypeHash((self.month,), tzinfo)
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -932,7 +938,7 @@ class gMonth:
         return self.month != 0
 
     def __hash__(self) -> int:
-        return self.month
+        return self._hash
 
 
 class gDay:
