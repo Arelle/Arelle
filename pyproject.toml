@@ -165,7 +165,6 @@ module = [
     'arelle.rendering.RenderingResolution',
     'arelle.TableStructure',
     'arelle.TkTableWrapper',
-    'arelle.UITkTable',
     'arelle.ValidateInfoset',
     'arelle.ValidateVersReport',
     'arelle.Version',
