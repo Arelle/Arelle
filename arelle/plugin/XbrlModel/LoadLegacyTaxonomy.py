@@ -41,6 +41,7 @@ _OIM_NAMESPACES = {
     "xbrl":  "https://xbrl.org/2026",
     "xbrlm": "https://xbrl.org/2026/model",
     "xbrlr": "https://xbrl.org/2026/report",
+    "xbrla": "http://xbrl.org/accounting",
     "xs":    "http://www.w3.org/2001/XMLSchema",
 }
 # A fully-resolved legacy DTS is the import *closure*, so it is emitted as a compiled
@@ -212,8 +213,14 @@ class _Emit:
         return set(self.concepts) | set(self.dimensions) | set(self.members) | set(self.domainClasses)
 
 
-def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None) -> OrderedDict:
-    """Transform a loaded legacy DTS ``modelXbrl`` into an OIM Taxonomy module dict."""
+def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
+                              inlineBase: bool = True) -> OrderedDict:
+    """Transform a loaded legacy DTS ``modelXbrl`` into an OIM Taxonomy module dict.
+
+    ``inlineBase`` folds the base spec closure (xs:/xbrl:/xbrlr: objects and their
+    labels) into the compiled model so it is standalone-valid. Set False when the
+    model will be *imported* into a host that already provides those base objects
+    (e.g. via xbrlm:base) -- inlining them there duplicates the base labels."""
     pfx = _NsPrefixer(modelXbrl)
 
     concepts: dict[str, dict] = {}
@@ -356,7 +363,8 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None) -> Or
     if groupContents: m["groupContents"] = groupContents
     if networks:      m["networks"] = networks
     if labels:        m["labels"] = labels
-    _inlineBaseSpecObjects(oim)
+    if inlineBase:
+        _inlineBaseSpecObjects(oim)
     return oim
 
 
