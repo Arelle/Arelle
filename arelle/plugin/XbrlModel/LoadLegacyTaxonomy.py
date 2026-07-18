@@ -574,3 +574,117 @@ def _documentNs(modelXbrl) -> str:
 def _safeLocal(uri: str) -> str:
     import re
     return re.sub(r"\W+", "_", uri.rpartition("/")[2] or uri)[:60]
+
+
+# ============================================================================
+# ==== PROOF OF CONCEPT: legacy XBRL 2.1 DTS wiring  (grep: POC-LEGACY-DTS) ===
+# ============================================================================
+# Everything below, plus the two call sites tagged "POC-LEGACY-DTS" in
+# __init__.py (importMapping sniff) and FactPipeline.py (factSource DTS
+# discovery), is throwaway scaffolding to demonstrate loading a legacy DTS as a
+# compiled model alongside OIM objects. To remove: delete this block and the two
+# tagged call sites. No other code depends on it.
+#
+#   Scenario A: a factSource/factMap references an XBRL 2.1 report (xBRL-XML or
+#               inline); its schemaRef/linkbaseRef discovery point is compiled to
+#               a compiled model presented alongside the loaded facts.
+#   Scenario B: an importMapping entry resolves to an .xsd/.xml; it is sniffed as
+#               a legacy XBRL 2.1 DTS discovery point and compiled in place of an
+#               OIM import.
+# ============================================================================
+
+_POC_LEGACY_EXTS = ("xsd", "xml", "xhtml", "htm", "html")
+
+# Reentrancy guard: True while the compiler is re-loading a DTS through the normal 2.1
+# infrastructure, so the plugin's pull-loader does NOT re-claim those documents (which
+# would recurse). Set only around the internal ModelXbrl.load in the entry-point path.
+_pocInLegacyDiscovery = False
+
+
+def pocIsLegacyEntryPoint(filepath) -> bool:
+    """POC: should the plugin claim ``filepath`` as a legacy XBRL 2.1 taxonomy entry
+    point to load directly into the XbrlModel model? Only a schema (.xsd), and never
+    while the compiler is itself discovering a DTS (the reentrancy guard)."""
+    if _pocInLegacyDiscovery or not filepath:
+        return False
+    return str(filepath).split("?", 1)[0].lower().endswith(".xsd")
+
+
+def pocLoadLegacyAsEntry(cntlr, modelXbrl, filepath, mappedUri):
+    """POC: load a legacy XBRL 2.1 entry point directly into ``modelXbrl`` as an OIM
+    compiled model (standalone, base inlined), so it appears in the XbrlModel views with
+    no shim JSON. Returns the ModelDocument (or None). Discovery of the DTS runs through
+    the normal infrastructure under the reentrancy guard."""
+    global _pocInLegacyDiscovery
+    from arelle import ModelXbrl as _ModelXbrl
+    legacyMx = None
+    _pocInLegacyDiscovery = True
+    try:
+        legacyMx = _ModelXbrl.load(cntlr.modelManager, filepath,
+                                   _("POC legacy XBRL 2.1 entry-point discovery"))
+    finally:
+        _pocInLegacyDiscovery = False
+    if legacyMx is None or not getattr(legacyMx, "qnameConcepts", None):
+        if legacyMx is not None:
+            legacyMx.close()
+        return None
+    try:
+        moduleDict = legacyTaxonomyToOimModule(legacyMx, inlineBase=True)
+        from . import loadXbrlModule  # lazy: avoid import cycle with the package
+        return loadXbrlModule(cntlr, modelXbrl.error, modelXbrl.warning, modelXbrl,
+                              moduleDict, mappedUri or filepath)
+    finally:
+        legacyMx.close()
+
+
+def pocIsLegacyDtsRef(url) -> bool:
+    """POC: crude sniff -- treat an .xsd/.xml/.xhtml/.htm(l) reference as a legacy
+    XBRL 2.1 DTS discovery point. OIM taxonomy documents (.json/.cbor) never match,
+    so they take the normal path."""
+    if not url:
+        return False
+    stem = str(url).split("?", 1)[0].split("#", 1)[0]
+    return stem.rsplit(".", 1)[-1].lower() in _POC_LEGACY_EXTS
+
+
+def pocCompileLegacyDts(cntlr, targetModelXbrl, error, warning, url,
+                        moduleName=None):
+    """POC: discover the legacy XBRL 2.1 DTS reachable from ``url`` (a schema,
+    linkbase, or instance entry point), compile it to a compiled model via
+    ``legacyTaxonomyToOimModule``, and load that compiled model into
+    ``targetModelXbrl`` as though it had been imported. Returns the ModelDocument
+    (or None on failure). The transient DTS ModelXbrl is discarded afterwards."""
+    from arelle import ModelXbrl as _ModelXbrl
+    legacyMx = None
+    try:
+        legacyMx = _ModelXbrl.load(cntlr.modelManager, url,
+                                   _("POC legacy XBRL 2.1 DTS discovery"))
+        if legacyMx is None or not getattr(legacyMx, "qnameConcepts", None):
+            error("arelle:pocLegacyDtsNotDiscovered",
+                  _("POC: no XBRL 2.1 DTS could be discovered at %(url)s"), url=url)
+            return None
+        # inlineBase=False: the host importing model already provides the base spec
+        # objects (xbrlm:base), so inlining them here would duplicate the base labels.
+        moduleDict = legacyTaxonomyToOimModule(legacyMx, inlineBase=False)
+        if moduleName is not None:
+            # the importer named this taxonomy (importMapping key): the compiled
+            # module MUST carry that exact name, and its prefix MUST be bound so the
+            # name QName resolves and matches the resolver's name check.
+            moduleDict["xbrlModel"]["name"] = str(moduleName)
+            pfx, ns = getattr(moduleName, "prefix", None), getattr(moduleName, "namespaceURI", None)
+            if pfx and ns:
+                moduleDict["documentInfo"]["namespaces"].setdefault(pfx, ns)
+        from . import loadXbrlModule  # lazy: avoid import cycle with the package
+        return loadXbrlModule(cntlr, error, warning, targetModelXbrl, moduleDict, url)
+    except Exception as ex:  # POC: never let discovery break the host load
+        error("arelle:pocLegacyDtsError",
+              _("POC: error compiling legacy DTS at %(url)s: %(error)s"),
+              url=url, error=str(ex))
+        return None
+    finally:
+        if legacyMx is not None:
+            try:
+                legacyMx.close()
+            except Exception:
+                pass
+# ==== END POC-LEGACY-DTS ====================================================

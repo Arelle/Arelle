@@ -935,7 +935,16 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                                 mappedUrl = PackageManager.mappedUrl(normalizedUri)
                             else:
                                 mappedUrl = modelXbrl.modelManager.disclosureSystem.mappedUrl(normalizedUri)
-                            impSchemaDoc = loadXbrlModule(cntlr, error, warning, modelXbrl,
+                            # POC-LEGACY-DTS: sniff an importMapping target that is an
+                            # .xsd/.xml for a legacy XBRL 2.1 DTS and compile it in place
+                            # of an OIM import. Remove this branch with the POC. See
+                            # LoadLegacyTaxonomy.pocCompileLegacyDts.
+                            from .LoadLegacyTaxonomy import pocIsLegacyDtsRef, pocCompileLegacyDts
+                            if pocIsLegacyDtsRef(mappedUrl):
+                                impSchemaDoc = pocCompileLegacyDts(cntlr, modelXbrl, error, warning,
+                                                                   mappedUrl, moduleName=impModuleName)
+                            else:
+                                impSchemaDoc = loadXbrlModule(cntlr, error, warning, modelXbrl,
                                                         mappedUrl, url, importingTxmyObj=impTxJsonObj)
                         if isinstance(impSchemaDoc, ModelDocument): # if an exception object is returned, loading didn't succeed\
                             if impSchemaDoc._txmyModule.name == impModuleName:
@@ -1129,14 +1138,16 @@ def xbrlModelValidator(val, parameters):
 
 lastFilePath = None
 lastFilePathIsOIM = False
+lastFilePathIsLegacy = False  # POC-LEGACY-DTS
 
 def isXbrlModelLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs):
     """ ModelDocument.IsPullLoadable:
         Determine if the file at filepath is an OIM taxonomy file, returning True if it is, False if not
     """
-    global lastFilePath, lastFilePathIsOIM
+    global lastFilePath, lastFilePathIsOIM, lastFilePathIsLegacy
     lastFilePath = None
     lastFilePathIsOIM = False
+    lastFilePathIsLegacy = False
     _ext = os.path.splitext(filepath)[1]
     if _ext == ".json":
         try:
@@ -1159,7 +1170,16 @@ def isXbrlModelLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs)
         except IOError as ex:
             print(ex)
             pass # nothing to open
-    return lastFilePathIsOIM
+    # POC-LEGACY-DTS: when the plugin is enabled, also claim a legacy XBRL 2.1 entry
+    # point (.xsd) so it loads directly into the XbrlModel data model / views without a
+    # shim JSON. The discovery guard prevents claiming the DTS the compiler re-loads
+    # internally. Remove this branch with the POC.
+    if not lastFilePathIsOIM:
+        from .LoadLegacyTaxonomy import pocIsLegacyEntryPoint
+        if pocIsLegacyEntryPoint(filepath):
+            lastFilePath = filepath
+            lastFilePathIsLegacy = True
+    return lastFilePathIsOIM or lastFilePathIsLegacy
 
 def xbrlModelLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     """ ModelDocument.PullLoader:
@@ -1167,6 +1187,10 @@ def xbrlModelLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
         None if not an OIM file,
         or an exception if an error occurs during loading
     """
+    # POC-LEGACY-DTS: a claimed legacy entry point is compiled in place into modelXbrl.
+    if filepath == lastFilePath and lastFilePathIsLegacy:
+        from .LoadLegacyTaxonomy import pocLoadLegacyAsEntry
+        return pocLoadLegacyAsEntry(modelXbrl.modelManager.cntlr, modelXbrl, filepath, mappedUri)
     if filepath != lastFilePath or not lastFilePathIsOIM:
         return None # not an OIM file
 
