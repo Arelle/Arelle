@@ -1174,7 +1174,11 @@ def isXbrlModelLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs)
     # point (.xsd) so it loads directly into the XbrlModel data model / views without a
     # shim JSON. The discovery guard prevents claiming the DTS the compiler re-loads
     # internally. Remove this branch with the POC.
-    if not lastFilePathIsOIM:
+    # Only the top-level ENTRY document may be claimed as a legacy entry (isEntry, passed
+    # by ModelDocument.load); a .xsd discovered as a sub-document of a normal instance/DTS
+    # load has isEntry=False and MUST load through the infrastructure, else that DTS is
+    # hijacked and broken.
+    if not lastFilePathIsOIM and kwargs.get("isEntry"):
         from .LoadLegacyTaxonomy import pocIsLegacyEntryPoint
         if pocIsLegacyEntryPoint(filepath):
             lastFilePath = filepath

@@ -655,10 +655,15 @@ def pocCompileLegacyDts(cntlr, targetModelXbrl, error, warning, url,
     ``targetModelXbrl`` as though it had been imported. Returns the ModelDocument
     (or None on failure). The transient DTS ModelXbrl is discarded afterwards."""
     from arelle import ModelXbrl as _ModelXbrl
+    global _pocInLegacyDiscovery
     legacyMx = None
     try:
-        legacyMx = _ModelXbrl.load(cntlr.modelManager, url,
-                                   _("POC legacy XBRL 2.1 DTS discovery"))
+        _pocInLegacyDiscovery = True  # suppress the pull-loader re-claiming this DTS
+        try:
+            legacyMx = _ModelXbrl.load(cntlr.modelManager, url,
+                                       _("POC legacy XBRL 2.1 DTS discovery"))
+        finally:
+            _pocInLegacyDiscovery = False
         if legacyMx is None or not getattr(legacyMx, "qnameConcepts", None):
             error("arelle:pocLegacyDtsNotDiscovered",
                   _("POC: no XBRL 2.1 DTS could be discovered at %(url)s"), url=url)

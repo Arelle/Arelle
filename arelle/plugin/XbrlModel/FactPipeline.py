@@ -365,6 +365,17 @@ def materializeFactSourceFacts(compMdl: "XbrlCompiledModel", module: "XbrlModule
                           xbrlObject=factSource, name=getattr(factSource, "name", None),
                           map=getattr(factSource, "factMapName", None))
             continue
+        # POC-LEGACY-DTS: discover the report's own DTS (schemaRef/linkbaseRef) and
+        # compile it into the model as if imported, so facts from a legacy XBRL 2.1
+        # report resolve against their taxonomy even when it is not otherwise present.
+        # Compiled duplicate-tolerance means this is a no-op when the taxonomy is already
+        # loaded. Remove this block with the POC.
+        try:
+            from .LoadLegacyTaxonomy import pocCompileLegacyDts
+            pocCompileLegacyDts(compMdl.modelManager.cntlr, compMdl,
+                                compMdl.error, compMdl.warning, url)
+        except Exception:
+            pass  # POC: never let discovery break fact materialization
         facts, footnotes = parse(compMdl, module, factSource, url)
         for fact in facts:
             _registerGeneratedObject(compMdl, module, fact, "facts")
