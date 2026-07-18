@@ -14,6 +14,34 @@ For XBRL 2.1 XML schema validation purposes, saves schema files in directory if
   command line: specify --saveXMLSchemaFiles {directoryName}
   GUI: provide a formula parameter named saveXMLSchemaFiles (value is directory to save in)
 
+## Loading legacy XBRL 2.1 entry points  (PROOF OF CONCEPT -- grep: POC-LEGACY-DTS)
+
+When this plugin is enabled, a legacy XBRL 2.1 *taxonomy schema* (.xsd) opened as the
+entry point is compiled on the fly into an OIM compiled model and loaded into the
+XbrlModel data model and views, with no intermediate JSON shim. Discovery of the schema's
+DTS (imports, linkbases) is delegated to the normal Arelle 2.1 infrastructure; only the
+ENTRY document is claimed (the ``isEntry`` flag passed by ``ModelDocument.load``), so a
+schema discovered *within* a normal instance or DTS load is left to the infrastructure and
+is not affected -- claiming those sub-documents would break DTS discovery.
+
+Behaviour differs by the KIND of legacy entry point:
+
+  * a legacy ``.xsd`` ENTRY point            -> loaded as an XbrlModel compiled taxonomy
+                                                (``isXbrlModelLoadable`` / ``xbrlModelLoader``
+                                                -> ``LoadLegacyTaxonomy.pocLoadLegacyAsEntry``);
+  * a legacy INSTANCE entry point            -> NOT claimed; it loads as an ordinary Arelle
+    (``.xml`` / ``.xhtml`` carrying facts)      XBRL 2.1 model. Compiling an instance's DTS and
+                                                materialising its facts INTO the XbrlModel is done
+                                                only when the instance is referenced by a
+                                                ``factSource`` (see ``FactPipeline`` -- Hook 2),
+                                                not (yet) for a directly-opened instance entry;
+  * a legacy DTS named by an ``importMapping`` -> compiled as an imported model in place of an
+    entry                                       OIM import (import resolver in ``loadXbrlModule``).
+
+All of the above is proof-of-concept scaffolding tagged ``POC-LEGACY-DTS`` (a single block
+in ``LoadLegacyTaxonomy.py`` plus the tagged call sites here and in ``FactPipeline.py``) and
+can be removed by deleting the block and those sites.
+
 """
 
 from typing import TYPE_CHECKING, cast, GenericAlias, Union, _GenericAlias, _UnionGenericAlias, get_origin, ClassVar, ForwardRef, get_args, Dict, Any
