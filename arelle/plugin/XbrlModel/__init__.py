@@ -14,6 +14,32 @@ For XBRL 2.1 XML schema validation purposes, saves schema files in directory if
   command line: specify --saveXMLSchemaFiles {directoryName}
   GUI: provide a formula parameter named saveXMLSchemaFiles (value is directory to save in)
 
+## Saving a loaded model (SaveModel.py)
+
+A loaded model (taxonomy objects + facts) is saved via the CntlrWinMain.Xbrl.Save hook to
+json / cbor / Excel. The whole model is serialized as a single OIM *compiled* model
+(documentType https://xbrl.org/2026/compiled, top-level ``xbrlModel`` object): the modules
+in ``xbrlModels`` are merged into one object owning the closure (a compiled model MUST NOT
+carry importedTaxonomies / importMapping). The output selects among three save modes via a
+formula parameter ``oimSaveMode`` (default ``full``):
+
+  * ``full``   -- every discovered object and all facts, serialized as loaded.
+  * ``prune``  -- a *partial* compiled model: only the taxonomy objects required to interpret
+                  the reported facts -- the fact-reachability closure (their concepts,
+                  dimensions, members, units and the datatype/domain-class closure of those),
+                  plus the labels/references attached to retained objects. Presentation and
+                  structure objects (networks, cubes, groups, headings, domainNetworks) are
+                  dropped; unused namespaces trim automatically. This strips the unused bulk of
+                  a copyrighted base taxonomy (e.g. US-GAAP), addressing the licensing / size
+                  concern in COMPILED_MODEL_SERIALIZATION_SCOPE.md. The closure is computed by
+                  PruneModel.pruneClosure(); PruneModel.pruneSkip() classifies each object.
+  * ``report`` -- (not yet implemented) prune closure + viewer-tailored facts (value +
+                  valueAnchors) + presentation networks.
+
+Round-tripping the fully-compiled AAPL example (1042 facts, 12453 concepts) through ``prune``
+retains the facts unchanged while reducing to ~384 concepts / ~65 members with no dangling
+references. See oim-taxonomy/documentation/SAVEMODEL_IMPLEMENTATION_PLAN.md for the design.
+
 ## Loading legacy XBRL 2.1 entry points  (PROOF OF CONCEPT -- grep: POC-LEGACY-DTS)
 
 When this plugin is enabled, a legacy XBRL 2.1 *taxonomy schema* (.xsd) opened as the

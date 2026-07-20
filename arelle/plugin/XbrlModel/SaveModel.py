@@ -1,11 +1,18 @@
 '''
 See COPYRIGHT.md for copyright information.
 
-Saves OIM Taxonomy Model into json, cbor and Excel
+Saves a loaded model (taxonomy objects + facts) as a single OIM compiled model
+(documentType https://xbrl.org/2026/compiled) into json, cbor or Excel. The modules in
+xbrlModels are merged into one xbrlModel object owning the whole closure.
 
 Formula parameters:
-   oimTaxonomySaveSeparateNamespaces = true | yes means to save namespaces in separate files
+   oimSaveMode = full (default) | prune | report
+      full   -- every discovered object and all facts, as loaded.
+      prune  -- partial model: only the fact-reachability closure (PruneModel.pruneClosure),
+                dropping taxonomy objects not needed to interpret the reported facts.
+      report -- (not yet implemented) prune closure + viewer-tailored facts.
 
+See the plugin header (XbrlModel/__init__.py) and SAVEMODEL_IMPLEMENTATION_PLAN.md for details.
 '''
 import os, io, json, cbor2, pandas as pd
 from decimal import Decimal
@@ -16,16 +23,24 @@ from arelle.ModelValue import qname, QName, timeInterval
 from ordered_set import OrderedSet
 from .ViewXbrlTaxonomyObject import ViewXbrlTxmyObj
 from .XbrlConst import qnBuiltInCoreObjectsTaxonomy
-from .XbrlObject import XbrlModelClass, XbrlObject
+from .XbrlObject import XbrlModelClass
 from .XbrlModel import XbrlCompiledModel
 from .XbrlModule import XbrlModule
-from .XbrlTypes import QNameKeyType, XbrlModuleAlias, DefaultTrue, DefaultFalse, DefaultZero
+from .XbrlTypes import DefaultTrue, DefaultFalse, DefaultZero
+from .PruneModel import pruneClosure, pruneSkip
 
-DOCINFO = {
-        "documentType": "https://xbrl.org/2025/taxonomy",
-        "namespaces": {
-        }
-    }
+# A serialized full model is emitted as a compiled model (documentType .../2026/compiled):
+# it owns the entire discovered closure across namespaces and therefore MUST NOT carry
+# importedTaxonomies / importMapping / documentNamespacePrefix (the import closure is
+# assembled into the single model, not imported). See XbrlModel/__init__.py load checks.
+COMPILED_DOCTYPE = "https://xbrl.org/2026/compiled"
+
+# Module-object keys a compiled model MUST NOT carry; dropped when serializing/merging
+# modules into a single compiled xbrlModel object.
+_COMPILED_STRIP_KEYS = frozenset({"importedTaxonomies", "referenceModel"})
+
+# Scalar module metadata carried onto the merged compiled model from the entry module.
+_MODULE_SCALAR_KEYS = ("frameworkName", "version", "modelType", "duplicateFactsInModel")
 
 
 def saveableValue(val, mdlPropName, **kwargs):
@@ -67,32 +82,44 @@ def saveableObjects(mdlObj, mdlName, **kwargs):
     saveableObj = OrderedDict()
     if isinstance(mdlObj, XbrlModule):
         kwargs["txmyModuleName"] = mdlObj.name
-    # fpr taxonomyModel, combine the objects of taxonomyModules and possibly sort by namespace
-    for propName, propType in type(mdlObj).propertyNameTypes():
+    # Skip the first (parent back-reference) property generically -- every child object
+    # names its owner as its first annotation (module/factValue/fact/compiledModel ...);
+    # serializing it would recurse back up the ownership chain.
+    for propName, propType in type(mdlObj).propertyNameTypes(skipParentProperty=True):
         mdlPropName = f"{mdlName}.{propName}" if mdlName else propName
         propVal = getattr(mdlObj, propName, ())
-        if propType == XbrlModuleAlias: # first prop which references parent
-            continue
+        if propVal is None:
+            continue # absent optional property -- omit per OIM present/absent convention
         if isinstance(propVal, OrderedSet) and not propVal:
             continue # empty OrderedSet, skip it
         if isinstance(propVal, (set, list, OrderedSet)):
             if propVal:  # not empty
+                retained = kwargs.get("retained") # None for FULL mode -> pruneSkip never drops
                 saveVal = []
-                saveableObj[propName] = saveVal
                 for setObj in propVal:
                     if isinstance(setObj, XbrlModelClass):
+                        if pruneSkip(setObj, retained):
+                            continue # outside the prune closure
                         saveVal.append(saveableObjects(setObj, mdlPropName, **kwargs))
                     else:
                         saveVal.append(saveableValue(setObj, mdlPropName, **kwargs))
+                if saveVal: # omit a collection emptied entirely by pruning
+                    saveableObj[propName] = saveVal
         elif isinstance(propVal, (dict, OrderedDict)):
-            saveVal = []
-            saveableObj[propName] = saveVal
-            for objName, objVal in propVal.items():
-                if objName != qnBuiltInCoreObjectsTaxonomy:
+            # Map-typed property (factDimensions, factQualifier, template columns ...) --
+            # serialize as a JSON object preserving keys; QName keys/values track namespaces.
+            if propVal: # skip empty map (absent convention)
+                saveVal = OrderedDict()
+                saveableObj[propName] = saveVal
+                for objName, objVal in propVal.items():
+                    if objName == qnBuiltInCoreObjectsTaxonomy:
+                        continue
+                    keyStr = (saveableValue(objName, mdlPropName, **kwargs)
+                              if isinstance(objName, QName) else str(objName))
                     if isinstance(objVal, XbrlModelClass):
-                        saveVal.append(saveableObjects(objVal, mdlPropName, **kwargs))
+                        saveVal[keyStr] = saveableObjects(objVal, mdlPropName, **kwargs)
                     else:
-                        saveVal.append(saveableValue(objVal, mdlPropName, **kwargs))
+                        saveVal[keyStr] = saveableValue(objVal, mdlPropName, **kwargs)
         elif propName not in ("txmyMdl", "layout"):
             if isinstance(propVal, XbrlModelClass):
                 saveableObj[propName] = saveableObjects(propVal, mdlPropName, **kwargs)
@@ -109,66 +136,101 @@ def saveableObjects(mdlObj, mdlName, **kwargs):
     kwargs["visited"].discard(mdlObj)
     return saveableObj
 
-def saveFiles(cntlr, txmyMdl, fileName, **kwargs):
-    """ Save OIM Taxonomy Model into json, cbor and Excel files.
-        For GUI, always ask file name and type to save.
-        For command line, file name and type must be provided as arguments.
+def mergeModulesToCompiled(moduleDicts):
+    """ Merge the serialized per-module dicts into a single compiled xbrlModel object.
+        Object-collection lists are unioned per key; compiled-forbidden keys (importedTaxonomies,
+        referenceModel) are dropped; the entry module (last in the model's xbrlModels order)
+        supplies name + scalar metadata. For a single already-compiled module this is an identity
+        merge (the common case: a compiled model owns its whole closure in one module).
+    """
+    if not moduleDicts:
+        return OrderedDict()
+    entryDict = moduleDicts[-1] # entry point taxonomy is last in the model's module order
+    merged = OrderedDict()
+    merged["name"] = entryDict.get("name")
+    for k in _MODULE_SCALAR_KEYS:
+        if k in entryDict:
+            merged[k] = entryDict[k]
+    for md in moduleDicts:
+        for key, val in md.items():
+            if key in _COMPILED_STRIP_KEYS or key in ("name", "modelForm") or key in _MODULE_SCALAR_KEYS:
+                continue
+            if isinstance(val, list):
+                merged.setdefault(key, []).extend(val)
+            else:
+                merged.setdefault(key, val) # scalar / single nested object: first module wins
+    # modelForm is not a serialized schema property -- the compiled documentType conveys it.
+    return merged
+
+def collectSourceMappings(txmyMdl):
+    """ Re-emit documentInfo.sourceMappings from each module's parsed _sourceMappings
+        (SimpleNamespace(sourceName=QName, url=absoluteUrl), built at load time). Must-retain:
+        the sourceName -> document-file URL binding a consumer needs to locate fact-value text.
+    """
+    seen = set()
+    out = []
+    for module in txmyMdl.xbrlModels.values():
+        for sm in getattr(module, "_sourceMappings", None) or ():
+            sn = str(sm.sourceName) if getattr(sm, "sourceName", None) is not None else None
+            url = getattr(sm, "url", None)
+            key = (sn, url)
+            if key in seen:
+                continue
+            seen.add(key)
+            entry = OrderedDict()
+            if sn is not None:
+                entry["sourceName"] = sn
+            if url:
+                entry["url"] = url
+            out.append(entry)
+    return out
+
+def buildDocumentInfo(documentType, namespaces, sourceMappings):
+    """ Build the documentInfo object for a serialized compiled model. namespaces is trimmed
+        to prefixes actually referenced by the emitted objects; sourceMappings retained when present.
+    """
+    docInfo = OrderedDict()
+    docInfo["documentType"] = documentType
+    docInfo["namespaces"] = namespaces
+    if sourceMappings:
+        docInfo["sourceMappings"] = sourceMappings
+    return docInfo
+
+def saveFiles(cntlr, txmyMdl, fileName, saveMode="full", **kwargs):
+    """ Save a loaded XbrlCompiledModel (taxonomy objects + facts) to json, cbor or Excel.
+        FULL mode: the entire model as a single compiled document -- every discovered object
+        and all facts, serialized as loaded. The model's modules (txmyMdl.xbrlModels) are merged
+        into one compiled xbrlModel object. For GUI, file name/type is chosen in the dialog;
+        for command line they are provided as arguments.
     """
     fileExt = os.path.splitext(fileName)[1].lower()
-    # nested sheet for each OrderedSet of XbrlModule object
-    txmyPrefixes = {} # dict by taxonomy name by prefix
-    objs = saveableObjects(txmyMdl, "", txmyPrefixes=txmyPrefixes, fileExt=fileExt, **kwargs)
-    txmys = objs.get("taxonomies",())
-    if kwargs.get("separateNamespaces") and txmys:
-        # entry point taxonomy is last in set
-        txmy = txmys[-1]
-        oimTxmy = {"documentInfo": DOCINFO.copy(), "taxonomy": txmy}
-        for prefix, ns in txmyPrefixes.get(txmy.get("name"),{}).items():
-            oimTxmy["documentInfo"]["namespaces"][prefix] = ns
-        if fileExt == ".json":
-            with io.open(fileName, "w") as fp:
-                json.dump(oimTxmy, fp, indent=3)
-        elif fileExt == ".cbor":
-            with io.open(fileName, "wb") as fp:
-                cbor2.dump(oimTxmy, fp, value_sharing=True, string_referencing=True)
-        # imported taxonomies
-        for txmy in txmys[:-1]:
-            suffix = txmy.get("name").replace(":","_")
-            oimTxmy = {"documentInfo": DOCINFO.copy(),"taxonomy": txmy}
-            for prefix, ns in txmyPrefixes.get(txmy.get("name"),{}).items():
-                oimTxmy["documentInfo"]["namespaces"][prefix] = ns
-            if fileExt == ".json":
-                with io.open(f"{fileName[:-5]}_{suffix}.json", "w") as fp:
-                    json.dump(oimTxmy, fp, indent=3)
-            elif fileExt == ".cbor":
-                with io.open(fileName, "wb") as fp:
-                    cbor2.dump(oimTxmy, fp, value_sharing=True, string_referencing=True)
-    else:
-        combinedObjs = {"documentInfo": DOCINFO.copy(),"taxonomy": OrderedDict()}
-        combinedTxmy = combinedObjs["taxonomy"]
-        for txmy in txmys:
-            for key, val in txmy.items():
-                if isinstance(val, (set, OrderedSet)):
-                    combinedTxmy.setdefault(key, OrderedSet()).update(val)
-                elif isinstance(val, (list, tuple)):
-                    combinedTxmy.setdefault(key, []).extend(val)
-                else:
-                    combinedTxmy[key] = val
-            for prefix, ns in txmyPrefixes.get(txmy.get("name"),{}).items():
-                combinedObjs["documentInfo"]["namespaces"][prefix] = ns
-        if fileExt == ".json":
-            with io.open(fileName, "w") as fp:
-                json.dump(combinedObjs, fp, indent=3)
-        elif fileExt == ".cbor":
-            with io.open(fileName, "wb") as fp:
-                cbor2.dump(combinedObjs, fp, value_sharing=True, string_referencing=True)
-        elif fileExt == ".xlsx":
-            with pd.ExcelWriter(fileName, mode='w', engine="openpyxl") as writer:
-                for key, val in combinedTxmy.items():
-                    if isinstance(val, (list, set, OrderedSet, OrderedDict)):
-                        df = pd.json_normalize(val, max_level=8)
-                        df.to_excel(writer, sheet_name=key, index=False)
-            print("trace")
+    # PRUNE / REPORT modes serialize only the fact-reachability closure; FULL keeps everything
+    # (retained=None). Namespaces trim automatically -- only QNames of emitted objects are tracked.
+    retained = pruneClosure(txmyMdl) if saveMode in ("prune", "report") else None
+    txmyPrefixes = {} # module name (str) -> {prefix: namespaceURI}, populated during serialization
+    moduleObjs = list(txmyMdl.xbrlModels.values())
+    moduleDicts = [saveableObjects(m, "", txmyPrefixes=txmyPrefixes, fileExt=fileExt,
+                                   retained=retained, **kwargs)
+                   for m in moduleObjs]
+    mergedModel = mergeModulesToCompiled(moduleDicts)
+    namespaces = OrderedDict()
+    for m in moduleObjs:
+        for prefix, ns in txmyPrefixes.get(str(m.name), {}).items():
+            namespaces.setdefault(prefix, ns)
+    docInfo = buildDocumentInfo(COMPILED_DOCTYPE, namespaces, collectSourceMappings(txmyMdl))
+    oimModel = {"documentInfo": docInfo, "xbrlModel": mergedModel}
+    if fileExt == ".json":
+        with io.open(fileName, "w") as fp:
+            json.dump(oimModel, fp, indent=3)
+    elif fileExt == ".cbor":
+        with io.open(fileName, "wb") as fp:
+            cbor2.dump(oimModel, fp, value_sharing=True, string_referencing=True)
+    elif fileExt == ".xlsx":
+        with pd.ExcelWriter(fileName, mode='w', engine="openpyxl") as writer:
+            for key, val in mergedModel.items():
+                if isinstance(val, (list, set, OrderedSet, OrderedDict)):
+                    df = pd.json_normalize(val, max_level=8)
+                    df.to_excel(writer, sheet_name=key[:31], index=False) # Excel sheet-name limit
 
 
 
@@ -189,9 +251,11 @@ def xbrlModelSave(cntlr, view, fileType=None, fileName=None, *args, **kwargs):
                 filetypes=[(_("OIM Taxonomy json"), "*.json"), (_("OIM Taxonomy cbor .cbor"), "*.cbor"), (_("Excel .xlsx"), "*.xlsx"), (_("HTML table .html"), "*.html"), (_("HTML table .htm"), "*.htm")],
                 defaultextension=".xlsx")
     if fileName is not None:
-        fileExt = os.path.splitext(fileName)[1].lower()
-        # ask if namespaces are to be separated
-        separateNamespaces = bool(parameters.get(qname("oimTaxonomySaveSeparateNamespaces",noPrefixIsNoNamespace=True),('',''))[1] in ("true","yes"))
-        saveFiles(cntlr, txmyMdl, fileName, separateNamespaces=separateNamespaces)
+        # saveMode selects what to serialize: full (default) | prune | report (see SAVEMODEL
+        # implementation plan). Only "full" is implemented so far; unknown values fall back to full.
+        saveMode = (parameters.get(qname("oimSaveMode",noPrefixIsNoNamespace=True),('',''))[1] or "full").lower()
+        if saveMode not in ("full", "prune", "report"):
+            saveMode = "full"
+        saveFiles(cntlr, txmyMdl, fileName, saveMode=saveMode)
         return True
     return False # no action by this plugin
