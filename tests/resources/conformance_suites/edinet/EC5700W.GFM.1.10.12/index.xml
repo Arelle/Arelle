@@ -17,6 +17,7 @@
             <instance readMeFirst="true">invalid01.zip</instance>
         </data>
         <result>
+            <instance></instance> <!-- Workaround to force Arelle to only load the default target -->
             <warning>EDINET.EC5700W.GFM.1.10.12</warning>
             <error num="18">EDINET.EC1002E</error> <!--Targets assigned on cover page items-->
         </result>
