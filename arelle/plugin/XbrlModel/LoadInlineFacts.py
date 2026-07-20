@@ -149,39 +149,60 @@ def parseInlineFacts(compMdl, module, factSource, url):
 # --------------------------------------------------------------------------
 
 def _loadInlineModel(compMdl, url):
-    """Load the inline report so inlineIxdsDiscover runs, handling both a bare inline
-    document (SEC-style .htm/.xhtml) and a report package (ESEF .xbri / SEC .zip).
-    Sets the legacy reentrancy guard so schemaRef .xsd sub-documents are not
-    re-claimed by the LoadLegacyTaxonomy entry-point pull-loader (Hook 3)."""
+    """Load the inline report so inlineIxdsDiscover runs, uniformly handling a bare
+    inline document (single .htm/.xhtml), a report package (ESEF .xbri / SEC .zip), a
+    plain zip, or a directory -- including a multi-document IXDS. Sets the legacy
+    reentrancy guard so schemaRef .xsd sub-documents are not re-claimed by the
+    LoadLegacyTaxonomy entry-point pull-loader (Hook 3).
+
+    Uses the infrastructure's entrypoint detection (``filesourceEntrypointFiles``,
+    which also applies a report package's catalog remappings) to discover the inline
+    document(s). A multi-document set is loaded through the ``inlineXbrlDocumentSet``
+    plugin (auto-imported by this plugin): the individual doc ModelDocuments become
+    xhtml children of a surrogate IXDS parent ModelXbrl that holds the facts.
+    """
+    import os
     from arelle import ModelXbrl as _ModelXbrl
     from arelle import FileSource as _FileSource
+    from arelle.FileSource import archiveFilenameParts
+    from arelle.UrlUtil import IXDS_SURROGATE, IXDS_DOC_SEPARATOR
+    from arelle.utils.EntryPointDetection import filesourceEntrypointFiles
+    from arelle.packages.report.ReportPackageConst import INLINE_REPORT_FILE_EXTENSIONS
     from . import LoadLegacyTaxonomy as _legacy
     cntlr = compMdl.modelManager.cntlr
+    nextAction = _("inline-XBRL-1.1 fact map discovery")
     # TODO(multi-target): to select a non-default target, set the modelManager /
     #   modelXbrl ixdsTarget before load once the factSource carries a target
     #   discriminator; inlineIxdsDiscover then target-filters facts.
     _legacy._pocInLegacyDiscovery = True
     try:
         fs = _FileSource.openFileSource(url, cntlr)
-        if getattr(fs, "isReportPackage", False):
-            # Report package: apply the META-INF catalog remappings so the packaged
-            # extension taxonomy (e.g. http://www.abc.com/... -> packaged path)
-            # resolves, then load the primary inline report entry from the archive.
-            fs.loadTaxonomyPackageMappings(expectTaxonomyPackage=True)
-            reportPkg = fs.reportPackage
-            reports = (reportPkg.reports if reportPkg else None) or ()
-            # TODO(multi-report/multi-target): a package may hold several report
-            #   entries; take the first inline one for now.
-            entry = next((r for r in reports if getattr(r, "isInline", False)),
-                         reports[0] if reports else None)
-            if entry is None:
-                return None
-            fs.select(entry.fullPathPrimary)
-            return _ModelXbrl.load(compMdl.modelManager, fs,
-                                   _("inline-XBRL-1.1 fact map discovery"))
-        # bare inline document (single .htm/.xhtml)
-        return _ModelXbrl.load(compMdl.modelManager, url,
-                               _("inline-XBRL-1.1 fact map discovery"))
+        # Discover the inline document(s). For a report package this also loads the
+        # META-INF catalog remappings (http://www.abc.com/... -> packaged path). The
+        # returned entries are {"file": ...} and/or {"ixds": [{"file": ...}, ...]};
+        # a set may include a non-inline sidecar (e.g. SEC's _htm.xml) which we drop.
+        entrypointFiles = filesourceEntrypointFiles(fs, inlineOnly=True)
+        inlineFiles = []
+        for ep in entrypointFiles:
+            candidates = ([f["file"] for f in ep["ixds"] if "file" in f]
+                          if "ixds" in ep else
+                          ([ep["file"]] if "file" in ep else []))
+            inlineFiles = [f for f in candidates
+                           if os.path.splitext(f)[1].lower() in INLINE_REPORT_FILE_EXTENSIONS]
+            if inlineFiles:
+                break
+        if not inlineFiles:
+            # discovery classified nothing (e.g. a bare .htm path) -- load it directly
+            return _ModelXbrl.load(compMdl.modelManager, url, nextAction, useFileSource=fs)
+        if len(inlineFiles) == 1:
+            return _ModelXbrl.load(compMdl.modelManager, inlineFiles[0], nextAction, useFileSource=fs)
+        # Multi-document IXDS: build the inlineXbrlDocumentSet surrogate URL
+        # (<ixdsDir>/_IXDS#?#doc1#?#doc2...) and load the set through that plugin.
+        firstFile = inlineFiles[0]
+        _parts = archiveFilenameParts(firstFile)  # archive path as head, else dir
+        ixdsDir = _parts[0] if _parts is not None else os.path.dirname(firstFile)
+        surrogateUrl = os.path.join(ixdsDir, IXDS_SURROGATE) + IXDS_DOC_SEPARATOR.join(inlineFiles)
+        return _ModelXbrl.load(compMdl.modelManager, surrogateUrl, nextAction, useFileSource=fs)
     except Exception:
         return None
     finally:

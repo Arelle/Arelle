@@ -1337,6 +1337,10 @@ __pluginInfo__ = {
     'license': 'Apache-2',
     'author': 'Herm Fischer',
     'copyright': 'Exbee Ltd',
+    # inlineXbrlDocumentSet builds the surrogate IXDS parent ModelXbrl that holds the
+    # facts of a multi-document inline report (the per-document ModelDocuments are just
+    # the xhtml objects); the inline-XBRL-1.1 fact map needs it to load multi-doc IXDS.
+    'import': ('inlineXbrlDocumentSet',),
     # classes of mount points (required)
     'CntlrCmdLine.Options': optionsExtender,
     'CntlrCmdLine.Filing.Start': filingStart,
