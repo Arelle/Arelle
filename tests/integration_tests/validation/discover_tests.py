@@ -8,6 +8,7 @@ from .conformance_suite_config import ConformanceSuiteConfig
 from .conformance_suite_configs import CI_CONFORMANCE_SUITE_CONFIGS
 from .conformance_suite_configurations.efm_current import config as efm_current
 from .conformance_suite_configurations.xbrl_2_1 import config as xbrl_2_1
+from .conformance_suite_configurations.xbrl_xsdtests import config as xbrl_xsdtests
 from ..github import LINUX, MACOS, OS_CORES, WINDOWS
 
 
@@ -99,6 +100,7 @@ def main() -> None:
             output.extend(generate_config_entries(xbrl_2_1, os=os, python_version=python_version))
     for os in [MACOS, WINDOWS]:
         output.extend(generate_config_entries(efm_current, os=os, python_version=LATEST_PYTHON_VERSION, minimal=True))
+        output.extend(generate_config_entries(xbrl_xsdtests, os=os, python_version=LATEST_PYTHON_VERSION))
 
     json.dump(output, sys.stdout, indent=4)
     print()

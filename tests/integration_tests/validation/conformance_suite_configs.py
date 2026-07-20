@@ -53,6 +53,7 @@ from tests.integration_tests.validation.conformance_suite_configurations.xbrl_ta
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_taxonomy_packages_1_0 import config as xbrl_taxonomy_packages_1_0
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_utr_registry_1_0 import config as xbrl_utr_registry_1_0
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_utr_structure_1_0 import config as xbrl_utr_structure_1_0
+from tests.integration_tests.validation.conformance_suite_configurations.xbrl_xsdtests import config as xbrl_xsdtests
 
 
 ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
@@ -108,6 +109,7 @@ ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
     xbrl_taxonomy_packages_1_0,
     xbrl_utr_registry_1_0,
     xbrl_utr_structure_1_0,
+    xbrl_xsdtests,
 )
 CI_CONFORMANCE_SUITE_CONFIGS = tuple(c for c in ALL_CONFORMANCE_SUITE_CONFIGS if c.ci_enabled)
 PUBLIC_CONFORMANCE_SUITE_CONFIGS = tuple(c for c in ALL_CONFORMANCE_SUITE_CONFIGS if c.entry_point_asset.public_download_url)

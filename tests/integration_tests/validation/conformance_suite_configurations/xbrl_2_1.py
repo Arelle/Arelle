@@ -27,5 +27,5 @@ config = ConformanceSuiteConfig(
     }.items()},
     info_url='https://specifications.xbrl.org/work-product-index-group-base-spec-base-spec.html',
     name=PurePath(__file__).stem,
-    shards=3,
+    shards=3,  # Fits on single macos GHA runner's 3 cores
 )
