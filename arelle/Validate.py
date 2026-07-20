@@ -330,6 +330,12 @@ class Validate:
         self.modelXbrl.modelManager.cntlr.testcaseVariationReset()
         modelTestcaseVariation.duration = time.perf_counter() - startTime
 
+    @staticmethod
+    def _collectLoadedModels(loadedModels: list[ModelXbrl], modelXbrl: ModelXbrl) -> None:
+        loadedModels.append(modelXbrl)
+        if supplementalModelXbrls := getattr(modelXbrl, "supplementalModelXbrls", None):
+            loadedModels.extend(supplementalModelXbrls)
+
     def _testcaseLoadReadMeFirstUri(
         self,
         testcase: ModelDocument,
@@ -369,7 +375,7 @@ class Validate:
                                 self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(readMeFirstUri[:-4] + ".dts", baseForElement),
                                 isEntry=True,
                                 errorCaptureLevel=errorCaptureLevel)
-                loadedModels.append(modelXbrl)
+                Validate._collectLoadedModels(loadedModels, modelXbrl)
             DTSdoc = modelXbrl.modelDocument
             assert DTSdoc is not None, "modelDocument must be set"
             DTSdoc.inDTS = True
@@ -407,7 +413,7 @@ class Validate:
                                             useFileSource=self.useFileSource,
                                             errorCaptureLevel=errorCaptureLevel,
                                             **modelXbrlLoadArgs)
-                loadedModels.append(modelXbrl)
+                Validate._collectLoadedModels(loadedModels, modelXbrl)
             else: # need own file source, may need instance discovery
                 sourceFileSource = None
                 newSourceFileSource = False
@@ -473,7 +479,7 @@ class Validate:
                                                                errorCaptureLevel=errorCaptureLevel,
                                                                errors=preLoadingErrors,
                                                                **modelXbrlLoadArgs)
-                                    loadedModels.append(modelXbrl)
+                                    Validate._collectLoadedModels(loadedModels, modelXbrl)
                     except Exception as err:
                         self.modelXbrl.error("exception:" + type(err).__name__,
                             _("Testcase variation validation exception: %(error)s, entry URL: %(instance)s"),
@@ -500,7 +506,7 @@ class Validate:
                                                             errorCaptureLevel=errorCaptureLevel,
                                                             errors=preLoadingErrors,
                                                             **modelXbrlLoadArgs)
-                                loadedModels.append(modelXbrl)
+                                Validate._collectLoadedModels(loadedModels, modelXbrl)
                 else:
                     if _rptPkgIxdsOptions and filesource.isTaxonomyPackage:
                         # Legacy ESEF conformance suite logic.
@@ -515,7 +521,7 @@ class Validate:
                                                     isLoadable=modelTestcaseVariation.variationDiscoversDTS or filesource.url,
                                                     errors=preLoadingErrors,
                                                     **modelXbrlLoadArgs)
-                        loadedModels.append(modelXbrl)
+                        Validate._collectLoadedModels(loadedModels, modelXbrl)
 
         for model in loadedModels:
             modelXbrl.isTestcaseVariation = True  # type: ignore[attr-defined]
