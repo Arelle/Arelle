@@ -154,7 +154,8 @@ from arelle.XmlUtil import (
 from arelle.XmlValidate import NONE, VALID
 from arelle.XmlValidate import validate as xmlValidate
 
-DEFAULT_TARGET = "(default)"
+# Re-export for backwards compatability
+from arelle.XbrlConst import DEFAULT_TARGET
 
 MINIMUM_IXDS_DOC_COUNT = 2 # make this 2 to cause single-documents to be processed without a document set object
 

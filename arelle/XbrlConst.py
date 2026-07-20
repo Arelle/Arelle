@@ -19,6 +19,11 @@ if TYPE_CHECKING:
 _: TypeGetText
 
 
+# Not a normative XBRL constant, but a value used internally in Arelle
+# to represent the default/unspecified target name in multi-target filings.
+DEFAULT_TARGET = "(default)"
+
+
 xsd = "http://www.w3.org/2001/XMLSchema"
 qnXsdComplexType = qname("{http://www.w3.org/2001/XMLSchema}xsd:complexType")
 qnXsdDocumentation = qname("{http://www.w3.org/2001/XMLSchema}xsd:documentation")
