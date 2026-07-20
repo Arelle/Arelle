@@ -22,10 +22,8 @@ from tkinter import (
     RIGHT,
     StringVar,
     TclError,
-    Frame,
-    Scrollbar,
 )
-from tkinter.ttk import Combobox as _Combobox
+from tkinter.ttk import Frame, Scrollbar, Combobox as _Combobox
 
 from arelle import TkTableWrapper
 from arelle.typing import TypeGetText
@@ -51,9 +49,6 @@ class Coordinate:
         if not isinstance(other, Coordinate):
             return NotImplemented
         return self.x == other.x and self.y == other.y
-
-    def __ne__(self, other: object) -> bool:
-        return not self.__eq__(other)
 
     def __lt__(self, other: object) -> bool:
         if not isinstance(other, Coordinate):
