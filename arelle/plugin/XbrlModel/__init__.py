@@ -33,12 +33,19 @@ formula parameter ``oimSaveMode`` (default ``full``):
                   a copyrighted base taxonomy (e.g. US-GAAP), addressing the licensing / size
                   concern in COMPILED_MODEL_SERIALIZATION_SCOPE.md. The closure is computed by
                   PruneModel.pruneClosure(); PruneModel.pruneSkip() classifies each object.
-  * ``report`` -- (not yet implemented) prune closure + viewer-tailored facts (value +
-                  valueAnchors) + presentation networks.
+  * ``report`` -- prune closure + viewer-tailored facts + presentation networks (decision 4a).
+                  Each factValue is rewritten to the single-source-of-truth Form B: a pre-computed
+                  ``value`` (resolved from the source document via FactValueResolver when only
+                  ``valueSources`` were present) plus ``valueAnchors`` carrying the locators, with
+                  ``valueSources`` dropped. Both ixbrl-viewer and SEC ixviewer-plus read a
+                  pre-computed value, so this is the pragmatic viewer form. Networks/groups/headings
+                  touching retained concepts are re-included (pruneClosure includeNetworks).
 
-Round-tripping the fully-compiled AAPL example (1042 facts, 12453 concepts) through ``prune``
-retains the facts unchanged while reducing to ~384 concepts / ~65 members with no dangling
-references. See oim-taxonomy/documentation/SAVEMODEL_IMPLEMENTATION_PLAN.md for the design.
+In the GUI the mode is chosen from a modal on Save; from the command line / scripts the formula
+parameter ``oimSaveMode`` selects it (and overrides the modal). Round-tripping the fully-compiled
+AAPL example (1042 facts, 12453 concepts): ``prune`` -> ~384 concepts / ~65 members, ``report`` ->
+~540 concepts (with presentation networks) and facts rewritten to Form B, both with no dangling
+references and facts unchanged. See oim-taxonomy/documentation/SAVEMODEL_IMPLEMENTATION_PLAN.md.
 
 ## Loading legacy XBRL 2.1 entry points  (PROOF OF CONCEPT -- grep: POC-LEGACY-DTS)
 

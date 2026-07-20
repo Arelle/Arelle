@@ -36,11 +36,20 @@ _DROP_CLASSES = frozenset({
 # relationshipTypes, labelTypes, referenceTypes, entities, ...) is always kept.
 
 
-def pruneClosure(txmyMdl):
+# Relationship-bearing collections walked for REPORT-mode network inclusion (decision 4a).
+_NETWORK_COLLECTIONS = ("networks", "domainNetworks", "groups", "cubes", "groupContents")
+
+
+def pruneClosure(txmyMdl, includeNetworks=False):
     """ Build the fact-reachability closure: the set of object QNames a consumer needs to
         interpret the reported facts. Seeded from each fact's factDimensions / factQualifier
         (dimensions + their concept/member/unit values) and factValue transforms, then expanded
         transitively over datatype, domain-class and unit-datatype references to a fixpoint.
+
+        includeNetworks (REPORT mode, decision 4a): additionally retain any presentation /
+        definition network (network, domainNetwork, group, cube, groupContent) whose relationships
+        touch a retained object, pulling in ALL that network's relationship endpoints (concepts,
+        members, headings) so the network is complete and self-consistent (no dangling references).
     """
     named = txmyMdl.namedObjects
     pfxns = txmyMdl.prefixedNamespaces
@@ -53,6 +62,29 @@ def pruneClosure(txmyMdl):
         if isinstance(qn, QName) and qn not in retained:
             retained.add(qn)
             frontier.append(qn)
+
+    def drain():
+        # transitive expansion over object references to a fixpoint
+        while frontier:
+            obj = named.get(frontier.pop())
+            if obj is None:
+                continue
+            cls = type(obj).__name__
+            if cls == "XbrlConcept":
+                add(obj.dataType)
+            elif cls == "XbrlDataType":
+                add(getattr(obj, "baseType", None))
+            elif cls == "XbrlDimension":
+                add(getattr(obj, "domainClass", None))
+                for ct in getattr(obj, "cubeTypes", None) or ():
+                    add(ct)
+            elif cls == "XbrlMember":
+                for dc in getattr(obj, "domainClasses", None) or ():
+                    add(dc)
+            elif cls == "XbrlDomainClass":
+                add(getattr(obj, "allowedDomainItem", None))
+            elif cls == "XbrlUnit":
+                add(getattr(obj, "dataType", None))
 
     # ---- seed from the reported facts ----
     for module in txmyMdl.xbrlModels.values():
@@ -68,40 +100,54 @@ def pruneClosure(txmyMdl):
                         add(dimVal)
             for factValue in getattr(fact, "factValues", None) or ():
                 add(getattr(factValue, "transformation", None))
+    drain()
 
-    # ---- transitive expansion to a fixpoint ----
-    while frontier:
-        obj = named.get(frontier.pop())
-        if obj is None:
-            continue
-        cls = type(obj).__name__
-        if cls == "XbrlConcept":
-            add(obj.dataType)
-        elif cls == "XbrlDataType":
-            add(getattr(obj, "baseType", None))
-        elif cls == "XbrlDimension":
-            add(getattr(obj, "domainClass", None))
-            for ct in getattr(obj, "cubeTypes", None) or ():
-                add(ct)
-        elif cls == "XbrlMember":
-            for dc in getattr(obj, "domainClasses", None) or ():
-                add(dc)
-        elif cls == "XbrlDomainClass":
-            add(getattr(obj, "allowedDomainItem", None))
-        elif cls == "XbrlUnit":
-            add(getattr(obj, "dataType", None))
+    # ---- REPORT: include networks touching retained objects (+ their full endpoint set) ----
+    if includeNetworks:
+        networkObjs = [net for module in txmyMdl.xbrlModels.values()
+                       for coll in _NETWORK_COLLECTIONS
+                       for net in getattr(module, coll, None) or ()]
+        changed = True
+        while changed:
+            changed = False
+            for net in networkObjs:
+                netName = getattr(net, "name", None)
+                if netName is not None and netName in retained:
+                    continue
+                endpoints = set()
+                touches = False
+                for rel in getattr(net, "relationships", None) or ():
+                    src = getattr(rel, "source", None)
+                    tgt = getattr(rel, "target", None)
+                    if src is not None:
+                        endpoints.add(src)
+                    if tgt is not None:
+                        endpoints.add(tgt)
+                    if src in retained or tgt in retained:
+                        touches = True
+                if touches:
+                    if netName is not None:
+                        add(netName)
+                    for endpoint in endpoints:
+                        add(endpoint)
+                    drain()
+                    changed = True
     return retained
 
 
-def pruneSkip(obj, retained):
+def pruneSkip(obj, retained, reportMode=False):
     """ Return True if a serialized module-collection object should be dropped for the current
-        prune closure. retained is None for FULL mode (never drops). Facts/footnotes and the
-        always-keep type-definition collections fall through to False.
+        prune closure. retained is None for FULL mode (never drops). In REPORT mode the
+        presentation/structure classes are retained by closure membership (networks included via
+        pruneClosure) rather than dropped outright. Facts/footnotes and the always-keep
+        type-definition collections fall through to False.
     """
     if retained is None:
         return False
     cls = type(obj).__name__
     if cls in _DROP_CLASSES:
+        if reportMode: # networks/groups/headings kept iff in the (network-expanded) closure
+            return getattr(obj, "name", None) not in retained
         return True
     if cls in _CLOSURE_CLASSES:
         return getattr(obj, "name", None) not in retained

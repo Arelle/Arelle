@@ -5,12 +5,13 @@ Saves a loaded model (taxonomy objects + facts) as a single OIM compiled model
 (documentType https://xbrl.org/2026/compiled) into json, cbor or Excel. The modules in
 xbrlModels are merged into one xbrlModel object owning the whole closure.
 
-Formula parameters:
-   oimSaveMode = full (default) | prune | report
+Save mode (GUI: modal on Save; CLI/scripts: formula parameter oimSaveMode, which overrides the modal):
+   full (default) | prune | report
       full   -- every discovered object and all facts, as loaded.
       prune  -- partial model: only the fact-reachability closure (PruneModel.pruneClosure),
                 dropping taxonomy objects not needed to interpret the reported facts.
-      report -- (not yet implemented) prune closure + viewer-tailored facts.
+      report -- prune closure + presentation networks + facts rewritten to Form B
+                (value + valueAnchors; value resolved from source via FactValueResolver when needed).
 
 See the plugin header (XbrlModel/__init__.py) and SAVEMODEL_IMPLEMENTATION_PLAN.md for details.
 '''
@@ -95,10 +96,11 @@ def saveableObjects(mdlObj, mdlName, **kwargs):
         if isinstance(propVal, (set, list, OrderedSet)):
             if propVal:  # not empty
                 retained = kwargs.get("retained") # None for FULL mode -> pruneSkip never drops
+                reportMode = kwargs.get("reportMode", False)
                 saveVal = []
                 for setObj in propVal:
                     if isinstance(setObj, XbrlModelClass):
-                        if pruneSkip(setObj, retained):
+                        if pruneSkip(setObj, retained, reportMode):
                             continue # outside the prune closure
                         saveVal.append(saveableObjects(setObj, mdlPropName, **kwargs))
                     else:
@@ -196,6 +198,51 @@ def buildDocumentInfo(documentType, namespaces, sourceMappings):
         docInfo["sourceMappings"] = sourceMappings
     return docInfo
 
+def resolveMissingFactValues(txmyMdl):
+    """ REPORT tailoring pre-pass: for factValues that carry valueSources but no computed value,
+        resolve the source-document text via FactValueResolver so a pre-computed value can be
+        emitted (both ixbrl-viewer and SEC ixviewer-plus read a pre-computed value; neither runs
+        ix transforms). Returns {str(factValue.name): resolvedText}; unresolvable ones are omitted.
+    """
+    from .FactValueResolver import validateAndResolveValueSources
+    resolved = {}
+    for module in txmyMdl.xbrlModels.values():
+        for fact in getattr(module, "facts", None) or ():
+            for factValue in getattr(fact, "factValues", None) or ():
+                if getattr(factValue, "value", None) is None and (getattr(factValue, "valueSources", None)):
+                    try:
+                        deferred, text = validateAndResolveValueSources(txmyMdl, fact, factValue)
+                        if not deferred and text is not None:
+                            resolved[str(factValue.name)] = text
+                    except Exception:
+                        pass # unresolvable in this context -> leave the value absent
+    return resolved
+
+def tailorFactsToFormB(moduleDict, resolvedValues):
+    """ REPORT tailoring: rewrite each factValue to the single-source-of-truth Form B
+        (value + valueAnchors). The document text is no longer the source of truth, so valueSources
+        are dropped; any non-empty locator (htmlElementId, pdf page/mcid) moves to valueAnchors so
+        the value stays locatable. A value absent but resolved in the pre-pass is filled in.
+    """
+    for fact in moduleDict.get("facts", []):
+        for factValue in fact.get("factValues", []):
+            if "value" not in factValue:
+                resolved = resolvedValues.get(factValue.get("name"))
+                if resolved is not None:
+                    factValue["value"] = resolved
+            # Only convert to Form B when a value is present -- dropping valueSources without a
+            # value would leave an invalid (value-less, source-less) factValue. Unresolvable
+            # factValues are left as Form A (valueSources) so they remain interpretable.
+            if "value" in factValue:
+                valueSources = factValue.pop("valueSources", None)
+                if valueSources:
+                    anchors = factValue.get("valueAnchors") or []
+                    for locator in valueSources:
+                        if locator: # non-empty locator properties become an anchor
+                            anchors.append(locator)
+                    if anchors:
+                        factValue["valueAnchors"] = anchors
+
 def saveFiles(cntlr, txmyMdl, fileName, saveMode="full", **kwargs):
     """ Save a loaded XbrlCompiledModel (taxonomy objects + facts) to json, cbor or Excel.
         FULL mode: the entire model as a single compiled document -- every discovered object
@@ -204,14 +251,21 @@ def saveFiles(cntlr, txmyMdl, fileName, saveMode="full", **kwargs):
         for command line they are provided as arguments.
     """
     fileExt = os.path.splitext(fileName)[1].lower()
+    reportMode = saveMode == "report"
     # PRUNE / REPORT modes serialize only the fact-reachability closure; FULL keeps everything
-    # (retained=None). Namespaces trim automatically -- only QNames of emitted objects are tracked.
-    retained = pruneClosure(txmyMdl) if saveMode in ("prune", "report") else None
+    # (retained=None). REPORT additionally includes presentation networks (decision 4a). Namespaces
+    # trim automatically -- only QNames of emitted objects are tracked during serialization.
+    retained = (pruneClosure(txmyMdl, includeNetworks=reportMode)
+                if saveMode in ("prune", "report") else None)
+    resolvedValues = resolveMissingFactValues(txmyMdl) if reportMode else {}
     txmyPrefixes = {} # module name (str) -> {prefix: namespaceURI}, populated during serialization
     moduleObjs = list(txmyMdl.xbrlModels.values())
     moduleDicts = [saveableObjects(m, "", txmyPrefixes=txmyPrefixes, fileExt=fileExt,
-                                   retained=retained, **kwargs)
+                                   retained=retained, reportMode=reportMode, **kwargs)
                    for m in moduleObjs]
+    if reportMode: # rewrite facts to Form B (value + valueAnchors) before merging
+        for moduleDict in moduleDicts:
+            tailorFactsToFormB(moduleDict, resolvedValues)
     mergedModel = mergeModulesToCompiled(moduleDicts)
     namespaces = OrderedDict()
     for m in moduleObjs:
@@ -234,6 +288,43 @@ def saveFiles(cntlr, txmyMdl, fileName, saveMode="full", **kwargs):
 
 
 
+_SAVE_MODE_CHOICES = (
+    ("full",   "Full — every object and all facts (compiled model)"),
+    ("prune",  "Prune — only objects needed to interpret the reported facts"),
+    ("report", "Report — pruned + viewer-tailored facts (value + anchors) + presentation networks"),
+)
+
+def askSaveMode(cntlr, default="full"):
+    """ GUI modal: choose the save mode (full | prune | report). Returns the chosen mode, or
+        None if the user cancelled. Fully defensive -- any tkinter failure falls back to default.
+    """
+    try:
+        from tkinter import Toplevel, StringVar, Radiobutton, Label, Frame, Button, W
+        parent = getattr(cntlr, "parent", None) or cntlr
+        dlg = Toplevel(parent)
+        dlg.title(_("Save model"))
+        dlg.transient(parent)
+        modeVar = StringVar(dlg, value=default)
+        result = {"mode": None}
+        Label(dlg, text=_("Choose how much of the model to serialize:"), justify="left"
+              ).grid(row=0, column=0, padx=12, pady=(12, 6), sticky=W)
+        for i, (val, text) in enumerate(_SAVE_MODE_CHOICES):
+            Radiobutton(dlg, text=_(text), variable=modeVar, value=val, justify="left"
+                        ).grid(row=1 + i, column=0, padx=16, pady=2, sticky=W)
+        def _ok():
+            result["mode"] = modeVar.get(); dlg.destroy()
+        def _cancel():
+            result["mode"] = None; dlg.destroy()
+        btns = Frame(dlg); btns.grid(row=1 + len(_SAVE_MODE_CHOICES), column=0, pady=(10, 12))
+        Button(btns, text=_("OK"), width=8, command=_ok).grid(row=0, column=0, padx=6)
+        Button(btns, text=_("Cancel"), width=8, command=_cancel).grid(row=0, column=1, padx=6)
+        dlg.protocol("WM_DELETE_WINDOW", _cancel)
+        dlg.grab_set()
+        dlg.wait_window(dlg)
+        return result["mode"]
+    except Exception:
+        return default
+
 def xbrlModelSave(cntlr, view, fileType=None, fileName=None, *args, **kwargs):
     """ CntlrWinMain.Xbrl.Save:
         Save OIM Taxonomy Model into json, cbor and Excel files.
@@ -251,9 +342,16 @@ def xbrlModelSave(cntlr, view, fileType=None, fileName=None, *args, **kwargs):
                 filetypes=[(_("OIM Taxonomy json"), "*.json"), (_("OIM Taxonomy cbor .cbor"), "*.cbor"), (_("Excel .xlsx"), "*.xlsx"), (_("HTML table .html"), "*.html"), (_("HTML table .htm"), "*.htm")],
                 defaultextension=".xlsx")
     if fileName is not None:
-        # saveMode selects what to serialize: full (default) | prune | report (see SAVEMODEL
-        # implementation plan). Only "full" is implemented so far; unknown values fall back to full.
-        saveMode = (parameters.get(qname("oimSaveMode",noPrefixIsNoNamespace=True),('',''))[1] or "full").lower()
+        # saveMode selects what to serialize: full | prune | report (see SAVEMODEL plan). A formula
+        # parameter oimSaveMode overrides (CLI/scripted); otherwise the GUI prompts with a modal.
+        saveMode = (parameters.get(qname("oimSaveMode",noPrefixIsNoNamespace=True),('',''))[1] or "").lower()
+        if not saveMode:
+            if cntlr.hasGui:
+                saveMode = askSaveMode(cntlr, default="full")
+                if saveMode is None:
+                    return False # user cancelled the mode dialog
+            else:
+                saveMode = "full"
         if saveMode not in ("full", "prune", "report"):
             saveMode = "full"
         saveFiles(cntlr, txmyMdl, fileName, saveMode=saveMode)
