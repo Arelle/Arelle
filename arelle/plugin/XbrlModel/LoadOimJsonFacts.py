@@ -55,9 +55,15 @@ def _openJson(compMdl, url):
                       url=url)
         return None
     try:
-        _file, _encoding = modelXbrl.fileSource.file(filepath, encoding="utf-8-sig")
+        # fileSource.file returns a (handle,) 1-tuple for binary and (handle, encoding)
+        # for text; read binary and decode utf-8-sig so a BOM is tolerated regardless.
+        result = modelXbrl.fileSource.file(filepath, binary=True)
+        _file = result[0]
         with _file:
-            return json.load(_file)
+            content = _file.read()
+        if isinstance(content, bytes):
+            content = content.decode("utf-8-sig")
+        return json.loads(content)
     except (OSError, ValueError) as ex:
         compMdl.error("arelle:factSourceLoadError",
                       _("Error loading OIM-JSON fact source %(url)s: %(error)s"),
