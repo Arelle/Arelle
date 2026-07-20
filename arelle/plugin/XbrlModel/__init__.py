@@ -1167,15 +1167,17 @@ def xbrlModelValidator(val, parameters):
 lastFilePath = None
 lastFilePathIsOIM = False
 lastFilePathIsLegacy = False  # POC-LEGACY-DTS
+lastFilePathReportFactMap = None  # POC: built-in factMap for a legacy report entry point
 
 def isXbrlModelLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs):
     """ ModelDocument.IsPullLoadable:
         Determine if the file at filepath is an OIM taxonomy file, returning True if it is, False if not
     """
-    global lastFilePath, lastFilePathIsOIM, lastFilePathIsLegacy
+    global lastFilePath, lastFilePathIsOIM, lastFilePathIsLegacy, lastFilePathReportFactMap
     lastFilePath = None
     lastFilePathIsOIM = False
     lastFilePathIsLegacy = False
+    lastFilePathReportFactMap = None
     _ext = os.path.splitext(filepath)[1]
     if _ext == ".json":
         try:
@@ -1211,7 +1213,16 @@ def isXbrlModelLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs)
         if pocIsLegacyEntryPoint(filepath):
             lastFilePath = filepath
             lastFilePathIsLegacy = True
-    return lastFilePathIsOIM or lastFilePathIsLegacy
+    # POC: also claim a legacy REPORT entry point (inline XBRL 1.1 .htm/.xhtml, XBRL 2.1
+    # .xml instance, or xBRL-JSON .json instance) so it loads into the XbrlModel object
+    # model via the matching built-in fact map instead of the plain infrastructure.
+    if not lastFilePathIsOIM and not lastFilePathIsLegacy and kwargs.get("isEntry"):
+        from .FactPipeline import pocReportEntryFactMap
+        _factMap = pocReportEntryFactMap(filepath)
+        if _factMap:
+            lastFilePath = filepath
+            lastFilePathReportFactMap = _factMap
+    return lastFilePathIsOIM or lastFilePathIsLegacy or bool(lastFilePathReportFactMap)
 
 def xbrlModelLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     """ ModelDocument.PullLoader:
@@ -1223,6 +1234,11 @@ def xbrlModelLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     if filepath == lastFilePath and lastFilePathIsLegacy:
         from .LoadLegacyTaxonomy import pocLoadLegacyAsEntry
         return pocLoadLegacyAsEntry(modelXbrl.modelManager.cntlr, modelXbrl, filepath, mappedUri)
+    # POC: a claimed legacy report entry point is loaded via its built-in fact map.
+    if filepath == lastFilePath and lastFilePathReportFactMap:
+        from .FactPipeline import pocLoadReportAsEntry
+        return pocLoadReportAsEntry(modelXbrl.modelManager.cntlr, modelXbrl, filepath,
+                                    mappedUri, lastFilePathReportFactMap)
     if filepath != lastFilePath or not lastFilePathIsOIM:
         return None # not an OIM file
 

@@ -26,6 +26,7 @@ been removed.
 """
 from __future__ import annotations
 
+import io
 from typing import Iterator, Iterable, Protocol, Optional, Callable, Any, TYPE_CHECKING
 
 from arelle.ModelValue import QName
@@ -354,10 +355,19 @@ def materializeFactSourceFacts(compMdl: "XbrlCompiledModel", module: "XbrlModule
     built-in fact map, and register them in the compiled model so the existing
     resolveFact / cube / vector-search / duplicate passes run over them.
 
-    Called from validateXbrlModule before the module's facts are resolved. Custom
-    (template-backed) fact maps are handled by the streaming loader registry and
-    are not materialized here.
+    Called from validateXbrlModule before the module's facts are resolved (and, for a
+    legacy report opened as an entry point, once at load time -- see
+    ``pocLoadReportAsEntry``). Custom (template-backed) fact maps are handled by the
+    streaming loader registry and are not materialized here.
     """
+    # Idempotency: a report opened as an entry point materializes at load time; the
+    # normal validate-time call must then be a no-op (else facts would be doubled).
+    done = getattr(compMdl, "_builtinFactsMaterializedModules", None)
+    if done is None:
+        done = compMdl._builtinFactsMaterializedModules = set()
+    if id(module) in done:
+        return
+    done.add(id(module))
     parsers = _builtinFactMapParsers()
     for factSource in getattr(module, "factSources", None) or ():
         parse = parsers.get(getattr(factSource, "factMapName", None))
@@ -404,3 +414,94 @@ def _registerGeneratedObject(compMdl: "XbrlCompiledModel", module: "XbrlModule",
         coll = []
         setattr(module, collectionName, coll)
     coll.append(obj)
+
+
+# --------------------------------------------------------------------
+# Legacy report entry-point loading (POC)
+# --------------------------------------------------------------------
+# Opening a legacy report (inline XBRL 1.1 .htm/.xhtml, XBRL 2.1 .xml instance, or
+# xBRL-JSON .json instance) directly -- via GUI File->Open or CntlrCmdLine --file --
+# loads it into the XbrlModel object model instead of the plain infrastructure, by
+# synthesizing a driver module whose factSource binds the matching built-in fact map
+# to the report. Mirrors the legacy .xsd entry-point loading in LoadLegacyTaxonomy
+# (Hook 3). Remove this section with the POC.
+
+_INLINE_XBRL_NS = "http://www.xbrl.org/2013/inlineXBRL"
+_XBRLI_XBRL_CLARK = "{http://www.xbrl.org/2003/instance}xbrl"
+
+
+def _xmlRootClarkName(filepath) -> Optional[str]:
+    """Clark name of an XML document's root element, read cheaply (streaming), or None."""
+    from lxml import etree
+    try:
+        for _event, elt in etree.iterparse(filepath, events=("start",)):
+            return elt.tag  # first start event is the root element
+    except Exception:
+        return None
+    return None
+
+
+def pocReportEntryFactMap(filepath) -> Optional[str]:
+    """POC: sniff a potential legacy report ENTRY point and return the built-in factMap
+    QName string that would load it into the XbrlModel, or None if it is not a
+    recognized report entry:
+
+      * inline XBRL 1.1 (.htm/.html/.xhtml carrying the ix namespace) -> xbrl:inline-XBRL-1.1
+      * XBRL 2.1 instance (.xml with an xbrli:xbrl root)              -> xbrl:xBRL-XML
+      * xBRL-JSON instance (.json with an xbrl-json documentType)     -> xbrl:OIM-JSON
+
+    Never fires while the compiler is internally re-loading a report's DTS (the legacy
+    discovery reentrancy guard), so those sub-loads take the infrastructure path.
+    OIM taxonomy .json/.cbor documents are claimed elsewhere and are not report entries.
+    """
+    from . import LoadLegacyTaxonomy as _legacy
+    if _legacy._pocInLegacyDiscovery or not filepath:
+        return None
+    stem = str(filepath).split("?", 1)[0].split("#", 1)[0]
+    ext = stem.rsplit(".", 1)[-1].lower() if "." in stem else ""
+    try:
+        if ext in ("htm", "html", "xhtml"):
+            with io.open(filepath, "rt", encoding="utf-8", errors="replace") as f:
+                if _INLINE_XBRL_NS in f.read(16384):
+                    return "xbrl:inline-XBRL-1.1"
+        elif ext == "xml":
+            if _xmlRootClarkName(filepath) == _XBRLI_XBRL_CLARK:
+                return "xbrl:xBRL-XML"
+        elif ext == "json":
+            with io.open(filepath, "rt", encoding="utf-8", errors="replace") as f:
+                if "xbrl-json" in f.read(4096):  # xBRL-JSON instance documentType
+                    return "xbrl:OIM-JSON"
+    except (IOError, OSError, ValueError):
+        pass
+    return None
+
+
+def pocLoadReportAsEntry(cntlr, modelXbrl, filepath, mappedUri, factMapName):
+    """POC: load a legacy report entry point directly into ``modelXbrl`` as an OIM
+    compiled model, by synthesizing a driver module whose factSource binds
+    ``factMapName`` (a built-in fact map) to the report. The report's DTS and facts are
+    materialized by the normal validate-time pass (``materializeFactSourceFacts``, called
+    from validateXbrlModule) -- as for a factSource loaded from a real module document --
+    so the model is an XbrlModel on open and fully populated once validated. Returns the
+    ModelDocument."""
+    url = mappedUri or filepath
+    moduleDict = {
+        "documentInfo": {
+            "documentType": xbrlNs + "/module",
+            "namespaces": {
+                "ex": "http://arelle.org/xbrlModel/legacyReport",
+                "xbrl": xbrlNs,
+                "xbrlm": xbrlNs + "/model",
+                "xs": "http://www.w3.org/2001/XMLSchema",
+            },
+            "documentNamespacePrefix": "ex",
+            "sourceMappings": [{"sourceName": "ex:report", "url": url}],
+        },
+        "xbrlModel": {
+            "name": "ex:legacyReport",
+            "importedTaxonomies": [{"xbrlModelName": "xbrlm:base"}],
+            "factSources": [{"name": "ex:report", "factMapName": factMapName}],
+        },
+    }
+    from . import loadXbrlModule  # lazy: avoid import cycle with the package
+    return loadXbrlModule(cntlr, modelXbrl.error, modelXbrl.warning, modelXbrl, moduleDict, url)
