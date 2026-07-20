@@ -396,6 +396,9 @@ class Validate:
                     if archivePath:
                         with self.useFileSource.fs.open(archivePath[1]) as embeddedFile:  # type: ignore[union-attr]
                             readMeFirstUriIsArchive = readMeFirstUriIsEmbeddedZipFile = zipfile.is_zipfile(embeddedFile)  # type: ignore[arg-type]
+            modelXbrlLoadArgs: dict[str, Any] = {}
+            if modelTestcaseVariation.ixdsTarget:
+                modelXbrlLoadArgs["ixdsTarget"] = modelTestcaseVariation.ixdsTarget
             if not readMeFirstUriIsArchive:
                 modelXbrl = modelXbrlLoad(self.modelXbrl.modelManager,
                                             readMeFirstUri,
@@ -403,7 +406,7 @@ class Validate:
                                             base=baseForElement,
                                             useFileSource=self.useFileSource,
                                             errorCaptureLevel=errorCaptureLevel,
-                                            ixdsTarget=modelTestcaseVariation.ixdsTarget)
+                                            **modelXbrlLoadArgs)
                 loadedModels.append(modelXbrl)
             else: # need own file source, may need instance discovery
                 sourceFileSource = None
@@ -468,8 +471,8 @@ class Validate:
                                                                _("validating"),
                                                                base=filesource.basefile + "/",
                                                                errorCaptureLevel=errorCaptureLevel,
-                                                               ixdsTarget=modelTestcaseVariation.ixdsTarget,
-                                                               errors=preLoadingErrors)
+                                                               errors=preLoadingErrors,
+                                                               **modelXbrlLoadArgs)
                                     loadedModels.append(modelXbrl)
                     except Exception as err:
                         self.modelXbrl.error("exception:" + type(err).__name__,
@@ -495,8 +498,8 @@ class Validate:
                                                             _("validating"),
                                                             base=filesource.basefile + "/",
                                                             errorCaptureLevel=errorCaptureLevel,
-                                                            ixdsTarget=modelTestcaseVariation.ixdsTarget,
-                                                            errors=preLoadingErrors)
+                                                            errors=preLoadingErrors,
+                                                            **modelXbrlLoadArgs)
                                 loadedModels.append(modelXbrl)
                 else:
                     if _rptPkgIxdsOptions and filesource.isTaxonomyPackage:
@@ -509,9 +512,9 @@ class Validate:
                                                     _("validating"),
                                                     base=baseForElement,
                                                     errorCaptureLevel=errorCaptureLevel,
-                                                    ixdsTarget=modelTestcaseVariation.ixdsTarget,
                                                     isLoadable=modelTestcaseVariation.variationDiscoversDTS or filesource.url,
-                                                    errors=preLoadingErrors)
+                                                    errors=preLoadingErrors,
+                                                    **modelXbrlLoadArgs)
                         loadedModels.append(modelXbrl)
 
         for model in loadedModels:
