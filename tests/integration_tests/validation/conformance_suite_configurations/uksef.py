@@ -48,6 +48,10 @@ config = ConformanceSuiteConfig(
     ],
     base_taxonomy_validation='none',
     expected_additional_testcase_errors={f'*tests/FRC/{s}': val for s, val in {
+        'FRC_07/index.xml:TC2_invalid': {
+            # By the same logic that FRC_06:TC2 fires multipleIdentifiers, so should FRC_07:TC2
+            'multipleIdentifiers': 1,
+        },
         'FRC_08/index.xml:TC2_invalid': {
             # Unexpected segment also triggers lxml error
             'lxml.SCHEMAV_ELEMENT_CONTENT': 20,
@@ -81,11 +85,6 @@ config = ConformanceSuiteConfig(
         'FRC_05/index.xml:TC4_invalid',
         'FRC_05/index.xml:TC5_invalid',
         'FRC_05/index.xml:TC6_invalid',
-        'FRC_06/index.xml:TC2_invalid',
-        'FRC_06/index.xml:TC3_invalid',
-        'FRC_07/index.xml:TC2_invalid',
-        'FRC_07/index.xml:TC3_invalid',
-        'FRC_07/index.xml:TC4_invalid',
         'FRC_09/index.xml:TC6_invalid',
         'FRC_10/index.xml:TC3_invalid',
         'FRC_10/index.xml:TC4_invalid',
