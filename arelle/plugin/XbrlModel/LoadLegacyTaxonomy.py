@@ -75,6 +75,7 @@ _ITEM_TYPE_MAP = {
     "normalizedStringItemType": "xs:normalizedString",
     "positiveIntegerItemType": "xs:positiveInteger", "pureItemType": "xbrlr:pureType",
     "QNameItemType": "xs:QName", "sharesItemType": "xbrla:sharesType",
+    "perShareItemType": "xbrla:MonetaryPerShare",
     "shortItemType": "xs:short", "stringItemType": "xs:string",
     "timeItemType": "xs:time", "tokenItemType": "xs:token",
     "unsignedByteItemType": "xs:unsignedByte", "unsignedIntItemType": "xs:unsignedInt",
@@ -136,6 +137,13 @@ def _conceptDataType(concept, pfx: _NsPrefixer, emit) -> str:
         return "xs:string"
     if tq.namespaceURI in _STD_TYPE_NS or tq.namespaceURI in _OIM_NAMESPACES.values():
         return _baseTypeFor(concept)
+    # Data Type Registry (dtr-types) types whose localName is a canonical XBRL item type
+    # fold to their OIM equivalent (e.g. dtr-types:perShareItemType -> xbrla:MonetaryPerShare),
+    # so the concept carries the proper unitType / ratio semantics instead of being emitted
+    # as an opaque custom type. baseXbrliType is often None for these registry types, so the
+    # fold keys on the type's own localName.
+    if tq.localName in _ITEM_TYPE_MAP:
+        return _ITEM_TYPE_MAP[tq.localName]
     modelType = getattr(concept, "type", None)
     if modelType is None:
         return _baseTypeFor(concept)

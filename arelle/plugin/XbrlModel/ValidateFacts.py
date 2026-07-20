@@ -141,18 +141,43 @@ def resolveFact(txmyMdl, txmyObj, fact):
             else:
                 unitQnTuple = parseUnitString(uStr, fact, txmyObj, txmyMdl)
                 fact.factDimensions[unitCoreDim] = unitQnTuple
-                # Each unit measure's dataType must be the same as or a supertype of
-                # the concept's dataType (concept's type must be an instance of the
-                # unit's declared dataType).
-                for unitMeasures in unitQnTuple:
-                    for unitQn in unitMeasures:
-                        unitObj = txmyMdl.namedObjects.get(unitQn)
-                        if isinstance(unitObj, XbrlUnit) and not cDataType.instanceOfType(unitObj.dataType, txmyMdl):
-                            txmyMdl.error("oimte:factUnitDatatypeMismatch",
-                                          _("Unit %(unit)s is not valid for concept %(concept)s with dataType %(dataType)s."),
-                                          xbrlObject=fact, name=fact.name,
-                                          unit=unitQn, concept=cQn, dataType=cObj.dataType)
-                            fact._xValid = INVALID
+                numMeasures, denMeasures = unitQnTuple
+                unitTypeObj = getattr(cDataType, "unitType", None)
+                if unitTypeObj is not None and denMeasures:
+                    # Ratio (composed) unit: the concept's dataType declares a unitType
+                    # with numerator / denominator dataTypes (e.g. xbrla:MonetaryPerShare
+                    # = xbrlr:monetary / xbrla:sharesType). Validate each numerator measure
+                    # against dataTypeNumerator and each denominator measure against
+                    # dataTypeDenominator, rather than the whole concept type (which is
+                    # neither a plain monetary nor a plain shares type).
+                    for measures, expectedType in (
+                            (numMeasures, getattr(unitTypeObj, "dataTypeNumerator", None)),
+                            (denMeasures, getattr(unitTypeObj, "dataTypeDenominator", None))):
+                        if expectedType is None:
+                            continue
+                        for unitQn in measures:
+                            unitObj = txmyMdl.namedObjects.get(unitQn)
+                            if not isinstance(unitObj, XbrlUnit):
+                                continue  # unresolved measure (e.g. xbrli:shares) -- cannot check
+                            unitDtObj = txmyMdl.namedObjects.get(unitObj.dataType)
+                            if isinstance(unitDtObj, XbrlDataType) and not unitDtObj.instanceOfType(expectedType, txmyMdl):
+                                txmyMdl.error("oimte:factUnitDatatypeMismatch",
+                                              _("Unit %(unit)s is not valid for concept %(concept)s with dataType %(dataType)s."),
+                                              xbrlObject=fact, name=fact.name,
+                                              unit=unitQn, concept=cQn, dataType=cObj.dataType)
+                                fact._xValid = INVALID
+                else:
+                    # Simple unit: the concept's dataType must be the same as or derived
+                    # from each unit measure's declared dataType.
+                    for unitMeasures in unitQnTuple:
+                        for unitQn in unitMeasures:
+                            unitObj = txmyMdl.namedObjects.get(unitQn)
+                            if isinstance(unitObj, XbrlUnit) and not cDataType.instanceOfType(unitObj.dataType, txmyMdl):
+                                txmyMdl.error("oimte:factUnitDatatypeMismatch",
+                                              _("Unit %(unit)s is not valid for concept %(concept)s with dataType %(dataType)s."),
+                                              xbrlObject=fact, name=fact.name,
+                                              unit=unitQn, concept=cQn, dataType=cObj.dataType)
+                                fact._xValid = INVALID
         else:
             txmyMdl.error("oime:misplacedUnitDimension",
                           _("The unit core dimension MUST NOT be present on non-numeric facts: %(concept)s, unit %(unit)s."),
