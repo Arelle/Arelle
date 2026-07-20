@@ -349,9 +349,18 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         try:
             if isinstance(moduleFile, dict) and moduleFile.get("documentInfo",{}).get("documentType") in oimTaxonomyDocTypes:
                 moduleFileObj = moduleFile
-                href = "BakedInConstants"
-                moduleFileName = href
-                moduleFileBasename = os.path.basename(moduleFileName)
+                # A dict module carries no filename of its own; use the caller-supplied
+                # mappedUri (e.g. a report entry point, or a compiled legacy DTS url) for
+                # the document href/name so the GUI title bar and diagnostics show the real
+                # entry file rather than the generic "BakedInConstants" placeholder.
+                if mappedUri:
+                    href = mappedUri
+                    moduleFileName = mappedUri
+                    moduleFileBasename = os.path.basename(mappedUri)
+                else:
+                    href = "BakedInConstants"
+                    moduleFileName = href
+                    moduleFileBasename = os.path.basename(moduleFileName)
                 txBase = None
             else:
                 href = os.path.basename(moduleFile)
