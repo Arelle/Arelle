@@ -26,7 +26,7 @@ class ViewGrid(ViewPane):
     ) -> None:
         contentView = scrolledHeaderedFrame(tabWin)
         super(ViewGrid, self).__init__(modelXbrl, tabWin, tabTitle,
-                                       contentView, hasToolTip=hasToolTip,  # type: ignore[arg-type]
+                                       contentView, hasToolTip=hasToolTip,
                                        lang=lang)
         self.gridTblHdr = self.viewFrame.tblHdrInterior  # type: ignore[attr-defined]
         self.gridColHdr = self.viewFrame.colHdrInterior  # type: ignore[attr-defined]

@@ -14,9 +14,7 @@ from tkinter import (
     W,
     Canvas,
     Event,
-    Frame,
     Misc,
-    Scrollbar,
     StringVar,
 )
 
@@ -24,8 +22,10 @@ from tkinter.ttk import (
     Checkbutton,
     Combobox as _Combobox,
     Entry,
+    Frame,
     Label,
     Radiobutton,
+    Scrollbar,
     Separator,
 )
 from typing import Any
