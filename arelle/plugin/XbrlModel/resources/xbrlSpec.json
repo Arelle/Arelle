@@ -1423,7 +1423,7 @@
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "forObject": "xbrl:htmlSpanId",
+                "forObject": "xbrl:htmlElementId",
                 "value": "The HTML id attribute value of the span element whose inner text content contributes to the fact value."
             },
             {
@@ -1810,11 +1810,12 @@
                 ]
             },
             {
-                "name": "xbrl:htmlSpanId",
+                "name": "xbrl:htmlElementId",
                 "dataType": "xbrlr:stringCollection",
                 "definitional": false,
                 "allowedObjects": [
-                    "xbrl:factValueSourceObject"
+                    "xbrl:factValueSourceObject",
+                    "xbrl:factValueAnchorObject"
                 ]
             },
             {
@@ -1887,10 +1888,10 @@
                 "name": "xbrl:htmlElementLocatorType",
                 "sourceMediaType": "text/html",
                 "requiredProperties": [
-                    "xbrl:htmlSpanId"
+                    "xbrl:htmlElementId"
                 ],
                 "allowedProperties": [
-                    "xbrl:htmlSpanId"
+                    "xbrl:htmlElementId"
                 ]
             },
             {
@@ -2202,6 +2203,10 @@
             },
             {
                 "name":"xbrl:xBRL-XML"
+            },
+            {
+                "name":"xbrl:inline-XBRL-1.1",
+                "factLocatorType":"xbrl:htmlElementLocatorType"
             }
         ],
         "networks": [

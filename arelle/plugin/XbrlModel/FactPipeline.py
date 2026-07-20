@@ -40,6 +40,10 @@ if TYPE_CHECKING:
 # any explicit factMap definition in the taxonomy model.
 qnXbrlXmlFactMap = QName("xbrl", xbrlNs, "xBRL-XML")
 qnOimJsonFactMap = QName("xbrl", xbrlNs, "OIM-JSON")
+# POC-INLINE: built-in Inline XBRL 1.1 fact map. NOTE spec casing is inconsistent --
+# oim-taxonomy.md uses "inline-XBRL-1.1" (fact-source enumeration) in one place and
+# "inline-xbrl-1.1" (fact map section heading) in another; reconcile before finalizing.
+qnInlineFactMap = QName("xbrl", xbrlNs, "inline-XBRL-1.1")
 
 
 # --------------------------------------------------------------------
@@ -329,8 +333,10 @@ def _builtinFactMapParsers() -> dict[Any, Callable[..., Any]]:
     if not _BUILTIN_FACT_MAP_PARSERS:
         from .LoadXbrlXmlFacts import parseXbrlXmlFacts
         from .LoadOimJsonFacts import parseOimJsonFacts
+        from .LoadInlineFacts import parseInlineFacts  # POC-INLINE
         _BUILTIN_FACT_MAP_PARSERS[qnXbrlXmlFactMap] = parseXbrlXmlFacts
         _BUILTIN_FACT_MAP_PARSERS[qnOimJsonFactMap] = parseOimJsonFacts
+        _BUILTIN_FACT_MAP_PARSERS[qnInlineFactMap] = parseInlineFacts  # POC-INLINE
     return _BUILTIN_FACT_MAP_PARSERS
 
 
@@ -370,12 +376,15 @@ def materializeFactSourceFacts(compMdl: "XbrlCompiledModel", module: "XbrlModule
         # report resolve against their taxonomy even when it is not otherwise present.
         # Compiled duplicate-tolerance means this is a no-op when the taxonomy is already
         # loaded. Remove this block with the POC.
-        try:
-            from .LoadLegacyTaxonomy import pocCompileLegacyDts
-            pocCompileLegacyDts(compMdl.modelManager.cntlr, compMdl,
-                                compMdl.error, compMdl.warning, url)
-        except Exception:
-            pass  # POC: never let discovery break fact materialization
+        # POC-INLINE: the inline map does its OWN single-pass load (facts + DTS) inside
+        # parseInlineFacts, so skip this pre-step for it to avoid loading the report twice.
+        if getattr(factSource, "factMapName", None) != qnInlineFactMap:
+            try:
+                from .LoadLegacyTaxonomy import pocCompileLegacyDts
+                pocCompileLegacyDts(compMdl.modelManager.cntlr, compMdl,
+                                    compMdl.error, compMdl.warning, url)
+            except Exception:
+                pass  # POC: never let discovery break fact materialization
         facts, footnotes = parse(compMdl, module, factSource, url)
         for fact in facts:
             _registerGeneratedObject(compMdl, module, fact, "facts")

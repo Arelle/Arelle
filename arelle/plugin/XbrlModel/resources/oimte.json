@@ -22634,7 +22634,7 @@
           },
           {
             "property": "xbrl:conformanceTestDescription",
-            "value": "A factValue valueSource uses property xbrl:htmlDataAttribute, but the factLocatorType in use (xbrl:htmlElementLocatorType, resolved via factLocatorType on the sourceMappings entry) only permits xbrl:htmlSpanId in its allowedProperties. The processor must raise oimte:disallowedObjectProperty."
+            "value": "A factValue valueSource uses property xbrl:htmlDataAttribute, but the factLocatorType in use (xbrl:htmlElementLocatorType, resolved via factLocatorType on the sourceMappings entry) only permits xbrl:htmlElementId in its allowedProperties. The processor must raise oimte:disallowedObjectProperty."
           },
           {
             "property": "xbrl:specificationErrorURI",
@@ -22754,7 +22754,7 @@
           },
           {
             "property": "xbrl:conformanceTestDescription",
-            "value": "The factValue exp:fv1 defines a valueSources entry with an xbrl:htmlSpanId property but no 'source' attribute. The documentInfo.sourceMappings array contains three entries (exp:htmlSource, exp:htmlSource2, exp:htmlSource3). Per the File reference resolution rules, when sourceMappings contains more than one entry and no 'source' attribute is specified, the processor MUST raise oimte:factSourceResolutionFailed."
+            "value": "The factValue exp:fv1 defines a valueSources entry with an xbrl:htmlElementId property but no 'source' attribute. The documentInfo.sourceMappings array contains three entries (exp:htmlSource, exp:htmlSource2, exp:htmlSource3). Per the File reference resolution rules, when sourceMappings contains more than one entry and no 'source' attribute is specified, the processor MUST raise oimte:factSourceResolutionFailed."
           }
         ]
       },

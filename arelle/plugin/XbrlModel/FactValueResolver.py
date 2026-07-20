@@ -8,7 +8,7 @@ A ``factValue`` object may provide its value in two ways:
 1. **Literal**: a ``value`` property whose string is validated against the
    concept's data type. This is the legacy / OIM-JSON path.
 2. **External**: one or more ``valueSources`` objects whose ``properties`` use
-   locator properties (e.g. ``xbrl:htmlSpanId``, ``xbrl:htmlElementId``,
+   locator properties (e.g. ``xbrl:htmlElementId``,
    ``xbrl:htmlDataAttribute``, PDF ``page`` + ``mcid``, tabular ``tabularPath``)
    to point at content of an external source document (HTML / PDF / tabular).
 
@@ -491,7 +491,7 @@ def _propertyValues(source) -> Dict[Any, Any]:
             continue
         v = getattr(p, "value", None)
         out[qn] = v
-        # also key by localName for tolerant lookup ("htmlSpanId" vs "xbrl:htmlSpanId")
+        # also key by localName for tolerant lookup ("htmlElementId" vs "xbrl:htmlElementId")
         ln = getattr(qn, "localName", None)
         if ln:
             out.setdefault(ln, v)
@@ -516,7 +516,7 @@ def _resolveHtmlValueSource(source, locatorType, factValue, fact, compMdl) -> Op
 
     Supports the standard locator properties:
 
-      * ``xbrl:htmlElementId`` / ``xbrl:htmlSpanId`` -- element by ``id``
+      * ``xbrl:htmlElementId`` -- element by ``id``
       * ``xbrl:htmlDataAttribute`` -- element by ``data-*`` attribute lookup
         (value may be ``"attrName"`` or ``"attrName=attrValue"``)
 
@@ -554,8 +554,8 @@ def _resolveHtmlValueSource(source, locatorType, factValue, fact, compMdl) -> Op
         return None
 
     props = _propertyValues(source)
-    # element-id / span-id lookup
-    for key in ("htmlElementId", "htmlSpanId"):
+    # element-id lookup
+    for key in ("htmlElementId",):
         v = _firstValue(props.get(key))
         if v:
             el = doc.get_element_by_id(v, None)
