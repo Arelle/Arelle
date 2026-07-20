@@ -1314,6 +1314,21 @@ def xbrlModelViews(cntlr, xbrlCompMdl):
     """ CntlrWinMain.Xbrl.Views:
         After an XBRL model is loaded, if it is an XBRL compiled model, add views for the taxonomy objects
     """
+    # POC: a legacy report opened as an entry point (see FactPipeline.pocLoadReportAsEntry)
+    # materializes its DTS + facts at validate time. The GUI does not auto-validate on load,
+    # and the views below are built once from the model as it is now -- so validate the model
+    # here first, before the views are created, so the concept / fact / taxonomy views are
+    # populated on open. (CntlrWinMain.Xbrl.Views runs before the CntlrWinMain.Xbrl.Loaded
+    # hook that other plugins, e.g. EDGAR, use to kick off validation.)
+    if (isinstance(xbrlCompMdl, XbrlCompiledModel)
+            and getattr(xbrlCompMdl, "_xbrlModelReportEntry", False)
+            and not getattr(xbrlCompMdl, "_xbrlModelReportEntryValidated", False)):
+        xbrlCompMdl._xbrlModelReportEntryValidated = True
+        try:
+            from arelle import Validate
+            Validate.validate(xbrlCompMdl)
+        except Exception:
+            pass  # POC: never let validate-on-open break the GUI load
     xbrlModelLoaded(cntlr, None, xbrlCompMdl)
     if isinstance(xbrlCompMdl, XbrlCompiledModel):
         initialViews = []

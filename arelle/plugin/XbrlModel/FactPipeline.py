@@ -459,6 +459,17 @@ def pocReportEntryFactMap(filepath) -> Optional[str]:
         return None
     stem = str(filepath).split("?", 1)[0].split("#", 1)[0]
     ext = stem.rsplit(".", 1)[-1].lower() if "." in stem else ""
+    # An inline document inside an archive (report package .xbri / .zip resolves to an
+    # archive-member .xhtml path) can't be read with io.open; claim it by extension --
+    # an inline doc in a report package is inline XBRL. _loadInlineModel opens the
+    # archive (report package) and handles catalog remappings + multi-doc IXDS.
+    from arelle.FileSource import archiveFilenameParts
+    _parts = archiveFilenameParts(filepath)
+    if _parts is not None:
+        innerExt = _parts[1].rsplit(".", 1)[-1].lower() if "." in _parts[1] else ""
+        if innerExt in ("htm", "html", "xhtml"):
+            return "xbrl:inline-XBRL-1.1"
+        return None
     try:
         if ext in ("htm", "html", "xhtml"):
             with io.open(filepath, "rt", encoding="utf-8", errors="replace") as f:
@@ -485,6 +496,13 @@ def pocLoadReportAsEntry(cntlr, modelXbrl, filepath, mappedUri, factMapName):
     so the model is an XbrlModel on open and fully populated once validated. Returns the
     ModelDocument."""
     url = mappedUri or filepath
+    # If the entry resolved to a document inside an archive (report package), bind the
+    # factSource to the archive (package) itself so _loadInlineModel applies the report
+    # package's catalog remappings and discovers the whole (possibly multi-doc) IXDS.
+    from arelle.FileSource import archiveFilenameParts
+    _parts = archiveFilenameParts(url)
+    if _parts is not None:
+        url = _parts[0]
     moduleDict = {
         "documentInfo": {
             "documentType": xbrlNs + "/module",
@@ -504,4 +522,8 @@ def pocLoadReportAsEntry(cntlr, modelXbrl, filepath, mappedUri, factMapName):
         },
     }
     from . import loadXbrlModule  # lazy: avoid import cycle with the package
-    return loadXbrlModule(cntlr, modelXbrl.error, modelXbrl.warning, modelXbrl, moduleDict, url)
+    doc = loadXbrlModule(cntlr, modelXbrl.error, modelXbrl.warning, modelXbrl, moduleDict, url)
+    # Flag so the GUI view builder validates this model before building views (its DTS +
+    # facts materialize at validate time); see xbrlModelViews.
+    modelXbrl._xbrlModelReportEntry = True
+    return doc
