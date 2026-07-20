@@ -128,6 +128,12 @@ def parseInlineFacts(compMdl, module, factSource, url):
         #    TODO: read the already-resolved footnote relationships from inlineMx and
         #    mirror LoadXbrlXmlFacts._parseFootnotes (footnote text as an html anchor).
         _emitFootnotes(compMdl, module, inlineMx, factPrefix, factNs, footnotes)
+
+        compMdl.info("arelle:inlineFactsLoaded",
+                     _("Loaded %(facts)s facts and %(footnotes)s footnotes from inline "
+                       "report %(url)s (factSource %(name)s)."),
+                     xbrlObject=factSource, facts=len(facts), footnotes=len(footnotes),
+                     url=url, name=getattr(factSource, "name", None))
     finally:
         # The transient _sourceInlineFact back-refs point into inlineMx's live tree.
         # TODO(decision): if Xule needs the tree to outlive this load, keep inlineMx
@@ -143,16 +149,37 @@ def parseInlineFacts(compMdl, module, factSource, url):
 # --------------------------------------------------------------------------
 
 def _loadInlineModel(compMdl, url):
-    """ModelXbrl.load the inline report so inlineIxdsDiscover runs. Sets the legacy
-    reentrancy guard so schemaRef .xsd sub-documents are not re-claimed by the
-    LoadLegacyTaxonomy entry-point pull-loader (Hook 3)."""
+    """Load the inline report so inlineIxdsDiscover runs, handling both a bare inline
+    document (SEC-style .htm/.xhtml) and a report package (ESEF .xbri / SEC .zip).
+    Sets the legacy reentrancy guard so schemaRef .xsd sub-documents are not
+    re-claimed by the LoadLegacyTaxonomy entry-point pull-loader (Hook 3)."""
     from arelle import ModelXbrl as _ModelXbrl
+    from arelle import FileSource as _FileSource
     from . import LoadLegacyTaxonomy as _legacy
+    cntlr = compMdl.modelManager.cntlr
     # TODO(multi-target): to select a non-default target, set the modelManager /
     #   modelXbrl ixdsTarget before load once the factSource carries a target
     #   discriminator; inlineIxdsDiscover then target-filters facts.
     _legacy._pocInLegacyDiscovery = True
     try:
+        fs = _FileSource.openFileSource(url, cntlr)
+        if getattr(fs, "isReportPackage", False):
+            # Report package: apply the META-INF catalog remappings so the packaged
+            # extension taxonomy (e.g. http://www.abc.com/... -> packaged path)
+            # resolves, then load the primary inline report entry from the archive.
+            fs.loadTaxonomyPackageMappings(expectTaxonomyPackage=True)
+            reportPkg = fs.reportPackage
+            reports = (reportPkg.reports if reportPkg else None) or ()
+            # TODO(multi-report/multi-target): a package may hold several report
+            #   entries; take the first inline one for now.
+            entry = next((r for r in reports if getattr(r, "isInline", False)),
+                         reports[0] if reports else None)
+            if entry is None:
+                return None
+            fs.select(entry.fullPathPrimary)
+            return _ModelXbrl.load(compMdl.modelManager, fs,
+                                   _("inline-XBRL-1.1 fact map discovery"))
+        # bare inline document (single .htm/.xhtml)
         return _ModelXbrl.load(compMdl.modelManager, url,
                                _("inline-XBRL-1.1 fact map discovery"))
     except Exception:
