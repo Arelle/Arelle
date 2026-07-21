@@ -810,7 +810,12 @@ class Validate:
                                            (errPrefix == _exp.prefix and _exp.namespaceURI),
                                            errLocalName)) or
                                 # XDT xml schema tests expected results
-                                (_exp.namespaceURI == XbrlConst.xdtSchemaErrorNS and errPrefix == "xmlSchema")
+                                (_exp.namespaceURI == XbrlConst.xdtSchemaErrorNS and errPrefix == "xmlSchema") or
+                                # UKSEF conformance suite expects XML schema validation errors in format xbrl.core.xml.SchemaValidationError.*
+                                # Example: tests/FRC/FRC_08/index.xml:TC2_invalid
+                                (_exp.localName.startswith("xbrl.core.xml.SchemaValidationError.cvc") and errPrefix == "xmlSchema") or
+                                # Actual (str): *:match, Expected (QName): {*}*.match
+                                (errLocalName and errLocalName == _exp.localName.rpartition('.')[2])
                         ):
                             _expMatched = True
                     elif type(testErr) is type(_exp):
