@@ -107,45 +107,6 @@ def validateEntity(modelXbrl: ModelXbrl, filename:str, filesource: FileSource) -
         pass
 
 
-def getEsefAuthority(
-    modelXbrl: ModelXbrl,
-    pluginData: ESEFPluginData,
-    parameters: dict[Any, Any] | None,
-) -> str | None:
-    cntlr = modelXbrl.modelManager.cntlr
-    esefAuthority = pluginData.esefAuthority
-    if not esefAuthority and cntlr.hasGui and cntlr.config is not None:
-        esefAuthority = cntlr.config.get("esefAuthority") or None
-    formulaAuthority = None
-    if parameters:
-        # formula parameter backwards compatibility for legacy users.
-        p = parameters.get(qname("authority", noPrefixIsNoNamespace=True))
-        if p and len(p) == 2 and p[1] not in ("null", "None", None):
-            formulaAuthority = p[1]
-    if esefAuthority and formulaAuthority and esefAuthority != formulaAuthority:
-        modelXbrl.error(
-            "Arelle.conflictingESEFAuthorityParameters",
-            _(
-                "ESEF Authority '%(esefAuthority)s' conflicts with formula parameter authority '%(formulaAuthority)s'."
-                " Continuing with '%(esefAuthority)s'."
-            ),
-            modelObject=modelXbrl,
-            esefAuthority=esefAuthority,
-            formulaAuthority=formulaAuthority,
-        )
-    authority = esefAuthority or formulaAuthority
-    if authority and authority not in AUTHORITY_CODES:
-        modelXbrl.error(
-            "Arelle.invalidESEFAuthority",
-            _("Invalid authority '%(authority)s'. Valid values: %(validValues)s."),
-            modelObject=modelXbrl,
-            authority=authority,
-            validValues=", ".join(sorted(AUTHORITY_CODES)),
-        )
-        return None
-    return authority
-
-
 class ESEFPlugin(PluginHooks):
     @staticmethod
     def disclosureSystemTypes(
@@ -187,10 +148,11 @@ class ESEFPlugin(PluginHooks):
         *args: Any,
         **kwargs: Any,
     ) -> None:
+        # For CLI runs, capture `options.esefAuthority` as soon as possible,
+        # before validation begins.
         esefAuthority = getattr(options, "esefAuthority", None)
         if esefAuthority:
-            pluginData = ESEFPluginData.get(cntlr, ESEF_PLUGIN_NAME)
-            pluginData.esefAuthority = esefAuthority
+            __ = ESEFPluginData.get(cntlr, ESEF_PLUGIN_NAME, esefAuthority)
 
     @staticmethod
     def cntlrWinMainMenuValidation(
@@ -336,7 +298,7 @@ class ESEFPlugin(PluginHooks):
         val.extensionImportedUrls = set()
         val.unconsolidated = any("unconsolidated" in n for n in val.disclosureSystem.names)
         val.consolidated = not val.unconsolidated
-        val.authority = getEsefAuthority(modelXbrl, pluginData, parameters)
+        val.authority = pluginData.getEsefAuthority(modelXbrl, parameters)
 
         authorityValidations = loadAuthorityValidations(val.modelXbrl)
         # loadAuthorityValidations returns either a list or a dict but in this context, we expect a dict.
