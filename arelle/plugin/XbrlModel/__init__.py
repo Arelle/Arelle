@@ -44,8 +44,14 @@ formula parameter ``oimSaveMode`` (default ``full``):
                   pre-computed value, so this is the pragmatic viewer form. Networks/groups/headings
                   touching retained concepts are re-included (pruneClosure includeNetworks).
 
-In the GUI the mode is chosen from a modal on Save; from the command line / scripts the formula
-parameter ``oimSaveMode`` selects it (and overrides the modal). Round-tripping the fully-compiled
+In the GUI the mode is chosen from a modal on Save. From the command line, ``--saveOIMmodel FILE``
+(``.json`` / ``.cbor`` / ``.xlsx``) saves the loaded model after load, with ``--oimSaveMode``
+selecting full | prune | report (the formula parameter ``oimSaveMode`` also selects it and
+overrides the modal). This makes a facts-only *module* that ``importedTaxonomies`` its taxonomy
+loadable and re-emittable as a complete, self-contained compiled model -- e.g. an aligned-facts
+module bound to a legacy DTS via ``importMapping`` -> ``pruned compiled model`` carrying only the
+taxonomy objects (concepts / labels / dimensions / members / datatypes) needed to interpret the
+reported facts, with the facts' PDF locators intact. Round-tripping the fully-compiled
 AAPL example (1042 facts, 12453 concepts): ``prune`` -> ~384 concepts / ~65 members, ``report`` ->
 ~540 concepts (with presentation networks) and facts rewritten to Form B, both with no dangling
 references and facts unchanged. See oim-taxonomy/documentation/SAVEMODEL_IMPLEMENTATION_PLAN.md.
@@ -139,7 +145,7 @@ from .ViewXbrlTaxonomyObject import viewXbrlTaxonomyObject
 from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, oimBundleDocTypes, oimReferenceBundleDocType, xbrlTaxonomyObjects
 from .ParseSelectionWhereClause import parseSelectionWhereClause
 from .LoadCsvTable import csvTableRowFacts
-from .SaveModel import xbrlModelSave
+from .SaveModel import xbrlModelSave, saveFiles
 from .SaveXmlSchema import saveXmlSchema
 
 from arelle.oim.Load import (DUPJSONKEY, DUPJSONVALUE, EMPTY_DICT, EMPTY_LIST, UrlInvalidPattern,
@@ -1323,6 +1329,21 @@ def optionsExtender(parser, *args, **kwargs):
                       help=_("Fact count above which an XbrlFactSource MUST stream rather than "
                              "materialize. Default 50000. Overridden per-source by "
                              "factSourceMetadata.factCount when present."))
+    # Save the loaded model as a single OIM compiled model (the CLI counterpart of the GUI
+    # Save hook). --saveOIMmodel names the output (.json/.cbor/.xlsx); --oimSaveMode selects
+    # full | prune | report (see SaveModel). This lets a facts-only module that imports its
+    # taxonomy be loaded and re-emitted as a complete, self-contained compiled model.
+    parser.add_option("--saveOIMmodel",
+                      action="store",
+                      dest="saveOIMmodel",
+                      help=_("Save the loaded model as an OIM compiled model to this file "
+                             "(.json, .cbor or .xlsx). Use --oimSaveMode to select how much to emit."))
+    parser.add_option("--oimSaveMode",
+                      action="store",
+                      dest="oimSaveMode",
+                      help=_("Save mode for --saveOIMmodel: full (default) | prune | report. "
+                             "prune keeps only the taxonomy objects needed to interpret the "
+                             "reported facts; report additionally tailors facts to viewer Form B."))
     from .PdfToolsCli import addPdfToolOptions
     addPdfToolOptions(parser)
 
@@ -1372,6 +1393,20 @@ def xbrlModelLoaded(cntlr, options, xbrlCompMdl, *args, **kwargs):
     # been populated since the spec changed. This is a placeholder for the streaming CSV pipeline
     # introduced in subsequent refactor steps.
 
+
+    # save the whole loaded model as a single OIM compiled model if requested on the command line
+    # (GUI uses the CntlrWinMain.Xbrl.Save hook instead). oimSaveMode selects full | prune | report;
+    # a facts-only module that imports its taxonomy is thereby re-emitted as a complete, self-contained
+    # compiled model (prune drops taxonomy objects not needed to interpret the reported facts).
+    saveOIMmodel = getattr(options, "saveOIMmodel", None) if options is not None else None
+    if saveOIMmodel:
+        saveMode = (getattr(options, "oimSaveMode", None) or "full").lower()
+        if saveMode not in ("full", "prune", "report"):
+            saveMode = "full"
+        saveFiles(cntlr, xbrlCompMdl, saveOIMmodel, saveMode=saveMode)
+        cntlr.addToLog(_("Saved OIM compiled model (%(mode)s) to %(file)s"),
+                       messageArgs={"mode": saveMode, "file": saveOIMmodel},
+                       messageCode="info")
 
     # save schema files if specified by command line option or formula parameter
     saveXmlSchemaFiles = None

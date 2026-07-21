@@ -550,6 +550,10 @@ def align(htmlPath: str, factsPath: str, pdfPath: str,
     print(f"[rewrite] content={stats['content']} image={stats['image']} "
           f"unmapped={stats['unmapped']} of {stats['total']}", flush=True)
 
+    dropped = _sanitize_reserved_aliases(factsDoc)
+    if dropped:
+        print(f"[namespaces] dropped mis-bound reserved alias(es): {', '.join(dropped)}", flush=True)
+
     outFactsPath = outFactsPath or (os.path.splitext(pdfPath)[0] + "-pdf-facts.json")
     with open(outFactsPath, "w", encoding="utf-8") as fh:
         json.dump(factsDoc, fh, indent=1)
@@ -570,6 +574,45 @@ def _fact_pms(ids, hm, h2p, Psrc):
                 if not pms or pms[-1] != pm:
                     pms.append(pm)
     return pms
+
+
+def _sanitize_reserved_aliases(factsDoc):
+    """Drop documentInfo.namespaces bindings for reserved OIM aliases whose URI does not match
+    the reserved value (e.g. an upstream extractor emitting the legacy xbrli->2003/instance
+    binding). A reserved alias bound to the wrong URI is invalid per oim-common
+    (oimce:invalidURIForReservedAlias) whether or not it is used, so normalising it here keeps
+    the produced module loadable. The year is taken from the xbrl namespace (https://xbrl.org/YYYY).
+    Returns the list of dropped prefixes."""
+    di = factsDoc.get("documentInfo") or {}
+    namespaces = di.get("namespaces")
+    if not isinstance(namespaces, dict):
+        return []
+    reserved = {
+        "xs": "http://www.w3.org/2001/XMLSchema",
+        "iso4217": "http://www.xbrl.org/2003/iso4217",
+        "oimce": "https://xbrl.org/2021/oim-common/error",
+        "oime": "http://www.xbrl.org/2021/oim/error",
+    }
+    year = None
+    xbrlNs = namespaces.get("xbrl")
+    if isinstance(xbrlNs, str):
+        m = re.match(r"https://xbrl\.org/(\d{4})(?:/|$)", xbrlNs)
+        if m:
+            year = m.group(1)
+    if year:
+        reserved.update({
+            "xbrl": f"https://xbrl.org/{year}",
+            "xbrli": f"https://xbrl.org/{year}/instance",
+            "ref": f"https://xbrl.org/{year}/ref",
+            "utr": f"https://xbrl.org/{year}/utr",
+            "xbrltt": f"https://xbrl.org/{year}/transform-types",
+            "oimte": f"https://xbrl.org/{year}/oimtaxonomy/error",
+        })
+    dropped = [pfx for pfx, uri in list(namespaces.items())
+               if pfx in reserved and uri != reserved[pfx]]
+    for pfx in dropped:
+        del namespaces[pfx]
+    return dropped
 
 
 def _rewrite(factsDoc, perFV, pmsByFV, imgLocByFactId, pdfBasename):
