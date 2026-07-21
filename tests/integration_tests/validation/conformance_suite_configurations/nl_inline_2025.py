@@ -81,14 +81,6 @@ config = ConformanceSuiteConfig(
         'G3-5-2_3/index.xml:TC2_invalid': {
             'missingLabelForRoleInReportLanguage': 1,
         },
-        'G3-5-3_1/index.xml:TC2_invalid': {
-            'arelle:ixdsTargetNotDefined': 1,
-            'extensionTaxonomyWrongFilesStructure': 2,
-            'noInlineXbrlTags': 1,
-            # This test is looking at the usage of the target attribute and does not import the correct taxonomy urls
-            'requiredEntryPointNotImported': 1,
-            'incorrectKvkTaxonomyVersionUsed': 1,
-        },
         'G3-6-3_1/index.xml:TC2_invalid': {
             # deconformancebvdeponeringsgegevens-2024-12-31-nl.html
             'kvkFilingDocumentNameDoesNotFollowNamingConvention': 1,
@@ -191,6 +183,7 @@ config = ConformanceSuiteConfig(
         },
         'G6-1-3_4/index.xml:TC2_invalid': {
             'incorrectVersionEntryPointOtherReferenced': 1,
+            'kvkFilingDocumentNameDoesNotFollowNamingConvention': 1, # Fires for each of two instances
             'requiredEntryPointOtherNotReferenced': 1,
         },
         'G7-1-4_1/index.xml:TC1_valid': {

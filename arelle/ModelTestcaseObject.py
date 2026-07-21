@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 from arelle import XmlUtil, XbrlConst, ModelValue
 from arelle.PrototypeDtsObject import PrototypeObject
+from arelle.XbrlConst import DEFAULT_TARGET
 from arelle.conformance.Constants import CONFORMANCE_SUITE_ID_OVERRIDES
 from arelle.ModelObject import ModelObject
 
@@ -25,6 +26,9 @@ TXMY_PKG_SRC_ELTS = ("metadata", "catalog", "taxonomy")
 def testcaseVariationsByTarget(testcaseVariations: list[ModelTestcaseVariation]) -> Generator[ModelTestcaseVariation, None, None]:
     for modelTestcaseVariation in testcaseVariations:
         modelTestcaseVariation.errors = None # Errors accumulate over multiple ixdsTargets for same variation
+        # The Inline XBRL 1.1 conformance suite defines targets to validate using the `instance`
+        # element with a `target` attribute to specify a target name. An absent attribute indicates
+        # only the default target should be loaded.
         ixdsTargets = [instElt.get("target")
                       for resultElt in modelTestcaseVariation.iterdescendants("{*}result")
                       for instElt in resultElt.iterdescendants("{*}instance")]
@@ -33,7 +37,10 @@ def testcaseVariationsByTarget(testcaseVariations: list[ModelTestcaseVariation])
             allTargetsActual = []
             allTargetsStatus = ""
             for ixdsTarget in ixdsTargets:
-                modelTestcaseVariation.ixdsTarget = ixdsTarget
+                # A blank `target` value in the Inline XBRL 1.1 conformance suite
+                # indicates we should only load the default target. Setting `None` results
+                # in all targets being loaded, so we must pass DEFAULT_TARGET.
+                modelTestcaseVariation.ixdsTarget = DEFAULT_TARGET if ixdsTarget is None else ixdsTarget
                 yield modelTestcaseVariation
                 allTargetsActual.extend(modelTestcaseVariation.actual)
                 if allTargetsStatus not in ("fail", "fail (count)"):
@@ -41,6 +48,7 @@ def testcaseVariationsByTarget(testcaseVariations: list[ModelTestcaseVariation])
                     allTargetsStatus = modelTestcaseVariation.status
             modelTestcaseVariation.status = allTargetsStatus
         else: # probably an expected error situation
+            # To load all targets in the filing, we provide no value for `ixdsTarget`.
             modelTestcaseVariation.ixdsTarget = None
             yield modelTestcaseVariation
 
@@ -228,7 +236,7 @@ class ModelTestcaseVariation(ModelObject):
 
         for resultElt in self.iterdescendants("{*}result"):
             for instElt in resultElt.iterdescendants("{*}instance"):
-                if (instElt.get("target") or "") == (self.ixdsTarget or ""): # match null and emptyString
+                if (instElt.get("target") or DEFAULT_TARGET) == (self.ixdsTarget or DEFAULT_TARGET): # match null and DEFAULT_TARGET
                     return XmlUtil.text(instElt)
         return None
 
