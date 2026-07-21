@@ -25,7 +25,7 @@ from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.validate.Common import isExtensionUri
-from .Const import esefCorNsPattern, esefNotesStatementConcepts, esefTaxonomyNamespaceURIs, svgEventAttributes
+from .Const import AUTHORITY_UKFRC, esefCorNsPattern, esefNotesStatementConcepts, esefTaxonomyNamespaceURIs, svgEventAttributes
 
 _: TypeGetText
 
@@ -36,7 +36,7 @@ AUTHORITY_CODES: frozenset[str] = frozenset({
     "AT", "BE", "BG", "CY", "CZ", "DBA", "DE", "DK", "EE", "EL", "ES",
     "FI", "FR", "GB", "HR", "HU", "IE", "IS", "IT", "LI", "LT", "LU",
     "LV", "MT", "NL", "NO", "PL", "PT", "RO", "SE", "SI", "SK",
-    "UKFRC", "UKFRC-2022", "UKFRC-2023",
+    AUTHORITY_UKFRC, "UKFRC-2022", "UKFRC-2023",
 })
 
 ESEF_STANDARD_TAXONOMY_URI_PREFIXES_ATTR = "_esefStandardTaxonomyUriPrefixes"

@@ -3,8 +3,26 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+from dataclasses import dataclass
+from typing import cast
+
+from arelle.ModelXbrl import ModelXbrl
+from arelle.ValidateXbrl import ValidateXbrl
 from arelle.utils.PluginData import PluginData
+from arelle.utils.validate.ContextIssues import ContextIssues, getContextIssues
+from .ESEFPluginData import ESEFPluginData
+from .Const import AUTHORITY_UKFRC, TARGET_UKFRS
 
 
+@dataclass
 class PluginValidationDataExtension(PluginData):
-    pass
+
+    def isUkfrsTarget(self, modelXbrl: ModelXbrl) -> bool:
+        if not hasattr(modelXbrl, "ixdsTarget"):
+            return False
+        return cast(str | None, modelXbrl.ixdsTarget) == TARGET_UKFRS
+
+    def isUkfrcAuthority(self, val: ValidateXbrl) -> bool:
+        esefPluginData = ESEFPluginData.get(val.modelXbrl.modelManager.cntlr, self.name)
+        authority = esefPluginData.getEsefAuthority(val.modelXbrl, val.parameters)
+        return authority == AUTHORITY_UKFRC

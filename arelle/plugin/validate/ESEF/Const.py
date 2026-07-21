@@ -14,6 +14,12 @@ styleCssHiddenPattern = re.compile(r"(.*[^\w]|^)display\s*:\s*none([^\w].*|$)")
 datetimePattern = lexicalPatterns["XBRLI_DATEUNION"]
 docTypeXhtmlPattern = re.compile(r"^<!(?:DOCTYPE\s+)\s*html(?:PUBLIC\s+)?(?:.*-//W3C//DTD\s+(X?HTML)\s)?.*>$", re.IGNORECASE)
 
+
+AUTHORITY_UKFRC = "UKFRC"
+
+TARGET_UKFRS = "UKFRS"
+
+
 FOOTNOTE_LINK_CHILDREN = frozenset((
     XbrlConst.qnLinkLoc,
     XbrlConst.qnLinkFootnoteArc,
