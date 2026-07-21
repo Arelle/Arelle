@@ -67,8 +67,8 @@ from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import xhtml
 from arelle.formula.XPathContext import XPathContext
 from arelle.typing import TypeGetText
-from arelle.utils.PluginData import PluginData
 from arelle.utils.PluginHooks import PluginHooks
+from .ESEFPluginData import ESEFPluginData
 from .ESEF_2021.ValidateXbrlFinally import validateXbrlFinally as validateXbrlFinally2021
 from .ESEF_Current.ValidateXbrlFinally import validateXbrlFinally as validateXbrlFinallyCurrent
 from .Util import (
@@ -146,28 +146,6 @@ def getEsefAuthority(
     return authority
 
 
-@dataclass
-class ESEFPluginData(PluginData):
-    esefAuthority: str | None = None
-    esefInstanceValidated: bool = False
-    nonEsefInstanceExcluded: bool = False
-
-    @staticmethod
-    def get(cntlr: Cntlr) -> ESEFPluginData:
-        pluginData = cntlr.getPluginData(ESEF_PLUGIN_NAME)
-        if pluginData is None:
-            pluginData = ESEFPluginData(name=ESEF_PLUGIN_NAME)
-            cntlr.setPluginData(pluginData)
-        elif not isinstance(pluginData, ESEFPluginData):
-            raise RuntimeError(f"PluginData already set for {pluginData.name} with unexpected type {type(pluginData)}.")
-        return pluginData
-
-    def reset(self) -> None:
-        self.esefAuthority = None
-        self.esefInstanceValidated = False
-        self.nonEsefInstanceExcluded = False
-
-
 class ESEFPlugin(PluginHooks):
     @staticmethod
     def disclosureSystemTypes(
@@ -211,7 +189,7 @@ class ESEFPlugin(PluginHooks):
     ) -> None:
         esefAuthority = getattr(options, "esefAuthority", None)
         if esefAuthority:
-            pluginData = ESEFPluginData.get(cntlr)
+            pluginData = ESEFPluginData.get(cntlr, ESEF_PLUGIN_NAME)
             pluginData.esefAuthority = esefAuthority
 
     @staticmethod
@@ -354,7 +332,7 @@ class ESEFPlugin(PluginHooks):
         if not esefDisclosureSystemSelected(val.modelXbrl):
             return None
         modelXbrl = val.modelXbrl
-        pluginData = ESEFPluginData.get(modelXbrl.modelManager.cntlr)
+        pluginData = ESEFPluginData.get(modelXbrl.modelManager.cntlr, ESEF_PLUGIN_NAME)
         val.extensionImportedUrls = set()
         val.unconsolidated = any("unconsolidated" in n for n in val.disclosureSystem.names)
         val.consolidated = not val.unconsolidated
@@ -483,7 +461,7 @@ class ESEFPlugin(PluginHooks):
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        pluginData = ESEFPluginData.get(cntlr)
+        pluginData = ESEFPluginData.get(cntlr, ESEF_PLUGIN_NAME)
         if not pluginData.esefInstanceValidated and pluginData.nonEsefInstanceExcluded:
             cntlr.error(
                 codes="ESEF.Arelle.noEsefReportFound",
