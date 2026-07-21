@@ -803,12 +803,15 @@ class Validate:
                     _expMatched = False
                     if isinstance(_exp,QName) and isinstance(testErr,str):
                         errPrefix, sep, errLocalName = testErr.rpartition(":")
-                        if ((not sep and errLocalName in commaSpaceSplitPattern.split(_exp.localName.strip())) or # ESEF has comma separated list of localnames of errors
-                            (_exp == qname(XbrlConst.errMsgPrefixNS.get(errPrefix) or
+                        if (
+                                # ESEF has comma separated list of localnames of errors
+                                (not sep and errLocalName in commaSpaceSplitPattern.split(_exp.localName.strip())) or
+                                (_exp == qname(XbrlConst.errMsgPrefixNS.get(errPrefix) or
                                            (errPrefix == _exp.prefix and _exp.namespaceURI),
                                            errLocalName)) or
-                            # XDT xml schema tests expected results
-                            (_exp.namespaceURI == XbrlConst.xdtSchemaErrorNS and errPrefix == "xmlSchema")):
+                                # XDT xml schema tests expected results
+                                (_exp.namespaceURI == XbrlConst.xdtSchemaErrorNS and errPrefix == "xmlSchema")
+                        ):
                             _expMatched = True
                     elif type(testErr) is type(_exp):
                         if isinstance(testErr,dict):
