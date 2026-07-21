@@ -82,6 +82,16 @@ from .Util import (
 )
 from .ValidationPluginExtension import ValidationPluginExtension
 from .rules import base
+from .rules.UKSEF import (
+    context as uksef_context,
+    document as uksef_document,
+    entity as uksef_entity,
+    mandatory as uksef_mandatory,
+    package as uksef_package,
+    target as uksef_target,
+    taxonomy as uksef_taxonomy
+)
+
 
 _: TypeGetText
 
@@ -437,7 +447,14 @@ validationPlugin = ValidationPluginExtension(
     disclosureSystemConfigUrl=Path(__file__).parent / "resources" / "config.xml",
     validationTypes=[DISCLOSURE_SYSTEM_VALIDATION_TYPE],
     validationRuleModules=[
-        base
+        base,
+        uksef_context,
+        uksef_document,
+        uksef_entity,
+        uksef_mandatory,
+        uksef_package,
+        uksef_target,
+        uksef_taxonomy,
     ],
 )
 
