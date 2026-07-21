@@ -21,6 +21,7 @@ class ContextIssues:
     contextsWithImproperContent: set[ModelContext]
     contextsWithPeriodTime: set[ModelContext]
     contextsWithPeriodTimeZone: set[ModelContext]
+    contextsWithScenarios: set[ModelContext]
     contextsWithSegments: set[ModelContext]
     contextsWithWrongInstantDate: set[ModelContext]
 
@@ -36,6 +37,7 @@ def getContextIssues(modelXbrl: ModelXbrl, esefYear: int | None = None, ) -> Con
     contextsWithImproperContent: set[ModelContext] = set()
     contextsWithPeriodTime: set[ModelContext] = set()
     contextsWithPeriodTimeZone: set[ModelContext] = set()
+    contextsWithScenarios: set[ModelContext] = set()
     contextsWithSegments: set[ModelContext] = set()
     contextsWithWrongInstantDate: set[ModelContext] = set()
 
@@ -49,6 +51,8 @@ def getContextIssues(modelXbrl: ModelXbrl, esefYear: int | None = None, ) -> Con
                     contextsWithPeriodTime.add(context)
                 if m.group(3):
                     contextsWithPeriodTimeZone.add(context)
+        if context.hasScenario:
+            contextsWithScenarios.add(context)
         if context.hasSegment:
             contextsWithSegments.add(context)
         if context.nonDimValues("scenario"):
@@ -61,6 +65,7 @@ def getContextIssues(modelXbrl: ModelXbrl, esefYear: int | None = None, ) -> Con
         contextsWithImproperContent=contextsWithImproperContent,
         contextsWithPeriodTime=contextsWithPeriodTime,
         contextsWithPeriodTimeZone=contextsWithPeriodTimeZone,
+        contextsWithScenarios=contextsWithScenarios,
         contextsWithSegments=contextsWithSegments,
         contextsWithWrongInstantDate=contextsWithWrongInstantDate,
     )
