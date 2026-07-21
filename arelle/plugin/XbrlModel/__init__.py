@@ -6,6 +6,9 @@ See COPYRIGHT.md for copyright information.
 The XBRL Model plugin is designed to load taxonomy objects from JSON that adheres to the Open Information
 Model (OIM) Taxonomy Specification.
 
+See README.md for design and operation of the PDF fact-locator workflow
+(generate a traceable tagged PDF, or match facts onto an existing tagged PDF).
+
 ## Usage Instructions
 
 Any import or direct opening of a JSON-specified taxonomy behaves the same as if loading from an xsd taxonomy or xml linkbases
@@ -1305,6 +1308,22 @@ def optionsExtender(parser, *args, **kwargs):
                       help=_("Fact count above which an XbrlFactSource MUST stream rather than "
                              "materialize. Default 50000. Overridden per-source by "
                              "factSourceMetadata.factCount when present."))
+    from .PdfToolsCli import addPdfToolOptions
+    addPdfToolOptions(parser)
+
+def pdfToolsUtilityRun(cntlr, options, *args, **kwargs):
+    """ CntlrCmdLine.Utility.Run:
+        Run the inline-XBRL->PDF generator or the facts->existing-PDF aligner
+        when their trigger options are given (file-based, no loaded model)."""
+    from .PdfToolsCli import runPdfTools
+    runPdfTools(cntlr, options, *args, **kwargs)
+
+def pdfToolsMenuExtender(cntlr, menu, *args, **kwargs):
+    """ CntlrWinMain.Menu.Tools:
+        Add the inline-XBRL->PDF generator and facts->existing-PDF aligner to the
+        GUI Tools menu (file-based, no loaded model required)."""
+    from .PdfToolsCli import addPdfToolsMenu
+    addPdfToolsMenu(cntlr, menu)
 
 def filingStart(self, options, *args, **kwargs):
     #global saveOIMTaxonomySchemaFiles
@@ -1416,6 +1435,8 @@ __pluginInfo__ = {
     'import': ('inlineXbrlDocumentSet',),
     # classes of mount points (required)
     'CntlrCmdLine.Options': optionsExtender,
+    'CntlrCmdLine.Utility.Run': pdfToolsUtilityRun,
+    'CntlrWinMain.Menu.Tools': pdfToolsMenuExtender,
     'CntlrCmdLine.Filing.Start': filingStart,
     'CntlrCmdLine.Xbrl.Loaded': xbrlModelLoaded,
     'CntlrWinMain.Xbrl.Views': xbrlModelViews,

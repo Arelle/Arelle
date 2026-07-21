@@ -42,7 +42,7 @@ class PdfTextExtractor:
     """Open a PDF once and answer multiple locator lookups against it."""
 
     __slots__ = ("_path", "_pdf", "_pikepdf", "_formFieldCache",
-                 "_mcidCache", "_structIdCache", "_built")
+                 "_mcidCache", "_pageMcidCache", "_structIdCache", "_built")
 
     def __init__(self, path: str) -> None:
         self._path = path
@@ -50,6 +50,7 @@ class PdfTextExtractor:
         self._pikepdf = None
         self._formFieldCache: Optional[Dict[str, str]] = None
         self._mcidCache: Optional[Dict[Tuple[int, int], str]] = None
+        self._pageMcidCache: Dict[int, Dict[int, str]] = {}
         self._structIdCache: Optional[Dict[str, str]] = None
         self._built = False
 
@@ -210,68 +211,87 @@ class PdfTextExtractor:
             chars.append(ch)
         return "".join(chars)
 
-    def _walkMcidQuick(self) -> Dict[Tuple[int, int], str]:
-        """MCID walker: collect text within BDC/EMC pairs, decoding `Tj`/`TJ`
-        show operands through each font's ToUnicode CMap. Sufficient for tagged
-        PDF reports where the spec's xbrl:pdfMcid locator is used."""
-        out: Dict[Tuple[int, int], str] = {}
+    def _walkPageMcid(self, page, pageNum: int) -> Dict[int, str]:
+        """Walk ONE page's content stream, returning ``{mcid: text}``.
+
+        Collects text within BDC/EMC pairs, decoding ``Tj``/``TJ`` show operands
+        through each font's ToUnicode CMap. Kept page-scoped so a viewer/resolver
+        resolving a single ``xbrl:pdfMcid`` locator need not walk the whole
+        document (the full-document walk is ~minutes on large filings)."""
+        out: Dict[int, str] = {}
         try:
-            pikepdf = self._pikepdf
-            assert pikepdf is not None and self._pdf is not None
             from pikepdf import Operator, parse_content_stream, Dictionary, Name
+            resources = page.get("/Resources", {})
+            fonts = self._fontsFromResources(resources)
+            instructions = parse_content_stream(page)
         except Exception:
+            return out
+        stack: list = []
+        activeFont: Optional[Dict[str, Any]] = None
+        for i in instructions:
+            op = i.operator
+            if op == Operator("BDC"):
+                mcid = None
+                if len(i.operands) >= 2:
+                    po = i.operands[1]
+                    if isinstance(po, Dictionary):
+                        mcid = po.get("/MCID")
+                    elif isinstance(po, Name):
+                        try:
+                            props = resources.get("/Properties", {}).get(po)
+                            if isinstance(props, Dictionary):
+                                mcid = props.get("/MCID")
+                        except Exception:
+                            pass
+                stack.append({"mcid": int(mcid) if mcid is not None else None, "txt": []})
+            elif op == Operator("EMC"):
+                if stack:
+                    frame = stack.pop()
+                    if frame["mcid"] is not None:
+                        out[frame["mcid"]] = "".join(frame["txt"])
+            elif op == Operator("Tf"):
+                if i.operands:
+                    activeFont = fonts.get(str(i.operands[0]))
+            elif op == Operator("Tj") and stack:
+                for s in i.operands:
+                    try:
+                        stack[-1]["txt"].append(self._decodeShowText(s.__bytes__(), activeFont))
+                    except Exception:
+                        pass
+            elif op == Operator("TJ") and stack:
+                for arr in i.operands:
+                    try:
+                        for el in arr:
+                            # numeric kerning operands are not text
+                            if hasattr(el, "__bytes__"):
+                                stack[-1]["txt"].append(self._decodeShowText(el.__bytes__(), activeFont))
+                    except Exception:
+                        continue
+        return out
+
+    def _walkMcidQuick(self) -> Dict[Tuple[int, int], str]:
+        """Full-document MCID walker: ``{(page, mcid): text}`` over all pages
+        (used by the aligner, which needs the whole text stream)."""
+        out: Dict[Tuple[int, int], str] = {}
+        if self._pdf is None:
             return out
         for pIdx, page in enumerate(self._pdf.pages):
             pageNum = pIdx + 1
-            try:
-                resources = page.get("/Resources", {})
-                fonts = self._fontsFromResources(resources)
-                instructions = parse_content_stream(page)
-            except Exception:
-                continue
-            stack: list = []
-            activeFont: Optional[Dict[str, Any]] = None
-            for i in instructions:
-                op = i.operator
-                if op == Operator("BDC"):
-                    mcid = None
-                    if len(i.operands) >= 2:
-                        po = i.operands[1]
-                        if isinstance(po, Dictionary):
-                            mcid = po.get("/MCID")
-                        elif isinstance(po, Name):
-                            try:
-                                props = resources.get("/Properties", {}).get(po)
-                                if isinstance(props, Dictionary):
-                                    mcid = props.get("/MCID")
-                            except Exception:
-                                pass
-                    stack.append({"mcid": int(mcid) if mcid is not None else None,
-                                  "txt": []})
-                elif op == Operator("EMC"):
-                    if stack:
-                        frame = stack.pop()
-                        if frame["mcid"] is not None:
-                            out[(pageNum, frame["mcid"])] = "".join(frame["txt"])
-                elif op == Operator("Tf"):
-                    if i.operands:
-                        activeFont = fonts.get(str(i.operands[0]))
-                elif op == Operator("Tj") and stack:
-                    for s in i.operands:
-                        try:
-                            stack[-1]["txt"].append(self._decodeShowText(s.__bytes__(), activeFont))
-                        except Exception:
-                            pass
-                elif op == Operator("TJ") and stack:
-                    for arr in i.operands:
-                        try:
-                            for el in arr:
-                                # numeric kerning operands are not text
-                                if hasattr(el, "__bytes__"):
-                                    stack[-1]["txt"].append(self._decodeShowText(el.__bytes__(), activeFont))
-                        except Exception:
-                            continue
+            pageMap = self._walkPageMcid(page, pageNum)
+            self._pageMcidCache[pageNum] = pageMap
+            for mc, txt in pageMap.items():
+                out[(pageNum, mc)] = txt
         return out
+
+    def _pageMcidText(self, page: int) -> Dict[int, str]:
+        """``{mcid: text}`` for a single 1-based page, built and cached lazily."""
+        if page in self._pageMcidCache:
+            return self._pageMcidCache[page]
+        result: Dict[int, str] = {}
+        if self._open() and 1 <= page <= len(self._pdf.pages):
+            result = self._walkPageMcid(self._pdf.pages[page - 1], page)
+        self._pageMcidCache[page] = result
+        return result
 
     def textByMcid(self, page: int, mcid: int) -> Optional[str]:
         if page is None or mcid is None:
@@ -281,8 +301,11 @@ class PdfTextExtractor:
             mcid = int(mcid)
         except (TypeError, ValueError):
             return None
-        cache = self._buildMcidCache()
-        return cache.get((page, mcid))
+        # If the whole document was already walked, use it; otherwise resolve
+        # against just this page (avoids the full-document walk for one lookup).
+        if self._mcidCache is not None:
+            return self._mcidCache.get((page, mcid))
+        return self._pageMcidText(page).get(mcid)
 
     # ------------------------------------------------------------------
     # Structure-tree element by /ID
