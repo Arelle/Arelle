@@ -1679,10 +1679,10 @@ class CntlrCmdLine(Cntlr.Cntlr):
             if options.proxy != "show":
                 proxySettings = proxyTuple(options.proxy)
                 self.webCache.resetProxies(proxySettings)
-                self.config["proxySettings"] = proxySettings  # type: ignore[index]
+                self.config["proxySettings"] = proxySettings
                 self.saveConfig()
                 self.addToLog(_("Proxy configuration has been set."), messageCode="info")
-            useOsProxy, urlAddr, urlPort, user, password = ProxyTuple.coerce(self.config.get("proxySettings")) or proxyTuple("none")  # type: ignore[union-attr]
+            useOsProxy, urlAddr, urlPort, user, password = ProxyTuple.coerce(self.config.get("proxySettings")) or proxyTuple("none")
             if useOsProxy:
                 self.addToLog(_("Proxy configured to use {0}.").format(
                     _("Microsoft Windows Internet Settings") if sys.platform.startswith("win")

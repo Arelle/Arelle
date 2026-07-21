@@ -158,7 +158,7 @@ class Cntlr:
     hasClipboard: bool
     contextMenuClick: str
     hasWebServer: bool
-    config: dict[str, Any] | None
+    config: dict[str, Any]
     configJsonFile: str
     webCache: WebCache
     modelManager: ModelManager.ModelManager
@@ -278,7 +278,7 @@ class Cntlr:
             self.contextMenuClick = "<Button-3>"
         self.hasWebServer = hasWebServer()
         # assert that app dir must exist
-        self.config = None
+        config = None
         if self.hasFileSystem and not self.disablePersistentConfig:
             os.makedirs(self.userAppDir, exist_ok=True)
             # load config if it exists
@@ -286,14 +286,13 @@ class Cntlr:
             if os.path.exists(self.configJsonFile):
                 try:
                     with io.open(self.configJsonFile, 'rt', encoding='utf-8') as f:
-                        self.config = json.load(f)
+                        config = json.load(f)
                 except Exception as ex:
-                    self.config = None # restart with a new config
-        if not self.config:
-            self.config = {
-                'fileHistory': [],
-                'windowGeometry': "{0}x{1}+{2}+{3}".format(800, 500, 200, 100),
-            }
+                    config = None # restart with a new config
+        self.config = config or {
+            'fileHistory': [],
+            'windowGeometry': "{0}x{1}+{2}+{3}".format(800, 500, 200, 100),
+        }
 
         # start language translation for domain
         self.setUiLanguage(uiLang or self.config.get("userInterfaceLangOverride",None), fallbackToDefault=True)
