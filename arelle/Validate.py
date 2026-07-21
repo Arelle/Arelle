@@ -280,7 +280,8 @@ class Validate:
             errorCaptureLevel = logging._checkLevel("WARNING")  # type: ignore[attr-defined]
         else:
             errorCaptureLevel = modelTestcaseVariation.severityLevel # default is INCONSISTENCY
-        parameters = modelTestcaseVariation.parameters.copy()
+        parameters = self.modelXbrl.modelManager.formulaOptions.typedParameters(self.modelXbrl.prefixedNamespaces)
+        parameters |= modelTestcaseVariation.parameters
         loadedModels = []
         for i, readMeFirstUri in enumerate(modelTestcaseVariation.readMeFirstUris):
             loadedModels.extend(self._testcaseLoadReadMeFirstUri(
