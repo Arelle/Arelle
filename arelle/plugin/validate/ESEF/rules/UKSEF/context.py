@@ -26,10 +26,28 @@ def rule_ukfrc8(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
-    UKFRC8: Context period validation for UKSEF filings.
+    UKFRC8: xbrli:segment elements MUST be used in the contexts of UKFRS target FRC-tagged data.
+    xbrli:scenario elements MUST be used in the contexts of default target ESEF-tagged data.
     """
     if not pluginData.isUkfrcAuthority(val):
-        return None
-    return None
+        return
+    modelXbrl = val.modelXbrl
+    contextIssues = pluginData.getContextIssues(modelXbrl)
+    if pluginData.isUkfrsTarget(modelXbrl):
+        if contextIssues.contextsWithScenarios:
+            yield Validation.error(
+                "ESEF.UKFRC8.scenarioUsed",
+                _("xbrli:segment elements MUST be used in the contexts of UKFRS target FRC-tagged data. : %(contextIds)s"),
+                modelObject=contextIssues.contextsWithScenarios,
+                contextIds=", ".join(c.id for c in contextIssues.contextsWithScenarios if c.id is not None)
+            )
+    else:
+        if contextIssues.contextsWithSegments:
+            yield Validation.error(
+                "ESEF.UKFRC8.segmentUsed",
+                _("xbrli:scenario elements MUST be used in the contexts of default target ESEF-tagged data: %(contextIds)s"),
+                modelObject=contextIssues.contextsWithSegments,
+                contextIds=", ".join(c.id for c in contextIssues.contextsWithSegments if c.id is not None)
+            )

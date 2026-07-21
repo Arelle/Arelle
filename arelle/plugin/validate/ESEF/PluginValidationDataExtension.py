@@ -17,6 +17,9 @@ from .Const import AUTHORITY_UKFRC, TARGET_UKFRS
 @dataclass
 class PluginValidationDataExtension(PluginData):
 
+    def getContextIssues(self, modelXbrl: ModelXbrl) -> ContextIssues:
+        return getContextIssues(modelXbrl)
+
     def isUkfrsTarget(self, modelXbrl: ModelXbrl) -> bool:
         if not hasattr(modelXbrl, "ixdsTarget"):
             return False
