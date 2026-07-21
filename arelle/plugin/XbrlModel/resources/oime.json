@@ -5,13 +5,19 @@
     "namespaces": {
       "oime": "http://www.xbrl.org/2021/oim/error",
       "xbrl": "https://xbrl.org/2026",
-      "xs": "http://www.w3.org/2001/XMLSchema"
+      "xs": "http://www.w3.org/2001/XMLSchema",
+      "xbrlm":"https://xbrl.org/2026/model"
     },
     "documentNamespacePrefix": "oime"
   },
   "xbrlModel": {
     "name": "oime:ErrorsTaxonomy",
     "version": "1.0",
+    "importedTaxonomies": [
+      {
+        "xbrlModelName": "xbrlm:base"
+      }
+    ],
     "domainClasses": [
       {
         "name": "oime:OIMErrorClassDomain",

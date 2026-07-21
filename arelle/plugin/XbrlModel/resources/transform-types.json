@@ -6,7 +6,8 @@
             "xbrl": "https://xbrl.org/2026",
             "xbrlr":"https://xbrl.org/2026/report",
             "xs": "http://www.w3.org/2001/XMLSchema",
-            "xbrltt":"https://xbrl.org/2026/transform-types"  
+            "xbrltt":"https://xbrl.org/2026/transform-types",
+            "xbrlm":"https://xbrl.org/2026/model"  
             },
         "documentNamespacePrefix":"xbrltt"
   },
@@ -14,6 +15,11 @@
       "name": "xbrltt:transforms",
       "frameworkName": "transforms",
       "version": "2026",
+      "importedTaxonomies": [
+            {
+                "xbrlModelName": "xbrlm:base"
+            }
+            ],
       "dataTypes": [
         {
           "name": "xbrltt:dateDayMonthnameBgType",

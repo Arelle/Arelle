@@ -697,6 +697,13 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                          qnRef=(cubeObj.cubeType or reportCubeType))
         if cubeType is None:
             continue # can't do further checks without cube type
+        # A cube with no cubeType is an OPEN cube (oim-taxonomy §Cube types). It resolves to reportCube
+        # above only so the checks below have a cubeType object for messages, but per the cube-type table
+        # an open cube differs from a report cube in exactly one way: "Concept Domain Required" is NO. So
+        # the concept core dimension need not carry a domain network (coreDomainClasses is not enforced).
+        # An open cube still requires a concept dimension (cubeMissingConceptDimension) and allows the
+        # same dimensions a report cube does, so no other check changes.
+        isOpenCube = cubeObj.cubeType is None
         isTimeSeriesCubeType = cubeType and _isBaseCubeType(cubeType, "timeSeriesCube", compMdl)
         isNegativeCubeType = cubeType and cubeType.name.localName == "negativeCube"
         isReferenceCubeType = cubeType and _isBaseCubeType(cubeType, "referenceCube", compMdl)
@@ -808,7 +815,14 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                             relMatched = True
                             ntwkMatchedConstraints.add(cnst)
                             break
-                    if not relMatched:
+                    # A relationship that matches no constraint is only an error when the
+                    # cubeNetworkConstraints are CLOSED (a whitelist: "only networks that satisfy the
+                    # specified constraints can be associated with the cube"). When they are open
+                    # (closed=false, the default), the constraints are requirements, not a whitelist -- the
+                    # network must CONTAIN the required matching relationships (enforced by the minNetworks
+                    # check below), but it is not blocked from containing additional relationships that
+                    # match no constraint. So a non-matching relationship is permitted on an open constraint.
+                    if not relMatched and getattr(cubeNtwkConstrObj, "closed", False):
                         compMdl.error("oimte:invalidCubeNetworkRelationship",
                                       _("Cube %(name)s network %(network)s relationship %(source)s -> %(target)s violates cubeNetworkConstraints."),
                                       xbrlObject=(cubeObj, ntwk, relObj), name=name, network=ntwk.name, source=relObj.source, target=relObj.target)
@@ -1276,7 +1290,7 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                                 dtResObj._valueValid, dtResObj._valueValue = validateValue(compMdl, module, cubeObj, dtResObj.value, "XBRLI_DATEUNION", f"/cubeDimensions[{iCubeDim}]/periodConstraints[{iPerConst}]/{dtResProp}/value", "oimte:invalidPeriodRepresentation")
 
         # Extension cubes inherit concept dimension from target; only check non-extension cubes
-        # (skip empty cubeDimensions — already reported as invalidEmptySet at load)
+        # (skip empty cubeDimensions — already reported as invalidEmptySet at load). An open cube does
         if cubeObj.cubeDimensions and not hasConceptDimension and not getattr(cubeObj, 'extends', None):
                 compMdl.error("oimte:cubeMissingConceptDimension",
                           _("The cubeDimensions of cube %(name)s, type %(cubeType)s, must have a concept core dimension"),
@@ -1287,7 +1301,8 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
             entityCoreDim: entityDomainClass,
             unitCoreDim: unitDomainClass,
         }
-        coreDomainClasses = set(cubeType.effectivePropVal(compMdl, "coreDomainClasses"))
+        # An open cube imposes no coreDomainClass requirement on its dimensions.
+        coreDomainClasses = set() if isOpenCube else set(cubeType.effectivePropVal(compMdl, "coreDomainClasses"))
         if coreDomainClasses:
             cubeDimByName = {cd.dimension: cd for cd in cubeObj.cubeDimensions or ()}
             for reqDim, reqDomClass in coreDomainClassByDimension.items():

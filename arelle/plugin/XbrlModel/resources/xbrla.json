@@ -8,12 +8,18 @@
       "xbrlr": "https://xbrl.org/2026/report",
       "xs": "http://www.w3.org/2001/XMLSchema",
       "ref": "https://xbrl.org/2026/ref",
-      "utr": "https://xbrl.org/2026/utr"
+      "utr": "https://xbrl.org/2026/utr",
+      "xbrlm": "https://xbrl.org/2026/model"
     },
     "documentNamespacePrefix": "xbrla"
   },
   "xbrlModel": {
     "name": "xbrla:accountingModule",
+    "importedTaxonomies": [
+            {
+                "xbrlModelName": "xbrlm:base"
+            }
+            ],
     "dataTypes": [
       {
         "name": "xbrla:balanceType",

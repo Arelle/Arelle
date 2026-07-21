@@ -4,7 +4,8 @@
         "documentType": "https://xbrl.org/2026/module",
         "namespaces": {
             "xbrl": "https://xbrl.org/2026",
-            "xs": "http://www.w3.org/2001/XMLSchema"
+            "xs": "http://www.w3.org/2001/XMLSchema",
+            "xbrlm": "https://xbrl.org/2026/model"
         },
         "documentNamespacePrefix": "xs"
     },
@@ -12,6 +13,11 @@
         "name": "xs:XMLSchemaTypes",
         "frameworkName": "xml-schema-types",
         "version": "2026",
+        "importedTaxonomies": [
+            {
+                "xbrlModelName": "xbrlm:base"
+            }
+            ],
         "dataTypes": [
             {
                 "name": "xs:anySimpleType",

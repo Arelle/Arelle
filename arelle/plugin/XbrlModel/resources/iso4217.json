@@ -7,7 +7,8 @@
             "xbrlr":"https://xbrl.org/2026/report",
             "xs": "http://www.w3.org/2001/XMLSchema",
             "iso4217": "http://www.xbrl.org/2003/iso4217",
-            "utr": "https://xbrl.org/2026/utr"
+            "utr": "https://xbrl.org/2026/utr",
+            "xbrlm":"https://xbrl.org/2026/model"
             },
         "documentNamespacePrefix":"iso4217"
     },
@@ -15,6 +16,11 @@
         "frameworkName": "iso4217",
         "name": "iso4217:currencyUnits",
         "version": "2025",
+        "importedTaxonomies": [
+            {
+                "xbrlModelName": "xbrlm:base"
+            }
+        ],
         "units": [
             {
                 "dataType": "xbrlr:monetary",

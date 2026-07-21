@@ -6,13 +6,19 @@
       "oimte": "https://xbrl.org/2026/oimtaxonomy/error",
       "oime": "http://www.xbrl.org/2021/oim/error",
       "xbrl": "https://xbrl.org/2026",
-      "xs": "http://www.w3.org/2001/XMLSchema"
+      "xs": "http://www.w3.org/2001/XMLSchema",
+      "xbrlm":"https://xbrl.org/2026/model"
     },
     "documentNamespacePrefix": "oimte"
   },
   "xbrlModel": {
     "name": "oimte:ErrorsTaxonomy",
     "version": "1.0",
+    "importedTaxonomies": [
+      {
+        "xbrlModelName": "xbrlm:base"
+      }
+    ],
     "propertyTypes": [
       {
         "name": "oimte:removedError",
@@ -517,11 +523,6 @@
             "source": "oimte:OIMErrorClassDomain",
             "target": "oimte:inconsistentTaxonomyURL",
             "order": 64
-          },
-          {
-            "source": "oimte:OIMErrorClassDomain",
-            "target": "oimte:nestedCollection",
-            "order": 65
           },
           {
             "source": "oimte:OIMErrorClassDomain",
@@ -4854,7 +4855,7 @@
       {
         "forObject": "oimte:dimensionCubeTypeMismatch",
         "language": "en",
-        "value": "This error occurs when a dimension object defines a cubeTypes restriction (the set of cube types it may appear in) but is used in a cube whose cubeType is not in that set. A cube with no cubeType property defaults to xbrl:reportCube. Every dimension whose cubeTypes array is non-empty may only appear in cubes whose effective cubeType is listed in that array.",
+        "value": "This error occurs when a dimension object defines a cubeTypes restriction (the set of cube types it may appear in) but is used in a cube whose cubeType is not in that set. A cube with no cubeType property is an open cube (no cubeType). Every dimension whose cubeTypes array is non-empty may only appear in cubes whose effective cubeType is listed in that array.",
         "labelType": "xbrl:documentation"
       },
       {
@@ -10506,6 +10507,36 @@
         ]
       },
       {
+        "name": "oimte:documentNamespacePrefixNotDefinedReferenceBundleReference",
+        "forObjects": [
+          "oimte:documentNamespacePrefixNotDefined"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "BUNDLE-MissingReferenceBundleDocumentNamespacePrefix.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "A reference bundle module does not define the documentNamespacePrefix property."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#BUNDLE-MissingReferenceBundleDocumentNamespacePrefix"
+          }
+        ]
+      },
+      {
         "name": "oimte:documentNamespaceNotDefinedReference",
         "forObjects": [
           "oimte:documentNamespaceNotDefined"
@@ -10627,7 +10658,7 @@
           },
           {
             "property": "xbrl:conformanceErrorsProduced",
-            "value": "5"
+            "value": "10"
           },
           {
             "property": "xbrl:conformanceTestDescription",
@@ -10666,6 +10697,96 @@
           {
             "property": "xbrl:specificationErrorURI",
             "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#BUNDLE-InvalidBundleModuleContentRefsBadQName"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidQNameReferenceBundlePropertyReference",
+        "forObjects": [
+          "oimte:invalidQNameReference"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "BUNDLE-InvalidReferenceBundleProperty.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "A reference bundle has a property QName that is not defined in the referenced model."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#BUNDLE-InvalidReferenceBundleProperty"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidQNameMissingReferenceBundleReferenceModelReference",
+        "forObjects": [
+          "oimte:invalidQNameReference"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "BUNDLE-MissingReferenceBundleModuleReferenceModel.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "2"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "A reference bundle module without a referenceModel has QName references in forObjects properties that cannot be resolved."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#BUNDLE-MissingReferenceBundleModuleReferenceModel"
+          }
+        ]
+      },
+      {
+        "name": "oimte:missingBundleModuleReferenceModelReferenceBundleReference",
+        "forObjects": [
+          "oimte:missingBundleModuleReferenceModel"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "BUNDLE-MissingReferenceBundleModuleReferenceModel.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "A reference bundle module does not define the required referenceModel property."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#BUNDLE-MissingReferenceBundleModuleReferenceModel"
           }
         ]
       },
@@ -12346,6 +12467,36 @@
           {
             "property": "xbrl:specificationErrorURI",
             "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#BUNDLE-InvalidBundleMissingReferencedModel"
+          }
+        ]
+      },
+      {
+        "name": "oimte:taxonomyNotFoundReferenceBundleMissingReferencedModelReference",
+        "forObjects": [
+          "oimte:taxonomyNotFound"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "BUNDLE-InvalidReferenceBundleMissingReferencedModel.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "A reference bundle module fails to define the location of the reference model."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#BUNDLE-InvalidReferenceBundleMissingReferencedModel"
           }
         ]
       },
@@ -14980,7 +15131,7 @@
           },
           {
             "property": "xbrl:conformanceTestDescription",
-            "value": "Dimension exp:FaultyTimeDim restricts cubeTypes to xbrla:timeSeriesCube but is used in a cube with no cubeType (defaults to xbrl:reportCube)."
+            "value": "Dimension exp:FaultyTimeDim restricts cubeTypes to xbrla:timeSeriesCube but is used in a cube with no cubeType (open cube)."
           },
           {
             "property": "xbrl:specificationErrorURI",
@@ -15010,7 +15161,7 @@
           },
           {
             "property": "xbrl:conformanceTestDescription",
-            "value": "Dimension exp:ProductCodeDimension restricts cubeTypes to xbrla:referenceCube but is used in a cube with no cubeType (defaults to xbrl:reportCube)."
+            "value": "Dimension exp:ProductCodeDimension restricts cubeTypes to xbrla:referenceCube but is used in a cube with no cubeType (open cube)."
           },
           {
             "property": "xbrl:specificationErrorURI",
@@ -23807,6 +23958,36 @@
           {
             "property": "xbrl:specificationErrorURI",
             "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#BUNDLE-InvalidBundleModuleContent"
+          }
+        ]
+      },
+      {
+        "name": "oimte:invalidReferenceBundleModuleContentReference",
+        "forObjects": [
+          "oimte:invalidBundleModuleContent"
+        ],
+        "referenceType": "xbrl:conformanceTestReference",
+        "language": "en",
+        "properties": [
+          {
+            "property": "xbrl:conformanceTestFileName",
+            "value": "BUNDLE-InvalidReferenceBundleModuleContent.json"
+          },
+          {
+            "property": "xbrl:conformanceStatus",
+            "value": "❌ Fail"
+          },
+          {
+            "property": "xbrl:conformanceErrorsProduced",
+            "value": "1"
+          },
+          {
+            "property": "xbrl:conformanceTestDescription",
+            "value": "A reference bundle module contains a concepts array, which is not allowed. Reference bundle modules must only contain reference objects."
+          },
+          {
+            "property": "xbrl:specificationErrorURI",
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#BUNDLE-InvalidReferenceBundleModuleContent"
           }
         ]
       },

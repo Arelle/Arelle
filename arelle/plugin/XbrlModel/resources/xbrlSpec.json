@@ -35,9 +35,6 @@
 
                 },
                 {
-                    "name": "xbrl:openCube"
-                },
-                {
                     "name": "xbrl:negativeCube",
                     "baseCubeType": "xbrl:reportCube"
                 }
@@ -987,12 +984,6 @@
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "value": "The concept-refDimension relationship links a concept to a dimension indicating that the value of the concept in a detailed cube may be the key of a dimension is a summarized cube."
-            },
-            {
-                "labelType": "xbrl:documentation",
-                "language": "en",
-                "forObject": "xbrl:openCube",
-                "value": "Default generic cube type used when no other cube type is appropriate."
             },
             {
                 "labelType": "xbrl:documentation",

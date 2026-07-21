@@ -194,6 +194,7 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         startingErrorCount = len(modelXbrl.errors) if modelXbrl else 0
         startedAt = time.time()
         documentType = None # set by loadDict
+        xbrlModelName = None # this module's QName; set once the name is resolved (used by the import cycle guard)
         importingTxmyObj = kwargs.get("importingTxmyObj")
 
         currentAction = "loading and parsing OIM Taxonomy module"
@@ -567,22 +568,9 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             error("oime:invalidTaxonomy",
                   _("Unable to obtain a valid taxonomy from URLs provided"),
                   sourceFileLine=href)
-        # first OIM Taxonomy load Baked In objects
-        ''' stop loading built-in taxonomies
-        if not xbrlCompMdl.namedObjects and not "loadingBakedInObjects" in kwargs:
-            # load object types (internally for now, switch to xbrl-objectTypes.json when covered by spec)
-            for objTypeQn in sorted(xbrlObjectTypes.keys()):
-                newObj = XbrlObjectType(xbrlMdlObjIndex=len(xbrlCompMdl.xbrlObjects), name=objTypeQn)
-                xbrlCompMdl.xbrlObjects.append(newObj)
-            #loadXbrlModule(cntlr, error, warning, modelXbrl, xbrlTaxonomyObjects, "BakedInCoreObjects", loadingBakedInObjects=True, **kwargs)
-            loadXbrlModule(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "xs-types.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
-            loadXbrlModule(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "xbrlSpec.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
-            #loadXbrlModule(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "xbrl-objects.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
-            loadXbrlModule(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "types.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
-            loadXbrlModule(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "utr.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
-            loadXbrlModule(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "ref.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
-            loadXbrlModule(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "iso4217.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
-        '''
+        # Built-in models are not pre-loaded: they are resolved on demand when a model imports them via
+        # importedTaxonomies (by reserved prefix -> resource file, see builtInPrefixTaxonomies; no
+        # importMapping, per oim-taxonomy §4.2.3). The former unconditional baked-in load was removed.
         namespacePrefixes = {}
         prefixNamespaces = {}
         namespaceUrls = {}
@@ -986,10 +974,26 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             if _refModelName and _bundleContentOnly:
                 _bundleRefModelQn = qname(_refModelName, prefixNamespaces)
                 importedTaxonomiesJson.append({"xbrlModelName": _refModelName})
+        # Import cycle guard: track the chain of modules currently being loaded (this module's
+        # ancestors on the load path). The built-in models form a legitimate cyclic graph
+        # (xbrlm:base -> utr:units / iso4217:currencyUnits / xbrla:accountingModule -> xbrlm:base),
+        # and diamonds are common. A diamond re-uses the already-loaded module (see the xbrlModels
+        # branch below); a true cycle -- an edge back to a module still loading higher on this path --
+        # must NOT re-descend (that reloads the module, producing duplicate objects and a spurious
+        # taxonomyNotFound). All modules merge into the one compiled model and QName references resolve
+        # after the whole graph loads, so skipping a back-edge is safe. The entry is removed after this
+        # module's imports are processed (and in the exception handler), so only in-progress ancestors
+        # are ever skipped -- not modules that merely finished loading.
+        if not hasattr(xbrlCompMdl, "_loadingInProgress"):
+            xbrlCompMdl._loadingInProgress = set()
+        if xbrlModelName is not None:
+            xbrlCompMdl._loadingInProgress.add(xbrlModelName)
         if importedTaxonomiesJson and not isCompiledDocType:
             for impTxJsonObj in importedTaxonomiesJson:
                 impTxModelName = impTxJsonObj.get("xbrlModelName")
                 impModuleName = qname(impTxModelName, prefixNamespaces)
+                if impModuleName is not None and impModuleName in xbrlCompMdl._loadingInProgress:
+                    continue # cyclic back-edge to an ancestor still loading; skip re-descent
                 if impModuleName:
                     if impModuleName not in xbrlCompMdl.xbrlModels:
                         impSchemaDoc = None
@@ -1055,6 +1059,10 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                     xbrlCompMdl.error("oimte:taxonomyNotFound",
                                     _("Imported taxonomy for %(qname)s not found because the URL mapping namespace is incorrect."),
                                     xbrlObject=impTxJsonObj, qname=impTxModelName)
+        # This module's imports are resolved; it is no longer an in-progress ancestor. (Its objects
+        # are registered in xbrlModels below, so any later import re-uses it via that branch.)
+        if xbrlModelName is not None:
+            xbrlCompMdl._loadingInProgress.discard(xbrlModelName)
         modelXbrl.profileActivity(f"Load taxonomies imported from {moduleFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
         
 
@@ -1161,6 +1169,13 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         _return = ex # not an OIM document
     except Exception as ex:
         _return = ex
+        # If this module failed before its imports finished, clear its in-progress marker so a later,
+        # independent import of the same name is not mistaken for a cycle and skipped.
+        try:
+            if xbrlModelName is not None:
+                xbrlCompMdl._loadingInProgress.discard(xbrlModelName)
+        except Exception:
+            pass
         if isinstance(ex, OIMException):
             if ex.code and ex.message:
                 error(ex.code, ex.message, modelObject=modelXbrl, **ex.msgArgs)
