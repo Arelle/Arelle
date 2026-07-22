@@ -965,11 +965,11 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     return self.explicitDimensionFilterMembers(structuralNode, structuralNode)
         return headersList
 
-    def onAspectComboboxSelection(self, event: _Combobox) -> None:
-        gridCombobox = event.widget  # type: ignore[attr-defined]
-        if gridCombobox.get() == "(all members)":
-            structuralNode = self.aspectEntryObjectIdsNode[gridCombobox.objectId]
-            self.comboboxLoadExplicitDimension(gridCombobox, structuralNode, structuralNode)
+    def onAspectComboboxSelection(self, event: Event) -> None:
+        gridCombobox = event.widget
+        if gridCombobox.get() == "(all members)":  # type: ignore[attr-defined]
+            structuralNode = self.aspectEntryObjectIdsNode[gridCombobox.objectId]  # type: ignore[attr-defined]
+            self.comboboxLoadExplicitDimension(gridCombobox, structuralNode, structuralNode)  # type: ignore[arg-type]
 
     def comboboxLoadExplicitDimension(
             self,
