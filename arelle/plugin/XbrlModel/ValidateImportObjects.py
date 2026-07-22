@@ -56,7 +56,11 @@ def validateImportFamily(compMdl, module, oimFile, *, assertObjectType, validate
                                _("The importObjectTypes property MUST not include the finalTaxonomyObject: %(qname)s."),
                                xbrlObject=impTxObj, qname=qnObjType)
                 elif clsForObjType == XbrlGroupTree:
-                    emit_error(compMdl, "oimte:groupTreeNotImportable",
+                    # The groupTree is a singleton, imported automatically with the model (unless
+                    # excludeGroupTree); it MUST NOT be named in importObjectTypes (oim-taxonomy
+                    # §5593). The former oimte:groupTreeNotImportable code was removed when the tree
+                    # became importable, so this reuses the generic invalidImportObjectType.
+                    emit_error(compMdl, "oimte:invalidImportObjectType",
                                _("The importObjectTypes property MUST not include the groupTreeObject: %(qname)s."),
                                xbrlObject=impTxObj, qname=qnObjType)
                 elif qnObjType not in referencableObjectTypes and clsForObjType != XbrlLabel:

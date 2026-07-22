@@ -1987,18 +1987,18 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                               _("The table template dimension %(dimension)s is missing from the table template columns."),
                               xbrlObject=tblTmpl, dimension=dim)
 
-    # Group tree object: taxonomy-group relationship source may be an XBRL Model object or a group
-    # object; the target MUST be a group object (oim-taxonomy §group tree object).
-    # The group tree object is NOT imported (oim-taxonomy §group tree object), so an imported module's
-    # groupTree targets may be pruned/remapped and resolve to None here — only flag a source/target that
-    # actually resolves to a wrong-type object, not one that is simply unresolved.
+    # Group tree object: a taxonomy-group relationship source MUST be xbrl:rootSource (for a
+    # top-level group) or a group object; the target MUST be a group object (oim-taxonomy
+    # §group tree object). The group tree object IS imported (unless excludeGroupTree), so an
+    # imported module's groupTree targets may be pruned/remapped and resolve to None here — only
+    # flag a source/target that actually resolves to a wrong-type object, not one that is simply
+    # unresolved (xbrl:rootSource itself is not a named object, so it resolves to None and passes).
     if module.groupTree is not None:
         for rel in getattr(module.groupTree, "relationships", None) or ():
             srcObj = compMdl.namedObjects.get(rel.source)
-            if (srcObj is not None and not isinstance(srcObj, (XbrlGroup, XbrlModule))
-                    and rel.source != module.name):
+            if srcObj is not None and not isinstance(srcObj, XbrlGroup):
                 compMdl.error("oimte:invalidTaxonomyGroupSource",
-                          _("The groupTree relationship source %(source)s MUST be an XBRL Model object or a group object."),
+                          _("The groupTree relationship source %(source)s MUST be xbrl:rootSource or a group object."),
                           xbrlObject=module.groupTree, source=rel.source)
             tgtObj = compMdl.namedObjects.get(rel.target)
             if tgtObj is not None and not isinstance(tgtObj, XbrlGroup):

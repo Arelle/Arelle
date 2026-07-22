@@ -31,6 +31,8 @@ from typing import TYPE_CHECKING, Optional
 
 from arelle import XbrlConst
 
+from .GroupTreeInference import inferGroupTree
+
 if TYPE_CHECKING:
     from arelle.ModelXbrl import ModelXbrl
     from arelle.ModelValue import QName
@@ -240,6 +242,7 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
     cubes: list[dict] = []
     groups: list[dict] = []
     groupContents: list[dict] = []
+    roleGroups: list[tuple[str, str]] = []  # (roleUri, groupName) for group tree inference
     networks: list[dict] = []
     labels: list[dict] = []
     emit = _Emit(concepts, dimensions, members, domainClasses, dataTypes)
@@ -294,6 +297,7 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
         grpLocal = _safeLocal(roleUri)
         grpName = pfx.prefixFor(_documentNs(modelXbrl)) + ":group_" + grpLocal
         groups.append({"name": grpName, "groupURI": roleUri})
+        roleGroups.append((roleUri, grpName))
 
         cubeName = grpName + "_Cube"
         primaryItems: list[str] = []
@@ -351,7 +355,19 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
             dim["domainClass"] = synth
             domainClasses.setdefault(synth, {"name": synth, "allowedDomainItem": "xbrl:memberObject"})
 
-    # ---- 3. assemble the module ----
+    # ---- 3. infer the group tree (section hierarchy) from role-naming conventions ----
+    # A legacy DTS has no cross-role organisation; reconstruct the SEC/IFRS accordion as a
+    # groupTree object so consumers and viewers can drill down. Category tree nodes are
+    # synthesised as extra abstract groups (with labels). No-op when neither dei nor IFRS
+    # is present (viewer falls back to a flat listing).
+    modelName = moduleName or (pfx.prefixFor(_documentNs(modelXbrl)) + ":legacyModule")
+    groupTree, catGroups, catLabels = inferGroupTree(modelXbrl, modelName, roleGroups)
+    if catGroups:
+        groups.extend(catGroups)
+    if catLabels:
+        labels.extend(catLabels)
+
+    # ---- 4. assemble the module ----
     # A compiled model owns the full closure across namespaces: it MUST NOT declare a
     # documentNamespacePrefix or importedTaxonomies (the base spec objects are assembled
     # into the same model, not imported).
@@ -359,7 +375,7 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
     oim["documentInfo"] = {"documentType": _MODULE_DOCTYPE,
                            "namespaces": pfx.namespaces}
     m = oim["xbrlModel"] = OrderedDict()
-    m["name"] = moduleName or (pfx.prefixFor(_documentNs(modelXbrl)) + ":legacyModule")
+    m["name"] = modelName
     if concepts:      m["concepts"] = list(concepts.values())
     if dataTypes:     m["dataTypes"] = list(dataTypes.values())
     if dimensions:    m["dimensions"] = list(dimensions.values())
@@ -369,6 +385,7 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
     if cubes:         m["cubes"] = cubes
     if groups:        m["groups"] = groups
     if groupContents: m["groupContents"] = groupContents
+    if groupTree:     m["groupTree"] = groupTree
     if networks:      m["networks"] = networks
     if labels:        m["labels"] = labels
     if inlineBase:

@@ -127,6 +127,11 @@ def saveableObjects(mdlObj, mdlName, **kwargs):
                         saveVal[keyStr] = saveableValue(objVal, mdlPropName, **kwargs)
         elif propName not in ("txmyMdl", "layout"):
             if isinstance(propVal, XbrlModelClass):
+                # Singleton object property (e.g. the groupTree). Honour the prune closure
+                # like collection members do, so a partial model does not emit a groupTree
+                # whose target groups were pruned away (dangling references).
+                if pruneSkip(propVal, kwargs.get("retained"), kwargs.get("reportMode", False)):
+                    continue
                 saveableObj[propName] = saveableObjects(propVal, mdlPropName, **kwargs)
             elif (((get_origin(propType) is Union) or isinstance(get_origin(propType), type(Union))) and # Optional[ ] type
                    ((propType.__args__[-1] == type(None) and propVal is None) or
