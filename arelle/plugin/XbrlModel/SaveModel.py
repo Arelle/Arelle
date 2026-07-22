@@ -5,13 +5,16 @@ Saves a loaded model (taxonomy objects + facts) as a single OIM compiled model
 (documentType https://xbrl.org/2026/compiled) into json, cbor or Excel. The modules in
 xbrlModels are merged into one xbrlModel object owning the whole closure.
 
-Save mode (GUI: modal on Save; CLI/scripts: formula parameter oimSaveMode, which overrides the modal):
+Save mode (GUI: modal on Save; CLI/scripts: --saveOIMmodel + --oimSaveMode, or formula parameter
+oimSaveMode which overrides the modal):
    full (default) | prune | report
       full   -- every discovered object and all facts, as loaded.
       prune  -- partial model: only the fact-reachability closure (PruneModel.pruneClosure),
-                dropping taxonomy objects not needed to interpret the reported facts.
-      report -- prune closure + presentation networks + facts rewritten to Form B
-                (value + valueAnchors; value resolved from source via FactValueResolver when needed).
+                dropping taxonomy objects (incl. all networks/cubes) not needed to interpret the
+                reported facts.
+      report -- prune closure + presentation networks + cubes (those whose concept-domain lists a
+                reported concept) + facts rewritten to Form B (value + valueAnchors; value resolved
+                from source via FactValueResolver when needed).
 
 See the plugin header (XbrlModel/__init__.py) and SAVEMODEL_IMPLEMENTATION_PLAN.md for details.
 '''
@@ -291,7 +294,7 @@ def saveFiles(cntlr, txmyMdl, fileName, saveMode="full", **kwargs):
 _SAVE_MODE_CHOICES = (
     ("full",   "Full — every object and all facts (compiled model)"),
     ("prune",  "Prune — only objects needed to interpret the reported facts"),
-    ("report", "Report — pruned + viewer-tailored facts (value + anchors) + presentation networks"),
+    ("report", "Report — pruned + viewer-tailored facts (value + anchors) + presentation networks + cubes"),
 )
 
 def askSaveMode(cntlr, default="full"):

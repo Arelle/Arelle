@@ -42,7 +42,9 @@ formula parameter ``oimSaveMode`` (default ``full``):
                   ``valueSources`` were present) plus ``valueAnchors`` carrying the locators, with
                   ``valueSources`` dropped. Both ixbrl-viewer and SEC ixviewer-plus read a
                   pre-computed value, so this is the pragmatic viewer form. Networks/groups/headings
-                  touching retained concepts are re-included (pruneClosure includeNetworks).
+                  touching retained concepts, and cubes whose concept-domain lists a retained
+                  concept, are re-included (pruneClosure includeNetworks) so the viewer can navigate
+                  presentation and cube structures.
 
 In the GUI the mode is chosen from a modal on Save. From the command line, ``--saveOIMmodel FILE``
 (``.json`` / ``.cbor`` / ``.xlsx``) saves the loaded model after load, with ``--oimSaveMode``

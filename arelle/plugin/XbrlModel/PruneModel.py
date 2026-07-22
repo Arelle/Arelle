@@ -47,9 +47,14 @@ def pruneClosure(txmyMdl, includeNetworks=False):
         transitively over datatype, domain-class and unit-datatype references to a fixpoint.
 
         includeNetworks (REPORT mode, decision 4a): additionally retain any presentation /
-        definition network (network, domainNetwork, group, cube, groupContent) whose relationships
-        touch a retained object, pulling in ALL that network's relationship endpoints (concepts,
-        members, headings) so the network is complete and self-consistent (no dangling references).
+        definition network (network, domainNetwork, group, groupContent) whose relationships touch
+        a retained object, pulling in ALL that network's relationship endpoints (concepts, members,
+        headings) so the network is complete and self-consistent (no dangling references). Cubes are
+        handled separately (cubeTouches / retainCube): a cube carries no flat relationships list, so
+        it is retained iff its concept dimension's domain lists a retained (reported) concept -- or,
+        for an open concept dimension, any of its explicit dimensions / domain networks / cube
+        networks is retained -- and retaining it pulls in its cube dimensions, their domain networks
+        and its cube networks (whose endpoints the network loop then follows to a fixpoint).
     """
     named = txmyMdl.namedObjects
     pfxns = txmyMdl.prefixedNamespaces
@@ -107,6 +112,44 @@ def pruneClosure(txmyMdl, includeNetworks=False):
         networkObjs = [net for module in txmyMdl.xbrlModels.values()
                        for coll in _NETWORK_COLLECTIONS
                        for net in getattr(module, coll, None) or ()]
+        cubeObjs = [cube for module in txmyMdl.xbrlModels.values()
+                    for cube in getattr(module, "cubes", None) or ()]
+
+        def cubeTouches(cube):
+            # A cube is relevant to the reported facts iff its concept dimension's domain lists a
+            # retained (reported) concept -- or, when its concept dimension is open (no domainNetwork),
+            # any of its explicit dimensions / domainNetworks / cubeNetworks is already retained. Cubes
+            # carry no flat `relationships` list, so the relationship-based test above cannot see them.
+            hasConceptDomain = False
+            for cd in getattr(cube, "cubeDimensions", None) or ():
+                dn = getattr(cd, "domainNetwork", None)
+                if getattr(cd, "dimension", None) == qname("xbrl:concept", pfxns) and dn is not None:
+                    hasConceptDomain = True
+                    dnObj = named.get(dn)
+                    for rel in getattr(dnObj, "relationships", None) or ():
+                        if getattr(rel, "source", None) in retained or getattr(rel, "target", None) in retained:
+                            return True
+                elif dn is not None and dn in retained:
+                    return True
+            if not hasConceptDomain: # open concept dimension -- fall back to any retained reference
+                for cn in getattr(cube, "cubeNetworks", None) or ():
+                    if cn in retained:
+                        return True
+            return False
+
+        def retainCube(cube):
+            # Pull the cube and everything a consumer needs to render it: its name, each cube
+            # dimension + its domain network, and any directly-related networks. The domain/network
+            # endpoints (members, concepts) are pulled by the relationship loop below on the next
+            # iteration once the network name is retained.
+            add(getattr(cube, "name", None))
+            for cd in getattr(cube, "cubeDimensions", None) or ():
+                add(getattr(cd, "dimension", None))
+                add(getattr(cd, "domainNetwork", None))
+            for cn in getattr(cube, "cubeNetworks", None) or ():
+                add(cn)
+            drain()
+
         changed = True
         while changed:
             changed = False
@@ -131,6 +174,13 @@ def pruneClosure(txmyMdl, includeNetworks=False):
                     for endpoint in endpoints:
                         add(endpoint)
                     drain()
+                    changed = True
+            for cube in cubeObjs:
+                cubeName = getattr(cube, "name", None)
+                if cubeName is not None and cubeName in retained:
+                    continue
+                if cubeTouches(cube):
+                    retainCube(cube)
                     changed = True
     return retained
 
