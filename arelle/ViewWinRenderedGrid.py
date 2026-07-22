@@ -1,22 +1,26 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
-import os, threading, time, logging, sys, traceback
-from collections import OrderedDict, defaultdict
-from tkinter import Menu, BooleanVar, font as tkFont
-from arelle.ModelFormulaObject import Aspect, aspectModels, aspectModelAspect
-from arelle import (ViewWinTkTable, ModelDtsObject, ModelInstanceObject, XbrlConst,
-                    ModelXbrl, Locale, FunctionXfi,
+"""
+from __future__ import annotations
+
+import os, threading, time, traceback
+from collections import OrderedDict
+from collections.abc import Callable, Sequence
+from tkinter import Menu, BooleanVar, font as tkFont, Event
+from tkinter.ttk import Combobox as _Combobox, Notebook
+from typing import Any
+
+from arelle.ModelFormulaObject import Aspect
+from arelle import (ViewWinTkTable, ModelDtsObject, ModelInstanceObject, XbrlConst, Locale, FunctionXfi,
                     ValidateXbrlDimensions, ViewFileRenderedGrid, ViewFileRenderedLayout, ViewFileRenderedStructure)
 from arelle.ModelDocumentType import ModelDocumentType
+from arelle.ModelObject import ModelObject
 from arelle.ModelValue import qname, QName
 from arelle.rendering.RenderingResolution import RENDER_UNITS_PER_CHAR
 from arelle.rendering.RenderingLayout import layoutTable
-from arelle.ModelInstanceObject import ModelDimensionValue
-from arelle.ModelRenderingObject import (StrctMdlBreakdown, DefnMdlDefinitionNode,
-                                         DefnMdlClosedDefinitionNode, DefnMdlAspectNode,
-                                         OPEN_ASPECT_ENTRY_SURROGATE)
-from arelle.formula.FormulaEvaluator import init as formulaEvaluatorInit, aspectMatches
+from arelle.ModelXbrl import ModelXbrl, AUTO_LOCATE_ELEMENT
+from arelle.ModelRenderingObject import OPEN_ASPECT_ENTRY_SURROGATE, StrctMdlNode, LytMdlConstraint
+from arelle.formula.FormulaEvaluator import init as formulaEvaluatorInit
 
 from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.UITkTable import XbrlTable
@@ -24,19 +28,14 @@ from arelle.DialogNewFactItem import getNewFactItemOptions
 from collections import defaultdict
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XbrlConst import eurofilingModelNamespace, eurofilingModelPrefix
-from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
 from arelle.XmlValidate import UNVALIDATED, validate as xmlValidate
+from arelle.typing import TypeGetText
+
+_: TypeGetText
 
 TRACE_TK = False # print trace messages of tk table interface
 
-try:
-    from tkinter import ttk
-    _Combobox = ttk.Combobox
-except ImportError:
-    from ttk import Combobox
-    _Combobox = Combobox
-
-emptyList = []
+emptyList: list[Any] = []
 
 ENTRY_WIDTH_IN_CHARS = 12 # width of a data column entry cell in characters (nominal)
 ENTRY_WIDTH_SCREEN_UNITS = 100
@@ -50,13 +49,15 @@ integerItemTypes = {"integerItemType", "nonPositiveIntegerItemType", "negativeIn
                     "unsignedShortItemType", "unsignedByteItemType", "positiveIntegerItemType"}
 TABLE_AXIS_ROLES = (XbrlConst.euTableAxis, XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD)
 
-'''
+
+"""
 Returns a tuple with all known table axis roles
-'''
-def getTableAxisArcroles():
+"""
+def getTableAxisArcroles() -> tuple[str, ...]:
     return TABLE_AXIS_ROLES
 
-def viewRenderedGrid(modelXbrl, tabWin, lang=None):
+
+def viewRenderedGrid(modelXbrl: ModelXbrl, tabWin: Notebook, lang: str | None = None) -> ViewRenderedGrid | None:
     modelXbrl.modelManager.showStatus(_("viewing rendering"))
     view = ViewRenderedGrid(modelXbrl, tabWin, lang)
     if not view.table.isInitialized: # unable to load or initialize tktable
@@ -66,9 +67,9 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
 
     view.blockMenuEvents = 1
 
-    menu = view.contextMenu()
+    menu = view.contextMenu()  # type: ignore[no-untyped-call]
     optionsMenu = Menu(view.viewFrame, tearoff=0)
-    optionsMenu.add_command(label=_("New fact item options"), underline=0, command=lambda: getNewFactItemOptions(modelXbrl.modelManager.cntlr, view.newFactItemOptions))
+    optionsMenu.add_command(label=_("New fact item options"), underline=0, command=lambda: getNewFactItemOptions(modelXbrl.modelManager.cntlr, view.newFactItemOptions))  # type: ignore[no-untyped-call]
     optionsMenu.add_command(label=_("Open breakdown entry rows"), underline=0, command=view.setOpenBreakdownEntryRows)
     view.ignoreDimValidity.trace_add("write", view.viewReloadDueToMenuAction)
     optionsMenu.add_checkbutton(label=_("Ignore Dimensional Validity"), underline=0, variable=view.ignoreDimValidity, onvalue=True, offvalue=False)
@@ -78,111 +79,118 @@ def viewRenderedGrid(modelXbrl, tabWin, lang=None):
     view.tablesMenuLength = 0
     view.menuAddLangs()
     saveMenu = Menu(view.viewFrame, tearoff=0)
-    saveMenu.add_command(label=_("HTML table"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(
+    saveMenu.add_command(label=_("HTML table"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(  # type: ignore[union-attr]
         view=view, fileType="html", method=ViewFileRenderedGrid.viewRenderedGrid, caption=_("arelle - Save HTML-rendered Table")))
-    saveMenu.add_command(label=_("Excel table"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(
+    saveMenu.add_command(label=_("Excel table"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(  # type: ignore[union-attr]
         view=view, fileType="xlsx", method=ViewFileRenderedGrid.viewRenderedGrid, caption=_("arelle - Save Excel-rendered Table")))
-    saveMenu.add_command(label=_("Layout model"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(
+    saveMenu.add_command(label=_("Layout model"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(  # type: ignore[union-attr]
         view=view, fileType="xml", method=ViewFileRenderedLayout.viewRenderedLayout, caption=_("arelle - Save Table Layout Model")))
-    saveMenu.add_command(label=_("Structural model"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(
+    saveMenu.add_command(label=_("Structural model"), underline=0, command=lambda: view.modelXbrl.modelManager.cntlr.fileSave(  # type: ignore[union-attr]
         view=view, fileType="json", method=ViewFileRenderedStructure.viewRenderedStructuralModel, caption=_("arelle - Save Table Structural Model")))
     saveMenu.add_command(label=_("XBRL instance"), underline=0, command=view.saveInstance)
     menu.add_cascade(label=_("Save"), menu=saveMenu, underline=0)
     view.view()
     view.blockSelectEvent = 1
     view.blockViewModelObject = 0
-    view.viewFrame.bind("<Enter>", view.cellEnter, '+')
-    view.viewFrame.bind("<Leave>", view.cellLeave, '+')
-    view.viewFrame.bind("<FocusOut>", view.onQuitView, '+')
-    view.viewFrame.bind("<1>", view.onClick, '+') # does not currently work (since tktable changes)
-    view.viewFrame.bind("<Configure>", view.onConfigure, '+') # frame resized, redo column header wrap length ratios
+    view.viewFrame.bind("<Enter>", view.cellEnter, "+")
+    view.viewFrame.bind("<Leave>", view.cellLeave, "+")
+    view.viewFrame.bind("<FocusOut>", view.onQuitView, "+")
+    view.viewFrame.bind("<1>", view.onClick, "+") # does not currently work (since tktable changes)
+    view.viewFrame.bind("<Configure>", view.onConfigure, "+") # frame resized, redo column header wrap length ratios
     view.blockMenuEvents = 0
     if "saveTableStructuralModel" in modelXbrl.modelManager.formulaOptions.parameterValues:
-        ViewFileRenderedStructure.viewRenderedStructuralModel(modelXbrl,
-              modelXbrl.modelManager.formulaOptions.parameterValues["saveTableStructuralModel"][1],
+        ViewFileRenderedStructure.viewRenderedStructuralModel(modelXbrl,  # type: ignore[no-untyped-call]
+              modelXbrl.modelManager.formulaOptions.parameterValues["saveTableStructuralModel"][1],  # type: ignore[index]
               lang=lang, sourceView=view)
     if "saveTableLayoutModel" in modelXbrl.modelManager.formulaOptions.parameterValues:
-        ViewFileRenderedLayout.viewRenderedLayout(modelXbrl,
-              modelXbrl.modelManager.formulaOptions.parameterValues["saveTableLayoutModel"][1],
+        ViewFileRenderedLayout.viewRenderedLayout(modelXbrl,  # type: ignore[no-untyped-call]
+              modelXbrl.modelManager.formulaOptions.parameterValues["saveTableLayoutModel"][1],  # type: ignore[index]
               lang=lang, sourceView=view)
     if "saveHtmlTable" in modelXbrl.modelManager.formulaOptions.parameterValues:
-        ViewFileRenderedGrid.viewRenderedGrid(modelXbrl,
-              modelXbrl.modelManager.formulaOptions.parameterValues["saveHtmlTable"][1],
+        ViewFileRenderedGrid.viewRenderedGrid(modelXbrl,  # type: ignore[no-untyped-call]
+              modelXbrl.modelManager.formulaOptions.parameterValues["saveHtmlTable"][1],  # type: ignore[index]
               lang=lang, sourceView=view)
     if "saveTable" in modelXbrl.modelManager.formulaOptions.parameterValues:
-        ViewFileRenderedGrid.viewRenderedGrid(modelXbrl,
-              modelXbrl.modelManager.formulaOptions.parameterValues["saveTable"][1],
+        ViewFileRenderedGrid.viewRenderedGrid(modelXbrl,  # type: ignore[no-untyped-call]
+              modelXbrl.modelManager.formulaOptions.parameterValues["saveTable"][1],  # type: ignore[index]
               lang=lang, sourceView=view)
     return view
 
+
 class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
-    def __init__(self, modelXbrl, tabWin, lang):
-        super(ViewRenderedGrid, self).__init__(modelXbrl, tabWin, _("Table"),
+    blockMenuEvents: int
+    tablesMenuLength: int
+    dataFirstCol: int
+    dataCols: int
+    tablesMenu: Menu
+    rowHdrColWidth: list[int]
+
+    def __init__(self, modelXbrl: ModelXbrl, tabWin: Notebook, lang: str | None) -> None:
+        super(ViewRenderedGrid, self).__init__(modelXbrl, tabWin, _("Table"),  # type: ignore[no-untyped-call]
                                                False, lang, self.onQuitView)
         self.newFactItemOptions = ModelInstanceObject.NewFactItemOptions(xbrlInstance=modelXbrl)
-        self.factPrototypes = []
-        self.aspectEntryObjectIdsNode = {}
-        self.aspectEntryObjectIdsCell = {}
-        self.factPrototypeAspectEntryObjectIds = defaultdict(set)
+        self.factPrototypes: list[FactPrototype | None] | None = []
+        self.aspectEntryObjectIdsNode: dict[str | None, StrctMdlNode] = {}
+        self.aspectEntryObjectIdsCell: dict[str | None, Any] = {}
+        self.factPrototypeAspectEntryObjectIds: defaultdict[str | None, set[str]] = defaultdict(set)
         self.zHdrElts = None
         # context menu Boolean vars
-        self.options = self.modelXbrl.modelManager.cntlr.config.setdefault("viewRenderedGridOptions", {})
+        self.options = self.modelXbrl.modelManager.cntlr.config.setdefault("viewRenderedGridOptions", {})  # type: ignore[union-attr]
         self.openBreakdownLines = self.options.setdefault("openBreakdownLines", 5) # ensure there is a default entry
-        self.ignoreDimValidity = BooleanVar(value=self.options.setdefault("ignoreDimValidity",True))
-        formulaEvaluatorInit() # one-time module initialization
+        self.ignoreDimValidity = BooleanVar(value=self.options.setdefault("ignoreDimValidity", True))
+        formulaEvaluatorInit()  # type: ignore[no-untyped-call] # one-time module initialization
         self.conceptMessageIssued = False
-        self.tblMenuEntries = {}
+        self.tblMenuEntries: dict[str, str] = {}
 
-    def close(self):
+    def close(self) -> None:
         super(ViewRenderedGrid, self).close()
         if self.modelXbrl:
-            for fp in self.factPrototypes:
-                fp.clear()
+            for fp in self.factPrototypes:  # type: ignore[union-attr]
+                fp.clear()  # type: ignore[union-attr]
             self.factPrototypes = None
             self.aspectEntryObjectIdsNode.clear()
             self.aspectEntryObjectIdsCell.clear()
             self.rendrCntx = None # remove the reference but do not manipulate since it may still be in use and shared
 
-    def loadTablesMenu(self):
+    def loadTablesMenu(self) -> None:
         if not self.tblMenuEntries:
             self.tablesToELR = {}
-            for lytMdlTableSet in self.lytMdlTblMdl.lytMdlTableSets:
+            for lytMdlTableSet in self.lytMdlTblMdl.lytMdlTableSets:  # type: ignore[attr-defined]
                 # table name
-                modelRoleTypes = self.modelXbrl.roleTypes.get(lytMdlTableSet.srcLinkrole)
+                modelRoleTypes = self.modelXbrl.roleTypes.get(lytMdlTableSet.srcLinkrole)  # type: ignore[union-attr]
                 if modelRoleTypes is not None and len(modelRoleTypes) > 0:
-                    # roledefinition = modelRoleTypes[0].definition
-                    roledefinition = self.modelXbrl.roleTypeDefinition(lytMdlTableSet.srcLinkrole, self.lang) # Definition in selected language
+                    roledefinition = self.modelXbrl.roleTypeDefinition(lytMdlTableSet.srcLinkrole, self.lang)  # type: ignore[union-attr] # Definition in selected language
                     if roledefinition is None or roledefinition == "":
                         roledefinition = os.path.basename(lytMdlTableSet.srcLinkrole)
                     # add table to menu if there's any entry
                     self.tblMenuEntries[roledefinition] = lytMdlTableSet.srcLinkrole
                     # find table group object corresponding to this table for EBA filings from the root table object
                     for tableAxisArcrole in getTableAxisArcroles():
-                        tblAxisRelSet = self.modelXbrl.relationshipSet(tableAxisArcrole, lytMdlTableSet.srcLinkrole)
+                        tblAxisRelSet = self.modelXbrl.relationshipSet(tableAxisArcrole, lytMdlTableSet.srcLinkrole)  # type: ignore[union-attr]
                         if tblAxisRelSet and len(tblAxisRelSet.modelRelationships) > 0:
                             for table in tblAxisRelSet.rootConcepts:
                                 # find a table group object corresponding to this table (ugly hack?)
-                                for tableGroupConcept in self.modelXbrl.nameConcepts.get( table.id.replace("_tQ_", "_tgQ_"), () ):
+                                for tableGroupConcept in self.modelXbrl.nameConcepts.get( table.id.replace("_tQ_", "_tgQ_"), () ):  # type: ignore[union-attr]
                                     self.tablesToELR[tableGroupConcept.objectId()] = lytMdlTableSet.srcLinkrole
         self.tablesMenu.delete(0, self.tablesMenuLength)
         self.tablesMenuLength = 0
         self.tblELR = None
         for tblMenuEntry in sorted(self.tblMenuEntries.items()):
             tbl,elr = tblMenuEntry
-            self.tablesMenu.add_command(label=tbl, command=lambda e=elr: self.view(viewTblELR=e)) # use this to activate profiling from menu selection:  , profile=True))
+            self.tablesMenu.add_command(label=tbl, command=lambda e=elr: self.view(viewTblELR=e))  # type: ignore[misc] # use this to activate profiling from menu selection:  , profile=True))
             self.tablesMenuLength += 1
             if self.tblELR is None:
                 self.tblELR = elr # start viewing first ELR
 
-    def viewReloadDueToMenuAction(self, *args):
+    def viewReloadDueToMenuAction(self, *args: Any) -> None:
         if not self.blockMenuEvents:
             # update config (config saved when exiting)
             self.options["ignoreDimValidity"] = self.ignoreDimValidity.get()
             self.view()
 
-    def setOpenBreakdownEntryRows(self, *args):
-        import tkinter.simpledialog
-        newValue = tkinter.simpledialog.askinteger(_("arelle - Open breakdown entry rows setting"),
+    def setOpenBreakdownEntryRows(self, *args: Any) -> None:
+        from tkinter.simpledialog import askinteger
+        newValue = askinteger(_("arelle - Open breakdown entry rows setting"),
                 _("The number of extra entry rows for open breakdowns is: {0} \n\n"
                   "(When a row header includes an open breakdown, such as \nfor typed dimension(s), this number of extra entry rows \nare provided below the table.)"
                   ).format(self.options["openBreakdownLines"]),
@@ -191,12 +199,12 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             self.options["openBreakdownLines"] = self.openBreakdownLines = newValue
             self.viewReloadDueToMenuAction()
 
-    def view(self, viewTblELR=None, newInstance=None, profile=False):
+    def view(self, viewTblELR: str | None = None, newInstance: ModelXbrl | None = None, profile: bool = False) -> None:
         startedAt = time.time()
         self.blockMenuEvents += 1
         if newInstance is not None:
             self.modelXbrl = newInstance # a save operation has created a new instance to use subsequently
-            clearZchoices = False
+
         if viewTblELR:  # specific table selection
             self.tblELR = viewTblELR
             clearZchoices = True
@@ -204,13 +212,14 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             clearZchoices = self.zHdrElts is None
 
         # remove old widgets
-        self.viewFrame.clearGrid()
+        self.viewFrame.clearGrid()  # type: ignore[attr-defined]
 
-        layoutTable(self)
+        layoutTable(self)  # type: ignore[no-untyped-call]
 
-        lytMdlTblMdl = self.lytMdlTblMdl
+        lytMdlTblMdl = self.lytMdlTblMdl  # type: ignore[attr-defined]
         if len(lytMdlTblMdl.lytMdlTableSets) == 0 or len(lytMdlTblMdl.lytMdlTableSets[0].lytMdlTables) == 0:
-            if TRACE_TK: print("no table to display")
+            if TRACE_TK:
+                print("no table to display")
             self.blockMenuEvents -= 1
             return # no table to display
 
@@ -219,21 +228,21 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             self.zHdrElts = None
         # identify tableSet in tableSets
         viewTblELR = viewTblELR or self.tblELR
-        for lytMdlTableSet in self.lytMdlTblMdl.lytMdlTableSets:
+        for lytMdlTableSet in self.lytMdlTblMdl.lytMdlTableSets:  # type: ignore[attr-defined]
             if lytMdlTableSet.srcLinkrole == viewTblELR:
                 break
         self.lytMdlTable = lytMdlTableSet.lytMdlTables[0] # only one table in table set?
         self.zConstraints = set()
-        self.xConstraints = defaultdict(set) # index by xColNum
-        self.yConstraints = defaultdict(set) # index by yRowNum
+        self.xConstraints: defaultdict[int, set[LytMdlConstraint]] = defaultdict(set) # index by xColNum
+        self.yConstraints: defaultdict[int, set[LytMdlConstraint]] = defaultdict(set) # index by yRowNum
         if self.zHdrElts is None:
             # each Z is a separate table in the outer table
             lytMdlZHdrs = self.lytMdlTable.lytMdlAxisHeaders("z")
             if lytMdlZHdrs is not None:
                 lytMdlZHdrGroups = lytMdlZHdrs.lytMdlGroups
                 numZtbls = self.lytMdlTable.numBodyCells("z") or 1 # must have at least 1 z entry
-                self.zHdrElts = [OrderedDict() for i in range(numZtbls)]
-                self.zAspectChoices = OrderedDict()
+                self.zHdrElts = [OrderedDict() for i in range(numZtbls)]  # type: ignore[assignment]
+                self.zAspectChoices: OrderedDict[tuple[str | QName, ...], defaultdict[str, set[int]]] = OrderedDict()
                 for lytMdlZGrp in lytMdlZHdrGroups:
                     for lytMdlZHdr in lytMdlZGrp.lytMdlHeaders:
                         zRow = 0
@@ -244,19 +253,18 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                             for iSpan in range(lytMdlZCell.span):
                                 if not lytMdlZCell.rollup:
                                     zAspLbl = ", ".join(lbl[0] for lbl in lytMdlZCell.labels)
-                                    self.zHdrElts[zRow][zConstraint] = zAspLbl
+                                    self.zHdrElts[zRow][zConstraint] = zAspLbl  # type: ignore[index]
                                     if zConstraint not in self.zAspectChoices:
                                         self.zAspectChoices[zConstraint] = defaultdict(set)
                                     self.zAspectChoices[zConstraint][zAspLbl].add(zRow)
                                 zRow += 1
                             self.zConstraints.update(lytMdlZCell.lytMdlConstraints)
             else:
-                self.zHdrElts = [[]]
-                numZtbls = 1
+                self.zHdrElts = [[]]  # type: ignore[assignment]
             self.zTbl = 0
             # get number of y header columns
             self.numZHdrs = self.numYHdrCols = self.numXHdrRows = 0
-            self.dataRows = self.dataRows = 0
+            self.dataRows = self.dataRows = 0  # type: ignore[has-type]
             lytMdlZHdrs = self.lytMdlTable.lytMdlAxisHeaders("z")
             if lytMdlZHdrs is not None:
                 '''
@@ -294,22 +302,22 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     if dataCol > self.dataRows:
                         self.dataRows = dataCol
         self.dataFirstRow = self.numZHdrs + self.numXHdrRows
-        if TRACE_TK: print(f"resizeTable rows {self.dataFirstRow+self.dataRows} cols {self.numYHdrCols+self.dataRows} titleRows {self.dataFirstRow} titleColumns {self.numYHdrCols})")
-        self.table.resizeTable(self.dataFirstRow+self.dataRows, self.numYHdrCols+self.dataRows, titleRows=self.dataFirstRow, titleColumns=self.numYHdrCols)
+        if TRACE_TK:
+            print(f"resizeTable rows {self.dataFirstRow+self.dataRows} cols {self.numYHdrCols+self.dataRows} titleRows {self.dataFirstRow} titleColumns {self.numYHdrCols})")
+        self.table.resizeTable(self.dataFirstRow + self.dataRows, self.numYHdrCols + self.dataRows, titleRows=self.dataFirstRow, titleColumns=self.numYHdrCols)
 
         try:
             # review row header wrap widths and limit to 2/3 of the frame width (all are screen units)
-            fontWidth = tkFont.Font(font='TkTextFont').configure()['size']
+            fontWidth = tkFont.Font(font="TkTextFont").configure()["size"]  # type: ignore[index]
             fontWidth = fontWidth * 3 // 2
             dataColsAllowanceWidth = (fontWidth * ENTRY_WIDTH_IN_CHARS + PADDING) * self.dataCols + PADDING
             frameWidth = self.viewFrame.winfo_width()
-            if dataColsAllowanceWidth + self.rowHdrWrapLength > frameWidth:
+            if dataColsAllowanceWidth + self.rowHdrWrapLength > frameWidth:  # type: ignore[has-type]
                 if dataColsAllowanceWidth > frameWidth / 2:
                     rowHdrAllowanceWidth = frameWidth / 2
                 else:
                     rowHdrAllowanceWidth = frameWidth - dataColsAllowanceWidth
-                if self.rowHdrWrapLength > rowHdrAllowanceWidth:
-                    widthRatio = rowHdrAllowanceWidth / self.rowHdrWrapLength
+                if self.rowHdrWrapLength > rowHdrAllowanceWidth:  # type: ignore[has-type]
                     self.rowHdrWrapLength = rowHdrAllowanceWidth
                     fixedWidth = sum(w for w in self.rowHdrColWidth if w <= RENDER_UNITS_PER_CHAR)
                     adjustableWidth = sum(w for w in self.rowHdrColWidth if w > RENDER_UNITS_PER_CHAR)
@@ -322,72 +330,68 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             self.aspectEntryObjectIdsNode.clear()
             self.aspectEntryObjectIdsCell.clear()
             self.factPrototypeAspectEntryObjectIds.clear()
-            if TRACE_TK: print(f"tbl hdr x {0} y {0} cols {self.numYHdrCols-1} rows {self.dataFirstRow - 1} value {lytMdlTableSet.label}")
+            if TRACE_TK:
+                print(f"tbl hdr x {0} y {0} cols {self.numYHdrCols - 1} rows {self.dataFirstRow - 1} value {lytMdlTableSet.label}")
             self.table.initHeaderCellValue(lytMdlTableSet.label,
-                                           0, 0, self.numYHdrCols-1, self.dataFirstRow - 1,
+                                           0, 0, self.numYHdrCols - 1, self.dataFirstRow - 1,
                                            XbrlTable.TG_TOP_LEFT_JUSTIFIED)
             self.zAxis(clearZchoices, self.numXHdrRows)
-            self.xAxis(self.numYHdrCols, self.colHdrTopRow)
+            self.xAxis(self.numYHdrCols, self.colHdrTopRow)  # type: ignore[attr-defined]
             self.yAxis(0, self.dataFirstRow)
-            for fp in self.factPrototypes: # dereference prior facts
+            for fp in self.factPrototypes:  # type: ignore[union-attr] # dereference prior facts
                 if fp is not None:
                     fp.clear()
             self.factPrototypes = []
 
-            startedAt2 = time.time()
             if self.bodyCells(self.numYHdrCols, self.dataFirstRow):
                 # has body cells
-                #print("bodyCells {:.2f}secs ".format(time.time() - startedAt2) + self.roledefinition)
                 self.table.clearModificationStatus()
                 self.table.disableUnusedCells()
                 self.table.resizeTableCells()
 
-            # data cells
-            #print("body cells done")
         except Exception as err:
-            self.modelXbrl.error(f"exception: {type(err).__name__}",
+            self.modelXbrl.error(f"exception: {type(err).__name__}",  # type: ignore[union-attr]
                 "Table Linkbase GUI rendering exception: %(error)s at %(traceback)s",
                 modelXbrl=self.modelXbrl, error=err,
                 traceback=traceback.format_exc())
 
-        self.modelXbrl.profileStat("viewTable_" + os.path.basename(viewTblELR), time.time() - startedAt)
+        self.modelXbrl.profileStat("viewTable_" + os.path.basename(viewTblELR), time.time() - startedAt)  # type: ignore[union-attr,operator,type-var]
         self.blockMenuEvents -= 1
 
-    def zAxis(self, clearZchoices, colSpan):
+    def zAxis(self, clearZchoices: bool, colSpan: int) -> None:
         if not self.zHdrElts or not self.zHdrElts[0]:
             return
         # create combo box cells for multiple choice elements
         for iZ, (aspect, aspectChoices) in enumerate(self.zAspectChoices.items()):
             values = [a for a in aspectChoices.keys() if a and a != OPEN_ASPECT_ENTRY_SURROGATE]
-            if TRACE_TK: print(f"zAxis comboBox x {self.dataFirstCol} y {iZ} values {values} value {self.zHdrElts[self.zTbl][aspect]} colspan {colSpan}")
+            if TRACE_TK:
+                print(f"zAxis comboBox x {self.dataFirstCol} y {iZ} values {values} value {self.zHdrElts[self.zTbl][aspect]} colspan {colSpan}")
             if values:
                 combobox = self.table.initHeaderCombobox(self.dataFirstCol,
                                                          iZ,
                                                          values=values,
                                                          value=self.zHdrElts[self.zTbl][aspect],
                                                          colspan=colSpan,
-                                                         #selectindex=self.zBreakdownLeafNbr[breakdownRow],
                                                          comboboxselected=self.onZComboBoxSelected)
                 combobox.zAspect = aspect
 
-    def onZComboBoxSelected(self, event):
+    def onZComboBoxSelected(self, event: Event) -> None:
         combobox = event.widget
-        comboAspect = combobox.zAspect
-        comboVal = combobox.get()
-        zTblsForAspect = self.zAspectChoices[combobox.zAspect][comboVal]
+        comboAspect = combobox.zAspect  # type: ignore[attr-defined]
+        comboVal = combobox.get()  # type: ignore[attr-defined]
+        zTblsForAspect = self.zAspectChoices[combobox.zAspect][comboVal]  # type: ignore[attr-defined]
         # find zRow for the selected aspects
-        for asp, aspVal in self.zHdrElts[self.zTbl].items():
+        for asp, aspVal in self.zHdrElts[self.zTbl].items():  # type: ignore[index]
             if asp != comboAspect:
                 zTblsForAspect &= self.zAspectChoices[asp][aspVal]
         if len(zTblsForAspect) > 0:
             self.zTbl = next(iter(zTblsForAspect)) # get first of set
             self.view() # redraw grid
 
-    def xAxis(self, leftCol, topRow):
+    def xAxis(self, leftCol: int, topRow: int) -> None:
         lytMdlXHdrs = self.lytMdlTable.lytMdlAxisHeaders("x")
         if lytMdlXHdrs is None:
             return
-        firstColHdr = True
         yValue = topRow
         for lytMdlGrp in lytMdlXHdrs.lytMdlGroups:
             for iHdr, lytMdlHdr in enumerate(lytMdlGrp.lytMdlHeaders):
@@ -398,13 +402,13 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     for lytMdlCell in lytMdlHdr.lytMdlCells:
                         if lytMdlCell.isOpenAspectEntrySurrogate:
                             continue # strip all open aspect entry surrogates from layout model file
-                        if TRACE_TK: print(f"xAxis hdr x {xValue} y {yValue} cols {lytMdlCell.span} rows {1} isRollUpParent {lytMdlCell.rollup} value \"{lytMdlCell.labelXmlText(iLabel,'')}\"")
-                        self.table.initHeaderCellValue(lytMdlCell.labelXmlText(iLabel,""),
+                        if TRACE_TK:
+                            print(f"xAxis hdr x {xValue} y {yValue} cols {lytMdlCell.span} rows {1} isRollUpParent {lytMdlCell.rollup} value \"{lytMdlCell.labelXmlText(iLabel, '')}\"")
+                        self.table.initHeaderCellValue(lytMdlCell.labelXmlText(iLabel, ""),
                                                        xValue, yValue,
                                                        lytMdlCell.span - 1,
                                                        0, # rowspan - 1,
                                                        XbrlTable.TG_CENTERED,
-                                                       #objectId=xStrctNode.objectId(),
                                                        hasTopBorder=not lytMdlCell.rollup,
                                                        hasBottomBorder = (
                                                            iHdr >= len(lytMdlGrp.lytMdlHeaders) - 1 or
@@ -415,7 +419,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         xValue += lytMdlCell.span or 1
                     yValue += 1
 
-    def yAxis(self, leftCol, row):
+    def yAxis(self, leftCol: int, row: int) -> None:
         lytMdlYHdrs = self.lytMdlTable.lytMdlAxisHeaders("y")
         if lytMdlYHdrs is None:
             return
@@ -429,31 +433,29 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     if lytMdlCell.isOpenAspectEntrySurrogate:
                         continue # strip all open aspect entry surrogates from layout model file
                     for iLabel in range(lytMdlHdr.maxNumLabels):
-                        if TRACE_TK: print(f"yAxis hdr x {xValue + iLabel} y {row + yRow} cols {1} rows {lytMdlCell.span} rollup {lytMdlCell.rollup} value \"{lytMdlCell.labelXmlText(iLabel,'')}\"")
-                        self.table.initHeaderCellValue(lytMdlCell.labelXmlText(iLabel,""),
+                        if TRACE_TK:
+                            print(f"yAxis hdr x {xValue + iLabel} y {row + yRow} cols {1} rows {lytMdlCell.span} rollup {lytMdlCell.rollup} value \"{lytMdlCell.labelXmlText(iLabel, '')}\"")
+                        self.table.initHeaderCellValue(lytMdlCell.labelXmlText(iLabel, ""),
                                                        xValue + iLabel, row + yRow,
                                                        0, #columnspan + nestedColumnspan - 1,
                                                        lytMdlCell.span - 1, #nestedRowspan - 1,
                                                        XbrlTable.TG_LEFT_JUSTIFIED,
-                                                       #objectId=yStrctNode.objectId(),
                                                        hasLeftBorder = not lytMdlCell.rollup,
                                                        hasRightBorder = (
                                                            iHdr >= len(lytMdlGrp.lytMdlHeaders) - 1 or
                                                            not any(nxtHdrCell.rollup
-                                                                   for nxtHdrCell in lytMdlGrp.lytMdlHeaders[iHdr+1].lytMdlCells))
-                                                       #width=3 if lytMdlCell.rollup else None
+                                                                   for nxtHdrCell in lytMdlGrp.lytMdlHeaders[iHdr + 1].lytMdlCells))
                                                        )
                         self.yConstraints[row + yRow].update(lytMdlCell.lytMdlConstraints)
                     yRow += lytMdlCell.span
                 xValue += lytMdlHdr.maxNumLabels
 
-    def getbackgroundColor(self, factPrototype):
+    def getbackgroundColor(self, factPrototype: FactPrototype) -> str:
         bgColor = XbrlTable.TG_BG_DEFAULT # default monetary
         concept = factPrototype.concept
         if concept == None:
             return bgColor
         isNumeric = concept.isNumeric
-        # isMonetary = concept.isMonetary
         isInteger = concept.baseXbrliType in integerItemTypes
         isPercent = concept.typeQname in (qnPercentItemType, qnPureItemType)
         isString = concept.baseXbrliType in ("stringItemType", "normalizedStringItemType")
@@ -463,14 +465,13 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 bgColor = XbrlTable.TG_BG_ORANGE
             elif isPercent:
                 bgColor = XbrlTable.TG_BG_YELLOW
-            # else assume isMonetary
         elif isDate:
             bgColor = XbrlTable.TG_BG_GREEN
         elif isString:
             bgColor = XbrlTable.TG_BG_VIOLET
-        return bgColor;
+        return bgColor
 
-    def bodyCells(self, leftCol, topRow):
+    def bodyCells(self, leftCol: int, topRow: int) -> bool:
         if not self.lytMdlTable.lytMdlBodyChildren:
             return False # no body cells
         lytMdlZBodyCell = self.lytMdlTable.lytMdlBodyChildren[0] # examples only show one z cell despite number of tables
@@ -487,11 +488,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     justify = "left"
                     f = None # should be a fact prototype for cell with no bound facts and not blocked
                     for f, v, justify in lytMdlCell.facts:
-                        break;
-                    #colElt = etree.SubElement(rowElt, "{http://www.w3.org/1999/xhtml}td",
-                    #                          attrib={"class":"cell",
-                    #                                  "style":f"text-align:{justify};width:8em;"}
-                    #                 ).text = "\n".join(v for f, v, justify in lytMdlCell.facts)
+                        break
                     if f is not None:
                         fp = f
                         value = v
@@ -500,35 +497,36 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         cellAspectValues = dict((c.aspect, c.value)
                                                 for aC in (self.zConstraints, self.xConstraints[xColNum], self.yConstraints[yRowNum])
                                                 for c in aC)
-                        fp = FactPrototype(self, cellAspectValues)
+                        fp = FactPrototype(self, cellAspectValues)  # type: ignore[arg-type]
                         value = None
-                        objectId = "f{0}".format(len(self.factPrototypes))
-                        self.factPrototypes.append(fp)  # for property views
+                        objectId = "f{0}".format(len(self.factPrototypes))  # type: ignore[arg-type]
+                        self.factPrototypes.append(fp)  # type: ignore[union-attr] # for property views
                         for aspect, aspectValue in cellAspectValues.items():
                             if isinstance(aspectValue, str) and aspectValue.startswith(OPEN_ASPECT_ENTRY_SURROGATE):
                                 self.factPrototypeAspectEntryObjectIds[objectId].add(aspectValue)
                     if fp is not None and fp.concept is not None and not fp.concept.isAbstract:
                         modelConcept = fp.concept
-                        if (justify is None) and modelConcept is not None:
+                        if justify is None and modelConcept is not None:
                             justify = XbrlTable.TG_RIGHT_JUSTIFIED if modelConcept.isNumeric else XbrlTable.TG_LEFT_JUSTIFIED
                         if modelConcept is not None and modelConcept.isEnumeration:
-                            myValidationObject = ValidateXbrl(self.modelXbrl)
-                            myValidationObject.modelXbrl = self.modelXbrl
+                            myValidationObject = ValidateXbrl(self.modelXbrl)  # type: ignore[arg-type]
+                            myValidationObject.modelXbrl = self.modelXbrl  # type: ignore[assignment]
                             enumerationSet = ValidateXbrlDimensions.usableEnumerationMembers(myValidationObject, modelConcept)
                             enumerationDict = dict()
                             for enumerationItem in enumerationSet:
                                 # we need to specify the concept linkrole to sort out between possibly many different labels
                                 enumerationDict[enumerationItem.label(linkrole=modelConcept.enumLinkrole)] = enumerationItem.qname
-                            enumerationValues = sorted(list(enumerationDict.keys()))
-                            enumerationQNameStrings = [""]+list(str(enumerationDict[enumerationItem]) for enumerationItem in enumerationValues)
-                            enumerationValues = [""]+enumerationValues
+                            enumerationValues: list[str] = sorted(list(enumerationDict.keys()))  # type: ignore[arg-type]
+                            enumerationQNameStrings = [""] + list(str(enumerationDict[enumerationItem]) for enumerationItem in enumerationValues)
+                            enumerationValues = [""] + enumerationValues
                             try:
                                 selectedIdx = enumerationQNameStrings.index(value)
                                 effectiveValue = enumerationValues[selectedIdx]
                             except ValueError:
                                 effectiveValue = enumerationValues[0]
                                 selectedIdx = 0
-                            if TRACE_TK: print(f"body comboBox enums x {xColNum} y {yRowNum} values {enumerationValues} value {effectiveValue}")
+                            if TRACE_TK:
+                                print(f"body comboBox enums x {xColNum} y {yRowNum} values {enumerationValues} value {effectiveValue}")
                             self.table.initCellCombobox(effectiveValue,
                                                         enumerationValues,
                                                         xColNum,
@@ -542,16 +540,16 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 domainQNameAsString = modelConcept.get("{" + eurofilingModelNamespace + "}" + "domain", None)
                                 if hierarchy is not None and domainQNameAsString is not None:
                                     newAspectValues = [""]
-                                    newAspectQNames = dict()
+                                    newAspectQNames: dict[str, QName | None] = dict()
                                     newAspectQNames[""] = None
                                     domPrefix, _, domLocalName = domainQNameAsString.strip().rpartition(":")
                                     domNamespace = modelConcept.nsmap.get(domPrefix)
-                                    relationships = concept_relationships(self.rendrCntx,
-                                         None,
-                                         (QName(domPrefix, domNamespace, domLocalName),
+                                    relationships = concept_relationships(self.rendrCntx,  # type: ignore[arg-type]
+                                         None,  # type: ignore[arg-type]
+                                         (QName(domPrefix, domNamespace, domLocalName),  # type: ignore[arg-type]
                                           hierarchy, # linkrole,
                                           "XBRL-dimensions",
-                                          'descendant'),
+                                          "descendant"),
                                          False) # return flat list
                                     for rel in relationships:
                                         if (rel.arcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember)
@@ -581,7 +579,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 except ValueError:
                                     effectiveValue = qNameValues[0]
                                     selectedIdx = 0
-                                if TRACE_TK: print(f"body comboBox qnames x {xColNum} y {yRowNum} values {qNameValues} value {effectiveValue}")
+                                if TRACE_TK:
+                                    print(f"body comboBox qnames x {xColNum} y {yRowNum} values {qNameValues} value {effectiveValue}")
                                 self.table.initCellCombobox(effectiveValue,
                                                             qNameValues,
                                                             xColNum,
@@ -599,7 +598,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                             except ValueError:
                                 effectiveValue = booleanValues[0]
                                 selectedIdx = 0
-                            if TRACE_TK: print(f"body comboBox bools x {xColNum} y {yRowNum} values {booleanValues} value {effectiveValue}")
+                            if TRACE_TK:
+                                print(f"body comboBox bools x {xColNum} y {yRowNum} values {booleanValues} value {effectiveValue}")
                             self.table.initCellCombobox(effectiveValue,
                                                         booleanValues,
                                                         xColNum,
@@ -607,7 +607,8 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                                         objectId=objectId,
                                                         selectindex=selectedIdx)
                         else:
-                            if TRACE_TK: print(f"body cell x {xColNum} y {yRowNum} value {value}")
+                            if TRACE_TK:
+                                print(f"body cell x {xColNum} y {yRowNum} value {value}")
                             self.table.initCellValue(value,
                                                      xColNum,
                                                      yRowNum,
@@ -617,58 +618,56 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 yRowNum += 1
         return True # has body cells
 
-    def onClick(self, event):
+    def onClick(self, event: Event) -> None:
         try:
-            objId = event.widget.objectId
+            objId = event.widget.objectId  # type: ignore[attr-defined]
             if objId and objId[0] == "f":
-                viewableObject = self.factPrototypes[int(objId[1:])]
+                viewableObject = self.factPrototypes[int(objId[1:])]  # type: ignore[index]
             else:
                 viewableObject = objId
-            self.modelXbrl.viewModelObject(viewableObject)
+            self.modelXbrl.viewModelObject(viewableObject)  # type: ignore[arg-type,union-attr]
         except AttributeError: # not clickable
             pass
-        self.modelXbrl.modelManager.cntlr.currentView = self
+        self.modelXbrl.modelManager.cntlr.currentView = self  # type: ignore[union-attr]
 
-    def cellEnter(self, *args):
+    def cellEnter(self, *args: Any) -> None:
         # triggered on grid frame enter (not cell enter)
         self.blockSelectEvent = 0
-        self.modelXbrl.modelManager.cntlr.currentView = self
+        self.modelXbrl.modelManager.cntlr.currentView = self  # type: ignore[union-attr]
 
-    def cellLeave(self, *args):
+    def cellLeave(self, *args: Any) -> None:
         # triggered on grid frame leave (not cell leave)
         self.blockSelectEvent = 1
 
     # this method is not currently used
-    def cellSelect(self, *args):
+    def cellSelect(self, *args: Any) -> None:
         if self.blockSelectEvent == 0 and self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
-            #self.modelXbrl.viewModelObject(self.nodeToObjectId[self.treeView.selection()[0]])
-            #self.modelXbrl.viewModelObject(self.treeView.selection()[0])
             self.blockViewModelObject -= 1
 
-    def viewModelObject(self, modelObject):
+    def viewModelObject(self, modelObject: ModelObject) -> None:
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
             try:
                 if isinstance(modelObject, ModelDtsObject.ModelRelationship):
-                    objectId = modelObject.toModelObject.objectId()
+                    objectId = modelObject.toModelObject.objectId()  # type: ignore[union-attr]
                 elif isinstance(modelObject, ModelDtsObject.ModelRoleType):
-                    objectId = self.modelXbrl.roleTypeDefinition(modelObject.roleURI, self.lang)
+                    objectId = self.modelXbrl.roleTypeDefinition(modelObject.roleURI, self.lang)  # type: ignore[arg-type,union-attr]
                 else:
                     objectId = modelObject.objectId()
                 if objectId in self.tablesToELR:
                     self.view(viewTblELR=self.tablesToELR[objectId])
                     try:
-                        self.modelXbrl.modelManager.cntlr.currentView = self.modelXbrl.guiViews.tableView
+                        self.modelXbrl.modelManager.cntlr.currentView = self.modelXbrl.guiViews.tableView  # type: ignore[union-attr]
                         # force focus (synch) on the corresponding "Table" tab (useful in case of several instances)
-                        self.modelXbrl.guiViews.tableView.tabWin.select(str(self.modelXbrl.guiViews.tableView.viewFrame))
+                        self.modelXbrl.guiViews.tableView.tabWin.select(str(self.modelXbrl.guiViews.tableView.viewFrame))  # type: ignore[union-attr]
                     except:
                         pass
             except (KeyError, AttributeError):
                     pass
             self.blockViewModelObject -= 1
 
-    def onConfigure(self, event, *args):
+    def onConfigure(self, event: Event, *args: Any) -> None:
         if not self.blockMenuEvents:
             lastFrameWidth = getattr(self, "lastFrameWidth", 0)
             lastFrameHeight = getattr(self, "lastFrameHeight", 0)
@@ -678,7 +677,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 self.updateInstanceFromFactPrototypes()
                 self.lastFrameWidth = frameWidth
                 self.lastFrameHeight = frameHeight
-                self.setHeightAndWidth()
+                self.setHeightAndWidth()  # type: ignore[no-untyped-call]
                 if lastFrameWidth:
                     # frame resized, recompute row header column widths and lay out table columns
                     """
@@ -687,28 +686,27 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         self.viewReloadDueToMenuAction()
                     self.modelXbrl.modelManager.cntlr.uiThreadQueue.put((sleepAndReload, []))
                     """
-                    #self.modelXbrl.modelManager.cntlr.uiThreadQueue.put((self.viewReloadDueToMenuAction, []))
-                    def deferredReload():
+                    def deferredReload() -> None:
                         self.deferredReloadCount -= 1  # only do reload after all queued reload timers expire
                         if self.deferredReloadCount <= 0:
                             self.viewReloadDueToMenuAction()
                     self.deferredReloadCount = getattr(self, "deferredReloadCount", 0) + 1
                     self.viewFrame.after(1500, deferredReload)
 
-    def onQuitView(self, event, *args):
+    def onQuitView(self, event: Event, *args: Any) -> None:
         # this method is passed as callback when creating the view
         # (to ScrolledTkTableFrame and then to XbrlTable that will monitor cell operations)
         self.updateInstanceFromFactPrototypes()
         self.updateProperties()
 
-    def hasChangesToSave(self):
+    def hasChangesToSave(self) -> int:
         return len(self.table.modifiedCells)
 
-    def updateProperties(self):
+    def updateProperties(self) -> None:
         if self.modelXbrl is not None:
             modelXbrl =  self.modelXbrl
             # make sure we handle an instance
-            if modelXbrl.modelDocument.type == ModelDocumentType.INSTANCE:
+            if modelXbrl.modelDocument.type == ModelDocumentType.INSTANCE:  # type: ignore[union-attr]
                 tbl = self.table
                 # get coordinates of last currently operated cell
                 coordinates = tbl.getCurrentCellCoordinates()
@@ -718,30 +716,28 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     if objId is not None and len(objId) > 0:
                         if objId and objId[0] == "f":
                             # fact prototype
-                            viewableObject = self.factPrototypes[int(objId[1:])]
+                            viewableObject = self.factPrototypes[int(objId[1:])]  # type: ignore[index]
                         elif objId[0] != "a":
                             # instance fact
                             viewableObject = self.modelXbrl.modelObject(objId)
                         else:
                             return
-                        modelXbrl.viewModelObject(viewableObject)
+                        modelXbrl.viewModelObject(viewableObject)  # type: ignore[arg-type]
 
-
-    def updateInstanceFromFactPrototypes(self):
+    def updateInstanceFromFactPrototypes(self) -> None:
         # Only update the model if it already exists
-        if self.modelXbrl is not None \
-           and self.modelXbrl.modelDocument.type == ModelDocumentType.INSTANCE:
+        if (self.modelXbrl is not None
+           and self.modelXbrl.modelDocument.type == ModelDocumentType.INSTANCE):  # type: ignore[union-attr]
             instance = self.modelXbrl
             cntlr =  instance.modelManager.cntlr
-            newCntx = ModelXbrl.AUTO_LOCATE_ELEMENT
-            newUnit = ModelXbrl.AUTO_LOCATE_ELEMENT
+            newCntx = AUTO_LOCATE_ELEMENT
+            newUnit = AUTO_LOCATE_ELEMENT
             tbl = self.table
             # check user keyed changes to aspects
-            aspectEntryChanges = {}  # index = widget ID,  value = widget contents
-            aspectEntryChangeIds = aspectEntryChanges.keys()
+            aspectEntryChanges = {}  # index = widget ID, value = widget contents
             for modifiedCell in tbl.getCoordinatesOfModifiedCells():
                 objId = tbl.getObjectId(modifiedCell)
-                if objId is not None and len(objId)>0:
+                if objId is not None and len(objId) > 0:
                     if tbl.isHeaderCell(modifiedCell):
                         if objId[0] == OPEN_ASPECT_ENTRY_SURROGATE:
                             aspectEntryChanges[objId] = tbl.getTableValue(modifiedCell)
@@ -749,14 +745,14 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         # check user keyed changes to facts
                         cellIndex = str(modifiedCell)
                         comboboxCells = tbl.window_names(cellIndex)
-                        if comboboxCells is not None and len(comboboxCells)>0:
-                            comboName = tbl.window_cget(cellIndex, '-window')
-                            combobox = cntlr.parent.nametowidget(comboName)
+                        if comboboxCells is not None and len(comboboxCells) > 0:
+                            comboName = tbl.window_cget(cellIndex, "-window")
+                            combobox = cntlr.parent.nametowidget(comboName)  # type: ignore[attr-defined]
                         else:
                             combobox = None
                         if isinstance(combobox, _Combobox):
-                            codeDict = combobox.codes
-                            if len(codeDict)>0: # the drop-down list shows labels, we want to have the actual values
+                            codeDict = combobox.codes  # type: ignore[attr-defined]
+                            if len(codeDict) > 0: # the drop-down list shows labels, we want to have the actual values
                                 bodyCellValue = tbl.getTableValue(modifiedCell)
                                 value = codeDict.get(bodyCellValue, None)
                                 if value is None:
@@ -766,16 +762,16 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         else:
                             value = tbl.getTableValue(modifiedCell)
                         objId = tbl.getObjectId(modifiedCell)
-                        if objId is not None and len(objId)>0:
+                        if objId is not None and len(objId) > 0:
                             if objId[0] == "f":
                                 factPrototypeIndex = int(objId[1:])
-                                factPrototype = self.factPrototypes[factPrototypeIndex]
-                                concept = factPrototype.concept
+                                factPrototype = self.factPrototypes[factPrototypeIndex]  # type: ignore[index]
+                                concept = factPrototype.concept  # type: ignore[union-attr]
                                 if concept is None:
                                     if not self.conceptMessageIssued:
                                         # This should be removed once cells have been disabled until every needed selection is done
                                         self.conceptMessageIssued = True
-                                        self.modelXbrl.modelManager.cntlr.showMessage(_("Please make sure every Z axis selection is done"))
+                                        self.modelXbrl.modelManager.cntlr.showMessage(_("Please make sure every Z axis selection is done"))  # type: ignore[attr-defined]
                                     return
                                 else:
                                     self.conceptMessageIssued = False
@@ -784,24 +780,24 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 periodType = concept.periodType
                                 periodStart = self.newFactItemOptions.startDateDate if periodType == "duration" else None
                                 periodEndInstant = self.newFactItemOptions.endDateDate
-                                qnameDims = factPrototype.context.qnameDims
+                                qnameDims = factPrototype.context.qnameDims  # type: ignore[union-attr]
                                 newAspectValues = self.newFactOpenAspects(objId)
                                 if newAspectValues is None:
                                     self.modelXbrl.modelManager.showStatus(_("Some open values are missing in an axis, the save is incomplete"), 5000)
                                     continue
-                                qnameDims.update(newAspectValues)
+                                qnameDims.update(newAspectValues)  # type: ignore[arg-type]
                                 # open aspects widgets
                                 prevCntx = instance.matchContext(
-                                    entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant,
-                                    qnameDims, [], [])
+                                    entityIdentScheme, entityIdentValue, periodType, periodStart, periodEndInstant,  # type: ignore[arg-type]
+                                    qnameDims, [], [])  # type: ignore[arg-type]
                                 if prevCntx is not None:
                                     cntxId = prevCntx.id
                                 else: # need new context
-                                    newCntx = instance.createContext(entityIdentScheme, entityIdentValue,
-                                        periodType, periodStart, periodEndInstant,
-                                        concept.qname, qnameDims, [], [],
+                                    newCntx = instance.createContext(entityIdentScheme, entityIdentValue,  # type: ignore[assignment]
+                                        periodType, periodStart, periodEndInstant,  # type: ignore[arg-type]
+                                        concept.qname, qnameDims, [], [],  # type: ignore[arg-type]
                                         afterSibling=newCntx)
-                                    cntxId = newCntx.id # need new context
+                                    cntxId = newCntx.id  # type: ignore[attr-defined] # need new context
                                 # new context
                                 if concept.isNumeric:
                                     if concept.isMonetary:
@@ -818,29 +814,29 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                     if prevUnit is not None:
                                         unitId = prevUnit.id
                                     else:
-                                        newUnit = instance.createUnit([unitMeasure], [], afterSibling=newUnit)
-                                        unitId = newUnit.id
+                                        newUnit = instance.createUnit([unitMeasure], [], afterSibling=newUnit)  # type: ignore[arg-type,assignment]
+                                        unitId = newUnit.id  # type: ignore[attr-defined]
                                 attrs = [("contextRef", cntxId)]
                                 if concept.isNumeric:
                                     attrs.append(("unitRef", unitId))
                                     attrs.append(("decimals", decimals))
-                                    value = Locale.atof(self.modelXbrl.locale, value, str.strip)
-                                newFact = instance.createFact(concept.qname, attributes=attrs, text=value)
+                                    value = Locale.atof(self.modelXbrl.locale, value, str.strip)  # type: ignore[arg-type]
+                                newFact = instance.createFact(concept.qname, attributes=attrs, text=value)  # type: ignore[arg-type]
                                 tbl.setObjectId(modifiedCell,
                                                 newFact.objectId()) # switch cell to now use fact ID
-                                if self.factPrototypes[factPrototypeIndex] is not None:
-                                    self.factPrototypes[factPrototypeIndex].clear()
-                                self.factPrototypes[factPrototypeIndex] = None #dereference fact prototype
+                                if self.factPrototypes[factPrototypeIndex] is not None:  # type: ignore[index]
+                                    self.factPrototypes[factPrototypeIndex].clear()  # type: ignore[union-attr,index]
+                                self.factPrototypes[factPrototypeIndex] = None  # type: ignore[index] # dereference fact prototype
                             elif objId[0] != "a": # instance fact, not prototype
                                 fact = self.modelXbrl.modelObject(objId)
                                 if isinstance(fact, ModelInstanceObject.ModelFact):
-                                    if fact.concept.isNumeric:
-                                        value = Locale.atof(self.modelXbrl.locale, value, str.strip)
-                                        if fact.concept.isMonetary:
+                                    if fact.concept.isNumeric:  # type: ignore[union-attr]
+                                        value = Locale.atof(self.modelXbrl.locale, value, str.strip)  # type: ignore[arg-type]
+                                        if fact.concept.isMonetary:  # type: ignore[union-attr]
                                             unitMeasure = qname(XbrlConst.iso4217, self.newFactItemOptions.monetaryUnit)
                                             unitMeasure.prefix = "iso4217" # want to save with a recommended prefix
                                             decimals = self.newFactItemOptions.monetaryDecimals
-                                        elif fact.concept.isShares:
+                                        elif fact.concept.isShares:  # type: ignore[union-attr]
                                             unitMeasure = XbrlConst.qnXbrliShares
                                             decimals = self.newFactItemOptions.nonMonetaryDecimals
                                         else:
@@ -852,32 +848,31 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                             if fact.isNil:
                                                 pass
                                                 #TODO: clear out nil facts
-                                        if fact.concept.isNumeric and (not fact.isNil): # if nil, there is no need to update these values
+                                        if fact.concept.isNumeric and not fact.isNil:  # type: ignore[union-attr] # if nil, there is no need to update these values
                                             fact.decimals = decimals
                                             prevUnit = instance.matchUnit([unitMeasure], [])
                                             if prevUnit is not None:
                                                 unitId = prevUnit.id
                                             else:
-                                                newUnit = instance.createUnit([unitMeasure], [], afterSibling=newUnit)
-                                                unitId = newUnit.id
-                                            fact.unitID = unitId
+                                                newUnit = instance.createUnit([unitMeasure], [], afterSibling=newUnit)  # type: ignore[arg-type,assignment]
+                                                unitId = newUnit.id  # type: ignore[attr-defined]
+                                            fact.unitID = unitId  # type: ignore[assignment]
                                         fact.text = str(value)
                                         instance.setIsModified()
                                         fact.xValid = UNVALIDATED
                                         xmlValidate(instance, fact)
             tbl.clearModificationStatus()
 
-    def saveInstance(self, newFilename=None, onSaved=None):
+    def saveInstance(self, newFilename: str | None = None, onSaved: Callable[..., None] | None = None) -> None:
         if (not self.newFactItemOptions.entityIdentScheme or  # not initialized yet
             not self.newFactItemOptions.entityIdentValue or
             not self.newFactItemOptions.startDateDate or not self.newFactItemOptions.endDateDate):
-            if not getNewFactItemOptions(self.modelXbrl.modelManager.cntlr, self.newFactItemOptions):
+            if not getNewFactItemOptions(self.modelXbrl.modelManager.cntlr, self.newFactItemOptions):  # type: ignore[no-untyped-call,union-attr]
                 return # new instance not set
-        # newFilename = None # only used when a new instance must be created
 
         self.updateInstanceFromFactPrototypes()
-        if self.modelXbrl.modelDocument.type != ModelDocumentType.INSTANCE and newFilename is None:
-            newFilename = self.modelXbrl.modelManager.cntlr.fileSave(view=self, fileType="xbrl")
+        if self.modelXbrl.modelDocument.type != ModelDocumentType.INSTANCE and newFilename is None:  # type: ignore[union-attr]
+            newFilename = self.modelXbrl.modelManager.cntlr.fileSave(view=self, fileType="xbrl")  # type: ignore[union-attr]
             if not newFilename:
                 return  # saving cancelled
         # continue saving in background
@@ -885,26 +880,25 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         thread.daemon = True
         thread.start()
 
-
-    def backgroundSaveInstance(self, newFilename=None, onSaved=None):
-        cntlr = self.modelXbrl.modelManager.cntlr
-        if newFilename and self.modelXbrl.modelDocument.type != ModelDocumentType.INSTANCE:
-            self.modelXbrl.modelManager.showStatus(_("creating new instance {0}").format(os.path.basename(newFilename)))
-            self.modelXbrl.modelManager.cntlr.waitForUiThreadQueue() # force status update
-            self.modelXbrl.createInstance(newFilename) # creates an instance as this modelXbrl's entrypoint
+    def backgroundSaveInstance(self, newFilename: str | None = None, onSaved: Callable[..., None] | None = None) -> None:
+        cntlr = self.modelXbrl.modelManager.cntlr  # type: ignore[union-attr]
+        if newFilename and self.modelXbrl.modelDocument.type != ModelDocumentType.INSTANCE:  # type: ignore[union-attr]
+            self.modelXbrl.modelManager.showStatus(_("creating new instance {0}").format(os.path.basename(newFilename)))  # type: ignore[union-attr]
+            self.modelXbrl.modelManager.cntlr.waitForUiThreadQueue()  # type: ignore[union-attr] # force status update
+            self.modelXbrl.createInstance(newFilename)  # type: ignore[union-attr] # creates an instance as this modelXbrl's entrypoint
         instance = self.modelXbrl
-        cntlr.showStatus(_("Saving {0}").format(instance.modelDocument.basename))
-        cntlr.waitForUiThreadQueue() # force status update
+        cntlr.showStatus(_("Saving {0}").format(instance.modelDocument.basename))  # type: ignore[union-attr]
+        cntlr.waitForUiThreadQueue()  # type: ignore[union-attr] # force status update
 
         self.updateInstanceFromFactPrototypes()
-        instance.saveInstance(overrideFilepath=newFilename) # may override prior filename for instance from main menu
-        cntlr.addToLog(_("{0} saved").format(newFilename if newFilename is not None else instance.modelDocument.filepath))
-        cntlr.showStatus(_("Saved {0}").format(instance.modelDocument.basename), clearAfter=3000)
+        instance.saveInstance(overrideFilepath=newFilename)  # type: ignore[union-attr] # may override prior filename for instance from main menu
+        cntlr.addToLog(_("{0} saved").format(newFilename if newFilename is not None else instance.modelDocument.filepath))  # type: ignore[union-attr]
+        cntlr.showStatus(_("Saved {0}").format(instance.modelDocument.basename), clearAfter=3000)  # type: ignore[union-attr]
         if onSaved is not None:
-            self.modelXbrl.modelManager.cntlr.uiThreadQueue.put((onSaved, []))
+            self.modelXbrl.modelManager.cntlr.uiThreadQueue.put((onSaved, []))  # type: ignore[union-attr]
 
-    def newFactOpenAspects(self, factObjectId):
-        aspectValues = {}
+    def newFactOpenAspects(self, factObjectId: str) -> dict[QName | int, ModelObject | None] | None:
+        aspectValues: dict[QName | int, ModelObject | None] = {}
         for aspectObjId in self.factPrototypeAspectEntryObjectIds[factObjectId]:
             structuralNode = self.aspectEntryObjectIdsNode[aspectObjId]
             for aspect in structuralNode.aspectsCovered():
@@ -913,25 +907,25 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             gridCellItem = self.aspectEntryObjectIdsCell[aspectObjId]
             value = gridCellItem.get()
             # is aspect in a childStrctNode?
-            if value is not None and OPEN_ASPECT_ENTRY_SURROGATE in aspectObjId and len(value)==0:
+            if value is not None and OPEN_ASPECT_ENTRY_SURROGATE in aspectObjId and len(value) == 0:
                 return None # some values are missing!
             if value:
-                aspectValue = structuralNode.aspectEntryHeaderValues.get(value)
+                aspectValue = structuralNode.aspectEntryHeaderValues.get(value)  # type: ignore[attr-defined]
                 if aspectValue is None: # try converting value
                     if isinstance(aspect, QName): # dimension
-                        dimConcept = self.modelXbrl.qnameConcepts[aspect]
+                        dimConcept = self.modelXbrl.qnameConcepts[aspect]  # type: ignore[union-attr]
                         if dimConcept.isExplicitDimension:
                             # value must be qname
                             aspectValue = None # need to find member for the description
                         else:
                             typedDimElement = dimConcept.typedDomainElement
                             aspectValue = FunctionXfi.create_element(
-                                  self.rendrCntx, None, (typedDimElement.qname, (), value))
+                                  self.rendrCntx, None, (typedDimElement.qname, (), value))  # type: ignore[arg-type,union-attr]
                 if aspectValue is not None:
                     aspectValues[aspect] = aspectValue
         return aspectValues
 
-    def aspectEntryValues(self, structuralNode):
+    def aspectEntryValues(self, structuralNode: StrctMdlNode) -> Sequence[str | None]:
         for aspect in structuralNode.aspectsCovered():
             if aspect != Aspect.DIMENSIONS:
                 break
@@ -939,30 +933,31 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         # otherwise return aspect value matching header if any
         depth = 0
         n = structuralNode
-        while (n.strctMdlParentNode is not None):
+        while n.strctMdlParentNode is not None:
             depth += 1
             root = n = n.strctMdlParentNode
 
-        headers = set()
-        headerValues = {}
-        def getHeaders(n, d):
+        headers: set[str | None] = set()
+        headerValues: dict[str | None, int | QName] = {}
+
+        def getHeaders(n: StrctMdlNode, d: int) -> None:
             for childStrctNode in n.strctMdlChildNodes:
                 if d == depth:
                     h = childStrctNode.header(lang=self.lang,
                                                    returnGenLabel=False,
                                                    returnMsgFormatString=False)
                     if not childStrctNode.isEntryPrototype() and h:
-                        headerValues[h] = childStrctNode.aspectValue(aspect)
+                        headerValues[h] = childStrctNode.aspectValue(aspect)  # type: ignore[attr-defined]
                         headers.add(h)
                 else:
-                    getHeaders(childStrctNode, d+1)
+                    getHeaders(childStrctNode, d + 1)
         getHeaders(root, 1)
 
-        structuralNode.aspectEntryHeaderValues = headerValues
+        structuralNode.aspectEntryHeaderValues = headerValues  # type: ignore[attr-defined]
         # is this an explicit dimension, if so add "(all members)" option at end
-        headersList = sorted(headers)
+        headersList = sorted(headers)  # type: ignore[type-var]
         if isinstance(aspect, QName): # dimension
-            dimConcept = self.modelXbrl.qnameConcepts[aspect]
+            dimConcept = self.modelXbrl.qnameConcepts[aspect]  # type: ignore[union-attr]
             if dimConcept.isExplicitDimension:
                 if headersList: # has entries, add all-memembers at end
                     headersList.append("(all members)")
@@ -970,47 +965,52 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     return self.explicitDimensionFilterMembers(structuralNode, structuralNode)
         return headersList
 
-    def onAspectComboboxSelection(self, event):
+    def onAspectComboboxSelection(self, event: Event) -> None:
         gridCombobox = event.widget
-        if gridCombobox.get() == "(all members)":
-            structuralNode = self.aspectEntryObjectIdsNode[gridCombobox.objectId]
-            self.comboboxLoadExplicitDimension(gridCombobox, structuralNode, structuralNode)
+        if gridCombobox.get() == "(all members)":  # type: ignore[attr-defined]
+            structuralNode = self.aspectEntryObjectIdsNode[gridCombobox.objectId]  # type: ignore[attr-defined]
+            self.comboboxLoadExplicitDimension(gridCombobox, structuralNode, structuralNode)  # type: ignore[arg-type]
 
-    def comboboxLoadExplicitDimension(self, gridCombobox, structuralNode, structuralNodeWithFilter):
+    def comboboxLoadExplicitDimension(
+            self,
+            gridCombobox: _Combobox,
+            structuralNode: StrctMdlNode,
+            structuralNodeWithFilter: StrctMdlNode
+        ) -> None:
         gridCombobox["values"] = self.explicitDimensionFilterMembers(structuralNode, structuralNodeWithFilter)
 
-    def explicitDimensionFilterMembers(self, structuralNode, structuralNodeWithFilter):
+    def explicitDimensionFilterMembers(self, structuralNode: StrctMdlNode, structuralNodeWithFilter: StrctMdlNode) -> list[str]:
         for aspect in structuralNodeWithFilter.aspectsCovered():
             if isinstance(aspect, QName): # dimension
                 break
-        valueHeaders = set()
+        valueHeaders: set[str] = set()
         if structuralNode is not None:
             headerValues = {}
             # check for dimension filter(s)
-            dimFilterRels = structuralNodeWithFilter.defnMdlNode.filterRelationships
+            dimFilterRels = structuralNodeWithFilter.defnMdlNode.filterRelationships  # type: ignore[union-attr]
             if dimFilterRels:
                 for rel in dimFilterRels:
                     dimFilter = rel.toModelObject
                     if dimFilter is not None:
                         for memberModel in dimFilter.memberProgs:
                                 memQname = memberModel.qname
-                                memConcept = self.modelXbrl.qnameConcepts.get(memQname)
-                                if memConcept is not None and (not memberModel.axis or memberModel.axis.endswith('-self')):
+                                memConcept = self.modelXbrl.qnameConcepts.get(memQname)  # type: ignore[union-attr]
+                                if memConcept is not None and (not memberModel.axis or memberModel.axis.endswith("-self")):
                                     header = memConcept.label(lang=self.lang)
-                                    valueHeaders.add(header)
+                                    valueHeaders.add(header)  # type: ignore[arg-type]
                                     if rel.isUsable:
                                         headerValues[header] = memQname
                                     else:
                                         headerValues[header] = memConcept
                                 if memberModel.axis and memberModel.linkrole and memberModel.arcrole:
                                     # merge of pull request 42 acsone:TABLE_Z_AXIS_DESCENDANT_OR_SELF
-                                    if memberModel.axis.endswith('-or-self'):
-                                        searchAxis = memberModel.axis[:len(memberModel.axis)-len('-or-self')]
+                                    if memberModel.axis.endswith("-or-self"):
+                                        searchAxis = memberModel.axis[:len(memberModel.axis) - len("-or-self")]
                                     else:
                                         searchAxis = memberModel.axis
-                                    relationships = concept_relationships(self.rendrCntx,
-                                                         None,
-                                                         (memQname,
+                                    relationships = concept_relationships(self.rendrCntx,  # type: ignore[arg-type]
+                                                         None,  # type: ignore[arg-type]
+                                                         (memQname,  # type: ignore[arg-type]
                                                           memberModel.linkrole,
                                                           memberModel.arcrole,
                                                           searchAxis),
@@ -1021,12 +1021,12 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                             valueHeaders.add(header)
                                             headerValues[header] = rel.toModelObject.qname
             if not valueHeaders:
-                relationships = concept_relationships(self.rendrCntx,
-                                     None,
-                                     (aspect,
+                relationships = concept_relationships(self.rendrCntx,  # type: ignore[arg-type]
+                                     None,  # type: ignore[arg-type]
+                                     (aspect,  # type: ignore[arg-type]
                                       "XBRL-all-linkroles", # linkrole,
                                       "XBRL-dimensions",
-                                      'descendant'),
+                                      "descendant"),
                                      False) # return flat list
                 for rel in relationships:
                     if (rel.arcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember)
@@ -1034,7 +1034,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                         header = rel.toModelObject.label(lang=self.lang)
                         valueHeaders.add(header)
                         headerValues[header] = rel.toModelObject.qname
-            structuralNode.aspectEntryHeaderValues = headerValues
+            structuralNode.aspectEntryHeaderValues = headerValues  # type: ignore[attr-defined]
         return sorted(valueHeaders)
 
 # import after other modules resolved to prevent circular references

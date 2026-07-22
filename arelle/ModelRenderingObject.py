@@ -426,7 +426,7 @@ class StrctMdlNode:
         recurseParent: bool = True,
         returnStdLabel: bool = True,
         layoutMdlSortOrder: bool = False,
-    ) -> tuple[Any, Any]:
+    ) -> tuple[str | None, str | None]:
         if self.defnMdlNode is None:  # root
             return None, None
         if returnGenLabel:
@@ -498,7 +498,7 @@ class StrctMdlNode:
         recurseParent: bool = True,
         returnStdLabel: bool = True,
         layoutMdlSortOrder: bool = False,
-    ) -> Any:
+    ) -> str | None:
         return self.headerAndSource(role, lang, evaluate, returnGenLabel, returnMsgFormatString, recurseParent, returnStdLabel, layoutMdlSortOrder)[0]
 
     @property
