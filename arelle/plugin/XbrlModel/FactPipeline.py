@@ -41,6 +41,7 @@ if TYPE_CHECKING:
 # any explicit factMap definition in the taxonomy model.
 qnXbrlXmlFactMap = QName("xbrl", xbrlNs, "xBRL-XML")
 qnXbrlJsonFactMap = QName("xbrl", xbrlNs, "xBRL-JSON")
+qnXbrlCsvFactMap = QName("xbrl", xbrlNs, "xBRL-CSV")
 # POC-INLINE: built-in Inline XBRL 1.1 fact map. NOTE spec casing is inconsistent --
 # oim-taxonomy.md uses "inline-XBRL-1.1" (fact-source enumeration) in one place and
 # "inline-xbrl-1.1" (fact map section heading) in another; reconcile before finalizing.
@@ -257,6 +258,30 @@ def iterModuleFacts(compMdl: "XbrlCompiledModel") -> Iterator["XbrlFact"]:
 # Backend: CSV loader (streaming, registered for XbrlTableTemplate)
 # --------------------------------------------------------------------
 
+class _CsvTableSpec:
+    """Lightweight table descriptor consumed by ``LoadCsvTable.csvTableRowFacts``.
+
+    Carries the minimum the CSV row-reader needs: the source ``name`` (QName),
+    the CSV ``url``, the ``template`` QName (an OIM XbrlTableTemplate resolved
+    from the taxonomy), plus per-table ``parameters`` and the optional-file flag.
+    A native xBRL-CSV loader may additionally hand over a resolved ``tableTemplate``
+    object and report-level ``reportDimensions`` / ``reportDecimals`` /
+    ``reportParameters`` context via keyword arguments.
+    """
+    def __init__(self, name, url, template=None, optional=False, parameters=None,
+                 tableTemplate=None, reportDimensions=None, reportDecimals=None,
+                 reportParameters=None):
+        self.name = name
+        self.url = url
+        self.template = template
+        self.optional = optional
+        self.parameters = parameters or {}
+        self.tableTemplate = tableTemplate
+        self.reportDimensions = reportDimensions
+        self.reportDecimals = reportDecimals
+        self.reportParameters = reportParameters
+
+
 class CsvFactsLoader:
     """Streams XbrlFact objects out of a CSV-backed `XbrlFactSource`.
 
@@ -280,22 +305,24 @@ class CsvFactsLoader:
 
     def facts(self) -> Iterator["XbrlFact"]:
         from .LoadCsvTable import csvTableRowFacts
-        # The XbrlFactSource references a factMap whose templateName is an
-        # XbrlTableTemplate. The concrete `table` object (with `.url`,
-        # `.parameters`, `.template`, `.optional`, `.name`) is expected to be
-        # discoverable on the factSource via a tableSource attribute; until
-        # the spec wires that explicitly we read it from `factSource.tableSource`
-        # and skip with a diagnostic if absent.
-        table = getattr(self.factSource, "tableSource", None)
-        if table is None:
+        # The XbrlFactSource references a factMap whose templateName is the
+        # XbrlTableTemplate, and the CSV url is resolved from the module's
+        # documentInfo.sourceMappings (matched by sourceName == factSource.name).
+        # Build the lightweight `table` the CSV core consumes from those two.
+        factMap = self.compMdl.namedObjects.get(getattr(self.factSource, "factMapName", None))
+        templateQn = getattr(factMap, "templateName", None)
+        url = _sourceUrlForFactSource(self.module, self.factSource)
+        if templateQn is None or not url:
             self.compMdl.warning(
                 "arelle:csvFactSourceNotResolved",
-                _("XbrlFactSource %(name)s declares a CSV factMap but no resolvable tableSource; "
-                  "CSV ingestion skipped."),
+                _("XbrlFactSource %(name)s declares a CSV factMap but no resolvable table "
+                  "template or source url; CSV ingestion skipped."),
                 xbrlObject=self.factSource,
                 name=getattr(self.factSource, "name", None),
             )
             return
+        table = _CsvTableSpec(name=getattr(self.factSource, "name", None), url=url,
+                              template=templateQn)
         for _rowIndex, rowFactObjs in csvTableRowFacts(
             table,
             self.compMdl,
@@ -335,9 +362,11 @@ def _builtinFactMapParsers() -> dict[Any, Callable[..., Any]]:
         from .LoadXbrlXmlFacts import parseXbrlXmlFacts
         from .LoadOimJsonFacts import parseOimJsonFacts
         from .LoadInlineFacts import parseInlineFacts  # POC-INLINE
+        from .LoadXbrlCsvFacts import parseXbrlCsvFacts
         _BUILTIN_FACT_MAP_PARSERS[qnXbrlXmlFactMap] = parseXbrlXmlFacts
         _BUILTIN_FACT_MAP_PARSERS[qnXbrlJsonFactMap] = parseOimJsonFacts
         _BUILTIN_FACT_MAP_PARSERS[qnInlineFactMap] = parseInlineFacts  # POC-INLINE
+        _BUILTIN_FACT_MAP_PARSERS[qnXbrlCsvFactMap] = parseXbrlCsvFacts
     return _BUILTIN_FACT_MAP_PARSERS
 
 
@@ -448,6 +477,7 @@ def pocReportEntryFactMap(filepath) -> Optional[str]:
 
       * inline XBRL 1.1 (.htm/.html/.xhtml carrying the ix namespace) -> xbrl:inline-XBRL-1.1
       * XBRL 2.1 instance (.xml with an xbrli:xbrl root)              -> xbrl:xBRL-XML
+      * xBRL-CSV report (.json with an xbrl-csv documentType)         -> xbrl:xBRL-CSV
       * xBRL-JSON instance (.json with an xbrl-json documentType)     -> xbrl:xBRL-JSON
 
     Never fires while the compiler is internally re-loading a report's DTS (the legacy
@@ -480,8 +510,14 @@ def pocReportEntryFactMap(filepath) -> Optional[str]:
                 return "xbrl:xBRL-XML"
         elif ext == "json":
             with io.open(filepath, "rt", encoding="utf-8", errors="replace") as f:
-                if "xbrl-json" in f.read(4096):  # xBRL-JSON instance documentType
-                    return "xbrl:xBRL-JSON"
+                head = f.read(4096)
+            # documentType is "https://xbrl.org/.../xbrl-csv" or ".../xbrl-json"; the
+            # two substrings are distinct. An OIM taxonomy .json is claimed earlier
+            # (isXbrlModelLoadable), so this only sees report documents.
+            if "xbrl-csv" in head:  # xBRL-CSV metadata documentType
+                return "xbrl:xBRL-CSV"
+            if "xbrl-json" in head:  # xBRL-JSON instance documentType
+                return "xbrl:xBRL-JSON"
     except (IOError, OSError, ValueError):
         pass
     return None

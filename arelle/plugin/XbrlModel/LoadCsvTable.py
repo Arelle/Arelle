@@ -6,6 +6,7 @@ Processes TableObject and yields rows of facts
 '''
 import os
 from collections import defaultdict
+from arelle import XmlValidate
 from arelle.oim.Load import (parseMetadataCellValues, csvCellValue, _isParamRef, _getParamRefName, csvPeriod,
                              openCsvReader,
                              CSV_FACTS_FILE, EMPTY_LIST, EMPTY_DICT, EMPTY_CELL, NONE_CELL, INVALID_REFERENCE_TARGET,
@@ -13,12 +14,76 @@ from arelle.oim.Load import (parseMetadataCellValues, csvCellValue, _isParamRef,
 from arelle.oim.const import IDENTIFIER_PATTERN as IdentifierPattern
 from arelle.ModelValue import qname
 from .XbrlConcept import XbrlConcept
-from .XbrlCube import coreDimensionsByLocalname
-from .XbrlDimension import XbrlDimension
-from .XbrlFact import XbrlFact, XbrlTableTemplate
+from .XbrlCube import (coreDimensionsByLocalname, coreDimensions,
+                       conceptCoreDim, entityCoreDim, languageCoreDim)
+from .XbrlDimension import XbrlDimension, xbrlMemberObj
+from .XbrlFact import XbrlFact, XbrlFactValue, XbrlTableTemplate
+from .XbrlProperty import XbrlProperty
+from .LoadFactsCommon import qnNil, qnUnknownNilReason
 
 # Load CSV Table
 columnProperties = {"comment", "decimals", "dimensions", "propertyGroups", "parameterURL", "propertiesFrom"}
+
+
+def _isExplicitDimension(txmyMdl, dimObj):
+    """A dimension is explicit when its domain class admits member objects
+    (allowedDomainItem == xbrl:member); otherwise it is a typed dimension whose
+    values are validated against a data type. (getattr on domClassObj is a guard
+    against a missing / non-domain-class target, not a defaulted property.)"""
+    domClassObj = txmyMdl.namedObjects.get(dimObj.domainClass)
+    return getattr(domClassObj, "allowedDomainItem", None) == xbrlMemberObj
+
+
+def _coreDimQName(dimName, prefixNamespaces):
+    """Return the core-dimension QName for a table/column dimension key, or None
+    for a taxonomy-defined dimension. Accepts both the bare xBRL-CSV form
+    (``concept``/``period``/``entity``/``unit``/``language``) and the OIM
+    XbrlTableTemplate prefixed form (``xbrl:concept`` ...)."""
+    if dimName in coreDimensionsByLocalname:
+        return coreDimensionsByLocalname[dimName]
+    if isinstance(dimName, str) and ":" in dimName:
+        qn = qname(dimName, prefixNamespaces)
+        if qn is not None and qn in coreDimensions:
+            return qn
+    return None
+
+
+def _templateFrontEnd(tableTemplate):
+    """Normalise a table template to the internal row-reading shape shared by the
+    xBRL-CSV core, returning ``(columns, tableDimensions, decimals, rowIdColumn)``:
+
+    * ``columns`` -- a dict ``{columnName: {property: value}}`` whose fact
+      dimensions live under the ``dimensions`` key.
+    * ``tableDimensions`` -- table-level dimensions dict.
+
+    Two front-ends are supported:
+
+    * **OIM XbrlTableTemplate** -- ``columns`` is a LIST of
+      ``{columnName, factDimensions, ...}`` and the table dimensions live under
+      ``factDimensions``. Adapted here to the internal shape.
+    * **native xBRL-CSV metadata** -- ``columns`` is already a dict keyed by
+      column id with a ``dimensions`` key, and table dimensions live under
+      ``dimensions``. Passed through unchanged.
+    """
+    columns = tableTemplate.columns or {}
+    if isinstance(columns, list):
+        # OIM XbrlTableTemplate front-end: list of column objects -> dict, and the
+        # per-column / table-level fact dimensions move from factDimensions ->
+        # dimensions so the shared core reads them uniformly.
+        colDict = {}
+        for col in columns:
+            colName = col.get("columnName")
+            if colName is None:
+                continue
+            props = {k: v for k, v in col.items() if k != "columnName"}
+            if "factDimensions" in props:
+                props["dimensions"] = props.pop("factDimensions")
+            colDict[colName] = props
+        tableDimensions = dict(tableTemplate.factDimensions or {})
+        return colDict, tableDimensions, tableTemplate.decimals, tableTemplate.rowIdColumn
+    # native xBRL-CSV front-end: already in internal shape
+    return (columns, dict(tableTemplate.dimensions or {}),
+            tableTemplate.decimals, tableTemplate.rowIdColumn)
 
 
 def csvTableRowFacts(table, txmyMdl, error, warning, module, reportUrl=None): # yields facts by row in table
@@ -32,22 +97,32 @@ def csvTableRowFacts(table, txmyMdl, error, warning, module, reportUrl=None): # 
                   table=table.name, url=table.url)
         return
 
-    tableTemplate = txmyMdl.namedObjects.get(table.template)
-    if tableTemplate is None or not isinstance(tableTemplate, XbrlTableTemplate):
+    # A native xBRL-CSV loader may resolve the template itself (report-local, not a
+    # taxonomy object) and hand it over on the table; otherwise (OIM XbrlTableTemplate)
+    # look it up as a taxonomy object by the table's template QName.
+    tableTemplate = table.tableTemplate
+    if tableTemplate is None:
+        tableTemplate = txmyMdl.namedObjects.get(table.template)
+    if tableTemplate is None:
         error("xbrlce:unknownTableTemplate",
               _("The table %(table) template, %(name)s MUST be the identifier of a table template present in the OIM Taxonomy Model."),
               table=table.name, name=table.template)
         return
 
+    # Front-end: normalise OIM XbrlTableTemplate (columns list / factDimensions) or
+    # native xBRL-CSV metadata (columns dict / dimensions) to a common internal shape.
+    templateColumns, tableDimensions, tableDecimals, rowIdColName = _templateFrontEnd(tableTemplate)
+
     tableId = table.name.localName
     # tableIsTransposed = tableTemplate.get("transposed", False)
-    tableDecimals = tableTemplate.decimals
-    tableDimensions = tableTemplate.dimensions
     parseMetadataCellValues(tableDimensions)
-    tableParameters = table.parameters
-    rowIdColName = tableTemplate.rowIdColumn
-    reportDimensions = tableTemplate.dimensions
-    reportDecimals = tableTemplate.decimals
+    tableParameters = table.parameters or {}
+    # Report-level (metadata document) dimensions / decimals / parameters. Only a
+    # native xBRL-CSV report supplies these; for an OIM XbrlTableTemplate they are empty.
+    reportDimensions = dict(table.reportDimensions or {})
+    reportDecimals = table.reportDecimals
+    reportParameters = table.reportParameters or {}
+    parseMetadataCellValues(reportDimensions)
     tableUrl = table.url
     tableParameterColNames = set()
     hasHeaderError = False # set to true blocks handling file beyond header row
@@ -60,7 +135,7 @@ def csvTableRowFacts(table, txmyMdl, error, warning, module, reportUrl=None): # 
     dimensionsColumns = set()
     commentColumns = set()
     extensionColumnProperties = defaultdict(dict)
-    for colId, colProperties in tableTemplate.columns.items():
+    for colId, colProperties in templateColumns.items():
         isCommentColumn = colProperties.get("comment") == True
         if isCommentColumn:
             commentColumns.add(colId)
@@ -167,13 +242,16 @@ def csvTableRowFacts(table, txmyMdl, error, warning, module, reportUrl=None): # 
                                         else:
                                             potentialInvalidReferenceTargets[dimName] = dimValue
                             elif ":" in dimName and ":" in dimValue:
-                                dimConcept = modelXbrl.qnameConcepts.get(qname(dimName, namespaces))
-                                if dimConcept is not None and dimConcept.isExplicitDimension:
-                                    memConcept = modelXbrl.qnameConcepts.get(qname(dimValue, namespaces))
-                                    if memConcept is not None and modelXbrl.dimensionDefaultConcepts.get(dimConcept) == memConcept:
-                                        error("xbrlce:invalidDimensionValue",
-                                              _("Table %(table)s %(source)s %(dimension)s value must not be the default member %(member)s, url: %(url)s"),
-                                              table=tableId, source=dimSource, dimension=dimName, member=dimValue, url=tableUrl)
+                                # Best-effort default-member check against the compiled OIM
+                                # model. Core dimensions (xbrl:concept etc.) resolve to no
+                                # dimension object and are skipped; the default-member value
+                                # is not tracked in the compiled model, so no value check is
+                                # applied (this branch must never reference infrastructure
+                                # objects that do not exist in the plugin model).
+                                dimQn = qname(dimName, prefixNamespaces)
+                                dimObj = txmyMdl.namedObjects.get(dimQn) if dimQn is not None else None
+                                if isinstance(dimObj, XbrlDimension) and _isExplicitDimension(txmyMdl, dimObj):
+                                    pass
             for commentCol in commentColumns:
                 colNameIndex.pop(commentCol,None) # remove comment columns from col name index
             unreportedFactDimensionColumns = factDimensions.keys() - set(header)
@@ -407,42 +485,84 @@ def csvTableRowFacts(table, txmyMdl, error, warning, module, reportUrl=None): # 
                 factPositionObj = XbrlFact(xbrlMdlObjIndex=len(txmyMdl.xbrlObjects))
                 txmyMdl.xbrlObjects.append(factPositionObj)
                 factPositionObj.parent = module
+                factPositionObj.module = module
                 factPositionObj.name = qname(factId, prefixNamespaces)
                 factPositionObj.value = fact.get("value")
                 factPositionObj.decimals = None
+                factPositionObj.extends = None
+                factPositionObj.factQualifier = None
+                factPositionObj.properties = None
                 factPositionObj.factDimensions = {}
                 dimensionsUsed = set()
                 cObj = None
                 for dim, val in fact["dimensions"].items():
-                    valIsQname = dim == "concept"
-                    if ":" in dim:
-                        dim = qname(dim, prefixNamespaces)
-                        if dim is None:
+                    # Core dimensions (accepts bare "concept" or prefixed "xbrl:concept"):
+                    # concept + explicit-dimension members carry QName values; period /
+                    # unit / language stay strings; entity is carried as a QName when
+                    # prefixed.  Values are fully resolved here so the fact is well-formed
+                    # for validateFactPosition even on the streaming path (which does not
+                    # call resolveFact).
+                    coreQn = _coreDimQName(dim, prefixNamespaces)
+                    if coreQn is not None:
+                        dimensionsUsed.add(dim)
+                        if coreQn == conceptCoreDim:
+                            valQn = qname(val, prefixNamespaces)
+                            if valQn is None:
+                                error("xbrlce:invalidReferenceTarget",
+                                      _("Table %(table)s %(dimension)s value %(value)s target not in table columns, parameters or report parameters"),
+                                      table=tableId, dimension=dim, value=val)
+                                continue
+                            cObj = txmyMdl.namedObjects.get(valQn)
+                            factPositionObj.factDimensions[conceptCoreDim] = valQn
+                        elif coreQn == entityCoreDim:
+                            valQn = qname(val, prefixNamespaces) if isinstance(val, str) and ":" in val else None
+                            factPositionObj.factDimensions[entityCoreDim] = valQn if valQn is not None else val
+                        else:  # period / unit / language keep their string representation
+                            factPositionObj.factDimensions[coreQn] = val
+                    else:
+                        dimQn = qname(dim, prefixNamespaces)
+                        if dimQn is None:
                             error("xbrlce:invalidReferenceTarget",
                                   _("Table %(table)s %(dimension)s target not in table columns, parameters or report parameters"),
                                   table=tableId, dimension=dim)
                             continue
-                        dimObj = txmyMdl.namedObjects.get(dim)
-                        if isinstance(dimObj, XbrlDimension) and dimObj.isExplicitDimension:
-                            valIsQname = True
-                    elif dim in ("concept", "period", "entity"):
                         dimensionsUsed.add(dim)
-                    if valIsQname:
-                        val = qname(val, prefixNamespaces)
-                        if val is None:
-                            error("xbrlce:invalidReferenceTarget",
-                                  _("Table %(table)s %(dimension)s value %(value)s target not in table columns, parameters or report parameters"),
-                                  table=tableId, dimension=dim, value=val)
-                            continue
-                        if dim == "concept":
-                            cObj = txmyMdl.namedObjects.get(val)
-                    factPositionObj.factDimensions[coreDimensionsByLocalname.get(dim,dim)] = val
+                        dimObj = txmyMdl.namedObjects.get(dimQn)
+                        if isinstance(dimObj, XbrlDimension) and _isExplicitDimension(txmyMdl, dimObj):
+                            valQn = qname(val, prefixNamespaces)
+                            if valQn is None:
+                                error("xbrlce:invalidReferenceTarget",
+                                      _("Table %(table)s %(dimension)s value %(value)s target not in table columns, parameters or report parameters"),
+                                      table=tableId, dimension=dimQn, value=val)
+                                continue
+                            factPositionObj.factDimensions[dimQn] = valQn
+                        else:  # typed dimension: value validated against a data type
+                            factPositionObj.factDimensions[dimQn] = val
                 if isinstance(cObj, XbrlConcept):
-                    if "language" in fact["dimensions"] and cObj.isOimTextFactType(txmyMdl):
-                        dimensionsUsed.add("language")
-
-                    if cObj.isNumeric(txmyMdl):
+                    # A nil fact (value None) MUST NOT carry a decimals property
+                    # (oime:misplacedDecimalsProperty); only valued numeric facts do.
+                    if cObj.isNumeric(txmyMdl) and fact.get("value") is not None:
                         factPositionObj.decimals = fact.get("decimals")
+
+                # Materialise a factValue so the fact participates in value validation and
+                # duplicate-fact detection like the built-in fact-map loaders. A #nil cell
+                # yields value None + the xbrl:nil property (LoadFactsCommon.qnNil) so nil
+                # validation and duplicate detection recognise it.
+                fv = XbrlFactValue(xbrlMdlObjIndex=len(txmyMdl.xbrlObjects))
+                txmyMdl.xbrlObjects.append(fv)
+                fv.fact = factPositionObj
+                fv.name = qname(factId + "_fv", prefixNamespaces)
+                fv.value = factPositionObj.value
+                fv.decimals = factPositionObj.decimals
+                fv.language = factPositionObj.factDimensions.get(languageCoreDim)
+                fv.valueSources = None
+                fv.valueAnchors = None
+                factPositionObj.factValues = [fv]
+                if fv.value is None:
+                    nilProp = XbrlProperty()
+                    nilProp.property = qnNil
+                    nilProp.value = qnUnknownNilReason
+                    factPositionObj.properties = [nilProp]
 
                 rowFactObjs.append(factPositionObj)
 

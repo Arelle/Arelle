@@ -1282,8 +1282,10 @@ def isXbrlModelLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs)
             lastFilePath = filepath
             lastFilePathIsLegacy = True
     # POC: also claim a legacy REPORT entry point (inline XBRL 1.1 .htm/.xhtml, XBRL 2.1
-    # .xml instance, or xBRL-JSON .json instance) so it loads into the XbrlModel object
-    # model via the matching built-in fact map instead of the plain infrastructure.
+    # .xml instance, xBRL-JSON .json instance, or xBRL-CSV .json metadata) so it loads into
+    # the XbrlModel object model via the matching built-in fact map instead of the plain
+    # infrastructure. (xBRL-CSV report import is not required by the OIM taxonomy spec --
+    # it exists only for entry-point symmetry with the other legacy report formats.)
     if not lastFilePathIsOIM and not lastFilePathIsLegacy and kwargs.get("isEntry"):
         from .FactPipeline import pocReportEntryFactMap
         _factMap = pocReportEntryFactMap(filepath)
