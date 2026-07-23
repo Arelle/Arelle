@@ -136,11 +136,29 @@ the fact and concept views populate. (Hook: `CntlrWinMain.Xbrl.Views`,
 
 ### Saving a model
 
-**File ▸ Save** serializes the loaded model as a single OIM *compiled* model.
-The save mode is selected with the formula parameter `oimSaveMode` (default
-`full`; also `prune` and `report` — see the [`__init__.py`](__init__.py) header).
-Output format (JSON / CBOR / Excel) follows the chosen file extension. (Hook:
-`CntlrWinMain.Xbrl.Save`.)
+**File ▸ Save** (GUI) or **`--saveOIMmodel <file>`** (command line) serializes the
+loaded model as a single OIM *compiled* model (documentType `…/2026/compiled`).
+Output format (JSON / CBOR / Excel) follows the file extension. The mode is chosen
+in a modal on GUI Save, or with the CLI `--oimSaveMode` option / the formula
+parameter `oimSaveMode` (default `full`):
+
+- **`full`** — every discovered object and all facts, as loaded.
+- **`prune`** — the *interpretation-minimal* closure: only the taxonomy objects a
+  consumer needs to *interpret* the reported facts (their concepts, dimensions,
+  members, datatypes, labels, units). Networks, cubes and the reporting structure
+  are dropped — a self-describing fact carries its own factDimensions.
+- **`report`** — the *semantic / consumable* closure: the `prune` closure **plus**
+  the presentation networks and cubes that organise the reported facts, and the
+  reporting-structure groups + `groupTree` that section them, with facts tailored to
+  viewer Form B. **Empty abstract subgroups** — sections that organise no reported
+  fact — are dropped like any other unused object, so the section tree a viewer or an
+  LLM/MCP consumer navigates carries no empty noise.
+
+This lets a facts-only aligned-facts module that imports its taxonomy (e.g. a legacy
+DTS bound via `importMapping`) be loaded and re-emitted as a complete, self-contained
+compiled model. See the [`__init__.py`](__init__.py) header and
+[`PruneModel.py`](PruneModel.py). (Hooks: `CntlrWinMain.Xbrl.Save`;
+`CntlrCmdLine.Xbrl.Loaded` for the command line.)
 
 ### PDF fact-locator tools
 

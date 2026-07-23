@@ -3,16 +3,27 @@ See COPYRIGHT.md for copyright information.
 
 Reachability pruning for SaveModel (PRUNE / REPORT save modes).
 
-A serialized compiled model may legitimately be a *partial* model: only the taxonomy
-objects required to interpret the reported facts (their concepts, dimensions, members,
-units and the datatype closure of those), plus the labels/references attached to the
-retained objects. See oim-taxonomy/documentation/COMPILED_MODEL_SERIALIZATION_SCOPE.md
-for why (fact-set export, licensing of copyrighted base taxonomies such as US-GAAP/IFRS).
+A serialized compiled model may legitimately be a *partial* model. Two closures are useful
+(see oim-taxonomy/documentation/COMPILED_MODEL_SERIALIZATION_SCOPE.md for why -- fact-set
+export, licensing of copyrighted base taxonomies such as US-GAAP/IFRS):
 
-`pruneClosure(model)` returns the set of retained object QNames (the fact-reachability
-closure). `pruneSkip(obj, retained)` classifies a single serialized object as keep/drop so
-SaveModel's serializer can filter module object collections. When `retained is None`
-(FULL mode) nothing is pruned.
+  * PRUNE  -- the interpretation-minimal closure: only the taxonomy objects required to
+              *interpret* the reported facts (their concepts, dimensions, members, units and
+              the datatype closure of those), plus the labels/references attached to them.
+              Presentation/structure objects (networks, cubes, groups, groupTree, headings)
+              are dropped -- a self-describing fact carries its own factDimensions.
+  * REPORT -- the semantic/consumable closure: the PRUNE closure PLUS the presentation
+              networks and cubes that organise the reported facts, and the reporting-structure
+              groups + groupTree that section them (with `includeNetworks=True`). Empty abstract
+              subgroups -- sections that organise no reported fact -- are dropped like any other
+              unused object, and groupTree relationships to dropped groups are filtered, so the
+              emitted section tree stays connected and dangling-free.
+
+`pruneClosure(model, includeNetworks)` returns the set of retained object QNames (the
+reachability closure; `includeNetworks=True` adds the REPORT structure). `pruneSkip(obj,
+retained, reportMode)` classifies a single serialized object as keep/drop so SaveModel's
+serializer can filter module object collections. When `retained is None` (FULL mode) nothing
+is pruned.
 '''
 from arelle.ModelValue import qname, QName
 
@@ -55,6 +66,13 @@ def pruneClosure(txmyMdl, includeNetworks=False):
         for an open concept dimension, any of its explicit dimensions / domain networks / cube
         networks is retained -- and retaining it pulls in its cube dimensions, their domain networks
         and its cube networks (whose endpoints the network loop then follows to a fixpoint).
+
+        The reporting structure (groups + groupTree) is retained by content, not wholesale: a group
+        is kept iff it organizes retained content (a groupContent whose network/cube is retained) or
+        is an ancestor of such a group; an empty abstract subgroup that organizes no reported fact is
+        dropped like any other unused object. groupTree relationships to dropped groups are filtered
+        in pruneSkip (kept iff the target group is retained), so the emitted tree stays connected and
+        dangling-free.
     """
     named = txmyMdl.namedObjects
     pfxns = txmyMdl.prefixedNamespaces
@@ -182,6 +200,35 @@ def pruneClosure(txmyMdl, includeNetworks=False):
                 if cubeTouches(cube):
                     retainCube(cube)
                     changed = True
+
+        # Reporting structure (groups + groupTree): retain only a section that organizes reported
+        # content -- a group with a groupContent whose network/cube is retained -- plus its
+        # ancestors in the group tree (so tree paths from the root stay connected). An empty
+        # abstract subgroup that organizes no reported fact is dropped, exactly like any other
+        # unused object. The groupTree's taxonomy-group relationships to dropped groups are filtered
+        # out in pruneSkip (a relationship is kept iff its target group is retained), keeping the
+        # emitted tree dangling-free.
+        for module in txmyMdl.xbrlModels.values():
+            groupNames = {g.name for g in getattr(module, "groups", None) or ()}
+            groupTree = getattr(module, "groupTree", None)
+            parentOfGroup = {} # child group -> parent group (source is the taxonomy for a root group)
+            for rel in getattr(groupTree, "relationships", None) or ():
+                src = getattr(rel, "source", None)
+                tgt = getattr(rel, "target", None)
+                if tgt is not None and src in groupNames:
+                    parentOfGroup[tgt] = src
+            anyGroupRetained = False
+            for gc in getattr(module, "groupContents", None) or ():
+                if getattr(gc, "forObject", None) not in retained:
+                    continue # this content links to a pruned network/cube
+                grp = getattr(gc, "groupName", None)
+                while grp is not None and grp not in retained: # add the group and its ancestors
+                    add(grp)
+                    anyGroupRetained = True
+                    grp = parentOfGroup.get(grp)
+            if anyGroupRetained and groupTree is not None:
+                add(getattr(groupTree, "name", None))
+        drain()
     return retained
 
 
@@ -195,6 +242,21 @@ def pruneSkip(obj, retained, reportMode=False):
     if retained is None:
         return False
     cls = type(obj).__name__
+    if cls == "XbrlGroupContent":
+        # A groupContent is keyed by (groupName, forObject), not by a `name`, so it cannot be kept
+        # by name-in-closure like the other DROP_CLASSES. In REPORT mode keep it iff both its group
+        # and the network/cube it links are retained (else it would dangle); always drop in PRUNE.
+        if not reportMode:
+            return True
+        return not (getattr(obj, "groupName", None) in retained
+                    and getattr(obj, "forObject", None) in retained)
+    if cls == "XbrlRelationship":
+        # Relationships are nested in networks / cubes / the groupTree. A retained network or cube
+        # has ALL its endpoints in the closure (pruneClosure pulls them), so only the groupTree's
+        # taxonomy-group relationships to a dropped (empty) subgroup fail this test -- dropping them
+        # keeps the emitted group tree free of dangling references. The target is always the child
+        # endpoint (a group, member or concept); the source may be the taxonomy root, so test target.
+        return reportMode and getattr(obj, "target", None) not in retained
     if cls in _DROP_CLASSES:
         if reportMode: # networks/groups/headings kept iff in the (network-expanded) closure
             return getattr(obj, "name", None) not in retained
