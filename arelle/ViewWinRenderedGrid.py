@@ -67,7 +67,7 @@ def viewRenderedGrid(modelXbrl: ModelXbrl, tabWin: Notebook, lang: str | None = 
 
     view.blockMenuEvents = 1
 
-    menu = view.contextMenu()  # type: ignore[no-untyped-call]
+    menu = view.contextMenu()
     optionsMenu = Menu(view.viewFrame, tearoff=0)
     optionsMenu.add_command(label=_("New fact item options"), underline=0, command=lambda: getNewFactItemOptions(modelXbrl.modelManager.cntlr, view.newFactItemOptions))  # type: ignore[no-untyped-call]
     optionsMenu.add_command(label=_("Open breakdown entry rows"), underline=0, command=view.setOpenBreakdownEntryRows)
@@ -126,7 +126,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
     rowHdrColWidth: list[int]
 
     def __init__(self, modelXbrl: ModelXbrl, tabWin: Notebook, lang: str | None) -> None:
-        super(ViewRenderedGrid, self).__init__(modelXbrl, tabWin, _("Table"),  # type: ignore[no-untyped-call]
+        super(ViewRenderedGrid, self).__init__(modelXbrl, tabWin, _("Table"),
                                                False, lang, self.onQuitView)
         self.newFactItemOptions = ModelInstanceObject.NewFactItemOptions(xbrlInstance=modelXbrl)
         self.factPrototypes: list[FactPrototype | None] | None = []
@@ -212,7 +212,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             clearZchoices = self.zHdrElts is None
 
         # remove old widgets
-        self.viewFrame.clearGrid()  # type: ignore[attr-defined]
+        self.viewFrame.clearGrid()
 
         layoutTable(self)  # type: ignore[no-untyped-call]
 
@@ -528,7 +528,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                             if TRACE_TK:
                                 print(f"body comboBox enums x {xColNum} y {yRowNum} values {enumerationValues} value {effectiveValue}")
                             self.table.initCellCombobox(effectiveValue,
-                                                        enumerationValues,
+                                                        enumerationValues,  # type: ignore[arg-type]
                                                         xColNum,
                                                         yRowNum,
                                                         objectId=objectId,
@@ -582,7 +582,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 if TRACE_TK:
                                     print(f"body comboBox qnames x {xColNum} y {yRowNum} values {qNameValues} value {effectiveValue}")
                                 self.table.initCellCombobox(effectiveValue,
-                                                            qNameValues,
+                                                            qNameValues,  # type: ignore[arg-type]
                                                             xColNum,
                                                             yRowNum,
                                                             objectId=objectId,
@@ -601,7 +601,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                             if TRACE_TK:
                                 print(f"body comboBox bools x {xColNum} y {yRowNum} values {booleanValues} value {effectiveValue}")
                             self.table.initCellCombobox(effectiveValue,
-                                                        booleanValues,
+                                                        booleanValues,  # type: ignore[arg-type]
                                                         xColNum,
                                                         yRowNum,
                                                         objectId=objectId,
@@ -677,7 +677,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                 self.updateInstanceFromFactPrototypes()
                 self.lastFrameWidth = frameWidth
                 self.lastFrameHeight = frameHeight
-                self.setHeightAndWidth()  # type: ignore[no-untyped-call]
+                self.setHeightAndWidth()
                 if lastFrameWidth:
                     # frame resized, recompute row header column widths and lay out table columns
                     """
@@ -744,9 +744,9 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     else:
                         # check user keyed changes to facts
                         cellIndex = str(modifiedCell)
-                        comboboxCells = tbl.window_names(cellIndex)
+                        comboboxCells = tbl.window_names(cellIndex)  # type: ignore[no-untyped-call]
                         if comboboxCells is not None and len(comboboxCells) > 0:
-                            comboName = tbl.window_cget(cellIndex, "-window")
+                            comboName = tbl.window_cget(cellIndex, "-window")  # type: ignore[no-untyped-call]
                             combobox = cntlr.parent.nametowidget(comboName)  # type: ignore[attr-defined]
                         else:
                             combobox = None
