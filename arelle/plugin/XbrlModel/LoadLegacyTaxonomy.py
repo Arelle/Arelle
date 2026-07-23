@@ -298,6 +298,13 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
         grpName = pfx.prefixFor(_documentNs(modelXbrl)) + ":group_" + grpLocal
         groups.append({"name": grpName, "groupURI": roleUri})
         roleGroups.append((roleUri, grpName))
+        # The role's <definition> is the human-readable section name (e.g. "[110000] Statement of
+        # financial position"); emit it as the label for the group AND its cube so consumers/viewers
+        # show real section names instead of the mangled role-URI suffix the group name is built from.
+        roleDefn = _roleDefinition(modelXbrl, roleUri)
+        if roleDefn:
+            labels.append({"forObject": grpName, "language": "en", "value": roleDefn,
+                           "labelType": "xbrl:label"})
 
         cubeName = grpName + "_Cube"
         primaryItems: list[str] = []
@@ -325,6 +332,9 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
         for coreDim in ("xbrl:period", "xbrl:entity", "xbrl:unit"):
             cubeDims.append({"dimension": coreDim, "optional": True})
         cubes.append({"name": cubeName, "cubeType": "xbrl:reportCube", "cubeDimensions": cubeDims})
+        if roleDefn:
+            labels.append({"forObject": cubeName, "language": "en", "value": roleDefn,
+                           "labelType": "xbrl:label"})
 
         # capture the presentation network (if any): filter to modeled objects (drops arcs
         # to/from hypercubes, which are not emitted as objects), then mark the filtered
@@ -599,6 +609,17 @@ def _documentNs(modelXbrl) -> str:
 def _safeLocal(uri: str) -> str:
     import re
     return re.sub(r"\W+", "_", uri.rpartition("/")[2] or uri)[:60]
+
+
+def _roleDefinition(modelXbrl, roleUri: str) -> Optional[str]:
+    """The human-readable <definition> of an extended-link role (roleType) -- e.g. the
+    "[110000] Statement of financial position" title -- used to label the group and cube derived
+    from that role. Returns None when the role declares no definition."""
+    for roleType in modelXbrl.roleTypes.get(roleUri, ()) or ():
+        defn = getattr(roleType, "definition", None)
+        if defn and defn.strip():
+            return defn.strip()
+    return None
 
 
 # ============================================================================
