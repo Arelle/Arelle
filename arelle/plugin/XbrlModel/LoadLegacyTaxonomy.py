@@ -31,7 +31,7 @@ from typing import TYPE_CHECKING, Optional
 
 from arelle import XbrlConst
 
-from .GroupTreeInference import inferGroupTree
+from .GroupTreeInference import inferGroupTree, roleLabel
 
 if TYPE_CHECKING:
     from arelle.ModelXbrl import ModelXbrl
@@ -298,10 +298,11 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
         grpName = pfx.prefixFor(_documentNs(modelXbrl)) + ":group_" + grpLocal
         groups.append({"name": grpName, "groupURI": roleUri})
         roleGroups.append((roleUri, grpName))
-        # The role's <definition> is the human-readable section name (e.g. "[110000] Statement of
-        # financial position"); emit it as the label for the group AND its cube so consumers/viewers
-        # show real section names instead of the mangled role-URI suffix the group name is built from.
-        roleDefn = _roleDefinition(modelXbrl, roleUri)
+        # The role's <definition> is the human-readable section name; emit it as the label for the
+        # group AND its cube so consumers/viewers show real section names instead of the mangled
+        # role-URI suffix the group name is built from. roleLabel() strips the SEC "NNNN - Type -"
+        # prefix (redundant with the group tree) and keeps the IFRS/ESEF "[NNNNNN]" -- see roleLabel.
+        roleDefn = roleLabel(_roleDefinition(modelXbrl, roleUri))
         if roleDefn:
             labels.append({"forObject": grpName, "language": "en", "value": roleDefn,
                            "labelType": "xbrl:label"})

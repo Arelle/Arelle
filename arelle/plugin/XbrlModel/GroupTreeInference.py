@@ -167,6 +167,34 @@ def _isDetail(n): return _secDetail.match(n) is not None
 def _isUncategorized(n): return n == 'UncategorizedItems'
 
 
+def roleLabel(definition: Optional[str]) -> Optional[str]:
+    """Display label for a group/cube derived from an extended-link-role <definition>.
+
+    SEC definitions encode the section number and category as a "NNNN - Type - Name" prefix
+    (e.g. "9952151 - Statement - Condensed Consolidated Statements of Operations"). Both are
+    redundant with the group tree -- the number becomes relationship order, the "- Type -"
+    becomes the category parent node -- so we strip them to the human name, matching what SEC's
+    own interactive-data viewer displays. A native OIM filing would carry only this clean name
+    (see oim-taxonomy-conversion.md, Group tree object), so stripping brings the converted model
+    into the native form.
+
+    IFRS/ESEF choice (change here): ESEF definitions are "[NNNNNN] Name" -- a bracketed number,
+    no "- Type -" word (the category comes from the number range, handled by the group tree).
+    We currently KEEP the "[NNNNNN]" prefix, because ESEF sections are idiomatically cited by
+    that number. The SEC pattern below never matches a "[...]"-prefixed definition, so IFRS
+    falls through unchanged. To strip the bracketed number instead, enable the IFRS branch:
+        m = re.match(r'^\\s*\\[\\d+\\]\\s*(.*\\S)\\s*$', definition)
+        if m: return m.group(1)
+    """
+    if not definition:
+        return definition
+    m = _secShortName.match(definition)  # SEC "NNNN - Type - Name" -> "Name"
+    if m:
+        return m.group(1)
+    # IFRS/ESEF "[NNNNNN] Name": kept as-is for now (see the IFRS choice note above).
+    return definition
+
+
 def _secClassify(state: str, longName: str) -> str:
     """The EDGAR finite-state machine: current category given the previous one and this
     role's definition text. Faithful to Summary.classifyReportFiniteStateMachine (the
