@@ -21,7 +21,6 @@ conceptAttributeEventAttributes: dict[str, tuple[str, ...]] = {
         "conceptAttributeDelete": ("fromCustomAttribute",),
         "conceptAttributeAdd": ("toCustomAttribute",),
         "conceptAttributeChange": ("fromCustomAttribute", "toCustomAttribute"),
-        "conceptAttributeChange": ("fromCustomAttribute", "toCustomAttribute"),
         "attributeDefinitionChange": ("fromCustomAttribute", "toCustomAttribute"),
         }
 
