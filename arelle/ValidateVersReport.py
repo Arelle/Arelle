@@ -1,15 +1,28 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
-from arelle import ModelVersObject, XbrlConst, ValidateXbrl, ModelDocument
-from arelle.ModelValue import qname
+"""
+from __future__ import annotations
 
-conceptAttributeEventAttributes = {
+from typing import TYPE_CHECKING, cast
+
+from arelle import ModelVersObject, XbrlConst, ValidateXbrl
+from arelle.ModelValue import qname
+from arelle.typing import TypeGetText
+
+if TYPE_CHECKING:
+    from arelle.ModelXbrl import ModelXbrl
+    from arelle.ModelVersReport import ModelVersReport
+    from arelle.ModelDtsObject import ModelConcept
+    from arelle.ModelObject import ModelObject
+
+_: TypeGetText
+
+conceptAttributeEventAttributes: dict[str, tuple[str, ...]] = {
         "conceptAttributeDelete": ("fromCustomAttribute",),
         "conceptAttributeAdd": ("toCustomAttribute",),
-        "conceptAttributeChange": ("fromCustomAttribute","toCustomAttribute"),
-        "conceptAttributeChange": ("fromCustomAttribute","toCustomAttribute"),
-        "attributeDefinitionChange": ("fromCustomAttribute","toCustomAttribute"),
+        "conceptAttributeChange": ("fromCustomAttribute", "toCustomAttribute"),
+        "conceptAttributeChange": ("fromCustomAttribute", "toCustomAttribute"),
+        "attributeDefinitionChange": ("fromCustomAttribute", "toCustomAttribute"),
         }
 
 schemaAttributeEventAttributes = {
@@ -24,16 +37,17 @@ schemaAttributeEventAttributes = {
         "conceptFinalChange": "final"
         }
 
-class ValidateVersReport():
-    def __init__(self, testModelXbrl):
+
+class ValidateVersReport:
+    def __init__(self, testModelXbrl: ModelXbrl) -> None:
         self.testModelXbrl = testModelXbrl  # testcase or controlling validation object
 
-    def close(self):
+    def close(self) -> None:
         self.__dict__.clear()   # dereference everything
 
-    def validate(self, modelVersReport):
+    def validate(self, modelVersReport: ModelXbrl) -> None:
         self.modelVersReport = modelVersReport
-        versReport = modelVersReport.modelDocument
+        versReport = cast("ModelVersReport", modelVersReport.modelDocument)
         if not hasattr(versReport, "xmlDocument"): # not parsed
             return
         for DTSname in ("fromDTS", "toDTS"):
@@ -136,9 +150,8 @@ class ValidateVersReport():
                             modelObject=conceptChange, action=conceptChange.actionId,
                             event=conceptChange.name, concept=conceptChange.fromConceptQname)
                     # tuple check
-                    elif _("Child") in conceptChange.name and \
-                        not versReport.fromDTS.qnameConcepts[fromConcept.qname] \
-                            .isTuple:
+                    elif (_("Child") in conceptChange.name and
+                        not versReport.fromDTS.qnameConcepts[fromConcept.qname].isTuple):
                         self.modelVersReport.error("vercue:invalidConceptReference",
                             _("%(action)s %(event)s fromConcept %(concept)s must be defined as a tuple"),
                             modelObject=conceptChange, action=conceptChange.actionId,
@@ -213,9 +226,7 @@ class ValidateVersReport():
                             modelObject=conceptChange, action=conceptChange.actionId,
                             event=conceptChange.name, concept=conceptChange.toConceptQname)
                     # tuple check
-                    elif "Child" in conceptChange.name and \
-                        not versReport.toDTS.qnameConcepts[toConcept.qname] \
-                            .isTuple:
+                    elif "Child" in conceptChange.name and not versReport.toDTS.qnameConcepts[toConcept.qname].isTuple:
                         self.modelVersReport.error("vercue:invalidConceptReference",
                             _("%(action)s %(event)s toConcept %(concept)s must be defined as a tuple"),
                             modelObject=conceptChange, action=conceptChange.actionId,
@@ -294,7 +305,7 @@ class ValidateVersReport():
 
                 # check concept correspondence
                 if fromConcept is not None and toConcept is not None:
-                    if (versReport.toDTSqname(fromConcept.qname) != toConcept.qname and
+                    if (versReport.toDTSqname(fromConcept.qname) != toConcept.qname and  # type: ignore[no-untyped-call]
                         versReport.equivalentConcepts.get(fromConcept.qname) != toConcept.qname and
                         toConcept.qname not in versReport.relatedConcepts.get(fromConcept.qname,[])):
                         self.modelVersReport.error("vercde:invalidConceptCorrespondence",
@@ -452,14 +463,11 @@ class ValidateVersReport():
                                             modelObject=relSetChange, event=relSetChange.name, relSet=name,
                                             conceptFrom=relationship.fromName)
 
-
-
-
             # check instance aspect changes
             for iaChange in versReport.instanceAspectChanges:
                 for instAspects in (iaChange.fromAspects, iaChange.toAspects):
                     if instAspects is not None and instAspects.aspects:
-                        dimAspectElts = {}
+                        dimAspectElts: dict[ModelConcept, ModelObject] = {}
                         for aspect in instAspects.aspects:
                             dts = aspect.modelAspects.dts
                             if (aspect.localName in ("explicitDimension", "typedDimension") and aspect.concept is None):

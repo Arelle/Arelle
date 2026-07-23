@@ -138,7 +138,7 @@ class Validate:
                     exc_info=True)
         elif self.modelXbrl.modelDocument.type == Type.VERSIONINGREPORT:
             try:
-                ValidateVersReport.ValidateVersReport(self.modelXbrl).validate(self.modelXbrl)  # type: ignore[no-untyped-call]
+                ValidateVersReport.ValidateVersReport(self.modelXbrl).validate(self.modelXbrl)
             except Exception as err:
                 self.modelXbrl.error("exception:" + type(err).__name__,
                     _("Versioning report exception: %(error)s, testcase: %(reportFile)s"),
@@ -303,7 +303,7 @@ class Validate:
                 if os.path.exists(versReportFile): #validate existing
                     modelVersReport = modelXbrlLoad(self.modelXbrl.modelManager, versReportFile, _("validating existing version report"))
                     if modelVersReport and modelVersReport.modelDocument and modelVersReport.modelDocument.type == Type.VERSIONINGREPORT:
-                        ValidateVersReport.ValidateVersReport(self.modelXbrl).validate(modelVersReport)  # type: ignore[no-untyped-call]
+                        ValidateVersReport.ValidateVersReport(self.modelXbrl).validate(modelVersReport)
                         self.determineTestStatus(modelTestcaseVariation, modelVersReport.errors)
                         modelVersReport.close()
                 elif len(inputDTSes) == 2:
@@ -540,7 +540,7 @@ class Validate:
             elif resultIsVersioningReport or resultIsTaxonomyPackage:
                 inputDTSes['dtsName'].append(model)
             elif model.modelDocument.type == Type.VERSIONINGREPORT:
-                ValidateVersReport.ValidateVersReport(self.modelXbrl).validate(model)  # type: ignore[no-untyped-call]
+                ValidateVersReport.ValidateVersReport(self.modelXbrl).validate(model)
             elif testcase.type == Type.REGISTRYTESTCASE:
                 self.instValidator.validate(model)  # required to set up dimensions, etc
                 self.instValidator.executeCallTest(model, modelTestcaseVariation.id,

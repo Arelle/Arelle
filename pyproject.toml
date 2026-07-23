@@ -166,7 +166,6 @@ module = [
     'arelle.TableStructure',
     'arelle.TkTableWrapper',
     'arelle.ValidateInfoset',
-    'arelle.ValidateVersReport',
     'arelle.Version',
     'arelle.ViewFileConcepts',
     'arelle.ViewFileFactTable',
