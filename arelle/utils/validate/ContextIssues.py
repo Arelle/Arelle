@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any, cast
 
@@ -69,3 +70,9 @@ def getContextIssues(modelXbrl: ModelXbrl, esefYear: int | None = None, ) -> Con
         contextsWithSegments=contextsWithSegments,
         contextsWithWrongInstantDate=contextsWithWrongInstantDate,
     )
+
+def getContextsByEntityIdentifier(modelXbrl: ModelXbrl) -> dict[tuple[str, str], list[ModelContext]]:
+    contextIdentifiers = defaultdict(list)
+    for context in modelXbrl.contexts.values():
+        contextIdentifiers[context.entityIdentifier].append(context)
+    return dict(contextIdentifiers)
