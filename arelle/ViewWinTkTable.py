@@ -4,8 +4,9 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+from collections.abc import Callable
 from tkinter import Menu
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 from arelle.UITkTable import ScrolledTkTableFrame
 from arelle.ViewWinPane import ViewPane
