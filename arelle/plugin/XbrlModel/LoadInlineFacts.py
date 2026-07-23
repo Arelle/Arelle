@@ -50,7 +50,7 @@ under "Inline XBRL 1.1 fact map". ``TODO`` markers flag the parts still to fill 
 
 NOTE (wiring): a factValue with ``valueAnchors`` requires the factMap to define a
 ``factLocatorType`` (oim-taxonomy.md, oimte:factValueLocatorRequiredForValueSources).
-The built-in ``xbrl:inline-XBRL-1.1`` factMap is registered in resources/xbrlSpec.json
+The built-in ``xbrl:inline-XBRL-1.1`` factMap is registered in resources/core.json
 with ``factLocatorType: xbrl:htmlElementLocatorType`` (whose required property
 ``xbrl:htmlElementId`` the anchors carry). Enforcement of that requirement for the
 ``valueAnchors`` path is not yet wired: ValidateFacts only runs
@@ -81,7 +81,7 @@ from .LoadFactsCommon import (
 #: Locator property QName written into each factValue's valueAnchors. This is the
 #: spec-defined html-element-id property required by the built-in
 #: xbrl:htmlElementLocatorType, which the built-in xbrl:inline-XBRL-1.1 factMap
-#: references as its factLocatorType (see resources/xbrlSpec.json).
+#: references as its factLocatorType (see resources/core.json).
 qnHtmlElementId = QName("xbrl", xbrlNs, "htmlElementId")
 
 
@@ -316,7 +316,7 @@ def _htmlValueAnchor(imf, fv) -> Optional[list]:
     ix element's ``@id``, correlating the (already-computed) value to its source text
     for highlight / mouse-over. The built-in ``xbrl:inline-XBRL-1.1`` factMap declares
     ``xbrl:htmlElementLocatorType`` as its factLocatorType, which requires this
-    property (resources/xbrlSpec.json).
+    property (resources/core.json).
 
     Returns None when the ix element has no ``@id`` (no durable locator; the value
     still validates from ``fv.value`` and the transient back-ref remains available).

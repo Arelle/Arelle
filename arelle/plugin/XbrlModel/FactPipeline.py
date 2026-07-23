@@ -40,7 +40,7 @@ if TYPE_CHECKING:
 # Built-in fact map QNames the spec requires every processor to support without
 # any explicit factMap definition in the taxonomy model.
 qnXbrlXmlFactMap = QName("xbrl", xbrlNs, "xBRL-XML")
-qnOimJsonFactMap = QName("xbrl", xbrlNs, "OIM-JSON")
+qnXbrlJsonFactMap = QName("xbrl", xbrlNs, "xBRL-JSON")
 # POC-INLINE: built-in Inline XBRL 1.1 fact map. NOTE spec casing is inconsistent --
 # oim-taxonomy.md uses "inline-XBRL-1.1" (fact-source enumeration) in one place and
 # "inline-xbrl-1.1" (fact map section heading) in another; reconcile before finalizing.
@@ -323,7 +323,7 @@ _registerBuiltinLoaders()
 
 
 # --------------------------------------------------------------------
-# Built-in fact map materialization (xbrl:xBRL-XML, xbrl:OIM-JSON)
+# Built-in fact map materialization (xbrl:xBRL-XML, xbrl:xBRL-JSON)
 # --------------------------------------------------------------------
 
 # Parse functions keyed by built-in factMap QName; each returns (facts, footnotes).
@@ -336,7 +336,7 @@ def _builtinFactMapParsers() -> dict[Any, Callable[..., Any]]:
         from .LoadOimJsonFacts import parseOimJsonFacts
         from .LoadInlineFacts import parseInlineFacts  # POC-INLINE
         _BUILTIN_FACT_MAP_PARSERS[qnXbrlXmlFactMap] = parseXbrlXmlFacts
-        _BUILTIN_FACT_MAP_PARSERS[qnOimJsonFactMap] = parseOimJsonFacts
+        _BUILTIN_FACT_MAP_PARSERS[qnXbrlJsonFactMap] = parseOimJsonFacts
         _BUILTIN_FACT_MAP_PARSERS[qnInlineFactMap] = parseInlineFacts  # POC-INLINE
     return _BUILTIN_FACT_MAP_PARSERS
 
@@ -448,7 +448,7 @@ def pocReportEntryFactMap(filepath) -> Optional[str]:
 
       * inline XBRL 1.1 (.htm/.html/.xhtml carrying the ix namespace) -> xbrl:inline-XBRL-1.1
       * XBRL 2.1 instance (.xml with an xbrli:xbrl root)              -> xbrl:xBRL-XML
-      * xBRL-JSON instance (.json with an xbrl-json documentType)     -> xbrl:OIM-JSON
+      * xBRL-JSON instance (.json with an xbrl-json documentType)     -> xbrl:xBRL-JSON
 
     Never fires while the compiler is internally re-loading a report's DTS (the legacy
     discovery reentrancy guard), so those sub-loads take the infrastructure path.
@@ -481,7 +481,7 @@ def pocReportEntryFactMap(filepath) -> Optional[str]:
         elif ext == "json":
             with io.open(filepath, "rt", encoding="utf-8", errors="replace") as f:
                 if "xbrl-json" in f.read(4096):  # xBRL-JSON instance documentType
-                    return "xbrl:OIM-JSON"
+                    return "xbrl:xBRL-JSON"
     except (IOError, OSError, ValueError):
         pass
     return None

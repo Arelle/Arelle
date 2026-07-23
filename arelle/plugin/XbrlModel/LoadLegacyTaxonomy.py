@@ -408,7 +408,7 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
 # import). Mirrors the import closure of xbrlm:base -- the "similar import" a compiled
 # conformance example (CompiledApple.json) inlines. Order is not significant; objects are
 # merged by their key (name / forObject) so re-declares are idempotent.
-_BASE_SPEC_RESOURCES = ("xs-types.json", "xbrlSpec.json", "xbrlModel.json",
+_BASE_SPEC_RESOURCES = ("xs-types.json", "core.json", "xbrlModel.json",
                         "types.json", "xbrla.json", "ref.json", "utr.json", "iso4217.json")
 
 # Module-assembly keys that must not be folded from a base resource module into the

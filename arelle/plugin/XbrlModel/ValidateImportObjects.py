@@ -80,7 +80,10 @@ def validateImportFamily(compMdl, module, oimFile, *, assertObjectType, validate
                                xbrlObject=impTxObj, moduleName=impMdlName)
                     break
 
-        finalTxObj = compMdl.namedObjects.get(impMdlName)
+        # The finalTaxonomy object no longer carries a name (removed from the spec); it is a nameless
+        # nested object on the imported module, so read it from the module rather than namedObjects.
+        _impModule = compMdl.xbrlModels.get(impMdlName)
+        finalTxObj = getattr(_impModule, "finalTaxonomy", None)
         if isinstance(finalTxObj, XbrlFinalTaxonomy):
             def extendsFinalTaxonomy(obj, _impTxObj=impTxObj, _finalTxObj=finalTxObj, _impMdlName=impMdlName):
                 if _finalTxObj.finalTaxonomyFlag:

@@ -12,7 +12,7 @@ A ``factValue`` object may provide its value in two ways:
    ``xbrl:htmlDataAttribute``, PDF ``page`` + ``mcid``, tabular ``tabularPath``)
    to point at content of an external source document (HTML / PDF / tabular).
 
-The ``factLocatorType`` is resolved via the spec chain: factValue.source →
+The ``factLocatorType`` is resolved via the spec chain: factValue.reportSource →
 factSource → factMap → factMap.factLocatorType, identifying an
 ``XbrlFactLocatorType`` object that describes:
 
@@ -196,7 +196,7 @@ def _registryFor(compMdl: "XbrlCompiledModel") -> LocatorPropertyRegistry:
 # Per spec (oim-taxonomy.md §2598), when a factValue uses valueSources,
 # the factLocatorType is found through this chain:
 #
-#   factValue.source (or implied from sourceMappings)
+#   factValue.reportSource (or implied from sourceMappings)
 #     → factSource object (matched by sourceMappings[*].sourceName)
 #       → factSource.factMapName → factMap object
 #         → factMap.factLocatorType → XbrlFactLocatorType object
@@ -211,14 +211,14 @@ def _resolveFactLocatorType(
 ) -> Tuple[Optional[QName], Optional[QName]]:
     """Resolve the factLocatorType QName for a factValue that uses valueSources.
 
-    Follows the spec chain: factValue.source → factSource → factMap → factLocatorType.
+    Follows the spec chain: factValue.reportSource → factSource → factMap → factLocatorType.
 
     Returns ``(factLocatorTypeQn, sourceQn)`` where factLocatorTypeQn is the
     QName of the XbrlFactLocatorType, or None if resolution fails.
     """
     from .XbrlFact import XbrlFactSource, XbrlFactMap
 
-    sourceQn = factValue.source
+    sourceQn = factValue.reportSource
 
     # If no explicit source, find default from sourceMappings
     if sourceQn is None:
@@ -293,7 +293,7 @@ def validateAndResolveValueSources(
         allMappings.extend(getattr(module, "_sourceMappings", None) or ())
 
     # ---- source QName validation -------------------------------------------
-    factValueSourceQn = getattr(factValue, "source", None)
+    factValueSourceQn = getattr(factValue, "reportSource", None)
     if factValueSourceQn is not None:
         if not any(getattr(m, "sourceName", None) == factValueSourceQn for m in allMappings):
             compMdl.error(
@@ -464,13 +464,13 @@ def validateAndResolveValueSources(
 def _resolveSourceUrl(factValue, source, compMdl) -> Optional[str]:
     """Find the URL associated with a factValue's source.
 
-    Looks up ``factValue.source`` (or the source-property on the
+    Looks up ``factValue.reportSource`` (or the source-property on the
     valueSource itself) against each module's parsed ``_sourceMappings``
     list (built at load time from ``documentInfo.sourceMappings``).
     Returns the absolute or repo-relative URL string, or ``None`` if the
     factValue does not designate any source mapping.
     """
-    sourceQn = getattr(factValue, "source", None) or getattr(source, "source", None)
+    sourceQn = getattr(factValue, "reportSource", None) or getattr(source, "source", None)
     for module in compMdl.xbrlModels.values():
         mappings = getattr(module, "_sourceMappings", None) or ()
         for mapping in mappings:

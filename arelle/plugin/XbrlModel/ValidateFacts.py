@@ -414,8 +414,16 @@ def validateFactPosition(txmyMdl, fact):
                 for cubeDimObj in cubeObj.cubeDimensions or ()
             )
             bucket = cellFacts.setdefault(cellKey, [])
-            for fv in (fact.factValues or ()):
-                bucket.append((fact, fv))
+            if fact.factValues:
+                for fv in fact.factValues:
+                    bucket.append((fact, fv))
+            elif any(getattr(p, "property", None) == qnFactNilProperty
+                     for p in (fact.properties or ())):
+                # A native-OIM nil fact carries the xbrl:nil property and NO factValue. Represent it in
+                # the cell (as a None factValue -> value None) so duplicate-fact validation sees it: a nil
+                # fact and a valued fact at the same cell are inconsistent duplicates. (Legacy loaders map
+                # nil facts to a factValue with value=None, so they are already covered by the loop above.)
+                bucket.append((fact, None))
 
 
 def validateCompleteReportCubes(txmyMdl):

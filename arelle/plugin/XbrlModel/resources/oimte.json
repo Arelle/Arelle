@@ -346,11 +346,6 @@
           },
           {
             "source": "oimte:OIMErrorClassDomain",
-            "target": "oimte:groupTreeNotImportable",
-            "order": 54
-          },
-          {
-            "source": "oimte:OIMErrorClassDomain",
             "target": "oimte:invalidFinalTaxonomyModification",
             "order": 54
           },
@@ -1267,18 +1262,6 @@
       },
       {
         "name": "oimte:invalidTaxonomyGroupTarget",
-        "domainClasses": [
-          "oimte:OIMErrorClassDomain"
-        ],
-        "properties": [
-          {
-            "property": "xbrl:severity",
-            "value": "error"
-          }
-        ]
-      },
-      {
-        "name": "oimte:groupTreeNotImportable",
         "domainClasses": [
           "oimte:OIMErrorClassDomain"
         ],
@@ -2919,11 +2902,6 @@
           },
           {
             "source": "oimte:ImportTaxonomyErrors",
-            "target": "oimte:groupTreeNotImportable",
-            "order": 4
-          },
-          {
-            "source": "oimte:ImportTaxonomyErrors",
             "target": "oimte:invalidReferenceToImportTaxonomyObject",
             "order": 5
           },
@@ -3482,11 +3460,6 @@
             "source": "xbrl:importTaxonomyObject",
             "target": "oimte:invalidImportObjectType",
             "order": 3
-          },
-          {
-            "source": "xbrl:importTaxonomyObject",
-            "target": "oimte:groupTreeNotImportable",
-            "order": 4
           },
           {
             "source": "xbrl:importTaxonomyObject",
@@ -5462,24 +5435,6 @@
         "forObject": "oimte:invalidTaxonomyGroupTarget",
         "language": "en",
         "value": "This error occurs when a relationship in the group tree object has a target that is not a group object. All group tree relationships must target group objects, as the purpose of the group tree is to organize groups hierarchically. Only group objects are valid targets for these relationships.",
-        "labelType": "xbrl:documentation"
-      },
-      {
-        "forObject": "oimte:groupTreeNotImportable",
-        "language": "en",
-        "value": "Group Tree Not Importable",
-        "labelType": "xbrl:label"
-      },
-      {
-        "forObject": "oimte:groupTreeNotImportable",
-        "language": "en",
-        "value": "The group tree object cannot be imported from taxonomy '{taxonomyName}'. When a taxonomy is imported, the group tree object is not imported with it.",
-        "labelType": "xbrl:errorMessage"
-      },
-      {
-        "forObject": "oimte:groupTreeNotImportable",
-        "language": "en",
-        "value": "This error is generated when an attempt is made to import a group tree object from another taxonomy. The group tree is specific to each taxonomy and defines how that taxonomy's groups are organized. When importing a taxonomy, the group tree object is intentionally excluded. Each taxonomy must define its own group tree if needed.",
         "labelType": "xbrl:documentation"
       },
       {
@@ -13517,36 +13472,6 @@
           {
             "property": "xbrl:specificationErrorURI",
             "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#DOMAINNETWORK-MultipleDomainClasses"
-          }
-        ]
-      },
-      {
-        "name": "oimte:groupTreeNotImportableReference",
-        "forObjects": [
-          "oimte:groupTreeNotImportable"
-        ],
-        "referenceType": "xbrl:conformanceTestReference",
-        "language": "en",
-        "properties": [
-          {
-            "property": "xbrl:conformanceTestFileName",
-            "value": "IMPORTTAXONOMY-GroupTreeNotImportable.json"
-          },
-          {
-            "property": "xbrl:conformanceStatus",
-            "value": "❌ Fail"
-          },
-          {
-            "property": "xbrl:conformanceErrorsProduced",
-            "value": "1"
-          },
-          {
-            "property": "xbrl:conformanceTestDescription",
-            "value": "The importObjects list explicitly names 'exp:GroupTreeBaseModel_GroupTree', which is a groupTree object. The groupTree object MUST NOT be imported when a taxonomy is imported using an importTaxonomy object."
-          },
-          {
-            "property": "xbrl:specificationErrorURI",
-            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#IMPORTTAXONOMY-GroupTreeNotImportable"
           }
         ]
       },
@@ -22905,7 +22830,7 @@
           },
           {
             "property": "xbrl:conformanceTestDescription",
-            "value": "The factValue exp:fv1 defines a valueSources entry with an xbrl:htmlElementId property but no 'source' attribute. The documentInfo.sourceMappings array contains three entries (exp:htmlSource, exp:htmlSource2, exp:htmlSource3). Per the File reference resolution rules, when sourceMappings contains more than one entry and no 'source' attribute is specified, the processor MUST raise oimte:factSourceResolutionFailed."
+            "value": "The factValue exp:fv1 defines a valueSources entry with an xbrl:htmlElementId property but no 'reportSource' property. The documentInfo.sourceMappings array contains three entries (exp:htmlSource, exp:htmlSource2, exp:htmlSource3). Per the File reference resolution rules, when sourceMappings contains more than one entry and no 'reportSource' property is specified, the processor MUST raise oimte:factSourceResolutionFailed."
           }
         ]
       },

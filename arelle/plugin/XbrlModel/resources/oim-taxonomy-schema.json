@@ -175,10 +175,6 @@
                     "type": "object",
                     "description": "Defines those objects and object types that are considered final within the xbrlModel, and cannot be extended by importing taxonomies.",
                     "properties": {
-                        "name": {
-                            "$ref": "#/definitions/QName",
-                            "description": "The QName that uniquely identifies the final taxonomy object."
-                        },
                         "finalTaxonomyFlag": {
                             "type": "boolean",
                             "description": "The boolean flag that indicates whether the taxonomy is final."
@@ -210,9 +206,6 @@
                             "minItems": 1
                         }
                     },
-                    "required": [
-                        "name"
-                    ],
                     "additionalProperties": false
                 },
                 "propertyTypes": {
@@ -1250,7 +1243,7 @@
                                             "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
                                             "description": "Language of the fact value (BCP 47)."
                                         },
-                                        "source": {
+                                        "reportSource": {
                                             "$ref": "#/definitions/QName",
                                             "description": "QName identifying the source document via the sourceMappings array of the documentInfo object. Applied to all valueSources entries on this factValue when present."
                                         },

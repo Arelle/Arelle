@@ -1144,13 +1144,13 @@
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "forObject": "xbrl:OIM-JSON",
+                "forObject": "xbrl:xBRL-JSON",
                 "value": "OIM JSON Fact Map"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "forObject": "xbrl:OIM-JSON",
+                "forObject": "xbrl:xBRL-JSON",
                 "value": "Standard fact map for mapping facts from OIM JSON format to the XBRL model format. This map handles the transformation of JSON-based XBRL data into the Open Information Model structure."
             },
             {
@@ -2190,7 +2190,7 @@
         ],
         "factMaps": [
             {
-                "name":"xbrl:OIM-JSON"
+                "name":"xbrl:xBRL-JSON"
             },
             {
                 "name":"xbrl:xBRL-XML"

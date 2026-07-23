@@ -27,6 +27,8 @@ from .XbrlConcept import XbrlConcept
 from .XbrlCube import (conceptCoreDim, periodCoreDim, entityCoreDim,
                        unitCoreDim, languageCoreDim)
 from .XbrlFact import XbrlFact, XbrlFactValue, XbrlFootnote
+from .XbrlProperty import XbrlProperty
+from .LoadFactsCommon import qnNil, qnUnknownNilReason
 
 if TYPE_CHECKING:
     from .XbrlModule import XbrlModule
@@ -175,6 +177,13 @@ def parseOimJsonFacts(compMdl, module, factSource, url):
         fv.language = dimensions.get("language")
         fv.valueSources = None
         fv.valueAnchors = None
+        # An xBRL-JSON nil fact has value: null; mark it with the xbrl:nil property so it is recognised
+        # as nil (matching native-OIM facts and the xBRL-XML / inline loaders).
+        if fv.value is None:
+            nilProp = XbrlProperty()
+            nilProp.property = qnNil
+            nilProp.value = qnUnknownNilReason
+            fact.properties = [nilProp]
         fact.factValues = [fv]
         facts.append(fact)
 

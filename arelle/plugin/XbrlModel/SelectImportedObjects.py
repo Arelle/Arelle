@@ -210,6 +210,7 @@ def applyDeferredImportPruning(txmyMdl):
         unionSelections = []
         allExcludeLabels = True
         allExcludeGroupContents = True
+        allExcludeGroupTree = True
         anyUnfiltered = False
 
         for entry in importEntries:
@@ -224,7 +225,14 @@ def applyDeferredImportPruning(txmyMdl):
                 allExcludeLabels = False
             if not getattr(entry, "excludeGroupContents", False):
                 allExcludeGroupContents = False
+            if not getattr(entry, "excludeGroupTree", False):
+                allExcludeGroupTree = False
 
+        # exclude* flags apply whether or not the import is otherwise filtered (they only drop the
+        # corresponding objects, they don't select). A module's groupTree/labels are kept unless EVERY
+        # import entry for that module excludes them.
+        if allExcludeGroupTree:
+            _excludeGroupTree(txmyMdl, moduleObj)
         if anyUnfiltered:
             if allExcludeLabels:
                 _excludeLabelsOnly(txmyMdl, moduleObj)
@@ -235,6 +243,19 @@ def applyDeferredImportPruning(txmyMdl):
                            allExcludeLabels, allExcludeGroupContents)
 
     del txmyMdl._pendingImportEntries
+
+
+def _excludeGroupTree(txmyMdl, moduleObj):
+    """Exclude an imported module's groupTree object (import excludeGroupTree flag). The groupTree is a
+       single nameless-in-model structural object referenced only from moduleObj.groupTree; dropping that
+       reference and its named registration removes it (its inline relationships become unreachable)."""
+    groupTree = getattr(moduleObj, "groupTree", None)
+    if groupTree is None:
+        return
+    moduleObj.groupTree = None
+    gtName = getattr(groupTree, "name", None)
+    if gtName is not None and gtName in txmyMdl.namedObjects:
+        del txmyMdl.namedObjects[gtName]
 
 
 def _excludeLabelsOnly(txmyMdl, moduleObj):
