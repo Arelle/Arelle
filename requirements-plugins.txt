@@ -1,8 +1,8 @@
 # Arelle ixbrl-viewer plugin
-ixbrl-viewer==1.4.95
+ixbrl-viewer==1.5.0
 
 # EDGAR plugins
-holidays==0.100
+holidays==0.101
 matplotlib==3.10.9
 pytz==2026.2
 

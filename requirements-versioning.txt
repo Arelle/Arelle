@@ -1,1 +1,1 @@
-setuptools-scm==10.2.0
+setuptools-scm==10.2.1
