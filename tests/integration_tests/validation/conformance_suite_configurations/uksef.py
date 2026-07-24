@@ -1,6 +1,6 @@
 from pathlib import Path, PurePath
 
-from tests.integration_tests.validation.assets import ESEF_PACKAGES
+from tests.integration_tests.validation.assets import ESEF_PACKAGES, UKFRC_PACKAGES
 from tests.integration_tests.validation.conformance_suite_config import (
     AssetSource, ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 )
@@ -26,24 +26,10 @@ config = ConformanceSuiteConfig(
             entry_point=Path('index.xml'),
             public_download_url='https://www.frc.org.uk/documents/8116/uksef-conformance-suite-v2.0.zip',
             source=AssetSource.S3_PUBLIC,
-        ),
-        ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('FRC-2022-Taxonomy.zip'),
-            public_download_url='https://www.frc.org.uk/documents/969/FRC-2022-Taxonomy.zip',
-        ),
-        ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('FRC-2024-Taxonomy-v1.0.0_GJp67Do.zip'),
-            public_download_url='https://www.frc.org.uk/documents/6566/FRC-2024-Taxonomy-v1.0.0_GJp67Do.zip',
-        ),
-        ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('FRC-2025-Taxonomy-v1.0.0_LK4mek8.zip'),
-            public_download_url='https://www.frc.org.uk/documents/7759/FRC-2025-Taxonomy-v1.0.0_LK4mek8.zip',
-        ),
-        ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('The_2023_Taxonomy_suite_v1.0.1.zip'),
-            public_download_url='https://www.frc.org.uk/documents/372/The_2023_Taxonomy_suite_v1.0.1.zip',
-        ),
-    ] + [
+        )
+    ] +
+    list(UKFRC_PACKAGES.values()) +
+    [
         package for year in [2022, 2024] for package in ESEF_PACKAGES[year]
     ],
     base_taxonomy_validation='none',
