@@ -81,15 +81,16 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
             if testcase_path.startswith(prefix):
                 path_plugins.update(additional_plugins)
         path_plugins_frozen = frozenset(path_plugins)
-        disclosure_system = config.disclosure_system
-        for prefix, candidate_disclosure_system in config.disclosure_system_by_prefix:
-            if testcase_path.startswith(prefix):
-                disclosure_system = candidate_disclosure_system
-                break
         testcase_runtime = approximate_relative_timing.get(testcase_path, 1)
         avg_variation_runtime = testcase_runtime/(len(variation_ids))  # compatibility for testcase-level timing
         for variation_id in variation_ids:
-            variation_runtime = approximate_relative_timing.get(f'{testcase_path}:{variation_id}', avg_variation_runtime)
+            variation_path = f'{testcase_path}:{variation_id}'
+            variation_runtime = approximate_relative_timing.get(variation_path, avg_variation_runtime)
+            disclosure_system = config.disclosure_system
+            for prefix, candidate_disclosure_system in config.disclosure_system_by_prefix:
+                if variation_path.startswith(prefix):
+                    disclosure_system = candidate_disclosure_system
+                    break
             paths_by_args[(disclosure_system, path_plugins_frozen)].append(PathInfo(
                 path=(testcase_path, variation_id),
                 disclosure_system=disclosure_system,
