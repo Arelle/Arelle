@@ -35,6 +35,7 @@ def castToXbrlCompiledModel(modelXbrl, isReport=False):
         modelXbrl._effectiveReferenceForObjectsCache = {}
         modelXbrl._effectiveCubeExtensionCache = {}
         modelXbrl._referenceObjectsByNameCache = None
+        modelXbrl._referenceObjectsByForObjectCache = None
         modelXbrl._impliedObjectNamespaces = None
     return modelXbrl
 
@@ -75,6 +76,7 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
         self._effectiveReferenceForObjectsCache: dict[int, OrderedSet[QName]] = {}
         self._effectiveCubeExtensionCache: dict[int, dict[str, OrderedSet[Any]]] = {}
         self._referenceObjectsByNameCache: Optional[defaultdict[QName, list[XbrlReference]]] = None
+        self._referenceObjectsByForObjectCache: Optional[defaultdict[QName, list[XbrlReference]]] = None
         self._impliedObjectNamespaces: Optional[dict[str, Any]] = None  # built lazily
 
 
@@ -185,18 +187,31 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
     def effectiveReferenceForObjects(self, refObj):
         return self._effectiveReferenceForObjects(refObj)
 
+    def _referenceObjectsByForObject(self):
+        """Reference objects indexed by each QName in their effective forObjects.
+
+        Built once and cached (cleared by clearEffectiveCaches) so that asking for one object's
+        references is a dict lookup. Without it every call scans every object in the model, which
+        is quadratic for callers that ask per object -- e.g. a GUI pane of 12,000 concepts, each
+        of whose propertyView reports its references.
+        """
+        if self._referenceObjectsByForObjectCache is None:
+            refsByForObject = defaultdict(list)
+            for obj in self.xbrlObjects: # in model order, so each entry stays in document order
+                if isinstance(obj, XbrlReference) and getattr(obj, "referenceType", None) is not None:
+                    for forObject in self._effectiveReferenceForObjects(obj):
+                        refsByForObject[forObject].append(obj)
+            self._referenceObjectsByForObjectCache = refsByForObject
+        return self._referenceObjectsByForObjectCache
+
     def effectiveReferenceObjects(self, name: QName, referenceType: Optional[QName] = None, lang: Optional[str] = None):
         if lang is None:
             lang = self.modelXbrl.modelManager.defaultLang
-        for obj in self.xbrlObjects:
-            if isinstance(obj, XbrlReference):
-                tagLang = getattr(obj, "language", None) or lang
-                refType = getattr(obj, "referenceType", None)
-                if (name in self._effectiveReferenceForObjects(obj) and
-                    refType is not None and
-                    (not referenceType or referenceType == refType) and
-                    (not lang or tagLang.startswith(lang) or lang.startswith(tagLang))):
-                    yield obj
+        for obj in self._referenceObjectsByForObject().get(name, ()):
+            tagLang = getattr(obj, "language", None) or lang
+            if ((not referenceType or referenceType == obj.referenceType) and
+                (not lang or tagLang.startswith(lang) or lang.startswith(tagLang))):
+                yield obj
 
     def clearEffectiveCaches(self):
         """Clear lazily recomputed caches derived from loaded taxonomy objects.
@@ -209,6 +224,7 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
         self._effectiveReferenceForObjectsCache.clear()
         self._effectiveCubeExtensionCache.clear()
         self._referenceObjectsByNameCache = None
+        self._referenceObjectsByForObjectCache = None
         for obj in self.namedObjects.values():
             if isinstance(obj, (XbrlDomainNetwork, XbrlNetwork)):
                 for attrName in ("_relationshipsFrom", "_relationshipsTo", "_roots"):
@@ -282,7 +298,8 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
         visiting.add(cacheKey)
 
         relList = []    # [relObj]
-        extends = obj.extends
+        # a groupTree carries relationships but is not an extensible object, so it has no extends
+        extends = getattr(obj, "extends", None)
         if extends is not None:
             targetObj = self.namedObjects.get(extends)
             if isinstance(obj, XbrlDomainNetwork) and isinstance(targetObj, XbrlDomainNetwork) and getattr(targetObj, "isExtensible", True):

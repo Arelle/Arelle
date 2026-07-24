@@ -1385,12 +1385,28 @@ def xbrlModelLoaded(cntlr, options, xbrlCompMdl, *args, **kwargs):
     if hasattr(xbrlCompMdl, '_pendingImportEntries'):
         applyDeferredImportPruning(xbrlCompMdl)
 
-    xbrlCompMdl.groupContents = defaultdict(OrderedSet)
+    # Index a group's contents by group name, honouring the groupContent order property
+    # (absent order defaults to 0; the spec leaves ties to the processor, so a stable sort
+    # keeps them in document order). Consumers -- the GUI Groups pane -- present a group's
+    # networks, cubes and table templates in this order.
+    orderedGroupContents = defaultdict(list)
     for txmy in xbrlCompMdl.xbrlModels.values():
         for grpCnts in txmy.groupContents or ():
             relName = getattr(grpCnts, "forObject", None) # None if object was invalid, e.g. bad QName
             if relName is not None:
-                xbrlCompMdl.groupContents[grpCnts.groupName].add(relName)
+                orderedGroupContents[grpCnts.groupName].append((getattr(grpCnts, "order", None) or 0, relName))
+    xbrlCompMdl.groupContents = defaultdict(OrderedSet)
+    for grpName, grpContents in orderedGroupContents.items():
+        grpContents.sort(key=lambda orderAndName: orderAndName[0])
+        xbrlCompMdl.groupContents[grpName] = OrderedSet(relName for _order, relName in grpContents)
+
+    # The groupTree objects (at most one per module) organize the groups themselves into the
+    # reporting structure. Indexed here so consumers don't have to walk the modules; the GUI
+    # Groups pane nests groups under this tree when the model has one.
+    xbrlCompMdl.groupTrees = [grpTree
+                              for grpTree in (getattr(txmy, "groupTree", None)
+                                              for txmy in xbrlCompMdl.xbrlModels.values())
+                              if grpTree is not None]
 
     # load CSV tables: XbrlReport has been removed; tableTemplates and facts live on XbrlModule.
     # NOTE: the legacy report-based CSV loop iterated `reportObj.tables.values()` which has never
@@ -1470,8 +1486,11 @@ def xbrlModelViews(cntlr, xbrlCompMdl):
                            (XbrlRelationshipType, cntlr.tabWinBtm, "XBRL Relationship Types"),
                            (XbrlTransform, cntlr.tabWinBtm, "XBRL Transforms"),
                            (XbrlUnit, cntlr.tabWinBtm, "XBRL Units"),)
+        # Every pane, including the ones opened here, is offered in each pane's View menu so
+        # that a pane the user closes can be opened again.
+        openableViews = initialViews + additionalViews
         for view in initialViews:
-            viewXbrlTaxonomyObject(xbrlCompMdl, *view, additionalViews)
+            viewXbrlTaxonomyObject(xbrlCompMdl, *view, openableViews)
 
         return True # block ordinary taxonomy views
     return False

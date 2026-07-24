@@ -119,8 +119,7 @@ Both tools can also be run standalone (`python3 tools/<tool>.py --help`).
 ## 5. GUI operation
 
 In the Arelle desktop application (started with the XbrlModel plugin enabled),
-the plugin adds model viewing, model saving, and the PDF tools. The GUI is
-functional but intentionally minimal — a proof-of-concept UX.
+the plugin adds model viewing, model saving, and the PDF tools.
 
 ### Viewing a model
 
@@ -132,7 +131,48 @@ Headings, Cube Types, Data Types, Dimensions, Entities, Group Tree, Labels and
 Label Types, Property Types, References and Reference Types, Relationship Types,
 Transforms and Units. A report opened as an entry point is validated on open so
 the fact and concept views populate. (Hook: `CntlrWinMain.Xbrl.Views`,
-`xbrlModelViews`.)
+`xbrlModelViews`; the views themselves are `ViewXbrlTaxonomyObject.py`.)
+
+**Groups is the reporting structure.** Rather than a flat list, the Groups pane
+nests groups under the model's `groupTree` object in relationship order, each
+group followed by its group contents (networks, cubes, table templates), which in
+turn expand into cube dimensions, domain networks and their members. Groups the
+tree does not reach appear under an **(ungrouped)** node, so nothing is hidden; a
+model with no `groupTree` falls back to a flat list of groups. For a legacy DTS
+loaded through `LoadLegacyTaxonomy`, the inferred tree gives the familiar SEC
+Cover / Statements / Notes / Policies / Tables / Details sections.
+
+**Columns.** The tree column shows each object's label in the pane's current
+label role and language. The structural panes (Groups, Group Tree, Cubes,
+Networks, Domain Networks) put objects of different types on successive rows, so
+their columns are type-neutral — **object** (the row's object type), **name**,
+**kind** (the property that discriminates the type: a cube's cubeType, a cube
+dimension's dimension, a network's relationship type) — while the other panes
+keep their object class's own properties as columns. Every pane ends in a
+**detail** column carrying whatever has no column of its own, as `name=value`
+pairs. Cells are always filled by column name, so a value only ever appears under
+a heading that names it. Long role URIs are shortened from the left
+(`…/role/CoverPage`) so the identifying trailing segment stays visible; hover for
+the full text.
+
+Column widths are startup defaults — like every other Arelle view, the GUI
+persists window geometry and the tab splitters but not column widths. The last
+(**detail**) column absorbs the pane's spare width, so resizing a column resizes
+only that column and the label column keeps its width.
+
+**Context menu** (right-click / control-click): Expand and Collapse, **Find…**
+(repeat to step through matches, wrapping at the end), Copy to clipboard (cell,
+row or whole table as tab-separated text), Language, Label role (including *Name*
+to show QNames), Name Style (prefixed QNames or local names), and **View ▸
+Additional view**, which lists every pane — including those opened on load — so a
+pane that has been closed can be reopened.
+
+**Selecting a row** synchronizes the other panes to the same object and fills
+Arelle's Properties pane from the object's `propertyView`. There, a fact's
+dimensions are flat rows (no expanding per fact), while its `factValues` expand
+to show `value`, `decimals`, any transformation, and the `valueSources` locating
+the value in the source document — for an inline or PDF report, the html element
+id the fact was tagged from.
 
 ### Saving a model
 

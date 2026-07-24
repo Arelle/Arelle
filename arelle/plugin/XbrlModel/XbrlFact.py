@@ -15,11 +15,30 @@ from .XbrlProperty import XbrlProperty
 from .XbrlUnit import  parseUnitString
 
 XbrlFactValueAlias: TypeAlias = "XbrlFactValue"
+
+def locatorPropertyView(locatorObj):
+    """Property view of a fact value source or anchor: its locator properties directly.
+
+    Such an object is nothing but its properties, so the default view -- a "properties" node
+    wrapping them -- costs the reader an extra expansion for no information. List-valued
+    properties (e.g. the html element ids a value is sourced from) are joined, since a Python
+    list repr reads poorly in a property grid.
+    """
+    return tuple((str(propObj.property),
+                  ", ".join(str(v) for v in propObj.value)
+                  if isinstance(propObj.value, (list, tuple, set, OrderedSet))
+                  else str(propObj.value))
+                 for propObj in locatorObj.properties or ())
+
 class XbrlFactValueSource(XbrlObject):
     """ Fact Value Source Object
         Reference: oim-taxonomy#factvaluesource-object"""
     factValue: XbrlFactValueAlias
     properties: OrderedSet[XbrlProperty] # (required) A set of property objects used to specify the interface properties defined by the locatorType for the fact source.
+
+    @property
+    def propertyView(self):
+        return locatorPropertyView(self)
 
 class XbrlFactValueAnchor(XbrlObject):
     """ Fact Value Anchor Object
@@ -27,6 +46,10 @@ class XbrlFactValueAnchor(XbrlObject):
     """
     factValue: XbrlFactValueAlias
     properties: OrderedSet[XbrlProperty] # (required) A set of property objects used to specify the interface properties defined by the locatorType for the fact anchor.
+
+    @property
+    def propertyView(self):
+        return locatorPropertyView(self)
 
 XbrlFactAlias: TypeAlias = "XbrlFact"
 class XbrlFactValue(XbrlObject):

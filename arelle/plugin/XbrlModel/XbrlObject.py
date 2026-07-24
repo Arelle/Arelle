@@ -7,6 +7,7 @@ from arelle.ModelValue import QName
 from ordered_set import OrderedSet
 from arelle.XmlValidate import INVALID, VALID
 from .XbrlConst import qnStdLabel
+from .XbrlTypes import collectionInfo
 XbrlModelObject = None # class forward reference
 
 EMPTY_DICT = {}
@@ -183,20 +184,33 @@ class XbrlObject(XbrlModelClass):
                     for propKey, propVal in val.items():
                         propVals.append( (str(propKey), str(propVal) ) )
                     continue
-                if isinstance(propType, GenericAlias): # set, dict, etc
-                    propValueClass = propType.__args__[-1]
+                # collectionInfo recognizes both a plain collection (OrderedSet[X]) and an Optional
+                # one (Optional[NonemptySet[X]]) -- the isinstance(propType, GenericAlias) test this
+                # replaces only matched the former, so an Optional collection of objects (a fact's
+                # factValues, a cube's cubeDimensions) fell through to the scalar branch below and
+                # was shown as the collection's Python repr instead of expandable rows.
+                collInfo = collectionInfo(propType)
+                if collInfo is not None: # set, dict, etc
+                    propValueClass = collInfo[1]
                     if hasattr(propValueClass, "propertyView"):
-                        # skip empty sets of XBRL objects
-                        if isinstance(val, (set,list)) and propValueClass.__name__.startswith("Xbrl"):
-                            continue
+                        if not val:
+                            continue # skip absent or empty sets of XBRL objects
                         propVal = [propName, f"({len(val)})"]
                         vals = val.values() if isinstance(val, dict) else val
                         nestedPropvals = [o.propertyView for o in vals]
                         if isinstance(nestedPropvals, (list, tuple)):
                             l = len(nestedPropvals)
                             if l == 1:
-                                if isinstance(nestedPropvals[0], (list, tuple)):
-                                    nestedPropvals = nestedPropvals[0]
+                                # a lone member whose propertyView is a sequence of (name, value)
+                                # entries is unwrapped so its entries become the nested rows. One
+                                # whose propertyView is itself a single (name, value) pair --
+                                # XbrlProperty -- is already an entry: unwrapping it yielded a
+                                # nest of bare strings that consumers silently dropped, which is
+                                # why a valueSource showed "properties (1)" with nothing under it.
+                                nestedPropval = nestedPropvals[0]
+                                if (isinstance(nestedPropval, (list, tuple)) and nestedPropval
+                                        and isinstance(nestedPropval[0], (list, tuple))):
+                                    nestedPropvals = nestedPropval
                             elif l > 1:
                                 if isinstance(nestedPropvals[0], (list, tuple)) and isinstance(nestedPropvals[0][0], (list, tuple)) and len(nestedPropvals[0][0]) == 2:
                                     # flatten properties
