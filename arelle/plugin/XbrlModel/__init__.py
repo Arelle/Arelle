@@ -13,6 +13,13 @@ See README.md for design and operation of the PDF fact-locator workflow
 
 Any import or direct opening of a JSON-specified taxonomy behaves the same as if loading from an xsd taxonomy or xml linkbases
 
+A compiled model is validated on load by default (the GUI CntlrWinMain.Xbrl.Views hook validates
+before building the views, so they reflect resolved fact dimensions/values, cube assignments and
+errors, and each streamed fact-source row is validated before the next replaces it). Deferring
+validation -- for a report still being formed, or one problematic to validate -- is available via
+Tools > "Validate XBRL model on load" (config xbrlModelValidateOnLoad); the toolbar Validate
+button then validates on request.
+
 For XBRL 2.1 XML schema validation purposes, saves schema files in directory if
   command line: specify --saveXMLSchemaFiles {directoryName}
   GUI: provide a formula parameter named saveXMLSchemaFiles (value is directory to save in)
@@ -144,7 +151,7 @@ from .ValidateXbrlModel import validateCompiledModel
 from .ValidateFacts import validateDateResolutionConceptFacts, validateCompleteReportCubes
 from .SelectImportedObjects import validateImportSelections, applyDeferredImportPruning
 from .ModelValueMore import SQName, QNameAt
-from .ViewXbrlTaxonomyObject import viewXbrlTaxonomyObject, viewXbrlObjectJson, findObjects
+from .ViewXbrlTaxonomyObject import viewXbrlTaxonomyObject, viewXbrlObjectJson, findObjects, XbrlCubeFacts
 from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, oimBundleDocTypes, oimReferenceBundleDocType, xbrlTaxonomyObjects
 from .ParseSelectionWhereClause import parseSelectionWhereClause
 from .LoadCsvTable import csvTableRowFacts
@@ -1362,9 +1369,29 @@ def pdfToolsUtilityRun(cntlr, options, *args, **kwargs):
 def pdfToolsMenuExtender(cntlr, menu, *args, **kwargs):
     """ CntlrWinMain.Menu.Tools:
         Add the inline-XBRL->PDF generator and facts->existing-PDF aligner to the
-        GUI Tools menu (file-based, no loaded model required)."""
+        GUI Tools menu (file-based, no loaded model required), plus the
+        validate-XBRL-model-on-load toggle."""
     from .PdfToolsCli import addPdfToolsMenu
     addPdfToolsMenu(cntlr, menu)
+    addValidateOnLoadMenu(cntlr, menu)
+
+def addValidateOnLoadMenu(cntlr, menu):
+    """Add a "Validate XBRL model on load" checkbutton to the Tools menu. Checked (the normal
+       behaviour) validates a compiled model on load so the views reflect resolved values and cube
+       assignments and each streamed row is validated; unchecked defers validation to the toolbar
+       Validate button (for a report still being formed or problematic to validate). The choice is
+       stored in the controller config (xbrlModelValidateOnLoad, default True)."""
+    try:
+        from tkinter import BooleanVar
+    except ImportError:
+        return
+    var = BooleanVar(value=cntlr.config.get("xbrlModelValidateOnLoad", True))
+    def _toggle():
+        cntlr.config["xbrlModelValidateOnLoad"] = var.get()
+        cntlr.saveConfig()
+    cntlr._xbrlModelValidateOnLoadVar = var # keep a reference so tkinter does not collect it
+    menu.add_checkbutton(label=_("Validate XBRL model on load"), variable=var,
+                         underline=0, command=_toggle)
 
 def filingStart(self, options, *args, **kwargs):
     #global saveOIMTaxonomySchemaFiles
@@ -1446,48 +1473,52 @@ def xbrlModelViews(cntlr, xbrlCompMdl):
     """ CntlrWinMain.Xbrl.Views:
         After an XBRL model is loaded, if it is an XBRL compiled model, add views for the taxonomy objects
     """
-    # POC: a legacy report opened as an entry point (see FactPipeline.pocLoadReportAsEntry)
-    # materializes its DTS + facts at validate time. The GUI does not auto-validate on load,
-    # and the views below are built once from the model as it is now -- so validate the model
-    # here first, before the views are created, so the concept / fact / taxonomy views are
-    # populated on open. (CntlrWinMain.Xbrl.Views runs before the CntlrWinMain.Xbrl.Loaded
-    # hook that other plugins, e.g. EDGAR, use to kick off validation.)
-    if (isinstance(xbrlCompMdl, XbrlCompiledModel)
-            and getattr(xbrlCompMdl, "_xbrlModelReportEntry", False)
-            and not getattr(xbrlCompMdl, "_xbrlModelReportEntryValidated", False)):
-        xbrlCompMdl._xbrlModelReportEntryValidated = True
+    # Validate the compiled model on load -- the normal behaviour -- before the views are built,
+    # so the concept / fact / cube views reflect resolved fact dimensions and values, cube
+    # assignments and any validation errors. This also materializes a legacy report opened as an
+    # entry point (its DTS + facts are produced at validate time, see
+    # FactPipeline.pocLoadReportAsEntry), and, for streamed fact sources, validates each streamed
+    # row before the next replaces it. The user can DEFER validation (uncheck Tools ▸ "Validate
+    # XBRL model on load") for a report still being formed or one that is problematic to validate;
+    # the toolbar Validate button then validates on request. (This hook runs before the
+    # CntlrWinMain.Xbrl.Loaded hook that other plugins, e.g. EDGAR, use.)
+    validateOnLoad = cntlr.config.get("xbrlModelValidateOnLoad", True) if getattr(cntlr, "config", None) else True
+    if (isinstance(xbrlCompMdl, XbrlCompiledModel) and validateOnLoad
+            and not getattr(xbrlCompMdl, "_xbrlModelValidatedOnLoad", False)):
+        xbrlCompMdl._xbrlModelValidatedOnLoad = True
         try:
             from arelle import Validate
             Validate.validate(xbrlCompMdl)
         except Exception:
-            pass  # POC: never let validate-on-open break the GUI load
+            pass  # never let validate-on-open break the GUI load
     xbrlModelLoaded(cntlr, None, xbrlCompMdl)
     if isinstance(xbrlCompMdl, XbrlCompiledModel):
         initialViews = []
-        initialViews.extend(((XbrlConcept, cntlr.tabWinBtm, "XBRL Concepts"),
-                             (XbrlGroup, cntlr.tabWinTopRt, "XBRL Groups"),
-                             (XbrlNetwork, cntlr.tabWinTopRt, "XBRL Networks"),
-                             (XbrlCube, cntlr.tabWinTopRt, "XBRL Cubes"),
-                             (XbrlDomainNetwork, cntlr.tabWinTopRt, "XBRL Domain Networks")
+        initialViews.extend(((XbrlConcept, cntlr.tabWinBtm, "Concepts"),
+                             (XbrlGroup, cntlr.tabWinTopRt, "Groups"),
+                             (XbrlNetwork, cntlr.tabWinTopRt, "Networks"),
+                             (XbrlCube, cntlr.tabWinTopRt, "Cubes"),
+                             (XbrlDomainNetwork, cntlr.tabWinTopRt, "Domain Networks")
                             ))
         if any(xbrlCompMdl.filterNamedObjects(XbrlFact)):
-            initialViews.append( (XbrlFact, cntlr.tabWinTopRt, "Taxonomy Facts") )
+            initialViews.extend(((XbrlCubeFacts, cntlr.tabWinTopRt, "Fact Cubes"),
+                                 (XbrlFact, cntlr.tabWinTopRt, "Fact List")))
         initialViews = tuple(initialViews)
-        additionalViews = ((XbrlHeading, cntlr.tabWinBtm, "XBRL Headings"),
-                           (XbrlCubeType, cntlr.tabWinBtm, "XBRL Cube Types"),
-                           (XbrlDataType, cntlr.tabWinBtm, "XBRL Data Types"),
-                           (XbrlDimension, cntlr.tabWinBtm, "XBRL Dimensions"),
-                           (XbrlEntity, cntlr.tabWinBtm, "XBRL Entities"),
-                           (XbrlGroupTree, cntlr.tabWinTopRt, "XBRL Group Tree"),
-                           (XbrlImportTaxonomy, cntlr.tabWinTopRt, "XBRL Import Taxonomies"),
-                           (XbrlLabel, cntlr.tabWinBtm, "XBRL Labels"),
-                           (XbrlLabelType, cntlr.tabWinBtm, "XBRL Label Types"),
-                           (XbrlPropertyType, cntlr.tabWinBtm, "XBRL Property Types"),
-                           (XbrlReference, cntlr.tabWinBtm, "XBRL References"),
-                           (XbrlReferenceType, cntlr.tabWinBtm, "XBRL Reference Types"),
-                           (XbrlRelationshipType, cntlr.tabWinBtm, "XBRL Relationship Types"),
-                           (XbrlTransform, cntlr.tabWinBtm, "XBRL Transforms"),
-                           (XbrlUnit, cntlr.tabWinBtm, "XBRL Units"),)
+        additionalViews = ((XbrlHeading, cntlr.tabWinBtm, "Headings"),
+                           (XbrlCubeType, cntlr.tabWinBtm, "Cube Types"),
+                           (XbrlDataType, cntlr.tabWinBtm, "Data Types"),
+                           (XbrlDimension, cntlr.tabWinBtm, "Dimensions"),
+                           (XbrlEntity, cntlr.tabWinBtm, "Entities"),
+                           (XbrlGroupTree, cntlr.tabWinTopRt, "Group Tree"),
+                           (XbrlImportTaxonomy, cntlr.tabWinTopRt, "Import Taxonomies"),
+                           (XbrlLabel, cntlr.tabWinBtm, "Labels"),
+                           (XbrlLabelType, cntlr.tabWinBtm, "Label Types"),
+                           (XbrlPropertyType, cntlr.tabWinBtm, "Property Types"),
+                           (XbrlReference, cntlr.tabWinBtm, "References"),
+                           (XbrlReferenceType, cntlr.tabWinBtm, "Reference Types"),
+                           (XbrlRelationshipType, cntlr.tabWinBtm, "Relationship Types"),
+                           (XbrlTransform, cntlr.tabWinBtm, "Transforms"),
+                           (XbrlUnit, cntlr.tabWinBtm, "Units"),)
         # Every pane, including the ones opened here, is offered in each pane's View menu so
         # that a pane the user closes can be opened again.
         openableViews = initialViews + additionalViews

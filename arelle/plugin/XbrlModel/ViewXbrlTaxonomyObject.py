@@ -23,16 +23,30 @@ Whatever the pane, a row is written by `insertRow`: the tree column shows the ob
 the pane's current label role and language, and every other cell is set BY COLUMN NAME, so a
 value only ever appears under a heading that names it, however deeply nested the row is.
 
-The Groups pane is the model's reporting structure rather than a flat list: `viewGroups` nests
-groups under the groupTree (oim-taxonomy#grouptree-object) in relationship order, each followed
-by its group contents, with anything the tree does not reach under an "(ungrouped)" node.
+Three panes are trees built from a walk rather than a flat class listing (each dispatched from
+`view()` by its object class, and marked `isTreePane` so its ordered child rows are never sorted):
 
-The context menu offers expand/collapse, Find, copy to clipboard (including Copy JSON, the
-selected object serialized), language, label role, name style (prefixed QNames or local names)
-and the View list. Selecting a row calls `viewTaxonomyObject`, which syncs the other panes, the
-Properties pane and the JSON pane. The Properties pane renders `XbrlObject.propertyView` (in
+  * The Groups pane (`viewGroups`) is the model's reporting structure: groups nested under the
+    groupTree (oim-taxonomy#grouptree-object) in relationship order, each followed by its group
+    contents, with anything the tree does not reach under an "(ungrouped)" node.
+  * The Import Taxonomies pane (`viewImportTree`) nests each imported module under the module that
+    imports it, so the hierarchy shows which taxonomy imports which; cycles are marked "(loop)".
+  * The Cube Facts pane (`XbrlCubeFacts` / `viewCubeFacts`) is the group tree of cubes, each cube
+    followed by the facts assigned to it -- derived with `matchFactToCube` (so it is populated
+    without a prior validation pass) and presentation-ordered. Its "Cube facts options" menu
+    hides/shows empty groups and cubes and the name/kind columns.
+
+Selecting a row calls `viewTaxonomyObject`, which syncs the other panes, the Properties pane and
+the JSON pane. Sync is by object identity (each pane's `tag_has` maps object index -> its rows);
+the Facts and Cube Facts panes additionally index each fact under its dimension members, and
+`viewModelObject` falls back from a fact to its members, so a concept/unit selection reveals a
+fact and a fact selection reveals its concept and unit. The context menu offers expand/collapse,
+Find, copy to clipboard (including Copy JSON, the selected object serialized), language, label
+role, name style, and the View list. The Properties pane renders `XbrlObject.propertyView` (in
 `XbrlObject.py`, not here); the JSON pane (`ViewXbrlObjectJson`) renders the object's compiled
 JSON via `SaveModel.saveableObjects`. Both sit in the upper-left tab window beside each other.
+The infrastructure Find dialog also searches the model, via the plugin's `DialogFind.Objects`
+hook (`findObjects`).
 '''
 from typing import ForwardRef, GenericAlias, Union, get_origin
 from collections import defaultdict
@@ -51,14 +65,22 @@ from .XbrlNetwork import XbrlNetwork
 from .XbrlObject import XbrlObject
 from .XbrlConst import qnStdLabel
 
+class XbrlCubeFacts:
+    """Sentinel object class keying the Cube Facts pane -- the group tree of cubes, each cube
+    followed by the facts assigned to it. Not a real model object; used only to dispatch the
+    pane's tree builder (viewCubeFacts) and its column set."""
+
+
 # A Treeview has one column set for the whole tree, but the structural panes are deliberately
 # heterogeneous: a Groups pane holds groups, then cubes and networks, then cube dimensions,
 # then domain networks and their members on successive rows. Naming the columns after the
 # pane's top-level class therefore mislabels every nested row. These panes instead use columns
 # that mean the same thing whatever the row's object type is, with everything else summarized
 # into "detail" as name=value pairs.
-STRUCTURAL_CLASSES = (XbrlGroup, XbrlGroupTree, XbrlCube, XbrlNetwork, XbrlDomainNetwork)
+STRUCTURAL_CLASSES = (XbrlGroup, XbrlGroupTree, XbrlCube, XbrlNetwork, XbrlDomainNetwork, XbrlCubeFacts)
 STRUCTURAL_COLUMNS = ("object", "name", "kind", "detail")
+# the Cube Facts pane adds a value column, since facts are its payload
+CUBE_FACTS_COLUMNS = ("object", "name", "kind", "value", "detail")
 
 # The property that best discriminates one object type from another in a structural pane,
 # shown in the "kind" column. The first one an object has wins.
@@ -219,7 +241,8 @@ def viewXbrlTaxonomyObject(xbrlCompMdl, objClass, tabWin, header, additionalView
     view = ViewXbrlTxmyObj(xbrlCompMdl, objClass, tabWin, header)
     view.isStructuralPane = objClass in STRUCTURAL_CLASSES
     if view.isStructuralPane:
-        view.propNameTypes = [("label", str)] + [(colName, str) for colName in STRUCTURAL_COLUMNS]
+        cols = CUBE_FACTS_COLUMNS if objClass is XbrlCubeFacts else STRUCTURAL_COLUMNS
+        view.propNameTypes = [("label", str)] + [(colName, str) for colName in cols]
     else:
         view.propNameTypes = list(homogeneousPropNameTypes(objClass))
         # for a named object the tree column shows its label, and its name becomes a column of
@@ -258,6 +281,8 @@ def viewXbrlTaxonomyObject(xbrlCompMdl, objClass, tabWin, header, additionalView
                              stretch=(colName == stretchCol))
         view.treeView.heading(colName, text=propName)
     view.treeView["displaycolumns"] = view.colNames
+    if objClass is XbrlCubeFacts:
+        view.applyDisplayColumns() # honour the pane's name/kind column defaults
     # reference objects have no label of their own; they are shown by their own properties
     view.labelrole = None if objClass.__name__ == "XbrlReference" else qnStdLabel
     view.view()
@@ -272,6 +297,8 @@ def viewXbrlTaxonomyObject(xbrlCompMdl, objClass, tabWin, header, additionalView
     view.menuAddFind()
     view.menuAddClipboard()
     view.menuAddCopyJson()
+    if objClass is XbrlCubeFacts:
+        view.menuAddCubeFactsOptions()
     view.menuAddLangs()
 
     view.menuAddLabelRoles(usedLabelroles=
@@ -299,6 +326,13 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
         self.blockViewModelObject = 0
         self.findPattern = ""
         self.fullCellText = {} # (node, column) -> untruncated text, for cells shortened to fit
+        # Cube Facts pane display options (its "Cube facts options" menu); empties hidden and the
+        # kind column dropped by default, since on this pane the kind of each row is evident and
+        # empty groups/cubes are noise. Ignored by other panes.
+        self.showCubelessGroups = False
+        self.showFactlessCubes = False
+        self.showNameCol = True
+        self.showKindCol = False
 
     # ── row rendering ──────────────────────────────────────────────────
     #
@@ -433,6 +467,8 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
         if self.isStructuralPane:
             # name and kind get dedicated columns below; don't repeat them in detail
             skipNames = tuple(propName for propName in ("name", self.kindProperty(obj)) if propName)
+            if isinstance(obj, XbrlFact):
+                skipNames += ("factValues",) # shown as the value column (Cube Facts pane)
         elif isinstance(obj, XbrlFact):
             skipNames = ("factValues",) # shown as the value and decimals columns instead
         cells, detail = self.rowValues(obj, skipNames, objLabel)
@@ -486,6 +522,8 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
             self.viewGroups() # the Groups pane is the reporting structure, not a flat list
         elif self.objClass is XbrlImportTaxonomy:
             self.viewImportTree() # nest imported modules under the module that imports them
+        elif self.objClass is XbrlCubeFacts:
+            self.viewCubeFacts() # group tree of cubes, each cube followed by its facts
         else:
             if self.objClass is XbrlNetwork:
                 objs = self.xbrlCompMdl.filterNetworks()
@@ -564,6 +602,117 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
                 visited.add(target)
                 self.viewModuleImports(node, targetModule, visited)
                 visited.discard(target)
+
+    # ── Cube Facts pane ────────────────────────────────────────────────
+
+    def viewCubeFacts(self):
+        """The Cube Facts pane: the group tree of cubes (as in the Groups pane, but keeping only
+           the cube contents), each cube followed by the facts assigned to it. Cubes reached by no
+           group go under "(ungrouped)"; with no group tree the pane is a flat list of cubes.
+           Fact-to-cube assignment is derived, so it is available before validation and does not
+           depend on the (currently unpopulated) _cellFacts -- see _cubeFactIndex."""
+        self._buildCubeFactIndex()
+        rendered = set() # cube QNames already shown under the tree
+        for groupTree in getattr(self.xbrlCompMdl, "groupTrees", None) or ():
+            relationshipsFrom = self.xbrlCompMdl.effectiveRelationshipsFrom(groupTree)
+            for groupQn in self.xbrlCompMdl.effectiveRelationshipRoots(groupTree):
+                self.viewGroupCubeNode("", groupQn, relationshipsFrom, rendered, set())
+        ungrouped = [cu for cu in self.xbrlCompMdl.filterNamedObjects(XbrlCube)
+                     if cu.name not in rendered
+                     and (self.showFactlessCubes or self._cubeFactIndex.get(cu.name))]
+        if not ungrouped:
+            return # nothing ungrouped to show (empties hidden) -- no "(ungrouped)" node
+        parentNode = ""
+        if rendered: # some cubes are in a group tree and these are not -- don't mix them in
+            parentNode = self.treeView.insert("", "end", f"ungroupedcubes{self.id}",
+                                              text=_("(ungrouped)"),
+                                              tags=("odd" if self.nodeNum & 1 else "even",))
+            self.id += 1
+            self.nodeNum += 1
+        for cube in ungrouped:
+            self.viewCubeWithFacts(parentNode, cube, rendered)
+
+    def viewGroupCubeNode(self, parentNode, groupQn, relationshipsFrom, rendered, visited):
+        """One group of the group tree: its child groups, then the cubes it contains (with their
+           facts). Like viewGroupNode but keeps only cube contents, not networks/table templates.
+           Returns True if the group rendered any content; a group that renders nothing is removed
+           unless the "Show empty groups" option is on (so cube-less groups don't clutter)."""
+        groupObj = self.xbrlCompMdl.namedObjects.get(groupQn)
+        if not isinstance(groupObj, XbrlGroup):
+            return False
+        loop = groupQn in visited
+        node = self.insertRow(parentNode, groupObj, textPrefix="(loop) " if loop else "")
+        if loop:
+            return True # a loop marker is content -- show it
+        visited.add(groupQn)
+        hasContent = False
+        for relObj in relationshipsFrom.get(groupQn, ()):
+            if self.viewGroupCubeNode(node, relObj.target, relationshipsFrom, rendered, visited):
+                hasContent = True
+        visited.discard(groupQn)
+        for relatedQn in self.xbrlCompMdl.groupContents.get(groupObj.name, None) or ():
+            relatedObj = self.xbrlCompMdl.namedObjects.get(relatedQn)
+            if isinstance(relatedObj, XbrlCube):
+                if self.viewCubeWithFacts(node, relatedObj, rendered):
+                    hasContent = True
+        if not hasContent and not self.showCubelessGroups:
+            self.treeView.delete(node) # empty group -- hide it (stale tag_has entry is exists-guarded)
+            return False
+        return True
+
+    def viewCubeWithFacts(self, parentNode, cube, rendered):
+        """A cube row, followed by the facts assigned to it in presentation order. Returns True if
+           the cube was shown; a fact-less cube is skipped unless "Show empty cubes" is on. The cube
+           is marked rendered whether or not shown, so it is not then re-listed under (ungrouped)."""
+        rendered.add(cube.name)
+        facts = self._cubeFactIndex.get(cube.name, ())
+        if not facts and not self.showFactlessCubes:
+            return False
+        node = self.insertRow(parentNode, cube)
+        for fact in facts:
+            self.insertRow(node, fact)
+        return True
+
+    def _cubeConceptOrder(self, cube):
+        """The QNames of a cube's line-item concepts in presentation order -- the targets of its
+           xbrl:concept dimension's domain network. Empty for an open cube with no concept domain."""
+        for cubeDim in cube.cubeDimensions or ():
+            if cubeDim.dimension == conceptCoreDim and cubeDim.domainNetwork:
+                domainNet = self.xbrlCompMdl.namedObjects.get(cubeDim.domainNetwork)
+                if domainNet is not None:
+                    order, seen = [], set()
+                    for rel in self.xbrlCompMdl.effectiveRelationships(domainNet):
+                        target = getattr(rel, "target", None)
+                        if target is not None and target not in seen:
+                            seen.add(target)
+                            order.append(target)
+                    return order
+        return []
+
+    def _buildCubeFactIndex(self):
+        """cube QName -> facts assigned to it, in presentation order. The assignment is derived
+           with matchFactToCube (the normative dimensional rule): candidate facts are those whose
+           concept is a cube line item (a concept-index lookup), then filtered by the full
+           dimensional match. This is fast (a few ms for ~1000 facts x tens of cubes) and, unlike
+           _cellFacts, populated without a prior validation pass. When cubeContents objects are
+           adopted, this is where they would be read in preference to deriving."""
+        from .ValidateCubes import matchFactToCube
+        mdl = self.xbrlCompMdl
+        def conceptQn(fact):
+            qn = (fact.factDimensions or {}).get(conceptCoreDim)
+            return qname(qn, fact.module._prefixNamespaces) if isinstance(qn, str) and ":" in qn else qn
+        factsByConcept = defaultdict(list)
+        for fact in mdl.filterNamedObjects(XbrlFact):
+            factsByConcept[conceptQn(fact)].append(fact)
+        self._cubeFactIndex = {}
+        for cube in mdl.filterNamedObjects(XbrlCube):
+            conceptOrder = self._cubeConceptOrder(cube)
+            orderIndex = {qn: i for i, qn in enumerate(conceptOrder)}
+            candidates = [fact for qn in conceptOrder for fact in factsByConcept.get(qn, ())]
+            assigned = [fact for fact in candidates if matchFactToCube(mdl, fact, cube)]
+            assigned.sort(key=lambda fact: orderIndex.get(conceptQn(fact), len(orderIndex)))
+            if assigned:
+                self._cubeFactIndex[cube.name] = assigned
 
     def viewGroups(self):
         """The Groups pane is the reporting structure: groups nested under the model's groupTree
@@ -697,6 +846,56 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
             js = objectJson(obj)
             if js:
                 self.modelXbrl.modelManager.cntlr.clipboardData(text=js)
+
+    def applyDisplayColumns(self):
+        """Show only the columns the pane's options currently enable. Data is still written to the
+           hidden columns, so toggling a column back on needs no rebuild -- only the structural
+           options (empty groups / cubes) rebuild the tree."""
+        hidden = set()
+        if not self.showNameCol:
+            hidden.add("name")
+        if not self.showKindCol:
+            hidden.add("kind")
+        self.treeView["displaycolumns"] = tuple(c for c in self.colNames if c not in hidden)
+
+    def menuAddCubeFactsOptions(self):
+        if not self.menu:
+            return
+        from tkinter import Menu, BooleanVar
+        # keep the vars on the view so tkinter does not garbage-collect them
+        self._optCubelessGroups = BooleanVar(value=self.showCubelessGroups)
+        self._optFactlessCubes = BooleanVar(value=self.showFactlessCubes)
+        self._optNameCol = BooleanVar(value=self.showNameCol)
+        self._optKindCol = BooleanVar(value=self.showKindCol)
+        optMenu = Menu(self.viewFrame, tearoff=0)
+        self.menu.add_cascade(label=_("Cube facts options"), menu=optMenu, underline=0)
+        # the two structural options change what rows exist, so they rebuild the tree
+        optMenu.add_checkbutton(label=_("Show empty groups"), variable=self._optCubelessGroups,
+                                command=self._toggleCubelessGroups)
+        optMenu.add_checkbutton(label=_("Show empty cubes"), variable=self._optFactlessCubes,
+                                command=self._toggleFactlessCubes)
+        optMenu.add_separator()
+        # the two column options only change which columns display, so they need no rebuild
+        optMenu.add_checkbutton(label=_("Show name column"), variable=self._optNameCol,
+                                command=self._toggleNameCol)
+        optMenu.add_checkbutton(label=_("Show kind column"), variable=self._optKindCol,
+                                command=self._toggleKindCol)
+
+    def _toggleCubelessGroups(self):
+        self.showCubelessGroups = self._optCubelessGroups.get()
+        self.view()
+
+    def _toggleFactlessCubes(self):
+        self.showFactlessCubes = self._optFactlessCubes.get()
+        self.view()
+
+    def _toggleNameCol(self):
+        self.showNameCol = self._optNameCol.get()
+        self.applyDisplayColumns()
+
+    def _toggleKindCol(self):
+        self.showKindCol = self._optKindCol.get()
+        self.applyDisplayColumns()
 
     def menuAddFind(self):
         if self.menu:

@@ -126,12 +126,21 @@ the plugin adds model viewing, model saving, and the PDF tools.
 Open a compiled XbrlModel JSON — or a report loaded as an entry point — via
 **File ▸ Open File…**. The plugin replaces the ordinary taxonomy views with
 tabbed views of the model's objects: **Concepts, Groups, Networks, Cubes, Domain
-Networks**, and — when the model carries facts — **Taxonomy Facts**, plus
-Headings, Cube Types, Data Types, Dimensions, Entities, Group Tree, Labels and
-Label Types, Property Types, References and Reference Types, Relationship Types,
-Transforms and Units. A report opened as an entry point is validated on open so
-the fact and concept views populate. (Hook: `CntlrWinMain.Xbrl.Views`,
-`xbrlModelViews`; the views themselves are `ViewXbrlTaxonomyObject.py`.)
+Networks**, and — when the model carries facts — **Taxonomy Facts**, plus (as
+additional views) **Cube Facts**, **Import Taxonomies**, Group Tree, Headings,
+Cube Types, Data Types, Dimensions, Entities, Labels and Label Types, Property
+Types, References and Reference Types, Relationship Types, Transforms and Units.
+(Hook: `CntlrWinMain.Xbrl.Views`, `xbrlModelViews`; the views themselves are
+`ViewXbrlTaxonomyObject.py`.)
+
+**Validation on load.** A compiled model is validated on load by default, before
+the views are built, so the concept / fact / cube views reflect resolved fact
+dimensions and values, cube-fact assignments and any validation errors — and, for
+streamed fact sources, each streamed row is validated before the next replaces
+it. Deferring validation (for a report still being formed, or one problematic to
+validate) is available via **Tools ▸ "Validate XBRL model on load"** (a checked-
+by-default toggle stored in the config); the toolbar **Validate** button then
+validates on request.
 
 **Groups is the reporting structure.** Rather than a flat list, the Groups pane
 nests groups under the model's `groupTree` object in relationship order, each
@@ -141,6 +150,23 @@ tree does not reach appear under an **(ungrouped)** node, so nothing is hidden; 
 model with no `groupTree` falls back to a flat list of groups. For a legacy DTS
 loaded through `LoadLegacyTaxonomy`, the inferred tree gives the familiar SEC
 Cover / Statements / Notes / Policies / Tables / Details sections.
+
+**Cube Facts** shows the group tree of cubes, each cube followed by the facts
+assigned to it. The assignment is *derived* — candidate facts are those whose
+concept is a cube line item, then filtered by the full dimensional match
+(`matchFactToCube`), the same normative rule validation uses — so it is available
+without a prior validation pass and is dimensionally correct (a fact carrying an
+axis the cube lacks is excluded, not placed by concept alone). Facts appear in
+presentation order; cubes reached by no group go under **(ungrouped)**. Its
+right-click **Cube facts options** submenu toggles *Show empty groups*, *Show
+empty cubes*, *Show name column* and *Show kind column* (empties and the kind
+column are hidden by default). When the proposed `cubeContents` objects are
+adopted the pane would read them in preference to deriving.
+
+**Import Taxonomies** is a tree: each imported module nested under the module that
+imports it, so the hierarchy shows which taxonomy imports which. Roots are the
+modules imported by no other module (typically the entry-point taxonomy); cycles
+among the built-in modules are marked **(loop)** and not re-descended.
 
 **Columns.** The tree column shows each object's label in the pane's current
 label role and language. The structural panes (Groups, Group Tree, Cubes,
@@ -162,17 +188,31 @@ only that column and the label column keeps its width.
 
 **Context menu** (right-click / control-click): Expand and Collapse, **Find…**
 (repeat to step through matches, wrapping at the end), Copy to clipboard (cell,
-row or whole table as tab-separated text), Language, Label role (including *Name*
-to show QNames), Name Style (prefixed QNames or local names), and **View ▸
-Additional view**, which lists every pane — including those opened on load — so a
-pane that has been closed can be reopened.
+row or whole table as tab-separated text), **Copy JSON** (the selected object
+serialized as its compiled JSON), Language, Label role (including *Name* to show
+QNames), Name Style (prefixed QNames or local names), and **View ▸ Additional
+view**, which lists every pane — including those opened on load — so a pane that
+has been closed can be reopened. Hovering a **detail** cell shows its properties
+one per line. An opened tree keeps its expansion when the label role, language,
+name style or sort changes.
 
-**Selecting a row** synchronizes the other panes to the same object and fills
-Arelle's Properties pane from the object's `propertyView`. There, a fact's
-dimensions are flat rows (no expanding per fact), while its `factValues` expand
-to show `value`, `decimals`, any transformation, and the `valueSources` locating
-the value in the source document — for an inline or PDF report, the html element
-id the fact was tagged from.
+**Selecting a row** synchronizes the other panes to the same object and fills two
+panes in the upper-left tab window: **Properties** (from the object's
+`propertyView`) and **JSON** (the object's compiled JSON, via
+`SaveModel.saveableObjects`). Sync is by object identity, but the Facts and Cube
+Facts panes also index each fact under its dimension members, so selecting a
+concept or unit reveals a fact that uses it, and selecting a fact reveals its
+concept in the Concepts pane and its unit in the Units pane. In the Properties
+pane a fact's dimensions are flat rows (no expanding per fact), while its
+`factValues` expand to show `value`, `decimals`, any transformation, and the
+`valueSources` locating the value in the source document — for an inline or PDF
+report, the html element id the fact was tagged from.
+
+**Find** — the infrastructure Find dialog (toolbar, or Tools ▸ Find) searches the
+compiled model too: its concept and fact field checkboxes match `XbrlConcept` /
+`XbrlFact` objects, and stepping through results highlights them across the panes.
+(Hook: `DialogFind.Objects`, handler `findObjects`.) A non-XbrlModel DTS falls
+back to the dialog's ordinary search.
 
 ### Saving a model
 
