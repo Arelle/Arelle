@@ -649,14 +649,14 @@ def _rewrite(factsDoc, perFV, pmsByFV, imgLocByFactId, pdfBasename):
             stats["total"] += 1
             pms = pmsByFV.get(id(fv)) or []
             if pms:
-                fv["source"] = cSrc
+                fv["reportSource"] = cSrc
                 fv["valueSources"] = _content_sources(pms)
                 stats["content"] += 1
                 continue
             loc = next((imgLocByFactId[i] for i in ids if i in imgLocByFactId), None)
             if loc is not None:
                 pg, bbox, h = loc
-                fv["source"] = iSrc
+                fv["reportSource"] = iSrc
                 fv["valueSources"] = _image_source(pg, bbox, h)
                 stats["image"] += 1
                 continue
@@ -664,7 +664,7 @@ def _rewrite(factsDoc, perFV, pmsByFV, imgLocByFactId, pdfBasename):
             # (its original htmlElementId valueSources stay unchanged).
             stats["unmapped"] += 1
             if htmlSrc is not None:
-                fv["source"] = htmlSrc
+                fv["reportSource"] = htmlSrc
     return stats
 
 
