@@ -173,14 +173,14 @@ class XbrlJSONTemplateMap(XbrlReportObject):
     name: Optional[QNameKeyType] # (optional) The QName that identifies the JSON template map object.
     factDimensions: dict[QName, Any] # (required) A factDimensions object that defines map dimensions.
     valuePath: str # (required) A JSONPath expression that identifies the location of the fact values in the JSON data.
-    decimals: Optional[int] # (optional) A decimals value.
+    decimals: Optional[Decimal] # (optional) A decimals value (xs:decimal).
 
 class XbrlXMLTemplateMap(XbrlReportObject):
     module: XbrlModuleAlias  # table templates in taxonomy module are owned by the txmyMdl
     name: QNameKeyType # (required) The QName that identifies the XML template map object.
     factDimensions: dict[QName, Any] # (required) A factDimensions object that defines map dimensions.
     valuePath: str # (required) A JSONPath expression that identifies the location of the fact values in the JSON data.
-    decimals: Optional[int] # (optional) A decimals value.
+    decimals: Optional[Decimal] # (optional) A decimals value (xs:decimal).
     namespaceMap: Optional[XbrlNamespaceMap] # (optional) A namespace mapping object that defines the namespace prefixes used in the XPath expression.
 
 class XbrlFactMap(XbrlReportObject):
