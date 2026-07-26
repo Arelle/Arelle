@@ -4,6 +4,7 @@ See COPYRIGHT.md for copyright information.
 
 from typing import TYPE_CHECKING, Optional, Union
 from collections import defaultdict
+from decimal import Decimal
 
 from arelle.ModelValue import QName, AnyURI
 from ordered_set import OrderedSet
@@ -21,7 +22,7 @@ class XbrlRelationship(XbrlModelObject):
     """
     source: QName # (required) This attribute identifies the source concept of the relationship type. The value of the attribute must be a QName.
     target: QName # (required) This attribute identifies the target concept of the relationship type. The value of the attribute must be a QName.
-    order: Optional[int] # (optional) This is used to order the relationships if the order is different than the order that the relationship appears in the list of relationships. The order property can be used on any relationship type.
+    order: Optional[Decimal] # (optional) A decimal that orders the relationships if the order differs from the order the relationship appears in the list of relationships. The order property can be used on any relationship type.
     properties: Optional[NonemptySet[XbrlProperty]] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.
 
     @property

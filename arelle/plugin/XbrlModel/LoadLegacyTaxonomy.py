@@ -348,6 +348,9 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
                 continue
             s, t = pfx.pn(r.fromModelObject.qname), pfx.pn(r.toModelObject.qname)
             if s in emitted and t in emitted:
+                # r.order is a float from the 2.1 infrastructure (default 1.0). XbrlRelationship.order
+                # is Decimal (spec); the float value serializes as a JSON number -- a whole order as
+                # an int (1, not "1.0") -- via saveableValue's numeric handling.
                 frels.append({"source": s, "target": t, "order": r.order})
                 srcs.add(s); tgts.add(t)
         if frels:

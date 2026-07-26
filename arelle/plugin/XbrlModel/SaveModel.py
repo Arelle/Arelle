@@ -47,6 +47,15 @@ _COMPILED_STRIP_KEYS = frozenset({"importedTaxonomies", "referenceModel"})
 _MODULE_SCALAR_KEYS = ("frameworkName", "version", "modelType", "duplicateFactsInModel")
 
 
+def _jsonDefault(o):
+    """json.dump fallback for any value saveableValue did not already reduce to a JSON-native type
+    (defence-in-depth: json has no native Decimal emitter). A Decimal serializes as a number -- a
+    whole value as an int (order 1, not 1.0) -- and anything else as its string form."""
+    if isinstance(o, Decimal):
+        return int(o) if o.is_finite() and o == o.to_integral_value() else float(o)
+    return str(o)
+
+
 def saveableValue(val, mdlPropName, **kwargs):
     """ Convert a value into a saveable form.
         For QName, convert to string and track namespaces.
@@ -71,6 +80,8 @@ def saveableValue(val, mdlPropName, **kwargs):
         return val
     elif isinstance(val, int): # order etc
         return val
+    elif isinstance(val, float): # a numeric value (e.g. a relationship order) must stay a number
+        return int(val) if val.is_integer() else val
     return str(val)
 
 def saveableObjects(mdlObj, mdlName, **kwargs):
@@ -283,7 +294,7 @@ def saveFiles(cntlr, txmyMdl, fileName, saveMode="full", **kwargs):
     oimModel = {"documentInfo": docInfo, "xbrlModel": mergedModel}
     if fileExt == ".json":
         with io.open(fileName, "w") as fp:
-            json.dump(oimModel, fp, indent=3)
+            json.dump(oimModel, fp, indent=3, default=_jsonDefault)
     elif fileExt == ".cbor":
         with io.open(fileName, "wb") as fp:
             cbor2.dump(oimModel, fp, value_sharing=True, string_referencing=True)

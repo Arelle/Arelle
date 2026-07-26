@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 
 from typing import Optional
+from decimal import Decimal
 
 from arelle.ModelValue import QName, AnyURI
 from ordered_set import OrderedSet
@@ -27,7 +28,7 @@ class XbrlGroupContent(XbrlModelObject):
     module: XbrlModuleAlias
     groupName: QName # (required) The QName of the group object that this content is included in.
     forObject: QName # (required) A single network object, cube object, domain network object or table template object QName that is included in the group object.
-    order: Optional[float] # (optional) The order of group content objects with the same groupName in the groupContents set. Default 0; ties are ordered at the processor's discretion.
+    order: Optional[Decimal] # (optional) A decimal that orders group content objects with the same groupName in the groupContents set. Default 0; ties are ordered at the processor's discretion.
 
 class XbrlGroupTree(XbrlReferencableModelObject):
     """ Group Tree Object
