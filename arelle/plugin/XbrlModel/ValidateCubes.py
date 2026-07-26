@@ -12,6 +12,35 @@ from arelle.XmlValidateConst import VALID, INVALID
 
 coreToFactDim = {conceptCoreDim: "concept", entityCoreDim: "entity", unitCoreDim: "unit"}
 
+def effectiveCubeType(compMdl, cubeObj, _visited=None):
+    """The cube's cubeType QName, inherited through `extends` when the cube sets none of its own.
+       An anonymous extension cube (e.g. {"extends": someNegativeCube}) has no local cubeType but
+       is effectively the base's type -- so a cube extending a negative cube is itself negative."""
+    cubeType = getattr(cubeObj, "cubeType", None)
+    if cubeType is not None:
+        return cubeType
+    extends = getattr(cubeObj, "extends", None)
+    if extends is not None:
+        if _visited is None:
+            _visited = set()
+        if id(cubeObj) in _visited:
+            return None
+        _visited.add(id(cubeObj))
+        baseObj = compMdl.namedObjects.get(extends)
+        if isinstance(baseObj, XbrlCube):
+            return effectiveCubeType(compMdl, baseObj, _visited)
+    return None # no local or inherited cubeType -> defaults to xbrl:reportCube (not negative)
+
+
+def isNegativeCube(compMdl, cubeObj):
+    """True if the cube is (or effectively, through extends, is) a negative cube -- one that does
+       not provide a valid fact space. Uses the effective cubeType so an extension of a negative
+       cube is recognized as negative."""
+    cubeTypeQn = effectiveCubeType(compMdl, cubeObj)
+    cubeTypeObj = compMdl.namedObjects.get(cubeTypeQn) if cubeTypeQn is not None else None
+    return getattr(getattr(cubeTypeObj, "name", None), "localName", None) == "negativeCube"
+
+
 def matchFactToCube(compMdl, factspace, cubeObj):
     """Check if the factspace dimensions match the cube dimensions and allowed members.
         Return True if the factspace matches the cube, False otherwise.
@@ -83,24 +112,66 @@ def matchFactToCube(compMdl, factspace, cubeObj):
     return hasDims
 
 def validateCubes(compMdl, factspace):
-    """Find cubes that match the dimensions of the factspace, and validate the factspace against those cubes.
-        Return list of cubes that match the factspace dimensions.
+    """Return the cubes whose dimensional space the factspace (a fact) falls within.
 
-        This is a first step toward validating the factspace against the cubes, and then validating the facts against the cubes.
-
-        The cube fit scores are used to find likely cubes, and then the factspace is validated against those cubes.
-
-        The factspace is validated against a cube by checking that the dimensions of the factspace match the dimensions of the cube,
-        and that the values of the dimensions of the factspace match the allowed members of the cube dimensions.
-
-        The factspace is validated against a cube by checking that for each dimension of the cube, there is a corresponding dimension
-        in the factspace with a value that matches one of the allowed members of the cube dimension.
-
-        If all dimensions of the cube are matched by dimensions in the factspace with matching values,
-        then the factspace is considered to match the cube. The function returns a list of cubes that match the
-        factspace dimensions and values.
+        A fact matches a cube only if, for the cube's concept dimension, the fact's concept is an
+        allowed member (or the cube's concept dimension is open) -- see matchFactToCube. So the
+        candidate cubes for a fact are exactly the cubes that list the fact's concept as a concept
+        member, plus the cubes with an open concept dimension; matchFactToCube then verifies the
+        remaining dimensions. This exact concept index (built once, cached) replaces a per-fact
+        vector search: it is torch-free, needs no embedding build, and does not miss a cube (the
+        vector recall returned an approximate top-k). The vector path is retained for comparison
+        behind compMdl._useVectorCubeSearch.
     """
-    # find likely cubes
+    if getattr(compMdl, "_useVectorCubeSearch", False):
+        return _validateCubesVectorSearch(compMdl, factspace)
+    conceptToCubes, openCubes = _cubeConceptCandidateIndex(compMdl)
+    conceptQn = (factspace.factDimensions or {}).get(conceptCoreDim)
+    if isinstance(conceptQn, str) and ":" in conceptQn:
+        conceptQn = qname(conceptQn, factspace.module._prefixNamespaces)
+    candidates = []
+    seen = set()
+    for cubeObj in conceptToCubes.get(conceptQn, ()):
+        if id(cubeObj) not in seen:
+            seen.add(id(cubeObj))
+            candidates.append(cubeObj)
+    for cubeObj in openCubes: # open-concept cubes accept any concept -- candidates for every fact
+        if id(cubeObj) not in seen:
+            seen.add(id(cubeObj))
+            candidates.append(cubeObj)
+    return [cubeObj for cubeObj in candidates if matchFactToCube(compMdl, factspace, cubeObj)]
+
+
+def _cubeConceptCandidateIndex(compMdl):
+    """(conceptToCubes, openCubes): a concept QName -> the cubes listing it as a concept member,
+       and the cubes whose concept dimension is open (no domain, so any concept is allowed). Built
+       from every module's cubes (including anonymous extension cubes) using the same concept
+       member set matchFactToCube consults (XbrlCubeDimension.allowedMembers), and cached on the
+       model; cleared by clearEffectiveCaches when the effective relationships change."""
+    index = getattr(compMdl, "_cubeConceptCandidateIndexCache", None)
+    if index is not None:
+        return index
+    conceptToCubes = {}
+    openCubes = []
+    for module in compMdl.xbrlModels.values():
+        for cubeObj in getattr(module, "cubes", None) or ():
+            conceptDim = next((cd for cd in (cubeObj.cubeDimensions or ())
+                               if cd.dimension == conceptCoreDim), None)
+            members = conceptDim.allowedMembers(compMdl) if conceptDim is not None else None
+            if members:
+                for conceptQn in members:
+                    conceptToCubes.setdefault(conceptQn, []).append(cubeObj)
+            else:
+                openCubes.append(cubeObj) # open concept dimension -> matches any fact's concept
+    index = (conceptToCubes, openCubes)
+    compMdl._cubeConceptCandidateIndexCache = index
+    return index
+
+
+def _validateCubesVectorSearch(compMdl, factspace):
+    """Vector-search candidate generation (compMdl._useVectorCubeSearch): find likely cubes by
+       embedding similarity, then verify with matchFactToCube. Retained for comparison; the exact
+       concept index in validateCubes is the default (faster and does not miss cubes)."""
     cubeFitQuery = [(dimQn, value) for dimQn,value in factspace.factDimensions.items() if isinstance(dimQn, QName)]
     try:
         results = searchXbrl(compMdl, cubeFitQuery, SEARCH_CUBES, 50) # allow sufficient return scores

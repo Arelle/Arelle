@@ -2037,15 +2037,19 @@ def validateCompletedModel(compMdl):
     # Facts in taxonomy
     if any(module.facts for module in compMdl.xbrlModels.values()):
 
-        # build search vocabulary to support cube construction (after date resolution concepts validated)
         from .VectorSearch import buildXbrlVectors, searchXbrl, searchXbrlBatchTopk, SEARCH_CUBES, SEARCH_FACTPOSITIONS, SEARCH_BOTH
-        buildXbrlVectors(compMdl)
 
         global resolveFact, validateFactPosition
         if resolveFact is None:
             from .ValidateFacts import resolveFact, validateFactPosition
 
         dateResolutionQuery = [(conceptCoreDim, qn) for qn in compMdl.dateResolutionConceptNames]
+
+        # The vector store is only needed for date-resolution concept detection and the optional
+        # vector-based cube search; cube-to-fact binding now uses an exact concept index (see
+        # ValidateCubes.validateCubes), so skip the costly embedding build when neither applies.
+        if dateResolutionQuery or getattr(compMdl, "_useVectorCubeSearch", False):
+            buildXbrlVectors(compMdl)
 
         if dateResolutionQuery:
 

@@ -21,7 +21,7 @@ from .XbrlEntity import XbrlEntity
 from .XbrlFact import XbrlFact, XbrlTableTemplate
 from .XbrlUnit import parseUnitString, XbrlUnit
 from .ValidateXbrlModel import validateValue
-from .ValidateCubes import validateCubes
+from .ValidateCubes import validateCubes, isNegativeCube
 from .ErrorCatalog import emit_error
 
 periodPattern = re.compile( # regex for xs:dateTime or xs:date with optional end dateTime or date separated by "/" and optional "Z" timezone designator
@@ -391,11 +391,11 @@ def validateFactPosition(txmyMdl, fact):
     if hasInvalidDimMember:
         return  # suppress noFactSpaceForFact when a more-specific member error was already raised
 
-    # find cubes which fact is valid for (negative cubes don't provide valid fact space)
+    # find cubes which fact is valid for (negative cubes don't provide valid fact space); the
+    # negative test uses the EFFECTIVE cubeType so an anonymous cube extending a negative cube is
+    # itself recognized as negative (see isNegativeCube)
     matchedCubes = validateCubes(txmyMdl, fact)
-    nonNegativeCubes = [c for c in matchedCubes
-                        if getattr(txmyMdl.namedObjects.get(getattr(c, "cubeType", None)), "name", None) is None
-                        or txmyMdl.namedObjects.get(c.cubeType).name.localName != "negativeCube"]
+    nonNegativeCubes = [c for c in matchedCubes if not isNegativeCube(txmyMdl, c)]
     if not nonNegativeCubes:
         error("oimte:noFactSpaceForFact",
               _("The fact %(name)s with concept %(conceptName)s does not fit within any defined cube fact space."),

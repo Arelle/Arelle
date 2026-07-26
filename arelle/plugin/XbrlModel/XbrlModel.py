@@ -225,6 +225,9 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
         self._effectiveCubeExtensionCache.clear()
         self._referenceObjectsByNameCache = None
         self._referenceObjectsByForObjectCache = None
+        # the cube-concept candidate index (ValidateCubes) derives from allowedMembers, which
+        # depend on effective relationships -- rebuild it if those change
+        self._cubeConceptCandidateIndexCache = None
         for obj in self.namedObjects.values():
             if isinstance(obj, (XbrlDomainNetwork, XbrlNetwork)):
                 for attrName in ("_relationshipsFrom", "_relationshipsTo", "_roots"):
