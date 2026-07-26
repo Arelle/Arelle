@@ -41,7 +41,8 @@ import json
 from arelle import ViewWinTree, XbrlConst
 from arelle.ModelValue import QName, qname
 from ordered_set import OrderedSet
-from .XbrlCube import XbrlCube, conceptCoreDim
+from .XbrlConcept import XbrlConcept
+from .XbrlCube import XbrlCube, conceptCoreDim, unitCoreDim
 from .XbrlDimension import XbrlDomainNetwork
 from .XbrlFact import XbrlFact
 from .XbrlGroup import XbrlGroup, XbrlGroupTree
@@ -152,6 +153,59 @@ def objectJson(obj):
         return json.dumps(saveableObjects(obj, "", fileExt=".json", txmyPrefixes={}), indent=2)
     except Exception:
         return ""
+
+
+def findObjects(dialog, modelXbrl, pattern, isRE, isXP, options):
+    """DialogFind.Objects hook: search a compiled XBRL model's concepts and facts for the Find
+    dialog, mapping its concept/fact field checkboxes onto OIM object properties. Returns the
+    dialog's objsList of (kind, sortKey, objectId) tuples, where objectId is an "_..._index" id
+    the compiled model's viewModelObject resolves. Returns None to decline -- when the loaded model
+    is not a compiled XBRL model, or the expression is xpath (not evaluated here) -- so the
+    dialog's built-in ModelConcept/ModelFact search runs unchanged for ordinary DTSes."""
+    if pattern is None or not isRE or getattr(modelXbrl, "namedObjects", None) is None:
+        return None
+    o = options
+    wantConcept = any(o.get(k) for k in ("conceptLabel", "conceptName", "conceptType", "conceptPer", "conceptBal"))
+    wantFact = any(o.get(k) for k in ("factLabel", "factName", "factValue", "factCntx", "factUnit"))
+    if not (wantConcept or wantFact):
+        return [] # claim the model, but no concept/fact field selected -- nothing to match
+    lang = modelXbrl.modelManager.defaultLang
+    objsList = []
+    def objId(obj):
+        return f"_0_{obj.xbrlMdlObjIndex}"
+    def label(qn):
+        return str(modelXbrl.labelValue(qn, qnStdLabel, lang) or "") if qn is not None else ""
+    def balance(concept):
+        for prop in getattr(concept, "properties", None) or ():
+            if getattr(getattr(prop, "property", None), "localName", None) == "balance":
+                return str(getattr(prop, "value", ""))
+        return ""
+    def conceptQnOf(fact):
+        qn = (fact.factDimensions or {}).get(conceptCoreDim)
+        if isinstance(qn, str) and ":" in qn:
+            qn = qname(qn, fact.module._prefixNamespaces)
+        return qn
+    if wantConcept:
+        for c in modelXbrl.filterNamedObjects(XbrlConcept):
+            if ((o.get("conceptName") and pattern.search(str(c.name))) or
+                (o.get("conceptLabel") and pattern.search(label(c.name))) or
+                (o.get("conceptType") and c.dataType and pattern.search(str(c.dataType))) or
+                (o.get("conceptPer") and c.periodType and pattern.search(str(c.periodType))) or
+                (o.get("conceptBal") and pattern.search(balance(c)))):
+                objsList.append(("c", str(c.name), objId(c)))
+    if wantFact:
+        for f in modelXbrl.filterNamedObjects(XbrlFact):
+            cq = conceptQnOf(f)
+            dims = f.factDimensions or {}
+            values = [str(fv.value) for fv in (f.factValues or ()) if getattr(fv, "value", None) is not None]
+            unit = dims.get(unitCoreDim)
+            if ((o.get("factName") and cq is not None and pattern.search(str(cq))) or
+                (o.get("factLabel") and cq is not None and pattern.search(label(cq))) or
+                (o.get("factValue") and any(pattern.search(v) for v in values)) or
+                (o.get("factCntx") and pattern.search("; ".join(f"{k}={v}" for k, v in dims.items()))) or
+                (o.get("factUnit") and unit is not None and pattern.search(str(unit)))):
+                objsList.append(("f", label(cq) or str(f.name), objId(f)))
+    return objsList
 
 
 def viewXbrlTaxonomyObject(xbrlCompMdl, objClass, tabWin, header, additionalViews=None):
@@ -304,6 +358,20 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
             return f"({len(items)})"
         return ", ".join(str(item) for item in items)
 
+    def factDimensionMembers(self, fact):
+        """The named objects a fact's dimension values point at -- its concept, explicit members,
+           unit, etc. Used to cross-index a fact so selecting one of those objects reveals it, and
+           to reveal one of them when the fact itself has no row in a pane. Period and entity
+           dimension values are not named objects and resolve to nothing, so they are skipped."""
+        for dimVal in (fact.factDimensions or {}).values():
+            qn = dimVal
+            if isinstance(qn, str) and ":" in qn:
+                qn = qname(qn, fact.module._prefixNamespaces)
+            if isinstance(qn, QName):
+                memberObj = self.xbrlCompMdl.namedObjects.get(qn)
+                if memberObj is not None:
+                    yield memberObj
+
     def factValueCells(self, obj):
         """(value, decimals) for a fact, gathered from its factValue objects -- usually one, but a
            fact may carry several, so they are joined rather than showing only the first."""
@@ -384,6 +452,12 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
                                     text=rowText,
                                     tags=("odd" if self.nodeNum & 1 else "even",))
         self.tag_has[f"_{obj.xbrlMdlObjIndex}"].append(node)
+        if isinstance(obj, XbrlFact):
+            # also index the fact under each of its dimension members, so selecting a concept /
+            # member / unit in another pane (or finding one) reveals a fact that uses it -- the
+            # Facts pane holds only facts, so those objects have no row of their own here
+            for memberObj in self.factDimensionMembers(obj):
+                self.tag_has[f"_{memberObj.xbrlMdlObjIndex}"].append(node)
         self.id += 1
         self.nodeNum += 1
         for colName in self.colNames:
@@ -681,17 +755,27 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
             try:
-                items = self.tag_has.get(f"_{txmyObj.xbrlMdlObjIndex}")
-                if items:
-                    for item in items:
-                        if self.treeView.exists(item):
-                            self.setTreeItemOpenToRoot(item)
-                            self.treeView.see(item)
-                            self.treeView.selection_set(item)
+                if not self._revealObject(txmyObj) and isinstance(txmyObj, XbrlFact):
+                    # a fact has no row in the concept / network / unit panes; reveal a related
+                    # object that does (its concept, member, unit) so selecting a fact syncs them
+                    for memberObj in self.factDimensionMembers(txmyObj):
+                        if self._revealObject(memberObj):
                             break
             except (AttributeError, KeyError, ValueError):
                     self.treeView.selection_set(())
             self.blockViewModelObject -= 1
+
+    def _revealObject(self, txmyObj):
+        """Scroll to and select the row for txmyObj, if this pane has one. Returns True if found."""
+        items = self.tag_has.get(f"_{getattr(txmyObj, 'xbrlMdlObjIndex', None)}")
+        if items:
+            for item in items:
+                if self.treeView.exists(item):
+                    self.setTreeItemOpenToRoot(item)
+                    self.treeView.see(item)
+                    self.treeView.selection_set(item)
+                    return True
+        return False
 
 
 def viewXbrlObjectJson(xbrlCompMdl, tabWin):

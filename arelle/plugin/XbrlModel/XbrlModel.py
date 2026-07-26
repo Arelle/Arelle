@@ -460,6 +460,12 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
                             xbrlObj,
                             err, traceback.format_exc()))
 
+    def viewModelObject(self, objectId):
+        # Infrastructure that navigates by viewModelObject (e.g. the Find dialog) reaches the
+        # compiled model here; its objects are XbrlObjects addressed by xbrlObjects index, so route
+        # through viewTaxonomyObject, which accepts an XbrlObject or an "_..._index" object id.
+        self.viewTaxonomyObject(objectId)
+
     # DTS-wide object enumerators. For network-specific selection by arcrole or
     # role URI, prefer filterNetworks() over the generic filterNamedObjects().
     def filterNamedObjects(self, _class, _type=None, _lang=None):

@@ -16,6 +16,7 @@ from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelRssItem import ModelRssItem
 from arelle.ModelFormulaObject import Trace
+from arelle.PluginManager import pluginClassMethods
 
 '''
 caller checks accepted, if True, caller retrieves url
@@ -265,6 +266,30 @@ class DialogFind(Toplevel):
 
             else:
                 return  # nothing to do
+
+            # A plugin may provide the search when its own model type is loaded (e.g. an OIM
+            # compiled model, whose objects are not the ModelConcept/ModelFact this dialog otherwise
+            # searches). A handler returns a ready objsList of (kind, sortKey, objectId) tuples, or
+            # None to decline -- when none claims the model the built-in search below runs unchanged.
+            if not inMessagesLog:
+                pluginObjsList = None
+                for pluginMethod in pluginClassMethods("DialogFind.Objects"):
+                    pluginObjsList = pluginMethod(self, self.modelXbrl,
+                                                  pattern if isRE else None, isRE, isXP, self.options)
+                    if pluginObjsList is not None:
+                        break
+                if pluginObjsList is not None:
+                    self.objsList = sorted(pluginObjsList)
+                    n = len(self.objsList)
+                    self.result = _("Found {0} matches").format(n)
+                    if n == 0:
+                        self.foundIndex = -1
+                        self.modelManager.cntlr.uiThreadQueue.put((self.resultText.setValue, [self.result]))
+                    else:
+                        self.foundIndex = 0 if nextIsDown else (n - 1)
+                        self.modelManager.cntlr.uiThreadQueue.put((self.next, []))
+                    self.modelManager.showStatus(_("Ready..."), 2000)
+                    return
 
             if inMessagesLog:
                 for lineNumber, line in enumerate(logViewLines):

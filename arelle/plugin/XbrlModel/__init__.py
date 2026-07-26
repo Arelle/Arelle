@@ -144,7 +144,7 @@ from .ValidateXbrlModel import validateCompiledModel
 from .ValidateFacts import validateDateResolutionConceptFacts, validateCompleteReportCubes
 from .SelectImportedObjects import validateImportSelections, applyDeferredImportPruning
 from .ModelValueMore import SQName, QNameAt
-from .ViewXbrlTaxonomyObject import viewXbrlTaxonomyObject, viewXbrlObjectJson
+from .ViewXbrlTaxonomyObject import viewXbrlTaxonomyObject, viewXbrlObjectJson, findObjects
 from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, oimBundleDocTypes, oimReferenceBundleDocType, xbrlTaxonomyObjects
 from .ParseSelectionWhereClause import parseSelectionWhereClause
 from .LoadCsvTable import csvTableRowFacts
@@ -1531,6 +1531,7 @@ __pluginInfo__ = {
     'CntlrWinMain.Xbrl.Views': xbrlModelViews,
     'CntlrWinMain.Xbrl.Loaded': xbrlModelWinLoaded,
     'CntlrWinMain.Xbrl.Save': xbrlModelSave,
+    'DialogFind.Objects': findObjects,
     'ModelDocument.IsPullLoadable': isXbrlModelLoadable,
     'ModelDocument.PullLoader': xbrlModelLoader,
     'Validate.XBRL.Start': xbrlModelValidator
