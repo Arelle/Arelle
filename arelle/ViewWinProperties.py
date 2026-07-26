@@ -8,9 +8,16 @@ def viewProperties(modelXbrl, tabWin):
     modelXbrl.modelManager.showStatus(_("viewing properties"))
     view = ViewProperties(modelXbrl, tabWin)
     view.treeView["columns"] = ("value")
-    view.treeView.column("#0", width=75, anchor="w")
+    # Only the value column stretches to take up spare width; the Property (tree) column keeps the
+    # width it is given. With both columns stretchable (the ttk default) every relayout is taken
+    # out of the tree column, so dragging the separator to widen Property instead snapped it to a
+    # sliver. Making value the sole stretcher, with minwidths so neither vanishes, means a drag
+    # resizes only the dragged column. NOTE: this is a local stopgap of the same tree-column-resize
+    # bug shared by all infrastructure ViewWin* panes; the general fix is owed as a separate PR to
+    # master (see the XbrlModel plugin's ViewXbrlTaxonomyObject columns for the same approach).
+    view.treeView.column("#0", width=140, minwidth=60, stretch=False, anchor="w")
     view.treeView.heading("#0", text="Property")
-    view.treeView.column("value", width=600, anchor="w")
+    view.treeView.column("value", width=600, minwidth=100, stretch=True, anchor="w")
     view.treeView.heading("value", text="Value")
     view.treeView["displaycolumns"] = ("value")
     view.view()
