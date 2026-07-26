@@ -472,13 +472,17 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
     # DTS-wide object enumerators. For network-specific selection by arcrole or
     # role URI, prefer filterNetworks() over the generic filterNamedObjects().
     def filterNamedObjects(self, _class, _type=None, _lang=None):
+        # Iterate a snapshot (list(...)) rather than the live dict: this is a lazy generator, and a
+        # consumer may hold it open across an operation that mutates namedObjects/tagObjects (e.g.
+        # validation materialising facts while the GUI Cube Facts view rebuilds from it), which
+        # would otherwise raise "dictionary changed size during iteration" when the generator resumes.
         if (issubclass(_class, XbrlReferencableModelObject) or
             (issubclass(_class, (XbrlFact,XbrlFootnote)) and isinstance(self, XbrlCompiledModel))):  # taxonomy-owned fact
-            for obj in self.namedObjects.values():
+            for obj in list(self.namedObjects.values()):
                 if isinstance(obj, _class):
                     yield obj
         elif issubclass(_class, XbrlTaxonomyTagObject):
-            for objs in self.tagObjects.values():
+            for objs in list(self.tagObjects.values()):
                 for obj in objs:
                     if (isinstance(obj, _class) and
                         (not _type or _type == obj._type) and
