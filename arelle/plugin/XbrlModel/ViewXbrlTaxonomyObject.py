@@ -27,15 +27,17 @@ The Groups pane is the model's reporting structure rather than a flat list: `vie
 groups under the groupTree (oim-taxonomy#grouptree-object) in relationship order, each followed
 by its group contents, with anything the tree does not reach under an "(ungrouped)" node.
 
-The context menu offers expand/collapse, Find, copy to clipboard, language, label role, name
-style (prefixed QNames or local names) and the View list. Selecting a row calls
-`viewTaxonomyObject`, which syncs the other panes and the Properties pane; the Properties pane
-renders `XbrlObject.propertyView` (in `XbrlObject.py`, not here), which expands an object's
-collections into nested rows and a fact's dimensions into flat ones.
+The context menu offers expand/collapse, Find, copy to clipboard (including Copy JSON, the
+selected object serialized), language, label role, name style (prefixed QNames or local names)
+and the View list. Selecting a row calls `viewTaxonomyObject`, which syncs the other panes, the
+Properties pane and the JSON pane. The Properties pane renders `XbrlObject.propertyView` (in
+`XbrlObject.py`, not here); the JSON pane (`ViewXbrlObjectJson`) renders the object's compiled
+JSON via `SaveModel.saveableObjects`. Both sit in the upper-left tab window beside each other.
 '''
 from typing import ForwardRef, GenericAlias, Union, get_origin
 from collections import defaultdict
 from decimal import Decimal
+import json
 from arelle import ViewWinTree, XbrlConst
 from arelle.ModelValue import QName, qname
 from ordered_set import OrderedSet
@@ -43,6 +45,7 @@ from .XbrlCube import XbrlCube, conceptCoreDim
 from .XbrlDimension import XbrlDomainNetwork
 from .XbrlFact import XbrlFact
 from .XbrlGroup import XbrlGroup, XbrlGroupTree
+from .XbrlImportTaxonomy import XbrlImportTaxonomy
 from .XbrlNetwork import XbrlNetwork
 from .XbrlObject import XbrlObject
 from .XbrlConst import qnStdLabel
@@ -139,6 +142,18 @@ def objectTypeName(obj):
     return className
 
 
+def objectJson(obj):
+    """The compiled-model JSON for a single taxonomy object, as shown in the JSON pane and by
+       Copy JSON. Reuses the save path's per-object serializer (SaveModel.saveableObjects) so the
+       text matches what SaveModel would write; "full" mode (no prune) emits the object as-is.
+       Returns "" for anything the serializer cannot handle (e.g. a grouping row's non-object)."""
+    from .SaveModel import saveableObjects
+    try:
+        return json.dumps(saveableObjects(obj, "", fileExt=".json", txmyPrefixes={}), indent=2)
+    except Exception:
+        return ""
+
+
 def viewXbrlTaxonomyObject(xbrlCompMdl, objClass, tabWin, header, additionalViews=None):
     """View an XBRL taxonomy object class in a tree view.
     :param xbrlCompMdl: Compiled ModelXbrl
@@ -202,6 +217,7 @@ def viewXbrlTaxonomyObject(xbrlCompMdl, objClass, tabWin, header, additionalView
         view.menuAddExpandCollapse() # for tree view panes but not for Concept table pane
     view.menuAddFind()
     view.menuAddClipboard()
+    view.menuAddCopyJson()
     view.menuAddLangs()
 
     view.menuAddLabelRoles(usedLabelroles=
@@ -220,6 +236,10 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
         self.xbrlCompMdl = xbrlCompMdl
         self.objClass = objClass
         self.isStructuralPane = objClass in STRUCTURAL_CLASSES
+        # a tree pane's child-row order carries meaning (relationship / import order), so it opens
+        # unsorted and never sorts nested rows -- see setColumnsSortable and sortNestedRows. The
+        # import pane keeps homogeneous columns but is still tree-shaped.
+        self.isTreePane = self.isStructuralPane or objClass is XbrlImportTaxonomy
         self.nameIsPrefixed = True # the Name Style menu toggles this; prefixed is the default
         self.blockSelectEvent = 1
         self.blockViewModelObject = 0
@@ -265,7 +285,7 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
                 conceptQn = qname(conceptQn, obj.module._prefixNamespaces)
             if isinstance(conceptQn, QName):
                 return self.labelText(conceptQn)
-        for propName in ("name", "dimension", "target", "forObject"):
+        for propName in ("name", "dimension", "target", "forObject", "xbrlModelName"):
             val = getattr(obj, propName, None)
             if isinstance(val, QName):
                 return self.labelText(val)
@@ -377,8 +397,12 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
     # ── pane rendering ─────────────────────────────────────────────────
 
     def view(self):
-        # a structural pane's child rows are relationship-ordered, so it does not open sorted
-        self.setColumnsSortable(startUnsorted=self.isStructuralPane)
+        # remember which objects were expanded so a re-render (label role, language, name style,
+        # sort) does not collapse a tree the user has opened -- keyed by object index, which is
+        # stable across rebuilds even though the node ids are not
+        priorOpen = self._captureOpenState()
+        # a tree pane's child rows are ordered (relationship / import order), so it opens unsorted
+        self.setColumnsSortable(startUnsorted=self.isTreePane)
         self.tag_has = defaultdict(list)
         self.fullCellText = {}
         self.clearTreeView()
@@ -386,17 +410,43 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
         self.nodeNum = 0
         if self.objClass is XbrlGroup:
             self.viewGroups() # the Groups pane is the reporting structure, not a flat list
-            return
-        if self.objClass is XbrlNetwork:
-            objs = self.xbrlCompMdl.filterNetworks()
+        elif self.objClass is XbrlImportTaxonomy:
+            self.viewImportTree() # nest imported modules under the module that imports them
         else:
-            # in a tag pane (labels, references) the label role doubles as a type filter, so the
-            # pane shows the labels of the selected type. "Name" is a display sentinel rather than
-            # a label type, so it must not filter every row out.
-            typeFilter = None if self.labelrole == XbrlConst.conceptNameLabelRole else self.labelrole
-            objs = self.xbrlCompMdl.filterNamedObjects(self.objClass, typeFilter, self.lang)
-        for obj in objs: # this is a yield generator
-            self.viewChildren(self.insertRow("", obj), obj)
+            if self.objClass is XbrlNetwork:
+                objs = self.xbrlCompMdl.filterNetworks()
+            else:
+                # in a tag pane (labels, references) the label role doubles as a type filter, so
+                # the pane shows the labels of the selected type. "Name" is a display sentinel
+                # rather than a label type, so it must not filter every row out.
+                typeFilter = None if self.labelrole == XbrlConst.conceptNameLabelRole else self.labelrole
+                objs = self.xbrlCompMdl.filterNamedObjects(self.objClass, typeFilter, self.lang)
+            for obj in objs: # this is a yield generator
+                self.viewChildren(self.insertRow("", obj), obj)
+        self._restoreOpenState(priorOpen)
+
+    def _captureOpenState(self):
+        """Object indexes of the currently-expanded object rows, before the tree is rebuilt."""
+        openIdx = set()
+        if not hasattr(self, "tag_has"): # first build -- nothing to remember
+            return openIdx
+        def walk(node):
+            for n in self.treeView.get_children(node):
+                if n.startswith("_") and str(self.treeView.item(n, "open")) in ("1", "true"):
+                    openIdx.add(n.rpartition("_")[2])
+                walk(n)
+        try:
+            walk("")
+        except Exception:
+            pass # tkinter can raise mid-teardown; a lost expand state is not worth an error
+        return openIdx
+
+    def _restoreOpenState(self, openIdx):
+        """Re-expand the object rows that were open before the rebuild (see _captureOpenState)."""
+        for idx in openIdx:
+            for node in self.tag_has.get(f"_{idx}", ()):
+                if self.treeView.exists(node):
+                    self.treeView.item(node, open=True)
 
     def viewChildren(self, node, obj):
         """Render whatever an object contains below its own row."""
@@ -406,6 +456,40 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
             self.viewDims(node, obj)
         elif isinstance(obj, (XbrlNetwork, XbrlDomainNetwork, XbrlGroupTree)):
             self.viewRoots(node, obj)
+
+    def viewImportTree(self):
+        """The import pane as a tree: each imported module nested under the module that imports it,
+           so the hierarchy shows which taxonomy imports which. Roots are the modules imported by no
+           other module (typically the entry-point taxonomy). If the graph is wholly cyclic -- e.g.
+           a model of only the mutually-importing built-ins -- every module is shown as a root so
+           none is hidden. A row whose imported module is already an ancestor on the path (the
+           built-ins import each other) is marked "(loop)" and not re-descended."""
+        modules = self.xbrlCompMdl.xbrlModels
+        importedTargets = {it.xbrlModelName
+                           for mod in modules.values()
+                           for it in (getattr(mod, "importedTaxonomies", None) or ())}
+        roots = [name for name in modules if name not in importedTargets]
+        if not roots: # fully cyclic (built-ins only) -- show every module rather than nothing
+            roots = list(modules)
+        for name in roots:
+            module = modules.get(name)
+            if module is not None:
+                self.viewModuleImports(self.insertRow("", module), module, {name})
+
+    def viewModuleImports(self, parentNode, module, visited):
+        """Insert one row per import directive of `module`, each recursing into the imported
+           module's own imports; `visited` is the module QNames on the path, for loop detection."""
+        for importObj in getattr(module, "importedTaxonomies", None) or ():
+            target = importObj.xbrlModelName
+            loop = target in visited
+            node = self.insertRow(parentNode, importObj, textPrefix="(loop) " if loop else "")
+            if loop:
+                continue
+            targetModule = self.xbrlCompMdl.xbrlModels.get(target)
+            if targetModule is not None:
+                visited.add(target)
+                self.viewModuleImports(node, targetModule, visited)
+                visited.discard(target)
 
     def viewGroups(self):
         """The Groups pane is the reporting structure: groups nested under the model's groupTree
@@ -496,22 +580,49 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
     # ── interaction ────────────────────────────────────────────────────
 
     def getToolTip(self, rowId, colId):
-        """Hovering a cell that was shortened to fit shows its full text; anything else falls
-           back to the base view's own tooltip (the displayed value, when it is clipped)."""
+        """Hovering a cell that was shortened to fit shows its full text; the detail column shows
+           its name=value pairs one per line; anything else falls back to the base view's own
+           tooltip (the displayed value, when it is clipped)."""
         if rowId and colId and colId != "#0":
             try:
                 colName = self.colNames[int(colId[1:]) - 1]
             except (ValueError, IndexError):
                 return None
+            if colName == "detail":
+                # the detail cell packs several properties as "a=1; b=2"; one per line reads far
+                # more easily in the tooltip than the single wrapped run the base view would show
+                detail = self.treeView.set(rowId, "detail")
+                return detail.replace("; ", "\n") if detail else None
             return self.fullCellText.get((rowId, colName))
         return None
 
     def sortNestedRows(self, parentNode, col, reverse):
-        # A structural pane's child rows carry meaning in their order -- group tree order, cube
-        # dimension order, relationship order -- so only its top-level rows are sorted.
-        if self.isStructuralPane and parentNode != '':
+        # A tree pane's child rows carry meaning in their order -- group tree order, cube
+        # dimension order, relationship order, import order -- so only its top-level rows sort.
+        if self.isTreePane and parentNode != '':
             return
         super(ViewXbrlTxmyObj, self).sortNestedRows(parentNode, col, reverse)
+
+    def objectForNode(self, node):
+        """The taxonomy object a tree row stands for, or None for a grouping row such as
+           "(ungrouped)". Object rows carry the object index as the tail of their node id."""
+        if node and node.startswith("_"):
+            try:
+                return self.xbrlCompMdl.xbrlObjects[int(node.rpartition("_")[2])]
+            except (ValueError, IndexError):
+                return None
+        return None
+
+    def menuAddCopyJson(self):
+        if self.menu and self.modelXbrl.modelManager.cntlr.hasClipboard:
+            self.menu.add_command(label=_("Copy JSON"), underline=5, command=self.copyJsonToClipboard)
+
+    def copyJsonToClipboard(self, *ignore):
+        obj = self.objectForNode(getattr(self, "menuRow", None))
+        if obj is not None:
+            js = objectJson(obj)
+            if js:
+                self.modelXbrl.modelManager.cntlr.clipboardData(text=js)
 
     def menuAddFind(self):
         if self.menu:
@@ -581,3 +692,78 @@ class ViewXbrlTxmyObj(ViewWinTree.ViewTree):
             except (AttributeError, KeyError, ValueError):
                     self.treeView.selection_set(())
             self.blockViewModelObject -= 1
+
+
+def viewXbrlObjectJson(xbrlCompMdl, tabWin):
+    """Create the JSON pane: a read-only text view of the selected object's compiled JSON, sitting
+       in the upper-left tab window beside the Properties pane. Registered as a model view so
+       `viewTaxonomyObject` updates it on selection like every other pane. One per model."""
+    ViewXbrlObjectJson(xbrlCompMdl, tabWin)
+
+
+class ViewXbrlObjectJson:
+    """Read-only JSON view of the currently selected taxonomy object.
+
+    Not a tree, so it does not subclass ViewWinTree.ViewTree; it replicates only the frame
+    registration ViewTree does (add a tab, join modelXbrl.views, remove on close) and renders
+    the selected object via `objectJson`. Being in modelXbrl.views is what makes
+    `viewTaxonomyObject` -> `viewModelObject` reach it on every selection.
+    """
+    def __init__(self, xbrlCompMdl, tabWin):
+        from tkinter import Frame, Text, Scrollbar, Menu, N, S, E, W, VERTICAL, HORIZONTAL, END, DISABLED, NORMAL
+        self._END, self._DISABLED, self._NORMAL = END, DISABLED, NORMAL
+        self.modelXbrl = xbrlCompMdl
+        self.xbrlCompMdl = xbrlCompMdl
+        self.tabWin = tabWin
+        self.tabTitle = "JSON"
+        self.viewFrame = Frame(tabWin)
+        self.viewFrame.view = self
+        self.viewFrame.grid(row=0, column=0, sticky=(N, S, E, W))
+        tabWin.add(self.viewFrame, text=self.tabTitle)
+        vScrollbar = Scrollbar(self.viewFrame, orient=VERTICAL)
+        hScrollbar = Scrollbar(self.viewFrame, orient=HORIZONTAL)
+        self.text = Text(self.viewFrame, wrap="none", font=("Courier", 11),
+                         yscrollcommand=vScrollbar.set, xscrollcommand=hScrollbar.set)
+        self.text.grid(row=0, column=0, sticky=(N, S, E, W))
+        hScrollbar["command"] = self.text.xview
+        hScrollbar.grid(row=1, column=0, sticky=(E, W))
+        vScrollbar["command"] = self.text.yview
+        vScrollbar.grid(row=0, column=1, sticky=(N, S))
+        self.viewFrame.columnconfigure(0, weight=1)
+        self.viewFrame.rowconfigure(0, weight=1)
+        # right-click copies the whole JSON (the text is read-only, so give an explicit copy path)
+        self.menu = Menu(self.viewFrame, tearoff=0)
+        self.menu.add_command(label=_("Copy"), underline=0, command=self.copyToClipboard)
+        self.text.bind(xbrlCompMdl.modelManager.cntlr.contextMenuClick, self._popUpMenu, "+")
+        self.text.configure(state=DISABLED)
+        xbrlCompMdl.views.append(self)
+
+    def _setText(self, s):
+        self.text.configure(state=self._NORMAL)
+        self.text.delete("1.0", self._END)
+        self.text.insert(self._END, s)
+        self.text.configure(state=self._DISABLED)
+
+    def _popUpMenu(self, event):
+        self.menu.post(event.x_root, event.y_root)
+
+    def copyToClipboard(self, *ignore):
+        text = self.text.get("1.0", self._END).rstrip("\n")
+        if text:
+            self.modelXbrl.modelManager.cntlr.clipboardData(text=text)
+
+    def viewModelObject(self, txmyObj):
+        self._setText(objectJson(txmyObj))
+
+    def select(self):
+        self.tabWin.select(self.viewFrame)
+
+    def close(self, *ignore):
+        if self.modelXbrl is not None:
+            try:
+                del self.viewFrame.view
+                self.tabWin.forget(self.viewFrame)
+                self.modelXbrl.views.remove(self)
+            except (ValueError, AttributeError):
+                pass
+            self.modelXbrl = None

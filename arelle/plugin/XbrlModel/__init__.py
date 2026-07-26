@@ -126,6 +126,7 @@ from .XbrlCube import (XbrlCube, XbrlCubeDimension, XbrlPeriodConstraint, XbrlDa
 from .XbrlDimension import XbrlDimension, XbrlDomainNetwork
 from .XbrlEntity import XbrlEntity
 from .XbrlGroup import XbrlGroup, XbrlGroupContent, XbrlGroupTree
+from .XbrlImportTaxonomy import XbrlImportTaxonomy
 from .XbrlLabel import XbrlLabel, XbrlLabelType
 from .XbrlLayout import XbrlLayout
 from .XbrlNetwork import XbrlNetwork, XbrlRelationship, XbrlRelationshipType
@@ -143,7 +144,7 @@ from .ValidateXbrlModel import validateCompiledModel
 from .ValidateFacts import validateDateResolutionConceptFacts, validateCompleteReportCubes
 from .SelectImportedObjects import validateImportSelections, applyDeferredImportPruning
 from .ModelValueMore import SQName, QNameAt
-from .ViewXbrlTaxonomyObject import viewXbrlTaxonomyObject
+from .ViewXbrlTaxonomyObject import viewXbrlTaxonomyObject, viewXbrlObjectJson
 from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, oimBundleDocTypes, oimReferenceBundleDocType, xbrlTaxonomyObjects
 from .ParseSelectionWhereClause import parseSelectionWhereClause
 from .LoadCsvTable import csvTableRowFacts
@@ -1478,6 +1479,7 @@ def xbrlModelViews(cntlr, xbrlCompMdl):
                            (XbrlDimension, cntlr.tabWinBtm, "XBRL Dimensions"),
                            (XbrlEntity, cntlr.tabWinBtm, "XBRL Entities"),
                            (XbrlGroupTree, cntlr.tabWinTopRt, "XBRL Group Tree"),
+                           (XbrlImportTaxonomy, cntlr.tabWinTopRt, "XBRL Import Taxonomies"),
                            (XbrlLabel, cntlr.tabWinBtm, "XBRL Labels"),
                            (XbrlLabelType, cntlr.tabWinBtm, "XBRL Label Types"),
                            (XbrlPropertyType, cntlr.tabWinBtm, "XBRL Property Types"),
@@ -1492,8 +1494,22 @@ def xbrlModelViews(cntlr, xbrlCompMdl):
         for view in initialViews:
             viewXbrlTaxonomyObject(xbrlCompMdl, *view, openableViews)
 
+        # The JSON companion pane is created from the CntlrWinMain.Xbrl.Loaded hook
+        # (xbrlModelWinLoaded), not here: the core adds the Properties pane to the upper-left tab
+        # window AFTER this Views hook returns, so creating JSON here would put it before
+        # Properties. The Loaded hook runs after Properties, giving Properties first, JSON second.
+
         return True # block ordinary taxonomy views
     return False
+
+def xbrlModelWinLoaded(cntlr, modelXbrl, attach, *args, **kwargs):
+    """ CntlrWinMain.Xbrl.Loaded:
+        Runs in the GUI thread after the core has added its Properties pane to the upper-left tab
+        window, so the JSON companion pane is added second -- Properties first, JSON second. The
+        JSON pane is registered as a model view, so selecting a row in any object pane updates it.
+    """
+    if isinstance(modelXbrl, XbrlCompiledModel):
+        viewXbrlObjectJson(modelXbrl, cntlr.tabWinTopLeft)
 
 __pluginInfo__ = {
     'name': 'XBRL Model',
@@ -1513,6 +1529,7 @@ __pluginInfo__ = {
     'CntlrCmdLine.Filing.Start': filingStart,
     'CntlrCmdLine.Xbrl.Loaded': xbrlModelLoaded,
     'CntlrWinMain.Xbrl.Views': xbrlModelViews,
+    'CntlrWinMain.Xbrl.Loaded': xbrlModelWinLoaded,
     'CntlrWinMain.Xbrl.Save': xbrlModelSave,
     'ModelDocument.IsPullLoadable': isXbrlModelLoadable,
     'ModelDocument.PullLoader': xbrlModelLoader,
