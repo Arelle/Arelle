@@ -23,11 +23,10 @@ class ESEFPluginData(PluginData):
     nonEsefInstanceExcluded: bool = False
 
     @staticmethod
-    def get(cntlr: Cntlr, name: str, esefAuthority: str | None = None) -> ESEFPluginData:
+    def get(cntlr: Cntlr, name: str) -> ESEFPluginData:
         pluginData = cntlr.getPluginData(name)
         if pluginData is None:
             pluginData = ESEFPluginData(name)
-            pluginData._esefAuthority = esefAuthority
             cntlr.setPluginData(pluginData)
         elif not isinstance(pluginData, ESEFPluginData):
             raise RuntimeError(f"PluginData already set for {pluginData.name} with unexpected type {type(pluginData)}.")
@@ -79,3 +78,6 @@ class ESEFPluginData(PluginData):
             )
             return None
         return authority
+
+    def setEsefAuthority(self, authority: str) -> None:
+        self._esefAuthority = authority

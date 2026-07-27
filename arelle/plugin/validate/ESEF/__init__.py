@@ -162,7 +162,8 @@ class ESEFPlugin(PluginHooks):
         # before validation begins.
         esefAuthority = getattr(options, "esefAuthority", None)
         if esefAuthority:
-            __ = ESEFPluginData.get(cntlr, ESEF_PLUGIN_NAME, esefAuthority)
+            pluginData = ESEFPluginData.get(cntlr, ESEF_PLUGIN_NAME)
+            pluginData.setEsefAuthority(esefAuthority)
 
     @staticmethod
     def cntlrWinMainMenuValidation(
@@ -303,12 +304,12 @@ class ESEFPlugin(PluginHooks):
             return None
         modelXbrl = val.modelXbrl
         pluginData = ESEFPluginData.get(modelXbrl.modelManager.cntlr, ESEF_PLUGIN_NAME)
+        val.authority = pluginData.getEsefAuthority(modelXbrl, parameters)
         if not esefDisclosureSystemSelected(val.modelXbrl):
             return None
         val.extensionImportedUrls = set()
         val.unconsolidated = any("unconsolidated" in n for n in val.disclosureSystem.names)
         val.consolidated = not val.unconsolidated
-        val.authority = pluginData.getEsefAuthority(modelXbrl, parameters)
 
         authorityValidations = loadAuthorityValidations(val.modelXbrl)
         # loadAuthorityValidations returns either a list or a dict but in this context, we expect a dict.
