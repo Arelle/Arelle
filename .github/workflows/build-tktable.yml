@@ -24,7 +24,7 @@ jobs:
   build-macos-arm64:
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
         with:
           repository: bohagan1/TkTable
           ref: ${{ inputs.tktable_tag }}
@@ -61,7 +61,7 @@ jobs:
   build-macos-x86_64:
     runs-on: macos-26-intel
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
         with:
           repository: bohagan1/TkTable
           ref: ${{ inputs.tktable_tag }}
@@ -98,31 +98,31 @@ jobs:
   build-linux-x86_64:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
         with:
           repository: bohagan1/TkTable
           ref: ${{ inputs.tktable_tag }}
           path: TkTable
       - name: Checkout Tcl 8
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7.0.1
         with:
           repository: tcltk/tcl
           ref: ${{ inputs.tcltk_8_tag }}
           path: tcl8-src
       - name: Checkout Tcl 9
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7.0.1
         with:
           repository: tcltk/tcl
           ref: ${{ inputs.tcltk_9_tag }}
           path: tcl9-src
       - name: Checkout Tk 8
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7.0.1
         with:
           repository: tcltk/tk
           ref: ${{ inputs.tcltk_8_tag }}
           path: tk8-src
       - name: Checkout Tk 9
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7.0.1
         with:
           repository: tcltk/tk
           ref: ${{ inputs.tcltk_9_tag }}
@@ -181,31 +181,31 @@ jobs:
   build-windows-x86_64:
     runs-on: windows-2025
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
         with:
           repository: bohagan1/TkTable
           ref: ${{ inputs.tktable_tag }}
           path: TkTable
       - name: Checkout Tcl 8
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7.0.1
         with:
           repository: tcltk/tcl
           ref: ${{ inputs.tcltk_8_tag }}
           path: tcl8-src
       - name: Checkout Tcl 9
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7.0.1
         with:
           repository: tcltk/tcl
           ref: ${{ inputs.tcltk_9_tag }}
           path: tcl9-src
       - name: Checkout Tk 8
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7.0.1
         with:
           repository: tcltk/tk
           ref: ${{ inputs.tcltk_8_tag }}
           path: tk8-src
       - name: Checkout Tk 9
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7.0.1
         with:
           repository: tcltk/tk
           ref: ${{ inputs.tcltk_9_tag }}
