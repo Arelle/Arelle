@@ -13,6 +13,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateXbrl import ValidateXbrl
+from ...Const import AUTHORITY_UKFRC
 from ...PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
@@ -30,7 +31,7 @@ def rule_ukfrc20(
     """
     UKFRC20: Document structure validation.
     """
-    if not pluginData.isUkfrcAuthority(val):
+    if val.authority != AUTHORITY_UKFRC:
         return None
     return None
 
@@ -47,6 +48,6 @@ def rule_ukfrc21(
     """
     UKFRC21: Document content type validation.
     """
-    if not pluginData.isUkfrcAuthority(val):
+    if val.authority != AUTHORITY_UKFRC:
         return None
     return None

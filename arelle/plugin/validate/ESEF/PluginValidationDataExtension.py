@@ -28,8 +28,3 @@ class PluginValidationDataExtension(PluginData):
         if not hasattr(modelXbrl, "ixdsTarget"):
             return False
         return cast(str | None, modelXbrl.ixdsTarget) == TARGET_UKFRS
-
-    def isUkfrcAuthority(self, val: ValidateXbrl) -> bool:
-        esefPluginData = ESEFPluginData.get(val.modelXbrl.modelManager.cntlr, self.name)
-        authority = esefPluginData.getEsefAuthority(val.modelXbrl, val.parameters)
-        return authority == AUTHORITY_UKFRC

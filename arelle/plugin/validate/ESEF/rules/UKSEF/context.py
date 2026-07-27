@@ -13,6 +13,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateXbrl import ValidateXbrl
+from ...Const import AUTHORITY_UKFRC
 from ...PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
@@ -31,7 +32,7 @@ def rule_ukfrc8(
     UKFRC8: xbrli:segment elements MUST be used in the contexts of UKFRS target FRC-tagged data.
     xbrli:scenario elements MUST be used in the contexts of default target ESEF-tagged data.
     """
-    if not pluginData.isUkfrcAuthority(val):
+    if val.authority != AUTHORITY_UKFRC:
         return
     modelXbrl = val.modelXbrl
     contextIssues = pluginData.getContextIssues(modelXbrl)

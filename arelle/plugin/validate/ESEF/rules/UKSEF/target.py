@@ -13,6 +13,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateXbrl import ValidateXbrl
+from ...Const import AUTHORITY_UKFRC
 from ...PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
@@ -30,7 +31,7 @@ def rule_ukfrc3(
     """
     UKFRC3: Inline XBRL document must define the correct target.
     """
-    if not pluginData.isUkfrcAuthority(val):
+    if val.authority != AUTHORITY_UKFRC:
         return None
     return None
 
@@ -47,7 +48,7 @@ def rule_ukfrc4(
     """
     UKFRC4: Inline XBRL target must contain required schema references.
     """
-    if not pluginData.isUkfrcAuthority(val):
+    if val.authority != AUTHORITY_UKFRC:
         return None
     return None
 
@@ -64,6 +65,6 @@ def rule_ukfrc5(
     """
     UKFRC5: Default target must reference the ESEF taxonomy.
     """
-    if not pluginData.isUkfrcAuthority(val):
+    if val.authority != AUTHORITY_UKFRC:
         return None
     return None

@@ -13,6 +13,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateXbrl import ValidateXbrl
+from ...Const import AUTHORITY_UKFRC
 from ...PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
@@ -30,7 +31,7 @@ def rule_ukfrc9(
     """
     UKFRC9: Package structure validation.
     """
-    if not pluginData.isUkfrcAuthority(val):
+    if val.authority != AUTHORITY_UKFRC:
         return None
     return None
 
@@ -47,7 +48,7 @@ def rule_ukfrc10(
     """
     UKFRC10: Package content validation.
     """
-    if not pluginData.isUkfrcAuthority(val):
+    if val.authority != AUTHORITY_UKFRC:
         return None
     return None
 
@@ -64,7 +65,7 @@ def rule_ukfrc11(
     """
     UKFRC11: Package naming convention validation.
     """
-    if not pluginData.isUkfrcAuthority(val):
+    if val.authority != AUTHORITY_UKFRC:
         return None
     return None
 
@@ -81,7 +82,7 @@ def rule_ukfrc12(
     """
     UKFRC12: Package metadata validation.
     """
-    if not pluginData.isUkfrcAuthority(val):
+    if val.authority != AUTHORITY_UKFRC:
         return None
     return None
 
@@ -98,7 +99,7 @@ def rule_ukfrc13(
     """
     UKFRC13: Package file type validation.
     """
-    if not pluginData.isUkfrcAuthority(val):
+    if val.authority != AUTHORITY_UKFRC:
         return None
     return None
 
@@ -115,7 +116,7 @@ def rule_ukfrc14(
     """
     UKFRC14: Package encoding validation.
     """
-    if not pluginData.isUkfrcAuthority(val):
+    if val.authority != AUTHORITY_UKFRC:
         return None
     return None
 
@@ -132,7 +133,7 @@ def rule_ukfrc15(
     """
     UKFRC15: Package size validation.
     """
-    if not pluginData.isUkfrcAuthority(val):
+    if val.authority != AUTHORITY_UKFRC:
         return None
     return None
 
@@ -149,7 +150,7 @@ def rule_ukfrc16(
     """
     UKFRC16: Package document count validation.
     """
-    if not pluginData.isUkfrcAuthority(val):
+    if val.authority != AUTHORITY_UKFRC:
         return None
     return None
 
@@ -166,7 +167,7 @@ def rule_ukfrc17(
     """
     UKFRC17: Package image format validation.
     """
-    if not pluginData.isUkfrcAuthority(val):
+    if val.authority != AUTHORITY_UKFRC:
         return None
     return None
 
@@ -183,7 +184,7 @@ def rule_ukfrc18(
     """
     UKFRC18: Package CSS validation.
     """
-    if not pluginData.isUkfrcAuthority(val):
+    if val.authority != AUTHORITY_UKFRC:
         return None
     return None
 
@@ -200,6 +201,6 @@ def rule_ukfrc19(
     """
     UKFRC19: Package JavaScript validation.
     """
-    if not pluginData.isUkfrcAuthority(val):
+    if val.authority != AUTHORITY_UKFRC:
         return None
     return None

@@ -13,6 +13,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateXbrl import ValidateXbrl
+from ...Const import AUTHORITY_UKFRC
 from ...PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
@@ -31,6 +32,6 @@ def rule_mandatory_facts(
     Companies House mandatory facts: Validates that all required facts
     are present in the filing.
     """
-    if not pluginData.isUkfrcAuthority(val):
+    if val.authority != AUTHORITY_UKFRC:
         return None
     return None

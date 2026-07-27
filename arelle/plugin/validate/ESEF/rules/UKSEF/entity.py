@@ -15,6 +15,7 @@ from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateXbrl import ValidateXbrl
 from . import ENTITY_IDENTIFIER_SCHEME_CRN
+from ...Const import AUTHORITY_UKFRC
 from ...PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
@@ -33,7 +34,7 @@ def rule_ukfrc6(
     UKFRC6: The "default" target document must use the LEI entity scheme (https://www.iso.org/standard/78829.html).
     The same LEI MUST be used throughout the document.
     """
-    if not pluginData.isUkfrcAuthority(val):
+    if val.authority != AUTHORITY_UKFRC:
         return
     modelXbrl = val.modelXbrl
     if pluginData.isUkfrsTarget(modelXbrl):
@@ -73,7 +74,7 @@ def rule_ukfrc7(
     UKFRC7: The "UKFRS" target document must use the CRN entity scheme (http://www.companieshouse.gov.uk/).
     The same CRN MUST be used throughout the document.
     """
-    if not pluginData.isUkfrcAuthority(val):
+    if val.authority != AUTHORITY_UKFRC:
         return
     modelXbrl = val.modelXbrl
     if not pluginData.isUkfrsTarget(modelXbrl):

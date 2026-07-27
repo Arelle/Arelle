@@ -13,6 +13,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateXbrl import ValidateXbrl
+from ...Const import AUTHORITY_UKFRC
 from ...PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
@@ -30,7 +31,7 @@ def rule_ukfrc1(
     """
     UKFRC1: Entry point schema reference must be a valid FRC taxonomy URL.
     """
-    if not pluginData.isUkfrcAuthority(val):
+    if val.authority != AUTHORITY_UKFRC:
         return None
     return None
 
@@ -47,6 +48,6 @@ def rule_ukfrc2(
     """
     UKFRC2: Filing must reference a recognised FRC taxonomy entry point.
     """
-    if not pluginData.isUkfrcAuthority(val):
+    if val.authority != AUTHORITY_UKFRC:
         return None
     return None
