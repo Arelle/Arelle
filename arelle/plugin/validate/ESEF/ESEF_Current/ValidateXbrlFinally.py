@@ -259,7 +259,10 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 if val.consolidated:
                     errorCode = "ESEF.2.6.1.incorrectFileExtension"
                     reportType = _("Inline XBRL document included within a ESEF report package")
-                    possibleExtensions = [".xhtml",".html",".htm"]
+                    if val.authority and val.authority in {"DK", "DBA"}:
+                        possibleExtensions = [".xhtml",".html"]
+                    else:
+                        possibleExtensions = [".xhtml",".html",".htm"]
                 else:
                     errorCode = "ESEF.4.1.1.incorrectFileExtension"
                     reportType = _("Stand-alone XHTML document")
