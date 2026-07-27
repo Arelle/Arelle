@@ -9,13 +9,20 @@ from arelle.oim.Load import (UnitPrefixedQNameSubstitutionChar, UnitPattern,
 from arelle.ModelValue import QName, qname, timeInterval
 from arelle import XbrlConst
 from arelle.XmlValidateConst import VALID, INVALID
-from .XbrlConst import unsupportedTypedDimensionDataTypes, qnXbrlMemberObj, xbrl as xbrlNs
+from .XbrlConst import unsupportedTypedDimensionDataTypes, qnXbrlMemberObj, xbrl as xbrlNs, xbrlr as xbrlrNs
 
 # xbrl:nil property marks a fact whose value is absent (e.g. mapped from an
 # xBRL-XML xsi:nil="true" fact). Such facts carry no value to type-validate.
 qnFactNilProperty = QName("xbrl", xbrlNs, "nil")
+
+# xbrlr:pure is the domain value of the xbrl:unit dimension: oim-taxonomy "Unit dimension"
+# states that a unit of xbrlr:pure is equivalent to no unit, and that a numeric fact with no
+# xbrl:unit dimension is treated as having a unit of xbrlr:pure. A fact whose dataType is
+# derived from the pure unit's dataType therefore never *requires* an explicit unit.
+qnPureUnit = QName("xbrlr", xbrlrNs, "pure")
 from .XbrlConcept import XbrlConcept, XbrlDataType
-from .XbrlCube import XbrlCube, conceptCoreDim, entityCoreDim, languageCoreDim, periodCoreDim, unitCoreDim, coreDimensions
+from .XbrlCube import (XbrlCube, conceptCoreDim, entityCoreDim, languageCoreDim, periodCoreDim,
+                       unitCoreDim, coreDimensions, isUnusableMember)
 from .XbrlDimension import XbrlDimension, XbrlDomainClass, XbrlMember
 from .XbrlEntity import XbrlEntity
 from .XbrlFact import XbrlFact, XbrlTableTemplate
@@ -185,11 +192,17 @@ def resolveFact(txmyMdl, txmyObj, fact):
             fact._xValid = INVALID
     elif uStr is None and cDataType.isNumeric(txmyMdl):
         # No unit present; check if the concept's dataType requires one.
-        # Build and cache the set of dataType QNames that have at least one unit defined.
+        # Build and cache the set of dataType QNames that have at least one unit defined,
+        # EXCLUDING the dataType of the pure unit: an absent xbrl:unit already *is* a unit
+        # of xbrlr:pure, so a concept whose dataType is derived from the pure unit's dataType
+        # (xbrlr:pureType -- pure, percent, rate, ...) is complete without one (see qnPureUnit).
+        # Other units sharing that dataType (e.g. utr:Rate) must not reinstate the requirement.
         if not hasattr(txmyMdl, '_unitDataTypes'):
+            pureUnitObj = txmyMdl.namedObjects.get(qnPureUnit)
+            pureDataType = getattr(pureUnitObj, "dataType", None)
             txmyMdl._unitDataTypes = frozenset(
                 obj.dataType for obj in txmyMdl.namedObjects.values()
-                if isinstance(obj, XbrlUnit)
+                if isinstance(obj, XbrlUnit) and obj.dataType != pureDataType
             )
         if any(cDataType.instanceOfType(unitDt, txmyMdl) for unitDt in txmyMdl._unitDataTypes):
             txmyMdl.error("oimte:factMissingUnitDimension",
@@ -375,6 +388,13 @@ def validateFactPosition(txmyMdl, fact):
                               _("The object %(memberName)s used as member on dimension %(dimensionName)s is not part of "
                                 "the dimension domain %(domainClass)s."),
                               memberName=mQn, dimensionName=dimName, domainClass=dimObj.domainClass)
+                        hasInvalidDimMember = True
+                    elif isUnusableMember(txmyMdl, mQn):
+                        error("oimte:invalidFactDimensionMember",
+                              _("The object %(memberName)s used as member on dimension %(dimensionName)s is reached only by "
+                                "relationships with xbrl:usable false. Such a member is a structural heading of the domain "
+                                "and MUST NOT be used as a fact's dimension member."),
+                              memberName=mQn, dimensionName=dimName)
                         hasInvalidDimMember = True
             elif isinstance(dimVal, str):
                 # Unqualified string value: explicit dimensions use QName members (handled above);

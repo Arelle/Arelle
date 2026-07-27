@@ -348,10 +348,10 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
                 continue
             s, t = pfx.pn(r.fromModelObject.qname), pfx.pn(r.toModelObject.qname)
             if s in emitted and t in emitted:
-                # r.order is a float from the 2.1 infrastructure (default 1.0). XbrlRelationship.order
-                # is Decimal (spec); the float value serializes as a JSON number -- a whole order as
-                # an int (1, not "1.0") -- via saveableValue's numeric handling.
-                frels.append({"source": s, "target": t, "order": r.order})
+                # XbrlRelationship.order is Decimal (spec), so take the 2.1 arc's orderDecimal
+                # (default 1.0) rather than .order, which is a float. It serializes as a JSON
+                # number -- a whole order as an int (1, not "1.0") -- via saveableValue.
+                frels.append({"source": s, "target": t, "order": r.orderDecimal})
                 srcs.add(s); tgts.add(t)
         if frels:
             netName = grpName + "_PreNet"
@@ -520,23 +520,46 @@ def _inferCubeFromDefinition(modelXbrl, roleUri, pfx, domainNetworks, emit, cube
     Primary line items are the hasHypercube source and its domain-member descendants; each
     explicit axis contributes a cubeDimension backed by a domainNetwork of its members. A
     dimension carrying a dimension-default is emitted optional (undimensioned facts are
-    included in the cube as the default member)."""
+    included in the cube as the default member).
+
+    The traversal follows ``xbrldt:targetRole``: each hop is looked up in the PREVIOUS
+    relationship's ``consecutiveLinkrole`` (its targetRole, else its own linkrole) rather
+    than being pinned to ``roleUri``. A dimensional network legitimately spans linkroles --
+    SEC's `oef` taxonomy targetRoles ``dei:LegalEntityAxis`` into a series-only role, so a
+    role-scoped lookup found no dimension-domain and emitted that axis as an open dimension
+    with no members. This mirrors the XDT traversal in validate/ESEF/Dimensions.py."""
     hasHc = modelXbrl.relationshipSet(XbrlConst.all, roleUri)
     notAll = modelXbrl.relationshipSet(XbrlConst.notAll, roleUri)
-    hcDimSet = modelXbrl.relationshipSet(XbrlConst.hypercubeDimension, roleUri)
-    dimDomSet = modelXbrl.relationshipSet(XbrlConst.dimensionDomain, roleUri)
-    domMemSet = modelXbrl.relationshipSet(XbrlConst.domainMember, roleUri)
+    # domain-member is queried unrestricted for the first primary-item hop and then per
+    # consecutiveLinkrole; hypercube-dimension / dimension-domain are queried per the
+    # consecutiveLinkrole of the arc that reached them.
+    allDomMemSet = modelXbrl.relationshipSet(XbrlConst.domainMember)
     seenAxis = set()
     for hasRel in list(hasHc.modelRelationships) + list(notAll.modelRelationships):
         prim, hc = hasRel.fromModelObject, hasRel.toModelObject
         if prim is None or hc is None:
             continue
-        for node in [prim] + _descend(domMemSet, prim):
+        primNodes = [prim]
+        for dmRel in allDomMemSet.fromModelObject(prim):
+            # A domain-member arc extends the primary items when it is CONSECUTIVE to the
+            # hasHypercube arc, i.e. the arc's own linkrole is the hasHypercube arc's
+            # consecutiveLinkrole -- not the reverse. The distinction only shows up when
+            # targetRole is in play, and SEC's `oef` relies on it: HoldingsAbstract's
+            # domain-member arc sits in the hypercube's role but targetRoles into
+            # HoldingMeasureOnly, where the oef:Pct* line items actually hang off
+            # HoldingsLineItems.
+            if dmRel.linkrole == hasRel.consecutiveLinkrole and dmRel.toModelObject is not None:
+                primNodes.append(dmRel.toModelObject)
+                primNodes.extend(_descendConsecutive(modelXbrl, XbrlConst.domainMember,
+                                                     dmRel.toModelObject, dmRel.consecutiveLinkrole))
+        for node in primNodes:
             if not getattr(node, "isAbstract", False):
                 nm = pfx.pn(node.qname)
                 if nm not in primaryItems:
                     primaryItems.append(nm)
-        for hd in hcDimSet.fromModelObject(hc):
+        _unionPresentedLineItems(modelXbrl, hasRel.linkrole, primNodes, pfx, emit, primaryItems)
+        for hd in modelXbrl.relationshipSet(XbrlConst.hypercubeDimension,
+                                            hasRel.consecutiveLinkrole).fromModelObject(hc):
             axis = hd.toModelObject
             if axis is None or axis in seenAxis:
                 continue
@@ -553,7 +576,8 @@ def _inferCubeFromDefinition(modelXbrl, roleUri, pfx, domainNetworks, emit, cube
             domRoot = None
             edges: list[tuple] = []
             seenDom: set = set()
-            for dd in dimDomSet.fromModelObject(axis):
+            for dd in modelXbrl.relationshipSet(XbrlConst.dimensionDomain,
+                                                hd.consecutiveLinkrole).fromModelObject(axis):
                 dom = dd.toModelObject
                 if dom is None:
                     continue
@@ -561,7 +585,7 @@ def _inferCubeFromDefinition(modelXbrl, roleUri, pfx, domainNetworks, emit, cube
                 emit.domainClass(domName)
                 if domRoot is None:
                     domRoot = domName
-                _walkDomain(domMemSet, dom, pfx, emit, edges, seenDom)
+                _walkDomain(modelXbrl, dom, dd.consecutiveLinkrole, pfx, emit, edges, seenDom)
             if domRoot is None:  # no dimension-domain: open dimension, no domain network
                 axisDims.append({"dimension": axisName, "optional": optional})
                 continue
@@ -569,35 +593,96 @@ def _inferCubeFromDefinition(modelXbrl, roleUri, pfx, domainNetworks, emit, cube
             domNetName = f"{cubeName}_{axis.qname.localName}_Dom"
             dn = {"name": domNetName, "root": domRoot}
             if edges:
-                dn["relationships"] = [{"source": s, "target": t} for s, t in edges]
+                dn["relationships"] = [
+                    {"source": s, "target": t} if usable else
+                    {"source": s, "target": t,
+                     "properties": [{"property": "xbrl:usable", "value": False}]}
+                    for s, t, usable in edges]
             domainNetworks.append(dn)
             axisDims.append({"dimension": axisName, "domainNetwork": domNetName, "optional": optional})
 
 
-def _descend(relSet, node, seen=None) -> list:
-    """All descendants of ``node`` in ``relSet`` (preorder, cycle-guarded)."""
+def _unionPresentedLineItems(modelXbrl, roleUri, primNodes, pfx, emit, primaryItems) -> None:
+    """Add the presentation descendants of the hypercube's primary items to ``primaryItems``.
+
+    A definition linkbase need not enumerate every reportable concept: XBRL 2.1 does not
+    require a fact's concept to be a primary item of any hypercube (and SEC's XBRL guide does
+    not require dimensions at all), so the presentation linkbase is the available fallback for
+    what a table actually contains. Only EDGAR and ESEF require a reported concept to appear
+    in the presentation linkbase, so this can only ADD to what the definition linkbase already
+    established -- never replace it.
+
+    Anchoring the descent to nodes ALREADY in the hypercube's primary-item closure is what
+    keeps the fallback honest: a concept presented UNDER the table's LineItems is a line item
+    of that cube, while a concept presented as a SIBLING of the table is deliberately outside
+    it. FERC's Form 6 depends on that distinction -- ferc:StatisticsOfOperationsLineItems
+    carries the enumerated line items, while ferc:NumberOfBarrelMilesOnTrunkLinesOf* sit
+    beside the table under ferc:ScheduleStatisticsOfOperationsAbstract (which has no
+    definition arcs at all) and legitimately have no fact space. SEC's oef presents
+    oef:PerformancePastDoesNotIndicateFuture under oef:ShareholderReportLineItems, which IS in
+    the closure, so it belongs to the ShareholderReport cube.
+    """
+    presRel = modelXbrl.relationshipSet(XbrlConst.parentChild, roleUri)
+    if not presRel.modelRelationships:
+        return
+
+    def walk(concept, seen) -> None:
+        if concept in seen:
+            return
+        seen.add(concept)
+        kind = _classify(concept)
+        if kind == "dimension":
+            return  # an axis subtree is that axis's domain and members, not line items
+        # a hypercube (Table) node is not a line item but IS descended through: an SEC
+        # presentation tree nests the axes and the LineItems under the Table
+        if kind == "concept" and not getattr(concept, "isAbstract", False):
+            nm = pfx.pn(concept.qname)
+            if nm not in primaryItems and nm not in emit.members and nm not in emit.domainClasses:
+                primaryItems.append(nm)
+        for rel in presRel.fromModelObject(concept):
+            if rel.toModelObject is not None:
+                walk(rel.toModelObject, seen)
+
+    seen: set = set()
+    for node in primNodes:
+        walk(node, seen)
+
+
+def _descendConsecutive(modelXbrl, arcrole, node, elr, seen=None) -> list:
+    """All descendants of ``node`` reachable by ``arcrole``, starting in linkrole ``elr`` and
+    following ``xbrldt:targetRole``: each hop is looked up in the previous relationship's
+    ``consecutiveLinkrole`` (preorder, cycle-guarded)."""
     seen = seen if seen is not None else set()
     out = []
-    for rel in sorted(relSet.fromModelObject(node), key=lambda r: r.order or 0):
+    for rel in sorted(modelXbrl.relationshipSet(arcrole, elr).fromModelObject(node),
+                      key=lambda r: r.order or 0):
         c = rel.toModelObject
         if c is not None and c not in seen:
             seen.add(c)
             out.append(c)
-            out.extend(_descend(relSet, c, seen))
+            out.extend(_descendConsecutive(modelXbrl, arcrole, c, rel.consecutiveLinkrole, seen))
     return out
 
 
-def _walkDomain(domMemSet, node, pfx, emit, edges, seen) -> None:
-    """Collect parent->child domain-member edges (and register members) under ``node``."""
-    for rel in sorted(domMemSet.fromModelObject(node), key=lambda r: r.order or 0):
+def _walkDomain(modelXbrl, node, elr, pfx, emit, edges, seen) -> None:
+    """Collect parent->child domain-member edges (and register members) under ``node``,
+    starting in linkrole ``elr`` and following ``xbrldt:targetRole`` on each hop.
+
+    Each edge carries the arc's ``xbrldt:usable``. An unusable arc reaches a structural
+    heading -- it shapes the domain subtree but its target is not assignable as a fact's
+    dimension member -- so the edge is emitted with the spec's ``xbrl:usable`` relationship
+    property (see isUsableRelationship in XbrlCube). Usability rides on the RELATIONSHIP, not
+    the member, so a heading that is unusable on one branch stays usable on another."""
+    for rel in sorted(modelXbrl.relationshipSet(XbrlConst.domainMember, elr).fromModelObject(node),
+                      key=lambda r: r.order or 0):
         c = rel.toModelObject
         if c is None or c in seen:
             continue
         seen.add(c)
         cn = pfx.pn(c.qname)
         emit.member(cn)
-        edges.append((pfx.pn(node.qname), cn))
-        _walkDomain(domMemSet, c, pfx, emit, edges, seen)
+        edges.append((pfx.pn(node.qname), cn, rel.isUsable))
+        _walkDomain(modelXbrl, c, rel.consecutiveLinkrole, pfx, emit, edges, seen)
 
 
 def _documentNs(modelXbrl) -> str:

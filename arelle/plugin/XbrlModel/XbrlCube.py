@@ -66,6 +66,47 @@ class XbrlPeriodConstraint(XbrlModelObject):
                         return False
         return True
 
+#: The spec-defined xbrl:usable propertyType (core.json), allowed on xbrl:relationshipObject.
+#: On a domain-network relationship it carries the XBRL 2.1 xbrldt:usable semantics.
+qnUsableProperty = QName("xbrl", xbrl, "usable")
+
+def isUsableRelationship(relObj) -> bool:
+    """False only when ``relObj`` carries an explicit ``xbrl:usable`` property that is false.
+
+    An unusable domain-member relationship reaches a structural heading -- it builds the
+    domain subtree but the target MUST NOT be used as a fact's dimension member. Absent the
+    property the relationship is usable, matching xbrldt:usable's default of true.
+    """
+    for propObj in (getattr(relObj, "properties", None) or ()):
+        if getattr(propObj, "property", None) == qnUsableProperty:
+            value = getattr(propObj, "value", None)
+            if isinstance(value, str):
+                return value.strip().lower() not in ("false", "0")
+            return bool(value)
+    return True
+
+def isUnusableMember(txmyMdl, memberQn) -> bool:
+    """True when EVERY domain-network relationship in the model that reaches ``memberQn``
+    carries ``xbrl:usable`` false -- the member exists only as a structural heading and is
+    never assignable as a fact's dimension member.
+
+    Model-wide rather than per-cube on purpose. Usability is declared per relationship, so a
+    member reached usably by some domain network elsewhere in the model IS a real member; that
+    it is absent from a particular cube is a cube-membership question, which
+    oimte:noFactSpaceForFact already answers. Only a member unusable everywhere is a heading.
+
+    Cached on the model; cleared by clearEffectiveCaches when relationships change.
+    """
+    index = getattr(txmyMdl, "_unusableMembersCache", None)
+    if index is None:
+        usable, unusable = set(), set()
+        for module in txmyMdl.xbrlModels.values():
+            for domNwkObj in getattr(module, "domainNetworks", None) or ():
+                for relObj in txmyMdl.effectiveRelationships(domNwkObj):
+                    (usable if isUsableRelationship(relObj) else unusable).add(relObj.target)
+        index = txmyMdl._unusableMembersCache = unusable - usable
+    return memberQn in index
+
 XbrlCubeAlias: TypeAlias = "XbrlCube"
 class XbrlCubeDimension(XbrlModelObject):
     """ Cube Dimension Object
@@ -89,7 +130,13 @@ class XbrlCubeDimension(XbrlModelObject):
                 if self.optional:
                     mem.add(domNwkObj.root)
                 for relObj in txmyMdl.effectiveRelationships(domNwkObj):
-                    mem.add(relObj.target)
+                    # A relationship carrying xbrl:usable = false reaches a structural heading
+                    # (an XBRL 2.1 xbrldt:usable="false" domain member): it shapes the domain
+                    # tree but is not assignable as a fact's dimension member. Usability is a
+                    # property of the RELATIONSHIP, so a member that is unusable on one branch
+                    # is still allowed when another branch reaches it usably.
+                    if isUsableRelationship(relObj):
+                        mem.add(relObj.target)
             return self._allowedMembers
 
 class XbrlCube(XbrlReferencableModelObject):

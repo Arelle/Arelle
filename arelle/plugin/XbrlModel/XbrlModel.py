@@ -228,6 +228,9 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
         # the cube-concept candidate index (ValidateCubes) derives from allowedMembers, which
         # depend on effective relationships -- rebuild it if those change
         self._cubeConceptCandidateIndexCache = None
+        # likewise the unusable-member index (XbrlCube.isUnusableMember) is derived from the
+        # xbrl:usable properties on effective domain-network relationships
+        self._unusableMembersCache = None
         for obj in self.namedObjects.values():
             if isinstance(obj, (XbrlDomainNetwork, XbrlNetwork)):
                 for attrName in ("_relationshipsFrom", "_relationshipsTo", "_roots"):
