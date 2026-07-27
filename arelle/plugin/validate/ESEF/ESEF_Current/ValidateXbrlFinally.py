@@ -98,6 +98,13 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
     prefixedNamespaces = modelXbrl.prefixedNamespaces
 
     reportPackageMaxMB = val.authParam["reportPackageMaxMB"]
+    reportFileNamePattern = val.authParam["reportFileNamePattern"]
+    reportFileNameRegex = val.authParam["reportFileNameRegex"]
+    if reportFileNameRegex:
+        reportFileNameRegex = re.compile(reportFileNameRegex)
+    if not reportFileNamePattern:
+        reportFileNamePattern = reportBasenamePattern
+        reportFileNameRegex = reportBasenameRegex
     if reportPackageMaxMB is not None and modelXbrl.fileSource.fs: # must be a zip to be a report package
         assert isinstance(modelXbrl.fileSource.fs, zipfile.ZipFile)
 
@@ -248,16 +255,22 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         for doc in modelXbrl.urlDocs.values():
             if doc.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.UnknownXML):
                 _baseName, _baseExt = os.path.splitext(doc.basename)
-                if _baseExt not in (".xhtml",".html"):
-                    if val.consolidated:
-                        errorCode = "ESEF.2.6.1.incorrectFileExtension"
-                        reportType = _("Inline XBRL document included within a ESEF report package")
-                    else:
-                        errorCode = "ESEF.4.1.1.incorrectFileExtension"
-                        reportType = _("Stand-alone XHTML document")
+                possibleExtensions: [str]
+                if val.consolidated:
+                    errorCode = "ESEF.2.6.1.incorrectFileExtension"
+                    reportType = _("Inline XBRL document included within a ESEF report package")
+                    possibleExtensions = [".xhtml",".html",".htm"]
+                else:
+                    errorCode = "ESEF.4.1.1.incorrectFileExtension"
+                    reportType = _("Stand-alone XHTML document")
+                    possibleExtensions = [".xhtml",".html"]
+                if _baseExt not in possibleExtensions:
+                    extensionsExplanation: str = ", ".join(possibleExtensions[0:-1])
+                    extensionsExplanation += _(" or ") + possibleExtensions[-1]
                     modelXbrl.error(errorCode,
-                                    _("%(reportType)s MUST have a .html or .xhtml extension: %(fileName)s"),
-                                    modelObject=doc, fileName=doc.basename, reportType=reportType)
+                                    _("%(reportType)s MUST have a %(extensions)s extension: %(fileName)s"),
+                                    modelObject=doc, fileName=doc.basename, reportType=reportType,
+                                    extensions=extensionsExplanation)
                 docinfo = doc.xmlRootElement.getroottree().docinfo
                 docTypeMatch = docTypeXhtmlPattern.match(docinfo.doctype)
                 if val.consolidated:
@@ -303,11 +316,11 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 ".html: %(fileName)s (Document file not in correct place in package)"),
                                 modelObject=doc, fileName=doc.basename)
                     elif esefDisclosureSystemYear >= 2025:
-                        m = reportBasenameRegex.match(_baseName)
+                        m = reportFileNameRegex.match(doc.basename)
                         if not m:
                             modelXbrl.warning("ESEF.2.6.3.incorrectNamingConventionReportPackageReportFile",
                                 _("Inline XBRL document filename SHOULD match %(pattern)s"),
-                                modelObject=doc, fileName=doc.basename, pattern=reportBasenamePattern)
+                                modelObject=doc, fileName=doc.basename, pattern=reportFileNamePattern)
                 else: # non-consolidated
                     if docTypeMatch:
                         if not docTypeMatch.group(1) or docTypeMatch.group(1).lower() == "html":
