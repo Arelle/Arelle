@@ -50,7 +50,7 @@ print(f"Validating report: {target_path}")
 options = RuntimeOptions(
     entrypointFile=str(report_zip_path),
     formulaAction='none',
-    disclosureSystemName='uksef',
+    disclosureSystemName='uksef-only',
     internetConnectivity='offline',
     logFile=str(arelle_log_file),
     logFormat="[%(messageCode)s] %(message)s - %(file)s",
