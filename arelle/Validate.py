@@ -308,10 +308,10 @@ class Validate:
                         self.determineTestStatus(modelTestcaseVariation, modelVersReport.errors)
                         modelVersReport.close()
                 elif len(inputDTSes) == 2:
-                    ModelVersReport.ModelVersReport(self.modelXbrl).diffDTSes(  # type: ignore[no-untyped-call]
+                    ModelVersReport.ModelVersReport(self.modelXbrl).diffDTSes(
                         versReportFile,
-                        inputDTSes["from"],
-                        inputDTSes["to"]
+                        inputDTSes["from"],  # type: ignore[arg-type]
+                        inputDTSes["to"],  # type: ignore[arg-type]
                     )
                     modelTestcaseVariation.status = "generated"
                 else:
