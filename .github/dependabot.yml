@@ -3,7 +3,8 @@ updates:
   - package-ecosystem: docker
     cooldown:
       default-days: 1
-    directory: "/docker/"
+    directories:
+      - /**
     schedule:
       interval: weekly
     allow:
@@ -14,17 +15,8 @@ updates:
   - package-ecosystem: "github-actions"
     cooldown:
       default-days: 1
-    directory: "/"
-    schedule:
-      interval: weekly
-    groups:
-      gha-dependencies:
-        patterns:
-          - "*"
-  - package-ecosystem: "github-actions"
-    cooldown:
-      default-days: 1
-    directory: "/.github/actions/test_conformance_suite"
+    directories:
+      - /**
     schedule:
       interval: weekly
     groups:
@@ -35,8 +27,7 @@ updates:
     cooldown:
       default-days: 1
     directories:
-      - /tests/integration_tests/ui_tests/ArelleGUITest
-      - /tests/integration_tests/ui_tests/ArelleGUITest/ArelleGUITest
+      - /**
     schedule:
       interval: weekly
     groups:
@@ -46,7 +37,8 @@ updates:
   - package-ecosystem: pip
     cooldown:
       default-days: 1
-    directory: "/"
+    directories:
+      - /**
     schedule:
       interval: weekly
     groups:
