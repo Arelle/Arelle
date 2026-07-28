@@ -31,7 +31,7 @@ def relateConceptMdlObjs(
                 toConcept = toConceptMdlObj.toConcept
                 if toConcept is not None:
                     toConceptQname = toConcept.qname
-                    modelDocument.relatedConcepts[fromConceptQname].add(toConceptQname)
+                    modelDocument.relatedConcepts[fromConceptQname].add(toConceptQname)  # type: ignore[arg-type]
 
 
 class ModelVersObject(ModelObject):
