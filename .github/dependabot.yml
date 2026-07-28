@@ -12,7 +12,7 @@ updates:
         update-types:
           - minor
           - patch
-  - package-ecosystem: "github-actions"
+  - package-ecosystem: github-actions
     directories:
       - /**
     schedule:
@@ -55,4 +55,4 @@ updates:
           - minor
           - patch
     ignore:
-      - dependency-name: "cx_Freeze"
+      - dependency-name: cx_Freeze
