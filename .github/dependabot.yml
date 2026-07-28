@@ -1,63 +1,58 @@
 version: 2
 updates:
-  - package-ecosystem: "github-actions"
-    cooldown:
-      default-days: 1
-    directory: "/"
+  - package-ecosystem: docker
+    directories:
+      - /**
+    schedule:
+      interval: weekly
+    groups:
+      docker-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+  - package-ecosystem: github-actions
+    directories:
+      - /**
     schedule:
       interval: weekly
     groups:
       gha-dependencies:
         patterns:
           - "*"
-    ignore:
-      - dependency-name: "softprops/action-gh-release"
-        versions: ["2.2.0"]
-  - package-ecosystem: "github-actions"
-    cooldown:
-      default-days: 1
-    directory: "/.github/actions/test_conformance_suite"
-    schedule:
-      interval: weekly
-    groups:
-      gha-dependencies:
-        patterns:
-          - "*"
-    ignore:
-      - dependency-name: "softprops/action-gh-release"
-        versions: ["2.2.0"]
-  - package-ecosystem: pip
-    cooldown:
-      default-days: 1
-    directory: "/"
-    schedule:
-      interval: weekly
-    groups:
-      python-dependencies:
-        patterns:
-          - "*"
-    ignore:
-      - dependency-name: "cx_Freeze"
+        update-types:
+          - minor
+          - patch
   - package-ecosystem: nuget
     cooldown:
-      default-days: 1
+      default-days: 3
     directories:
-      - /tests/integration_tests/ui_tests/ArelleGUITest
-      - /tests/integration_tests/ui_tests/ArelleGUITest/ArelleGUITest
+      - /**
     schedule:
       interval: weekly
     groups:
       dotnet-dependencies:
         patterns:
           - "*"
-  - package-ecosystem: docker
+        update-types:
+          - minor
+          - patch
+  - package-ecosystem: pip
     cooldown:
-      default-days: 1
-    directory: "/docker/"
+      default-days: 3
+      exclude:
+        - ixbrl-viewer
+    directories:
+      - /**
     schedule:
       interval: weekly
-    allow:
-      - dependency-name: "python"
+    groups:
+      python-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
     ignore:
-      - dependency-name: "python"
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: cx_Freeze
