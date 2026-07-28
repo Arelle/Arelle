@@ -1824,7 +1824,7 @@ class ModelLocator(ModelResource):
         elif isinstance(hrefObj, ModelResource):
             return (("href", hrefObj.viewText()),)
         else:
-            return getattr(hrefObj, "propertyView", "(none)")
+            return getattr(hrefObj, "propertyView", (("href", "(none)"),))
 
 
 class RelationStatus:
