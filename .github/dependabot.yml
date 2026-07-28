@@ -12,6 +12,8 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      - dependency-name: ubuntu
   - package-ecosystem: github-actions
     directories:
       - /**
