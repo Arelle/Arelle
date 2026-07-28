@@ -71,13 +71,13 @@ jobs:
           fetch-depth: 1
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v4.5.1
+        uses: docker/login-action@v4.5.2
         with:
           username: ${{ vars.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Log in to GHCR
-        uses: docker/login-action@v4.5.1
+        uses: docker/login-action@v4.5.2
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
