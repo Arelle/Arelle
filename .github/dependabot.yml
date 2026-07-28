@@ -1,5 +1,16 @@
 version: 2
 updates:
+  - package-ecosystem: docker
+    cooldown:
+      default-days: 1
+    directory: "/docker/"
+    schedule:
+      interval: weekly
+    allow:
+      - dependency-name: "python"
+    ignore:
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
   - package-ecosystem: "github-actions"
     cooldown:
       default-days: 1
@@ -20,18 +31,6 @@ updates:
       gha-dependencies:
         patterns:
           - "*"
-  - package-ecosystem: pip
-    cooldown:
-      default-days: 1
-    directory: "/"
-    schedule:
-      interval: weekly
-    groups:
-      python-dependencies:
-        patterns:
-          - "*"
-    ignore:
-      - dependency-name: "cx_Freeze"
   - package-ecosystem: nuget
     cooldown:
       default-days: 1
@@ -44,14 +43,15 @@ updates:
       dotnet-dependencies:
         patterns:
           - "*"
-  - package-ecosystem: docker
+  - package-ecosystem: pip
     cooldown:
       default-days: 1
-    directory: "/docker/"
+    directory: "/"
     schedule:
       interval: weekly
-    allow:
-      - dependency-name: "python"
+    groups:
+      python-dependencies:
+        patterns:
+          - "*"
     ignore:
-      - dependency-name: "python"
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "cx_Freeze"
