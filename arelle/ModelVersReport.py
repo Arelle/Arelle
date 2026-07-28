@@ -47,25 +47,6 @@ from arelle.typing import TypeGetText
 
 _: TypeGetText
 
-
-def create(modelXbrlFromDTS: ModelXbrl, modelXbrlToDTS: ModelXbrl) -> ModelVersReport:
-    """Returns a new modelXbrl representing a Version Report object, by creation of its modelXbrl, its ModelVersReport (modelDocument), and diffing the from and to DTSes
-
-    :param modelXbrlFromDTS: fromDTS DTS object
-    :type modelXbrlFromDTS: ModelXbrl
-    :param modelXbrlToDTS: toDTS DTS object
-    :type modelXbrlToDTS: ModelXbrl
-    """
-    modelXbrlVersReport = ModelXbrlCreate(modelXbrlFromDTS.modelManager)
-    modelVersReport = ModelVersReport(
-        modelXbrlVersReport,
-        ModelDocument.Type.VERSIONINGREPORT,
-    )
-    modelXbrlVersReport.modelDocument = modelVersReport
-    modelVersReport.diffDTSes(modelXbrlFromDTS, modelXbrlToDTS)  # type: ignore[arg-type,call-arg]
-    return modelVersReport
-
-
 relationshipSetArcAttributesExclusion = {
     "{http://www.w3.org/1999/xlink}from",
     "{http://www.w3.org/1999/xlink}to",
