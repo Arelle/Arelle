@@ -23,7 +23,7 @@ arelle_offline = args.offline
 working_directory = Path(args.working_directory)
 test_directory = Path(args.test_directory)
 arelle_log_file = prepare_logfile(test_directory, this_file)
-report_zip_path = test_directory / 'report.zip'
+report_zip_path = test_directory / "report.zip"
 target_path = report_zip_path
 print(f"Downloading report: {report_zip_path}")
 # Based on FRC_06:TC2 testcase from UKSEF conformance suite
@@ -49,13 +49,13 @@ package_paths = [str(a.full_local_path) for a in package_assets]
 print(f"Validating report: {target_path}")
 options = RuntimeOptions(
     entrypointFile=str(report_zip_path),
-    formulaAction='none',
-    disclosureSystemName='esef-2022',
-    internetConnectivity='offline',
+    formulaAction="none",
+    disclosureSystemName="esef-2022",
+    internetConnectivity="offline",
     logFile=str(arelle_log_file),
     logFormat="[%(messageCode)s] %(message)s - %(file)s",
     packages=package_paths,
-    plugins='validate/ESEF',
+    plugins="validate/ESEF",
     validate=True,
     pluginOptions={
         "esefAuthority": "UKFRC",
@@ -63,15 +63,15 @@ options = RuntimeOptions(
 )
 with Session() as session:
     session.run(options)
-    log_xml = session.get_logs('xml')
+    log_xml = session.get_logs("xml")
 
 print("Checking log XML for errors...")
 errors += validate_log_xml(log_xml, expected_results={
-    'error': {
-        regex.compile(r'^\[ESEF.2.6.1.reportIncorrectlyPlacedInPackage] .*'): 1,
-        regex.compile(r'^\[ESEF.2.1.4.multipleIdentifiers] .*'): 1,
-        regex.compile(r'^\[ESEF.UKFRC6.invalidIdentifier] .*'): 1,
-        regex.compile(r'^\[ESEF.UKFRC6.multipleIdentifiers] .*'): 1,
+    "error": {
+        regex.compile(r"^\[ESEF.2.6.1.reportIncorrectlyPlacedInPackage] .*"): 1,
+        regex.compile(r"^\[ESEF.2.1.4.multipleIdentifiers] .*"): 1,
+        regex.compile(r"^\[ESEF.UKFRC6.invalidIdentifier] .*"): 1,
+        regex.compile(r"^\[ESEF.UKFRC6.multipleIdentifiers] .*"): 1,
     },
 })
 
@@ -79,6 +79,6 @@ assert_result(errors)
 
 print("Cleaning up")
 try:
-    os.unlink(working_directory / 'python_api_validate_uksef' / 'report.zip')
+    os.unlink(working_directory / "python_api_validate_uksef" / "report.zip")
 except PermissionError as exc:
     print(f"Failed to cleanup test files: {exc}")
