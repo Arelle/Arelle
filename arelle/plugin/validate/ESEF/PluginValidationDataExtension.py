@@ -8,11 +8,9 @@ from typing import cast
 
 from arelle.ModelInstanceObject import ModelContext
 from arelle.ModelXbrl import ModelXbrl
-from arelle.ValidateXbrl import ValidateXbrl
 from arelle.utils.PluginData import PluginData
 from arelle.utils.validate.ContextIssues import ContextIssues, getContextIssues, getContextsByEntityIdentifier
-from .ESEFPluginData import ESEFPluginData
-from .Const import AUTHORITY_UKFRC, TARGET_UKFRS
+from .Const import TARGET_UKFRS
 
 
 @dataclass
