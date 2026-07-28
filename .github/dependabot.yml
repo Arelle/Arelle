@@ -10,9 +10,6 @@ updates:
       gha-dependencies:
         patterns:
           - "*"
-    ignore:
-      - dependency-name: "softprops/action-gh-release"
-        versions: ["2.2.0"]
   - package-ecosystem: "github-actions"
     cooldown:
       default-days: 1
@@ -23,9 +20,6 @@ updates:
       gha-dependencies:
         patterns:
           - "*"
-    ignore:
-      - dependency-name: "softprops/action-gh-release"
-        versions: ["2.2.0"]
   - package-ecosystem: pip
     cooldown:
       default-days: 1
