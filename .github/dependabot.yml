@@ -1,8 +1,6 @@
 version: 2
 updates:
   - package-ecosystem: docker
-    cooldown:
-      default-days: 1
     directories:
       - /**
     schedule:
@@ -15,8 +13,6 @@ updates:
           - minor
           - patch
   - package-ecosystem: "github-actions"
-    cooldown:
-      default-days: 1
     directories:
       - /**
     schedule:
@@ -30,7 +26,7 @@ updates:
           - patch
   - package-ecosystem: nuget
     cooldown:
-      default-days: 1
+      default-days: 3
     directories:
       - /**
     schedule:
@@ -44,7 +40,9 @@ updates:
           - patch
   - package-ecosystem: pip
     cooldown:
-      default-days: 1
+      default-days: 3
+      exclude:
+        - ixbrl-viewer
     directories:
       - /**
     schedule:
