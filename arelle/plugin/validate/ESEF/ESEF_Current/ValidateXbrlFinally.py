@@ -65,8 +65,8 @@ from ..Const import (
     styleCssHiddenPattern,
     supportedImgTypes,
     untransformableTypes,
-    reportBasenamePattern,
-    reportBasenameRegex
+    reportDefaultFileNamePattern,
+    reportDefaultFileNameRegex
 )
 from ..Dimensions import checkFilingDimensions
 from ..Util import (
@@ -103,8 +103,8 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
     if reportFileNameRegex:
         reportFileNameRegex = re.compile(reportFileNameRegex)
     if not reportFileNamePattern:
-        reportFileNamePattern = reportBasenamePattern
-        reportFileNameRegex = reportBasenameRegex
+        reportFileNamePattern = reportDefaultFileNamePattern
+        reportFileNameRegex = reportDefaultFileNameRegex
     if reportPackageMaxMB is not None and modelXbrl.fileSource.fs: # must be a zip to be a report package
         assert isinstance(modelXbrl.fileSource.fs, zipfile.ZipFile)
 
