@@ -2210,7 +2210,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         if options.anchFile:
                             ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.anchFile, "Anchoring", XbrlConst.widerNarrower, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[no-untyped-call]
                         if options.formulaeFile:
-                            ViewFileFormulae.viewFormulae(modelXbrl, options.formulaeFile, "Formulae", lang=options.labelLang)  # type: ignore[no-untyped-call]
+                            ViewFileFormulae.viewFormulae(modelXbrl, options.formulaeFile, "Formulae", lang=options.labelLang)
                         if options.viewArcrole and options.viewFile:
                             ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.viewFile, os.path.basename(options.viewArcrole), options.viewArcrole, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[no-untyped-call]
                         if options.roleTypesFile:

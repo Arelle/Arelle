@@ -1,25 +1,54 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
-from arelle import ModelObject, XbrlConst, ViewFile
+"""
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from arelle import XbrlConst, ViewFile
 from arelle.ModelDtsObject import ModelRelationship
 from arelle.ModelFormulaObject import ModelParameter, ModelVariable, ModelVariableSetAssertion, ModelConsistencyAssertion
 from arelle.ViewUtilFormulae import rootFormulaObjects, formulaObjSortKey
-import os
+from arelle.typing import TypeGetText
 
-def viewFormulae(modelXbrl, outfile, header, lang=None):
-    modelXbrl.modelManager.showStatus(_("viewing formulae"))
+if TYPE_CHECKING:
+    from arelle.ModelObject import ModelObject
+    from arelle.FileSource import FileNamedStringIO
+    from arelle.ModelRelationshipSet import ModelRelationshipSet
+    from arelle.ModelXbrl import ModelXbrl
+
+_: TypeGetText
+
+
+def viewFormulae(
+    modelXbrl: ModelXbrl | None,
+    outfile: str | FileNamedStringIO | None,
+    header: str,
+    lang: str | None = None,
+) -> None:
+    modelXbrl.modelManager.showStatus(_("viewing formulae"))  # type: ignore[union-attr]
     view = ViewFormulae(modelXbrl, outfile, header, lang)
     view.view()
     view.close()
 
+
 class ViewFormulae(ViewFile.View):
-    def __init__(self, modelXbrl, outfile, header, lang):
+    varSetFilterRelationshipSet: ModelRelationshipSet
+    allFormulaRelationshipsSet: ModelRelationshipSet
+    treeCols: int
+
+    def __init__(
+        self,
+        modelXbrl: ModelXbrl | None,
+        outfile: str | FileNamedStringIO | None,
+        header: str,
+        lang: str | None,
+    ) -> None:
         super(ViewFormulae, self).__init__(modelXbrl, outfile, header, lang)
 
-    def view(self):
+    def view(self) -> None:
         # determine relationships indent depth
-        rootObjects = rootFormulaObjects(self)
+        rootObjects = rootFormulaObjects(self)  # type: ignore[no-untyped-call]
         self.treeCols = 0
         for rootObject in rootObjects:
             self.treeDepth(rootObject, 1, set())
@@ -27,15 +56,16 @@ class ViewFormulae(ViewFile.View):
         for rootObject in sorted(rootObjects, key=formulaObjSortKey):
             self.viewFormulaObjects(rootObject, None, 0, set())
         for cfQnameArity in sorted(qnameArity
-                                   for qnameArity in self.modelXbrl.modelCustomFunctionSignatures.keys()
-                                   if isinstance(qnameArity, (tuple,list))):
-            cfObject = self.modelXbrl.modelCustomFunctionSignatures[cfQnameArity]
+                                   for qnameArity in self.modelXbrl.modelCustomFunctionSignatures.keys()  # type: ignore[union-attr]
+                                   if isinstance(qnameArity, (tuple, list))):
+            cfObject = self.modelXbrl.modelCustomFunctionSignatures[cfQnameArity]  # type: ignore[union-attr,index]
             self.viewFormulaObjects(cfObject, None, 0, set())
 
-    def treeDepth(self, fromObject, indent, visited):
+    def treeDepth(self, fromObject: ModelObject | None, indent: int, visited: set[ModelObject]) -> None:
         if fromObject is None:
             return
-        if indent > self.treeCols: self.treeCols = indent
+        if indent > self.treeCols:
+            self.treeCols = indent
         if fromObject not in visited:
             visited.add(fromObject)
             relationshipArcsShown = set()
@@ -48,7 +78,13 @@ class ViewFormulae(ViewFile.View):
                         self.treeDepth(toObject, indent + 1, visited)
             visited.remove(fromObject)
 
-    def viewFormulaObjects(self, fromObject, fromRel, indent, visited):
+    def viewFormulaObjects(
+        self,
+        fromObject: ModelObject | None,
+        fromRel: ModelRelationship | None,
+        indent: int,
+        visited: set[ModelObject],
+    ) -> None:
         if fromObject is None:
             return
         if isinstance(fromObject, (ModelVariable, ModelParameter)) and fromRel is not None:
@@ -60,22 +96,22 @@ class ViewFormulae(ViewFile.View):
         else:
             text = fromObject.localName
             xmlRowEltAttr = {"type": str(fromObject.localName)}
-        cols = [text, fromObject.xlinkLabel] # label
+        cols: list[str | None] = [text, fromObject.xlinkLabel]  # label
         if fromRel is not None and fromRel.elementQname == XbrlConst.qnVariableFilterArc:
-            cols.append("true" if fromRel.isCovered else "false") # cover
-            cols.append("true" if fromRel.isComplemented else "false") #complement
+            cols.append("true" if fromRel.isCovered else "false")  # cover
+            cols.append("true" if fromRel.isComplemented else "false")  # complement
         else:
-            cols.append(None) # cover
-            cols.append(None) # compelement
+            cols.append(None)  # cover
+            cols.append(None)  # compelement
         if isinstance(fromObject, ModelVariable):
             cols.append(fromObject.bindAsSequence) # bind as sequence
         else:
-            cols.append(None) # bind as sequence
+            cols.append(None)  # bind as sequence
         if hasattr(fromObject, "viewExpression"):
-            cols.append(fromObject.viewExpression) # expression
+            cols.append(fromObject.viewExpression)  # expression
         else:
-            cols.append(None) # expression
-        self.addRow(cols, treeIndent=indent, xmlRowElementName = "formulaObject", xmlRowEltAttr=xmlRowEltAttr, xmlCol0skipElt=True)
+            cols.append(None)  # expression
+        self.addRow(cols, treeIndent=indent, xmlRowElementName="formulaObject", xmlRowEltAttr=xmlRowEltAttr, xmlCol0skipElt=True)
         if fromObject not in visited:
             visited.add(fromObject)
             relationshipArcsShown = set()
