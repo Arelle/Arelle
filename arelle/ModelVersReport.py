@@ -200,9 +200,9 @@ class ModelVersReport(ModelDocument.ModelDocument):
                                     DTSdoc = DTSmodelXbrl.modelDocument
                                     DTSdoc.inDTS = True  # type: ignore[union-attr]
                                     for schemaRefElt in schemaRefElts:
-                                        if href := schemaRefElt.get("{http://www.w3.org/1999/xlink}href") is not None:
+                                        if (href := schemaRefElt.get("{http://www.w3.org/1999/xlink}href")) is not None:
                                             doc = ModelDocument.load(DTSmodelXbrl,
-                                                                     href,  # type: ignore[arg-type]
+                                                                     href,
                                                                      base=self.baseForElement(schemaRefElt))
                                             DTSdoc.referencesDocument[doc] = "import"  # type: ignore[assignment,index,union-attr]  # fake import
                                             doc.inDTS = True  # type: ignore[union-attr]
@@ -1109,6 +1109,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
     def createAction(self) -> ModelObject:
         action = XmlUtil.addChild(self.reportElement, XbrlConst.ver, "ver:action", (("id", "action{0:05}".format(self.actionNum)),))  # type: ignore[arg-type]
         self.actionNum += 1
+        XmlUtil.addChild(action, XbrlConst.ver, "ver:assignmentRef", (("ref","versioningTask"),))
         return action
 
     def createBaseEvent(self, eventName: str, fromURI: str, toURI: str) -> None:
