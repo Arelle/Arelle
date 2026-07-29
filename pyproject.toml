@@ -179,7 +179,6 @@ module = [
     'arelle.ViewWinTests',
     'arelle.ViewWinTupleGrid',
     'arelle.ViewWinXml',
-    'arelle.XmlValidateParticles',
     'arelle.archive.CustomLogger',
     'arelle.archive.LoadEFMvalidate',
     'arelle.archive.LoadSavePreLbCsv',
