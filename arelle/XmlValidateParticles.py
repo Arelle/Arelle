@@ -12,6 +12,7 @@ from arelle.ModelDtsObject import (
     ModelChoice,
     ModelAny,
     anonymousTypeSuffix,
+    ModelGroupDefinition,
 )
 from arelle.XbrlConst import xsd
 from arelle.XmlValidate import validate
@@ -28,7 +29,7 @@ _: TypeGetText
 
 def validateElementSequence(
     modelXbrl: ModelXbrl,
-    compositor: ModelGroupCompositor | ModelType,
+    compositor: ModelGroupCompositor | ModelGroupDefinition | ModelType,
     children: list[ModelObject],
     ixFacts: bool,
     setTargetModelXbrl: bool,
@@ -36,7 +37,7 @@ def validateElementSequence(
 ) -> tuple[int, bool, tuple[str, str] | None, dict[str, Any] | None]:
     if compositor.modelDocument.targetNamespace == xsd:
         return iNextChild, True, None, None
-    particles = compositor.dereference().particles
+    particles = compositor.dereference().particles  # type: ignore[union-attr]
     iStartingChild = iNextChild
     errDesc: tuple[str, str] | None = None
     errArgs: dict[str, Any] | None = None
@@ -127,7 +128,7 @@ def validateElementSequence(
     return iNextChild, occurred, None, None
 
 
-def modelGroupCompositorTitle(compositor: ModelGroupCompositor | ModelType) -> str:
+def modelGroupCompositorTitle(compositor: ModelGroupCompositor | ModelGroupDefinition | ModelType) -> str:
     if isinstance(compositor, ModelType):
         return str(compositor.qname).replace(anonymousTypeSuffix, " complexType")
     return compositor.localName.title()
@@ -136,7 +137,7 @@ def modelGroupCompositorTitle(compositor: ModelGroupCompositor | ModelType) -> s
 def validateUniqueParticleAttribution(
     modelXbrl: ModelXbrl,
     particles: list[ModelParticle],
-    compositor: ModelGroupCompositor | ModelType,
+    compositor: ModelGroupCompositor | ModelGroupDefinition | ModelType,
 ) -> None:
     priorElementParticles: dict[QName | None, int] = {}
     priorAnyParticles: list[int] = []
