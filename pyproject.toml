@@ -173,7 +173,6 @@ module = [
     'arelle.ViewFileRenderedGrid',
     'arelle.ViewFileRenderedLayout',
     'arelle.ViewFileRenderedStructure',
-    'arelle.ViewFileRoleTypes',
     'arelle.ViewFileRssFeed',
     'arelle.ViewFileTests',
     'arelle.ViewUtilFormulae',
