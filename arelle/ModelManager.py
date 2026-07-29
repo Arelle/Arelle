@@ -232,7 +232,7 @@ class ModelManager:
             modelVersReport = self.create(newDocumentType=Type.VERSIONINGREPORT,
                                           url=versReportFile,
                                           createModelDocument=False)
-            ModelVersReport(modelVersReport).diffDTSes(versReportFile, fromDTS, toDTS)  # type: ignore[no-untyped-call]
+            ModelVersReport(modelVersReport).diffDTSes(versReportFile, fromDTS, toDTS)
             return modelVersReport
         return None
 
