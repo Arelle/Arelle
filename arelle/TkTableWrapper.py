@@ -692,7 +692,7 @@ def sample_test() -> None:
     # http://effbot.org/zone/tkinter-scrollbar-patterns.htm
     verticalScrollbar = Scrollbar(root, orient="vertical", command=test.yview_scroll)
     horizontalScrollbar = Scrollbar(root, orient="horizontal", command=test.xview_scroll)
-    test.config(xscrollcommand=horizontalScrollbar.set, yscrollcommand=verticalScrollbar.set)  # type: ignore[attr-defined]
+    test.configure(xscrollcommand=horizontalScrollbar.set, yscrollcommand=verticalScrollbar.set)  # type: ignore[call-arg]
     verticalScrollbar.grid(column=1, row=0, sticky=(N, S))
     horizontalScrollbar.grid(column=0, row=1, sticky=(W, E))
 
