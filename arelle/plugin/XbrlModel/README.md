@@ -41,14 +41,26 @@ Both consume the *html-locator* facts file produced by `saveOIMFacts`
 
 | Locator type | Properties | Resolves to | Produced for |
 |---|---|---|---|
-| `xbrl:pdfContentLocatorType` | `pdfPage` (int) + `pdfMcid` (int array) | marked-content glyphs | visible facts (aligned text) |
-| `xbrl:pdfImageLocatorType` | `pdfPage` + `pdfBBox` (`"x0 y0 x1 y1"`) + optional `pdfImageHash` (`md5:…`) | a rectangular image region | facts whose visual is a chart **image** |
+| `xbrl:pdfContentLocatorType` | `pdfPage` (int) + `pdfMcid` (int array) | marked-content glyphs | visible facts whose value fills their MCID(s) |
+| `xbrl:pdfImageLocatorType` | `pdfPage` + `pdfBBox` (`"x0 y0 x1 y1"`) + optional `pdfImageHash` (`md5:…`) | a rectangular region | a chart **image**, or a sub-MCID text value's glyph box (see below) |
 | `xbrl:pdfFormFieldLocatorType` | `pdfFormField` | an AcroForm field value | facts sourced from PDF form fields |
 | `xbrl:htmlElementLocatorType` | `htmlElementId` | HTML element text | fallback for facts not located in the PDF |
 
-`pdfBBox` is in PDF user-space points, origin lower-left. **One chart image is
-typically referenced by many facts** (see §3), so highlighting from a
-`pdfImageLocator` is region-level, not per-value.
+`pdfBBox` is in PDF user-space points, origin lower-left. For a **chart image**,
+one region is typically referenced by many facts (see §3), so highlighting is
+region-level, not per-value.
+
+**Sub-MCID text values (hybrid content/bbox locator).** Accessibility tagging is
+often *row-grained*: a whole table row — `TOTAL GROUPE 41 182,5 43 486,8 44 052,0
+…` — is a single marked-content id, so a `pdfMcid` locator for one figure would
+highlight the entire row. When a fact's value is only a **portion** of its MCID,
+`alignFactsToPdf` instead emits a per-value `pdfBBox` — the glyph rectangle of
+just that value, computed with pypdfium2 and disambiguated by the MCID row text —
+carried on the image source (which viewers already render). A fact that *is* its
+whole MCID(s) keeps the structural, reflow-robust `pdfMcid`. So for text a
+`pdfBBox` is per-value; for a shared chart image it stays region-level. The bbox
+is only emitted when its value is confidently placed (found within its row, or
+unique on the page); otherwise the fact safely keeps its correct-row `pdfMcid`.
 
 A small end-to-end fixture — source HTML, a chart image, a 1-page tagged PDF, and
 an aligned factset that resolves all four locator types — is the fastest way to
@@ -110,7 +122,9 @@ arelleCmdLine --plugins XbrlModel --align-to-pdf \
 - The PDF must be **accessibility-tagged** (marked content). Acrobat *autotag*
   tags text but usually leaves chart images untagged — hence the image locator.
 - Output has three sources (html / content / image) plus, when present, form
-  fields; facts not found in the PDF keep a valid html-fallback locator.
+  fields; whole-MCID text goes to the content source, sub-MCID text values and
+  chart images to the image source (see §2), and facts not found in the PDF keep
+  a valid html-fallback locator.
 
 Both tools can also be run standalone (`python3 tools/<tool>.py --help`).
 

@@ -443,7 +443,7 @@ def align(htmlPath: str, factsPath: str, pdfPath: str,
     print(f"[html] visible tokens={len(hm.tokens)}  clip-hidden facts={len(hm.clipHiddenFactIds)}"
           f"  charts paired={len(set(id(v) for v in hm.chartByFactId.values()))}", flush=True)
 
-    Ptok, Psrc, _cache = _build_pdf_text_stream(pdfPath)
+    Ptok, Psrc, mcidCache = _build_pdf_text_stream(pdfPath)
     print(f"[pdf] text tokens={len(Ptok)}", flush=True)
 
     h2p = _patience_align(hm.tokens, Ptok)
@@ -453,6 +453,7 @@ def align(htmlPath: str, factsPath: str, pdfPath: str,
     # per-fact content locators (also serve as page anchors for image
     # multi-placement disambiguation), computed once and reused by the rewrite.
     pmsByFV: Dict[int, List[Tuple[int, int]]] = {}
+    valueTextByFV: Dict[int, str] = {}           # the fact's own displayed html text
     contentAnchors: List[Tuple[int, int]] = []   # (html token pos, pdf page)
     for fact in factsDoc.get("xbrlModel", {}).get("facts", []):
         for fv in fact.get("factValues", []):
@@ -461,6 +462,12 @@ def align(htmlPath: str, factsPath: str, pdfPath: str,
                 continue
             pms = _fact_pms(ids, hm, h2p, Psrc)
             pmsByFV[id(fv)] = pms
+            parts: List[str] = []
+            for hid in ids:
+                r = hm.idRange.get(hid)
+                if r and r[1] is not None:
+                    parts.extend(hm.tokens[r[0]:r[1]])
+            valueTextByFV[id(fv)] = " ".join(parts)
             if pms:
                 r = hm.idRange.get(ids[0])
                 if r and r[1] is not None:
@@ -545,9 +552,17 @@ def align(htmlPath: str, factsPath: str, pdfPath: str,
               f"+dHash={phashRecovered}; chart facts located: {len(imgLocByFactId)}", flush=True)
 
     # ---- rewrite -----------------------------------------------------------
+    # Sub-MCID glyph geometry (optional): lets a fact that is only a portion of a
+    # coarse row-grained MCID be located by a tight glyph bbox of its own value.
+    geom = None
+    try:
+        geom = _PdfGeometry(pdfPath)
+    except Exception as e:
+        print(f"[bbox] pypdfium2 geometry unavailable ({e}); portion facts keep pdfMcid", flush=True)
     stats = _rewrite(factsDoc, perFV, pmsByFV, imgLocByFactId,
-                     os.path.basename(pdfPath))
-    print(f"[rewrite] content={stats['content']} image={stats['image']} "
+                     os.path.basename(pdfPath),
+                     valueTextByFV=valueTextByFV, mcidCache=mcidCache, geom=geom)
+    print(f"[rewrite] content={stats['content']} bbox={stats['bbox']} image={stats['image']} "
           f"unmapped={stats['unmapped']} of {stats['total']}", flush=True)
 
     dropped = _sanitize_reserved_aliases(factsDoc)
@@ -615,7 +630,88 @@ def _sanitize_reserved_aliases(factsDoc):
     return dropped
 
 
-def _rewrite(factsDoc, perFV, pmsByFV, imgLocByFactId, pdfBasename):
+# --------------------------------------------------------------------------
+# POC: sub-MCID glyph geometry (pypdfium2). A content fact that occupies only a
+# PORTION of a coarse (row-grained) MCID -- e.g. one figure in a whole-row MCID
+# "TOTAL GROUPE 41 182,5 43 486,8 44 052,0 ..." -- is located by a pdfBBox (the
+# glyph rectangle of its own value) instead of the shared MCID, so a viewer
+# highlights just the value. A fact that IS its whole MCID(s) keeps pdfMcid
+# (structural, reflow-robust). "The bbox we already have" = the image locator.
+# --------------------------------------------------------------------------
+_WS = re.compile(r"\s+")
+def _norm(s: str) -> str:
+    # Drop whitespace (a French thousands separator may be a space, nbsp, or
+    # absent) and lower-case, so tokenisation differences don't defeat matching.
+    return _WS.sub("", s or "").lower()
+
+
+class _PdfGeometry:
+    """Lazy per-page character geometry (unicode + glyph boxes) via pypdfium2."""
+    def __init__(self, pdfPath: str):
+        import pypdfium2 as pdfium
+        self._doc = pdfium.PdfDocument(pdfPath)
+        self._pages: Dict[int, Any] = {}
+
+    def _page(self, page: int):
+        if page not in self._pages:
+            tp = self._doc[page - 1].get_textpage()
+            n = tp.count_chars()
+            text = tp.get_text_range()
+            boxes = [tp.get_charbox(i) for i in range(n)]  # (l,b,r,t), PDF pts, LL origin
+            norm, n2o = [], []
+            for i in range(n):
+                ch = text[i]
+                if not ch.isspace():
+                    norm.append(ch.lower())
+                    n2o.append(i)
+            self._pages[page] = ("".join(norm), n2o, boxes)
+        return self._pages[page]
+
+    def locate(self, page: int, contextText: str, valueText: str):
+        """Union bbox (x0,y0,x1,y1) of valueText on the page. contextText (the
+        MCID/row text) disambiguates which occurrence when the value repeats."""
+        try:
+            norm, n2o, boxes = self._page(page)
+        except Exception:
+            return None
+        vn, cn = _norm(valueText), _norm(contextText)
+        if not vn:
+            return None
+        pos = -1
+        if cn:                                  # find the value inside its row
+            ci = norm.find(cn)
+            if ci >= 0:
+                vi = norm.find(vn, ci, ci + len(cn) + len(vn))
+                if vi >= 0:
+                    pos = vi
+        if pos < 0:
+            # No context match: only trust the value when it is UNIQUE on the
+            # page. A repeated value with no located row is ambiguous -- return
+            # None so the fact keeps its (correct-row) pdfMcid rather than risk
+            # highlighting the wrong occurrence.
+            first = norm.find(vn)
+            if first < 0 or norm.find(vn, first + 1) >= 0:
+                return None
+            pos = first
+        rects = [boxes[n2o[k]] for k in range(pos, pos + len(vn)) if k < len(n2o)]
+        if not rects:
+            return None
+        xs = [r[0] for r in rects] + [r[2] for r in rects]
+        ys = [r[1] for r in rects] + [r[3] for r in rects]
+        return (round(min(xs), 2), round(min(ys), 2), round(max(xs), 2), round(max(ys), 2))
+
+
+def _bbox_source(page: int, bbox) -> List[Dict[str, Any]]:
+    # A content fact located by a glyph bbox (no image hash), rendered by the
+    # viewer's existing pdfBBox (image-region) path.
+    return [{"properties": [
+        {"property": PDF_PAGE, "value": int(page)},
+        {"property": PDF_BBOX, "value": " ".join(str(x) for x in bbox)},
+    ]}]
+
+
+def _rewrite(factsDoc, perFV, pmsByFV, imgLocByFactId, pdfBasename,
+             valueTextByFV=None, mcidCache=None, geom=None):
     di = factsDoc.setdefault("documentInfo", {})
     xm = factsDoc.setdefault("xbrlModel", {})
     # Preserve the original html source so facts not located in the PDF keep a
@@ -640,7 +736,7 @@ def _rewrite(factsDoc, perFV, pmsByFV, imgLocByFactId, pdfBasename):
         {"name": cMap, "factLocatorType": PDF_CONTENT_LOCATOR},
         {"name": iMap, "factLocatorType": PDF_IMAGE_LOCATOR},
     ]
-    stats = {"content": 0, "image": 0, "unmapped": 0, "total": 0}
+    stats = {"content": 0, "bbox": 0, "image": 0, "unmapped": 0, "total": 0}
     for fact in xm.get("facts", []):
         for fv in fact.get("factValues", []):
             ids = perFV.get(id(fv))
@@ -649,9 +745,24 @@ def _rewrite(factsDoc, perFV, pmsByFV, imgLocByFactId, pdfBasename):
             stats["total"] += 1
             pms = pmsByFV.get(id(fv)) or []
             if pms:
-                fv["reportSource"] = cSrc
-                fv["valueSources"] = _content_sources(pms)
-                stats["content"] += 1
+                # Hybrid locator: a fact that IS its whole MCID(s) keeps pdfMcid; a fact that is
+                # only a PORTION of a coarse (row-grained) MCID -- its value a proper substring of
+                # the MCID text -- is located by a glyph bbox of just its value instead.
+                bboxLoc = None
+                if valueTextByFV is not None and mcidCache is not None and geom is not None:
+                    valueText = valueTextByFV.get(id(fv)) or ""
+                    mcidText = " ".join(mcidCache.get(pm, "") for pm in pms)
+                    vn, mn = _norm(valueText), _norm(mcidText)
+                    if vn and mn and vn != mn and vn in mn:  # portion of a shared/coarse MCID
+                        bboxLoc = geom.locate(pms[0][0], mcidText, valueText)
+                if bboxLoc is not None:
+                    fv["reportSource"] = iSrc
+                    fv["valueSources"] = _bbox_source(pms[0][0], bboxLoc)
+                    stats["bbox"] += 1
+                else:
+                    fv["reportSource"] = cSrc
+                    fv["valueSources"] = _content_sources(pms)
+                    stats["content"] += 1
                 continue
             loc = next((imgLocByFactId[i] for i in ids if i in imgLocByFactId), None)
             if loc is not None:
