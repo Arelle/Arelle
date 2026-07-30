@@ -8,7 +8,7 @@ types-lxml==2026.2.16
 types-openpyxl==3.1.5.20260724
 types-PyMySQL==1.2.0.20260724
 types-python-dateutil==2.9.0.20260716
-types-pytz==2026.2.0.20260518
+types-pytz==2026.3.1.20260727
 types-pywin32==312.0.0.20260724
 types-regex==2026.7.19.20260720
 types-requests==2.33.0.20260712
