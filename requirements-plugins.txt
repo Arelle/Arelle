@@ -5,6 +5,7 @@ ixbrl-viewer==1.5.0
 holidays==0.101
 matplotlib==3.10.9
 pytz==2026.3.post1
+pythonmonkey==1.3.2
 
 # EDGAR and XULE plugins
 aniso8601==10.0.1
