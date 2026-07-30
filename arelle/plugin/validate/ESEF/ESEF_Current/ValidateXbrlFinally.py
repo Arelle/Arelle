@@ -255,25 +255,16 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         for doc in modelXbrl.urlDocs.values():
             if doc.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.UnknownXML):
                 _baseName, _baseExt = os.path.splitext(doc.basename)
-                possibleExtensions: [str]
-                if val.consolidated:
-                    errorCode = "ESEF.2.6.1.incorrectFileExtension"
-                    reportType = _("Inline XBRL document included within a ESEF report package")
-                    if val.authority and val.authority in {"DK", "DBA"}:
-                        possibleExtensions = [".xhtml",".html"]
+                if _baseExt not in (".xhtml",".html"):
+                    if val.consolidated:
+                        errorCode = "ESEF.2.6.1.incorrectFileExtension"
+                        reportType = _("Inline XBRL document included within a ESEF report package")
                     else:
-                        possibleExtensions = [".xhtml",".html",".htm"]
-                else:
-                    errorCode = "ESEF.4.1.1.incorrectFileExtension"
-                    reportType = _("Stand-alone XHTML document")
-                    possibleExtensions = [".xhtml",".html"]
-                if _baseExt not in possibleExtensions:
-                    extensionsExplanation: str = ", ".join(possibleExtensions[0:-1])
-                    extensionsExplanation += _(" or ") + possibleExtensions[-1]
+                        errorCode = "ESEF.4.1.1.incorrectFileExtension"
+                        reportType = _("Stand-alone XHTML document")
                     modelXbrl.error(errorCode,
-                                    _("%(reportType)s MUST have a %(extensions)s extension: %(fileName)s"),
-                                    modelObject=doc, fileName=doc.basename, reportType=reportType,
-                                    extensions=extensionsExplanation)
+                                    _("%(reportType)s MUST have a .html or .xhtml extension: %(fileName)s"),
+                                    modelObject=doc, fileName=doc.basename, reportType=reportType)
                 docinfo = doc.xmlRootElement.getroottree().docinfo
                 docTypeMatch = docTypeXhtmlPattern.match(docinfo.doctype)
                 if val.consolidated:

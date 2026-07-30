@@ -117,8 +117,8 @@ filenameRegexes = {
     "ref": r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}_ref[.]xml$",
 }
 
-reportDefaultFileNamePattern = "{base}-{date}-{version}-{lang}.[x]htm[l]"
-reportDefaultFileNameRegex = re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}-[1-9]-[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*[.]x?html?$")
+reportDefaultFileNamePattern = "{base}-{date}-{version}-{lang}.[x]html"
+reportDefaultFileNameRegex = re.compile(r"(.{1,})-[0-9]{4}-[0-9]{2}-[0-9]{2}-[1-9]-[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*[.]x?html$")
 
 mandatory: set[QName] = set()  # mandatory element qnames
 
