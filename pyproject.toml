@@ -166,7 +166,6 @@ module = [
     'arelle.ValidateInfoset',
     'arelle.Version',
     'arelle.ViewFileConcepts',
-    'arelle.ViewFileFactTable',
     'arelle.ViewFileRelationshipSet',
     'arelle.ViewFileRenderedGrid',
     'arelle.ViewFileRenderedLayout',
