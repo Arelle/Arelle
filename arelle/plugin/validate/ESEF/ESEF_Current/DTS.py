@@ -419,13 +419,12 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                     _("The extension taxonomy MUST not prohibit default members assigned to dimensions by the ESEF taxonomy."),
                     modelObject=modelDocument.xmlRootElement, linkbasesFound=", ".join(sorted(linkbasesFound)))
 
-    if isExtensionDocFound and filenamePattern is not None:
+    if isExtensionDocFound and filenameRegex is not None and filenamePattern is not None:
         m = re.compile(filenameRegex).match(modelDocument.basename)
         if not m:
             val.modelXbrl.warning("ESEF.3.1.5.extensionTaxonomyDocumentNameDoesNotFollowNamingConvention",
-                _("%(fileType)s file name SHOULD match the %(pattern)s pattern: %(documentName)s."),
+                _("Extension taxonomy file name SHOULD match the %(pattern)s pattern: %(documentName)s."),
                 modelObject=modelDocument.xmlRootElement,
-                fileType="Report" if modelDocument.type == ModelDocumentFile.Type.INLINEXBRL else "Extension taxonomy",
                 pattern=filenamePattern, documentName=modelDocument.basename)
         elif len(m.group(1)) > 20:
             val.modelXbrl.warning("ESEF.3.1.5.baseComponentInNameOfTaxonomyFileExceedsTwentyCharacters",
