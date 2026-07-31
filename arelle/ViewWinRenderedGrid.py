@@ -744,9 +744,9 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                     else:
                         # check user keyed changes to facts
                         cellIndex = str(modifiedCell)
-                        comboboxCells = tbl.window_names(cellIndex)  # type: ignore[no-untyped-call]
+                        comboboxCells = tbl.window_names(cellIndex)
                         if comboboxCells is not None and len(comboboxCells) > 0:
-                            comboName = tbl.window_cget(cellIndex, "-window")  # type: ignore[no-untyped-call]
+                            comboName = tbl.window_cget(cellIndex, "-window")
                             combobox = cntlr.parent.nametowidget(comboName)  # type: ignore[attr-defined]
                         else:
                             combobox = None
