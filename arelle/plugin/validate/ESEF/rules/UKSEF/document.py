@@ -29,7 +29,7 @@ def rule_ukfrc20(
         **kwargs: Any,
 ) -> Iterable[Validation] | None:
     """
-    UKFRC20: Document structure validation.
+    UKFRC20: UKSEF instance documents MUST use the UTF-8 character encoding.
     """
     if val.authority != AUTHORITY_UKFRC:
         return None
@@ -46,7 +46,7 @@ def rule_ukfrc21(
         **kwargs: Any,
 ) -> Iterable[Validation] | None:
     """
-    UKFRC21: Document content type validation.
+    UKFRC21: UKSEF report package "publisherCountry" metadata element MUST be "GB".
     """
     if val.authority != AUTHORITY_UKFRC:
         return None

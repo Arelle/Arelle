@@ -29,7 +29,9 @@ def rule_ukfrc3(
         **kwargs: Any,
 ) -> Iterable[Validation] | None:
     """
-    UKFRC3: Inline XBRL document must define the correct target.
+    UKFRC3: If the target attribute exists on certain key Inline XBRL elements their content
+    is diverted to a target XBRL document with a name derived from the attribute value, which
+    for the UK MUST be "UKFRS" (all caps).
     """
     if val.authority != AUTHORITY_UKFRC:
         return None
@@ -46,7 +48,8 @@ def rule_ukfrc4(
         **kwargs: Any,
 ) -> Iterable[Validation] | None:
     """
-    UKFRC4: Inline XBRL target must contain required schema references.
+    UKFRC4: In accordance with the ESEF Reporting Manual, Rule 2.5.3, 'All [ESEF] tagged data MUST
+    be in the "default" target XBRL document'. ESEF tagged data MUST NOT carry a target attribute.
     """
     if val.authority != AUTHORITY_UKFRC:
         return None
@@ -63,7 +66,9 @@ def rule_ukfrc5(
         **kwargs: Any,
 ) -> Iterable[Validation] | None:
     """
-    UKFRC5: Default target must reference the ESEF taxonomy.
+    UKFRC5: In a UKSEF report, there should be two ix:references containers – one should contain the
+    schemaRef for the issuer’s private extension as per ESEF requirements and MUST omit the target.
+    The other must contain a UKSEF schemaRef with the "UKFRS" target attribute.
     """
     if val.authority != AUTHORITY_UKFRC:
         return None
