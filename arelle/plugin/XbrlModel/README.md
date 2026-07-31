@@ -292,7 +292,9 @@ GUI runs use the defaults (chrome engine, reflow on). For a different engine
   by method, by locator, and how many stay on the html fallback):
   1. **Row-granular signature match (primary).** The HTML DOM's table structure
      is *trusted*: a fact's `<tr>` yields a row **signature** — label + ordered
-     value cells. The PDF side is rebuilt from **glyph geometry, not its structure
+     value cells. A Key-Facts-style leaf `<li>` that carries a label next to a
+     value fact (`Total Number of Portfolio Holdings 75`) is treated as a row too,
+     so those flex/list items align like table rows. The PDF side is rebuilt from **glyph geometry, not its structure
      tags** (which mis-tag merged cells — horizontally or vertically): chars are
      clustered into rows by y-band and split into cells at column-scale x-gaps
      (not the smaller thousands-space, which would fragment `8 687,5`). HTML rows

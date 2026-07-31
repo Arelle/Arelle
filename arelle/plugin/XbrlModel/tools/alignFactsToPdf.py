@@ -198,6 +198,31 @@ def _cell_tokens_ids(cell, factIds):
     return toks, ids
 
 
+def _flex_row(el, factIds):
+    """Row from a labelled container that is NOT a <tr> -- e.g. a Key-Facts
+    ``<li>`` ("Total Number of Portfolio Holdings 75") where the label and the
+    value fact sit side by side. Returns (labelTokens, valueCells): the fact
+    subtrees are value cells, everything else is the label."""
+    label: List[str] = []
+    cells: List[Dict[str, Any]] = []
+
+    def walk(node):
+        if node.get("id") in factIds:                 # a whole fact subtree = one value cell
+            cells.append({"factIds": [node.get("id")],
+                          "tokens": _toks(" ".join(node.itertext())), "col": len(cells)})
+            label.extend(_toks(node.tail))
+            return
+        label.extend(_toks(node.text))
+        for c in node:
+            walk(c)
+        label.extend(_toks(node.tail))
+
+    label.extend(_toks(el.text))
+    for c in el:
+        walk(c)
+    return label, cells
+
+
 def _build_html_rows(root, factIds):
     """Rows in document order. Each row: ``{tokens, label, cells, factIds, section}``
     where ``cells`` is the ordered list of fact-bearing value cells
@@ -223,6 +248,25 @@ def _build_html_rows(root, factIds):
                 else:                            # consecutive <h1>s are one header
                     sectionHeaders[section] = (sectionHeaders[section] + " " + htext).strip()
                 lastWasHeader = True
+            continue
+        if ln == "li":
+            # A Key-Facts-style leaf <li> ("Total Number of Portfolio Holdings 75")
+            # is a label+value row that isn't a <tr>. Skip lists/tables nested in
+            # the li and facts already captured by an ancestor <tr>.
+            lastWasHeader = False
+            if any(_local(d.tag).lower() in ("tr", "table", "li") for d in el.iter() if d is not el):
+                continue
+            label, cells = _flex_row(el, factIds)
+            if cells and any(fid not in factRow for c in cells for fid in c["factIds"]):
+                rowFactIds = [fid for c in cells for fid in c["factIds"]]
+                for ci, c in enumerate(cells):
+                    for fid in c["factIds"]:
+                        factRow[fid] = (len(rows), ci)
+                rowToks = list(label)
+                for c in cells:
+                    rowToks.extend(c["tokens"])
+                rows.append({"tokens": rowToks, "label": label, "cells": cells,
+                             "factIds": rowFactIds, "section": max(section, 0)})
             continue
         if ln != "tr":
             continue
