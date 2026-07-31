@@ -287,11 +287,39 @@ GUI runs use the defaults (chrome engine, reflow on). For a different engine
   balanced transparent `⟦N⟧…⟦/N⟧` **text tokens** inside each fact element and
   reconstructs `factId → (page, mcid)` from the marked-content stream — tokens are
   independent text and survive arbitrary nesting.
-- **Aligner text match.** The HTML and PDF are reduced to document-order word
-  streams and aligned with a **recursive patience alignment** (anchor on tokens
-  locally unique within each gap, recurse, `difflib` only on tiny base gaps);
-  a global `difflib` on ~360 k-token streams never finishes. Clip-hidden subtrees
-  are excluded from the alignment (they are not in the PDF).
+- **Aligner match pipeline.** Each fact is placed by the first strategy that
+  succeeds, most-structural first (the run prints a `[summary]` block: located %,
+  by method, by locator, and how many stay on the html fallback):
+  1. **Row-granular signature match (primary).** The HTML DOM's table structure
+     is *trusted*: a fact's `<tr>` yields a row **signature** — label + ordered
+     value cells. The PDF side is rebuilt from **glyph geometry, not its structure
+     tags** (which mis-tag merged cells — horizontally or vertically): chars are
+     clustered into rows by y-band and split into cells at column-scale x-gaps
+     (not the smaller thousands-space, which would fragment `8 687,5`). HTML rows
+     are matched to PDF rows by a **monotone** (top-to-bottom in both documents)
+     weighted DP on the signature — far more distinctive than a bare value, so a
+     figure repeated across statements / 2- vs 3-period presentations lands in its
+     correct row. A **contiguity bonus** rewards consecutive rows on the same/
+     adjacent page, so a table duplicated in the report (e.g. a condensed income
+     statement in the commentary *and* the official one in the financials) maps as
+     one block to its real occurrence instead of splitting across the copies.
+     Values match on **magnitude** (sign/paren/space-stripped), so an
+     `ix:nonFraction sign="-"` that omits the sign vs a PDF `-` / `- ` / `(…)`
+     convention does not break the row (placement still uses the PDF glyph box).
+     A cell that is exactly one whole MCID keeps the reflow-robust `pdfMcid`; a
+     cell inside a coarse/merged MCID gets its own glyph `pdfBBox`.
+  2. **Token patience alignment (fallback)** for facts not in a table (narrative)
+     or in rows that did not match: HTML and PDF are reduced to document-order word
+     streams and aligned with a **recursive patience alignment** (anchor on tokens
+     locally unique within each gap, recurse, `difflib` only on tiny base gaps; a
+     global `difflib` on ~360 k-token streams never finishes). Clip-hidden subtrees
+     are excluded (not in the PDF).
+  3. **Phrase-locate fallback** for anything still unmapped (prose text blocks,
+     addresses): the fact's distinctive text is matched as a **phrase** against the
+     MCID cache (a word inverted index + longest common contiguous run, expected
+     page breaking ties). Patience alignment anchors on *unique* tokens and skips
+     anchor-less prose even when it is present as one clean MCID; a phrase (a run
+     of common words) is distinctive where its words are not.
 - **Aligner image match.** Each HTML `<img>` is matched to a PDF image XObject by
   content hash (exact md5, with a 64-bit **dHash** perceptual fallback for JPEGs
   Acrobat re-encoded), and its placement (page + bbox) recovered from the
@@ -311,7 +339,7 @@ GUI runs use the defaults (chrome engine, reflow on). For a different engine
 | File | Role |
 |---|---|
 | [`tools/inlineXbrlToPdf.py`](tools/inlineXbrlToPdf.py) | generate a tagged PDF (Chrome/WeasyPrint), token carrier, reflow |
-| [`tools/alignFactsToPdf.py`](tools/alignFactsToPdf.py) | match facts to an existing PDF (text patience-align + image pairing) |
+| [`tools/alignFactsToPdf.py`](tools/alignFactsToPdf.py) | match facts to an existing PDF (row-granular signature match → token patience-align → phrase-locate → image pairing) |
 | [`PdfTextExtractor.py`](PdfTextExtractor.py) | tagged-PDF text by mcid / struct-id / form field (page-scoped) |
 | [`PdfToolsCli.py`](PdfToolsCli.py) | command-line options + dispatch (wired from `__init__.py`) |
 | [`FactValueResolver.py`](FactValueResolver.py) | resolves html / pdf locators to source text during validation |

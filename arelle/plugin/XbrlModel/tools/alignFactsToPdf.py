@@ -170,6 +170,69 @@ def _find_sibling_chart(clipTable):
 
 
 # --------------------------------------------------------------------------
+# HTML table rows (row-granular alignment)
+# --------------------------------------------------------------------------
+# The html DOM is well-formed (inline XBRL), so its TR/TH/TD structure is
+# TRUSTED: a fact's row = its enclosing <tr>, with a label (leading non-fact
+# cells) and value cells in document order. The row signature (label + value
+# sequence) is far more distinctive than a bare value, which is what defeats
+# repeated-value / 2-vs-3-period mismatches. The PDF side (built separately from
+# glyph geometry, NOT its structure tags) is matched against these rows.
+def _cell_tokens_ids(cell, factIds):
+    """Tokens and fact ids contained in one table cell (excludes the cell's own
+    tail, which belongs to the row)."""
+    toks: List[str] = []
+    ids: List[str] = []
+
+    def rec(el):
+        if el.get("id") in factIds:
+            ids.append(el.get("id"))
+        toks.extend(_toks(el.text))
+        for c in el:
+            rec(c)
+        toks.extend(_toks(el.tail))
+
+    toks.extend(_toks(cell.text))
+    for c in cell:
+        rec(c)
+    return toks, ids
+
+
+def _build_html_rows(root, factIds):
+    """Rows in document order. Each row: ``{tokens, label, cells, factIds}`` where
+    ``cells`` is the ordered list of fact-bearing value cells
+    (``{factIds, tokens, col}``). Also returns ``factRow``: factId -> (rowIndex,
+    cellIndex) so a fact can be placed within its matched PDF row."""
+    rows: List[Dict[str, Any]] = []
+    factRow: Dict[str, Tuple[int, int]] = {}
+    for tr in root.iter():
+        if _local(tr.tag).lower() != "tr":
+            continue
+        cells = [c for c in tr if _local(c.tag).lower() in ("td", "th")]
+        if not cells:
+            continue
+        rowToks: List[str] = []
+        label: List[str] = []
+        valueCells: List[Dict[str, Any]] = []
+        rowFactIds: List[str] = []
+        for col, cell in enumerate(cells):
+            ctoks, cids = _cell_tokens_ids(cell, factIds)
+            rowToks.extend(ctoks)
+            if cids:
+                for fid in cids:
+                    factRow[fid] = (len(rows), len(valueCells))
+                valueCells.append({"factIds": cids, "tokens": ctoks, "col": col})
+                rowFactIds.extend(cids)
+            elif not valueCells:
+                # leading non-fact cell(s) form the row label
+                label.extend(ctoks)
+        if valueCells:  # only rows that carry a fact are alignment units
+            rows.append({"tokens": rowToks, "label": label,
+                         "cells": valueCells, "factIds": rowFactIds})
+    return rows, factRow
+
+
+# --------------------------------------------------------------------------
 # PDF: marked-content token stream (page, mcid)
 # --------------------------------------------------------------------------
 def _build_pdf_text_stream(pdfPath: str):
@@ -559,11 +622,55 @@ def align(htmlPath: str, factsPath: str, pdfPath: str,
         geom = _PdfGeometry(pdfPath)
     except Exception as e:
         print(f"[bbox] pypdfium2 geometry unavailable ({e}); portion facts keep pdfMcid", flush=True)
+
+    # Row-granular alignment (primary): match the trusted html table rows against
+    # the geometry-built PDF rows, monotone top-to-bottom, keyed on the row
+    # signature. Fills the wrong/unmapped cases the global token alignment can't
+    # disambiguate (repeated value, 2- vs 3-period). Facts not in a table row --
+    # or in rows that did not match -- fall back to the token-alignment hybrid.
+    rowPlacement: Dict[str, Tuple[int, Any, str]] = {}
+    if geom is not None:
+        htmlRows, _factRow = _build_html_rows(hm.root, set(allIds))
+        rowPlacement = _row_align(htmlRows, geom, len(geom._doc))
+        print(f"[rows] html rows={len(htmlRows)}  facts placed by row signature={len(rowPlacement)}", flush=True)
+
+    # Phrase-locate fallback for facts still unmapped by row + token alignment
+    # (prose text blocks, addresses): match the fact's distinctive text as a
+    # phrase against the MCID cache. Expected page (nearest located neighbour)
+    # breaks ties between repeated occurrences.
+    phraseByFV: Dict[int, List[Tuple[int, int]]] = {}
+    unmappedFVs = [fv for fact in factsDoc.get("xbrlModel", {}).get("facts", [])
+                   for fv in fact.get("factValues", [])
+                   if perFV.get(id(fv))
+                   and not pmsByFV.get(id(fv))
+                   and not any(i in rowPlacement for i in perFV[id(fv)])]
+    if unmappedFVs:
+        wordIdx, mcidWords = _build_mcid_word_index(mcidCache)
+        for fv in unmappedFVs:
+            ids = perFV[id(fv)]
+            r = hm.idRange.get(ids[0])
+            expected = _nearest_page(r[0]) if (r and r[1] is not None) else None
+            hit = _phrase_locate(valueTextByFV.get(id(fv), ""), wordIdx, mcidWords, expected)
+            if hit:
+                phraseByFV[id(fv)] = hit
+        print(f"[phrase] unmapped after row+token={len(unmappedFVs)}  located by phrase={len(phraseByFV)}", flush=True)
+
     stats = _rewrite(factsDoc, perFV, pmsByFV, imgLocByFactId,
                      os.path.basename(pdfPath),
-                     valueTextByFV=valueTextByFV, mcidCache=mcidCache, geom=geom)
-    print(f"[rewrite] content={stats['content']} bbox={stats['bbox']} image={stats['image']} "
-          f"unmapped={stats['unmapped']} of {stats['total']}", flush=True)
+                     valueTextByFV=valueTextByFV, mcidCache=mcidCache, geom=geom,
+                     rowPlacement=rowPlacement, phraseByFV=phraseByFV)
+    total = stats["total"]
+    located = total - stats["unmapped"]
+    pct = (100 * located // total) if total else 0
+    print("[summary] fact locators in the PDF"
+          f"\n    total facts ................. {total}"
+          f"\n    located in PDF .............. {located}  ({pct}%)"
+          f"\n      by method:  row-granular={stats['row']}  token={stats['token']}"
+          f"  phrase={stats['phrase']}  image={stats['image']}"
+          f"\n      by locator: pdfMcid={stats['content']}  pdfBBox={stats['bbox']}"
+          f"  pdfImage={stats['image']}"
+          f"\n    unlocated in PDF ........... {stats['unmapped']}  (kept html-element-id"
+          " fallback; not resolvable while viewing the PDF)", flush=True)
 
     dropped = _sanitize_reserved_aliases(factsDoc)
     if dropped:
@@ -645,6 +752,18 @@ def _norm(s: str) -> str:
     return _WS.sub("", s or "").lower()
 
 
+_NONNUM = re.compile(r"[^\d.,]")
+def _valkey(s: str) -> str:
+    """Magnitude key for a numeric cell: keep only digits and the decimal/group
+    separators, dropping sign, spaces, parentheses, currency and percent. The
+    html and the PDF often show negativity differently -- ``ix:nonFraction
+    sign="-"`` omits the sign from the tagged text, while the PDF renders ``-``,
+    ``- `` or ``(...)`` -- so matching on magnitude keeps the row signature
+    aligned regardless of convention. Placement still uses the PDF glyph box,
+    i.e. whatever the PDF actually shows (sign included)."""
+    return _NONNUM.sub("", s or "")
+
+
 class _PdfGeometry:
     """Lazy per-page character geometry (unicode + glyph boxes) via pypdfium2."""
     def __init__(self, pdfPath: str):
@@ -652,20 +771,95 @@ class _PdfGeometry:
         self._doc = pdfium.PdfDocument(pdfPath)
         self._pages: Dict[int, Any] = {}
 
-    def _page(self, page: int):
-        if page not in self._pages:
+    def _raw(self, page: int):
+        key = ("raw", page)
+        if key not in self._pages:
             tp = self._doc[page - 1].get_textpage()
             n = tp.count_chars()
             text = tp.get_text_range()
             boxes = [tp.get_charbox(i) for i in range(n)]  # (l,b,r,t), PDF pts, LL origin
+            self._pages[key] = (text, boxes)
+        return self._pages[key]
+
+    def _page(self, page: int):
+        if page not in self._pages:
+            text, boxes = self._raw(page)
             norm, n2o = [], []
-            for i in range(n):
+            for i in range(len(boxes)):
                 ch = text[i]
                 if not ch.isspace():
                     norm.append(ch.lower())
                     n2o.append(i)
             self._pages[page] = ("".join(norm), n2o, boxes)
         return self._pages[page]
+
+    def rows(self, page: int):
+        """Visual rows of the page from GLYPH GEOMETRY (structure tags ignored):
+        cluster chars into rows by y-band, then segment each row into tokens by
+        x-gap. Robust to the cell merges (horizontal/vertical) that corrupt a
+        PDF's structure tree, because it reads where the ink physically sits.
+        Returns a list of rows, each a list of ``(text, (x0,y0,x1,y1))`` tokens
+        left-to-right."""
+        key = ("rows", page)
+        if key in self._pages:
+            return self._pages[key]
+        try:
+            text, boxes = self._raw(page)
+        except Exception:
+            self._pages[key] = []
+            return []
+        chars = []
+        for i in range(len(boxes)):
+            ch = text[i]
+            if ch.isspace():
+                continue
+            l, b, r, t = boxes[i]
+            chars.append((l, b, r, t, ch))
+        if not chars:
+            self._pages[key] = []
+            return []
+        heights = sorted(t - b for l, b, r, t, _c in chars if t > b)
+        medH = heights[len(heights) // 2] if heights else 8.0
+        chars.sort(key=lambda c: (-(c[1] + c[3]) / 2, c[0]))  # top-to-bottom, then left
+        bands, cur, curY = [], [], None
+        for c in chars:
+            cy = (c[1] + c[3]) / 2
+            if curY is None or abs(cy - curY) <= medH * 0.6:
+                cur.append(c)
+                curY = cy if curY is None else (curY * (len(cur) - 1) + cy) / len(cur)
+            else:
+                bands.append(cur)
+                cur, curY = [c], cy
+        if cur:
+            bands.append(cur)
+        out = []
+        for band in bands:
+            band.sort(key=lambda c: c[0])
+            widths = sorted(c[2] - c[0] for c in band if c[2] > c[0])
+            medW = widths[len(widths) // 2] if widths else 4.0
+            # Split into cells at COLUMN gaps only, not the small digit-group
+            # (thousands) space -- otherwise "8 687,5" fragments into "8"+"687,5"
+            # and won't match the html value "8687,5". A column gap is ~1.5+ char
+            # widths; the thousands space is well under that.
+            toks, tk = [], []
+            for c in band:
+                if tk and c[0] - tk[-1][2] > medW * 1.5:  # x-gap -> cell boundary
+                    toks.append(tk)
+                    tk = [c]
+                else:
+                    tk.append(c)
+            if tk:
+                toks.append(tk)
+            rowToks = []
+            for t in toks:
+                s = "".join(c[4] for c in t)
+                xs = [c[0] for c in t] + [c[2] for c in t]
+                ys = [c[1] for c in t] + [c[3] for c in t]
+                rowToks.append((s, (round(min(xs), 2), round(min(ys), 2),
+                                    round(max(xs), 2), round(max(ys), 2))))
+            out.append(rowToks)
+        self._pages[key] = out
+        return out
 
     def locate(self, page: int, contextText: str, valueText: str):
         """Union bbox (x0,y0,x1,y1) of valueText on the page. contextText (the
@@ -710,8 +904,197 @@ def _bbox_source(page: int, bbox) -> List[Dict[str, Any]]:
     ]}]
 
 
+# --------------------------------------------------------------------------
+# Row-granular alignment: monotone (top-to-bottom, both documents) match of the
+# trusted html table rows against the geometry-built PDF rows, keyed on the row
+# SIGNATURE (label + ordered value sequence). The signature is far more
+# distinctive than a bare value, and the monotone order is an independent
+# disambiguator, so a value repeated across statements / 2- vs 3-period
+# presentations lands in its correct row. Returns factId -> (page, bbox,
+# valueNorm) for every fact placed in a matched row.
+# --------------------------------------------------------------------------
+def _row_align(htmlRows, geom, npages: int):
+    import difflib
+    for r in htmlRows:
+        r["vnorm"] = [_valkey("".join(c["tokens"])) for c in r["cells"]]
+        r["lnorm"] = _norm("".join(r["label"]))
+    # PDF rows flattened in reading order (page asc, rows already top-to-bottom)
+    flat: List[Dict[str, Any]] = []
+    for pg in range(1, npages + 1):
+        for tokens in geom.rows(pg):
+            vals, label = [], []
+            for text, bbox in tokens:
+                if any(ch.isdigit() for ch in text):
+                    k = _valkey(text)          # magnitude key (sign-insensitive)
+                    if k:
+                        vals.append((k, bbox))
+                else:
+                    n = _norm(text)
+                    if n:
+                        label.append(n)
+            flat.append({"page": pg, "vals": vals, "label": "".join(label)})
+    val2rows: Dict[str, Set[int]] = {}
+    for ri, pr in enumerate(flat):
+        for n, _b in pr["vals"]:
+            val2rows.setdefault(n, set()).add(ri)
+    # candidate (htmlRow, pdfRow, score); score = value-subsequence coverage +
+    # label similarity (label matched as a normalised string, since geometry may
+    # merge label words into one token).
+    cands: List[Tuple[int, int, float]] = []
+    for hi, r in enumerate(htmlRows):
+        hv = r["vnorm"]
+        if not hv:
+            continue
+        rowset: Set[int] = set()
+        for v in hv:
+            rowset |= val2rows.get(v, set())
+        scored = []
+        for ri in rowset:
+            pv = [n for n, _b in flat[ri]["vals"]]
+            j = 0
+            for x in pv:
+                if j < len(hv) and x == hv[j]:
+                    j += 1
+            vscore = j / len(hv)
+            if vscore < 0.6:
+                continue
+            lscore = (difflib.SequenceMatcher(None, r["lnorm"], flat[ri]["label"]).ratio()
+                      if r["lnorm"] else 0.0)
+            scored.append((vscore + 0.4 * lscore, ri))
+        scored.sort(reverse=True)
+        for score, ri in scored[:5]:
+            cands.append((hi, ri, score))
+    # weighted monotone chain: hi and ri both strictly increasing (top-to-bottom
+    # in both documents), maximising total score. A CONTIGUITY bonus rewards
+    # consecutive html rows landing on the same/adjacent PDF page: when a value
+    # (a whole statement, even) is duplicated in the report -- e.g. the condensed
+    # income statement in the management commentary AND the official one in the
+    # financial statements -- the table must map as one contiguous block to its
+    # real occurrence, not split across the duplicates (which the plain monotone
+    # chain scores equally).
+    _CONTIG = 0.6
+    cands.sort(key=lambda c: (c[0], c[1]))
+    m = len(cands)
+    dp = [c[2] for c in cands]
+    prev = [-1] * m
+    for k in range(m):
+        hi, ri, sc = cands[k]
+        pk = flat[ri]["page"]
+        for j in range(k):
+            hj, rj, _s = cands[j]
+            if hj < hi and rj < ri:
+                bonus = _CONTIG if abs(pk - flat[rj]["page"]) <= 1 else 0.0
+                v = dp[j] + sc + bonus
+                if v > dp[k]:
+                    dp[k] = v
+                    prev[k] = j
+    assign: Dict[int, int] = {}
+    if m:
+        k = max(range(m), key=lambda i: dp[i])
+        while k != -1:
+            hi, ri, _s = cands[k]
+            assign[hi] = ri
+            k = prev[k]
+    # place each html value cell onto its pdf token (ordered), in the matched row
+    placement: Dict[str, Tuple[int, Any, str]] = {}
+    for hi, ri in assign.items():
+        r = htmlRows[hi]
+        pv = flat[ri]["vals"]
+        j = 0
+        for ci, cell in enumerate(r["cells"]):
+            target = r["vnorm"][ci]
+            while j < len(pv) and pv[j][0] != target:
+                j += 1
+            if j < len(pv):
+                _n, bbox = pv[j]
+                for fid in cell["factIds"]:
+                    placement[fid] = (flat[ri]["page"], bbox, target)
+                j += 1
+    return placement
+
+
+# --------------------------------------------------------------------------
+# Phrase-locate fallback: for facts still unmapped after row-granular + token
+# alignment (typically prose text blocks and addresses), find the fact's
+# distinctive TEXT as a phrase in the MCID cache. Patience alignment anchors on
+# UNIQUE tokens, so anchor-less prose (all common words) is skipped even when the
+# text is present as one clean MCID -- a phrase (a contiguous run of common
+# words) is distinctive where its individual words are not.
+# --------------------------------------------------------------------------
+_PW = re.compile(r"\w+", re.UNICODE)
+def _phrase_toks(s: str) -> List[str]:
+    return _PW.findall((s or "").lower())
+
+
+def _build_mcid_word_index(mcidCache):
+    """word -> [(page, mcid)] and (page, mcid) -> word list, over the MCID cache."""
+    wordIdx: Dict[str, List[Tuple[int, int]]] = {}
+    mcidWords: Dict[Tuple[int, int], List[str]] = {}
+    for key, txt in mcidCache.items():
+        ws = _phrase_toks(txt)
+        mcidWords[key] = ws
+        for w in set(ws):
+            wordIdx.setdefault(w, []).append(key)
+    return wordIdx, mcidWords
+
+
+def _longest_run(a: List[str], b: List[str]) -> int:
+    """Length of the longest common CONTIGUOUS word run between a and b (a is
+    capped short; b is guarded against very long MCIDs by the caller)."""
+    best = 0
+    prev = [0] * (len(b) + 1)
+    for i in range(1, len(a) + 1):
+        cur = [0] * (len(b) + 1)
+        ai = a[i - 1]
+        bi = 0
+        for j in range(1, len(b) + 1):
+            if ai == b[j - 1]:
+                bi = prev[j - 1] + 1
+                cur[j] = bi
+                if bi > best:
+                    best = bi
+        prev = cur
+    return best
+
+
+def _phrase_locate(factText, wordIdx, mcidWords, expectedPage=None):
+    """Locate a text fact by phrase: return the matched (page, mcid) list (in
+    mcid order on the chosen page), or []. A contiguous word run of at least
+    ``thr`` words counts as a match; among equally good pages, the one nearest
+    the fact's expected (neighbour) page wins."""
+    fw = _phrase_toks(factText)
+    if len(fw) < 3:
+        return []
+    fw = fw[:60]
+    thr = 3 if len(fw) <= 6 else 5
+    rare = sorted(set(fw), key=lambda w: len(wordIdx.get(w, ())))[:6]
+    cand: Set[Tuple[int, int]] = set()
+    for w in rare:
+        cand.update(wordIdx.get(w, ()))
+    scored = []
+    for key in cand:
+        mw = mcidWords[key]
+        if len(mw) > 400:            # skip pathologically long MCIDs
+            continue
+        rl = _longest_run(fw, mw)
+        if rl >= thr:
+            scored.append((rl, key))
+    if not scored:
+        return []
+    maxrl = max(rl for rl, _k in scored)
+    best = [k for rl, k in scored if rl == maxrl]
+    if expectedPage is not None:
+        anchorPage = min(best, key=lambda k: abs(k[0] - expectedPage))[0]
+    else:
+        anchorPage = min(best, key=lambda k: k[0])[0]
+    return [(anchorPage, mc) for mc in sorted(mc for rl, (pg, mc) in scored if pg == anchorPage)]
+
+
 def _rewrite(factsDoc, perFV, pmsByFV, imgLocByFactId, pdfBasename,
-             valueTextByFV=None, mcidCache=None, geom=None):
+             valueTextByFV=None, mcidCache=None, geom=None, rowPlacement=None,
+             phraseByFV=None):
+    rowPlacement = rowPlacement or {}
+    phraseByFV = phraseByFV or {}
     di = factsDoc.setdefault("documentInfo", {})
     xm = factsDoc.setdefault("xbrlModel", {})
     # Preserve the original html source so facts not located in the PDF keep a
@@ -736,15 +1119,43 @@ def _rewrite(factsDoc, perFV, pmsByFV, imgLocByFactId, pdfBasename,
         {"name": cMap, "factLocatorType": PDF_CONTENT_LOCATOR},
         {"name": iMap, "factLocatorType": PDF_IMAGE_LOCATOR},
     ]
-    stats = {"content": 0, "bbox": 0, "image": 0, "unmapped": 0, "total": 0}
+    stats = {"row": 0, "token": 0, "phrase": 0, "content": 0, "bbox": 0, "image": 0, "unmapped": 0, "total": 0}
+    # (page, magnitude key) -> [mcids]: lets a row-placed value that is exactly one
+    # whole MCID keep the structural, reflow-robust pdfMcid rather than a bbox. Keyed
+    # by _valkey so it matches the sign-insensitive row placement; a merged/coarse MCID
+    # keys to a longer magnitude string and so won't match (falls to bbox).
+    mcByPageVal: Dict[Tuple[int, str], List[int]] = {}
+    for (pg, mc), txt in (mcidCache or {}).items():
+        k = _valkey(txt)
+        if k:
+            mcByPageVal.setdefault((pg, k), []).append(mc)
     for fact in xm.get("facts", []):
         for fv in fact.get("factValues", []):
             ids = perFV.get(id(fv))
             if not ids:
                 continue
             stats["total"] += 1
+            # 1) row-granular placement (preferred): the fact was placed in a matched
+            #    table row. Emit a whole-MCID pdfMcid when its value is exactly one MCID,
+            #    else the row cell's glyph bbox (handles merged/coarse MCIDs).
+            rid = next((i for i in ids if i in rowPlacement), None)
+            if rid is not None:
+                page, bbox, vnorm = rowPlacement[rid]
+                mcs = mcByPageVal.get((page, vnorm))
+                if mcs and len(mcs) == 1:
+                    fv["reportSource"] = cSrc
+                    fv["valueSources"] = _content_sources([(page, mcs[0])])
+                    stats["content"] += 1
+                else:
+                    fv["reportSource"] = iSrc
+                    fv["valueSources"] = _bbox_source(page, bbox)
+                    stats["bbox"] += 1
+                stats["row"] += 1
+                continue
+            # 2) token-alignment hybrid (fallback for non-table / unmatched-row facts)
             pms = pmsByFV.get(id(fv)) or []
             if pms:
+                stats["token"] += 1
                 # Hybrid locator: a fact that IS its whole MCID(s) keeps pdfMcid; a fact that is
                 # only a PORTION of a coarse (row-grained) MCID -- its value a proper substring of
                 # the MCID text -- is located by a glyph bbox of just its value instead.
@@ -764,6 +1175,15 @@ def _rewrite(factsDoc, perFV, pmsByFV, imgLocByFactId, pdfBasename,
                     fv["valueSources"] = _content_sources(pms)
                     stats["content"] += 1
                 continue
+            # 3) phrase-locate (text blocks / addresses the token aligner skipped)
+            phit = phraseByFV.get(id(fv))
+            if phit:
+                fv["reportSource"] = cSrc
+                fv["valueSources"] = _content_sources(phit)
+                stats["phrase"] += 1
+                stats["content"] += 1
+                continue
+            # 4) chart image region
             loc = next((imgLocByFactId[i] for i in ids if i in imgLocByFactId), None)
             if loc is not None:
                 pg, bbox, h = loc
