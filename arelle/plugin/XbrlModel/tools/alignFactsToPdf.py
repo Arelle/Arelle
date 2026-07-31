@@ -353,6 +353,11 @@ def _pdf_image_placements(pdfPath: str) -> Dict[str, List[Tuple[int, List[float]
     byHash: Dict[str, List[Tuple[int, List[float]]]] = {}
     hashOfName: Dict[Tuple[int, str], Optional[str]] = {}
     for pi, page in enumerate(pdf.pages):
+        try:
+            mb = [f(v) for v in page.mediabox]
+            px0, py0, px1, py1 = mb[0], mb[1], mb[2], mb[3]
+        except Exception:
+            px0, py0, px1, py1 = 0.0, 0.0, 612.0, 792.0
         xo = page.get("/Resources", {}).get("/XObject", {}) or {}
         imgnames = {}
         for name, obj in xo.items():
@@ -390,6 +395,15 @@ def _pdf_image_placements(pdfPath: str) -> Dict[str, List[Tuple[int, List[float]
                 xs = [ctm[4], ctm[0] + ctm[4], ctm[2] + ctm[4], ctm[0] + ctm[2] + ctm[4]]
                 ys = [ctm[5], ctm[1] + ctm[5], ctm[3] + ctm[5], ctm[1] + ctm[3] + ctm[5]]
                 bbox = [round(min(xs), 2), round(min(ys), 2), round(max(xs), 2), round(max(ys), 2)]
+                # Skip a placement that falls (mostly) OFF the page: some filings
+                # draw the same image on two pages near a page break, one copy
+                # overflowing the MediaBox. That off-page copy is invisible, so
+                # the on-page copy is the real location (< 50% overlap -> skip).
+                bw, bh = bbox[2] - bbox[0], bbox[3] - bbox[1]
+                ovx = max(0.0, min(bbox[2], px1) - max(bbox[0], px0))
+                ovy = max(0.0, min(bbox[3], py1) - max(bbox[1], py0))
+                if (bw > 0 and ovx < 0.5 * bw) or (bh > 0 and ovy < 0.5 * bh):
+                    continue
                 byHash.setdefault(h, []).append((pi + 1, bbox))
     return byHash
 
