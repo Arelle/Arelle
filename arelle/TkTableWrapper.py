@@ -517,7 +517,7 @@ class Table(Widget):
 
             self.tk.call(self._w, "window", "configure", index, *args)
 
-    def window_delete(self, *indexes: Iterable[str | int]) -> None:
+    def window_delete(self, *indexes: str | int) -> None:
         self.tk.call(self._w, "window", "delete", *indexes)
 
     def window_move(self, index_from: str | int, index_to: str | int) -> None:
@@ -545,7 +545,7 @@ class Table(Widget):
         self.tk.call(self._w, "xview", "moveto", fraction)
 
 
-    def xview_scroll(self, *L: Iterable[str | int]) -> None:
+    def xview_scroll(self, *L: str | int) -> None:
         # change by frank gao for attach scrollbar 11/11/2010
         """Shift the view in the window left or right according to number and
         what. The 'number' parameter must be an integer. The 'what' parameter
@@ -583,7 +583,7 @@ class Table(Widget):
         must be a fraction between 0 and 1."""
         self.tk.call(self._w, "yview", "moveto", fraction)
 
-    def yview_scroll(self, *L: Iterable[str | int]) -> None:
+    def yview_scroll(self, *L: str | int) -> None:
         # change by frank gao for attach scrollbar 11/11/2010
         """Adjust the view in the window up or down according to number and
         what. The 'number' parameter must be an integer. The 'what' parameter
