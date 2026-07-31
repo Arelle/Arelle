@@ -236,6 +236,8 @@
         "reportPackageExtensionTaxonomyDirectoryPrefix": "xbrl.",
         "reportPackageMaxMB": "2000",
         "reportPackageMeasurement": "unzipped",
+        "reportFileNamePattern": "{base}-*.[x]html",
+        "reportFileNameRegex": "([^-]{1,}).*[.]x?html$",
         "ixTargetUsage": "allowed",
         "formulaRunIDs": "(?!con_IdentifierSchemeMustBeLEI|lei-identifier-scheme)",
         "dtrNamespaces": {
@@ -250,6 +252,8 @@
         "name": "Denmark",
         "reportPackageMaxMB": "2000",
         "reportPackageMeasurement": "unzipped",
+        "reportFileNamePattern": "{base}-*.[x]html",
+        "reportFileNameRegex": "([^-]{1,}).*[.]x?html$",
         "ixTargetUsage": "allowed"
     },
     "EE": {

@@ -65,8 +65,8 @@ from ..Const import (
     styleCssHiddenPattern,
     supportedImgTypes,
     untransformableTypes,
-    reportBasenamePattern,
-    reportBasenameRegex
+    reportDefaultFileNamePattern,
+    reportDefaultFileNameRegex
 )
 from ..Dimensions import checkFilingDimensions
 from ..Util import (
@@ -98,6 +98,13 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
     prefixedNamespaces = modelXbrl.prefixedNamespaces
 
     reportPackageMaxMB = val.authParam["reportPackageMaxMB"]
+    reportFileNamePattern = val.authParam["reportFileNamePattern"]
+    reportFileNameRegex = val.authParam["reportFileNameRegex"]
+    if reportFileNameRegex:
+        reportFileNameRegex = re.compile(reportFileNameRegex)
+    if not reportFileNamePattern:
+        reportFileNamePattern = reportDefaultFileNamePattern
+        reportFileNameRegex = reportDefaultFileNameRegex
     if reportPackageMaxMB is not None and modelXbrl.fileSource.fs: # must be a zip to be a report package
         assert isinstance(modelXbrl.fileSource.fs, zipfile.ZipFile)
 
@@ -303,11 +310,11 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                 ".html: %(fileName)s (Document file not in correct place in package)"),
                                 modelObject=doc, fileName=doc.basename)
                     elif esefDisclosureSystemYear >= 2025:
-                        m = reportBasenameRegex.match(_baseName)
+                        m = reportFileNameRegex.match(doc.basename)
                         if not m:
                             modelXbrl.warning("ESEF.2.6.3.incorrectNamingConventionReportPackageReportFile",
                                 _("Inline XBRL document filename SHOULD match %(pattern)s"),
-                                modelObject=doc, fileName=doc.basename, pattern=reportBasenamePattern)
+                                modelObject=doc, fileName=doc.basename, pattern=reportFileNamePattern)
                 else: # non-consolidated
                     if docTypeMatch:
                         if not docTypeMatch.group(1) or docTypeMatch.group(1).lower() == "html":
