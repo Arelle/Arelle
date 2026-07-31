@@ -510,6 +510,50 @@ def _firstValue(v) -> Optional[str]:
 # Built-in resolvers
 # --------------------------------------------------------------------
 
+def _htmlDocFor(compMdl, url) -> Optional[Tuple[Any, Dict[str, Any]]]:
+    """Parse the HTML source at ``url`` once per model and cache it on ``compMdl``.
+
+    Returns ``(doc, idMap)`` -- the parsed document and an ``id -> element`` map -- or
+    ``None`` when the document cannot be read/parsed. Resolving an inline report
+    resolves every fact against the same document, so parsing once (and indexing ids
+    once) turns O(facts) full parses into a single parse; ``None`` results are cached
+    too, so an unreadable source is not retried per fact.
+    """
+    cache = getattr(compMdl, "_htmlDocCache", None)
+    if cache is None:
+        cache = compMdl._htmlDocCache = {}
+    if url in cache:
+        return cache[url]
+    parsed: Optional[Tuple[Any, Dict[str, Any]]] = None
+    try:
+        from lxml import html as lxml_html
+    except ImportError:
+        cache[url] = None
+        return None
+    try:
+        # lxml.html.fromstring rejects unicode strings that carry an XML encoding
+        # declaration, so always read the source as bytes.
+        f = compMdl.fileSource.file(url, binary=True)[0]
+        try:
+            content = f.read()
+        finally:
+            try:
+                f.close()
+            except Exception:
+                pass
+        doc = lxml_html.fromstring(content)
+        idMap: Dict[str, Any] = {}
+        for el in doc.iter():
+            elId = el.get("id")
+            if elId and elId not in idMap:
+                idMap[elId] = el
+        parsed = (doc, idMap)
+    except Exception:
+        parsed = None
+    cache[url] = parsed
+    return parsed
+
+
 def _resolveHtmlValueSource(source, locatorType, factValue, fact, compMdl) -> Optional[str]:
     """HTML resolver: locate the configured element(s) in the source document
     and return their text content.
@@ -533,34 +577,18 @@ def _resolveHtmlValueSource(source, locatorType, factValue, fact, compMdl) -> Op
         return None
     if not _fileSourceCanRead(compMdl, url):
         return None
-    try:
-        from lxml import html as lxml_html
-    except ImportError:
+    parsed = _htmlDocFor(compMdl, url)
+    if parsed is None:
         return None
-    try:
-        # lxml.html.fromstring rejects unicode strings that carry an XML
-        # encoding declaration, so always read the source as bytes.
-        result = compMdl.fileSource.file(url, binary=True)
-        f = result[0]
-        try:
-            content = f.read()
-        finally:
-            try:
-                f.close()
-            except Exception:
-                pass
-        doc = lxml_html.fromstring(content)
-    except Exception:
-        return None
+    doc, idMap = parsed
 
     props = _propertyValues(source)
-    # element-id lookup
-    for key in ("htmlElementId",):
-        v = _firstValue(props.get(key))
-        if v:
-            el = doc.get_element_by_id(v, None)
-            if el is not None:
-                return el.text_content()
+    # element-id lookup (O(1) against the cached id map)
+    v = _firstValue(props.get("htmlElementId"))
+    if v:
+        el = idMap.get(v)
+        if el is not None:
+            return el.text_content()
     # data-attribute lookup
     dataAttr = _firstValue(props.get("htmlDataAttribute"))
     if dataAttr:

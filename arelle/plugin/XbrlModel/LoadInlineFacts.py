@@ -27,17 +27,24 @@ Design (see the session design notes / project memory ``project-factmap`` and
   ``ModelInlineFact`` exposes the same ``xbrli:context`` / ``xbrli:unit`` elements
   (as ``ModelContext`` / ``ModelUnit``) that inline discovery synthesised.
 
-* **Layered provenance (see design decision).**
-    - Value: ``fv.value`` = ``imf.value`` -- the ix-TRANSFORMED value (authoritative,
-      computed by the infrastructure's format/scale/sign handling).
-    - Durable anchor: ``fv.valueAnchors`` carries an ``xbrl:htmlElementId`` property =
-      the ix element's ``@id``, resolved against the element's OWN document. This is
-      the spec's "value provided in value property, anchored to document text"
-      case -- NOT ``valueSources`` (which would require re-extracting + re-transforming
-      from the html, and re-reads the file per fact). Anchors are also cheaper: the
-      infrastructure does not re-open the source to validate them. Multi-document IXDS
-      binds ``fv.source`` to a per-document sourceMapping URL; the single-document
-      default leaves it None.
+* **Faithful inline form; derived value published separately (see the OIM Taxonomy
+  Derived Content spec, derived fact object).** The compiled ``xbrlModel`` keeps the
+  fact as it stands in the Inline XBRL 1.1 report -- its dimensions and the
+  ``valueSources`` that locate the value in the document, with the transformation --
+  and does NOT bake in the transformed value. The transformed value is *derived*
+  content: it belongs in a ``derivedContent`` derived-fact object that extends this
+  model fact (emitted at save time by ``SaveModel``), not in the model fact itself.
+    - Value source: ``fv.valueSources`` carries an ``xbrl:htmlElementId`` property =
+      the ix element's ``@id`` (the point of truth), together with the fact's
+      ``transformation`` (= ``imf.format``), ``scale``, ``sign`` and ``escape`` -- so
+      the value is *re-derivable* from the document by ``FactValueResolver`` (read the
+      element text, apply the transform, then scale and sign), which is exactly what
+      makes it derivable, non-authoritative, published content rather than model data.
+      ``fv.value`` is left absent. Multi-document IXDS binds ``fv.reportSource`` to a
+      per-document sourceMapping QName; the single-document default leaves it None.
+    - No durable ``@id``: a fact whose ix element has no ``@id`` has no locator to
+      re-derive from, so it keeps its literal (already ix-transformed) ``fv.value`` and
+      is carried as an ordinary model fact (no valueSources).
     - Transient: ``fact._sourceInlineFact = imf`` -- an in-memory, non-serialized
       back-ref to the live ``ModelInlineFact`` for Xule / rich error messages, giving
       lossless access to the already-parsed tree without a file re-parse. Never
@@ -48,15 +55,15 @@ per-fact source binding are stubbed. Non-default targets need a target discrimin
 on the factSource/sourceMapping -- deferred, see the HF note in ``oim-taxonomy.md``
 under "Inline XBRL 1.1 fact map". ``TODO`` markers flag the parts still to fill in.
 
-NOTE (wiring): a factValue with ``valueAnchors`` requires the factMap to define a
+NOTE (wiring): a factValue with ``valueSources`` requires the factMap to define a
 ``factLocatorType`` (oim-taxonomy.md, oimte:factValueLocatorRequiredForValueSources).
 The built-in ``xbrl:inline-XBRL-1.1`` factMap is registered in resources/core.json
 with ``factLocatorType: xbrl:htmlElementLocatorType`` (whose required property
-``xbrl:htmlElementId`` the anchors carry). Enforcement of that requirement for the
-``valueAnchors`` path is not yet wired: ValidateFacts only runs
-``validateAndResolveValueSources`` for ``valueSources`` -- a structure-only anchor
-validator (locator-chain + required/allowed properties, no file read) is the
-follow-up that would give the registration teeth.
+``xbrl:htmlElementId`` the value source carries), so ``ValidateFacts`` ->
+``validateAndResolveValueSources`` validates the locator chain and required/allowed
+properties and, when the source document is available, resolves and re-derives the
+value for data-type validation. Resolution parses the source document once per URL
+(cached in ``FactValueResolver``), not once per fact.
 """
 from __future__ import annotations
 
@@ -68,7 +75,7 @@ from .ModelValueMore import SQName
 from .XbrlConst import xbrl as xbrlNs
 from .XbrlConcept import XbrlConcept
 from .XbrlCube import conceptCoreDim, periodCoreDim, entityCoreDim, unitCoreDim, languageCoreDim
-from .XbrlFact import XbrlFact, XbrlFactValue, XbrlFactValueAnchor
+from .XbrlFact import XbrlFact, XbrlFactValue, XbrlFactValueSource
 from .XbrlProperty import XbrlProperty
 from .LoadFactsCommon import (
     XMLNS, clark, inheritedLang, oimContextDimensions, oimUnit,
@@ -78,7 +85,7 @@ from .LoadFactsCommon import (
 # grep marker for the POC scaffolding (mirrors POC-LEGACY-DTS in LoadLegacyTaxonomy)
 # ==== BEGIN POC-INLINE =====================================================
 
-#: Locator property QName written into each factValue's valueAnchors. This is the
+#: Locator property QName written into each factValue's valueSources. This is the
 #: spec-defined html-element-id property required by the built-in
 #: xbrl:htmlElementLocatorType, which the built-in xbrl:inline-XBRL-1.1 factMap
 #: references as its factLocatorType (see resources/core.json).
@@ -287,21 +294,38 @@ def _emitFact(compMdl, module, imf, conceptQn, conceptObj,
     fv.name = SQName(factPrefix, factNs, f"{localName}_fv")
     fv.decimals = None
     fv.language = lang if (lang and isText) else None
+    fv.value = None
     fv.valueSources = None
     fv.valueAnchors = None
-    fv.source = None  # single-document default target; TODO(multi-doc): set the
+    fv.transformation = None
+    fv.scale = None
+    fv.sign = None
+    fv.escape = False
+    fv.reportSource = None  # single-document default target; TODO(multi-doc): set the
     #                   per-document sourceMapping QName for imf.modelDocument.uri.
     if isNil:
-        fv.value = None
         nilProp = XbrlProperty()
         nilProp.property = qnNil
         nilProp.value = qnUnknownNilReason
         fact.properties = [nilProp]
     else:
-        fv.value = imf.value  # ix-transformed value (authoritative)
         if isNumeric:
             fv.decimals = getattr(imf, "decimals", None)  # TODO: confirm ix decimals/scale
-        fv.valueAnchors = _htmlValueAnchor(imf, fv)
+        source = _htmlValueSource(imf, fv)
+        if source is not None:
+            # Faithful inline form: the value is re-derivable from the document, so the
+            # model fact carries the locator + transform metadata and NO literal value;
+            # the resolved value is published as a derived fact object (see SaveModel /
+            # the OIM Taxonomy Derived Content spec).
+            fv.valueSources = [source]
+            fv.transformation = imf.format          # ix:format transform QName (or None)
+            fv.sign = imf.sign or None              # "-" negates; None otherwise
+            fv.scale = imf.scaleInt                  # power-of-10 int (or None)
+            fv.escape = bool(getattr(imf, "isEscaped", False))
+        else:
+            # No durable @id to point at -- keep the literal (already ix-transformed)
+            # value; this fact stays an ordinary model fact, nothing to derive.
+            fv.value = imf.value
 
     fact.factValues = [fv]
 
@@ -311,19 +335,19 @@ def _emitFact(compMdl, module, imf, conceptQn, conceptObj,
     return fact
 
 
-def _htmlValueAnchor(imf, fv) -> Optional[list]:
-    """Build the factValue.valueAnchors list: an ``xbrl:htmlElementId`` property = the
-    ix element's ``@id``, correlating the (already-computed) value to its source text
-    for highlight / mouse-over. The built-in ``xbrl:inline-XBRL-1.1`` factMap declares
-    ``xbrl:htmlElementLocatorType`` as its factLocatorType, which requires this
-    property (resources/core.json).
+def _htmlValueSource(imf, fv) -> Optional["XbrlFactValueSource"]:
+    """Build the factValue.valueSources entry: an ``xbrl:htmlElementId`` property = the
+    ix element's ``@id``, the durable point of truth from which the value is re-derived
+    (element text -> transformation -> scale -> sign). The built-in
+    ``xbrl:inline-XBRL-1.1`` factMap declares ``xbrl:htmlElementLocatorType`` as its
+    factLocatorType, which requires this property (resources/core.json).
 
-    Returns None when the ix element has no ``@id`` (no durable locator; the value
-    still validates from ``fv.value`` and the transient back-ref remains available).
+    Returns None when the ix element has no ``@id`` (no durable locator); the caller
+    then keeps the literal ``fv.value`` instead.
 
     TODO(multi-doc): the caller must also register a sourceMappings entry binding
-    ``fv.source`` to ``imf.modelDocument.uri`` when the IXDS spans multiple documents
-    (ids collide across documents); for a single-document report the lone
+    ``fv.reportSource`` to ``imf.modelDocument.uri`` when the IXDS spans multiple
+    documents (ids collide across documents); for a single-document report the lone
     sourceMapping already resolves.
     """
     elementId = imf.get("id")
@@ -332,10 +356,10 @@ def _htmlValueAnchor(imf, fv) -> Optional[list]:
     prop = XbrlProperty()
     prop.property = qnHtmlElementId
     prop.value = elementId
-    anchor = XbrlFactValueAnchor()
-    anchor.factValue = fv
-    anchor.properties = [prop]
-    return [anchor]
+    source = XbrlFactValueSource()
+    source.factValue = fv
+    source.properties = [prop]
+    return source
 
 
 def _emitFootnotes(compMdl, module, inlineMx, factPrefix, factNs, footnotes):
