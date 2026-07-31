@@ -56,11 +56,6 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
         pass
 
     # the following doc type sections only pertain to extensionDocuments
-    elif modelDocument.type == ModelDocumentFile.Type.INLINEXBRL:
-        if val.authParam["reportFileNamePattern"]:
-            filenamePattern = val.authParam["reportFileNamePattern"]
-            filenameRegex = val.authParam["reportFileNameRegex"]
-
     elif modelDocument.type == ModelDocumentFile.Type.SCHEMA:
 
         val.hasExtensionSchema = True
