@@ -199,16 +199,35 @@ def _cell_tokens_ids(cell, factIds):
 
 
 def _build_html_rows(root, factIds):
-    """Rows in document order. Each row: ``{tokens, label, cells, factIds}`` where
-    ``cells`` is the ordered list of fact-bearing value cells
-    (``{factIds, tokens, col}``). Also returns ``factRow``: factId -> (rowIndex,
-    cellIndex) so a fact can be placed within its matched PDF row."""
+    """Rows in document order. Each row: ``{tokens, label, cells, factIds, section}``
+    where ``cells`` is the ordered list of fact-bearing value cells
+    (``{factIds, tokens, col}``) and ``section`` is the index of the enclosing
+    ``<h1>`` section (fund-class report). Also returns ``factRow`` (factId ->
+    (rowIndex, cellIndex)) and ``sectionHeaders`` (per-section header text). The
+    <h1> cluster that opens each fund report (Class / ticker / fund name) is a
+    strong, distinctive anchor: scoping the row match to within a section defeats
+    the cross-fund repetition of near-identical tiny tables."""
     rows: List[Dict[str, Any]] = []
     factRow: Dict[str, Tuple[int, int]] = {}
-    for tr in root.iter():
-        if _local(tr.tag).lower() != "tr":
+    sectionHeaders: List[str] = []
+    section = -1
+    lastWasHeader = False
+    for el in root.iter():
+        ln = _local(el.tag).lower()
+        if ln == "h1":
+            htext = " ".join(t.strip() for t in el.itertext() if t and t.strip())
+            if htext:
+                if not lastWasHeader:            # a new header cluster -> new section
+                    section += 1
+                    sectionHeaders.append(htext)
+                else:                            # consecutive <h1>s are one header
+                    sectionHeaders[section] = (sectionHeaders[section] + " " + htext).strip()
+                lastWasHeader = True
             continue
-        cells = [c for c in tr if _local(c.tag).lower() in ("td", "th")]
+        if ln != "tr":
+            continue
+        lastWasHeader = False
+        cells = [c for c in el if _local(c.tag).lower() in ("td", "th")]
         if not cells:
             continue
         rowToks: List[str] = []
@@ -227,9 +246,9 @@ def _build_html_rows(root, factIds):
                 # leading non-fact cell(s) form the row label
                 label.extend(ctoks)
         if valueCells:  # only rows that carry a fact are alignment units
-            rows.append({"tokens": rowToks, "label": label,
-                         "cells": valueCells, "factIds": rowFactIds})
-    return rows, factRow
+            rows.append({"tokens": rowToks, "label": label, "cells": valueCells,
+                         "factIds": rowFactIds, "section": max(section, 0)})
+    return rows, factRow, sectionHeaders
 
 
 # --------------------------------------------------------------------------
@@ -630,9 +649,10 @@ def align(htmlPath: str, factsPath: str, pdfPath: str,
     # or in rows that did not match -- fall back to the token-alignment hybrid.
     rowPlacement: Dict[str, Tuple[int, Any, str]] = {}
     if geom is not None:
-        htmlRows, _factRow = _build_html_rows(hm.root, set(allIds))
-        rowPlacement = _row_align(htmlRows, geom, len(geom._doc))
-        print(f"[rows] html rows={len(htmlRows)}  facts placed by row signature={len(rowPlacement)}", flush=True)
+        htmlRows, _factRow, sectionHeaders = _build_html_rows(hm.root, set(allIds))
+        rowPlacement = _row_align(htmlRows, geom, len(geom._doc), sectionHeaders)
+        print(f"[rows] html rows={len(htmlRows)}  sections={len(sectionHeaders)}  "
+              f"facts placed by row signature={len(rowPlacement)}", flush=True)
 
     # Phrase-locate fallback for facts still unmapped by row + token alignment
     # (prose text blocks, addresses): match the fact's distinctive text as a
@@ -793,13 +813,42 @@ class _PdfGeometry:
             self._pages[page] = ("".join(norm), n2o, boxes)
         return self._pages[page]
 
+    @staticmethod
+    def _cell_split(seg):
+        """A char segment (one visual row within one column) -> ordered tokens,
+        split at COLUMN gaps only, not the small digit-group (thousands) space --
+        otherwise "8 687,5" fragments into "8"+"687,5" and won't match "8687,5"."""
+        seg = sorted(seg, key=lambda c: c[0])
+        widths = sorted(c[2] - c[0] for c in seg if c[2] > c[0])
+        medW = widths[len(widths) // 2] if widths else 4.0
+        toks, tk = [], []
+        for c in seg:
+            if tk and c[0] - tk[-1][2] > medW * 1.5:
+                toks.append(tk)
+                tk = [c]
+            else:
+                tk.append(c)
+        if tk:
+            toks.append(tk)
+        rowToks = []
+        for t in toks:
+            s = "".join(c[4] for c in t)
+            xs = [c[0] for c in t] + [c[2] for c in t]
+            ys = [c[1] for c in t] + [c[3] for c in t]
+            rowToks.append((s, (round(min(xs), 2), round(min(ys), 2),
+                                round(max(xs), 2), round(max(ys), 2))))
+        return rowToks
+
     def rows(self, page: int):
         """Visual rows of the page from GLYPH GEOMETRY (structure tags ignored):
-        cluster chars into rows by y-band, then segment each row into tokens by
-        x-gap. Robust to the cell merges (horizontal/vertical) that corrupt a
-        PDF's structure tree, because it reads where the ink physically sits.
-        Returns a list of rows, each a list of ``(text, (x0,y0,x1,y1))`` tokens
-        left-to-right."""
+        cluster chars into rows by y-band; where a band holds two side-by-side
+        label/value tables (an N-CSR fund page) it is split into per-column rows
+        at a wide ``numeric -> text`` boundary -- a value followed, across a
+        column gutter, by a NEW label. That distinguishes two tables (`(0.14)% |
+        Industrial 18.98%`) from one multi-value row (`Résultat net 6133,7 6416,5
+        6190,5`, all-numeric after the label, so never split). Split rows are
+        emitted column-major (all of column 0 top-to-bottom, then column 1). Each
+        row is a list of ``(text, (x0,y0,x1,y1))`` tokens left-to-right."""
         key = ("rows", page)
         if key in self._pages:
             return self._pages[key]
@@ -832,32 +881,28 @@ class _PdfGeometry:
                 cur, curY = [c], cy
         if cur:
             bands.append(cur)
-        out = []
+        colRows: Dict[int, List[Any]] = {}
         for band in bands:
-            band.sort(key=lambda c: c[0])
             widths = sorted(c[2] - c[0] for c in band if c[2] > c[0])
             medW = widths[len(widths) // 2] if widths else 4.0
-            # Split into cells at COLUMN gaps only, not the small digit-group
-            # (thousands) space -- otherwise "8 687,5" fragments into "8"+"687,5"
-            # and won't match the html value "8687,5". A column gap is ~1.5+ char
-            # widths; the thousands space is well under that.
-            toks, tk = [], []
-            for c in band:
-                if tk and c[0] - tk[-1][2] > medW * 1.5:  # x-gap -> cell boundary
-                    toks.append(tk)
-                    tk = [c]
+            cells = self._cell_split(band)      # (text, (x0,y0,x1,y1)) left-to-right
+            groups, g, prevNum = [], [], False
+            for cell in cells:
+                isNum = any(ch.isdigit() for ch in cell[0])
+                gap = (cell[1][0] - g[-1][1][2]) if g else 0.0
+                if g and prevNum and not isNum and gap > medW * 4:   # column gutter: value | new label
+                    groups.append(g)
+                    g = [cell]
                 else:
-                    tk.append(c)
-            if tk:
-                toks.append(tk)
-            rowToks = []
-            for t in toks:
-                s = "".join(c[4] for c in t)
-                xs = [c[0] for c in t] + [c[2] for c in t]
-                ys = [c[1] for c in t] + [c[3] for c in t]
-                rowToks.append((s, (round(min(xs), 2), round(min(ys), 2),
-                                    round(max(xs), 2), round(max(ys), 2))))
-            out.append(rowToks)
+                    g.append(cell)
+                prevNum = isNum
+            if g:
+                groups.append(g)
+            for ci, grp in enumerate(groups):
+                colRows.setdefault(ci, []).append(grp)
+        out = []
+        for ci in sorted(colRows):              # column-major reading order
+            out.extend(colRows[ci])
         self._pages[key] = out
         return out
 
@@ -913,7 +958,19 @@ def _bbox_source(page: int, bbox) -> List[Dict[str, Any]]:
 # presentations lands in its correct row. Returns factId -> (page, bbox,
 # valueNorm) for every fact placed in a matched row.
 # --------------------------------------------------------------------------
-def _row_align(htmlRows, geom, npages: int):
+def _section_key(header: str) -> Optional[str]:
+    """A distinctive, PDF-findable key for a section header -- prefer a ticker
+    (an all-caps 3-6 char token, e.g. PEMGX), else the longest word."""
+    toks = re.findall(r"[A-Za-z0-9]+", header or "")
+    tickers = [t for t in toks if 3 <= len(t) <= 6 and t.isupper() and any(c.isalpha() for c in t)]
+    if tickers:
+        return tickers[0].lower()
+    words = [t.lower() for t in toks if len(t) >= 4 and not t.isdigit()]
+    return max(words, key=len) if words else None
+
+
+_SECTION_BONUS = 1.0
+def _row_align(htmlRows, geom, npages: int, sectionHeaders=None):
     import difflib
     for r in htmlRows:
         r["vnorm"] = [_valkey("".join(c["tokens"])) for c in r["cells"]]
@@ -937,6 +994,30 @@ def _row_align(htmlRows, geom, npages: int):
     for ri, pr in enumerate(flat):
         for n, _b in pr["vals"]:
             val2rows.setdefault(n, set()).add(ri)
+    # Section scoping: locate each html <h1> section header in the pdf rows (by its
+    # ticker/name key, monotonically) and confine that section's row matches to its
+    # pdf row range. This defeats the cross-fund repetition of near-identical tiny
+    # tables. Gated: only when several headers are actually found in the pdf.
+    # Only for the "many near-identical sections" pattern (a multi-fund N-CSR has
+    # hundreds of <h1> fund reports); a normal filing has a handful of chapter
+    # headers not aligned to table positions, so scoping there would mis-confine.
+    secRange: Dict[int, Tuple[int, int]] = {}
+    if sectionHeaders and len(sectionHeaders) >= 20:
+        starts: List[Tuple[int, int]] = []
+        pos = 0
+        for si, hdr in enumerate(sectionHeaders):
+            k = _section_key(hdr)
+            if not k:
+                continue
+            for ri in range(pos, len(flat)):
+                if k in flat[ri]["label"]:
+                    starts.append((si, ri))
+                    pos = ri + 1
+                    break
+        if len(starts) >= max(10, len(sectionHeaders) // 2):
+            for idx, (si, ri) in enumerate(starts):
+                end = starts[idx + 1][1] if idx + 1 < len(starts) else len(flat)
+                secRange[si] = (ri, end)
     # candidate (htmlRow, pdfRow, score); score = value-subsequence coverage +
     # label similarity (label matched as a normalised string, since geometry may
     # merge label words into one token).
@@ -948,6 +1029,7 @@ def _row_align(htmlRows, geom, npages: int):
         rowset: Set[int] = set()
         for v in hv:
             rowset |= val2rows.get(v, set())
+        rng = secRange.get(r.get("section", 0))
         scored = []
         for ri in rowset:
             pv = [n for n, _b in flat[ri]["vals"]]
@@ -960,7 +1042,14 @@ def _row_align(htmlRows, geom, npages: int):
                 continue
             lscore = (difflib.SequenceMatcher(None, r["lnorm"], flat[ri]["label"]).ratio()
                       if r["lnorm"] else 0.0)
-            scored.append((vscore + 0.4 * lscore, ri))
+            score = vscore + 0.4 * lscore
+            # SOFT section scope: strongly prefer a candidate inside this fact's
+            # own fund section (defeats cross-fund repetition), but never exclude
+            # out-of-section rows -- so an imperfect header mapping degrades to
+            # global matching rather than dropping the fact.
+            if rng and rng[0] <= ri < rng[1]:
+                score += _SECTION_BONUS
+            scored.append((score, ri))
         scored.sort(reverse=True)
         for score, ri in scored[:5]:
             cands.append((hi, ri, score))

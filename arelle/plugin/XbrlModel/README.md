@@ -306,6 +306,18 @@ GUI runs use the defaults (chrome engine, reflow on). For a different engine
      Values match on **magnitude** (sign/paren/space-stripped), so an
      `ix:nonFraction sign="-"` that omits the sign vs a PDF `-` / `- ` / `(…)`
      convention does not break the row (placement still uses the PDF glyph box).
+     Two further layout defences matter for multi-fund books (SEC N-CSRs): a band
+     holding two **side-by-side tables** is split into per-column rows at a wide
+     `numeric → text` boundary (a value followed across a gutter by a new label),
+     so `(0.14)% | Industrial 18.98%` becomes two rows rather than one merged row
+     that only one html row could claim — while a genuine multi-value row
+     (`Résultat net 6133,7 6416,5 6190,5`, all-numeric after the label) is never
+     split. And when the html has many repeated **section headers** (`<h1>` fund
+     reports — hundreds of near-identical tiny tables), each header is found in the
+     PDF (by its ticker/name) and a fact gets a **soft score bonus** for matching
+     inside its own fund's PDF page range — enough to defeat the cross-fund
+     repetition, but never a hard filter, so an imperfect header mapping degrades
+     to global matching instead of dropping the fact.
      A cell that is exactly one whole MCID keeps the reflow-robust `pdfMcid`; a
      cell inside a coarse/merged MCID gets its own glyph `pdfBBox`.
   2. **Token patience alignment (fallback)** for facts not in a table (narrative)
