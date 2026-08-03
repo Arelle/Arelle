@@ -2194,7 +2194,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         if options.factsFile:
                             ViewFileFactList.viewFacts(modelXbrl, options.factsFile, labelrole=options.labelRole, lang=options.labelLang, cols=options.factListCols)  # type: ignore[arg-type]
                         if options.factTableFile:
-                            ViewFileFactTable.viewFacts(modelXbrl, options.factTableFile, labelrole=options.labelRole, lang=options.labelLang, cols=options.factTableCols)  # type: ignore[no-untyped-call]
+                            ViewFileFactTable.viewFacts(modelXbrl, options.factTableFile, labelrole=options.labelRole, lang=options.labelLang, cols=options.factTableCols)  # type: ignore[arg-type]
                         if options.conceptsFile:
                             ViewFileConcepts.viewConcepts(modelXbrl, options.conceptsFile, labelrole=options.labelRole, lang=options.labelLang)  # type: ignore[no-untyped-call]
                         if options.preFile:
