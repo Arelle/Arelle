@@ -304,8 +304,8 @@ class ViewFacts(ViewFile.View):
         i = 0
         for col in self.cols:  # type: ignore[union-attr]
             if col == "Facts":
-                self.setRowFacts(cols, concept, preferredLabel)  # type: ignore[arg-type]
-                i = self.numCols - (len(self.cols) - i - 1)  # type: ignore[arg-type]  # skip to next concept property column
+                self.setRowFacts(cols, concept, preferredLabel)
+                i = self.numCols - (len(self.cols) - i - 1)  # type: ignore[arg-type] # skip to next concept property column
             else:
                 if col in ("Concept", "Label"):
                     cols[i] = labelPrefix + concept.label(preferredLabel, lang=self.lang, linkroleHint=relationshipSet.linkrole)  # type: ignore[operator, arg-type]
@@ -383,7 +383,7 @@ class ViewFacts(ViewFile.View):
                 self.viewConcept(toConcept, modelRel, childPrefix, labelrole, n + 1, nestedRelationshipSet, visited)  # type: ignore[arg-type]
             visited.remove(concept)
 
-    def setRowFacts(self, cols: list[str], concept: ModelConcept, preferredLabel: str | None) -> None:
+    def setRowFacts(self, cols: list[str | int | QName | None], concept: ModelConcept, preferredLabel: str | None) -> None:
         for fact in self.conceptFacts[concept.qname]:
             try:
                 colId = self.contextColId[fact.context.objectId()]  # type: ignore[union-attr]
@@ -395,6 +395,6 @@ class ViewFacts(ViewFile.View):
                             colId = self.startdatetimeColId[date]
                         else:
                             continue # not shown on this row (belongs on end period label row
-                cols[colId] = fact.effectiveValue  # type: ignore[assignment]
+                cols[colId] = fact.effectiveValue
             except AttributeError:  # not a fact or no concept
                 pass
