@@ -163,7 +163,6 @@ module = [
     'arelle.rendering.RenderingLayout',
     'arelle.rendering.RenderingResolution',
     'arelle.TableStructure',
-    'arelle.ValidateInfoset',
     'arelle.Version',
     'arelle.ViewFileConcepts',
     'arelle.ViewFileRelationshipSet',
