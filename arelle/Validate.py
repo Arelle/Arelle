@@ -795,8 +795,9 @@ class Validate:
             if not isinstance(expected, list):
                 expected = [expected]  # type: ignore[list-item]
             for testErr in _errors:
+                testErrPrefix = None
                 if isinstance(testErr, str) and testErr.startswith(("ESEF.", "NL.NL-KVK")): # compared as list of strings to QName localname
-                    testErrSuffix = testErr.rpartition(".")[2]
+                    testErrPrefix, __, testErrSuffix = testErr.rpartition(".")
                     if not testErrSuffix.isdigit():
                         testErr = testErrSuffix
                 for _exp in _expectedList:
@@ -814,8 +815,11 @@ class Validate:
                                 # UKSEF conformance suite expects XML schema validation errors in format xbrl.core.xml.SchemaValidationError.*
                                 # Example: tests/FRC/FRC_08/index.xml:TC2_invalid
                                 (_exp.localName.startswith("xbrl.core.xml.SchemaValidationError.cvc") and errPrefix == "xmlSchema") or
-                                # Actual (str): *:match, Expected (QName): {*}*.match
-                                (errLocalName and errLocalName == _exp.localName.rpartition('.')[2])
+                                # ESEF.UK*: Actual (str): *:match, Expected (QName): {*}*.match
+                                (
+                                        testErrPrefix and testErrPrefix.startswith("ESEF.UK") and
+                                        errLocalName and errLocalName == _exp.localName.rpartition('.')[2]
+                                )
                         ):
                             _expMatched = True
                     elif type(testErr) is type(_exp):
