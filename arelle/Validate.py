@@ -670,7 +670,7 @@ class Validate:
                     file=os.path.basename(modelTestcaseVariation.resultXbrlInstanceUri))  # type: ignore[type-var]
                 modelTestcaseVariation.status = "result infoset not loadable"
             else:   # check infoset
-                ValidateInfoset.validate(self.instValidator, modelXbrl, infoset)  # type: ignore[no-untyped-call]
+                ValidateInfoset.validate(self.instValidator, modelXbrl, infoset)
             infoset.close()
         if modelXbrl.hasTableRendering or modelTestcaseVariation.resultIsTable: # and self.modelXbrl.modelManager.validateInfoset:
             # diff (or generate) table infoset
