@@ -75,6 +75,7 @@ class DisclosureSystem:
     EFMorGFM: bool
     HMRC: bool
     SBRNL: bool
+    authority: str | None
     pluginTypes: set[str]
     validateFileText: bool
     validateEntryText: bool
@@ -143,6 +144,7 @@ class DisclosureSystem:
         self.EFMorGFM = False
         self.HMRC = False
         self.SBRNL = False
+        self.authority = None
         self.pluginTypes = set()
         for pluginXbrlMethod in self.modelManager.cntlr.plugins.hooks("DisclosureSystem.Types"):
             for typeName, typeTestVariable in pluginXbrlMethod(self):
@@ -271,6 +273,7 @@ class DisclosureSystem:
                                 for pluginXbrlMethod in self.modelManager.cntlr.plugins.hooks("DisclosureSystem.Types"):
                                     for typeName, typeTestVariable in pluginXbrlMethod(self):
                                         setattr(self, typeTestVariable, self.validationType == typeName)
+                                self.authority = dsElt.get("authority")
                                 self.validateFileText = dsElt.get("validateFileText") == "true"
                                 self.validateEntryText = dsElt.get("validateEntryText") == "true"
                                 if allowedExternalHrefPattern := dsElt.get("allowedExternalHrefPattern"):

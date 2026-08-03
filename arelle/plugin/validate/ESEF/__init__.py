@@ -67,8 +67,8 @@ from arelle.Version import authorLabel, copyrightLabel
 from arelle.XbrlConst import xhtml
 from arelle.formula.XPathContext import XPathContext
 from arelle.typing import TypeGetText
-from arelle.utils.PluginData import PluginData
 from arelle.utils.PluginHooks import PluginHooks
+from .ESEFPluginData import ESEFPluginData
 from .ESEF_2021.ValidateXbrlFinally import validateXbrlFinally as validateXbrlFinally2021
 from .ESEF_Current.ValidateXbrlFinally import validateXbrlFinally as validateXbrlFinallyCurrent
 from .Util import (
@@ -82,6 +82,16 @@ from .Util import (
 )
 from .ValidationPluginExtension import ValidationPluginExtension
 from .rules import base
+from .rules.UKSEF import (
+    context as uksef_context,
+    document as uksef_document,
+    entity as uksef_entity,
+    mandatory as uksef_mandatory,
+    package as uksef_package,
+    target as uksef_target,
+    taxonomy as uksef_taxonomy
+)
+
 
 _: TypeGetText
 
@@ -105,67 +115,6 @@ def validateEntity(modelXbrl: ModelXbrl, filename:str, filesource: FileSource) -
     except (UnicodeDecodeError, XMLSyntaxError):
         # probably a image or a directory
         pass
-
-
-def getEsefAuthority(
-    modelXbrl: ModelXbrl,
-    pluginData: ESEFPluginData,
-    parameters: dict[Any, Any] | None,
-) -> str | None:
-    cntlr = modelXbrl.modelManager.cntlr
-    esefAuthority = pluginData.esefAuthority
-    if not esefAuthority and cntlr.hasGui and cntlr.config is not None:
-        esefAuthority = cntlr.config.get("esefAuthority") or None
-    formulaAuthority = None
-    if parameters:
-        # formula parameter backwards compatibility for legacy users.
-        p = parameters.get(qname("authority", noPrefixIsNoNamespace=True))
-        if p and len(p) == 2 and p[1] not in ("null", "None", None):
-            formulaAuthority = p[1]
-    if esefAuthority and formulaAuthority and esefAuthority != formulaAuthority:
-        modelXbrl.error(
-            "Arelle.conflictingESEFAuthorityParameters",
-            _(
-                "ESEF Authority '%(esefAuthority)s' conflicts with formula parameter authority '%(formulaAuthority)s'."
-                " Continuing with '%(esefAuthority)s'."
-            ),
-            modelObject=modelXbrl,
-            esefAuthority=esefAuthority,
-            formulaAuthority=formulaAuthority,
-        )
-    authority = esefAuthority or formulaAuthority
-    if authority and authority not in AUTHORITY_CODES:
-        modelXbrl.error(
-            "Arelle.invalidESEFAuthority",
-            _("Invalid authority '%(authority)s'. Valid values: %(validValues)s."),
-            modelObject=modelXbrl,
-            authority=authority,
-            validValues=", ".join(sorted(AUTHORITY_CODES)),
-        )
-        return None
-    return authority
-
-
-@dataclass
-class ESEFPluginData(PluginData):
-    esefAuthority: str | None = None
-    esefInstanceValidated: bool = False
-    nonEsefInstanceExcluded: bool = False
-
-    @staticmethod
-    def get(cntlr: Cntlr) -> ESEFPluginData:
-        pluginData = cntlr.getPluginData(ESEF_PLUGIN_NAME)
-        if pluginData is None:
-            pluginData = ESEFPluginData(name=ESEF_PLUGIN_NAME)
-            cntlr.setPluginData(pluginData)
-        elif not isinstance(pluginData, ESEFPluginData):
-            raise RuntimeError(f"PluginData already set for {pluginData.name} with unexpected type {type(pluginData)}.")
-        return pluginData
-
-    def reset(self) -> None:
-        self.esefAuthority = None
-        self.esefInstanceValidated = False
-        self.nonEsefInstanceExcluded = False
 
 
 class ESEFPlugin(PluginHooks):
@@ -209,10 +158,12 @@ class ESEFPlugin(PluginHooks):
         *args: Any,
         **kwargs: Any,
     ) -> None:
+        # For CLI runs, capture `options.esefAuthority` as soon as possible,
+        # before validation begins.
         esefAuthority = getattr(options, "esefAuthority", None)
         if esefAuthority:
-            pluginData = ESEFPluginData.get(cntlr)
-            pluginData.esefAuthority = esefAuthority
+            pluginData = ESEFPluginData.get(cntlr, ESEF_PLUGIN_NAME)
+            pluginData.setEsefAuthority(esefAuthority)
 
     @staticmethod
     def cntlrWinMainMenuValidation(
@@ -351,14 +302,14 @@ class ESEFPlugin(PluginHooks):
     ) -> None:
         if not val.validateDisclosureSystem:
             return None
+        modelXbrl = val.modelXbrl
+        pluginData = ESEFPluginData.get(modelXbrl.modelManager.cntlr, ESEF_PLUGIN_NAME)
+        val.authority = pluginData.getEsefAuthority(modelXbrl, parameters)
         if not esefDisclosureSystemSelected(val.modelXbrl):
             return None
-        modelXbrl = val.modelXbrl
-        pluginData = ESEFPluginData.get(modelXbrl.modelManager.cntlr)
         val.extensionImportedUrls = set()
         val.unconsolidated = any("unconsolidated" in n for n in val.disclosureSystem.names)
         val.consolidated = not val.unconsolidated
-        val.authority = getEsefAuthority(modelXbrl, pluginData, parameters)
 
         authorityValidations = loadAuthorityValidations(val.modelXbrl)
         # loadAuthorityValidations returns either a list or a dict but in this context, we expect a dict.
@@ -483,7 +434,7 @@ class ESEFPlugin(PluginHooks):
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        pluginData = ESEFPluginData.get(cntlr)
+        pluginData = ESEFPluginData.get(cntlr, ESEF_PLUGIN_NAME)
         if not pluginData.esefInstanceValidated and pluginData.nonEsefInstanceExcluded:
             cntlr.error(
                 codes="ESEF.Arelle.noEsefReportFound",
@@ -497,7 +448,14 @@ validationPlugin = ValidationPluginExtension(
     disclosureSystemConfigUrl=Path(__file__).parent / "resources" / "config.xml",
     validationTypes=[DISCLOSURE_SYSTEM_VALIDATION_TYPE],
     validationRuleModules=[
-        base
+        base,
+        uksef_context,
+        uksef_document,
+        uksef_entity,
+        uksef_mandatory,
+        uksef_package,
+        uksef_target,
+        uksef_taxonomy,
     ],
 )
 

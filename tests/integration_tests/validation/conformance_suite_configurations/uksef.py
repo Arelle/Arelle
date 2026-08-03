@@ -1,6 +1,6 @@
 from pathlib import Path, PurePath
 
-from tests.integration_tests.validation.assets import ESEF_PACKAGES
+from tests.integration_tests.validation.assets import ESEF_PACKAGES, UKFRC_PACKAGES
 from tests.integration_tests.validation.conformance_suite_config import (
     AssetSource, ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 )
@@ -26,28 +26,24 @@ config = ConformanceSuiteConfig(
             entry_point=Path('index.xml'),
             public_download_url='https://www.frc.org.uk/documents/8116/uksef-conformance-suite-v2.0.zip',
             source=AssetSource.S3_PUBLIC,
-        ),
-        ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('FRC-2022-Taxonomy.zip'),
-            public_download_url='https://www.frc.org.uk/documents/969/FRC-2022-Taxonomy.zip',
-        ),
-        ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('FRC-2024-Taxonomy-v1.0.0_GJp67Do.zip'),
-            public_download_url='https://www.frc.org.uk/documents/6566/FRC-2024-Taxonomy-v1.0.0_GJp67Do.zip',
-        ),
-        ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('FRC-2025-Taxonomy-v1.0.0_LK4mek8.zip'),
-            public_download_url='https://www.frc.org.uk/documents/7759/FRC-2025-Taxonomy-v1.0.0_LK4mek8.zip',
-        ),
-        ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('The_2023_Taxonomy_suite_v1.0.1.zip'),
-            public_download_url='https://www.frc.org.uk/documents/372/The_2023_Taxonomy_suite_v1.0.1.zip',
-        ),
-    ] + [
+        )
+    ] +
+    list(UKFRC_PACKAGES.values()) +
+    [
         package for year in [2022, 2024] for package in ESEF_PACKAGES[year]
     ],
     base_taxonomy_validation='none',
     expected_additional_testcase_errors={f'*tests/FRC/{s}': val for s, val in {
+        'FRC_07/index.xml:TC2_invalid': {
+            # By the same logic that FRC_06:TC2 fires multipleIdentifiers, so should FRC_07:TC2
+            'multipleIdentifiers': 1,
+        },
+        'FRC_08/index.xml:TC2_invalid': {
+            # Unexpected segment also triggers lxml error
+            'lxml.SCHEMAV_ELEMENT_CONTENT': 20,
+            # Testcase does not specify count (1 is default), so 19 additional occurrences
+            'xmlSchema:elementUnexpected': 19,
+        },
         # Test case references TC2_valid.zip, but actual file in suite has .xbri extension.
         'FRC_09/index.xml:TC2_valid': {
             'FileSourceError': 1,
@@ -75,13 +71,6 @@ config = ConformanceSuiteConfig(
         'FRC_05/index.xml:TC4_invalid',
         'FRC_05/index.xml:TC5_invalid',
         'FRC_05/index.xml:TC6_invalid',
-        'FRC_06/index.xml:TC2_invalid',
-        'FRC_06/index.xml:TC3_invalid',
-        'FRC_07/index.xml:TC2_invalid',
-        'FRC_07/index.xml:TC3_invalid',
-        'FRC_07/index.xml:TC4_invalid',
-        'FRC_08/index.xml:TC2_invalid',
-        'FRC_08/index.xml:TC3_invalid',
         'FRC_09/index.xml:TC6_invalid',
         'FRC_10/index.xml:TC3_invalid',
         'FRC_10/index.xml:TC4_invalid',
@@ -111,6 +100,7 @@ config = ConformanceSuiteConfig(
     ]}),
     info_url='https://www.frc.org.uk/library/standards-codes-policy/accounting-and-reporting/frc-taxonomies/frc-taxonomies-documentation-and-guidance/',
     name=PurePath(__file__).stem,
-    plugins=frozenset({'inlineXbrlDocumentSet'}),
+    disclosure_system='uksef-only-2025',
+    plugins=frozenset({'inlineXbrlDocumentSet', 'validate/ESEF'}),
     shards=4,
 )

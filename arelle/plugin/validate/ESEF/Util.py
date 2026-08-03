@@ -25,7 +25,7 @@ from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XmlValidateConst import VALID
 from arelle.typing import TypeGetText
 from arelle.utils.validate.Common import isExtensionUri
-from .Const import esefCorNsPattern, esefNotesStatementConcepts, esefTaxonomyNamespaceURIs, svgEventAttributes
+from .Const import AUTHORITY_UKFRC, esefCorNsPattern, esefNotesStatementConcepts, esefTaxonomyNamespaceURIs, svgEventAttributes
 
 _: TypeGetText
 
@@ -36,7 +36,7 @@ AUTHORITY_CODES: frozenset[str] = frozenset({
     "AT", "BE", "BG", "CY", "CZ", "DBA", "DE", "DK", "EE", "EL", "ES",
     "FI", "FR", "GB", "HR", "HU", "IE", "IS", "IT", "LI", "LT", "LU",
     "LV", "MT", "NL", "NO", "PL", "PT", "RO", "SE", "SI", "SK",
-    "UKFRC", "UKFRC-2022", "UKFRC-2023",
+    AUTHORITY_UKFRC, "UKFRC-2022", "UKFRC-2023",
 })
 
 ESEF_STANDARD_TAXONOMY_URI_PREFIXES_ATTR = "_esefStandardTaxonomyUriPrefixes"
@@ -204,7 +204,13 @@ def _hasEventAttributes(elt: Any, attributes: Collection[str]) -> bool:
 
 
 def esefDisclosureSystemSelected(modelXbrl: ModelXbrl) -> bool:
-    return getattr(modelXbrl.modelManager.disclosureSystem, ESEF_DISCLOSURE_SYSTEM_TEST_PROPERTY, False)
+    disclosureSystem = modelXbrl.modelManager.disclosureSystem
+    if not getattr(disclosureSystem, ESEF_DISCLOSURE_SYSTEM_TEST_PROPERTY, False):
+        return False
+    if disclosureSystem.authority is not None:
+        # This is an authority-specific disclosure system
+        return False
+    return True
 
 
 def hasEsefTaxonomy(modelXbrl: ModelXbrl) -> bool:

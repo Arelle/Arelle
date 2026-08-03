@@ -105,4 +105,14 @@
             contextElement="scenario"
     />
 
+    <DisclosureSystem
+            names="UKSEF-ONLY-2025|uksef-only-2025|UKSEF-ONLY|uksef-only"
+            description="Only UKSEF Tagging Guide Validation Checks"
+            validationType="ESEF"
+            exclusiveTypesPattern="EFM|GFM|FERC|HMRC|SBR.NL|EBA|EIOPA|ESEF"
+            blockDisallowedReferences="false"
+            validateFileText="false"
+            authority="UKFRC"
+    />
+
 </DisclosureSystems>
