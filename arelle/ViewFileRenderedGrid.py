@@ -128,29 +128,30 @@ class ViewRenderedGrid(ViewFile.View):
 
     def viewHTML(self, lytMdlTblMdl: LytMdlTableModel) -> None:
         for lytMdlTableSet in lytMdlTblMdl.lytMdlTableSets:
-            self.tblElt.append(etree.Comment(f"TableSet linkbase file: {lytMdlTableSet.srcFile}, line {lytMdlTableSet.srcLine}"))  # type: ignore[union-attr]
-            self.tblElt.append(etree.Comment(f"TableSet linkrole: {lytMdlTableSet.srcLinkrole}"))  # type: ignore[union-attr]
-            tblSetHdr = etree.SubElement(self.tblElt, "{http://www.w3.org/1999/xhtml}tr")  # type: ignore[type-var]
-            etree.SubElement(tblSetHdr, "{http://www.w3.org/1999/xhtml}td").text = lytMdlTableSet.label  # type: ignore[type-var, union-attr]
+            assert self.tblElt is not None
+            self.tblElt.append(etree.Comment(f"TableSet linkbase file: {lytMdlTableSet.srcFile}, line {lytMdlTableSet.srcLine}"))
+            self.tblElt.append(etree.Comment(f"TableSet linkrole: {lytMdlTableSet.srcLinkrole}"))
+            tblSetHdr = etree.SubElement(self.tblElt, "{http://www.w3.org/1999/xhtml}tr")
+            etree.SubElement(tblSetHdr, "{http://www.w3.org/1999/xhtml}td").text = lytMdlTableSet.label
             for lytMdlTable in lytMdlTableSet.lytMdlTables:
                 if lytMdlTable.strctMdlTable.tblParamValues:
                     # show any parameters
-                    pTableRow = etree.SubElement(self.tblElt, "{http://www.w3.org/1999/xhtml}tr")  # type: ignore[type-var]
-                    pRowCell = etree.SubElement(pTableRow, "{http://www.w3.org/1999/xhtml}td")  # type: ignore[type-var]
-                    paramTable = etree.SubElement(pRowCell, "{http://www.w3.org/1999/xhtml}table",  # type: ignore[type-var]
+                    pTableRow = etree.SubElement(self.tblElt, "{http://www.w3.org/1999/xhtml}tr")
+                    pRowCell = etree.SubElement(pTableRow, "{http://www.w3.org/1999/xhtml}td")
+                    paramTable = etree.SubElement(pRowCell, "{http://www.w3.org/1999/xhtml}table",
                                                   attrib={
                                                       "border": "1",
                                                       "cellspacing": "0",
                                                       "cellpadding": "4",
                                                       "style": "font-size:8pt;",
                                                       })
-                    pHdrRow = etree.SubElement(paramTable, "{http://www.w3.org/1999/xhtml}tr")  # type: ignore[type-var]
-                    etree.SubElement(pHdrRow, "{http://www.w3.org/1999/xhtml}th").text = "parameter"  # type: ignore[type-var, union-attr]
-                    etree.SubElement(pHdrRow, "{http://www.w3.org/1999/xhtml}th").text = "value"  # type: ignore[type-var, union-attr]
+                    pHdrRow = etree.SubElement(paramTable, "{http://www.w3.org/1999/xhtml}tr")
+                    etree.SubElement(pHdrRow, "{http://www.w3.org/1999/xhtml}th").text = "parameter"
+                    etree.SubElement(pHdrRow, "{http://www.w3.org/1999/xhtml}th").text = "value"
                     for name, value in lytMdlTable.strctMdlTable.tblParamValues.items():
-                        pTableRow = etree.SubElement(paramTable, "{http://www.w3.org/1999/xhtml}tr")  # type: ignore[type-var]
-                        etree.SubElement(pTableRow, "{http://www.w3.org/1999/xhtml}td").text = str(name)  # type: ignore[type-var, union-attr]
-                        etree.SubElement(pTableRow, "{http://www.w3.org/1999/xhtml}td").text = str(value)  # type: ignore[type-var, union-attr]
+                        pTableRow = etree.SubElement(paramTable, "{http://www.w3.org/1999/xhtml}tr")
+                        etree.SubElement(pTableRow, "{http://www.w3.org/1999/xhtml}td").text = str(name)
+                        etree.SubElement(pTableRow, "{http://www.w3.org/1999/xhtml}td").text = str(value)
                 # each Z is a separate table in the outer table
                 lytMdlZHdrs = lytMdlTable.lytMdlAxisHeaders("z")
                 if lytMdlZHdrs is not None:
@@ -175,9 +176,9 @@ class ViewRenderedGrid(ViewFile.View):
                     continue
                 lytMdlZBodyCell = lytMdlTable.lytMdlBodyChildren[0] # examples only show one z cell despite number of tables
                 for lytMdlYBodyCell in lytMdlZBodyCell.lytMdlBodyChildren:  # type: ignore[union-attr]
-                    zTableRow = etree.SubElement(self.tblElt, "{http://www.w3.org/1999/xhtml}tr")  # type: ignore[type-var]
-                    zRowCell = etree.SubElement(zTableRow, "{http://www.w3.org/1999/xhtml}td")  # type: ignore[type-var]
-                    zCellTable = etree.SubElement(zRowCell, "{http://www.w3.org/1999/xhtml}table",  # type: ignore[type-var]
+                    zTableRow = etree.SubElement(self.tblElt, "{http://www.w3.org/1999/xhtml}tr")
+                    zRowCell = etree.SubElement(zTableRow, "{http://www.w3.org/1999/xhtml}td")
+                    zCellTable = etree.SubElement(zRowCell, "{http://www.w3.org/1999/xhtml}table",
                                                   attrib={
                                                       "border": "1",
                                                       "cellspacing": "0",
@@ -190,7 +191,7 @@ class ViewRenderedGrid(ViewFile.View):
                     nbrYrowHdrs = lytMdlTable.headerDepth("y")
                     # build y row headers
                     numYrows = lytMdlTable.numBodyCells("y")
-                    yRowHdrs: list[list[etree._Element]] = [[] for _ in range(numYrows)]  # list of list of row header elements for each row
+                    yRowHdrs: list[list[etree._Element]] = [[] for _ in range(numYrows)]  # list of lists of row header elements for each row
 
                     for lytMdlYGrp in lytMdlYGroups:
                         for lytMdlYHdr in lytMdlYGrp.lytMdlHeaders:
@@ -218,9 +219,9 @@ class ViewRenderedGrid(ViewFile.View):
                             if all(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlHeader.lytMdlCells):
                                 continue # skip header with only open aspect entry surrogate
                             for iLabel in range(lytMdlHeader.maxNumLabels):
-                                rowElt = etree.SubElement(zCellTable, "{http://www.w3.org/1999/xhtml}tr")  # type: ignore[type-var]
+                                rowElt = etree.SubElement(zCellTable, "{http://www.w3.org/1999/xhtml}tr")
                                 if firstColHdr:
-                                    zHdrElt = etree.SubElement(rowElt, "{http://www.w3.org/1999/xhtml}th",  # type: ignore[type-var]
+                                    zHdrElt = etree.SubElement(rowElt, "{http://www.w3.org/1999/xhtml}th",
                                                                attrib={
                                                                    "class": "tableHdr",
                                                                    "style": "max-width:100em;",
@@ -228,17 +229,17 @@ class ViewRenderedGrid(ViewFile.View):
                                                                    "rowspan": str(nbrXcolHdrs),
                                                                    })
                                     if zHdrElts[zTbl]:
-                                        zHdrTblElt = etree.SubElement(zHdrElt, "{http://www.w3.org/1999/xhtml}table",  # type: ignore[type-var]
+                                        zHdrTblElt = etree.SubElement(zHdrElt, "{http://www.w3.org/1999/xhtml}table",
                                                                       attrib={"style": "border-top:none;border-left:none;border-right:none;border-bottom:none;"})
                                         for zHdrLblRow in zHdrElts[zTbl].values():
-                                            zHdrRowElt = etree.SubElement(zHdrTblElt, "{http://www.w3.org/1999/xhtml}tr")  # type: ignore[type-var]
+                                            zHdrRowElt = etree.SubElement(zHdrTblElt, "{http://www.w3.org/1999/xhtml}tr")
                                             for lbl in zHdrLblRow:
-                                                lblElt = etree.SubElement(zHdrRowElt, "{http://www.w3.org/1999/xhtml}th",  # type: ignore[type-var]
+                                                lblElt = etree.SubElement(zHdrRowElt, "{http://www.w3.org/1999/xhtml}th",
                                                                      attrib={"class": "tableHdr", "style": "max-width:100em;font-size:8pt;text-align:left;border-top:none;border-left:none;border-right:none;border-bottom:none;"})
                                                 if lbl != OPEN_ASPECT_ENTRY_SURROGATE:
-                                                    lblElt.text = lbl  # type: ignore[union-attr]
+                                                    lblElt.text = lbl
                                     else:
-                                        zHdrElt.text = "\u00a0"  # type: ignore[union-attr]
+                                        zHdrElt.text = "\u00a0"
                                     firstColHdr = False
                                 for lytMdlCell in lytMdlHeader.lytMdlCells:
                                     if lytMdlCell.isOpenAspectEntrySurrogate:
@@ -249,25 +250,25 @@ class ViewRenderedGrid(ViewFile.View):
                                     }
                                     if lytMdlCell.span > 1:
                                         attrib["colspan"] = str(lytMdlCell.span)
-                                    etree.SubElement(rowElt, "{http://www.w3.org/1999/xhtml}th", attrib=attrib  # type: ignore[type-var]
-                                                     ).text = lytMdlCell.labelXmlText(iLabel, "\u00a0")  # type: ignore[union-attr]
+                                    etree.SubElement(rowElt, "{http://www.w3.org/1999/xhtml}th", attrib=attrib
+                                                     ).text = lytMdlCell.labelXmlText(iLabel, "\u00a0")
                     yRowNum = 0
                     for lytMdlXBodyCell in lytMdlYBodyCell.lytMdlBodyChildren:  # type: ignore[union-attr]
-                        rowElt = etree.SubElement(zCellTable, "{http://www.w3.org/1999/xhtml}tr")  # type: ignore[type-var]
+                        rowElt = etree.SubElement(zCellTable, "{http://www.w3.org/1999/xhtml}tr")
                         if yRowNum < len(yRowHdrs):
                             for rowHdrElt in yRowHdrs[yRowNum]:
-                                rowElt.append(rowHdrElt)  # type: ignore[union-attr]
+                                rowElt.append(rowHdrElt)
                         for lytMdlCell in lytMdlXBodyCell.lytMdlBodyChildren:  # type: ignore[union-attr]
                             if lytMdlCell.isOpenAspectEntrySurrogate:  # type: ignore[union-attr]
                                 continue
                             justify = "left"
                             for f, v, justify in lytMdlCell.facts:  # type: ignore[union-attr]
                                 break
-                            etree.SubElement(rowElt, "{http://www.w3.org/1999/xhtml}td",  # type: ignore[type-var]
+                            etree.SubElement(rowElt, "{http://www.w3.org/1999/xhtml}td",
                                                       attrib={"class": "cell",
                                                               "style": f"text-align:{justify};width:8em;"}
                                              ).text = "\n".join(v for f, v, justify in lytMdlCell.facts)  # type: ignore[union-attr]
-                            yRowNum += 1
+                        yRowNum += 1
                     if zTbl < len(lytMdlZBodyCell.lytMdlBodyChildren) - 1:  # type: ignore[union-attr]
                         zTbl += 1
 
@@ -334,7 +335,7 @@ class ViewRenderedGrid(ViewFile.View):
                                 for iLabel in range(lytMdlYHdr.maxNumLabels):
                                     if lytMdlYCell.isOpenAspectEntrySurrogate:
                                         continue  # strip all open aspect entry surrogates from layout model file
-                                    rowHdrElt: dict[str, str | None] = {"align": "left"}
+                                    rowHdrElt: dict[str, str | int | None] = {"align": "left"}
                                     if lytMdlYCell.rollup:
                                         rowHdrElt["class"] = "yAxisTopSpanLeg"
                                     else:
@@ -342,7 +343,7 @@ class ViewRenderedGrid(ViewFile.View):
                                     if lytMdlYCell.span > 1:
                                         rowHdrElt["rowspan"] = lytMdlYCell.span
                                     rowHdrElt["text"] = lytMdlYCell.labelXmlText(iLabel, "")
-                                    yRowHdrs[yRow].append(rowHdrElt)
+                                    yRowHdrs[yRow].append(rowHdrElt)  # type: ignore[arg-type]
                                 yRow += lytMdlYCell.span
                     yHdrCols = max(len(yRowHdrs[y]) for y in range(len(yRowHdrs)))
                     yFirstHdrRow = self.xlsxRow + 1
@@ -385,13 +386,13 @@ class ViewRenderedGrid(ViewFile.View):
                         self.xlsxRow += 1
                         xlsxCol = 1
                         if yRowNum < len(yRowHdrs):
-                            for i, rowHdrElt in enumerate(yRowHdrs[yRowNum]):
+                            for i, rowHdrElt in enumerate(yRowHdrs[yRowNum]):  # type: ignore[assignment]
                                 while xlsxCol - 1 < len(rowspans) and rowspans[xlsxCol - 1] > 0:
                                     rowspans[xlsxCol - 1] -= 1
                                     xlsxCol += 1
                                 rowspan = rowHdrElt.get("rowspan", 1)
                                 c = self.xlsxWs.cell(row=self.xlsxRow, column=xlsxCol)  # type: ignore[union-attr]
-                                v = rowHdrElt.get("text")
+                                v = rowHdrElt.get("text")  # type: ignore[assignment]
                                 c.value = v
                                 c.alignment = Alignment(horizontal=rowHdrElt.get("align", "left" if xlsxCol == 1 or not (v and v.isnumeric()) else "center"),
                                                         vertical="center", wrap_text=True)
