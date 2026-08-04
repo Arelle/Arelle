@@ -146,9 +146,10 @@ extend-exclude = [
 
 [tool.ruff.lint]
 # Mirrors the previous flake8 configuration (pycodestyle E/W, Pyflakes F) so
-# that migrating off flake8 does not change what gets flagged.
+# that migrating off flake8 does not change what gets flagged. "Q"
+# (flake8-quotes) is additionally enabled to enforce double quotes.
 preview = true
-select = ["E", "W", "F"]
+select = ["E", "W", "F", "Q"]
 ignore = [
     # indentation contains mixed spaces and tabs
     "E101",
@@ -286,6 +287,11 @@ ignore = [
     # W503: line break before binary operator
     # W504: line break after binary operator
 ]
+
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "double"
+multiline-quotes = "double"
+docstring-quotes = "double"
 
 [tool.mypy]
 # Warn when a # type: ignore comment does not specify any error codes
