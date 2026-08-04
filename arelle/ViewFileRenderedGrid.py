@@ -325,7 +325,7 @@ class ViewRenderedGrid(ViewFile.View):
                     lytMdlYGroups = getattr(lytMdlTable.lytMdlAxisHeaders("y"), "lytMdlGroups", [])
                     # build y row headers
                     numYrows = lytMdlTable.numBodyCells("y")
-                    yRowHdrs: list[list[dict[str, str | None]]] = [[] for _ in range(numYrows)]  # list of lists of row header elements for each row
+                    yRowHdrs: list[list[dict[str, str | int | None]]] = [[] for _ in range(numYrows)]  # list of lists of row header elements for each row
                     for lytMdlYGrp in lytMdlYGroups:
                         for lytMdlYHdr in lytMdlYGrp.lytMdlHeaders:
                             yRow = 0
