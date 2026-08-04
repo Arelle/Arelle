@@ -153,7 +153,7 @@ class ViewFacts(ViewFile.View):
         # allocate facts to table structure for US-GAAP-style filings
         if not self.modelXbrl.hasTableIndexing:  # type: ignore[union-attr]
             from arelle import TableStructure
-            TableStructure.evaluateTableIndex(self.modelXbrl, lang=self.lang)  # type: ignore[no-untyped-call]
+            TableStructure.evaluateTableIndex(self.modelXbrl, lang=self.lang)  # type: ignore[arg-type]
 
         # set up facts
         self.conceptFacts = defaultdict(list)

@@ -125,6 +125,14 @@ class ModelRoleType(ModelObject):
     _definition: str | None
     _usedOns: set[TypeXValue]
     _tableCode: str | None
+    _tableIndex: tuple[str, str, str]
+    _tableChildren: list[ModelRoleType]
+    _tableFacts: set[Any]
+    _tableParent: ModelRoleType
+    _tableTopicScore: float
+    _tableTopicType: str
+    _tableTopicName: str
+    _tableTopicCode: str
 
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelRoleType, self).init(modelDocument)
@@ -186,7 +194,8 @@ class ModelRoleType(ModelObject):
             return self._tableCode
         except AttributeError:
             from arelle import TableStructure
-            TableStructure.evaluateRoleTypesTableCodes(self.modelXbrl)  # type: ignore[no-untyped-call]
+            assert self.modelXbrl is not None
+            TableStructure.evaluateRoleTypesTableCodes(self.modelXbrl)
             return self._tableCode
 
     @property
