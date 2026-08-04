@@ -139,6 +139,8 @@ extend-exclude = [
     "deps",
     "docs",
     "lib",
+    "pygettext.py",
+    "msgfmt.py",
     "tests/resources",
     "venv",
 ]
