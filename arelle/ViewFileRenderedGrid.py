@@ -343,7 +343,7 @@ class ViewRenderedGrid(ViewFile.View):
                                     if lytMdlYCell.span > 1:
                                         rowHdrElt["rowspan"] = lytMdlYCell.span
                                     rowHdrElt["text"] = lytMdlYCell.labelXmlText(iLabel, "")
-                                    yRowHdrs[yRow].append(rowHdrElt)  # type: ignore[arg-type]
+                                    yRowHdrs[yRow].append(rowHdrElt)
                                 yRow += lytMdlYCell.span
                     yHdrCols = max(len(yRowHdrs[y]) for y in range(len(yRowHdrs)))
                     yFirstHdrRow = self.xlsxRow + 1
@@ -386,7 +386,7 @@ class ViewRenderedGrid(ViewFile.View):
                         self.xlsxRow += 1
                         xlsxCol = 1
                         if yRowNum < len(yRowHdrs):
-                            for i, rowHdrElt in enumerate(yRowHdrs[yRowNum]):  # type: ignore[assignment]
+                            for i, rowHdrElt in enumerate(yRowHdrs[yRowNum]):
                                 while xlsxCol - 1 < len(rowspans) and rowspans[xlsxCol - 1] > 0:
                                     rowspans[xlsxCol - 1] -= 1
                                     xlsxCol += 1
