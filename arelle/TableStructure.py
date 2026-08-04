@@ -1,20 +1,31 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
+from __future__ import annotations
+
 import regex as re
-from collections import defaultdict
-import os, io, json
+import os, json
 from datetime import datetime, timedelta
+from typing import TYPE_CHECKING, Any
+
 from arelle import XbrlConst
 from arelle.ModelDtsObject import ModelConcept
+from arelle.ModelInstanceObject import ModelFact
+from arelle.ModelObject import ModelObject
 from arelle.XmlValidateConst import VALID
+
+if TYPE_CHECKING:
+    from arelle.ModelDtsObject import ModelRoleType
+    from arelle.ModelRelationshipSet import ModelRelationshipSet
+    from arelle.ModelValue import QName
+    from arelle.ModelXbrl import ModelXbrl
 
 # regular expression components
 STMT = r".* - statement - "
 notDET = r"(?!.*details)"
 notCMPRH = r"(?!.*comprehensive)"
 isCMPRH = r"(?=.*comprehensive)"
-''' common mis-spellings of parenthetical to match successfully (from 2013 SEC filings)
+""" common mis-spellings of parenthetical to match successfully (from 2013 SEC filings)
     paranthetical
     parenthical
     parentheical
@@ -26,19 +37,21 @@ isCMPRH = r"(?=.*comprehensive)"
 
 use a regular expression that is forgiving on at least the above
 and doens't match variations of parent, transparent, etc.
-'''
+"""
 rePARENTHETICAL = r"pa?r[ae]ne?th\w?[aei]+\w?t?h?i?c"
 notPAR = "(?!.*" + rePARENTHETICAL + ")"
 isPAR = "(?=.*" + rePARENTHETICAL + ")"
 
-UGT_TOPICS = None
+UGT_TOPICS: list[list[Any]] | None = None
 
-def RE(*args):
-    return re.compile(''.join(args), re.IGNORECASE)
+
+def RE(*args: str) -> re.Pattern[str]:
+    return re.compile("".join(args), re.IGNORECASE)
+
 
 # NOTE: This is an early experimental implementation of statement detection
 # it is not in a finished status at this time.
-EFMtableCodes = [
+EFMtableCodes: list[tuple[str, re.Pattern[str], tuple[str, ...] | None]] = [
     # ELRs are parsed for these patterns in sort order until there is one match per code
     # sheet(s) may be plural
 
@@ -100,9 +113,9 @@ EFMtableCodes = [
     ("EQP", RE(STMT, notDET, isPAR, r".*def[ei][cs]it"), None),
     ("BSV", RE(STMT, notDET,notPAR, r".*net\W+asset\W+value"), None),
     ("CFS", RE(STMT, notDET,notPAR, r".*cash\W*flows\W+supplemental"), None),
-    ("LAP", RE(STMT, notDET, isPAR, r".*(?!.*changes)(?=.*assets).*liquidati"), None)
-    ]
-HMRCtableCodes = [
+    ("LAP", RE(STMT, notDET, isPAR, r".*(?!.*changes)(?=.*assets).*liquidati"), None),
+]
+HMRCtableCodes: list[tuple[str, re.Pattern[str], tuple[str, ...] | None]] = [
     # ELRs are parsed for these patterns in sort order until there is one match per code
     # sheet(s) may be plural
     ("DEI", RE(r".*entity\W+.*information.*"), None),
@@ -110,9 +123,10 @@ HMRCtableCodes = [
     ("IS", RE(r".*loss"), None),
     ("CF", RE(r".*cash\W*flow.*"), None),
     ("SE", RE(r".*(shareholder|equity).*"), None),
-    ]
+]
 
-def evaluateRoleTypesTableCodes(modelXbrl):
+
+def evaluateRoleTypesTableCodes(modelXbrl: ModelXbrl) -> None:
     disclosureSystem = modelXbrl.modelManager.disclosureSystem
 
     if disclosureSystem.validationType in ("EFM", "HMRC"):
@@ -120,32 +134,32 @@ def evaluateRoleTypesTableCodes(modelXbrl):
         if disclosureSystem.validationType == "EFM":
             tableCodes = list( EFMtableCodes ) # separate copy of list so entries can be deleted
             # for Registration and resubmission allow detecting multiple of code
-            detectMultipleOfCode = any(v and any(v.startswith(dt) for dt in ('S-', 'F-', '8-K', '6-K'))
-                                       for docTypeConcept in modelXbrl.nameConcepts.get('DocumentType', ())
-                                       for docTypeFact in modelXbrl.factsByQname.get(docTypeConcept.qname, ())
+            detectMultipleOfCode = any(v and any(v.startswith(dt) for dt in ("S-", "F-", "8-K", "6-K"))
+                                       for docTypeConcept in modelXbrl.nameConcepts.get("DocumentType", ())
+                                       for docTypeFact in modelXbrl.factsByQname.get(docTypeConcept.qname, ())  # type: ignore[arg-type]
                                        for v in (docTypeFact.value,))
         elif disclosureSystem.validationType == "HMRC":
             tableCodes = list( HMRCtableCodes ) # separate copy of list so entries can be deleted
 
-        codeRoleURI = {}  # lookup by code for roleURI
-        roleURICode = {}  # lookup by roleURI
+        codeRoleURI: dict[str, str | None] = {}  # lookup by code for roleURI
+        roleURICode: dict[str | None, str] = {}  # lookup by roleURI
 
         # resolve structural model
         roleTypes = [roleType
                      for roleURI in modelXbrl.relationshipSet(XbrlConst.parentChild).linkRoleUris
                      for roleType in modelXbrl.roleTypes.get(roleURI,())]
-        roleTypes.sort(key=lambda roleType: roleType.definition)
+        roleTypes.sort(key=lambda roleType: roleType.definition)  # type: ignore[arg-type,return-value]
         # assign code to table link roles (Presentation ELRs)
         for roleType in roleTypes:
             definition = roleType.definition
-            rootConcepts = None
+            rootConcepts: list[ModelObject] | None = None
             for i, tableCode in enumerate(tableCodes):
                 code, pattern, rootConceptNames = tableCode
-                if (detectMultipleOfCode or code not in codeRoleURI) and pattern.match(definition):
+                if (detectMultipleOfCode or code not in codeRoleURI) and pattern.match(definition):  # type: ignore[arg-type]
                     if rootConceptNames and rootConcepts is None:
                         rootConcepts = modelXbrl.relationshipSet(XbrlConst.parentChild, roleType.roleURI).rootConcepts
                     if (not rootConceptNames or
-                        any(rootConcept.name in rootConceptNames for rootConcept in rootConcepts)):
+                        any(rootConcept.name in rootConceptNames for rootConcept in rootConcepts)):  # type: ignore[union-attr]
                         codeRoleURI[code] = roleType.roleURI
                         roleURICode[roleType.roleURI] = code
                         if not detectMultipleOfCode:
@@ -160,13 +174,14 @@ def evaluateRoleTypesTableCodes(modelXbrl):
             for roleType in roleTypes:
                 roleType._tableCode = None
 
-def evaluateTableIndex(modelXbrl, lang=None):
+
+def evaluateTableIndex(modelXbrl: ModelXbrl, lang: str | None = None) -> tuple[str | None, str | None]:
     usgaapRoleDefinitionPattern = re.compile(r"([0-9]+) - (Statement|Disclosure|Schedule|Document) - (.+)")
     ifrsRoleDefinitionPattern = re.compile(r"\[([0-9]+)\] (.+)")
     # build EFM rendering-compatible index
     definitionElrs = dict((modelXbrl.roleTypeDefinition(roleURI, lang), roleType)
                           for roleURI in modelXbrl.relationshipSet(XbrlConst.parentChild).linkRoleUris
-                          for roleType in modelXbrl.roleTypes.get(roleURI,()))
+                          for roleType in modelXbrl.roleTypes.get(roleURI, ()))
     sortedRoleTypes = sorted(definitionElrs.items(), key=lambda item: item[0])
     disclosureSystem = modelXbrl.modelManager.disclosureSystem
     _usgaapStyleELRs = _isJpFsa = _ifrsStyleELRs = False
@@ -196,7 +211,7 @@ def evaluateTableIndex(modelXbrl, lang=None):
             roleType._tableChildren = []
             match = usgaapRoleDefinitionPattern.match(roleDefinition) if roleDefinition else None
             if not match:
-                roleType._tableIndex = (UNCATEG, "", roleType.roleURI)
+                roleType._tableIndex = (UNCATEG, "", roleType.roleURI)  # type: ignore[assignment]
                 continue
             seq, tblType, tblName = match.groups()
             if isRR:
@@ -239,39 +254,39 @@ def evaluateTableIndex(modelXbrl, lang=None):
             ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)
         reportedFacts = set() # facts which were shown in a higher-numbered ELR table
         factsByQname = modelXbrl.factsByQname
-        reportingPeriods = set()
-        nextEnd = None
-        deiFact = {}
+        reportingPeriods: set[tuple[datetime | None, datetime | None]] = set()
+        nextEnd: datetime | None = None
+        deiFact: dict[str, ModelFact] = {}
         for conceptName in ("DocumentPeriodEndDate", "DocumentType", "CurrentFiscalPeriodEndDate"):
             for concept in modelXbrl.nameConcepts[conceptName]:
-                for fact in factsByQname[concept.qname]:
+                for fact in factsByQname[concept.qname]:  # type: ignore[index]
                     deiFact[conceptName] = fact
                     if fact.context is not None and fact.context.endDatetime is not None:
-                        reportingPeriods.add((None, fact.context.endDatetime)) # for instant
-                        reportingPeriods.add((fact.context.startDatetime, fact.context.endDatetime)) # for startEnd
+                        reportingPeriods.add((None, fact.context.endDatetime))  # for instant
+                        reportingPeriods.add((fact.context.startDatetime, fact.context.endDatetime))  # for startEnd
                         nextEnd = fact.context.startDatetime
-                        duration = (fact.context.endDatetime - fact.context.startDatetime).days + 1
+                        duration = (fact.context.endDatetime - fact.context.startDatetime).days + 1  # type: ignore[operator]
                         break
         if "DocumentType" in deiFact:
             fact = deiFact["DocumentType"]
-            if fact.xValid >= VALID and "-Q" in (fact.xValue or ""): # fact may be invalid
+            if fact.xValid >= VALID and "-Q" in (fact.xValue or ""):  # type: ignore[operator] # fact may be invalid
                 # need quarterly and yr to date durations
-                endDatetime = fact.context.endDatetime
+                endDatetime: datetime | None = fact.context.endDatetime  # type: ignore[union-attr]
                 # if within 2 days of end of month use last day of month
-                endDatetimeMonth = endDatetime.month
-                if (endDatetime + timedelta(2)).month != endDatetimeMonth:
+                endDatetimeMonth = endDatetime.month  # type: ignore[union-attr]
+                if (endDatetime + timedelta(2)).month != endDatetimeMonth:  # type: ignore[union-attr,operator]
                     # near end of month
                     endOfMonth = True
-                    while endDatetime.month == endDatetimeMonth:
-                        endDatetime += timedelta(1) # go forward to next month
+                    while endDatetime.month == endDatetimeMonth:  # type: ignore[union-attr]
+                        endDatetime += timedelta(1)  # type: ignore[operator,assignment] # go forward to next month
                 else:
                     endOfMonth = False
-                startYr = endDatetime.year
-                startMo = endDatetime.month - 3
+                startYr = endDatetime.year  # type: ignore[union-attr]
+                startMo = endDatetime.month - 3  # type: ignore[union-attr]
                 if startMo <= 0:
                     startMo += 12
                     startYr -= 1
-                start_datetime_day = endDatetime.day
+                start_datetime_day = endDatetime.day  # type: ignore[union-attr]
                 # check if we are in Feb past the 28th
                 if startMo == 2 and start_datetime_day > 28:
                     import calendar
@@ -289,39 +304,39 @@ def evaluateTableIndex(modelXbrl, lang=None):
                             start_datetime_day = 1 if calendar.isleap(startYr) else 2
                             # step into March
                             startMo +=1
-                startDatetime = datetime(startYr, startMo, start_datetime_day, endDatetime.hour, endDatetime.minute, endDatetime.second)
+                startDatetime = datetime(startYr, startMo, start_datetime_day, endDatetime.hour, endDatetime.minute, endDatetime.second)  # type: ignore[union-attr]
                 if endOfMonth:
                     startDatetime -= timedelta(1)
-                    endDatetime -= timedelta(1)
+                    endDatetime -= timedelta(1)  # type: ignore[operator,assignment]
                 reportingPeriods.add((startDatetime, endDatetime))
                 duration = 91
         # find preceding compatible default context periods
-        while (nextEnd is not None):
+        while nextEnd is not None:
             thisEnd = nextEnd
             prevMaxStart = thisEnd - timedelta(duration * .9)
             prevMinStart = thisEnd - timedelta(duration * 1.1)
             nextEnd = None
             for cntx in modelXbrl.contexts.values():
                 if (cntx.isStartEndPeriod and not cntx.qnameDims and thisEnd == cntx.endDatetime and
-                    prevMinStart <= cntx.startDatetime <= prevMaxStart):
+                    prevMinStart <= cntx.startDatetime <= prevMaxStart):  # type: ignore[operator]
                     reportingPeriods.add((None, cntx.endDatetime))
                     reportingPeriods.add((cntx.startDatetime, cntx.endDatetime))
                     nextEnd = cntx.startDatetime
                     break
-                elif (cntx.isInstantPeriod and not cntx.qnameDims and thisEnd == cntx.endDatetime):
+                elif cntx.isInstantPeriod and not cntx.qnameDims and thisEnd == cntx.endDatetime:
                     reportingPeriods.add((None, cntx.endDatetime))
         stmtReportingPeriods = set(reportingPeriods)
 
-        sortedRoleTypes.reverse() # now in descending order
+        sortedRoleTypes.reverse()  # now in descending order
         for i, roleTypes in enumerate(sortedRoleTypes):
             roleDefinition, roleType = roleTypes
             # find defined non-default axes in pre hierarchy for table
             tableFacts = set()
             tableGroup, tableSeq, tableName = roleType._tableIndex
-            roleURIdims, priItemQNames = EFMlinkRoleURIstructure(modelXbrl, roleType.roleURI)
+            roleURIdims, priItemQNames = EFMlinkRoleURIstructure(modelXbrl, roleType.roleURI)  # type: ignore[arg-type]
             for priItemQName in priItemQNames:
-                for fact in factsByQname.get(priItemQName,()):
-                    cntx = fact.context
+                for fact in factsByQname.get(priItemQName, ()):
+                    cntx = fact.context  # type: ignore[assignment]
                     # non-explicit dims must be default
                     if (cntx is not None and
                         all(dimQn in modelXbrl.qnameDimensionDefaults
@@ -335,7 +350,7 @@ def evaluateTableIndex(modelXbrl, lang=None):
                         if (tableGroup != STMTS or
                             (cntxStartDatetime, cntxEndDatetime) in stmtReportingPeriods and
                              (fact not in reportedFacts or
-                              all(dimQn not in cntx.qnameDims # unspecified dims are all defaulted if reported elsewhere
+                              all(dimQn not in cntx.qnameDims  # unspecified dims are all defaulted if reported elsewhere
                                   for dimQn in (cntx.qnameDims.keys() - roleURIdims.keys())))):
                             tableFacts.add(fact)
                             reportedFacts.add(fact)
@@ -344,7 +359,7 @@ def evaluateTableIndex(modelXbrl, lang=None):
             # find parent if any
             closestParentType = None
             closestParentMatchLength = 0
-            for _parentRoleDefinition, parentRoleType in sortedRoleTypes[i+1:]:
+            for _parentRoleDefinition, parentRoleType in sortedRoleTypes[i + 1:]:
                 matchLen = parentNameMatchLen(tableName, parentRoleType)
                 if matchLen > closestParentMatchLength:
                     closestParentMatchLength = matchLen
@@ -376,40 +391,38 @@ def evaluateTableIndex(modelXbrl, lang=None):
             for childRoleType in roleType._tableChildren:
                 childRoleType._tableParent = roleType
 
-            unmatchedChildRoles = None # dereference
-
         global UGT_TOPICS
         if UGT_TOPICS is None:
             try:
                 from arelle import FileSource
                 fh = FileSource.openFileStream(modelXbrl.modelManager.cntlr,
                                                os.path.join(modelXbrl.modelManager.cntlr.configDir, "ugt-topics.zip/ugt-topics.json"),
-                                               'r', 'utf-8')
+                                               "r", "utf-8")
                 UGT_TOPICS = json.load(fh)
                 fh.close()
                 for topic in UGT_TOPICS:
-                    topic[6] = set(topic[6]) # change concept abstracts list into concept abstracts set
-                    topic[7] = set(topic[7]) # change concept text blocks list into concept text blocks set
-                    topic[8] = set(topic[8]) # change concept names list into concept names set
-            except Exception as ex:
+                    topic[6] = set(topic[6])  # change concept abstracts list into concept abstracts set
+                    topic[7] = set(topic[7])  # change concept text blocks list into concept text blocks set
+                    topic[8] = set(topic[8])  # change concept names list into concept names set
+            except Exception:
                     UGT_TOPICS = None
 
         if UGT_TOPICS is not None:
-            def roleUgtConcepts(roleType):
-                roleConcepts = set()
+            def roleUgtConcepts(roleType: ModelRoleType) -> set[str]:
+                roleConcepts: set[str] = set()
                 for rel in modelXbrl.relationshipSet(XbrlConst.parentChild, roleType.roleURI).modelRelationships:
                     if isinstance(rel.toModelObject, ModelConcept):
-                        roleConcepts.add(rel.toModelObject.name)
+                        roleConcepts.add(rel.toModelObject.name)  # type: ignore[arg-type]
                     if isinstance(rel.fromModelObject, ModelConcept):
-                        roleConcepts.add(rel.fromModelObject.name)
+                        roleConcepts.add(rel.fromModelObject.name)  # type: ignore[arg-type]
                 if hasattr(roleType, "_tableChildren"):
                     for _tableChild in roleType._tableChildren:
                         roleConcepts |= roleUgtConcepts(_tableChild)
                 return roleConcepts
-            topicMatches = {} # topicNum: (best score, roleType)
+            topicMatches: dict[int, tuple[float, ModelRoleType]] = {}  # topicNum: (best score, roleType)
 
             for roleDefinition, roleType in sortedRoleTypes:
-                roleTopicType = 'S' if roleDefinition.startswith('S') else 'D'
+                roleTopicType = "S" if roleDefinition.startswith("S") else "D"
                 if getattr(roleType, "_tableParent", None) is None:
                     # rooted tables in reverse order
                     concepts = roleUgtConcepts(roleType)
@@ -432,24 +445,28 @@ def evaluateTableIndex(modelXbrl, lang=None):
                     roleType._tableTopicType = ugtTopic[0]
                     roleType._tableTopicName = ugtTopic[3]
                     roleType._tableTopicCode = ugtTopic[4]
-                    # print ("Match score {:.2f} topic {} preGrp {}".format(_score, ugtTopic[3], roleType.definition))
-        return (firstTableLinkroleURI or firstDocumentLinkroleURI), None # no restriction on contents linkroles
+        return firstTableLinkroleURI or firstDocumentLinkroleURI, None  # no restriction on contents linkroles
     elif _isJpFsa:
         # find ELR with only iod:identifierItem subs group concepts
         roleElrs = dict((roleURI, roleType)
                         for roleURI in modelXbrl.relationshipSet(XbrlConst.parentChild).linkRoleUris
-                        for roleType in modelXbrl.roleTypes.get(roleURI,()))
-        roleIdentifierItems = {}
+                        for roleType in modelXbrl.roleTypes.get(roleURI, ()))
+        roleIdentifierItems: dict[ModelConcept, ModelRoleType] = {}
         for roleURI, roleType in roleElrs.items():
             roleType._tableChildren = []
             relSet = modelXbrl.relationshipSet(XbrlConst.parentChild, roleURI)
             for rootConcept in relSet.rootConcepts:
-                if rootConcept.substitutionGroupQname and rootConcept.substitutionGroupQname.localName == "identifierItem":
-                    roleIdentifierItems[rootConcept] = roleType
+                if rootConcept.substitutionGroupQname and rootConcept.substitutionGroupQname.localName == "identifierItem":  # type: ignore[attr-defined]
+                    roleIdentifierItems[rootConcept] = roleType  # type: ignore[index]
         linkroleUri = None
         for roleURI, roleType in roleElrs.items():
             relSet = modelXbrl.relationshipSet(XbrlConst.parentChild, roleURI)
-            def addRoleIdentifiers(fromConcept, parentRoleType, visited):
+
+            def addRoleIdentifiers(
+                    fromConcept: ModelConcept,
+                    parentRoleType: ModelRoleType | None,
+                    visited: set[ModelConcept],
+                ) -> None:
                 for rel in relSet.fromModelObject(fromConcept):
                     _fromConcept = rel.fromModelObject
                     _toConcept = rel.toModelObject
@@ -463,7 +480,7 @@ def evaluateTableIndex(modelXbrl, lang=None):
                             if parentRoleType is None:
                                 parentRoleType = roleIdentifierItems[_fromConcept]
                             _toRoleType = roleIdentifierItems[_toConcept]
-                            if _toConcept not in parentRoleType._tableChildren:
+                            if _toConcept not in parentRoleType._tableChildren:  # type: ignore[comparison-overlap]
                                 parentRoleType._tableChildren.append(_toRoleType)
                             if _toConcept not in visited:
                                 visited.add(_toConcept)
@@ -474,7 +491,7 @@ def evaluateTableIndex(modelXbrl, lang=None):
                             addRoleIdentifiers(_toConcept, parentRoleType, visited)
                             visited.discard(_toConcept)
             for rootConcept in relSet.rootConcepts:
-                addRoleIdentifiers(rootConcept, None, set())
+                addRoleIdentifiers(rootConcept, None, set())  # type: ignore[arg-type]
                 if not linkroleUri and len(roleType._tableChildren) > 0:
                     linkroleUri = roleURI
         return linkroleUri, linkroleUri  # only show linkroleUri in index table
@@ -484,40 +501,49 @@ def evaluateTableIndex(modelXbrl, lang=None):
         return sortedRoleTypes[0][1].roleURI, None # first link role in order
     return None, None
 
-def parentNameMatchLen(tableName, parentRoleType):
+
+def parentNameMatchLen(tableName: str, parentRoleType: ModelRoleType) -> int:
     lengthOfMatch = 0
     parentName = parentRoleType._tableIndex[2]
-    parentNameLen = len(parentName.partition('(')[0])
+    parentNameLen = len(parentName.partition("(")[0])
     fullWordFound = False
-    for c in tableName.partition('(')[0]:
+    for c in tableName.partition("(")[0]:
         fullWordFound |= c.isspace()
         if lengthOfMatch >= parentNameLen or c != parentName[lengthOfMatch]:
             break
         lengthOfMatch += 1
     return fullWordFound and lengthOfMatch
 
-def EFMlinkRoleURIstructure(modelXbrl, roleURI):
+
+def EFMlinkRoleURIstructure(modelXbrl: ModelXbrl, roleURI: str) -> tuple[dict[QName, set[QName]], set[QName]]:
     relSet = modelXbrl.relationshipSet(XbrlConst.parentChild, roleURI)
-    dimMems = {} # by dimension qname, set of member qnames
-    priItems = set()
+    dimMems: dict[QName, set[QName]] = {}  # by dimension qname, set of member qnames
+    priItems: set[QName] = set()
     for rootConcept in relSet.rootConcepts:
-        EFMlinkRoleDescendants(relSet, rootConcept, dimMems, priItems)
+        EFMlinkRoleDescendants(relSet, rootConcept, dimMems, priItems)  # type: ignore[arg-type]
     return dimMems, priItems
 
-def EFMlinkRoleDescendants(relSet, concept, dimMems, priItems):
+
+def EFMlinkRoleDescendants(
+    relSet: ModelRelationshipSet,
+    concept: ModelConcept | None,
+    dimMems: dict[QName, set[QName]],
+    priItems: set[QName],
+) -> None:
     if concept is not None:
         if concept.isDimensionItem:
-            dimMems[concept.qname] = EFMdimMems(relSet, concept, set())
+            dimMems[concept.qname] = EFMdimMems(relSet, concept, set())  # type: ignore[index]
         else:
             if not concept.isAbstract:
-                priItems.add(concept.qname)
+                priItems.add(concept.qname)  # type: ignore[arg-type]
             for rel in relSet.fromModelObject(concept):
-                EFMlinkRoleDescendants(relSet, rel.toModelObject, dimMems, priItems)
+                EFMlinkRoleDescendants(relSet, rel.toModelObject, dimMems, priItems)  # type: ignore[arg-type]
 
-def EFMdimMems(relSet, concept, memQNames):
+
+def EFMdimMems(relSet: ModelRelationshipSet, concept: ModelConcept, memQNames: set[QName]) -> set[QName]:
     for rel in relSet.fromModelObject(concept):
         dimConcept = rel.toModelObject
         if isinstance(dimConcept, ModelConcept) and dimConcept.isDomainMember:
-            memQNames.add(dimConcept.qname)
+            memQNames.add(dimConcept.qname)  # type: ignore[arg-type]
             EFMdimMems(relSet, dimConcept, memQNames)
     return memQNames
