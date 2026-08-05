@@ -2198,21 +2198,21 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         if options.conceptsFile:
                             ViewFileConcepts.viewConcepts(modelXbrl, options.conceptsFile, labelrole=options.labelRole, lang=options.labelLang)  # type: ignore[no-untyped-call]
                         if options.preFile:
-                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", XbrlConst.parentChild, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[no-untyped-call]
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", XbrlConst.parentChild, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[arg-type]
                         if options.tableFile:
-                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.tableFile, "Table Linkbase", "Table-rendering", labelrole=options.labelRole, lang=options.labelLang)  # type: ignore[no-untyped-call]
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.tableFile, "Table Linkbase", "Table-rendering", labelrole=options.labelRole, lang=options.labelLang)  # type: ignore[arg-type]
                         if options.renderedTableLinkbaseFile and modelXbrl is not None and modelXbrl.hasTableRendering:
                             ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, options.renderedTableLinkbaseFile, lang=options.labelLang)
                         if options.calFile:
-                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", XbrlConst.summationItems, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[no-untyped-call]
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", XbrlConst.summationItems, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[arg-type]
                         if options.dimFile:
-                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.dimFile, "Dimensions", "XBRL-dimensions", labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[no-untyped-call]
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.dimFile, "Dimensions", "XBRL-dimensions", labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[arg-type]
                         if options.anchFile:
-                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.anchFile, "Anchoring", XbrlConst.widerNarrower, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[no-untyped-call]
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.anchFile, "Anchoring", XbrlConst.widerNarrower, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[arg-type]
                         if options.formulaeFile:
                             ViewFileFormulae.viewFormulae(modelXbrl, options.formulaeFile, "Formulae", lang=options.labelLang)
                         if options.viewArcrole and options.viewFile:
-                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.viewFile, os.path.basename(options.viewArcrole), options.viewArcrole, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[no-untyped-call]
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.viewFile, os.path.basename(options.viewArcrole), options.viewArcrole, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[arg-type]
                         if options.roleTypesFile:
                             ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.roleTypesFile, "Role Types", isArcrole=False, lang=options.labelLang)
                         if options.arcroleTypesFile:
