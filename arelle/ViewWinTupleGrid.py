@@ -88,7 +88,7 @@ class ViewTuplesGrid(ViewWinGrid.ViewGrid):
         xFilters: list[ModelConcept] = []
 
         self.analyzeColHdrs(self.parentFacts, 1)
-        self.colHdrTopRow = self.zAxisRows + 2 if self.zAxisRows else 1
+        self.colHdrTopRow = self.zAxisRows + (2 if self.zAxisRows else 1)
         self.dataFirstRow = self.colHdrTopRow + self.colHdrRows
         self.dataFirstCol = 2
 
@@ -144,7 +144,7 @@ class ViewTuplesGrid(ViewWinGrid.ViewGrid):
                 thisCol = leftCol
                 sideBorder = LEFTBORDER
             if renderNow:
-                columnspan = rightCol - leftCol + 1 if isItem else 0
+                columnspan = rightCol - leftCol + (1 if isItem else 0)
                 gridBorder(self.gridColHdr, leftCol, topRow, TOPBORDER, columnspan=columnspan)
                 gridBorder(self.gridColHdr, leftCol, topRow,
                            sideBorder, columnspan=columnspan,
@@ -152,7 +152,7 @@ class ViewTuplesGrid(ViewWinGrid.ViewGrid):
                 gridHdr(self.gridColHdr, leftCol, topRow,
                         label if label else "         ",
                         anchor="center",
-                        columnspan=rightCol - leftCol + 1 if isItem else 0,
+                        columnspan=rightCol - leftCol + (1 if isItem else 0),
                         rowspan=(row - topRow + 1) if leafNode else 1,
                         wraplength=width,
                         objectId=xAxisChildObj.objectId(),
@@ -163,7 +163,7 @@ class ViewTuplesGrid(ViewWinGrid.ViewGrid):
             if isItem:
                 rightCol += 1
             if renderNow and not childrenFirst:
-                self.xAxis(leftCol + 1 if isItem else 0, topRow + 1, rowBelow, xAxisChildObj.modelTupleFacts, xFilters, childrenFirst, True, False)  # render on this pass
+                self.xAxis(leftCol + (1 if isItem else 0), topRow + 1, rowBelow, xAxisChildObj.modelTupleFacts, xFilters, childrenFirst, True, False)  # render on this pass
             leftCol = rightCol
         if atTop and sideBorder and not childrenFirst:
             gridBorder(self.gridColHdr, rightCol - 1, 1, RIGHTBORDER, rowspan=self.dataFirstRow)
