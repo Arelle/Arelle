@@ -759,7 +759,7 @@ class CntlrWinMain(Cntlr.Cntlr):
                         else:
                             arcrole = view.arcrole  # type: ignore[attr-defined]
 
-                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, filename, view.tabTitle, arcrole, labelrole=view.labelrole, lang=view.lang)
+                        ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, filename, view.tabTitle, arcrole, labelrole=view.labelrole, lang=view.lang)  # type: ignore[arg-type]
                 except (IOError, EnvironmentError) as err:
                     tkinter.messagebox.showwarning(_("arelle - Error"),
                                         _("Failed to save {0}:\n{1}").format(
