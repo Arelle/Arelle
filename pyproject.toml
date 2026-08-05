@@ -171,7 +171,6 @@ module = [
     'arelle.ViewFileTests',
     'arelle.ViewUtilFormulae',
     'arelle.ViewWinTests',
-    'arelle.ViewWinTupleGrid',
     'arelle.ViewWinXml',
     'arelle.archive.CustomLogger',
     'arelle.archive.LoadEFMvalidate',

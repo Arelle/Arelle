@@ -91,9 +91,9 @@ class ViewFactList(ViewWinTree.ViewTree):
 
     def viewTuplesGrid(self) -> None:
         from arelle.ViewWinTupleGrid import viewTuplesGrid
-        viewTuples = viewTuplesGrid(self.modelXbrl, self.tabWin, self.viewedTupleId, self.lang)  # type: ignore[no-untyped-call]
+        viewTuples = viewTuplesGrid(self.modelXbrl, self.tabWin, self.viewedTupleId, self.lang)
         self.modelXbrl.modelManager.showStatus(_("Ready..."), clearAfter=2000)
-        viewTuples.select()  # bring new grid to foreground
+        viewTuples.select()  # type: ignore[union-attr] # bring new grid to foreground
 
     def view(self) -> None:
         self.id = 1
