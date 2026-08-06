@@ -165,7 +165,6 @@ module = [
     'arelle.Version',
     'arelle.ViewFileConcepts',
     'arelle.ViewFileRenderedLayout',
-    'arelle.ViewFileRenderedStructure',
     'arelle.ViewFileRssFeed',
     'arelle.ViewFileTests',
     'arelle.ViewUtilFormulae',
