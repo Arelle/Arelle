@@ -3,6 +3,7 @@
 .DS_Store
 .eggs
 .python-version
+.ruff_cache
 .tox
 /.mypy_cache/
 /.pytest_cache/
