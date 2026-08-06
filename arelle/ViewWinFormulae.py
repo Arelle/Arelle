@@ -61,7 +61,7 @@ class ViewFormulae(ViewWinTree.ViewTree):
         self.id = 1
         self.clearTreeView()
         n = 1
-        for rootObject in sorted(rootFormulaObjects(self), key=formulaObjSortKey):  # type: ignore[no-untyped-call]
+        for rootObject in sorted(rootFormulaObjects(self), key=formulaObjSortKey):
             self.viewFormulaObjects("", rootObject, None, n, set())
             n += 1
         for cfQnameArity in sorted(qnameArity

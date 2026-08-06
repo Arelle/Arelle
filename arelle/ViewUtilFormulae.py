@@ -1,10 +1,18 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
+from __future__ import annotations
+
+from typing import Any
+
 from arelle import XbrlConst
 from arelle.ModelObject import ModelObject
+from arelle.typing import TypeGetText
 
-def rootFormulaObjects(view):
+_: TypeGetText
+
+
+def rootFormulaObjects(view: Any) -> set[ModelObject]:
     # relationship set based on linkrole parameter, to determine applicable linkroles
     view.allFormulaRelationshipsSet = view.modelXbrl.relationshipSet("XBRL-formulae")
     view.varSetFilterRelationshipSet = view.modelXbrl.relationshipSet(XbrlConst.variableSetFilter)
@@ -12,7 +20,7 @@ def rootFormulaObjects(view):
         view.modelXbrl.modelManager.addToLog(_("no relationships for XBRL formulae"))
         return set()
 
-    rootObjects = set( view.modelXbrl.modelVariableSets )
+    rootObjects = set(view.modelXbrl.modelVariableSets)
 
     # remove formulae under consistency assertions from root objects
     consisAsserFormulaRelSet = view.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula)
@@ -30,8 +38,8 @@ def rootFormulaObjects(view):
 
     return rootObjects
 
-def formulaObjSortKey(obj):
+def formulaObjSortKey(obj: ModelObject) -> str:
     try:
         return obj.xlinkLabel or ""
     except AttributeError:
-        return None
+        return ""

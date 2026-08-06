@@ -48,7 +48,7 @@ class ViewFormulae(ViewFile.View):
 
     def view(self) -> None:
         # determine relationships indent depth
-        rootObjects = rootFormulaObjects(self)  # type: ignore[no-untyped-call]
+        rootObjects = rootFormulaObjects(self)
         self.treeCols = 0
         for rootObject in rootObjects:
             self.treeDepth(rootObject, 1, set())

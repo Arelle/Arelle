@@ -167,7 +167,6 @@ module = [
     'arelle.ViewFileRenderedLayout',
     'arelle.ViewFileRssFeed',
     'arelle.ViewFileTests',
-    'arelle.ViewUtilFormulae',
     'arelle.ViewWinTests',
     'arelle.ViewWinXml',
     'arelle.archive.CustomLogger',
