@@ -99,7 +99,7 @@ def viewRenderedGrid(modelXbrl: ModelXbrl, tabWin: Notebook, lang: str | None = 
     view.viewFrame.bind("<Configure>", view.onConfigure, "+") # frame resized, redo column header wrap length ratios
     view.blockMenuEvents = 0
     if "saveTableStructuralModel" in modelXbrl.modelManager.formulaOptions.parameterValues:
-        ViewFileRenderedStructure.viewRenderedStructuralModel(modelXbrl,  # type: ignore[no-untyped-call]
+        ViewFileRenderedStructure.viewRenderedStructuralModel(modelXbrl,
               modelXbrl.modelManager.formulaOptions.parameterValues["saveTableStructuralModel"][1],  # type: ignore[index]
               lang=lang, sourceView=view)
     if "saveTableLayoutModel" in modelXbrl.modelManager.formulaOptions.parameterValues:
