@@ -1,4 +1,4 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
 
 StreamingExtensions is a plug-in to both GUI menu and command line/web service
@@ -13,7 +13,7 @@ Calls these plug-in classes:
    Streaming.Start(modelXbrl): notifies that streaming is starting for modelXbrl; simulated modelDocument is established
    Streaming.ValidateFacts(modelXbrl, modelFacts) modelFacts are available for streaming processing
    Streaming.Finish(modelXbrl): notifies that streaming is finished
-'''
+"""
 
 import io, os, time, sys, gc
 import regex as re
@@ -55,10 +55,10 @@ def childProcessingInstruction(elt, target, reversed=False):
 
 def precedingComment(elt):
     c = elt.getprevious()
-    comment = ''
+    comment = ""
     while c is not None:
         if isinstance(c, etree._Comment) and c.text:
-            comment = c.text + '\n' + comment
+            comment = c.text + "\n" + comment
         c = c.getprevious()
     return comment or None
 
@@ -81,7 +81,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     _file, = modelXbrl.fileSource.file(filepath, binary=True)
     startedAt = time.time()
     modelXbrl.profileActivity()
-    ''' this seems twice as slow as iterparse
+    """ this seems twice as slow as iterparse
     class instInfoTarget():
         def __init__(self, element_factory=None, parser=None):
             self.newTree = True
@@ -129,7 +129,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
         etree.parse(_file, parser=infoParser, base_url=filepath)
     except NotInstanceDocumentException:
         pass
-    '''
+    """
     foundErrors = False
     foundInstance = False
     streamingAspects = None
@@ -227,7 +227,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
         if incompatibleValidations:
             modelXbrl.error("streamingExtensions:incompatibleValidation",
                     _("Streaming instance validation does not support %(incompatibleValidations)s validation"),
-                    modelObject=modelXbrl, incompatibleValidations=', '.join(incompatibleValidations))
+                    modelObject=modelXbrl, incompatibleValidations=", ".join(incompatibleValidations))
             foundErrors = True
     if instInfoContext.error_log:
         foundErrors = True
@@ -264,7 +264,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     _streamingValidateFactsPlugin = (_streamingExtensionsValidate and
                                      any(True for pluginMethod in modelXbrl.modelManager.cntlr.plugins.hooks("Streaming.ValidateFacts")))
 
-    ''' this is very much slower than iterparse
+    """ this is very much slower than iterparse
     class modelLoaderTarget():
         def __init__(self, element_factory=None, parser=None):
             self.newTree = True
@@ -516,7 +516,7 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     _parser, _parserLookupName, _parserLookupClass = parser(modelXbrl, filepath, target=modelLoaderTarget())
     etree.parse(_file, parser=_parser, base_url=filepath)
     logSyntaxErrors(_parser)
-    '''
+    """
     # replace modelLoaderTarget with iterparse (as it now supports CustomElementClassLookup)
     streamingParserContext = etree.iterparse(_file, events=("start","end"), huge_tree=True)
     from arelle.ModelObjectFactory import setParserElementClassLookup
@@ -814,13 +814,13 @@ def dropObject(modelXbrl, mdlObj):
         mdlObj.modelDocument.idObjects.pop(mdlObj.id, None)
     mdlObj.clear()
 
-'''
+"""
 def streamingOptionsExtender(parser):
     parser.add_option("--check-streaming",
                       action="store_true",
                       dest="check_streaming",
                       help=_('Check streamability of instance document."'))
-'''
+"""
 
 def streamingExtensionsSetup(cntlr, options, *args, **kwargs):
     global _streamingExtensionsValidate
@@ -831,21 +831,21 @@ def streamingExtensionsSetup(cntlr, options, *args, **kwargs):
 def streamingExtensionsIsValidated(modelXbrl, *args, **kwargs):
     return getattr(modelXbrl, "_streamingExtensionValidated", False)
 
-'''
+"""
    Do not use _( ) in pluginInfo itself (it is applied later, after loading
-'''
+"""
 
 __pluginInfo__ = {
-    'name': 'Streaming Extensions Loader',
-    'version': '0.9',
-    'description': "This plug-in loads big XBRL instances without building a DOM in memory.  "
+    "name": "Streaming Extensions Loader",
+    "version": "0.9",
+    "description": "This plug-in loads big XBRL instances without building a DOM in memory.  "
                     "lxml iterparse parses XBRL directly into an object model without a DOM.  ",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
     # take out for now: 'CntlrCmdLine.Options': streamingOptionsExtender,
-    'CntlrCmdLine.Utility.Run': streamingExtensionsSetup,
-    'ModelDocument.PullLoader': streamingExtensionsLoader,
-    'ModelDocument.IsValidated': streamingExtensionsIsValidated,
+    "CntlrCmdLine.Utility.Run": streamingExtensionsSetup,
+    "ModelDocument.PullLoader": streamingExtensionsLoader,
+    "ModelDocument.IsValidated": streamingExtensionsIsValidated,
 }

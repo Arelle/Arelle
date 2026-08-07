@@ -10,12 +10,12 @@ def test_package_manager_init_first_pass():
     cntlr = Mock()
     PackageManager.init(cntlr, loadPackagesConfig=False)
     assert len(PackageManager.packagesConfig) == 2
-    assert 'packages' in PackageManager.packagesConfig
-    assert isinstance(PackageManager.packagesConfig.get('packages'), list)
-    assert len(PackageManager.packagesConfig.get('packages')) == 0
-    assert 'remappings' in PackageManager.packagesConfig
-    assert isinstance(PackageManager.packagesConfig.get('remappings'), dict)
-    assert len(PackageManager.packagesConfig.get('remappings')) == 0
+    assert "packages" in PackageManager.packagesConfig
+    assert isinstance(PackageManager.packagesConfig.get("packages"), list)
+    assert len(PackageManager.packagesConfig.get("packages")) == 0
+    assert "remappings" in PackageManager.packagesConfig
+    assert isinstance(PackageManager.packagesConfig.get("remappings"), dict)
+    assert len(PackageManager.packagesConfig.get("remappings")) == 0
     assert PackageManager._cntlr == cntlr
 
 
@@ -28,12 +28,12 @@ def test_package_manager_init_config_already_exists():
     PackageManager.close()
     PackageManager.init(cntlr, loadPackagesConfig=False)
     assert len(PackageManager.packagesConfig) == 2
-    assert 'packages' in PackageManager.packagesConfig
-    assert isinstance(PackageManager.packagesConfig.get('packages'), list)
-    assert len(PackageManager.packagesConfig.get('packages')) == 0
-    assert 'remappings' in PackageManager.packagesConfig
-    assert isinstance(PackageManager.packagesConfig.get('remappings'), dict)
-    assert len(PackageManager.packagesConfig.get('remappings')) == 0
+    assert "packages" in PackageManager.packagesConfig
+    assert isinstance(PackageManager.packagesConfig.get("packages"), list)
+    assert len(PackageManager.packagesConfig.get("packages")) == 0
+    assert "remappings" in PackageManager.packagesConfig
+    assert isinstance(PackageManager.packagesConfig.get("remappings"), dict)
+    assert len(PackageManager.packagesConfig.get("remappings")) == 0
     assert PackageManager._cntlr == cntlr
 
 
@@ -44,7 +44,7 @@ def test_package_manager_close():
     cntlr = Mock()
     PackageManager.init(cntlr, loadPackagesConfig=False)
     assert len(PackageManager.packagesMappings) == 0
-    PackageManager.packagesMappings['mapping'] = 'package'
+    PackageManager.packagesMappings["mapping"] = "package"
     PackageManager.close()
     assert len(PackageManager.packagesConfig) == 0
     assert len(PackageManager.packagesMappings) == 0
@@ -58,7 +58,7 @@ def test_package_manager_reset():
     cntlr = Mock()
     PackageManager.init(cntlr, loadPackagesConfig=False)
     assert len(PackageManager.packagesMappings) == 0
-    PackageManager.packagesMappings['mapping'] = 'package'
+    PackageManager.packagesMappings["mapping"] = "package"
     PackageManager.reset()
     assert len(PackageManager.packagesConfig) == 0
     assert len(PackageManager.packagesMappings) == 0

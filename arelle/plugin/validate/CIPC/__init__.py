@@ -24,31 +24,31 @@ from arelle.XbrlConst import xhtml, qnIXbrl11Hidden
 from .Const import cipcModules, mustNotBeHiddenElements
 
 cipcBlockedInlineHtmlElements = {
-    'object', 'script'}
+    "object", "script"}
 
 namePattern = re.compile(r"^(.*) - ((18|19|20)\d{2}-[0-9]+-(06|07|08|09|10|12|20|21|22|23|24|25|26|30|31)) - (20[1-9]\d)$")
 reportingModulePattern = re.compile(r"https?://xbrl.cipc.co.za/taxonomy/.*/\w*(ca_fas|full_ifrs|ifrs_for_smes)\w*[_-]20[12][0-9]-[0-9]{2}-[0-9]{2}.xsd")
 
 TRANSFORMATION_REGISTRY_3 = {
-    'namespace': 'http://www.xbrl.org/inlineXBRL/transformation/2015-02-26',
-    'boolean_transformations': {'booleanfalse', 'booleantrue'},
-    'version': '3'
+    "namespace": "http://www.xbrl.org/inlineXBRL/transformation/2015-02-26",
+    "boolean_transformations": {"booleanfalse", "booleantrue"},
+    "version": "3"
 }
 
 TRANSFORMATION_REGISTRY_5 = {
-    'namespace': 'http://www.xbrl.org/inlineXBRL/transformation/2022-02-16',
-    'boolean_transformations': {'fixed-false', 'fixed-true'},
-    'version': '5'
+    "namespace": "http://www.xbrl.org/inlineXBRL/transformation/2022-02-16",
+    "boolean_transformations": {"fixed-false", "fixed-true"},
+    "version": "5"
 }
 
 TR3_IFRS_NAMESPACES = {
-    'http://xbrl.ifrs.org/taxonomy/2016-03-31/ifrs-full',
-    'http://xbrl.ifrs.org/taxonomy/2017-03-09/ifrs-full',
-    'http://xbrl.ifrs.org/taxonomy/2018-03-16/ifrs-full',
-    'http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full',
-    'http://xbrl.ifrs.org/taxonomy/2020-03-16/ifrs-full',
-    'http://xbrl.ifrs.org/taxonomy/2021-03-24/ifrs-full',
-    'https://xbrl.ifrs.org/taxonomy/2022-03-24/ifrs-full'
+    "http://xbrl.ifrs.org/taxonomy/2016-03-31/ifrs-full",
+    "http://xbrl.ifrs.org/taxonomy/2017-03-09/ifrs-full",
+    "http://xbrl.ifrs.org/taxonomy/2018-03-16/ifrs-full",
+    "http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full",
+    "http://xbrl.ifrs.org/taxonomy/2020-03-16/ifrs-full",
+    "http://xbrl.ifrs.org/taxonomy/2021-03-24/ifrs-full",
+    "https://xbrl.ifrs.org/taxonomy/2022-03-24/ifrs-full"
 }
 
 
@@ -115,7 +115,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             _baseName, _baseExt = os.path.splitext(modelDocument.basename)
             if _baseExt not in (".xhtml",) or not namePattern.match(_baseName):
                 modelXbrl.warning("cipc:fileNameMalformed",
-                    _("FileName should have the pattern \"Co. name - regYr-regNbr-coCode - finYr.xhtml\": %(fileName)s"),
+                    _('FileName should have the pattern "Co. name - regYr-regNbr-coCode - finYr.xhtml": %(fileName)s'),
                     modelObject=modelXbrl, fileName=modelDocument.basename)
             rootElt = modelDocument.xmlRootElement
             if rootElt.tag not in ("{http://www.w3.org/1999/xhtml}html", "{http://www.w3.org/1999/xhtml}xhtml"):
@@ -138,7 +138,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                             modelObject=elt, element=eltTag)
                     if eltTag == "title" and not namePattern.match(elt.text):
                         modelXbrl.error("cipc:titleElementMalformed",
-                            _("Title element required to have the pattern \"Co. name - regYr-regNbr-coCode - finYr\": %(title)s"),
+                            _('Title element required to have the pattern "Co. name - regYr-regNbr-coCode - finYr": %(title)s'),
                             modelObject=elt, title=elt.text)
                     for attrTag, attrValue in elt.items():
                         if ((attrTag == "href" and eltTag == "a") or
@@ -153,8 +153,8 @@ def validateXbrlFinally(val, *args, **kwargs):
                     checkFootnote(elt, elt.value)
                 elif isinstance(elt, ModelInlineFact):
                     if elt.format is not None:
-                        if elt.format.namespaceURI == transform_registry['namespace']:
-                            if elt.format.localName in transform_registry['boolean_transformations'] and not elt.text:
+                        if elt.format.namespaceURI == transform_registry["namespace"]:
+                            if elt.format.localName in transform_registry["boolean_transformations"] and not elt.text:
                                 booleanFactsWithEmptyContent.add(elt)
                         else:
                             transformRegistryErrors.add(elt)
@@ -207,7 +207,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                             facts=", ".join(sorted(set(str(fact.qname) for fact in foundHiddenFacts)))
                             )
 
-        ''' checked by CIPC formula
+        """ checked by CIPC formula
         # build mandatory and footnoteIfNil tables by ns qname in use
         mandatory = set()
         for prefixedName in mandatoryElements[reportingModule]["mandatory"]:
@@ -248,13 +248,13 @@ def validateXbrlFinally(val, *args, **kwargs):
                             _("Required nil facts missing explanatory footnote: %(elements)s."),
                             modelObject=factsMandatoryNilWithoutFootnote,
                             elements=", ".join(sorted(str(fact.qname) for fact in factsMandatoryNilWithoutFootnote)))
-        '''
+        """
 
         if transformRegistryErrors:
             modelXbrl.warning("cipc:transformRegistry",
                               _("Transformation Registry %(tr_version)s should be for facts: %(elements)s."),
                               modelObject=transformRegistryErrors,
-                              tr_version=transform_registry['version'],
+                              tr_version=transform_registry["version"],
                               elements=", ".join(sorted(str(fact.qname) for fact in transformRegistryErrors)))
 
         if booleanFactsWithEmptyContent:
@@ -283,15 +283,15 @@ def validateXbrlFinally(val, *args, **kwargs):
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
-    'name': 'Validate CIPC',
-    'version': '1.0',
-    'description': '''CIPC (South Africa) Validation.''',
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "Validate CIPC",
+    "version": "1.0",
+    "description": """CIPC (South Africa) Validation.""",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'DisclosureSystem.Types': disclosureSystemTypes,
-    'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,
-    'Validate.XBRL.Start': validateXbrlStart,
-    'Validate.XBRL.Finally': validateXbrlFinally,
+    "DisclosureSystem.Types": disclosureSystemTypes,
+    "DisclosureSystem.ConfigURL": disclosureSystemConfigURL,
+    "Validate.XBRL.Start": validateXbrlStart,
+    "Validate.XBRL.Finally": validateXbrlFinally,
 }

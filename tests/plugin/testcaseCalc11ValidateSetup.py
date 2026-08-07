@@ -21,13 +21,13 @@ def testcaseVariationExpectedResult(modelTestcaseVariation):
 
 
 __pluginInfo__ = {
-    'name': 'Testcase obtain expected calc 11 mode from variation/result@mode',
-    'version': '0.9',
-    'description': "This plug-in removes xxx.  ",
-    'license': "Apache-2",
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "Testcase obtain expected calc 11 mode from variation/result@mode",
+    "version": "0.9",
+    "description": "This plug-in removes xxx.  ",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'TestcaseVariation.Xbrl.Loaded': testcaseVariationLoaded,
-    'ModelTestcaseVariation.ExpectedResult': testcaseVariationExpectedResult
+    "TestcaseVariation.Xbrl.Loaded": testcaseVariationLoaded,
+    "ModelTestcaseVariation.ExpectedResult": testcaseVariationExpectedResult
 }

@@ -1,4 +1,4 @@
-'''
+"""
 SphinxParser is an example of a package plug-in parser for the CoreFiling Sphinx language.
 
 See COPYRIGHT.md for copyright information.
@@ -7,7 +7,7 @@ Sphinx is a Rules Language for XBRL described by a Sphinx 2 Primer
 (c) Copyright 2012 CoreFiling, Oxford UK.
 Sphinx copyright applies to the Sphinx language, not to this software.
 Workiva, Inc. conveys neither rights nor license for the Sphinx language.
-'''
+"""
 
 import time, sys, os, os.path, zipfile
 import regex as re
@@ -56,7 +56,7 @@ def compileBinaryOperation( sourceStr, loc, toks ):
 def compileBrackets( sourceStr, loc, toks ):
     if len(toks) == 1:  # parentheses around an expression
         return astUnaryOperation(sourceStr, loc, "brackets", toks[0])
-    return astFunctionReference(sourceStr, loc, "list", [tok for tok in toks if tok != ','])
+    return astFunctionReference(sourceStr, loc, "list", [tok for tok in toks if tok != ","])
 
 def compileComment( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
@@ -443,7 +443,7 @@ class astHyperspaceAxis(astNode):
                     else:
                         self.name = self.aspect = axisQname
                 elif isinstance(tok, astVariableReference):
-                    self.name = '$' + tok.variableName
+                    self.name = "$" + tok.variableName
                     self.aspect = tok
                 elif tok in namedAxes:  # e.g., "primary"
                     self.name = tok
@@ -452,11 +452,11 @@ class astHyperspaceAxis(astNode):
             elif state in (STATE_EQ_VALUE, STATE_AS_EQ_VALUE):
                 if isinstance(tok, astNode):
                     self.restriction = [tok]
-                elif tok == '*':
+                elif tok == "*":
                     self.restriction = (NONDEFAULT,)
-                elif tok == '**':
+                elif tok == "**":
                     self.restriction = (DEFAULTorNONDEFAULT,)
-                elif tok == 'none':
+                elif tok == "none":
                     self.restriction = (DEFAULT,)
                 elif isinstance(tok, str):
                     self.restriction = [astQnameLiteral(sourceStr, loc, tok)]
@@ -500,13 +500,13 @@ class astHyperspaceExpression(astNode):
         self.isClosed = False
         self.axes = []
         for i, tok in enumerate(toks):
-            if tok in ('[', '[['):
+            if tok in ("[", "[["):
                 if i == 1:
                     self.axes.append(astHyperspaceAxis(sourceStr, loc,
                                                        ["primary", "=", toks[i-1]]))
-                self.isClosed = tok == '[['
-            elif tok in (']', ']]'):
-                if self.isClosed != tok == ']]':
+                self.isClosed = tok == "[["
+            elif tok in ("]", "]]"):
+                if self.isClosed != tok == "]]":
                     logMessage("ERROR", "sphinxCompiler:mismatchedClosed",
                         _("Axis restrictions syntax mismatches closed brackets."),
                         sourceFileLines=((sphinxFile, lineno(loc, sourceStr)),))
@@ -514,9 +514,9 @@ class astHyperspaceExpression(astNode):
                 self.axes.append(tok)
 
     def __repr__(self):
-        return "{0}{1}{2}".format({False:'[',True:'[['}[self.isClosed],
+        return "{0}{1}{2}".format({False:"[",True:"[["}[self.isClosed],
                                   "; ".join(str(axis) for axis in self.axes),
-                                  {False:']',True:']]'}[self.isClosed])
+                                  {False:"]",True:"]]"}[self.isClosed])
 
 class astIf(astNode):
     def __init__(self, sourceStr, loc, condition, thenExpr, elseExpr):
@@ -687,7 +687,7 @@ class astRule(astNode):
                 self.variableAssignments.append(node)
             else:
                 if prev in ("formula", "report", "raise"):
-                    self.name = currentPackage + '.' + node if currentPackage else node
+                    self.name = currentPackage + "." + node if currentPackage else node
                     self.expr = None
                 elif prev == "bind":  # formula only
                     self.bind = node
@@ -814,9 +814,9 @@ def compileSphinxGrammar( cntlr ):
     annotationName = Regex("@[A-Za-z\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD_]\\w*").set_name("annotationName").set_debug(debugParsing)
 
 
-    decimalPoint = Literal('.')
-    exponentLiteral = CaselessLiteral('e')
-    plusorminusLiteral = Literal('+') | Literal('-')
+    decimalPoint = Literal(".")
+    exponentLiteral = CaselessLiteral("e")
+    plusorminusLiteral = Literal("+") | Literal("-")
     digits = Word(nums)
     integerLiteral = Combine( Opt(plusorminusLiteral) + digits )
     decimalFractionLiteral = Combine( Opt(plusorminusLiteral) + decimalPoint + digits )
@@ -892,7 +892,7 @@ def compileSphinxGrammar( cntlr ):
                                                                              (inOp + expr) |
                                                                              (asOp + ncName + varAssign + wildOp + Opt( whereOp + expr ) ) ) ) )
                                                                   ).set_parse_action(compileHyperspaceAxis),
-                                                                delim=';')) + rPred).set_parse_action(compileHyperspaceExpression) |
+                                                                delim=";")) + rPred).set_parse_action(compileHyperspaceExpression) |
              ( variableRef ).set_parse_action(compileVariableReference)  |
              ( qName ).set_parse_action(compileQname) |
              ( Suppress(lParen) - expr - Opt( commaOp - Opt( expr - ZeroOrMore( commaOp - expr ) ) ) - Suppress(rParen) ).set_parse_action(compileBrackets)

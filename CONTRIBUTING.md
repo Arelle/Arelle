@@ -175,3 +175,25 @@ Stick to the [PEP8 guidelines][pep-0008] and use `mixedCase` for variable and fu
 names.
 
 [pep-0008]: https://www.python.org/dev/peps/pep-0008/
+
+#### Linting with Ruff
+
+Arelle uses [Ruff][ruff] to lint the codebase. Make sure you've installed the
+development dependencies (`pip install -r requirements-dev.txt`), then run the
+following from the root of the repository to check your changes:
+
+```
+ruff check
+```
+
+Many issues that Ruff detects can be fixed automatically. To have Ruff apply
+those fixes for you, run:
+
+```
+ruff check --fix
+```
+
+Review any automatic fixes before committing, since not every change is safe
+to apply blindly.
+
+[ruff]: https://docs.astral.sh/ruff/

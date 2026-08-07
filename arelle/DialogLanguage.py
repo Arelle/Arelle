@@ -17,9 +17,9 @@ from arelle.typing import TypeGetText
 
 _: TypeGetText
 
-'''
+"""
 allow user to override system language codes for user interface and labels
-'''
+"""
 
 
 def askLanguage(mainWin):
@@ -83,9 +83,9 @@ class DialogLanguage(Toplevel):
         label(frame, 0, 2, _("Labels:"))
         self.cbLabelLang = gridCombobox(frame, 1, 2, values=labelLanguageOptions, selectindex=self.labelLangIndex, columnspan=4)
         self.cbUiLang.focus_set()
-        self.cbDisableRtl = checkbox(frame, 0, 3,  _('Disable rtl String'), 'disableRtlSting')
-        ToolTip(self.cbDisableRtl, _('Disable reversing string read order for right to left languages, useful for some locale settings.'), wraplength=240)
-        self.cbDisableRtl.valueVar.set(self.mainWin.config.get('disableRtl', 0))
+        self.cbDisableRtl = checkbox(frame, 0, 3,  _("Disable rtl String"), "disableRtlSting")
+        ToolTip(self.cbDisableRtl, _("Disable reversing string read order for right to left languages, useful for some locale settings."), wraplength=240)
+        self.cbDisableRtl.valueVar.set(self.mainWin.config.get("disableRtl", 0))
         okButton = Button(frame, text=_("OK"), command=self.ok)
         cancelButton = Button(frame, text=_("Cancel"), command=self.close)
         okButton.grid(row=3, column=2, sticky=E, pady=3)
@@ -104,7 +104,7 @@ class DialogLanguage(Toplevel):
         self.wait_window(self)
 
     def ok(self, event=None):
-        self.mainWin.config['disableRtl'] = self.cbDisableRtl.value
+        self.mainWin.config["disableRtl"] = self.cbDisableRtl.value
         Locale.setDisableRTL(self.cbDisableRtl.value)
         labelLangIndex = self.cbLabelLang.valueIndex
         if labelLangIndex >= 0 and labelLangIndex != self.labelLangIndex: # changed

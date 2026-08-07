@@ -457,15 +457,15 @@ def saveSampleInstanceCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwa
 
 
 __pluginInfo__ = {
-    'name': 'Save Sample Instance',
-    'version': '0.9',
-    'description': "This plug-in saves a sample instance from a us-gaap style DTS. "
+    "name": "Save Sample Instance",
+    "version": "0.9",
+    "description": "This plug-in saves a sample instance from a us-gaap style DTS. "
                    "It uses an ELR's LineItems to control output facts.",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'CntlrWinMain.Menu.Tools': saveSampleInstanceMenuEntender,
-    'CntlrCmdLine.Options': saveSampleInstanceCommandLineOptionExtender,
-    'CntlrCmdLine.Xbrl.Run': saveSampleInstanceCommandLineXbrlRun,
+    "CntlrWinMain.Menu.Tools": saveSampleInstanceMenuEntender,
+    "CntlrCmdLine.Options": saveSampleInstanceCommandLineOptionExtender,
+    "CntlrCmdLine.Xbrl.Run": saveSampleInstanceCommandLineXbrlRun,
 }

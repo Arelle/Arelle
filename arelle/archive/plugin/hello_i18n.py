@@ -15,18 +15,18 @@ def menuCommand(cntlr):
     import tkinter
     tkinter.messagebox.showinfo(_("Prints 'Hello World'"), i10L_world, parent=cntlr.parent)
 
-'''
+"""
    Do not use _( ) in pluginInfo itself (it is applied later, after loading
-'''
+"""
 __pluginInfo__ = {
-    'name': 'Hello i18n',
-    'version': '0.9',
-    'description': '''Minimal plug-in that demonstrates i18n internationalization by localized gettext.''',
-    'localeURL': "locale",
-    'localeDomain': 'hello_i18n',
-    'license': 'Apache-2',
-    'author': 'R\u00e9gis D\u00e9camps',
-    'copyright': copyrightLabel,
+    "name": "Hello i18n",
+    "version": "0.9",
+    "description": """Minimal plug-in that demonstrates i18n internationalization by localized gettext.""",
+    "localeURL": "locale",
+    "localeDomain": "hello_i18n",
+    "license": "Apache-2",
+    "author": "R\u00e9gis D\u00e9camps",
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'CntlrWinMain.Menu.Tools': menuEntender
+    "CntlrWinMain.Menu.Tools": menuEntender
 }

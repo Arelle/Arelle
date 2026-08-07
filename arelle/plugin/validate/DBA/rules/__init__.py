@@ -101,7 +101,7 @@ def errorOnMandatoryFacts(
     if len(facts) == 0:
         yield Validation.error(
             code,
-            _('{} must be tagged in the document.').format(factQn.localName)
+            _("{} must be tagged in the document.").format(factQn.localName)
         )
 
 
@@ -118,7 +118,7 @@ def errorOnMultipleFacts(
     if len(facts) > 1:
         yield Validation.error(
             code,
-            _('{} must only be tagged once. {} facts were found.').format(factQn.localName, len(facts)),
+            _("{} must only be tagged once. {} facts were found.").format(factQn.localName, len(facts)),
             modelObject=facts
         )
 

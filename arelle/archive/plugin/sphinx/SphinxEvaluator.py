@@ -1,4 +1,4 @@
-'''
+"""
 sphinxEvaluator processes the Sphinx language in the context of an XBRL DTS and instance.
 
 See COPYRIGHT.md for copyright information.
@@ -7,7 +7,7 @@ Sphinx is a Rules Language for XBRL described by a Sphinx 2 Primer
 (c) Copyright 2012 CoreFiling, Oxford UK.
 Sphinx copyright applies to the Sphinx language, not to this software.
 Workiva, Inc. conveys neither rights nor license for the Sphinx language.
-'''
+"""
 
 import operator
 from .SphinxContext import HyperspaceBindings, HyperspaceBinding
@@ -31,7 +31,7 @@ class SphinxException(Exception):
         self.kwargs = kwargs
         self.args = ( self.__repr__(), )
     def __repr__(self):
-        return _('[{0}] exception: {1} at {2}').format(self.code, self.message % self.kwargs, self.node.sourceFileLine)
+        return _("[{0}] exception: {1} at {2}").format(self.code, self.message % self.kwargs, self.node.sourceFileLine)
 
 class SphinxSpecialValue:
     def __init__(self, name):
@@ -133,12 +133,12 @@ def evaluateBinaryOperation(node, sphinxContext):
         return (leftValue, rightValue)
     elif op in {"|+|", "|+", "+|", "+", "|-|", "|-", "-|", "-"}:
         if leftValue is UNBOUND:
-            if op[0] == '|':
+            if op[0] == "|":
                 raise StopIteration
             else:
                 leftValue = 0
         if rightValue is UNBOUND:
-            if op[-1] == '|':
+            if op[-1] == "|":
                 raise StopIteration
             else:
                 rightValue = 0
@@ -152,19 +152,19 @@ def evaluateBinaryOperation(node, sphinxContext):
         if op == "/" and rightValue == 0:  # prevent divide by zero
             return UNBOUND
     try:
-        result = {'+': operator.add, '-': operator.sub, '*': operator.mul, '/': operator.truediv,
-                  '<': operator.lt, '>': operator.gt, '<=': operator.le, '>=': operator.ge,
-                  '==': operator.eq, '!=': operator.ne,
-                  'and': operator.and_, 'or': operator.or_,
+        result = {"+": operator.add, "-": operator.sub, "*": operator.mul, "/": operator.truediv,
+                  "<": operator.lt, ">": operator.gt, "<=": operator.le, ">=": operator.ge,
+                  "==": operator.eq, "!=": operator.ne,
+                  "and": operator.and_, "or": operator.or_,
                   }[op](leftValue, rightValue)
         return result
     except KeyError:
         sphinxContext.modelXbrl.error("sphinx:error",
-             _("Operation \"%(op)s\" not implemented for %(node)s"),
+             _('Operation "%(op)s" not implemented for %(node)s'),
              sourceFileLine=node.sourceFileLine, op=op, node=str(node))
     except (TypeError, ZeroDivisionError) as err:
         sphinxContext.modelXbrl.error("sphinx:error",
-             _("Operation \"%(op)s\" raises exception %(error)s for %(node)s"),
+             _('Operation "%(op)s" raises exception %(error)s for %(node)s'),
              sourceFileLine=node.sourceFileLine, op=op, node=str(node), error=str(err))
     return None
 
@@ -412,7 +412,7 @@ def evaluateMessage(node, sphinxContext, resultTags, hsBindings):
         else:
             text.append(msgstr[i:])
             break
-    messageStr = ''.join(text)
+    messageStr = "".join(text)
     return messageStr.format(*args)
 
 def evaluateMethodReference(node, sphinxContext):
@@ -482,7 +482,7 @@ def evaluateRule(node, sphinxContext):
     isFormulaRule = isinstance(node, astFormulaRule)
     isReportRule = isinstance(node, astReportRule)
     name = (node.name or ("sphinx.report" if isReportRule else "sphinx.raise"))
-    nodeId = node.nodeTypeName + ' ' + name
+    nodeId = node.nodeTypeName + " " + name
     if node.precondition:
         result = evaluate(node.precondition, sphinxContext, value=True)
         if sphinxContext.formulaOptions.traceVariableSetExpressionResult:
@@ -609,8 +609,8 @@ def evaluateUnaryOperation(node, sphinxContext):
     if value is UNBOUND:
         return UNBOUND
     try:
-        result = {'+': operator.pos, '-': operator.neg, 'not': operator.not_,
-                  'values': noop,
+        result = {"+": operator.pos, "-": operator.neg, "not": operator.not_,
+                  "values": noop,
                   }[node.op](value)
         return result
     except KeyError:
@@ -693,11 +693,11 @@ def aspectName(aspect):
 
 def factAspectValue(fact, aspect, view=False):
     if fact is DEFAULT:
-        return 'none'
+        return "none"
     elif fact is NONDEFAULT:
-        return '*'
+        return "*"
     elif fact is DEFAULTorNONDEFAULT:
-        return '**'
+        return "**"
     elif aspect == Aspect.LOCATION:
         parentQname = fact.getparent().qname
         if parentQname == XbrlConst.qnXbrliXbrl: # not tuple
@@ -712,10 +712,10 @@ def factAspectValue(fact, aspect, view=False):
             return NONE
         measures = fact.unit.measures
         if measures[1]:
-            return "{0} / {1}".format(' '.join(str(m) for m in measures[0]),
-                                      ' '.join(str(m) for m in measures[1]))
+            return "{0} / {1}".format(" ".join(str(m) for m in measures[0]),
+                                      " ".join(str(m) for m in measures[1]))
         else:
-            return ' '.join(str(m) for m in measures[0])
+            return " ".join(str(m) for m in measures[0])
     else:
         context = fact.context
         if aspect == Aspect.PERIOD:
@@ -729,7 +729,7 @@ def factAspectValue(fact, aspect, view=False):
                 return context.entityIdentifier  # (scheme, identifier)
         elif aspect in (Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO,
                         Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO):
-            return ''.join(XmlUtil.xmlstring(elt, stripXmlns=True, prettyPrint=True)
+            return "".join(XmlUtil.xmlstring(elt, stripXmlns=True, prettyPrint=True)
                            for elt in context.nonDimValues(aspect))
         elif aspect == Aspect.DIMENSIONS:
             return context.dimAspects(fact.xpCtx.defaultDimensionAspects)

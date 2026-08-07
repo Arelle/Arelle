@@ -220,16 +220,16 @@ def validateXbrlFinally(val, *args, **kwargs):
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
-    'name': 'Validate FERC',
-    'version': '1.0',
-    'description': '''FERC (US) Validation.''',
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
-    'import': ('inlineXbrlDocumentSet', ), # import dependent modules
+    "name": "Validate FERC",
+    "version": "1.0",
+    "description": """FERC (US) Validation.""",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
+    "import": ("inlineXbrlDocumentSet", ), # import dependent modules
     # classes of mount points (required)
-    'DisclosureSystem.Types': disclosureSystemTypes,
-    'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,
-    'Validate.XBRL.Start': validateXbrlStart,
-    'Validate.XBRL.Finally': validateXbrlFinally,
+    "DisclosureSystem.Types": disclosureSystemTypes,
+    "DisclosureSystem.ConfigURL": disclosureSystemConfigURL,
+    "Validate.XBRL.Start": validateXbrlStart,
+    "Validate.XBRL.Finally": validateXbrlFinally,
 }

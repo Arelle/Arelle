@@ -1,8 +1,8 @@
-'''
+"""
 pluginPackages test case
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from arelle.Version import authorLabel, copyrightLabel
 # . relative import only works inside a package now, see https://www.python.org/dev/peps/pep-0366/
 # following two imports raise system error due to PEP 366 after python 3.4.3
@@ -31,17 +31,17 @@ def foo():
     print ("parent of imported unpackaged plug-ins")
 
 __pluginInfo__ = {
-    'name': 'Import Test Unpackaged Parent',
-    'version': '0.9',
-    'description': "This is a imports-containing unpackaged parent plugin.",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "Import Test Unpackaged Parent",
+    "version": "0.9",
+    "description": "This is a imports-containing unpackaged parent plugin.",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'CntlrWinMain.Menu.Tools': parentMenuEntender,
-    'CntlrCmdLine.Options': parentCommandLineOptionExtender,
-    'CntlrCmdLine.Utility.Run': parentCommandLineUtilityRun,
-    'Import.Unpackaged.Entry1': foo,
+    "CntlrWinMain.Menu.Tools": parentMenuEntender,
+    "CntlrCmdLine.Options": parentCommandLineOptionExtender,
+    "CntlrCmdLine.Utility.Run": parentCommandLineUtilityRun,
+    "Import.Unpackaged.Entry1": foo,
     # imported plugins
-    'import': ('importTestChild1.py', 'importTestChild2.py', "module_import_subtree")
+    "import": ("importTestChild1.py", "importTestChild2.py", "module_import_subtree")
 }

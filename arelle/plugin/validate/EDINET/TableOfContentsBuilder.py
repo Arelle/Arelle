@@ -21,16 +21,16 @@ _: TypeGetText
 # Figure "3-4-5 設定可能な目次番号の一覧" in "File Specification for EDINET Filing"
 # https://disclosure2dl.edinet-fsa.go.jp/guide/static/disclosure/download/ESE140104.pdf
 TOC_DIGITS = [
-    '一',
-    '二',
-    '三',
-    '四',
-    '五',
-    '六',
-    '七',
-    '八',
-    '九',
-    '十',
+    "一",
+    "二",
+    "三",
+    "四",
+    "五",
+    "六",
+    "七",
+    "八",
+    "九",
+    "十",
 ]
 FULL_WIDTH_DIGIT_MAP = {
     str(d): jaconv.h2z(str(d), kana=True, ascii=True, digit=True)
@@ -38,62 +38,62 @@ FULL_WIDTH_DIGIT_MAP = {
 }
 KATAKANA_GOJUON_SEQUENCE = [
     # a-column
-    'ア', 'イ', 'ウ', 'エ', 'オ',
+    "ア", "イ", "ウ", "エ", "オ",
     # k-column
-    'カ', 'キ', 'ク', 'ケ', 'コ',
+    "カ", "キ", "ク", "ケ", "コ",
     # s-column
-    'サ', 'シ', 'ス', 'セ', 'ソ',
+    "サ", "シ", "ス", "セ", "ソ",
     # t-column
-    'タ', 'チ', 'ツ', 'テ', 'ト',
+    "タ", "チ", "ツ", "テ", "ト",
     # n-column
-    'ナ', 'ニ', 'ヌ', 'ネ', 'ノ',
+    "ナ", "ニ", "ヌ", "ネ", "ノ",
     # h-column
-    'ハ', 'ヒ', 'フ', 'ヘ', 'ホ',
+    "ハ", "ヒ", "フ", "ヘ", "ホ",
     # m-column
-    'マ', 'ミ', 'ム', 'メ', 'モ',
+    "マ", "ミ", "ム", "メ", "モ",
     # y-column
-    'ヤ', 'ユ', 'ヨ',
+    "ヤ", "ユ", "ヨ",
     # r-column
-    'ラ', 'リ', 'ル', 'レ', 'ロ',
+    "ラ", "リ", "ル", "レ", "ロ",
     # w-column
-    'ワ', 'ヲ',
+    "ワ", "ヲ",
     # n-row
-    'ン'
+    "ン"
 ]
 TOC_NUMBER_SETS = {
     1: {
-        '第一部': [f'第{d}部' for d in TOC_DIGITS] + [f'第十{d}部' for d in TOC_DIGITS[:-1]] + ['第二十部']
+        "第一部": [f"第{d}部" for d in TOC_DIGITS] + [f"第十{d}部" for d in TOC_DIGITS[:-1]] + ["第二十部"]
     },
     2: {
-        '第１': [
-            '第' + ''.join(FULL_WIDTH_DIGIT_MAP[ddd] for ddd in dd)
+        "第１": [
+            "第" + "".join(FULL_WIDTH_DIGIT_MAP[ddd] for ddd in dd)
             for dd in [
                 str(d) for d in range(1, 61)
             ]
         ],
     },
     3: {
-        '１': [
-            ''.join(FULL_WIDTH_DIGIT_MAP[ddd] for ddd in dd)
+        "１": [
+            "".join(FULL_WIDTH_DIGIT_MAP[ddd] for ddd in dd)
             for dd in [
                 str(d) for d in range(1, 61)
             ]
         ],
     },
     4: {
-        '（１）': [
-            '（' + ''.join(FULL_WIDTH_DIGIT_MAP[ddd] for ddd in dd) + '）'
+        "（１）": [
+            "（" + "".join(FULL_WIDTH_DIGIT_MAP[ddd] for ddd in dd) + "）"
             for dd in [
                 str(d) for d in range(1, 61)
             ]
         ],
     },
     5: {
-        '①': [chr(ord('①') + d) for d in range(0, 20)],
-        f'（{KATAKANA_GOJUON_SEQUENCE[0]}）': [f'（{d}）' for d in KATAKANA_GOJUON_SEQUENCE],
+        "①": [chr(ord("①") + d) for d in range(0, 20)],
+        f"（{KATAKANA_GOJUON_SEQUENCE[0]}）": [f"（{d}）" for d in KATAKANA_GOJUON_SEQUENCE],
         KATAKANA_GOJUON_SEQUENCE[0]: KATAKANA_GOJUON_SEQUENCE,
-        '（ａ）': ['（' + chr(ord('ａ') + d) + '）' for d in range(0, 26)],
-        'ａ': [chr(ord('ａ') + d) for d in range(0, 26)],
+        "（ａ）": ["（" + chr(ord("ａ") + d) + "）" for d in range(0, 26)],
+        "ａ": [chr(ord("ａ") + d) for d in range(0, 26)],
     },
 }
 SHALLOWEST_LEVEL = min(TOC_NUMBER_SETS.keys())
@@ -138,7 +138,7 @@ class TableOfContentsBuilder:
             for elt in rootElt.iterdescendants():
                 if not isinstance(elt, ModelObject):
                     continue
-                if elt.elementQname.localName == 'title':
+                if elt.elementQname.localName == "title":
                     continue
                 if elt.text is not None:
                     self._element(elt)
@@ -224,7 +224,7 @@ class TableOfContentsBuilder:
         # EDINET.EC2001E: There must be at least one table of contents entry in each file.
         if self._tocEntryCount == 0:
             self._validations.append(Validation.error(
-                codes='EDINET.EC2001E',
+                codes="EDINET.EC2001E",
                 msg=_("The table of contents is not listed at the beginning. "
                       "File name: '%(path)s'. "
                       "Please provide the table of contents entry for the file."),
@@ -242,14 +242,14 @@ class TableOfContentsBuilder:
 
         number, label, tail, eltsInLabel, eltsBetweenNumAndLabel = self._getTextParts(elt)
 
-        textValue = ''.join(elt.textNodes())
+        textValue = "".join(elt.textNodes())
         if (
-                (label is None and ('【' in textValue or '】' in textValue)) or
-                (tail is not None and ('【' in tail or '】' in tail))
+                (label is None and ("【" in textValue or "】" in textValue)) or
+                (tail is not None and ("【" in tail or "】" in tail))
         ):
             self._validations.append(Validation.error(
-                codes='EDINET.EC2011E',
-                msg=_("\"【\" or \"】\" is used in the text. "
+                codes="EDINET.EC2011E",
+                msg=_('"【" or "】" is used in the text. '
                       "File name: '%(path)s' (line %(line)s). "
                       "Corner brackets (【】) cannot be used in the main text "
                       "except for the table of contents. Please delete the "
@@ -264,7 +264,7 @@ class TableOfContentsBuilder:
 
         if len(eltsInLabel) > 0:
             self._validations.append(Validation.error(
-                codes='EDINET.EC2008E',
+                codes="EDINET.EC2008E",
                 msg=_("The table of contents label contains HTML tags. "
                       "File name: '%(path)s' (line %(line)s). "
                       "HTML tags are not allowed in table of contents labels. "
@@ -279,11 +279,11 @@ class TableOfContentsBuilder:
                 for e in eltsBetweenNumAndLabel
         ):
             self._validations.append(Validation.error(
-                codes='EDINET.EC2009E',
+                codes="EDINET.EC2009E",
                 msg=_("An invalid tag is used between the table of contents number "
                       "and the table of contents item. "
                       "File name: '%(path)s' (line %(line)s). "
-                      "Please delete the tag (\"del\" or \"img\") used between the "
+                      'Please delete the tag ("del" or "img") used between the '
                       "table of contents number and the table of contents item of "
                       "the relevant file."),
                 path=elt.document.basename,
@@ -291,9 +291,9 @@ class TableOfContentsBuilder:
                 modelObject=elt,
             ))
 
-        if '【' in label[1:]:
+        if "【" in label[1:]:
             self._validations.append(Validation.error(
-                codes='EDINET.EC2004E',
+                codes="EDINET.EC2004E",
                 msg=_("The opening bracket (【) is repeated. "
                       "File name: '%(path)s' (line %(line)s). "
                       "When viewed in a browser, it is not possible to display "
@@ -304,10 +304,10 @@ class TableOfContentsBuilder:
                 modelObject=elt,
             ))
 
-        if '】' not in label:
+        if "】" not in label:
             # EDINET.EC2007E: The table of contents entries must be enclosed in square brackets (】).
             self._validations.append(Validation.error(
-                codes='EDINET.EC2007E',
+                codes="EDINET.EC2007E",
                 msg=_("The table of contents entry is not closed with '】'. "
                       "File name: '%(path)s' (line %(line)s). "
                       "Add a closing bracket (】) to match the open bracket (【) "
@@ -336,7 +336,7 @@ class TableOfContentsBuilder:
             for child in elt.iterchildren()
         ]
 
-        number = ''
+        number = ""
         label = None
         tail = None
         while len(textParts) > 0:
@@ -346,7 +346,7 @@ class TableOfContentsBuilder:
             if textElt is not None:
                 if number and label is None:
                     eltsBetweenNumAndLabel.append(textElt)
-                if label is not None and '】' not in label and tail is None:
+                if label is not None and "】" not in label and tail is None:
                     eltsInLabel.append(textElt)
 
             # If no text, move on
@@ -355,7 +355,7 @@ class TableOfContentsBuilder:
 
             if label is None:
                 # We're building the number
-                start, sep, end = text.partition('【')
+                start, sep, end = text.partition("【")
                 if sep:
                     number += start
                     label = sep  # Start the label
@@ -365,10 +365,10 @@ class TableOfContentsBuilder:
                     number += start
             elif tail is None:
                 # We're building the label
-                start, sep, end = text.partition('】')
+                start, sep, end = text.partition("】")
                 if sep:
                     label += start + sep
-                    tail = ''  # Start the tail
+                    tail = ""  # Start the tail
                     # Process the remainder of this text node next
                     textParts.insert(0, (None, end))
                 else:
@@ -443,7 +443,7 @@ class TableOfContentsBuilder:
                 # Note from documentation: Even if the data content is normal, it may be identified as an
                 # exception and a warning may be displayed.
                 yield Validation.warning(
-                    codes='EDINET.EC2002W',
+                    codes="EDINET.EC2002W",
                     msg=_("The table of contents number is not listed. "
                           "File name: '%(path)s' (line %(line)s). "
                           "Please include the table of contents number of the relevant file."),
@@ -470,7 +470,7 @@ class TableOfContentsBuilder:
                 # EDINET.EC3002E: Table of contents numbers for table of contents entries
                 # must not be repeated within the same hierarchy.
                 yield Validation.error(
-                    codes='EDINET.EC3002E',
+                    codes="EDINET.EC3002E",
                     msg=_("The table of contents number of the table of contents "
                           "item is duplicated in the same hierarchy. "
                           "File name: '%(path)s' (line %(line)s). "
@@ -486,7 +486,7 @@ class TableOfContentsBuilder:
                 # EDINET.EC3003E: There must be no gaps in the table of contents numbers
                 # within the same hierarchy.
                 yield Validation.error(
-                    codes='EDINET.EC3003E',
+                    codes="EDINET.EC3003E",
                     msg=_("There is a gap in the table of contents number "
                           "within the same hierarchy. "
                           "File name: '%(path)s' (line %(line)s). "
@@ -516,7 +516,7 @@ class TableOfContentsBuilder:
             # EDINET.EC3005E: The table of contents numbers for the table of contents
             # entries must be as specified in the format.
             yield Validation.error(
-                codes='EDINET.EC3005E',
+                codes="EDINET.EC3005E",
                 msg=_("The table of contents number for item '%(number)s %(label)s' is incorrect. "
                       "File name: '%(path)s' (line %(line)s). "
                       "Please correct the table of contents number of the "
@@ -560,7 +560,7 @@ class TableOfContentsBuilder:
                     # Note: Sample filings suggest this applies to entries that are
                     # siblings within the hierarchy.
                     yield Validation.error(
-                        codes='EDINET.EC2005E',
+                        codes="EDINET.EC2005E",
                         msg=_("The table of contents item ('%(label)s') is duplicated. "
                               "File name: '%(path)s' (line %(line)s). "
                               "Please remove the duplicate table of contents in the appropriate file."),
@@ -575,9 +575,9 @@ class TableOfContentsBuilder:
             if not self._isFloating():
                 # EDINET.EC2003E: The table of contents must be no longer than 384 bytes
                 # (equivalent to 128 full-width characters).
-                if len(label.encode('utf-8')) > 384:
+                if len(label.encode("utf-8")) > 384:
                     yield Validation.error(
-                        codes='EDINET.EC2003E',
+                        codes="EDINET.EC2003E",
                         msg=_("The table of contents entry exceeds 384 bytes. "
                               "File name: '%(path)s' (line %(line)s). "
                               "Please modify the table of contents of the relevant "

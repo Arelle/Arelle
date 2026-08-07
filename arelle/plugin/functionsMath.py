@@ -1,8 +1,8 @@
-'''
+"""
 Formula math functions plugin.
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 import math
@@ -15,9 +15,9 @@ from arelle.Version import authorLabel, copyrightLabel
 from arelle.formula.XPathParser import OperationDef
 from arelle.typing import EmptyTuple
 
-INF = float('inf')
-MINUSINF = float('-inf')
-NaN = float('nan')
+INF = float("inf")
+MINUSINF = float("-inf")
+NaN = float("nan")
 
 
 def xfm_pi(
@@ -293,12 +293,12 @@ def xfmMathFunctions() -> dict[
 
 
 __pluginInfo__ = {
-    'name': 'Formula Math Functions',
-    'version': '1.0',
-    'description': "This plug-in adds formula math functions.  ",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "Formula Math Functions",
+    "version": "1.0",
+    "description": "This plug-in adds formula math functions.  ",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'Formula.CustomFunctions': xfmMathFunctions,
+    "Formula.CustomFunctions": xfmMathFunctions,
 }

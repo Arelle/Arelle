@@ -1,11 +1,11 @@
-'''
+"""
 instanceInfo.py provides information about an XBRL instance
 
 See COPYRIGHT.md for copyright information.
 
 Operation with arelleCmdLine: --plugin instanceInfo -f entryUrl
 
-'''
+"""
 import sys, os, time, math, logging
 import regex as re
 from math import isnan
@@ -293,14 +293,14 @@ def showInfo(cntlr, options, modelXbrl, _entrypoint, *args, **kwargs):
 
 
 __pluginInfo__ = {
-    'name': 'Instance Info',
-    'version': '1.0',
-    'description': "This plug-in displays instance information for sizing and performance issues.",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
-    'import': ('inlineXbrlDocumentSet',),
+    "name": "Instance Info",
+    "version": "1.0",
+    "description": "This plug-in displays instance information for sizing and performance issues.",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
+    "import": ("inlineXbrlDocumentSet",),
     # classes of mount points (required)
-    'CntlrCmdLine.Filing.Start': startup,
-    'CntlrCmdLine.Xbrl.Loaded': showInfo
+    "CntlrCmdLine.Filing.Start": startup,
+    "CntlrCmdLine.Xbrl.Loaded": showInfo
 }

@@ -1,15 +1,15 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from tkinter import Toplevel, PhotoImage, N, S, E, W, EW, NW
 try:
     from tkinter.ttk import Label, Button, Frame
 except ImportError:
     from ttk import Label, Button, Frame
 from regex import match as re_match
-'''
+"""
 caller checks accepted, if True, caller retrieves url
-'''
+"""
 def about(parent, title, imageFile, body):
     dialog = DialogAbout(parent, title, imageFile, body)
     return None

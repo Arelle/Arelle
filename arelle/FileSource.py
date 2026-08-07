@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 import base64
@@ -31,14 +31,14 @@ if TYPE_CHECKING:
     from arelle.Cntlr import Cntlr
 
 
-archivePathSeparators = (".zip" + os.sep, ".xbr" + os.sep, ".xbri" + os.sep, ".tar.gz" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep, '.taxonomyPackage.xml' + os.sep) + \
-                        ((".zip/", ".tar.gz/", ".eis/", ".xml/", ".xfd/", ".frm/", '.taxonomyPackage.xml/') if os.sep != "/" else ()) #acomodate windows and http styles
+archivePathSeparators = (".zip" + os.sep, ".xbr" + os.sep, ".xbri" + os.sep, ".tar.gz" + os.sep, ".eis" + os.sep, ".xml" + os.sep, ".xfd" + os.sep, ".frm" + os.sep, ".taxonomyPackage.xml" + os.sep) + \
+                        ((".zip/", ".tar.gz/", ".eis/", ".xml/", ".xfd/", ".frm/", ".taxonomyPackage.xml/") if os.sep != "/" else ()) #acomodate windows and http styles
 
 archiveFilenameSuffixes = {".zip", ".xbr", ".xbri", ".tar.gz", ".eis", ".xml", ".xfd", ".frm"}
 
 SERVER_WEB_CACHE = os.sep + "_HTTP_CACHE"
 
-TAXONOMY_PACKAGE_FILE_NAMES = ('.taxonomyPackage.xml', 'catalog.xml') # pre-PWD packages
+TAXONOMY_PACKAGE_FILE_NAMES = (".taxonomyPackage.xml", "catalog.xml") # pre-PWD packages
 
 def openFileSource(
     filename: str | None,
@@ -112,7 +112,7 @@ def archiveFilenameParts(filename: str | None, checkIfXmlIsEis: bool = False) ->
             fileDir = filenameParts[0] + archiveSep[:-1]
             if (isHttpUrl(fileDir) or
                 os.path.isfile(fileDir)): # if local, be sure it is not a directory name
-                return (fileDir, filenameParts[2].replace('\\', '/'))
+                return (fileDir, filenameParts[2].replace("\\", "/"))
     return None
 
 class FileNamedStringIO(io.StringIO):  # provide string IO in memory but behave as a fileName string
@@ -121,7 +121,7 @@ class FileNamedStringIO(io.StringIO):  # provide string IO in memory but behave 
         self.fileName = fileName
 
     def close(self) -> None:
-        if hasattr(self, 'fileName'):
+        if hasattr(self, "fileName"):
             del self.fileName
         super().close()
 
@@ -142,7 +142,7 @@ class FileNamedBytesIO(io.BytesIO):  # provide Bytes IO in memory but behave as 
         self.fileName = fileName
 
     def close(self) -> None:
-        if hasattr(self, 'fileName'):
+        if hasattr(self, "fileName"):
             del self.fileName
         super().close()
 
@@ -203,7 +203,7 @@ class FileSource:
                 else:
                     basefile = self.url
                 if basefile:
-                    with openFileStream(self.cntlr, basefile, 'rb') as fileStream:
+                    with openFileStream(self.cntlr, basefile, "rb") as fileStream:
                         self.isZip = zipfile.is_zipfile(fileStream)
             except OSError:
                 # Can't load self.url content. It's not a zip file.
@@ -226,7 +226,7 @@ class FileSource:
                     _filename = self.cntlr.webCache.getfilename(
                         self.cntlr.modelManager.disclosureSystem.mappedUrl(self.url))
                     assert _filename is not None
-                    file = open(_filename, errors='replace')
+                    file = open(_filename, errors="replace")
                     l = file.read(256) # may have comments before first element
                     file.close()
                     if re.match(r"\s*(<[?]xml[^?]+[?]>)?\s*(<!--.*-->\s*)*<(cor[a-z]*:|sdf:|\w+:)?edgarSubmission", l):
@@ -258,7 +258,7 @@ class FileSource:
             if self.isZip:
                 try:
                     assert isinstance(self.basefile, str)
-                    fileStream = openFileStream(self.cntlr, self.basefile, 'rb')
+                    fileStream = openFileStream(self.cntlr, self.basefile, "rb")
                     self.fs = zipfile.ZipFile(fileStream, mode="r")
                     self.isOpen = True
                 except (OSError, zipfile.BadZipFile) as err:
@@ -276,10 +276,10 @@ class FileSource:
                     pass
             elif self.isEis:
                 # check first line of file
-                buf = b''
+                buf = b""
                 try:
                     assert isinstance(self.basefile, str)
-                    file: io.BufferedReader | io.BytesIO | io.StringIO | None = open(self.basefile, 'rb')
+                    file: io.BufferedReader | io.BytesIO | io.StringIO | None = open(self.basefile, "rb")
                     assert isinstance(file, (io.BufferedReader, io.BytesIO))
                     while True:
                         l = file.read(8)
@@ -321,9 +321,9 @@ class FileSource:
             elif self.isXfd:
                 # check first line of file
                 assert isinstance(self.basefile, str)
-                file = open(self.basefile, 'rb')
+                file = open(self.basefile, "rb")
                 firstline = file.readline()
-                if firstline.startswith(b"application/x-xfdl;content-encoding=\"asc-gzip\""):
+                if firstline.startswith(b'application/x-xfdl;content-encoding="asc-gzip"'):
                     # file has been gzipped
                     base64input = file.read(-1)
                     file.close()
@@ -403,7 +403,7 @@ class FileSource:
                                                                    os.sep.join(os.path.split(metadata)[:-1]) + os.sep,
                                                                    errors=errors)
                 assert self.taxonomyPackage is not None
-                self.mappedPaths = cast('dict[str, str]', self.taxonomyPackage.get("remappings"))
+                self.mappedPaths = cast("dict[str, str]", self.taxonomyPackage.get("remappings"))
 
     def openZipStream(self, sourceZipStream: BinaryIO) -> None:
         if not self.isOpen:
@@ -513,13 +513,13 @@ class FileSource:
     def fileSourceContainingFilepath(self, filepath: str | None) -> FileSource | None:
         if self.isOpen:
             # archiveFiles = self.dir
-            ''' change to return file source if archive would be in there (vs actually is in archive)
+            """ change to return file source if archive would be in there (vs actually is in archive)
             if ((filepath.startswith(self.basefile) and
                  filepath[len(self.basefile) + 1:] in archiveFiles) or
                 (filepath.startswith(self.baseurl) and
                  filepath[len(self.baseurl) + 1:] in archiveFiles)):
                 return self
-            '''
+            """
             assert isinstance(filepath, str)
             assert isinstance(self.basefile, str)
             assert isinstance(self.baseurl, str)
@@ -548,10 +548,10 @@ class FileSource:
         stripDeclaration: bool = False,
         encoding: str | None = None,
     ) -> tuple[io.BytesIO | IO[Any]] | tuple[TextIO, str | None]:
-        '''
+        """
             for text, return a tuple of (open file handle, encoding)
             for binary, return a tuple of (open file handle, )
-        '''
+        """
         archiveFileSource = self.fileSourceContainingFilepath(filepath)
         if archiveFileSource is not None:
             assert isinstance(archiveFileSource.basefile, str)
@@ -664,9 +664,9 @@ class FileSource:
             if fileResult is not None:
                 return fileResult # type: ignore[no-any-return]
         if binary:
-            return (openFileStream(self.cntlr, filepath, 'rb'), )
+            return (openFileStream(self.cntlr, filepath, "rb"), )
         elif encoding:
-            return (openFileStream(self.cntlr, filepath, 'rt', encoding=encoding), )
+            return (openFileStream(self.cntlr, filepath, "rt", encoding=encoding), )
         else:
             return openXmlFileStream(self.cntlr, filepath, stripDeclaration)
 
@@ -679,7 +679,7 @@ class FileSource:
             return os.path.getsize(self.basefile)
         # ZipFile.fp is a private field, but is currently the simplest way for us to
         # access the internal stream
-        if isinstance(self.fs, zipfile.ZipFile) and (fp := getattr(self.fs, 'fp')) is not None:
+        if isinstance(self.fs, zipfile.ZipFile) and (fp := getattr(self.fs, "fp")) is not None:
             stream = cast(IO[Any], fp)
             stream.seek(0, 2)  # Move to the end of the file
             return stream.tell()  # Report the current position, which is the size of the file
@@ -728,7 +728,7 @@ class FileSource:
             return self.filesDir
         elif self.isZip:
             assert isinstance(self.fs, zipfile.ZipFile)
-            self.isZipBackslashed = any('\\' in zinfo.orig_filename for zinfo in self.fs.infolist())
+            self.isZipBackslashed = any("\\" in zinfo.orig_filename for zinfo in self.fs.infolist())
             self.filesDir = self.fs.namelist()
         elif self.isTarGz:
             assert isinstance(self.fs, tarfile.TarFile)
@@ -748,7 +748,7 @@ class FileSource:
                 outfn = data.findtext("filename")
                 if outfn:
                     if len(outfn) > 2 and outfn[0].isalpha() and \
-                        outfn[1] == ':' and outfn[2] == '\\':
+                        outfn[1] == ":" and outfn[2] == "\\":
                         continue
                     files.append(outfn)
             self.filesDir = files
@@ -822,7 +822,7 @@ class FileSource:
         if not baseurl or isHttpUrl(selection) or isLegacyAbs(selection):
             return selection
         assert isinstance(baseurl, str)
-        if self.baseIsHttp or os.sep == '/':
+        if self.baseIsHttp or os.sep == "/":
             return baseurl + "/" + selection
         # MSFT os.sep == '\\'
         return baseurl + os.sep + selection.replace("/", os.sep)
@@ -865,7 +865,7 @@ def openFileStream(
         ): # may be called early in initialization for PluginManager
         filepath = cntlr.modelManager.disclosureSystem.mappedUrl(filepath)
     if archiveFilenameParts(filepath): # file is in an archive
-        return openFileSource(filepath, cntlr).file(filepath, binary='b' in mode, encoding=encoding)[0]
+        return openFileSource(filepath, cntlr).file(filepath, binary="b" in mode, encoding=encoding)[0]
     if isHttpUrl(filepath) and cntlr:
         _cacheFilepath = cntlr.webCache.getfilename(
             cntlr.modelManager.disclosureSystem.mappedUrl(filepath), normalize=True) # normalize is separate step in ModelDocument retrieval, combined here
@@ -873,7 +873,7 @@ def openFileStream(
             raise OSError(_("Unable to open file: {0}.").format(filepath))
         filepath = _cacheFilepath
     if not filepath and cntlr:
-        raise OSError(_("Unable to open file: \"{0}\".").format(filepath))
+        raise OSError(_('Unable to open file: "{0}".').format(filepath))
     # file path may be server (or memcache) or local file system
     if filepath.startswith(SERVER_WEB_CACHE) and cntlr:
         filestream = None
@@ -888,14 +888,14 @@ def openFileStream(
                                     filestream=filestream)
             if cntlr.isGAE:
                 gaeSet(cacheKey, filestream.getvalue())
-        if mode.endswith('t') or encoding:
+        if mode.endswith("t") or encoding:
             contents = filestream.getvalue()
             filestream.close()
-            filestream = FileNamedStringIO(filepath, contents.decode(encoding or 'utf-8'))
+            filestream = FileNamedStringIO(filepath, contents.decode(encoding or "utf-8"))
         return filestream
     # local file system
-    elif encoding is None and 'b' not in mode:
-        openedFileStream = io.open(filepath, mode='rb')
+    elif encoding is None and "b" not in mode:
+        openedFileStream = io.open(filepath, mode="rb")
         hdrBytes = openedFileStream.read(512)
         encoding = XmlUtil.encoding(hdrBytes)
         openedFileStream.close()
@@ -908,32 +908,32 @@ def openXmlFileStream(
     cntlr: Cntlr | None, filepath: str, stripDeclaration: bool = False
 ) -> tuple[TextIO, str]:
     # returns tuple: (fileStream, encoding)
-    openedFileStream = openFileStream(cntlr, filepath, 'rb')
+    openedFileStream = openFileStream(cntlr, filepath, "rb")
 
     # check encoding
     hdrBytes = openedFileStream.read(512)
     encoding = XmlUtil.encoding(hdrBytes,
                                 default=cntlr.modelManager.disclosureSystem.defaultXmlEncoding
-                                        if cntlr else 'utf-8')
+                                        if cntlr else "utf-8")
     # encoding default from disclosure system could be None
-    if encoding.lower() in ('utf-8','utf8','utf-8-sig') and (cntlr is None or not cntlr.isGAE) and not stripDeclaration:
+    if encoding.lower() in ("utf-8","utf8","utf-8-sig") and (cntlr is None or not cntlr.isGAE) and not stripDeclaration:
         text = None
         openedFileStream.close()
     else:
         openedFileStream.seek(0)
-        text = openedFileStream.read().decode(encoding or 'utf-8')
+        text = openedFileStream.read().decode(encoding or "utf-8")
         openedFileStream.close()
         # allow filepath to close
     # this may not be needed for Mac or Linux, needs confirmation!!!
     if text is None:  # ok to read as utf-8
-        return open(filepath, encoding=encoding or 'utf-8'), encoding
+        return open(filepath, encoding=encoding or "utf-8"), encoding
     else:
         if stripDeclaration:
             text = stripDeclarationText(text)
         return (FileNamedStringIO(filepath, initial_value=text), encoding)
 
 def stripDeclarationBytes(xml: bytes, encoding: str | None) -> bytes:
-    if encoding is not None and not encoding.lower().startswith('utf-8'):
+    if encoding is not None and not encoding.lower().startswith("utf-8"):
         text = xml.decode(encoding)
         text = stripDeclarationText(text)
         return text.encode(encoding)
@@ -956,7 +956,7 @@ def stripDeclarationText(text: str) -> str:
     return text
 
 
-def saveFile(cntlr: Cntlr, filepath: str, contents: str, encoding: str | None = None, mode: str='wt') -> None:
+def saveFile(cntlr: Cntlr, filepath: str, contents: str, encoding: str | None = None, mode: str="wt") -> None:
     if isHttpUrl(filepath):
         _cacheFilepath = cntlr.webCache.getfilename(filepath)
         if _cacheFilepath is None:
@@ -966,12 +966,12 @@ def saveFile(cntlr: Cntlr, filepath: str, contents: str, encoding: str | None = 
     if filepath.startswith(SERVER_WEB_CACHE):
         cacheKey = filepath[len(SERVER_WEB_CACHE) + 1:].replace("\\","/")
         if cntlr.isGAE: # check if in memcache
-            gaeSet(cacheKey, contents.encode(encoding or 'utf-8'))
+            gaeSet(cacheKey, contents.encode(encoding or "utf-8"))
     else:
         _dirpath = os.path.dirname(filepath)
         if not os.path.exists(_dirpath): # directory must exist before io.open
             os.makedirs(_dirpath)
-        with open(filepath, mode, encoding=(encoding or 'utf-8')) as f:
+        with open(filepath, mode, encoding=(encoding or "utf-8")) as f:
             f.write(contents)
 
 # GAE Blobcache
@@ -1001,7 +1001,7 @@ def gaeGet(key: str) -> bytes | None:
                 return None
             chunks.append(chunk)
     try:
-        return zlib.decompress(b''.join(chunks)) # must be bytes join, not unicode
+        return zlib.decompress(b"".join(chunks)) # must be bytes join, not unicode
     except zlib.error:
         return None
 
@@ -1046,7 +1046,7 @@ def gaeSet(key: str, bytesValue: bytes) -> bool: # stores bytes, not string valy
         # the random suffix is used as a counter-measure for distinction
         # between different values, which can be simultaneously written
         # under the same key.
-        chunkKey = '%s%d%d' % (key, pos, random.getrandbits(31))
+        chunkKey = "%s%d%d" % (key, pos, random.getrandbits(31))
         isSuccess = gaeMemcache.set(chunkKey, chunk, time=GAE_EXPIRE_WEEK)
         if not isSuccess:
             return False

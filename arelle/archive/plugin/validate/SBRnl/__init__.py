@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 import os
 from arelle import ModelDocument, ModelValue, XmlUtil
 from arelle.ModelValue import qname
@@ -58,18 +58,18 @@ def validateXbrlDtsDocument(val, modelDocument, isFilingDocument, *args, **kwarg
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
-    'name': 'Validate SBR NL',
-    'version': '1.0',
-    'description': '''SBR NL Validation.''',
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "Validate SBR NL",
+    "version": "1.0",
+    "description": """SBR NL Validation.""",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'DisclosureSystem.Types': disclosureSystemTypes,
-    'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,
-    'Validate.XBRL.Start': validateXbrlStart,
-    'Validate.XBRL.Finally': validateXbrlFinally,
-    'Validate.XBRL.DTS.document': validateXbrlDtsDocument,
-    'Validate.Finally': validateFinally,
-    'ModelDocument.CustomLoader': checkForBOMs
+    "DisclosureSystem.Types": disclosureSystemTypes,
+    "DisclosureSystem.ConfigURL": disclosureSystemConfigURL,
+    "Validate.XBRL.Start": validateXbrlStart,
+    "Validate.XBRL.Finally": validateXbrlFinally,
+    "Validate.XBRL.DTS.document": validateXbrlDtsDocument,
+    "Validate.Finally": validateFinally,
+    "ModelDocument.CustomLoader": checkForBOMs
 }

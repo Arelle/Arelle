@@ -29,7 +29,7 @@ arelle_command = args.arelle
 arelle_offline = args.offline
 working_directory = Path(args.working_directory)
 test_directory = Path(args.test_directory)
-report_zip_path = test_directory / 'TC2_invalid.zip'
+report_zip_path = test_directory / "TC2_invalid.zip"
 arelle_log_file = prepare_logfile(test_directory, this_file)
 print(f"Downloading report: {report_zip_path}")
 download_from_public_s3(
@@ -50,7 +50,7 @@ download_assets(
 )
 package_paths = [str(a.full_local_path) for a in package_assets]
 
-contents = b''
+contents = b""
 port = 8100
 log_xml_bytes = None
 with run_arelle_webserver(arelle_command, port, offline=arelle_offline) as proc:
@@ -58,7 +58,7 @@ with run_arelle_webserver(arelle_command, port, offline=arelle_offline) as proc:
     url += "&plugins=validate/ESEF"
     url += "&disclosureSystemName=esef-2024"
     url += f"&logFile={urllib.parse.quote_plus(str(arelle_log_file))}"
-    url += "&packages=" + '|'.join(urllib.parse.quote_plus(str(p)) for p in package_paths)
+    url += "&packages=" + "|".join(urllib.parse.quote_plus(str(p)) for p in package_paths)
     url += "&parameters=authority=SE"
     print(f"Validating: {url}")
     with open(report_zip_path, "rb") as f:
@@ -66,7 +66,7 @@ with run_arelle_webserver(arelle_command, port, offline=arelle_offline) as proc:
         response = requests.post(url, files=files)
     response.raise_for_status()
     contents = response.content
-    with open(arelle_log_file, 'x') as file:
+    with open(arelle_log_file, "x") as file:
         log_xml_bytes = contents
         file.write(log_xml_bytes.decode())
 
@@ -75,11 +75,11 @@ if "[info] Activation of plug-in Validate ESMA ESEF successful" not in contents.
 
 print("Checking log XML for errors...")
 errors += validate_log_xml(log_xml_bytes, expected_results={
-    'error': {
-        regex.compile(r'.*\[ESEF\.2\.2\.1\.precisionAttributeUsed] .*'): 1
+    "error": {
+        regex.compile(r".*\[ESEF\.2\.2\.1\.precisionAttributeUsed] .*"): 1
     },
-    'info': {
-        regex.compile(r'.*\[arelle\.ESEF\.reportPackageSize] The exact report package zipped .*'): 1
+    "info": {
+        regex.compile(r".*\[arelle\.ESEF\.reportPackageSize] The exact report package zipped .*"): 1
     }
 })
 
@@ -87,6 +87,6 @@ assert_result(errors)
 
 print("Cleaning up")
 try:
-    os.unlink(working_directory / 'webserver_validate_esef' / 'TC2_invalid.zip')
+    os.unlink(working_directory / "webserver_validate_esef" / "TC2_invalid.zip")
 except PermissionError as exc:
     print(f"Failed to cleanup test files: {exc}")

@@ -12,13 +12,13 @@ from arelle.XmlUtil import (
 
 
 def test_opaque_uris_not_path_normed():
-    uri = 'data:image/png;base64,iVBORw0K//a'
-    elt_attrs = {'src': uri}
+    uri = "data:image/png;base64,iVBORw0K//a"
+    elt_attrs = {"src": uri}
     elt = Mock(
         spec=ModelObject,
 
-        localName='img',
-        namespaceURI='http://www.w3.org/1999/xhtml',
+        localName="img",
+        namespaceURI="http://www.w3.org/1999/xhtml",
         modelDocument=Mock(htmlBase=None),
         prefix=None,
 

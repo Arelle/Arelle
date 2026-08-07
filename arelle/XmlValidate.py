@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 import datetime
@@ -416,7 +416,7 @@ def validate(
                         modelObject=elt,
                         element=qnElt,
                         typeName=baseXsdType,
-                        attributes=','.join(str(a) for a in missingAttributes))
+                        attributes=",".join(str(a) for a in missingAttributes))
                 extraAttributes = presentAttributes - definedAttributes.keys() - XbrlConst.builtinAttributes
                 if extraAttributes:
                     attributeWildcards = modelType.attributeWildcards
@@ -431,7 +431,7 @@ def validate(
                             modelObject=elt,
                             element=qnElt,
                             typeName=baseXsdType,
-                            attributes=','.join(str(a) for a in extraAttributes))
+                            attributes=",".join(str(a) for a in extraAttributes))
                 # add default attribute values
                 for attrQname in (modelType.defaultAttributeQnames - presentAttributes):
                     modelAttr = modelType.attributes[attrQname]
@@ -473,7 +473,7 @@ def validate(
                     raise ex
                     #pass  # HF Why is this here????
     if recurse: # if there is no complex or simple type (such as xbrli:measure) then this code is used
-        for child in (cast('ModelFact', elt).modelTupleFacts if ixFacts and isIxFact else elt):
+        for child in (cast("ModelFact", elt).modelTupleFacts if ixFacts and isIxFact else elt):
             if isinstance(child, ModelObject):
                 validate(modelXbrl, child, recurse, attrQname, ixFacts, setTargetModelXbrl)
 
@@ -1047,12 +1047,12 @@ def lxmlSchemaValidate(modelDocument: ModelDocument, extraSchema : str | None = 
             for e in err.error_log:
                 if not any(s in e.message for s in (": The QName value", "is not a valid value of the atomic type 'xs:QName'")):
                     # do newer lxml validations have QName whitespace collapsing issue?
-                    userFriendlyElementPath = ''
+                    userFriendlyElementPath = ""
                     errorElements = docTree.xpath(e.path, namespaces=nsmap)  # type: ignore[arg-type]
                     if len(errorElements) == 1:
                         userFriendlyElementPath = docTree.getelementpath(errorElements[0])
                         for prefix, namespace in docTree.getroot().nsmap.items():
-                            replacementText = f"{prefix}:" if prefix else ''
+                            replacementText = f"{prefix}:" if prefix else ""
                             userFriendlyElementPath = userFriendlyElementPath.replace(f"{{{namespace}}}", replacementText)
                     msgCode = f"lxml.{e.type_name}"
                     cntlr.addToLog(_("XML file syntax error %(error)s, line %(sourceLine)s, path '%(path)s', xpath '%(xpath)s'"),

@@ -18,13 +18,13 @@ def getBuildVersion() -> str | None:
 
 
 def getGitTag() -> str | None:
-    return tryRunCommand('git', 'describe', '--tags')
+    return tryRunCommand("git", "describe", "--tags")
 
 def getGitHash() -> str | None:
-    return tryRunCommand('git', 'rev-parse', 'HEAD')
+    return tryRunCommand("git", "rev-parse", "HEAD")
 
 def getDefaultVersion() -> str:
-    return '0.0.0'
+    return "0.0.0"
 
 
 def getVersion() -> str:
@@ -32,10 +32,10 @@ def getVersion() -> str:
         fetched_version = version_fetcher()
         if fetched_version is not None:
             return fetched_version
-    raise ValueError('Version not set')
+    raise ValueError("Version not set")
 
 
 __version__ = getVersion()
 version = __version__
-authorLabel = 'Workiva, Inc.'
-copyrightLabel = '(c) Copyright 2011-present Workiva, Inc., All rights reserved.'
+authorLabel = "Workiva, Inc."
+copyrightLabel = "(c) Copyright 2011-present Workiva, Inc., All rights reserved."

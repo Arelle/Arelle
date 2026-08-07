@@ -1,9 +1,9 @@
-'''
+"""
 Save CHComponentFile is an example of a plug-in to both GUI menu and command line/web service
 that will save the presentation tree of concepts in Charlie Hoffman's Component schema.
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
 
 from arelle.ModelDtsObject import ModelConcept, ModelRelationship
 from arelle import XbrlConst
@@ -15,11 +15,11 @@ def generateCHComponent(dts, componentFile):
         return
     import os, io
     from arelle import XmlUtil, XbrlConst
-    file = io.StringIO('''
+    file = io.StringIO("""
 <nsmap>
   <Component/>
 </nsmap>
-'''
+"""
      )
     from arelle.ModelObjectFactory import parser
     parser, parserLookupName, parserLookupClass = parser(dts,None)
@@ -158,15 +158,15 @@ def saveCHComponentCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs
 
 
 __pluginInfo__ = {
-    'name': 'Save CH Component',
-    'version': '0.9',
-    'description': "This plug-in adds a feature to output a Charlie Hoffman Component file. "
+    "name": "Save CH Component",
+    "version": "0.9",
+    "description": "This plug-in adds a feature to output a Charlie Hoffman Component file. "
                    "This provides a semantic definition of taxonomy contents.",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'CntlrWinMain.Menu.Tools': saveCHComponentMenuEntender,
-    'CntlrCmdLine.Options': saveCHComponentCommandLineOptionExtender,
-    'CntlrCmdLine.Xbrl.Run': saveCHComponentCommandLineXbrlRun,
+    "CntlrWinMain.Menu.Tools": saveCHComponentMenuEntender,
+    "CntlrCmdLine.Options": saveCHComponentCommandLineOptionExtender,
+    "CntlrCmdLine.Xbrl.Run": saveCHComponentCommandLineXbrlRun,
 }

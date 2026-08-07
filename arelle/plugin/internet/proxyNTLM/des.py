@@ -28,7 +28,7 @@ class DES:
         ""
         k = str_to_key56(key_str)
         k = key56_to_key64(k)
-        key_str = b''
+        key_str = b""
         for i in k:
             key_str += bytes((i & 0xFF, ))
         self.des_c_obj = des_c.DES(key_str)
@@ -47,16 +47,16 @@ class DES:
 #Some Helpers
 #---------------------------------------------------------------------
 
-DESException = 'DESException'
+DESException = "DESException"
 
 #---------------------------------------------------------------------
 def str_to_key56(key_str):
     ""
-    if type(key_str) != type(''):
+    if type(key_str) != type(""):
         #rise DESException, 'ERROR. Wrong key type.'
         pass
     if len(key_str) < 7:
-        key_str = key_str + b'\000\000\000\000\000\000\000'[:(7 - len(key_str))]
+        key_str = key_str + b"\000\000\000\000\000\000\000"[:(7 - len(key_str))]
     key_56 = []
     for i in key_str[:7]: key_56.append(i)
 

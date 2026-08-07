@@ -16,100 +16,100 @@ from arelle.ModelXbrl import ModelXbrl
 from arelle.XmlValidateConst import VALID
 
 # Error codes
-CH_AUDIT = 'Char.Audit'
-CH_CHAR_FUND = 'Char.CharFund'
-CH_DIR_REP = 'Char.DirReport'
-CH_DIR_RESP = 'Char.DirResp'
-CO_ABRID = 'Co.Abrid'
-CO_AUDIT = 'Co.Audit'
-CO_AUDIT_NR = 'Co.AuditNR'
-CO_DIR_REP = 'Co.DirReport'
-CO_DIR_RESP = 'Co.DirResp'
-CO_GROUP = 'Co.Group'
-CO_MED_CO = 'Co.MedCo'
-CO_MICRO = 'Co.Micro'
-CO_MISSING_ELEMENT = 'Co.MissingElement'
-CO_PROF_LOSS = 'Co.ProfLoss'
-CO_QUAL_AUDIT = 'Co.QualAudit'
-CO_SM_CO = 'Co.SmCo'
-CO_SEC_477 = 'Co.Sec477'
-CO_SEC_480 = 'Co.Sec480'
-LP_ABRID = 'Lp.Abrid'
-LP_AUDIT = 'Lp.Audit'
-LP_GROUP = 'Lp.Group'
-LP_MED_LP = 'Lp.MedLp'
-LP_MEM_RESP = 'Lp.MemResp'
-LP_MICRO = 'Lp.Micro'
-LP_PROF_LOSS = 'Lp.ProfLoss'
-LP_QUAL_AUDIT = 'Lp.QualAudit'
-LP_SEC_477 = 'Lp.Sec477'
-LP_SEC_480 = 'Lp.Sec480'
-LP_SM_LP = 'Lp.SmLp'
+CH_AUDIT = "Char.Audit"
+CH_CHAR_FUND = "Char.CharFund"
+CH_DIR_REP = "Char.DirReport"
+CH_DIR_RESP = "Char.DirResp"
+CO_ABRID = "Co.Abrid"
+CO_AUDIT = "Co.Audit"
+CO_AUDIT_NR = "Co.AuditNR"
+CO_DIR_REP = "Co.DirReport"
+CO_DIR_RESP = "Co.DirResp"
+CO_GROUP = "Co.Group"
+CO_MED_CO = "Co.MedCo"
+CO_MICRO = "Co.Micro"
+CO_MISSING_ELEMENT = "Co.MissingElement"
+CO_PROF_LOSS = "Co.ProfLoss"
+CO_QUAL_AUDIT = "Co.QualAudit"
+CO_SM_CO = "Co.SmCo"
+CO_SEC_477 = "Co.Sec477"
+CO_SEC_480 = "Co.Sec480"
+LP_ABRID = "Lp.Abrid"
+LP_AUDIT = "Lp.Audit"
+LP_GROUP = "Lp.Group"
+LP_MED_LP = "Lp.MedLp"
+LP_MEM_RESP = "Lp.MemResp"
+LP_MICRO = "Lp.Micro"
+LP_PROF_LOSS = "Lp.ProfLoss"
+LP_QUAL_AUDIT = "Lp.QualAudit"
+LP_SEC_477 = "Lp.Sec477"
+LP_SEC_480 = "Lp.Sec480"
+LP_SM_LP = "Lp.SmLp"
 
 # Concept local names
-CONCEPT_ABRIDGED_ACCOUNTS = 'AbridgedAccounts'
-CONCEPT_ABBREVIATED_ACCOUNTS = 'AbbreviatedAccounts'
-CONCEPT_AUDITED = 'Audited'
-CONCEPT_APPLICABLE_LEGISLATION = 'ApplicableLegislation'
-CONCEPT_APPLICABLE_LEGISLATION_DIMENSION = 'ApplicableLegislationDimension'
-CONCEPT_ACCOUNTING_STANDARDS_APPLIED = 'AccountingStandardsApplied'
-CONCEPT_ACCOUNTING_STANDARDS_DIMENSION = 'AccountingStandardsDimension'
-CONCEPT_ACCOUNTS_STATUS = 'AccountsStatusAuditedOrUnaudited'
-CONCEPT_ACCOUNTS_STATUS_DIMENSION = 'AccountsStatusDimension'
-CONCEPT_ACCOUNTS_TYPE_FULL_OR_ABBREVIATED = 'AccountsTypeFullOrAbbreviated'  # DEPRECATED IN 2022+ taxonomies.  No replacement yet.
-CONCEPT_ACCOUNTS_TYPE_DIMENSION = 'AccountsTypeDimension'
-CONCEPT_ADVERSE_OPINION = 'AdverseOpinion'
-CONCEPT_BALANCE_SHEET_DATE = 'BalanceSheetDate'
-CONCEPT_CHARITY_AUDIT_CARRIED_OUT_IN_ACCORDANCE_WITH_CHARITIES_ACT =  'CharityAuditCarriedOutInAccordanceWithCharitiesAct2011Truefalse'
-CONCEPT_CHARITY_FUNDS = 'CharityFunds'
-CONCEPT_CHARITY_REGISTRATION_NUMBER_ENGLAND_WALES = 'CharityRegistrationNumberEnglandWales'
-CONCEPT_CHARITY_REGISTRATION_NUMBER_NORTH_IRELAND = 'CharityRegistrationNumberNorthernIreland'
-CONCEPT_CHARITY_REGISTRATION_NUMBER_SCOTLAND = 'CharityRegistrationNumberScotland'
-CONCEPT_CONSOLIDATED = 'Consolidated'
-CONCEPT_DATE_AUDITOR_REPORT = 'DateAuditorsReport'
-CONCEPT_DATE_CHARITY_AUDITORS_REPORT = 'DateCharityAuditorsReport'
-CONCEPT_DATE_SIGNING_DIRECTOR_REPORT = 'DateSigningDirectorsReport'
-CONCEPT_DATE_SIGNING_TRUSTEES_REPORT = 'DateSigningTrusteesAnnualReport'
-CONCEPT_DIRECTOR_SIGNING_DIRECTORS_REPORT = 'DirectorSigningDirectorsReport'
-CONCEPT_DISCLAIMER_OPINION = 'DisclaimerOpinion'
-CONCEPT_END_DATE_FOR_PERIOD_COVERED_BY_REPORT = 'EndDateForPeriodCoveredByReport'
-CONCEPT_ENTITY_DORMANT = 'EntityDormantTruefalse'
-CONCEPT_ENTITY_TRADING_STATUS = 'EntityTradingStatus'
-CONCEPT_ENTITY_TRADING_STATUS_DIMENSION = 'EntityTradingStatusDimension'
-CONCEPT_GROUP_COMPANY_DATA_DIMENSION = 'GroupCompanyDataDimension'
-CONCEPT_LANGUAGES_DIMENSION = 'LanguagesDimension'
-CONCEPT_MEDIUM_COMPANY = 'StatementThatCompanyHasPreparedAccountsUnderProvisionsRelatingToMedium-sizedCompanies'
-CONCEPT_MEDIUM_COMPANIES_REGIME_FOR_ACCOUNTS = 'Medium-sizedCompaniesRegimeForAccounts'
-CONCEPT_MICRO_ENTITIES = 'Micro-entities'
-CONCEPT_NAME_INDIVIDUAL_AUDITOR = 'NameIndividualAuditor'
-CONCEPT_NAME_INDIVIDUAL_CHARITY_AUDITOR = 'NameIndividualCharityAuditor'
-CONCEPT_NAME_ENTITY_AUDITORS = 'NameEntityAuditors'
-CONCEPT_NAME_ENTITY_CHARITY_AUDITORS = 'NameEntityCharityAuditors'
-CONCEPT_NAME_SENIOR_STATUTORY_AUDITOR = 'NameSeniorStatutoryAuditor'
-CONCEPT_NAME_SENIOR_STATUTORY_CHARITY_AUDITOR = 'NameSeniorStatutoryCharityAuditor'
-CONCEPT_OPINION_AUDITORS_ON_ENTITY = 'OpinionAuditorsOnEntity'
-CONCEPT_QUALIFIED_OPINION = 'QualifiedOpinion'
-CONCEPT_UNQUALIFIED_OPINION = 'UnqualifiedOpinion'
-CONCEPT_LEGAL_FORM_ENTIY = 'LegalFormEntity'
-CONCEPT_LEGAL_FORM_ENTIY_DIMENSION = 'LegalFormEntityDimension'
-CONCEPT_LLP = 'LimitedLiabilityPartnershipLLP'
-CONCEPT_PROFIT_LOSS = 'ProfitLoss'
-CONCEPT_REPORT_PRINCIPAL_LANGUAGE = 'ReportPrincipalLanguage'
-CONCEPT_SCOPE_ACCOUNTS = 'ScopeAccounts'
-CONCEPT_SCOPE_ACCOUNTS_DIMENSION = 'ScopeAccountsDimension'
-CONCEPT_STATEMENT_PROVIDED = 'StatementOnQualityCompletenessInformationProvidedToAuditors'
-CONCEPT_SMALL_COMPANY_REGIME_FOR_ACCOUNTS = 'SmallCompaniesRegimeForAccounts'
-CONCEPT_TRUSTEE_SIGNING_ANNUAL_REPORT = 'TrusteeSigningTrusteesAnnualReport'
-CONCEPT_GROUP_ACCOUNTS_ONLY = 'GroupAccountsOnly'
-CONCEPT_CONSOLIDATED_GROUP_COMPANY_ACCOUNTS = 'ConsolidatedGroupCompanyAccounts'
-CONCEPT_WELSH = 'Welsh'
+CONCEPT_ABRIDGED_ACCOUNTS = "AbridgedAccounts"
+CONCEPT_ABBREVIATED_ACCOUNTS = "AbbreviatedAccounts"
+CONCEPT_AUDITED = "Audited"
+CONCEPT_APPLICABLE_LEGISLATION = "ApplicableLegislation"
+CONCEPT_APPLICABLE_LEGISLATION_DIMENSION = "ApplicableLegislationDimension"
+CONCEPT_ACCOUNTING_STANDARDS_APPLIED = "AccountingStandardsApplied"
+CONCEPT_ACCOUNTING_STANDARDS_DIMENSION = "AccountingStandardsDimension"
+CONCEPT_ACCOUNTS_STATUS = "AccountsStatusAuditedOrUnaudited"
+CONCEPT_ACCOUNTS_STATUS_DIMENSION = "AccountsStatusDimension"
+CONCEPT_ACCOUNTS_TYPE_FULL_OR_ABBREVIATED = "AccountsTypeFullOrAbbreviated"  # DEPRECATED IN 2022+ taxonomies.  No replacement yet.
+CONCEPT_ACCOUNTS_TYPE_DIMENSION = "AccountsTypeDimension"
+CONCEPT_ADVERSE_OPINION = "AdverseOpinion"
+CONCEPT_BALANCE_SHEET_DATE = "BalanceSheetDate"
+CONCEPT_CHARITY_AUDIT_CARRIED_OUT_IN_ACCORDANCE_WITH_CHARITIES_ACT =  "CharityAuditCarriedOutInAccordanceWithCharitiesAct2011Truefalse"
+CONCEPT_CHARITY_FUNDS = "CharityFunds"
+CONCEPT_CHARITY_REGISTRATION_NUMBER_ENGLAND_WALES = "CharityRegistrationNumberEnglandWales"
+CONCEPT_CHARITY_REGISTRATION_NUMBER_NORTH_IRELAND = "CharityRegistrationNumberNorthernIreland"
+CONCEPT_CHARITY_REGISTRATION_NUMBER_SCOTLAND = "CharityRegistrationNumberScotland"
+CONCEPT_CONSOLIDATED = "Consolidated"
+CONCEPT_DATE_AUDITOR_REPORT = "DateAuditorsReport"
+CONCEPT_DATE_CHARITY_AUDITORS_REPORT = "DateCharityAuditorsReport"
+CONCEPT_DATE_SIGNING_DIRECTOR_REPORT = "DateSigningDirectorsReport"
+CONCEPT_DATE_SIGNING_TRUSTEES_REPORT = "DateSigningTrusteesAnnualReport"
+CONCEPT_DIRECTOR_SIGNING_DIRECTORS_REPORT = "DirectorSigningDirectorsReport"
+CONCEPT_DISCLAIMER_OPINION = "DisclaimerOpinion"
+CONCEPT_END_DATE_FOR_PERIOD_COVERED_BY_REPORT = "EndDateForPeriodCoveredByReport"
+CONCEPT_ENTITY_DORMANT = "EntityDormantTruefalse"
+CONCEPT_ENTITY_TRADING_STATUS = "EntityTradingStatus"
+CONCEPT_ENTITY_TRADING_STATUS_DIMENSION = "EntityTradingStatusDimension"
+CONCEPT_GROUP_COMPANY_DATA_DIMENSION = "GroupCompanyDataDimension"
+CONCEPT_LANGUAGES_DIMENSION = "LanguagesDimension"
+CONCEPT_MEDIUM_COMPANY = "StatementThatCompanyHasPreparedAccountsUnderProvisionsRelatingToMedium-sizedCompanies"
+CONCEPT_MEDIUM_COMPANIES_REGIME_FOR_ACCOUNTS = "Medium-sizedCompaniesRegimeForAccounts"
+CONCEPT_MICRO_ENTITIES = "Micro-entities"
+CONCEPT_NAME_INDIVIDUAL_AUDITOR = "NameIndividualAuditor"
+CONCEPT_NAME_INDIVIDUAL_CHARITY_AUDITOR = "NameIndividualCharityAuditor"
+CONCEPT_NAME_ENTITY_AUDITORS = "NameEntityAuditors"
+CONCEPT_NAME_ENTITY_CHARITY_AUDITORS = "NameEntityCharityAuditors"
+CONCEPT_NAME_SENIOR_STATUTORY_AUDITOR = "NameSeniorStatutoryAuditor"
+CONCEPT_NAME_SENIOR_STATUTORY_CHARITY_AUDITOR = "NameSeniorStatutoryCharityAuditor"
+CONCEPT_OPINION_AUDITORS_ON_ENTITY = "OpinionAuditorsOnEntity"
+CONCEPT_QUALIFIED_OPINION = "QualifiedOpinion"
+CONCEPT_UNQUALIFIED_OPINION = "UnqualifiedOpinion"
+CONCEPT_LEGAL_FORM_ENTIY = "LegalFormEntity"
+CONCEPT_LEGAL_FORM_ENTIY_DIMENSION = "LegalFormEntityDimension"
+CONCEPT_LLP = "LimitedLiabilityPartnershipLLP"
+CONCEPT_PROFIT_LOSS = "ProfitLoss"
+CONCEPT_REPORT_PRINCIPAL_LANGUAGE = "ReportPrincipalLanguage"
+CONCEPT_SCOPE_ACCOUNTS = "ScopeAccounts"
+CONCEPT_SCOPE_ACCOUNTS_DIMENSION = "ScopeAccountsDimension"
+CONCEPT_STATEMENT_PROVIDED = "StatementOnQualityCompletenessInformationProvidedToAuditors"
+CONCEPT_SMALL_COMPANY_REGIME_FOR_ACCOUNTS = "SmallCompaniesRegimeForAccounts"
+CONCEPT_TRUSTEE_SIGNING_ANNUAL_REPORT = "TrusteeSigningTrusteesAnnualReport"
+CONCEPT_GROUP_ACCOUNTS_ONLY = "GroupAccountsOnly"
+CONCEPT_CONSOLIDATED_GROUP_COMPANY_ACCOUNTS = "ConsolidatedGroupCompanyAccounts"
+CONCEPT_WELSH = "Welsh"
 
 CHARITY_REGISTRATION_NUMBERS = [CONCEPT_CHARITY_REGISTRATION_NUMBER_ENGLAND_WALES, CONCEPT_CHARITY_REGISTRATION_NUMBER_NORTH_IRELAND, CONCEPT_CHARITY_REGISTRATION_NUMBER_SCOTLAND]
 
 # Map of error code > concept local name > tuple of pairings of descriptions and regex patterns
 TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, list[list[str]]], ...]]] = {
     CH_DIR_RESP: {
-        'StatementThatDirectorsAcknowledgeTheirResponsibilitiesUnderCompaniesAct': (
+        "StatementThatDirectorsAcknowledgeTheirResponsibilitiesUnderCompaniesAct": (
             (
                 '"Directors acknowledge" or "Director acknowledges" or "Trustees acknowledge" or "Trustee acknowledges", and "responsibilities", and "Companies Act 2006" OR "the Act"',
                 [
@@ -129,7 +129,7 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, list[list[str]]],
         ),
     },
     CO_ABRID: {
-        'StatementThatMembersHaveAgreedToPreparationAbridgedAccountsUnderSection444CompaniesAct2006': (
+        "StatementThatMembersHaveAgreedToPreparationAbridgedAccountsUnderSection444CompaniesAct2006": (
             (
                 'Members" or "Member", and "agreed" or "consented", and "preparation", and "abridged")',
                 [
@@ -151,7 +151,7 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, list[list[str]]],
         ),
     },
     CO_AUDIT_NR: {
-        'StatementThatMembersHaveNotRequiredCompanyToObtainAnAudit': (
+        "StatementThatMembersHaveNotRequiredCompanyToObtainAnAudit": (
             (
                 '"member has" or "members have", and "not required the company to obtain an audit"',
                 [
@@ -168,7 +168,7 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, list[list[str]]],
         ),
     },
     CO_DIR_RESP: {
-        'StatementThatDirectorsAcknowledgeTheirResponsibilitiesUnderCompaniesAct': (
+        "StatementThatDirectorsAcknowledgeTheirResponsibilitiesUnderCompaniesAct": (
             (
                 '"Directors acknowledge" or "Director acknowledges", and "responsibilities", and "Companies Act 2006" OR "the Act"',
                 [
@@ -188,7 +188,7 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, list[list[str]]],
         ),
     },
     CO_MICRO: {
-        'StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime': (
+        "StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime": (
             (
                 '"Prepared", and "in accordance with", and "provisions", and "micro"',
                 [
@@ -210,7 +210,7 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, list[list[str]]],
         ),
     },
     CO_SEC_477: {
-        'StatementThatCompanyEntitledToExemptionFromAuditUnderSection477CompaniesAct2006RelatingToSmallCompanies': (
+        "StatementThatCompanyEntitledToExemptionFromAuditUnderSection477CompaniesAct2006RelatingToSmallCompanies": (
             (
                 '"Exempt" or "Exemption", and later "section 477 of the Companies Act 2006"',
                 [
@@ -228,7 +228,7 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, list[list[str]]],
         ),
     },
     CO_SEC_480: {
-        'StatementThatCompanyEntitledToExemptionFromAuditUnderSection480CompaniesAct2006RelatingToDormantCompanies': (
+        "StatementThatCompanyEntitledToExemptionFromAuditUnderSection480CompaniesAct2006RelatingToDormantCompanies": (
             (
                 '"Exempt" or "Exemption", and later "section 480 of the Companies Act 2006"',
                 [
@@ -246,7 +246,7 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, list[list[str]]],
         ),
     },
     CO_SM_CO: {
-        'StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime': (
+        "StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime": (
             (
                 '"Prepared in accordance with", and "provisions", and "small companies"',
                 [
@@ -266,7 +266,7 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, list[list[str]]],
         ),
     },
     LP_ABRID: {
-        'StatementThatMembersHaveAgreedToPreparationAbridgedAccountsUnderSection444CompaniesAct2006': (
+        "StatementThatMembersHaveAgreedToPreparationAbridgedAccountsUnderSection444CompaniesAct2006": (
             (
                 '"Members" or "Member", and "agreed" or "consented", and "preparation", and "abridged")',
                 [
@@ -288,7 +288,7 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, list[list[str]]],
         ),
     },
     LP_MEM_RESP: {
-        'StatementThatDirectorsAcknowledgeTheirResponsibilitiesUnderCompaniesAct': (
+        "StatementThatDirectorsAcknowledgeTheirResponsibilitiesUnderCompaniesAct": (
             (
                 '"Members acknowledge" or "Member acknowledges", and "responsibilities", and  "Companies Act 2006" or "the Act", and "Limited Liability Partnership" or "LLP"',
                 [
@@ -310,7 +310,7 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, list[list[str]]],
         ),
     },
     LP_MICRO: {
-        'StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime': (
+        "StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime": (
             (
                 '"Prepared", and "in accordance with", and "provisions", and "micro"',
                 [
@@ -332,7 +332,7 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, list[list[str]]],
         ),
     },
     LP_SEC_477: {
-        'StatementThatCompanyEntitledToExemptionFromAuditUnderSection477CompaniesAct2006RelatingToSmallCompanies': (
+        "StatementThatCompanyEntitledToExemptionFromAuditUnderSection477CompaniesAct2006RelatingToSmallCompanies": (
             (
                 '"Exempt" OR "Exemption", and "section 477 of the Companies Act 2006", and "Limited Liability Partnership" OR "LLP")',
                 [
@@ -352,7 +352,7 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, list[list[str]]],
         ),
     },
     LP_SEC_480: {
-        'StatementThatCompanyEntitledToExemptionFromAuditUnderSection480CompaniesAct2006RelatingToDormantCompanies': (
+        "StatementThatCompanyEntitledToExemptionFromAuditUnderSection480CompaniesAct2006RelatingToDormantCompanies": (
             (
                 '"Exempt" or "Exemption", and "section 480 of the Companies Act 2006", and "Limited Liability Partnership" OR "LLP"',
                 [
@@ -372,7 +372,7 @@ TEXT_VALIDATION_PATTERNS: dict[str, dict[str, tuple[tuple[str, list[list[str]]],
         ),
     },
     LP_SM_LP: {
-        'StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime': (
+        "StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime": (
             (
                 '"Prepared in accordance with", and "provisions", and "small Limited Liability Partnership" OR "small LLP',
                 [
@@ -403,18 +403,18 @@ SINGLE_CONCEPT_EVALUATIONS: dict[str, dict[str, bool]] = {
 
 
 class AccountStatus(Enum):
-    AUDIT_EXEMPT_NO_REPORT = 'AuditExempt-NoAccountantsReport'
-    AUDIT_EXEMPT_WITH_REPORT = 'AuditExemptWithAccountantsReport'
+    AUDIT_EXEMPT_NO_REPORT = "AuditExempt-NoAccountantsReport"
+    AUDIT_EXEMPT_WITH_REPORT = "AuditExemptWithAccountantsReport"
 
 
 class NotTrading(Enum):
-    CONCEPT_ENTITY_HAS_NEVER_TRADED = 'EntityHasNeverTraded'
-    CONCEPT_ENTITY_NO_LONGER_TRADING = 'EntityNoLongerTradingButTradedInPast'
+    CONCEPT_ENTITY_HAS_NEVER_TRADED = "EntityHasNeverTraded"
+    CONCEPT_ENTITY_NO_LONGER_TRADING = "EntityNoLongerTradingButTradedInPast"
 
 
 class ScopeAccounts(Enum):
-    GROUP_ONLY = 'GroupAccountsOnly'
-    CONSOLIDATED_GROUP = 'ConsolidatedGroupCompanyAccounts'
+    GROUP_ONLY = "GroupAccountsOnly"
+    CONSOLIDATED_GROUP = "ConsolidatedGroupCompanyAccounts"
 
 
 @dataclass
@@ -651,7 +651,7 @@ class ValidateUK:
         Logs an error if EntityTradingStatus with the dimension of EntityTradingStatusDimension/(EntityHasNeverTraded OR EntityNoLongerTradingButTradedInPast)
         or (ProfitLoss for a company/LLP of CharityFunds for a charity)
         """
-        concept = ''
+        concept = ""
         if code in (CO_PROF_LOSS, LP_PROF_LOSS):
             concept = CONCEPT_PROFIT_LOSS
         elif code == CH_CHAR_FUND:
@@ -761,7 +761,7 @@ class ValidateUK:
         :param result:
         """
         if result.message is None:
-            result.message = ''
+            result.message = ""
         if not result.warning:
             self.modelXbrl.error(
                 code,

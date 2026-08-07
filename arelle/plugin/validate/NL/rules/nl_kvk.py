@@ -102,7 +102,7 @@ def rule_nl_kvk_3_1_1_1(
     for entityId in entityIdentifierValues:
         if not XBRLI_IDENTIFIER_PATTERN.match(entityId[1]):
             yield Validation.error(
-                codes='NL.NL-KVK-RTS_Annex_IV_Par_2_G3-1-1_1.invalidIdentifierFormat',
+                codes="NL.NL-KVK-RTS_Annex_IV_Par_2_G3-1-1_1.invalidIdentifierFormat",
                 msg=_('xbrli:identifier content to match KVK number format that must consist of 8 consecutive digits. '
                       'Additionally the first two digits must not be "00".'),
                 modelObject = val.modelXbrl
@@ -127,7 +127,7 @@ def rule_nl_kvk_3_1_1_2(
     for entityId in entityIdentifierValues:
         if XBRLI_IDENTIFIER_SCHEMA != entityId[0]:
             yield Validation.error(
-                codes='NL.NL-KVK-RTS_Annex_IV_Par_2_G3-1-1_2.invalidIdentifier',
+                codes="NL.NL-KVK-RTS_Annex_IV_Par_2_G3-1-1_2.invalidIdentifier",
                 msg=_('The scheme attribute of the xbrli:identifier does not match the required content. '
                       'This should be "http://www.kvk.nl/kvk-id".'),
                 modelObject = val.modelXbrl
@@ -151,8 +151,8 @@ def rule_nl_kvk_3_1_2_1(
     contextsWithPeriodTime = pluginData.getContextsWithPeriodTime(val.modelXbrl)
     if len(contextsWithPeriodTime) != 0:
         yield Validation.error(
-            codes='NL.NL-KVK-3.1.2.1.periodWithTimeContent',
-            msg=_('xbrli:startDate, xbrli:endDate, xbrli:instant must be formatted as yyyy-mm-dd without time'),
+            codes="NL.NL-KVK-3.1.2.1.periodWithTimeContent",
+            msg=_("xbrli:startDate, xbrli:endDate, xbrli:instant must be formatted as yyyy-mm-dd without time"),
             modelObject = contextsWithPeriodTime
         )
 
@@ -173,8 +173,8 @@ def rule_nl_kvk_3_1_2_2(
     contextsWithPeriodTimeZone = pluginData.getContextsWithPeriodTimeZone(val.modelXbrl)
     if len(contextsWithPeriodTimeZone) != 0:
             yield Validation.error(
-                codes='NL.NL-KVK-3.1.2.2.periodWithTimeZone',
-                msg=_('xbrli:startDate, xbrli:endDate, xbrli:instant must be formatted as yyyy-mm-dd without time zone'),
+                codes="NL.NL-KVK-3.1.2.2.periodWithTimeZone",
+                msg=_("xbrli:startDate, xbrli:endDate, xbrli:instant must be formatted as yyyy-mm-dd without time zone"),
                 modelObject = contextsWithPeriodTimeZone
             )
 
@@ -195,8 +195,8 @@ def rule_nl_kvk_3_1_3_1 (
     contextsWithSegments = pluginData.getContextsWithSegments(val.modelXbrl)
     if len(contextsWithSegments) != 0:
         yield Validation.error(
-            codes='NL.NL-KVK-3.1.3.1.segmentUsed',
-            msg=_('xbrli:segment must not be used in contexts.'),
+            codes="NL.NL-KVK-3.1.3.1.segmentUsed",
+            msg=_("xbrli:segment must not be used in contexts."),
             modelObject = contextsWithSegments
         )
 
@@ -217,8 +217,8 @@ def rule_nl_kvk_3_1_3_2 (
     contextsWithImproperContent = pluginData.getContextsWithImproperContent(val.modelXbrl)
     if len(contextsWithImproperContent) != 0:
         yield Validation.error(
-            codes='NL.NL-KVK-3.1.3.2.scenarioContainsNotAllowedContent',
-            msg=_('xbrli:scenario must only contain content defined in XBRL Dimensions specification.'),
+            codes="NL.NL-KVK-3.1.3.2.scenarioContainsNotAllowedContent",
+            msg=_("xbrli:scenario must only contain content defined in XBRL Dimensions specification."),
             modelObject = contextsWithImproperContent
         )
 
@@ -239,8 +239,8 @@ def rule_nl_kvk_3_1_4_1 (
     entityIdentifierValues = val.modelXbrl.entityIdentifiersInDocument()
     if len(entityIdentifierValues) >1:
         yield Validation.error(
-            codes='NL.NL-KVK-RTS_Annex_IV_Par_1_G3-1-4_1.multipleIdentifiers',
-            msg=_('All entity identifiers and schemes must have identical content.'),
+            codes="NL.NL-KVK-RTS_Annex_IV_Par_1_G3-1-4_1.multipleIdentifiers",
+            msg=_("All entity identifiers and schemes must have identical content."),
             modelObject = entityIdentifierValues
         )
 
@@ -264,7 +264,7 @@ def rule_nl_kvk_3_1_4_2 (
         regFact = next(iter(registrationNumberFacts))
         if regFact.xValid >= VALID and regFact.xValue != regFact.context.entityIdentifier[1]:  # type: ignore[union-attr]
             yield Validation.error(
-                codes='NL.NL-KVK-RTS_Annex_IV_Par_1_G3-1-4_2.nonIdenticalIdentifier',
+                codes="NL.NL-KVK-RTS_Annex_IV_Par_1_G3-1-4_2.nonIdenticalIdentifier",
                 msg=_("xbrli:identifier value must be identical to bw2-titel9:ChamberOfCommerceRegistrationNumber fact value.").format(
                     regFact.xValue,
                     regFact.context.entityIdentifier[1]  # type: ignore[union-attr]
@@ -292,8 +292,8 @@ def rule_nl_kvk_3_2_1_1 (
             factsWithPrecision.append(fact)
     if len(factsWithPrecision) >0:
         yield Validation.error(
-            codes='NL.NL-KVK-3.2.1.1.precisionAttributeUsed',
-            msg=_('Precision should not be used on numeric facts.'),
+            codes="NL.NL-KVK-3.2.1.1.precisionAttributeUsed",
+            msg=_("Precision should not be used on numeric facts."),
             modelObject = factsWithPrecision
         )
 
@@ -318,8 +318,8 @@ def rule_nl_kvk_3_2_3_1 (
                 transformRegistryErrors.append(fact)
     if len(transformRegistryErrors) >0:
         yield Validation.error(
-            codes='NL.NL-KVK.3.2.3.1.incorrectTransformationRuleApplied',
-            msg=_('Transformation Registry 4 or newer are allowed. Everything else is prohibited.'),
+            codes="NL.NL-KVK.3.2.3.1.incorrectTransformationRuleApplied",
+            msg=_("Transformation Registry 4 or newer are allowed. Everything else is prohibited."),
             modelObject = transformRegistryErrors
         )
 
@@ -346,8 +346,8 @@ def rule_nl_kvk_3_2_4_1 (
                     problematicFacts.append(fact)
     if len(problematicFacts) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.3.2.4.1.inconsistentDuplicateNumericFactInInlineXbrlDocument',
-            msg=_('Inconsistent numeric facts are prohibited.'),
+            codes="NL.NL-KVK.3.2.4.1.inconsistentDuplicateNumericFactInInlineXbrlDocument",
+            msg=_("Inconsistent numeric facts are prohibited."),
             modelObject = problematicFacts
             )
 
@@ -374,8 +374,8 @@ def rule_nl_kvk_3_2_4_2 (
                     problematicFacts.append(fact)
     if len(problematicFacts) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.3.2.4.2.inconsistentDuplicateNonnumericFactInInlineXbrlDocument',
-            msg=_('Inconsistent non-numeric facts are prohibited.'),
+            codes="NL.NL-KVK.3.2.4.2.inconsistentDuplicateNonnumericFactInInlineXbrlDocument",
+            msg=_("Inconsistent non-numeric facts are prohibited."),
             modelObject = problematicFacts
         )
 
@@ -422,7 +422,7 @@ def rule_nl_kvk_3_2_7_1 (
                 improperlyEscapedFacts.append(fact)
     if len(improperlyEscapedFacts) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.3.2.7.1.improperApplicationOfEscapeAttribute',
+            codes="NL.NL-KVK.3.2.7.1.improperApplicationOfEscapeAttribute",
             msg=msg,
             modelObject = improperlyEscapedFacts
         )
@@ -444,8 +444,8 @@ def rule_nl_kvk_3_2_8_1(
     errors = {fact for fact in val.modelXbrl.facts if not fact.id}
     if len(errors) > 0:
         yield Validation.warning(
-            codes='NL.NL-KVK.3.2.8.1',
-            msg=_('All facts should include an id attribute'),
+            codes="NL.NL-KVK.3.2.8.1",
+            msg=_("All facts should include an id attribute"),
             modelObject=errors
         )
 
@@ -466,8 +466,8 @@ def rule_nl_kvk_3_3_1_1 (
     orphanedFootnotes = pluginData.getOrphanedFootnotes(val.modelXbrl)
     if len(orphanedFootnotes) >0:
         yield Validation.error(
-            codes='NL.NL-KVK.3.3.1.1.unusedFootnote',
-            msg=_('Ensure that every nonempty <link:footnote> element is associated with at least one fact in the XBRL document.'),
+            codes="NL.NL-KVK.3.3.1.1.unusedFootnote",
+            msg=_("Ensure that every nonempty <link:footnote> element is associated with at least one fact in the XBRL document."),
             modelObject = orphanedFootnotes
         )
 
@@ -487,8 +487,8 @@ def rule_nl_kvk_3_3_1_2 (
     noMatchLangFootnotes = pluginData.getNoMatchLangFootnotes(val.modelXbrl)
     if len(noMatchLangFootnotes) >0:
         yield Validation.error(
-            codes='NL.NL-KVK.3.3.1.2.footnoteInLanguagesOtherThanLanguageOfContentOfAnyTextualFact',
-            msg=_('The xml:lang attribute of each footnote matches the language of at least one textual fact.'),
+            codes="NL.NL-KVK.3.3.1.2.footnoteInLanguagesOtherThanLanguageOfContentOfAnyTextualFact",
+            msg=_("The xml:lang attribute of each footnote matches the language of at least one textual fact."),
             modelObject = noMatchLangFootnotes
         )
 
@@ -511,8 +511,8 @@ def rule_nl_kvk_3_3_1_3 (
     nonDefLangFtFacts = set(f for f,langs in factLangFootnotes.items() if reportXmlLang not in langs)
     if len(nonDefLangFtFacts) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.3.3.1.3.footnoteOnlyInLanguagesOtherThanLanguageOfAReport',
-            msg=_('At least one footnote must have the same language as the report\'s language.'),
+            codes="NL.NL-KVK.3.3.1.3.footnoteOnlyInLanguagesOtherThanLanguageOfAReport",
+            msg=_("At least one footnote must have the same language as the report's language."),
             modelObject=nonDefLangFtFacts
         )
 
@@ -533,8 +533,8 @@ def rule_nl_kvk_3_4_1_1 (
     tuples = pluginData.getTupleElements(val.modelXbrl)
     if len(tuples) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.3.4.1.1.tupleElementUsed',
-            msg=_('ix:tuple element should not be used in the Inline XBRL document.'),
+            codes="NL.NL-KVK.3.4.1.1.tupleElementUsed",
+            msg=_("ix:tuple element should not be used in the Inline XBRL document."),
             modelObject=tuples
         )
 
@@ -555,8 +555,8 @@ def rule_nl_kvk_3_4_1_2 (
     fractions = pluginData.getFractionElements(val.modelXbrl)
     if len(fractions) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.3.4.1.2.fractionElementUsed',
-            msg=_('ix:fraction element should not be used in the Inline XBRL document.'),
+            codes="NL.NL-KVK.3.4.1.2.fractionElementUsed",
+            msg=_("ix:fraction element should not be used in the Inline XBRL document."),
             modelObject=fractions
         )
 
@@ -578,9 +578,9 @@ def rule_nl_kvk_3_4_1_3 (
     facts = pluginData.getEligibleForTransformHiddenFacts(val.modelXbrl)
     if len(facts) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.3.4.1.3.transformableElementIncludedInHiddenSection',
-            msg=_('The ix:hidden section should not include elements that are eligible for transformation '
-                  'according to the latest recommended Transformation Rules Registry.'),
+            codes="NL.NL-KVK.3.4.1.3.transformableElementIncludedInHiddenSection",
+            msg=_("The ix:hidden section should not include elements that are eligible for transformation "
+                  "according to the latest recommended Transformation Rules Registry."),
             modelObject=facts
         )
 
@@ -601,8 +601,8 @@ def rule_nl_kvk_3_4_1_4 (
     facts = pluginData.getRequiredToDisplayFacts(val.modelXbrl)
     if len(facts) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.3.4.1.4.factInHiddenSectionNotInReport',
-            msg=_('ix:hidden section should not contain a fact whose @id attribute is not applied on any -ix-hidden style.'),
+            codes="NL.NL-KVK.3.4.1.4.factInHiddenSectionNotInReport",
+            msg=_("ix:hidden section should not contain a fact whose @id attribute is not applied on any -ix-hidden style."),
             modelObject=facts
         )
 
@@ -623,8 +623,8 @@ def rule_nl_kvk_3_4_1_5 (
     facts = pluginData.getHiddenFactsOutsideHiddenSection(val.modelXbrl)
     if len(facts) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.3.4.1.5.kvkIxHiddenStyleNotLinkingFactInHiddenSection',
-            msg=_('Review for -ix-hidden style identifies @id attribute of a fact that is not in ix:hidden section'),
+            codes="NL.NL-KVK.3.4.1.5.kvkIxHiddenStyleNotLinkingFactInHiddenSection",
+            msg=_("Review for -ix-hidden style identifies @id attribute of a fact that is not in ix:hidden section"),
             modelObject=facts
         )
 
@@ -645,8 +645,8 @@ def rule_nl_kvk_3_4_2_1 (
     baseElements = pluginData.getBaseElements(val.modelXbrl)
     if len(baseElements) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.3.4.2.1.htmlOrXmlBaseUsed',
-            msg=_('The HTML <base> elements and xml:base attributes MUST NOT be used in the Inline XBRL document'),
+            codes="NL.NL-KVK.3.4.2.1.htmlOrXmlBaseUsed",
+            msg=_("The HTML <base> elements and xml:base attributes MUST NOT be used in the Inline XBRL document"),
             modelObject=baseElements
         )
 
@@ -672,7 +672,7 @@ def rule_nl_kvk_3_5_1_1_non_img (
                 executableElements.append(elt)
     if executableElements:
         yield Validation.error(
-            codes='NL.NL-KVK.3.5.1.1.executableCodePresent',
+            codes="NL.NL-KVK.3.5.1.1.executableCodePresent",
             msg=_("Resources embedded or referenced by the XHTML document and its inline XBRL MUST NOT contain executable code."),
             modelObject=executableElements,
         )
@@ -703,9 +703,9 @@ def rule_nl_kvk_3_5_1_img (
         supportedImgTypes=SUPPORTED_IMAGE_TYPES_BY_IS_FILE,
     )
     for ixdsHtmlRootElt in pluginData.getIxdsHtmlElements(val.modelXbrl):
-        for elt in ixdsHtmlRootElt.iter((f'{{{XbrlConst.xhtml}}}img', '{http://www.w3.org/2000/svg}svg')):
-            src = elt.get('src', '').strip()
-            evaluatedMsg = _('On line {line}, "alt" attribute value: "{alt}"').format(line=elt.sourceline, alt=elt.get('alt'))
+        for elt in ixdsHtmlRootElt.iter((f"{{{XbrlConst.xhtml}}}img", "{http://www.w3.org/2000/svg}svg")):
+            src = elt.get("src", "").strip()
+            evaluatedMsg = _('On line {line}, "alt" attribute value: "{alt}"').format(line=elt.sourceline, alt=elt.get("alt"))
             yield from validateImage(
                 elt.modelDocument.baseForElement(elt),
                 src,
@@ -740,7 +740,7 @@ def rule_nl_kvk_3_5_2_1(
             factsWithoutLang.append(fact)
     if len(factsWithoutLang) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.3.5.2.1.undefinedLanguageForTextFact',
+            codes="NL.NL-KVK.3.5.2.1.undefinedLanguageForTextFact",
             msg=_("Each tagged text fact MUST have the 'xml:lang' attribute assigned or inherited."),
             modelObject=factsWithoutLang
         )
@@ -769,8 +769,8 @@ def rule_nl_kvk_3_5_2_2(
         for flist in getAspectEqualFacts(fgroup, includeSingles=True, useLang=False):
             if not any(f.xmlLang == reportXmlLang for f in flist):
                 yield Validation.error(
-                    codes='NL.NL-KVK.3.5.2.2.taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport',
-                    msg=_('Tagged text facts MUST be provided in the language of the report.'),
+                    codes="NL.NL-KVK.3.5.2.2.taggedTextFactOnlyInLanguagesOtherThanLanguageOfAReport",
+                    msg=_("Tagged text facts MUST be provided in the language of the report."),
                     modelObject=fgroup
                 )
 
@@ -797,10 +797,10 @@ def rule_nl_kvk_3_5_2_3(
                 badLangsUsed.add(xmlLang)
     if len(badLangsUsed) > 0:
         yield Validation.warning(
-            codes='NL.NL-KVK.3.5.2.3.invalidLanguageAttribute',
-            badLangsUsed=', '.join(badLangsUsed),
-            msg=_('The lang attribute should use one of the following: \'nl\' or \'en\' or \'de\' or \'fr\'. '
-                  'The following languages are used incorrectly: %(badLangsUsed)s'),
+            codes="NL.NL-KVK.3.5.2.3.invalidLanguageAttribute",
+            badLangsUsed=", ".join(badLangsUsed),
+            msg=_("The lang attribute should use one of the following: 'nl' or 'en' or 'de' or 'fr'. "
+                  "The following languages are used incorrectly: %(badLangsUsed)s"),
         )
 
 
@@ -821,8 +821,8 @@ def rule_nl_kvk_3_5_3_1(
     for target, targetElements in elementsByTarget.items():
         if target is not None and targetElements:
             yield Validation.error(
-                codes='NL.NL-KVK.3.5.3.1.defaultTargetAttributeNotUsed',
-                msg=_('Target attribute must not be used for the annual report content.'),
+                codes="NL.NL-KVK.3.5.3.1.defaultTargetAttributeNotUsed",
+                msg=_("Target attribute must not be used for the annual report content."),
                 modelObject=targetElements
             )
 
@@ -844,8 +844,8 @@ def rule_nl_kvk_3_5_4_1 (
     facts = pluginData.getCssHiddenFacts(val.modelXbrl)
     if len(facts) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.3.5.4.1.displayNoneUsedToHideTaggedFacts',
-            msg=_('Display:none has been used to hide tagged facts. This is not allowed.'),
+            codes="NL.NL-KVK.3.5.4.1.displayNoneUsedToHideTaggedFacts",
+            msg=_("Display:none has been used to hide tagged facts. This is not allowed."),
             modelObject=facts
         )
 
@@ -869,16 +869,16 @@ def rule_nl_kvk_3_6_3_1(
         filenameParts = pluginData.getFilenameParts(basename, pluginData.getFilenameFormatPattern())
         if not filenameParts:
             continue  # Filename is not formatted correctly enough to determine {base}
-        if len(filenameParts.get('base', '')) > 20:
+        if len(filenameParts.get("base", "")) > 20:
             invalidBasenames.append(basename)
     if len(invalidBasenames) > 0:
         yield Validation.warning(
-            codes='NL.NL-KVK.3.6.3.1.baseComponentInDocumentNameExceedsTwentyCharacters',
-            invalidBasenames=', '.join(invalidBasenames),
-            msg=_('The {base} component of the filename is greater than twenty characters. '
-                  'The {base} component can either be the KVK number or the legal entity\'s name. '
-                  'If the legal entity\'s name has been utilized, review to shorten the name to twenty characters or less. '
-                  'Invalid filenames: %(invalidBasenames)s'))
+            codes="NL.NL-KVK.3.6.3.1.baseComponentInDocumentNameExceedsTwentyCharacters",
+            invalidBasenames=", ".join(invalidBasenames),
+            msg=_("The {base} component of the filename is greater than twenty characters. "
+                  "The {base} component can either be the KVK number or the legal entity's name. "
+                  "If the legal entity's name has been utilized, review to shorten the name to twenty characters or less. "
+                  "Invalid filenames: %(invalidBasenames)s"))
 
 
 @validation(
@@ -902,13 +902,13 @@ def rule_nl_kvk_3_6_3_2(
             invalidBasenames.append(basename)
     if len(invalidBasenames) > 0:
         yield Validation.warning(
-            codes='NL.NL-KVK.3.6.3.2.documentNameDoesNotFollowNamingConvention',
-            invalidBasenames=', '.join(invalidBasenames),
-            msg=_('The filename does not match the naming convention outlined by the KVK. '
-                  'It is recommended to be in the {base}-{date}-{lang}.{extension} format. '
-                  '{extension} must be one of the following: html, htm, xhtml. '
-                  'Review formatting and update as appropriate. '
-                  'Invalid filenames: %(invalidBasenames)s'))
+            codes="NL.NL-KVK.3.6.3.2.documentNameDoesNotFollowNamingConvention",
+            invalidBasenames=", ".join(invalidBasenames),
+            msg=_("The filename does not match the naming convention outlined by the KVK. "
+                  "It is recommended to be in the {base}-{date}-{lang}.{extension} format. "
+                  "{extension} must be one of the following: html, htm, xhtml. "
+                  "Review formatting and update as appropriate. "
+                  "Invalid filenames: %(invalidBasenames)s"))
 
 
 @validation(
@@ -931,12 +931,12 @@ def rule_nl_kvk_3_6_3_3(
             invalidBasenames.append(basename)
     if len(invalidBasenames) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.3.6.3.3.documentFileNameIncludesCharactersNotAllowed',
-            invalidBasenames=', '.join(invalidBasenames),
-            msg=_('The file name includes characters that are now allowed. '
-                  'Allowed characters include: A-Z, a-z, 0-9, underscore ( _ ), period ( . ), and hyphen ( - ). '
-                  'Update filing naming to review unallowed characters. '
-                  'Invalid filenames: %(invalidBasenames)s'))
+            codes="NL.NL-KVK.3.6.3.3.documentFileNameIncludesCharactersNotAllowed",
+            invalidBasenames=", ".join(invalidBasenames),
+            msg=_("The file name includes characters that are now allowed. "
+                  "Allowed characters include: A-Z, a-z, 0-9, underscore ( _ ), period ( . ), and hyphen ( - ). "
+                  "Update filing naming to review unallowed characters. "
+                  "Invalid filenames: %(invalidBasenames)s"))
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
@@ -958,7 +958,7 @@ def rule_nl_kvk_3_6_3_4(
         return
     if not val.modelXbrl.factsByQname:
         return
-    linkrole = 'https://www.nltaxonomie.nl/kvk/role/annual-report-filing-information'
+    linkrole = "https://www.nltaxonomie.nl/kvk/role/annual-report-filing-information"
     filingInformationQNames = {o.qname for o in val.modelXbrl.relationshipSet(XbrlConst.parentChild, linkrole).toModelObjects()}
     # [filing information facts] - [non-filing information facts]
     filingInformationScoreByDocument: Counter[ModelDocument] = Counter()
@@ -969,9 +969,9 @@ def rule_nl_kvk_3_6_3_4(
     likelyFilingInformationDocument, __ = filingInformationScoreByDocument.most_common(1)[0]
     filename = likelyFilingInformationDocument.basename
     filenameParts = pluginData.getFilenameParts(filename, pluginData.getFilenameFormatPattern())
-    if not filenameParts or filenameParts['base'] != 'kvk':
+    if not filenameParts or filenameParts["base"] != "kvk":
         yield Validation.error(
-            codes='NL.NL-KVK.3.6.3.4.kvkFilingDocumentNameDoesNotFollowNamingConvention',
+            codes="NL.NL-KVK.3.6.3.4.kvkFilingDocumentNameDoesNotFollowNamingConvention",
             filename=filename,
             msg=_('The separate document that contains mandatory facts does not match the required file naming.'
                   ' Ensure the file name follows the "kvk-{date}-{lang}.{extension}" pattern.'
@@ -1001,10 +1001,10 @@ def rule_nl_kvk_3_6_3_5(
                 misplacedElements.append(fact)
     if misplacedElements:
         yield Validation.error(
-            codes='NL.NL-KVK.3.6.3.5.elementsReferencedInKvkFilingDocumentNotLimitedToMandatoryElements',
+            codes="NL.NL-KVK.3.6.3.5.elementsReferencedInKvkFilingDocumentNotLimitedToMandatoryElements",
             modelObject=misplacedElements,
-            msg=_('The separate document that contains mandatory facts includes facts beyond the mandatory facts.'
-                  ' This document should only contain the mandatory facts.'))
+            msg=_("The separate document that contains mandatory facts includes facts beyond the mandatory facts."
+                  " This document should only contain the mandatory facts."))
 
 
 @validation(
@@ -1043,16 +1043,16 @@ def rule_nl_kvk_3_6_3_6(
 
     if len(nonDimensionalContexts) > 1:
         yield Validation.error(
-            codes='NL.NL-KVK.3.6.3.6.dimensionalContextOrMultipleNonDimensionalContextsReportedInKvkFilingDocument',
-            modelObject=sorted(nonDimensionalContexts, key=lambda c: c.id or 'unknown'),
-            msg=_('The separate document that contains mandatory facts includes multiple non-dimensional contexts.'
-                  ' It should have at most one.'))
+            codes="NL.NL-KVK.3.6.3.6.dimensionalContextOrMultipleNonDimensionalContextsReportedInKvkFilingDocument",
+            modelObject=sorted(nonDimensionalContexts, key=lambda c: c.id or "unknown"),
+            msg=_("The separate document that contains mandatory facts includes multiple non-dimensional contexts."
+                  " It should have at most one."))
     if dimensionalContexts:
         yield Validation.error(
-            codes='NL.NL-KVK.3.6.3.6.dimensionalContextOrMultipleNonDimensionalContextsReportedInKvkFilingDocument',
-            modelObject=sorted(dimensionalContexts, key=lambda c: c.id or 'unknown'),
-            msg=_('The separate document that contains mandatory facts includes facts with dimensions.'
-                  ' Facts in this document should not use dimensions.'))
+            codes="NL.NL-KVK.3.6.3.6.dimensionalContextOrMultipleNonDimensionalContextsReportedInKvkFilingDocument",
+            modelObject=sorted(dimensionalContexts, key=lambda c: c.id or "unknown"),
+            msg=_("The separate document that contains mandatory facts includes facts with dimensions."
+                  " Facts in this document should not use dimensions."))
 
 
 @validation(
@@ -1082,10 +1082,10 @@ def rule_nl_kvk_3_6_3_7(
 
     if units:
         yield Validation.error(
-            codes='NL.NL-KVK.3.6.3.7.unitsReportedInKvkFilingDocument',
-            modelObject=sorted(units, key=lambda u: u.id or 'unknown'),
-            msg=_('The separate document that includes mandatory facts includes facts with reported units.'
-                  ' This file should not include facts with reported units.'))
+            codes="NL.NL-KVK.3.6.3.7.unitsReportedInKvkFilingDocument",
+            modelObject=sorted(units, key=lambda u: u.id or "unknown"),
+            msg=_("The separate document that includes mandatory facts includes facts with reported units."
+                  " This file should not include facts with reported units."))
 
 
 @validation(
@@ -1105,7 +1105,7 @@ def rule_nl_kvk_prohibited_dimension_use(
     nonDimensionalLineItemsElement = val.modelXbrl.qnameConcepts.get(pluginData.nonDimensionalLineItemsQName)
     if nonDimensionalLineItemsElement is None:
         return
-    linkrole = 'https://www.nltaxonomie.nl/kvk/role/lineitems-nondimensional-usage'
+    linkrole = "https://www.nltaxonomie.nl/kvk/role/lineitems-nondimensional-usage"
     relationshipSet = val.modelXbrl.relationshipSet(XbrlConst.domainMember, linkrole)
     nonDimensionalLineItems = set()
     def collect(startElement: ModelObject) -> None:
@@ -1123,7 +1123,7 @@ def rule_nl_kvk_prohibited_dimension_use(
                 invalidDimensionUseFacts.append(fact)
     if invalidDimensionUseFacts:
         yield Validation.error(
-            codes='NL.NL-KVK.prohibitedUseOfDimensions',
+            codes="NL.NL-KVK.prohibitedUseOfDimensions",
             msg=_("The filing uses dimensions on some elements for which dimension use is prohibited."),
             modelObject=invalidDimensionUseFacts,
         )
@@ -1150,7 +1150,7 @@ def rule_nl_kvk_3_7_1_1(
                 sumErrMsgs += numErrMsgs
     if sumErrMsgs > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.3.7.1.1.targetXBRLDocumentWithFormulaErrors',
+            codes="NL.NL-KVK.3.7.1.1.targetXBRLDocumentWithFormulaErrors",
             msg=_("The filing is not valid against the formula linkbase assertions with error severity.  Address the %(numUnsatisfied)s unresolved formula linkbase validation errors."),
             modelObject=modelXbrl,
             numUnsatisfied=sumErrMsgs
@@ -1178,7 +1178,7 @@ def rule_nl_kvk_3_7_1_2(
                 sumWrnMsgs += numWrnMsgs
     if sumWrnMsgs > 0:
         yield Validation.warning(
-            codes='NL.NL-KVK.3.7.1.2.targetXBRLDocumentWithFormulaWarnings',
+            codes="NL.NL-KVK.3.7.1.2.targetXBRLDocumentWithFormulaWarnings",
             msg=_("The filing is not valid against the formula linkbase assertions with warning severity.  Address the %(numUnsatisfied)s unresolved formula linkbase validation warnings."),
             modelObject=modelXbrl,
             numUnsatisfied=sumWrnMsgs
@@ -1227,11 +1227,11 @@ def rule_nl_kvk_4_1_1_1(
     missingFiles = set(linkbaseType.getLowerName() for linkbaseType, isMissing in linkbaseIsMissing.items() if isMissing)
     if len(missingFiles) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.4.1.1.1.extensionTaxonomyWrongFilesStructure',
-            msg=_('The extension taxonomy is missing one or more required components: %(missingFiles)s. '
-                  'Review to ensure that the schema file, presentation, calculation, '
-                  'and definition linkbases are included and not empty. '
-                  'A label linkbase is also required if extension elements are present.'),
+            codes="NL.NL-KVK.4.1.1.1.extensionTaxonomyWrongFilesStructure",
+            msg=_("The extension taxonomy is missing one or more required components: %(missingFiles)s. "
+                  "Review to ensure that the schema file, presentation, calculation, "
+                  "and definition linkbases are included and not empty. "
+                  "A label linkbase is also required if extension elements are present."),
             modelObject=val.modelXbrl, missingFiles=", ".join(missingFiles)
         )
 
@@ -1261,10 +1261,10 @@ def rule_nl_kvk_4_1_1_2(
             errors.append((modelDocument, linkbasesFound))
     for modelDocument, linkbasesFound in errors:
         yield Validation.error(
-            codes='NL.NL-KVK.4.1.1.2.linkbasesNotSeparateFiles',
-            msg=_('Linkbase types are not stored in separate files. '
-                  'Review linkbase files and ensure they are provided as individual files. '
-                  'Found: %(linkbasesFound)s. in %(basename)s.'),
+            codes="NL.NL-KVK.4.1.1.2.linkbasesNotSeparateFiles",
+            msg=_("Linkbase types are not stored in separate files. "
+                  "Review linkbase files and ensure they are provided as individual files. "
+                  "Found: %(linkbasesFound)s. in %(basename)s."),
             modelObject=modelDocument.xmlRootElement,
             basename=modelDocument.basename,
             linkbasesFound=", ".join(sorted(linkbasesFound))
@@ -1290,8 +1290,8 @@ def rule_nl_kvk_4_1_2_1(
     matches = extensionData.extensionImportedUrls & EFFECTIVE_KVK_GAAP_IFRS_ENTRYPOINT_FILES
     if not matches:
         yield Validation.error(
-            codes='NL.NL-KVK.4.1.2.1.requiredEntryPointNotImported',
-            msg=_('The extension taxonomy must import the entry point of the taxonomy files prepared by KVK.'),
+            codes="NL.NL-KVK.4.1.2.1.requiredEntryPointNotImported",
+            msg=_("The extension taxonomy must import the entry point of the taxonomy files prepared by KVK."),
             modelObject=val.modelXbrl.modelDocument
         )
 
@@ -1320,9 +1320,9 @@ def rule_nl_kvk_4_1_2_2(
     taxonomyUrls = set().union(*deq)
     if extensionData.extensionImportedUrls.isdisjoint(taxonomyUrls):
         yield Validation.error(
-            codes='NL.NL-KVK.4.1.2.2.incorrectKvkTaxonomyVersionUsed',
-            msg=_('The extension taxonomy MUST import the applicable version of the taxonomy files prepared by KVK '
-                  'for the reported financial reporting period. Verify the taxonomy version.'),
+            codes="NL.NL-KVK.4.1.2.2.incorrectKvkTaxonomyVersionUsed",
+            msg=_("The extension taxonomy MUST import the applicable version of the taxonomy files prepared by KVK "
+                  "for the reported financial reporting period. Verify the taxonomy version."),
             modelObject=val.modelXbrl.modelDocument
         )
 
@@ -1347,16 +1347,16 @@ def rule_nl_kvk_4_1_5_1(
         filenameParts = pluginData.getFilenameParts(basename, pluginData.getExtensionFilenameFormatPattern())
         if not filenameParts:
             continue  # Filename is not formatted correctly enough to determine {base}
-        if len(filenameParts.get('base', '')) > 20:
+        if len(filenameParts.get("base", "")) > 20:
             invalidBasenames.append(basename)
     if len(invalidBasenames) > 0:
         yield Validation.warning(
-            codes='NL.NL-KVK.4.1.5.1.baseComponentInNameOfTaxonomyFileExceedsTwentyCharacters',
-            invalidBasenames=', '.join(invalidBasenames),
-            msg=_('The {base} component of the extension document filename is greater than twenty characters. '
-                  'The {base} component can either be the KVK number or the legal entity\'s name. '
-                  'If the legal entity\'s name has been utilized, review to shorten the name to twenty characters or less. '
-                  'Invalid filenames: %(invalidBasenames)s'))
+            codes="NL.NL-KVK.4.1.5.1.baseComponentInNameOfTaxonomyFileExceedsTwentyCharacters",
+            invalidBasenames=", ".join(invalidBasenames),
+            msg=_("The {base} component of the extension document filename is greater than twenty characters. "
+                  "The {base} component can either be the KVK number or the legal entity's name. "
+                  "If the legal entity's name has been utilized, review to shorten the name to twenty characters or less. "
+                  "Invalid filenames: %(invalidBasenames)s"))
 
 
 @validation(
@@ -1381,13 +1381,13 @@ def rule_nl_kvk_4_1_5_2(
             invalidBasenames.append(basename)
     if len(invalidBasenames) > 0:
         yield Validation.warning(
-            codes='NL.NL-KVK.4.1.5.2.extensionTaxonomyDocumentNameDoesNotFollowNamingConvention',
-            invalidBasenames=', '.join(invalidBasenames),
-            msg=_('The extension document filename does not match the naming convention outlined by the KVK. '
-                  'It is recommended to be in the {base}-{date}_{suffix}-{lang}.{extension} format. '
-                  '{extension} must be one of the following: html, htm, xhtml. '
-                  'Review formatting and update as appropriate. '
-                  'Invalid filenames: %(invalidBasenames)s'))
+            codes="NL.NL-KVK.4.1.5.2.extensionTaxonomyDocumentNameDoesNotFollowNamingConvention",
+            invalidBasenames=", ".join(invalidBasenames),
+            msg=_("The extension document filename does not match the naming convention outlined by the KVK. "
+                  "It is recommended to be in the {base}-{date}_{suffix}-{lang}.{extension} format. "
+                  "{extension} must be one of the following: html, htm, xhtml. "
+                  "Review formatting and update as appropriate. "
+                  "Invalid filenames: %(invalidBasenames)s"))
 
 
 @validation(
@@ -1409,9 +1409,9 @@ def rule_nl_kvk_4_2_0_1(
     ]
     if len(tupleConcepts) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.4.2.0.1.tupleElementUsed',
+            codes="NL.NL-KVK.4.2.0.1.tupleElementUsed",
             modelObject=tupleConcepts,
-            msg=_('The extension taxonomy must not define tuple concepts.'))
+            msg=_("The extension taxonomy must not define tuple concepts."))
 
 
 @validation(
@@ -1433,9 +1433,9 @@ def rule_nl_kvk_4_2_0_2(
     ]
     if len(fractionConcepts) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.4.2.0.2.fractionElementUsed',
+            codes="NL.NL-KVK.4.2.0.2.fractionElementUsed",
             modelObject=fractionConcepts,
-            msg=_('The extension taxonomy must not define fraction concepts.'))
+            msg=_("The extension taxonomy must not define fraction concepts."))
 
 
 @validation(
@@ -1460,10 +1460,10 @@ def rule_nl_kvk_4_2_1_1(
                 errors.append(arc)
     if len(errors) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.4.2.1.1.scenarioNotUsedInExtensionTaxonomy',
+            codes="NL.NL-KVK.4.2.1.1.scenarioNotUsedInExtensionTaxonomy",
             modelObject=errors,
-            msg=_('The definition linkbase is missing xbrli:scenario in extension taxonomy. '
-                  'Review definition linkbase and update as appropriate.'),
+            msg=_("The definition linkbase is missing xbrli:scenario in extension taxonomy. "
+                  "Review definition linkbase and update as appropriate."),
         )
 
 
@@ -1489,7 +1489,7 @@ def rule_nl_kvk_4_2_2_2(
             domainMembersWrongType.append(concept)
     if len(domainMembersWrongType) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.4.2.2.2.domainMemberWrongDataType',
+            codes="NL.NL-KVK.4.2.2.2.domainMemberWrongDataType",
             modelObject=domainMembersWrongType,
             msg=_('Domain members must have domainItemType data type as defined in "https://www.xbrl.org/dtr/type/2022-03-31/types.xsd".'
                   'Update to follow appropriate Data Type Registry.'))
@@ -1515,9 +1515,9 @@ def rule_nl_kvk_4_2_3_1(
             typedDims.append(concept)
     if len(typedDims) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.4.2.3.1.typedDimensionDefinitionInExtensionTaxonomy',
+            codes="NL.NL-KVK.4.2.3.1.typedDimensionDefinitionInExtensionTaxonomy",
             modelObject=typedDims,
-            msg=_('Typed dimensions are not allowed in the extension taxonomy.  Update to remove the typed dimension.'))
+            msg=_("Typed dimensions are not allowed in the extension taxonomy.  Update to remove the typed dimension."))
 
 
 @validation(
@@ -1537,11 +1537,11 @@ def rule_nl_kvk_4_3_1_1(
     anchorData = pluginData.getAnchorData(val.modelXbrl)
     if len(anchorData.extLineItemsWronglyAnchored) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.4.3.1.1.unexpectedAnchoringRelationshipsDefinedUsingWiderNarrowerArcrole',
+            codes="NL.NL-KVK.4.3.1.1.unexpectedAnchoringRelationshipsDefinedUsingWiderNarrowerArcrole",
             modelObject=anchorData.extLineItemsWronglyAnchored,
-            msg=_('A custom element that is not a line item concept is using the wider-narrower arcrole. '
-                  'Only line item concepts should use this arcrole. '
-                  'Update the extension to no longer include this arcole.')
+            msg=_("A custom element that is not a line item concept is using the wider-narrower arcrole. "
+                  "Only line item concepts should use this arcrole. "
+                  "Update the extension to no longer include this arcole.")
         )
     for anchor in anchorData.anchorsWithDomainItem:
         assert anchor.fromModelObject is not None, "anchor.fromModelObject is None"
@@ -1636,10 +1636,10 @@ def rule_nl_kvk_4_4_1_1(
             errors.append(arc)
     if len(errors) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.4.4.1.1.incorrectSummationItemArcroleUsed',
+            codes="NL.NL-KVK.4.4.1.1.incorrectSummationItemArcroleUsed",
             modelObject=errors,
-            msg=_('Calculation relationships should follow the requirements of the Calculation 1.1 specification. '
-                  'Update to ensure use of summation-item arcrole in the calculation linkbase.'),
+            msg=_("Calculation relationships should follow the requirements of the Calculation 1.1 specification. "
+                  "Update to ensure use of summation-item arcrole in the calculation linkbase."),
         )
 
 
@@ -1664,9 +1664,9 @@ def rule_nl_kvk_4_4_2_1(
             errors.append(arc)
     if len(errors) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.4.4.2.1.notAllArcroleUsedInDefinitionLinkbase',
+            codes="NL.NL-KVK.4.4.2.1.notAllArcroleUsedInDefinitionLinkbase",
             modelObject=errors,
-            msg=_('Incorrect hypercube settings are found.  Ensure that positive hypercubes are in use.'),
+            msg=_("Incorrect hypercube settings are found.  Ensure that positive hypercubes are in use."),
         )
 
 
@@ -1692,9 +1692,9 @@ def rule_nl_kvk_4_4_2_2(
                 errors.append(arc)
     if len(errors) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.4.4.2.2.openPositiveHypercubeInDefinitionLinkbase',
+            codes="NL.NL-KVK.4.4.2.2.openPositiveHypercubeInDefinitionLinkbase",
             modelObject=errors,
-            msg=_('Incorrect hypercube settings are found.  Ensure that positive hypercubes are closed.'),
+            msg=_("Incorrect hypercube settings are found.  Ensure that positive hypercubes are closed."),
         )
 
 
@@ -1720,9 +1720,9 @@ def rule_nl_kvk_4_4_2_3(
                 errors.append(arc)
     if len(errors) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.4.4.2.3.closedNegativeHypercubeInDefinitionLinkbase',
+            codes="NL.NL-KVK.4.4.2.3.closedNegativeHypercubeInDefinitionLinkbase",
             modelObject=errors,
-            msg=_('Incorrect hypercube settings are found.  Ensure that negative hypercubes are not closed.'),
+            msg=_("Incorrect hypercube settings are found.  Ensure that negative hypercubes are not closed."),
         )
 
 
@@ -1755,9 +1755,9 @@ def rule_nl_kvk_4_4_2_4(
         errors.add(concept)
     for error in errors:
         yield Validation.error(
-            codes='NL.NL-KVK.4.4.2.4.extensionTaxonomyLineItemNotLinkedToAnyHypercube',
+            codes="NL.NL-KVK.4.4.2.4.extensionTaxonomyLineItemNotLinkedToAnyHypercube",
             modelObject=error,
-            msg=_('A non-dimensional concept was not associated to a hypercube.  Update relationship so concept is linked to a hypercube.'),
+            msg=_("A non-dimensional concept was not associated to a hypercube.  Update relationship so concept is linked to a hypercube."),
         )
 
 
@@ -1791,16 +1791,16 @@ def rule_nl_kvk_4_4_2_5(
     """
     requiredPlaceholderMap = {
         pluginData.financialStatementsTypeAxisQn: {
-            pluginData.consolidatedMemberQn: 'https://www.nltaxonomie.nl/kvk/role/lineitems-consolidated-financial-statements-nlgaap',
-            pluginData.separateMemberQn: 'https://www.nltaxonomie.nl/kvk/role/lineitems-separate-financial-statements-nlgaap',
+            pluginData.consolidatedMemberQn: "https://www.nltaxonomie.nl/kvk/role/lineitems-consolidated-financial-statements-nlgaap",
+            pluginData.separateMemberQn: "https://www.nltaxonomie.nl/kvk/role/lineitems-separate-financial-statements-nlgaap",
         }
     }
     if pluginData.ifrsConsolidatedAndSeparateFinancialStatementsAxisQn is not None:
         assert pluginData.ifrsConsolidatedMemberQn is not None
         assert pluginData.ifrsSeparateMemberQn is not None
         requiredPlaceholderMap[pluginData.ifrsConsolidatedAndSeparateFinancialStatementsAxisQn] = {
-            pluginData.ifrsConsolidatedMemberQn: 'https://www.nltaxonomie.nl/kvk/role/lineitems-consolidated-financial-statements-ifrs',
-            pluginData.ifrsSeparateMemberQn: 'https://www.nltaxonomie.nl/kvk/role/lineitems-separate-financial-statements-ifrs',
+            pluginData.ifrsConsolidatedMemberQn: "https://www.nltaxonomie.nl/kvk/role/lineitems-consolidated-financial-statements-ifrs",
+            pluginData.ifrsSeparateMemberQn: "https://www.nltaxonomie.nl/kvk/role/lineitems-separate-financial-statements-ifrs",
         }
 
     primaryItemElrs = pluginData.getDimensionalData(val.modelXbrl).primaryItemElrs
@@ -1845,10 +1845,10 @@ def rule_nl_kvk_4_4_2_5(
 
     for error in errors:
         yield Validation.error(
-            codes='NL.NL-KVK.4.4.2.5.extensionTaxonomyLineItemNotLinkedToDesignatedPlaceholder',
+            codes="NL.NL-KVK.4.4.2.5.extensionTaxonomyLineItemNotLinkedToDesignatedPlaceholder",
             modelObject=error,
-            msg=_('Line item is not present in the correct definition linkbase placeholder. '
-                  'Ensure line items with only Financial Statements type is in the appropriate placeholder.'),
+            msg=_("Line item is not present in the correct definition linkbase placeholder. "
+                  "Ensure line items with only Financial Statements type is in the appropriate placeholder."),
         )
 
 
@@ -1880,9 +1880,9 @@ def rule_nl_kvk_4_4_3_1(
                 for fromResource in modelLink.labeledResources[fromLabel]:
                     if not isExtensionUri(fromResource.modelDocument.uri, val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
                         yield Validation.error(
-                            codes='NL.NL-KVK.4.4.3.1.extensionTaxonomyOverridesDefaultMembers',
-                             msg=_('A default member does not match the default member settings of the taxonomy. '
-                                   'Update the default member to taxonomy defaults.'
+                            codes="NL.NL-KVK.4.4.3.1.extensionTaxonomyOverridesDefaultMembers",
+                             msg=_("A default member does not match the default member settings of the taxonomy. "
+                                   "Update the default member to taxonomy defaults."
                                    ),
                             modelObject=linkChild
                         )
@@ -1891,9 +1891,9 @@ def rule_nl_kvk_4_4_3_1(
         for arc in extensionDocumentData.iterArcsByType(LinkbaseType.DEFINITION, includeArcroles={XbrlConst.dimensionDefault}):
             if arc.get("use") == "prohibited":
                 yield Validation.error(
-                    codes='NL.NL-KVK.4.4.3.1.extensionTaxonomyOverridesDefaultMembers',
-                    msg=_('A default member is forbidden in the extension taxonomy. '
-                          'Update the default member to taxonomy defaults.'
+                    codes="NL.NL-KVK.4.4.3.1.extensionTaxonomyOverridesDefaultMembers",
+                    msg=_("A default member is forbidden in the extension taxonomy. "
+                          "Update the default member to taxonomy defaults."
                           ),
                     modelObject=arc
                 )
@@ -1917,10 +1917,10 @@ def rule_nl_kvk_4_4_3_2(
     for modelConcept in extensionData.extensionConcepts:
         if modelConcept.isExplicitDimension and not dimensionDefaults.fromModelObject(modelConcept):
             yield Validation.error(
-                codes='NL.NL-KVK.4.4.2.3.extensionTaxonomyDimensionNotAssignedDefaultMemberInDedicatedPlaceholder',
+                codes="NL.NL-KVK.4.4.2.3.extensionTaxonomyDimensionNotAssignedDefaultMemberInDedicatedPlaceholder",
                 modelObject=modelConcept,
-                msg=_('Axis is missing a default member or the default member does not match the taxonomy defaults. '
-                      'Update to set default member based on taxonomy defaults.'
+                msg=_("Axis is missing a default member or the default member does not match the taxonomy defaults. "
+                      "Update to set default member based on taxonomy defaults."
                       ),
             )
 
@@ -1945,10 +1945,10 @@ def rule_nl_kvk_4_4_4_1(
             warnings = pluginData.checkLabels(set(), val.modelXbrl , rootConcept, relSet, None, set())  # type: ignore[arg-type]
         if len(warnings) > 0:
             yield Validation.warning(
-                codes='NL.NL-KVK.4.4.4.1.missingPreferredLabelRole',
+                codes="NL.NL-KVK.4.4.4.1.missingPreferredLabelRole",
                 modelObject=warnings,
-                msg=_('Multiple concepts exist in the presentation with the same label role. '
-                      'Review presentation if duplicate concepts should exist or separate preferred label roles should be set.'),
+                msg=_("Multiple concepts exist in the presentation with the same label role. "
+                      "Review presentation if duplicate concepts should exist or separate preferred label roles should be set."),
             )
 
 
@@ -1981,9 +1981,9 @@ def rule_nl_kvk_4_4_5_1(
             warnings.append(label)
     if len(warnings) > 0:
         yield Validation.warning(
-            codes='NL.NL-KVK.4.4.5.1.taxonomyElementLabelCustomRole',
+            codes="NL.NL-KVK.4.4.5.1.taxonomyElementLabelCustomRole",
             modelObject=warnings,
-            msg=_('A custom label role has been used.  Update to label role to non-custom.'),
+            msg=_("A custom label role has been used.  Update to label role to non-custom."),
         )
 
 
@@ -2017,7 +2017,7 @@ def rule_nl_kvk_4_4_5_2(
                 continue
             labelFiles = [f'"{label.text}": {label.modelDocument.basename}' for label in labels]
             yield Validation.warning(
-                codes='NL.NL-KVK.4.4.5.2.taxonomyElementDuplicateLabels',
+                codes="NL.NL-KVK.4.4.5.2.taxonomyElementDuplicateLabels",
                 msg=_("A concept was found with more than one label for the same role and language. "
                       "Update to only one label per combination. Language: %(lang)s, "
                       "Role: %(labelRole)s, Concept: %(concept)s, Labels: %(labels)s"),
@@ -2055,10 +2055,10 @@ def rule_nl_kvk_4_4_6_1(
                     unreportedLbLocs.add(rel.fromLocator)
     if len(unreportedLbLocs) > 0:
         yield Validation.warning(
-            codes='NL.NL-KVK.4.4.6.1.usableConceptsNotAppliedByTaggedFacts',
+            codes="NL.NL-KVK.4.4.6.1.usableConceptsNotAppliedByTaggedFacts",
             modelObject=unreportedLbLocs,
-            msg=_('Concept was found but not reported on any facts. '
-                  'Remove any unused concepts or ensure concept is applied to applicable facts.'),
+            msg=_("Concept was found but not reported on any facts. "
+                  "Remove any unused concepts or ensure concept is applied to applicable facts."),
         )
 
 
@@ -2081,15 +2081,15 @@ def rule_nl_kvk_5_1_3_1_and_6_1_3_1(
     matches = uris & EFFECTIVE_KVK_GAAP_OTHER_ENTRYPOINT_FILES
     if not matches:
         if val.disclosureSystem.name == DISCLOSURE_SYSTEM_NL_INLINE_2024_GAAP_OTHER:
-            code = 'NL.NL-KVK.5.1.3.1.requiredEntryPointOtherGaapNotReferenced'
+            code = "NL.NL-KVK.5.1.3.1.requiredEntryPointOtherGaapNotReferenced"
         elif val.disclosureSystem.name in NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS_2025_AND_NEWER:
-            code = 'NL.NL-KVK.5.1.3.1.requiredEntryPointOtherNotReferenced'
+            code = "NL.NL-KVK.5.1.3.1.requiredEntryPointOtherNotReferenced"
         else:
             # NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS
-            code = 'NL.NL-KVK.6.1.3.1.requiredEntryPointOtherNotReferenced'
+            code = "NL.NL-KVK.6.1.3.1.requiredEntryPointOtherNotReferenced"
         yield Validation.error(
             codes=code,
-            msg=_('The extension taxonomy must import the entry point of the taxonomy files prepared by KVK.'),
+            msg=_("The extension taxonomy must import the entry point of the taxonomy files prepared by KVK."),
             modelObject=val.modelXbrl.modelDocument
         )
 
@@ -2118,16 +2118,16 @@ def rule_nl_kvk_5_1_3_2_and_6_1_3_2(
     taxonomyUrls = set().union(*deq)
     if uris.isdisjoint(taxonomyUrls):
         if val.disclosureSystem.name == DISCLOSURE_SYSTEM_NL_INLINE_2024_GAAP_OTHER:
-            code = 'NL.NL-KVK.5.1.3.2.incorrectVersionEntryPointOtherGaapReferenced'
+            code = "NL.NL-KVK.5.1.3.2.incorrectVersionEntryPointOtherGaapReferenced"
         elif val.disclosureSystem.name in NL_INLINE_GAAP_OTHER_DISCLOSURE_SYSTEMS_2025_AND_NEWER:
-            code = 'NL.NL-KVK.5.1.3.2.incorrectVersionEntryPointOtherReferenced'
+            code = "NL.NL-KVK.5.1.3.2.incorrectVersionEntryPointOtherReferenced"
         else:
             # NL_INLINE_MULTI_TARGET_DISCLOSURE_SYSTEMS
-            code = 'NL.NL-KVK.6.1.3.2.incorrectVersionEntryPointOtherReferenced'
+            code = "NL.NL-KVK.6.1.3.2.incorrectVersionEntryPointOtherReferenced"
         yield Validation.error(
             codes=code,
-            msg=_('The report MUST import the applicable version of the taxonomy files prepared by KVK. '
-                  'Verify the taxonomy version.'),
+            msg=_("The report MUST import the applicable version of the taxonomy files prepared by KVK. "
+                  "Verify the taxonomy version."),
             modelObject=val.modelXbrl.modelDocument
         )
 
@@ -2147,11 +2147,11 @@ def rule_nl_kvk_6_1_3_3(
                     for filing with the Business Register
     """
     elementsByTarget = pluginData.getElementsByTarget(val.modelXbrl)
-    if len(elementsByTarget.keys()) > 2 or not elementsByTarget.get('filing-information') or not elementsByTarget.get(None):
+    if len(elementsByTarget.keys()) > 2 or not elementsByTarget.get("filing-information") or not elementsByTarget.get(None):
         yield Validation.error(
-            codes='NL.NL-KVK.6.1.3.3.requiredTargetAttributeNotUsed',
-            msg=_('The target attribute `filing-information` MUST be used for the content of the required '
-                  'elements for filing with the Business Register.'),
+            codes="NL.NL-KVK.6.1.3.3.requiredTargetAttributeNotUsed",
+            msg=_("The target attribute `filing-information` MUST be used for the content of the required "
+                  "elements for filing with the Business Register."),
         )
 
 
@@ -2171,14 +2171,14 @@ def rule_nl_kvk_6_1_3_4(
 
     See NL-KVK.3.6.3.4 for non-multi-target version.
     """
-    filingInformationElts = pluginData.getElementsByTarget(val.modelXbrl).get('filing-information', [])
+    filingInformationElts = pluginData.getElementsByTarget(val.modelXbrl).get("filing-information", [])
     likelyFilingInformationDocuments = set(elt.modelDocument for elt in filingInformationElts)
     for doc in likelyFilingInformationDocuments:
         filename = doc.basename
         filenameParts = pluginData.getFilenameParts(filename, pluginData.getFilenameFormatPattern())
-        if not filenameParts or filenameParts['base'] != 'kvk':
+        if not filenameParts or filenameParts["base"] != "kvk":
             yield Validation.error(
-                codes='NL.NL-KVK.6.1.3.4.kvkFilingDocumentNameDoesNotFollowNamingConvention',
+                codes="NL.NL-KVK.6.1.3.4.kvkFilingDocumentNameDoesNotFollowNamingConvention",
                 filename=filename,
                 msg=_('The separate document that contains mandatory facts does not match the required file naming.'
                       ' Ensure the file name follows the "kvk-{date}-{lang}.{extension}" pattern.'
@@ -2206,8 +2206,8 @@ def rule_nl_kvk_7_1_4_2(
             factsInError.append(fact)
     if len(factsInError) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.7.1.4.2.reportedConcept403NotExpected',
-            msg=_('A fact or facts tagged with `kvk:AnnualReportOfForeignGroupHeadForExemptionUnderArticle403` is incorrectly marked as False.'),
+            codes="NL.NL-KVK.7.1.4.2.reportedConcept403NotExpected",
+            msg=_("A fact or facts tagged with `kvk:AnnualReportOfForeignGroupHeadForExemptionUnderArticle403` is incorrectly marked as False."),
             modelObject=factsInError
         )
 
@@ -2233,8 +2233,8 @@ def rule_nl_kvk_7_2_1_2(
             factsInError.append(fact)
     if len(factsInError) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.7.2.1.2.reportedConcept408NotExpected',
-            msg=_('A fact or facts tagged with `kvk:AnnualReportOfForeignGroupHeadForExemptionUnderArticle408` is incorrectly marked as False.'),
+            codes="NL.NL-KVK.7.2.1.2.reportedConcept408NotExpected",
+            msg=_("A fact or facts tagged with `kvk:AnnualReportOfForeignGroupHeadForExemptionUnderArticle408` is incorrectly marked as False."),
             modelObject=factsInError
         )
 
@@ -2257,8 +2257,8 @@ def rule_nl_kvk_8_1_1_1(
         return  # File size is not available, cannot validate
     if size > MAX_REPORT_PACKAGE_SIZE_MBS * 1_000_000:  # Interpretting MB as megabytes (1,000,000 bytes)
         yield Validation.error(
-            codes='NL.NL-KVK.8.1.1.1.reportPackageMaximumSizeExceeded',
-            msg=_('The size of the report package must not exceed %(maxSize)s MBs, size is %(size)s MBs.'),
+            codes="NL.NL-KVK.8.1.1.1.reportPackageMaximumSizeExceeded",
+            msg=_("The size of the report package must not exceed %(maxSize)s MBs, size is %(size)s MBs."),
             modelObject=val.modelXbrl, maxSize=MAX_REPORT_PACKAGE_SIZE_MBS, size=int(size/1000000)
         )
 
@@ -2289,8 +2289,8 @@ def rule_nl_kvk_RTS_Annex_II_Par_1_RTS_Annex_IV_par_7(
                     warnings.append(rels[0])
     if len(warnings) > 0:
         yield Validation.warning(
-            codes='NL.NL-KVK.RTS_Annex_II_Par_1_RTS_Annex_IV_par_7.missingRelevantPlaceholder',
-            msg=_('A root abstract is being used that is not one of the starting abstracts defined by the regulator.  Review abstracts in use and update to defined abstracts.'),
+            codes="NL.NL-KVK.RTS_Annex_II_Par_1_RTS_Annex_IV_par_7.missingRelevantPlaceholder",
+            msg=_("A root abstract is being used that is not one of the starting abstracts defined by the regulator.  Review abstracts in use and update to defined abstracts."),
             modelObject=warnings
         )
 
@@ -2321,9 +2321,9 @@ def rule_nl_kvk_RTS_Annex_IV_Par_11_G4_2_2_1(
                 errors.append(modelType)
     if len(errors) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.RTS_Annex_IV_Par_11_G4-2-2_1.customTypeAlreadyDefinedByXbrl',
-            msg=_('A custom data type is being used that matches a standard data type from the XBRL Data Type Registry. '
-                  'Update to remove duplicate data types and leverage the standard where appropriate.'),
+            codes="NL.NL-KVK.RTS_Annex_IV_Par_11_G4-2-2_1.customTypeAlreadyDefinedByXbrl",
+            msg=_("A custom data type is being used that matches a standard data type from the XBRL Data Type Registry. "
+                  "Update to remove duplicate data types and leverage the standard where appropriate."),
             modelObject=errors
         )
 
@@ -2361,9 +2361,9 @@ def rule_nl_kvk_RTS_Annex_IV_Par_4_1(
             if extensionConcept.periodType != coreConcept.periodType:
                 continue
             yield Validation.error(
-                codes='NL.NL-KVK.RTS_Annex_IV_Par_4_1.extensionElementDuplicatesCoreElement',
-                msg=_('An extension element was found that is a duplicate to a core element (%(qname)s). '
-                      'Review use of element and update to core or revise extension element.'),
+                codes="NL.NL-KVK.RTS_Annex_IV_Par_4_1.extensionElementDuplicatesCoreElement",
+                msg=_("An extension element was found that is a duplicate to a core element (%(qname)s). "
+                      "Review use of element and update to core or revise extension element."),
                 modelObject=(coreConcept, extensionConcept),
                 qname=coreConcept.qname,
             )
@@ -2388,8 +2388,8 @@ def rule_nl_kvk_RTS_Annex_IV_Par_4_2(
             errors.append(concept)
     if len(errors) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.RTS_Annex_IV_Par_4_2.monetaryConceptWithoutBalance',
-            msg=_('Extension elements must have an appropriate balance attribute.'),
+            codes="NL.NL-KVK.RTS_Annex_IV_Par_4_2.monetaryConceptWithoutBalance",
+            msg=_("Extension elements must have an appropriate balance attribute."),
             modelObject=errors
         )
 
@@ -2424,22 +2424,22 @@ def rule_nl_kvk_RTS_Annex_IV_Par_4_3(
                     missingReportingLabels.append(concept)
                 else:
                     noStandardLabels.append(label)
-    message = 'Extension element is missing a standard label or is missing a label in the language of the report. Review to ensure a standard label is defined with at least the language of the report.'
+    message = "Extension element is missing a standard label or is missing a label in the language of the report. Review to ensure a standard label is defined with at least the language of the report."
     if len(missingLabels) > 0:
         yield Validation.warning(
-            codes='NL.NL-KVK.RTS_Annex_IV_Par_4_3.extensionConceptNoLabel',
+            codes="NL.NL-KVK.RTS_Annex_IV_Par_4_3.extensionConceptNoLabel",
             msg=_(message),
             modelObject=missingLabels,
             )
     if len(missingReportingLabels) > 0:
             yield Validation.warning(
-                codes='NL.NL-KVK.RTS_Annex_IV_Par_4_3.missingLabelForRoleInReportLanguage',
+                codes="NL.NL-KVK.RTS_Annex_IV_Par_4_3.missingLabelForRoleInReportLanguage",
                 msg=_(message),
                 modelObject=missingReportingLabels,
             )
     if len(noStandardLabels) > 0:
         yield Validation.warning(
-            codes='NL.NL-KVK.RTS_Annex_IV_Par_4_3.extensionConceptNoStandardLabel',
+            codes="NL.NL-KVK.RTS_Annex_IV_Par_4_3.extensionConceptNoStandardLabel",
             msg=_(message),
             modelObject=noStandardLabels,
         )
@@ -2475,9 +2475,9 @@ def rule_nl_kvk_RTS_Annex_IV_Par_5(
     conceptsMissingFromDefinition = taggedExtensionConcepts - conceptsInDefinition
     if len(conceptsMissingFromDefinition) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.RTS_Annex_IV_Par_5.usableConceptsNotIncludedInDefinitionLink',
-            msg=_('Extension elements are missing from definition linkbase. '
-                  'Review use of extension elements.'),
+            codes="NL.NL-KVK.RTS_Annex_IV_Par_5.usableConceptsNotIncludedInDefinitionLink",
+            msg=_("Extension elements are missing from definition linkbase. "
+                  "Review use of extension elements."),
             modelObject=conceptsMissingFromDefinition
         )
 
@@ -2486,9 +2486,9 @@ def rule_nl_kvk_RTS_Annex_IV_Par_5(
     conceptsMissingFromPresentation = taggedExtensionConcepts - conceptsInPresentation
     if len(conceptsMissingFromPresentation) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.RTS_Annex_IV_Par_5.usableConceptsNotIncludedInPresentationLink',
-            msg=_('Extension elements are missing from presentation linkbase. '
-                  'Review use of extension elements.'),
+            codes="NL.NL-KVK.RTS_Annex_IV_Par_5.usableConceptsNotIncludedInPresentationLink",
+            msg=_("Extension elements are missing from presentation linkbase. "
+                  "Review use of extension elements."),
             modelObject=conceptsMissingFromPresentation
         )
 
@@ -2515,8 +2515,8 @@ def rule_nl_kvk_RTS_Annex_IV_Par_6(
                 hasCalcLinkbase = True
     if not hasCalcLinkbase:
         yield Validation.error(
-            codes='NL.NL-KVK.RTS_Annex_IV_Par_6.extensionTaxonomyWrongFilesStructure',
-            msg=_('The filing package must include a calculation linkbase.'),
+            codes="NL.NL-KVK.RTS_Annex_IV_Par_6.extensionTaxonomyWrongFilesStructure",
+            msg=_("The filing package must include a calculation linkbase."),
             modelObject=val.modelXbrl.modelDocument
         )
 
@@ -2542,18 +2542,18 @@ def rule_nl_kvk_RTS_Annex_IV_Par_8_G4_4_5(
                     linkbase.prohibitedBaseConcepts:
                 if linkbase.linkbaseType == LinkbaseType.LABEL:
                     yield Validation.error(
-                        codes='NL.NL-KVK.RTS_Annex_IV_Par_8_G4-4-5.coreTaxonomyLabelModification',
-                        msg=_('Standard concept has a modified label from what was defined in the taxonomy. '
-                              'Labels from the taxonomy should not be modified.'),
+                        codes="NL.NL-KVK.RTS_Annex_IV_Par_8_G4-4-5.coreTaxonomyLabelModification",
+                        msg=_("Standard concept has a modified label from what was defined in the taxonomy. "
+                              "Labels from the taxonomy should not be modified."),
                         modelObject=modelDocument
                     )
                 else:
                     # Assumed to be a reference linkbase.
                     # If anything else, we should probably fire an error anyway.
                     yield Validation.error(
-                        codes='NL.NL-KVK.RTS_Annex_IV_Par_8_G4-4-5.coreTaxonomyReferenceModification',
-                        msg=_('Standard concept has a modified reference from what was defined in the taxonomy. '
-                              'References from the taxonomy should not be modified.'),
+                        codes="NL.NL-KVK.RTS_Annex_IV_Par_8_G4-4-5.coreTaxonomyReferenceModification",
+                        msg=_("Standard concept has a modified reference from what was defined in the taxonomy. "
+                              "References from the taxonomy should not be modified."),
                         modelObject=modelDocument
                     )
 
@@ -2575,9 +2575,9 @@ def rule_nl_kvk_RTS_Annex_IV_Par_9_Par_10(
     anchorData = pluginData.getAnchorData(val.modelXbrl)
     if len(anchorData.extLineItemsNotAnchored) > 0:
         yield Validation.error(
-            codes='NL.NL-KVK.RTS_Annex_IV_Par_9_Par_10.extensionConceptsNotAnchored',
-            msg=_('Extension concept found without an anchor. '
-                  'Extension concepts, excluding subtotals, are required to be anchored.'),
+            codes="NL.NL-KVK.RTS_Annex_IV_Par_9_Par_10.extensionConceptsNotAnchored",
+            msg=_("Extension concept found without an anchor. "
+                  "Extension concepts, excluding subtotals, are required to be anchored."),
             modelObject=anchorData.extLineItemsNotAnchored,
         )
 
@@ -2602,16 +2602,16 @@ def rule_nl_kvk_RTS_Art_3(
             continue
         if not docTypeMatch.group(1) or docTypeMatch.group(1).lower() == "html":
             yield Validation.error(
-                codes='NL.NL-KVK.RTS_Art_3.htmlDoctype',
-                msg=_('Doctype SHALL NOT specify html: %(doctype)s'),
+                codes="NL.NL-KVK.RTS_Art_3.htmlDoctype",
+                msg=_("Doctype SHALL NOT specify html: %(doctype)s"),
                 modelObject=val.modelXbrl.modelDocument,
                 doctype=docinfo.doctype,
             )
         else:
             yield Validation.warning(
-                codes='NL.NL-KVK.RTS_Art_3.xhtmlDoctype',
-                msg=_('Doctype implies xhtml DTD validation but '
-                      'inline 1.1 requires schema validation: %(doctype)s'),
+                codes="NL.NL-KVK.RTS_Art_3.xhtmlDoctype",
+                msg=_("Doctype implies xhtml DTD validation but "
+                      "inline 1.1 requires schema validation: %(doctype)s"),
                 modelObject=val.modelXbrl.modelDocument,
                 doctype=docinfo.doctype,
             )
@@ -2645,7 +2645,7 @@ def rule_nl_kvk_RTS_Art_6_a(
     ]
     if len(factElements) == 0:
         yield Validation.error(
-            codes='NL.NL-KVK.RTS_Art_6_a.noInlineXbrlTags',
-            msg=_('Annual report is using one or more files with an xhtml extension, but non have inline mark up tags.'),
+            codes="NL.NL-KVK.RTS_Art_6_a.noInlineXbrlTags",
+            msg=_("Annual report is using one or more files with an xhtml extension, but non have inline mark up tags."),
             modelObject=inlineDocs,
         )

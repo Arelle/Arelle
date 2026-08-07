@@ -18,7 +18,7 @@ class TestPluginImports:
 
         modulesImportingPluginsFromRoot = []
         for mod in arelleModules:
-            with open(mod, 'r', encoding='utf-8') as f:
+            with open(mod, "r", encoding="utf-8") as f:
                 for line in f:
                     if absolutePluginImport.search(line):
                         modulesImportingPluginsFromRoot.append(str(mod.relative_to(projectSrc.parent)))

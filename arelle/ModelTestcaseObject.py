@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 import fnmatch
@@ -323,7 +323,7 @@ class ModelTestcaseVariation(ModelObject):
                     filepath = (self.modelDocument.filepathdir + "/" + "ExpectedTestResults/" +  # type: ignore[operator]
                                 self.get("FilePath") + outputFileElement.text)  # type: ignore[union-attr]
                     if os.sep != "/": filepath = filepath.replace("/", os.sep)
-                    with io.open(filepath, 'rt', encoding='utf-8') as f:
+                    with io.open(filepath, "rt", encoding="utf-8") as f:
                         self._cfcnTest = ("xs:string($result) eq '{0}'".format(f.read()), self)
             else:
                 testElement = XmlUtil.descendant(self, XbrlConst.cfcn, "test")
@@ -411,7 +411,7 @@ class ModelTestcaseVariation(ModelObject):
         resultElement = XmlUtil.descendant(self, None, "result")
         if resultElement is None:
             return None
-        return resultElement.get('match')
+        return resultElement.get("match")
 
     @property
     def expectedCount(self) -> Any:
@@ -426,7 +426,7 @@ class ModelTestcaseVariation(ModelObject):
         resultElement = XmlUtil.descendant(self, None, "result")
         if resultElement is None:
             return None
-        report_count = resultElement.get('report_count')
+        report_count = resultElement.get("report_count")
         return int(report_count) if report_count is not None else None
 
     @property
@@ -462,13 +462,13 @@ class ModelTestcaseVariation(ModelObject):
             assertions.append(("assertion",assertionElement.get("assertionID")))
             assertions.append(("   satisfied", assertionElement.get("countSatisfied")))
             assertions.append(("   not sat.", assertionElement.get("countNotSatisfied")))
-        '''
+        """
         for assertionElement in XmlUtil.descendants(self, None, "assert"):
             efmNum = assertionElement.get("num")
             assertions.append(("assertion",
                                "EFM.{0}.{1}.{2}".format(efmNum[0], efmNum[1:2], efmNum[3:4])))
             assertions.append(("   not sat.", "1"))
-        '''
+        """
         readMeFirsts = [("readFirst", readMeFirstUri) for readMeFirstUri in self.readMeFirstUris]
         parameters = []
         if len(self.parameters) > 0: parameters.append(("parameters", None))
@@ -497,7 +497,7 @@ class ModelTestcaseVariation(ModelObject):
             if indexPath.startswith(baseZipFile):  # type: ignore[arg-type]
                 indexPath = indexPath[len(baseZipFile) + 1:]  # type: ignore[arg-type]
             indexPath = indexPath.replace("\\", "/")
-        variationIdPath = f'{indexPath}:{self.id}'
+        variationIdPath = f"{indexPath}:{self.id}"
         userExpectedErrors: list[dict[str, int]] = []
         for userPattern, userErrors in testcaseExpectedErrors.items():
             if fnmatch.fnmatch(variationIdPath, userPattern):

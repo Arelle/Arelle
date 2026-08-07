@@ -1,4 +1,4 @@
-'''
+"""
 sphinxMethods processes the Sphinx language in the context of an XBRL DTS and instance.
 
 See COPYRIGHT.md for copyright information.
@@ -7,7 +7,7 @@ Sphinx is a Rules Language for XBRL described by a Sphinx 2 Primer
 (c) Copyright 2012 CoreFiling, Oxford UK.
 Sphinx copyright applies to the Sphinx language, not to this software.
 Workiva, Inc. conveys neither rights nor license for the Sphinx language.
-'''
+"""
 
 from math import exp, fabs, isinf, isnan, log, log10, pow, sqrt
 import datetime
@@ -289,7 +289,7 @@ def _booleanFunction(node, sphinxContext, args):
     if args[0] == "false":
         return False
     raise SphinxException(node, "sphinx.functionArgumentsMismatch",
-                          _("Function %(name)s fact parameter %(num)s is not \"true\" or \"false\": %(value)s"),
+                          _('Function %(name)s fact parameter %(num)s is not "true" or "false": %(value)s'),
                           name=node.name,
                           num=0, value=arg)
 

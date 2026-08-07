@@ -15,15 +15,15 @@ def test_plugin_manager_init_first_pass():
     """
     Test that pluginConfig is correctly setup during init on fresh pass
     """
-    cntlr = Mock(pluginDir='some_dir')
+    cntlr = Mock(pluginDir="some_dir")
     PluginManager.init(cntlr, loadPluginConfig=False)
     assert len(PluginManager.pluginConfig) == 2
-    assert 'modules' in PluginManager.pluginConfig
-    assert isinstance(PluginManager.pluginConfig.get('modules'), dict)
-    assert len(PluginManager.pluginConfig.get('modules')) == 0
-    assert 'classes' in PluginManager.pluginConfig
-    assert isinstance(PluginManager.pluginConfig.get('classes'), dict)
-    assert len(PluginManager.pluginConfig.get('classes')) == 0
+    assert "modules" in PluginManager.pluginConfig
+    assert isinstance(PluginManager.pluginConfig.get("modules"), dict)
+    assert len(PluginManager.pluginConfig.get("modules")) == 0
+    assert "classes" in PluginManager.pluginConfig
+    assert isinstance(PluginManager.pluginConfig.get("classes"), dict)
+    assert len(PluginManager.pluginConfig.get("classes")) == 0
     assert len(PluginManager.modulePluginInfos) == 0
     assert len(PluginManager.pluginMethodsForClasses) == 0
     assert PluginManager._cntlr == cntlr
@@ -33,17 +33,17 @@ def test_plugin_manager_init_config_already_exists():
     """
     Test that pluginConfig is correctly setup during init on a second pass
     """
-    cntlr = Mock(pluginDir='some_dir')
+    cntlr = Mock(pluginDir="some_dir")
     PluginManager.init(cntlr, loadPluginConfig=False)
     PluginManager.close()
     PluginManager.init(cntlr, loadPluginConfig=False)
     assert len(PluginManager.pluginConfig) == 2
-    assert 'modules' in PluginManager.pluginConfig
-    assert isinstance(PluginManager.pluginConfig.get('modules'), dict)
-    assert len(PluginManager.pluginConfig.get('modules')) == 0
-    assert 'classes' in PluginManager.pluginConfig
-    assert isinstance(PluginManager.pluginConfig.get('classes'), dict)
-    assert len(PluginManager.pluginConfig.get('classes')) == 0
+    assert "modules" in PluginManager.pluginConfig
+    assert isinstance(PluginManager.pluginConfig.get("modules"), dict)
+    assert len(PluginManager.pluginConfig.get("modules")) == 0
+    assert "classes" in PluginManager.pluginConfig
+    assert isinstance(PluginManager.pluginConfig.get("classes"), dict)
+    assert len(PluginManager.pluginConfig.get("classes")) == 0
     assert len(PluginManager.modulePluginInfos) == 0
     assert len(PluginManager.pluginMethodsForClasses) == 0
     assert PluginManager._cntlr == cntlr
@@ -53,12 +53,12 @@ def test_plugin_manager_close():
     """
     Test that pluginConfig, modulePluginInfos and pluginMethodsForClasses are cleared when close is called
     """
-    cntlr = Mock(pluginDir='some_dir')
+    cntlr = Mock(pluginDir="some_dir")
     PluginManager.init(cntlr, loadPluginConfig=False)
     assert len(PluginManager.modulePluginInfos) == 0
     assert len(PluginManager.pluginMethodsForClasses) == 0
-    PluginManager.modulePluginInfos['module'] = 'plugin_info'
-    PluginManager.pluginMethodsForClasses['class'] = 'plugin_method'
+    PluginManager.modulePluginInfos["module"] = "plugin_info"
+    PluginManager.pluginMethodsForClasses["class"] = "plugin_method"
     PluginManager.close()
     assert len(PluginManager.pluginConfig) == 0
     assert len(PluginManager.modulePluginInfos) == 0
@@ -70,12 +70,12 @@ def test_plugin_manager_reset():
     """
     Test that modulePluginInfos and pluginMethodsForClasses are cleared when close is called, pluginConfig remains unchanged
     """
-    cntlr = Mock(pluginDir='some_dir')
+    cntlr = Mock(pluginDir="some_dir")
     PluginManager.init(cntlr, loadPluginConfig=False)
     assert len(PluginManager.modulePluginInfos) == 0
     assert len(PluginManager.pluginMethodsForClasses) == 0
-    PluginManager.modulePluginInfos['module'] = 'plugin_info'
-    PluginManager.pluginMethodsForClasses['class'] = 'plugin_method'
+    PluginManager.modulePluginInfos["module"] = "plugin_info"
+    PluginManager.pluginMethodsForClasses["class"] = "plugin_method"
     PluginManager.reset()
     assert len(PluginManager.pluginConfig) == 2
     assert len(PluginManager.modulePluginInfos) == 0
@@ -154,47 +154,47 @@ class TestPluginManagerClass:
     """Tests that use the PluginManager class directly (not the module-level API)."""
 
     def test_init_creates_instance(self):
-        cntlr = Mock(pluginDir='some_dir')
+        cntlr = Mock(pluginDir="some_dir")
         pm = PluginManagerClass()
         pm.init(cntlr, loadPluginConfig=False)
         assert len(pm.pluginConfig) == 2
-        assert 'modules' in pm.pluginConfig
-        assert 'classes' in pm.pluginConfig
+        assert "modules" in pm.pluginConfig
+        assert "classes" in pm.pluginConfig
         assert len(pm.modulePluginInfos) == 0
         assert len(pm.pluginMethodsForClasses) == 0
         assert pm._cntlr is cntlr
 
     def test_reset_clears_runtime_state(self):
-        cntlr = Mock(pluginDir='some_dir')
+        cntlr = Mock(pluginDir="some_dir")
         pm = PluginManagerClass()
         pm.init(cntlr, loadPluginConfig=False)
-        pm.modulePluginInfos['module'] = 'plugin_info'
-        pm.pluginMethodsForClasses['class'] = 'plugin_method'
+        pm.modulePluginInfos["module"] = "plugin_info"
+        pm.pluginMethodsForClasses["class"] = "plugin_method"
         pm.reset()
         assert len(pm.pluginConfig) == 2
         assert len(pm.modulePluginInfos) == 0
         assert len(pm.pluginMethodsForClasses) == 0
 
     def test_close_clears_all_state(self):
-        cntlr = Mock(pluginDir='some_dir')
+        cntlr = Mock(pluginDir="some_dir")
         pm = PluginManagerClass()
         pm.init(cntlr, loadPluginConfig=False)
-        pm.modulePluginInfos['module'] = 'plugin_info'
-        pm.pluginMethodsForClasses['class'] = 'plugin_method'
+        pm.modulePluginInfos["module"] = "plugin_info"
+        pm.pluginMethodsForClasses["class"] = "plugin_method"
         pm.close()
         assert len(pm.pluginConfig) == 0
         assert len(pm.modulePluginInfos) == 0
         assert len(pm.pluginMethodsForClasses) == 0
 
     def test_singleton_wired_after_init(self):
-        cntlr = Mock(pluginDir='some_dir')
+        cntlr = Mock(pluginDir="some_dir")
         PluginManager.init(cntlr, loadPluginConfig=False)
         assert PluginManager._singleton is not None
         assert isinstance(PluginManager._singleton, PluginManagerClass)
         assert PluginManager._singleton._cntlr is cntlr
 
     def test_backward_compat_getattr(self):
-        cntlr = Mock(pluginDir='some_dir')
+        cntlr = Mock(pluginDir="some_dir")
         PluginManager.init(cntlr, loadPluginConfig=False)
         assert PluginManager.pluginConfig is PluginManager._singleton.pluginConfig
         assert PluginManager._cntlr is PluginManager._singleton._cntlr

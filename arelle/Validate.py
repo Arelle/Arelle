@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 import bisect
@@ -240,7 +240,7 @@ class Validate:
                 if self.filterTestcaseVariation(testcaseVariation):
                     testcaseVariations.append(testcaseVariation)
                 else:
-                    testcaseVariation.status = 'skip'
+                    testcaseVariation.status = "skip"
                     self.modelXbrl.info("info", "Skipped testcase variation %(variationId)s.",
                                         modelObject=testcaseVariation,
                                         variationId=testcaseVariation.id)
@@ -539,7 +539,7 @@ class Validate:
                         file=os.path.basename(readMeFirstUri),
                     )
             elif resultIsVersioningReport or resultIsTaxonomyPackage:
-                inputDTSes['dtsName'].append(model)
+                inputDTSes["dtsName"].append(model)
             elif model.modelDocument.type == Type.VERSIONINGREPORT:
                 ValidateVersReport.ValidateVersReport(self.modelXbrl).validate(model)
             elif testcase.type == Type.REGISTRYTESTCASE:
@@ -737,7 +737,7 @@ class Validate:
         ) -> None:
         testcaseResultOptions = self.modelXbrl.modelManager.formulaOptions.testcaseResultOptions
         testcaseExpectedErrors = self.modelXbrl.modelManager.formulaOptions.testcaseExpectedErrors or {}
-        matchAllExpected = testcaseResultOptions == "match-all" or modelTestcaseVariation.match == 'all'
+        matchAllExpected = testcaseResultOptions == "match-all" or modelTestcaseVariation.match == "all"
         expectedReportCount = modelTestcaseVariation.expectedReportCount
         expectedWarnings = modelTestcaseVariation.expectedWarnings if self.modelXbrl.modelManager.formulaOptions.testcaseResultsCaptureWarnings else []
         if expectedReportCount is not None and validateModelCount is not None and expectedReportCount != validateModelCount:
@@ -818,7 +818,7 @@ class Validate:
                                 # ESEF.UK*: Actual (str): *:match, Expected (QName): {*}*.match
                                 (
                                         testErrPrefix and testErrPrefix.startswith("ESEF.UK") and
-                                        errLocalName and errLocalName == _exp.localName.rpartition('.')[2]
+                                        errLocalName and errLocalName == _exp.localName.rpartition(".")[2]
                                 )
                         ):
                             _expMatched = True
@@ -854,7 +854,7 @@ class Validate:
             #if expected == "EFM.6.03.02" or expected == "EFM.6.03.08": # 6.03.02 is not testable
             #    status = "pass"
             # check if expected is a whitespace separated list of error tokens
-            if status == "fail" and isinstance(expected,str) and ' ' in expected:
+            if status == "fail" and isinstance(expected,str) and " " in expected:
                 if all(any(testErr == e for testErr in _errors)
                        for e in expected.split()):
                         status = "pass"
@@ -894,7 +894,7 @@ class ValidationLogListener(logging.Handler):
         self.level = logging.DEBUG
 
     def flush(self) -> None:
-        ''' Nothing to flush '''
+        """ Nothing to flush """
 
     def emit(self, logRecord: logging.LogRecord) -> None:
         # add to logView

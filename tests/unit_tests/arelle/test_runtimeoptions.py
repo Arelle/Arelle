@@ -9,27 +9,27 @@ from arelle.RuntimeOptions import RuntimeOptions, RuntimeOptionsException
 def test_existing_plugin_options_collision():
     with pytest.raises(RuntimeOptionsException, match=regex.escape("Provided plugin options already exist as base options ['uiLang']")):
         RuntimeOptions(
-            entrypointFile='fr',
+            entrypointFile="fr",
             pluginOptions={
-                'uiLang': 'fr',
+                "uiLang": "fr",
             },
         )
 
 
-@patch('arelle.RuntimeOptions.hasWebServer')
+@patch("arelle.RuntimeOptions.hasWebServer")
 def test_webserver_requires_module(mockwebserver):
     mockwebserver.return_value = False
-    with pytest.raises(RuntimeOptionsException, match='Webserver option requires webserver module'):
+    with pytest.raises(RuntimeOptionsException, match="Webserver option requires webserver module"):
         RuntimeOptions(
-            webserver='webserver',
+            webserver="webserver",
         )
 
 
 def test_incorrect_arguments_with_webserver():
-    with pytest.raises(RuntimeOptionsException, match='Incorrect arguments with webserver'):
+    with pytest.raises(RuntimeOptionsException, match="Incorrect arguments with webserver"):
         RuntimeOptions(
-            entrypointFile='File',
-            webserver='webserver',
+            entrypointFile="File",
+            webserver="webserver",
         )
 
 
@@ -37,7 +37,7 @@ def test_set_runtime_options():
     runtimeOptions = RuntimeOptions(
         abortOnMajorError=True,
         pluginOptions={
-            'dynamicNamedOptionDefinedByPlugin': 42,
+            "dynamicNamedOptionDefinedByPlugin": 42,
         },
     )
     assert runtimeOptions.abortOnMajorError

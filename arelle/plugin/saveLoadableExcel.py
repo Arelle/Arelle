@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 loadFromExcel.py is an example of a plug-in that will load an extension taxonomy from Excel
 input and optionally save an (extension) DTS.
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
 import os, io, time
 import regex as re
 from arelle import XbrlConst
@@ -449,14 +449,14 @@ def saveLoadableExcelCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwar
         saveLoadableExcel(cntlr.modelManager.modelXbrl, excelFile)
 
 __pluginInfo__ = {
-    'name': 'Save Loadable Excel',
-    'version': '0.9',
-    'description': "This plug-in saves XBRL in Excel that can be loaded as an extension DTS.",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "Save Loadable Excel",
+    "version": "0.9",
+    "description": "This plug-in saves XBRL in Excel that can be loaded as an extension DTS.",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'CntlrWinMain.Menu.Tools': saveLoadableExcelMenuEntender,
-    'CntlrCmdLine.Options': saveLoadableExcelCommandLineOptionExtender,
-    'CntlrCmdLine.Xbrl.Run': saveLoadableExcelCommandLineXbrlRun,
+    "CntlrWinMain.Menu.Tools": saveLoadableExcelMenuEntender,
+    "CntlrCmdLine.Options": saveLoadableExcelCommandLineOptionExtender,
+    "CntlrCmdLine.Xbrl.Run": saveLoadableExcelCommandLineXbrlRun,
 }

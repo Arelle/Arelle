@@ -328,7 +328,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             startDate = None
             endDate = None
             _missingItems = []
-            for fact in mandatoryFacts.get('EndDateForPeriodCoveredByReport', set()):
+            for fact in mandatoryFacts.get("EndDateForPeriodCoveredByReport", set()):
                 if (fact is not None and
                         fact.xValid >= VALID and
                         fact.context is not None and
@@ -337,9 +337,9 @@ def validateXbrlFinally(val, *args, **kwargs):
                     endDate = fact.xValue
                     break
             else:
-                _missingItems.append('EndDateForPeriodCoveredByReport')
+                _missingItems.append("EndDateForPeriodCoveredByReport")
 
-            for fact in mandatoryFacts.get('StartDateForPeriodCoveredByReport', set()):
+            for fact in mandatoryFacts.get("StartDateForPeriodCoveredByReport", set()):
                 if (fact is not None and
                         fact.xValid >= VALID and
                         fact.context is not None and
@@ -348,7 +348,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                     startDate = fact.xValue
                     break
             else:
-                _missingItems.append('StartDateForPeriodCoveredByReport')
+                _missingItems.append("StartDateForPeriodCoveredByReport")
 
             if startDate is not None and endDate is not None:
                 mandatoryConceptsToCheck = MANDATORY_ITEMS[val.txmyType]
@@ -356,7 +356,7 @@ def validateXbrlFinally(val, *args, **kwargs):
                     mandatoryConceptsToCheck = MANDATORY_ITEMS[val.txmyType] | {"UKCompaniesHouseRegisteredNumber"}
 
                 for mandatoryConcept in mandatoryConceptsToCheck:
-                    if mandatoryConcept in ['StartDateForPeriodCoveredByReport', 'EndDateForPeriodCoveredByReport']:
+                    if mandatoryConcept in ["StartDateForPeriodCoveredByReport", "EndDateForPeriodCoveredByReport"]:
                         continue
                     foundFact = False
                     for fact in mandatoryFacts.get(mandatoryConcept, set()):
@@ -392,13 +392,13 @@ def validateXbrlFinally(val, *args, **kwargs):
                                     _("At least one of the facts is MANDATORY: %(missingItems)s"),
                                     modelObject=modelXbrl, missingItems=", ".join(sorted(MUST_HAVE_ONE_ITEM[val.txmyType])))
 
-            ''' removed with JFCVC v4.0 2020-06-09
+            """ removed with JFCVC v4.0 2020-06-09
             f = mandatoryFacts.get("StartDateForPeriodCoveredByReport")
             if f is not None and (f.isNil or f.xValue < _6_APR_2008):
                 modelXbrl.error("JFCVC.3313",
                     _("Period Start Date (StartDateForPeriodCoveredByReport) must be 6 April 2008 or later, but is %(value)s"),
                     modelObject=f, value=f.value)
-            '''
+            """
 
             memLocalNamesMissing = set("{}({})".format(_gdvRec.memLocalName, _gdvRec.factNames)
                                        for _gdv in mandatoryGDV.values()
@@ -496,7 +496,7 @@ def _validateStyleAttribute(elt, modelXbrl):
         elif isinstance(declaration, tinycss2.ast.ParseError):
             modelXbrl.warning(
                 "ix.CssParsingError",
-                _("The style attribute contains erroneous CSS declaration \"%(styleContent)s\": %(parseError)s"),
+                _('The style attribute contains erroneous CSS declaration "%(styleContent)s": %(parseError)s'),
                 modelObject=elt,
                 parseError=declaration.message,
                 styleContent=styleValue,
@@ -538,19 +538,19 @@ class GDV:
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
-    'name': 'Validate UK',
+    "name": "Validate UK",
     "aliases": [
         "validate/hmrc",
     ],
-    'version': '4.0',
-    'description': '''HMRC Validation. JFCVC v4.0 2020-06-09.  Style guide v2.2''',
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "version": "4.0",
+    "description": """HMRC Validation. JFCVC v4.0 2020-06-09.  Style guide v2.2""",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'DisclosureSystem.Types': disclosureSystemTypes,
-    'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,
+    "DisclosureSystem.Types": disclosureSystemTypes,
+    "DisclosureSystem.ConfigURL": disclosureSystemConfigURL,
 
-    'Validate.XBRL.Start': validateXbrlStart,
-    'Validate.XBRL.Finally': validateXbrlFinally,
+    "Validate.XBRL.Start": validateXbrlStart,
+    "Validate.XBRL.Finally": validateXbrlFinally,
 }

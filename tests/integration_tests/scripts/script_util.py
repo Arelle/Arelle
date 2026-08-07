@@ -64,7 +64,7 @@ def parse_args(
     return parsed_args
 
 
-def prepare_logfile(working_directory: Path, script_path: Path, name: str | None = None, ext: str = 'xml') -> Path:
+def prepare_logfile(working_directory: Path, script_path: Path, name: str | None = None, ext: str = "xml") -> Path:
     name_part = "" if name is None else f".{name}"
     logfile_path = working_directory.joinpath(script_path.stem).with_suffix(f"{name_part}.logfile.{ext}")
     logfile_path.unlink(missing_ok=True)
@@ -79,8 +79,8 @@ def _get_arelle_args(
     logFile: Path | None = None,
     logFormat: str = "[%(messageCode)s] %(message)s - %(file)s",
 ) -> list[str]:
-    if os.name == 'nt':
-        args = [sys.executable if w == 'python' else w for w in arelle_command.split()]
+    if os.name == "nt":
+        args = [sys.executable if w == "python" else w for w in arelle_command.split()]
     else:
         args = shlex.split(arelle_command)
     if plugins:
@@ -220,7 +220,7 @@ def validate_log_tree(
                 if pattern.match(message):
                     any_match = True
                     actual_results[level][pattern] += 1
-            if not any_match and level == 'error':
+            if not any_match and level == "error":
                 results.append(message)
         for pattern, expected_count in expected_results[level].items():
             actual_count = actual_results[level][pattern]

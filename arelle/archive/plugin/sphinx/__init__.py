@@ -39,7 +39,7 @@ def generatedFormulasDirDialog(cntlr):
     from tkinter.filedialog import askdirectory
     generatedFormulasDir = askdirectory(parent=cntlr.parent,
                                         initialdir=cntlr.config.setdefault("sphinxGeneratedFormulasDir","."),
-                                        title='Please select a directory for formulas generated from sphinx')
+                                        title="Please select a directory for formulas generated from sphinx")
     cntlr.config["sphinxGeneratedFormulasDir"] = generatedFormulasDir
     cntlr.saveConfig()
     return generatedFormulasDir
@@ -150,7 +150,7 @@ def sphinxCommandLineLoader(cntlr, options, modelXbrl, *args, **kwargs):
     if getattr(options, "sphinxFilesForValidation", None):
         from .SphinxParser import parse
         from .SphinxContext import SphinxContext
-        sphinxProgs = parse(cntlr, modelXbrl.log, options.sphinxFilesForValidation.split('|'))
+        sphinxProgs = parse(cntlr, modelXbrl.log, options.sphinxFilesForValidation.split("|"))
         modelXbrl.sphinxContext = SphinxContext(sphinxProgs, modelXbrl)
 
 def sphinxValidater(val, *args, **kwargs):
@@ -160,23 +160,23 @@ def sphinxValidater(val, *args, **kwargs):
         validate(val.modelXbrl.log, val.modelXbrl.sphinxContext)
 
 def sphinxTestcaseVariationReadMeFirstUris(modelTestcaseVariation, *args, **kwargs):
-    xbrlElement = XmlUtil.descendant(modelTestcaseVariation, 'http://www.corefiling.com/sphinx-conformance-harness/2.0', "xbrl")
+    xbrlElement = XmlUtil.descendant(modelTestcaseVariation, "http://www.corefiling.com/sphinx-conformance-harness/2.0", "xbrl")
     if xbrlElement is not None:
         modelTestcaseVariation._readMeFirstUris.append(xbrlElement.textValue)
         return True # found it
     return False  # not a sphinx test case variation
 
 def sphinxTestcaseVariationExpectedResult(modelTestcaseVariation, *args, **kwargs):
-    issueElement = XmlUtil.descendant(modelTestcaseVariation, 'http://www.corefiling.com/sphinx-conformance-harness/2.0', "issue")
+    issueElement = XmlUtil.descendant(modelTestcaseVariation, "http://www.corefiling.com/sphinx-conformance-harness/2.0", "issue")
     if issueElement is not None:
         return issueElement.get("errorCode")
     return None # no issue or not a sphinx test case variation
 
 def sphinxTestcasesStart(cntlr, options, testcasesModelXbrl, *args, **kwargs):
     if options and getattr(options, "sphinxFilesForValidation", None): # command line mode
-        testcasesModelXbrl.sphinxFilesList = options.sphinxFilesForValidation.split('|')
+        testcasesModelXbrl.sphinxFilesList = options.sphinxFilesForValidation.split("|")
     elif (cntlr.hasGui and
-          testcasesModelXbrl.modelDocument.xmlRootElement.qname.namespaceURI == 'http://www.corefiling.com/sphinx-conformance-harness/2.0' and
+          testcasesModelXbrl.modelDocument.xmlRootElement.qname.namespaceURI == "http://www.corefiling.com/sphinx-conformance-harness/2.0" and
           not hasattr(testcasesModelXbrl, "sphinxFilesList")):
         testcasesModelXbrl.sphinxFilesList = sphinxFilesDialog(cntlr)
 
@@ -194,7 +194,7 @@ def sphinxTestcaseVariationXbrlLoaded(testcasesModelXbrl, instanceModelXbrl, *ar
 
 
 def sphinxTestcaseVariationExpectedSeverity(modelTestcaseVariation, *args, **kwargs):
-    issueElement = XmlUtil.descendant(modelTestcaseVariation, 'http://www.corefiling.com/sphinx-conformance-harness/2.0', "issue")
+    issueElement = XmlUtil.descendant(modelTestcaseVariation, "http://www.corefiling.com/sphinx-conformance-harness/2.0", "issue")
     if issueElement is not None:
         return issueElement.get("severity")
     return None # no issue or not a sphinx test case variation
@@ -217,7 +217,7 @@ def sphinxDialogRssWatchFileChoices(dialog, frame, row, options, cntlr, openFile
                 defaultextension=".xsr")
         if sphinxFilesList:
             dialog.options["rssWatchSphinxRulesFilesDir"] = os.path.dirname(sphinxFilesList[0])
-            sphinxFilesPipeSeparated = '|'.join(sphinxFilesList)
+            sphinxFilesPipeSeparated = "|".join(sphinxFilesList)
             dialog.options["sphinxRulesFiles"] = sphinxFilesPipeSeparated
             dialog.cellSphinxFiles.setValue(sphinxFilesPipeSeparated)
         else:  # deleted
@@ -244,7 +244,7 @@ def sphinxRssDoWatchAction(modelXbrl, rssWatchOptions, rssItem, *args, **kwargs)
     sphinxFiles = rssWatchOptions.get("sphinxRulesFiles")
     if sphinxFiles:
         from .SphinxParser import parse
-        sphinxProgs = parse(modelXbrl.modelManager.cntlr, modelXbrl.log, sphinxFiles.split('|'))
+        sphinxProgs = parse(modelXbrl.modelManager.cntlr, modelXbrl.log, sphinxFiles.split("|"))
         from .SphinxContext import SphinxContext
         modelXbrl.sphinxContext = SphinxContext(sphinxProgs, modelXbrl)  # first sphinxProgs for DTS
         # sphinx is loaded, last step in validation
@@ -258,27 +258,27 @@ sphinxModelObjectElementSubstitutionClasses = (
     )
 
 __pluginInfo__ = {
-    'name': 'Sphinx 2.0 Processor',
-    'version': '0.9',
-    'description': "This plug-in provides a Sphinx 2.0 processor and a compiler (of a limited subset of Sphinx) into formula linkbase.  ",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "Sphinx 2.0 Processor",
+    "version": "0.9",
+    "description": "This plug-in provides a Sphinx 2.0 processor and a compiler (of a limited subset of Sphinx) into formula linkbase.  ",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'ModelObjectFactory.ElementSubstitutionClasses': sphinxModelObjectElementSubstitutionClasses,
-    'CntlrWinMain.Menu.File.Open': sphinxFilesOpenMenuEntender,
-    'CntlrWinMain.Menu.Tools': sphinxToLBMenuEntender,
-    'CntlrCmdLine.Options': sphinxToLBCommandLineOptionExtender,
-    'CntlrCmdLine.Utility.Run': sphinxToLBCommandLineUtilityRun,
-    'CntlrCmdLine.Xbrl.Loaded': sphinxCommandLineLoader,
-    'Validate.Finally': sphinxValidater,
-    'Testcases.Start': sphinxTestcasesStart,
-    'TestcaseVariation.Xbrl.Loaded': sphinxTestcaseVariationXbrlLoaded,
-    'ModelTestcaseVariation.ReadMeFirstUris': sphinxTestcaseVariationReadMeFirstUris,
-    'ModelTestcaseVariation.ExpectedResult': sphinxTestcaseVariationExpectedResult,
-    'ModelTestcaseVariation.ExpectedSeverity': sphinxTestcaseVariationExpectedSeverity,
-    'DialogRssWatch.FileChoices': sphinxDialogRssWatchFileChoices,
-    'DialogRssWatch.ValidateChoices': sphinxDialogRssWatchValidateChoices,
-    'RssWatch.HasWatchAction': sphinxRssWatchHasWatchAction,
-    'RssWatch.DoWatchAction': sphinxRssDoWatchAction
+    "ModelObjectFactory.ElementSubstitutionClasses": sphinxModelObjectElementSubstitutionClasses,
+    "CntlrWinMain.Menu.File.Open": sphinxFilesOpenMenuEntender,
+    "CntlrWinMain.Menu.Tools": sphinxToLBMenuEntender,
+    "CntlrCmdLine.Options": sphinxToLBCommandLineOptionExtender,
+    "CntlrCmdLine.Utility.Run": sphinxToLBCommandLineUtilityRun,
+    "CntlrCmdLine.Xbrl.Loaded": sphinxCommandLineLoader,
+    "Validate.Finally": sphinxValidater,
+    "Testcases.Start": sphinxTestcasesStart,
+    "TestcaseVariation.Xbrl.Loaded": sphinxTestcaseVariationXbrlLoaded,
+    "ModelTestcaseVariation.ReadMeFirstUris": sphinxTestcaseVariationReadMeFirstUris,
+    "ModelTestcaseVariation.ExpectedResult": sphinxTestcaseVariationExpectedResult,
+    "ModelTestcaseVariation.ExpectedSeverity": sphinxTestcaseVariationExpectedSeverity,
+    "DialogRssWatch.FileChoices": sphinxDialogRssWatchFileChoices,
+    "DialogRssWatch.ValidateChoices": sphinxDialogRssWatchValidateChoices,
+    "RssWatch.HasWatchAction": sphinxRssWatchHasWatchAction,
+    "RssWatch.DoWatchAction": sphinxRssDoWatchAction
 }

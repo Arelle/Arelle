@@ -12,12 +12,12 @@ from .PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
 
-CURRENCIES_DIMENSION = 'CurrenciesDimension'
-EQUITY = 'Equity'
-IE_PROFIT_LOSS = 'ProfitLossBeforeTax'
-IE_PROFIT_LOSS_ORDINARY = 'ProfitLossOnOrdinaryActivitiesBeforeTax'
-PRINCIPAL_CURRENCY = 'PrincipalCurrencyUsedInBusinessReport'
-TURNOVER_REVENUE = 'DPLTurnoverRevenue'
+CURRENCIES_DIMENSION = "CurrenciesDimension"
+EQUITY = "Equity"
+IE_PROFIT_LOSS = "ProfitLossBeforeTax"
+IE_PROFIT_LOSS_ORDINARY = "ProfitLossOnOrdinaryActivitiesBeforeTax"
+PRINCIPAL_CURRENCY = "PrincipalCurrencyUsedInBusinessReport"
+TURNOVER_REVENUE = "DPLTurnoverRevenue"
 
 
 class ValidationPluginExtension(ValidationPlugin):

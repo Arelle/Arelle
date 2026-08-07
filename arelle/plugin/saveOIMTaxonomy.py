@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 saveOIMTaxonomy.py is a plug-in that saves an extension taxonomy in the json OIM taxonomy format
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
 import os, io, json
 from arelle.Version import authorLabel, copyrightLabel
 from arelle import XbrlConst
@@ -298,14 +298,14 @@ def saveOIMTaxonomyCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs
         saveOIMTaxonomy(cntlr.modelManager.modelXbrl, jsonFile)
 
 __pluginInfo__ = {
-    'name': 'Save OIM Taxonomy',
-    'version': '0.9',
-    'description': "This plug-in saves an OIM Taxonomy.",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "Save OIM Taxonomy",
+    "version": "0.9",
+    "description": "This plug-in saves an OIM Taxonomy.",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'CntlrWinMain.Menu.Tools': saveOIMTaxonomyMenuEntender,
-    'CntlrCmdLine.Options': saveOIMTaxonomyCommandLineOptionExtender,
-    'CntlrCmdLine.Xbrl.Run': saveOIMTaxonomyCommandLineXbrlRun,
+    "CntlrWinMain.Menu.Tools": saveOIMTaxonomyMenuEntender,
+    "CntlrCmdLine.Options": saveOIMTaxonomyCommandLineOptionExtender,
+    "CntlrCmdLine.Xbrl.Run": saveOIMTaxonomyCommandLineXbrlRun,
 }

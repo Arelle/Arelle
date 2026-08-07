@@ -1,9 +1,9 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
 Python version specific utilities
 
 do not convert 3 to 2
-'''
+"""
 from __future__ import annotations
 
 import fractions
@@ -27,14 +27,14 @@ def pyTypeName(object: Any) -> str:
         objectClass = object.__class__
         classModule = objectClass.__module__
         className = objectClass.__name__
-        if classModule == 'builtins':
+        if classModule == "builtins":
             return className  # type: ignore[no-any-return]
-        fullname = classModule + '.' + className
-        if fullname == 'arelle.ModelValue.DateTime':
+        fullname = classModule + "." + className
+        if fullname == "arelle.ModelValue.DateTime":
             if object.dateOnly:
-                fullname += '-dateOnly'
+                fullname += "-dateOnly"
             else:
-                fullname += '-dateTime'
+                fullname += "-dateTime"
         return fullname  # type: ignore[no-any-return]
     except:
         return str(type(object))
@@ -122,7 +122,7 @@ class OrderedDefaultDict(OrderedDict):  # type: ignore[type-arg]
         return _missingValue
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 class OrderedSet(MutableSet[T]):
     """
@@ -189,15 +189,15 @@ class OrderedSet(MutableSet[T]):
 
     def pop(self, last: bool = True) -> T:
         if not self:
-            raise KeyError('set is empty')
+            raise KeyError("set is empty")
         key: T = self.end[1][0] if last else self.end[2][0]
         self.discard(key)
         return key
 
     def __repr__(self) -> str:
         if not self:
-            return f'{self.__class__.__name__}()'
-        return f'{self.__class__.__name__}({list(self)!r})'
+            return f"{self.__class__.__name__}()"
+        return f"{self.__class__.__name__}({list(self)!r})"
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, OrderedSet):
@@ -239,8 +239,8 @@ class FrozenOrderedSet(Set[T]):
 
     def __repr__(self) -> str:
         if not self:
-            return f'{self.__class__.__name__}()'
-        return f'{self.__class__.__name__}({self._items!r})'
+            return f"{self.__class__.__name__}()"
+        return f"{self.__class__.__name__}({self._items!r})"
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, (FrozenOrderedSet, OrderedSet)):
@@ -254,8 +254,8 @@ class FrozenOrderedSet(Set[T]):
             self._hash = hash(self._items)
         return self._hash
 
-KT = TypeVar('KT')
-VT = TypeVar('VT')
+KT = TypeVar("KT")
+VT = TypeVar("VT")
 
 
 class FrozenDict(Generic[KT, VT], Mapping[KT, VT]):
@@ -274,7 +274,7 @@ class FrozenDict(Generic[KT, VT], Mapping[KT, VT]):
 
     def __repr__(self) -> str:
         if not self:
-            return f'{self.__class__.__name__}()'
+            return f"{self.__class__.__name__}()"
         return f"{self.__class__.__name__}({self._dict})"
 
     def __eq__(self, other: Any) -> bool:
@@ -304,9 +304,9 @@ def pyObjectSize(obj: Any, seen: set[int] | None = None) -> int:
     if isinstance(obj, dict):
         size += sum([pyObjectSize(v, seen) for v in obj.values()])
         size += sum([pyObjectSize(k, seen) for k in obj.keys()])
-    elif hasattr(obj, '__dict__'):
+    elif hasattr(obj, "__dict__"):
         size += pyObjectSize(obj.__dict__, seen)
-    elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
+    elif hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes, bytearray)):
         size += sum([pyObjectSize(i, seen) for i in obj])
     return size
 

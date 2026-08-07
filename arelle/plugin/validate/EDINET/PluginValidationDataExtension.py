@@ -113,26 +113,26 @@ class PluginValidationDataExtension(PluginData):
         self.namespaces = NamespaceConfig(disclosureSystemName)
 
         # QNames
-        self.accountingStandardsDeiQn = qname(self.namespaces.jpdei, 'AccountingStandardsDEI')
-        self.assetsIfrsQn = qname(self.namespaces.jpigp, 'AssetsIFRS')
+        self.accountingStandardsDeiQn = qname(self.namespaces.jpdei, "AccountingStandardsDEI")
+        self.assetsIfrsQn = qname(self.namespaces.jpigp, "AssetsIFRS")
         self.baseRemunerationRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "BaseRemunerationRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")
         self.bonusRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "BonusRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")
-        self.categoriesOfDirectorsAndOtherOfficersAxisQn = qname(self.namespaces.jpcrp, 'CategoriesOfDirectorsAndOtherOfficersAxis')
-        self.consolidatedOrNonConsolidatedAxisQn = qname(self.namespaces.jppfs, 'ConsolidatedOrNonConsolidatedAxis')
-        self.corporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlockQn = qname(self.namespaces.jpcrp, 'CorporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlock')
-        self.corporateGovernanceCompanyWithCorporateAuditorsTextBlockQn = qname(self.namespaces.jpcrp, 'CorporateGovernanceCompanyWithCorporateAuditorsTextBlock')
-        self.corporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlockQn = qname(self.namespaces.jpcrp, 'CorporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlock')
-        self.directorsAndOtherOfficersAxisQn = qname(self.namespaces.jpcrp, 'DirectorsAndOtherOfficersAxis')
-        self.directorsAndOtherOfficersMemberQn = qname(self.namespaces.jpcrp, 'DirectorsAndOtherOfficersMember')
-        self.documentTypeDeiQn = qname(self.namespaces.jpdei, 'DocumentTypeDEI')
-        self.executiveOfficersMemberQn = qname(self.namespaces.jpcrp, 'ExecutiveOfficersMember')
+        self.categoriesOfDirectorsAndOtherOfficersAxisQn = qname(self.namespaces.jpcrp, "CategoriesOfDirectorsAndOtherOfficersAxis")
+        self.consolidatedOrNonConsolidatedAxisQn = qname(self.namespaces.jppfs, "ConsolidatedOrNonConsolidatedAxis")
+        self.corporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlockQn = qname(self.namespaces.jpcrp, "CorporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlock")
+        self.corporateGovernanceCompanyWithCorporateAuditorsTextBlockQn = qname(self.namespaces.jpcrp, "CorporateGovernanceCompanyWithCorporateAuditorsTextBlock")
+        self.corporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlockQn = qname(self.namespaces.jpcrp, "CorporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlock")
+        self.directorsAndOtherOfficersAxisQn = qname(self.namespaces.jpcrp, "DirectorsAndOtherOfficersAxis")
+        self.directorsAndOtherOfficersMemberQn = qname(self.namespaces.jpcrp, "DirectorsAndOtherOfficersMember")
+        self.documentTypeDeiQn = qname(self.namespaces.jpdei, "DocumentTypeDEI")
+        self.executiveOfficersMemberQn = qname(self.namespaces.jpcrp, "ExecutiveOfficersMember")
         self.fixedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "FixedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficers")
-        self.issuedSharesTotalNumberOfSharesEtcQn = qname(self.namespaces.jpcrp, 'IssuedSharesTotalNumberOfSharesEtcTextBlock')
-        self.jpcrpEsrFilingDateCoverPageQn = qname(self.namespaces.jpcrpEsr, 'FilingDateCoverPage')
-        self.jpcrpFilingDateCoverPageQn = qname(self.namespaces.jpcrp, 'FilingDateCoverPage')
-        self.jplvhFilingDateCoverPageQn = qname(self.namespaces.jplvh, 'FilingDateCoverPage')
-        self.jpspsFilingDateCoverPageQn = qname(self.namespaces.jpsps, 'FilingDateCoverPage')
-        self.jptoiFilingDateCoverPageQn = qname(self.namespaces.jptoi, 'FilingDateCoverPage')
+        self.issuedSharesTotalNumberOfSharesEtcQn = qname(self.namespaces.jpcrp, "IssuedSharesTotalNumberOfSharesEtcTextBlock")
+        self.jpcrpEsrFilingDateCoverPageQn = qname(self.namespaces.jpcrpEsr, "FilingDateCoverPage")
+        self.jpcrpFilingDateCoverPageQn = qname(self.namespaces.jpcrp, "FilingDateCoverPage")
+        self.jplvhFilingDateCoverPageQn = qname(self.namespaces.jplvh, "FilingDateCoverPage")
+        self.jpspsFilingDateCoverPageQn = qname(self.namespaces.jpsps, "FilingDateCoverPage")
+        self.jptoiFilingDateCoverPageQn = qname(self.namespaces.jptoi, "FilingDateCoverPage")
         self.nonConsolidatedMemberQn = qname(self.namespaces.jppfs, "NonConsolidatedMember")
         self.nonMonetaryRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "NonMonetaryRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficers")
         self.otherRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "OtherRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")
@@ -173,7 +173,7 @@ class PluginValidationDataExtension(PluginData):
         """
         :return: Whether the context's facts are applicable to the given statement.
         """
-        if 'Interim' in contextId:
+        if "Interim" in contextId:
             # valid06.zip suggests "interim"" contexts are not considered for balance sheets.
             return False
         context = modelXbrl.contexts[contextId]
@@ -343,7 +343,7 @@ class PluginValidationDataExtension(PluginData):
         manifestInstance = self.getManifestInstance(modelXbrl)
         if manifestInstance is None:
             return None
-        if any(e is not None and e.startswith('EDINET.EC5800E') for e in modelXbrl.errors):  # type: ignore[union-attr]
+        if any(e is not None and e.startswith("EDINET.EC5800E") for e in modelXbrl.errors):  # type: ignore[union-attr]
             # Manifest TOC parsing failed, so cannot determine cover items.
             return None
         assert len(manifestInstance.tocItems) == 1, _("Only one TOC item should be associated with this instance.")
@@ -355,7 +355,7 @@ class PluginValidationDataExtension(PluginData):
         return [
             self.qname(prefix, localName)
             for prefix, localName in
-            [name.split(':') for name in coverItems]
+            [name.split(":") for name in coverItems]
         ]
 
     @lru_cache(1)
@@ -366,7 +366,7 @@ class PluginValidationDataExtension(PluginData):
         return frozenset(
             self.qname(prefix, localName)
             for prefix, localName in
-            [name.split(':') for name in coverItems]
+            [name.split(":") for name in coverItems]
         )
 
     def getDeiRequirements(self, modelXbrl: ModelXbrl) -> DeiRequirements:

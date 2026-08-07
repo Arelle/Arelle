@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObject import ModelObject
@@ -33,7 +33,7 @@ def loggingMessageParameters(messageCode, msgIn, modelObjectArgs, fmtArgs, *args
         qnamedReferences = set()
         paramNames = parametersPattern.findall(msg)
         for param in paramNames:
-            paramParts = param.split('.')
+            paramParts = param.split(".")
             if len(paramParts) > 1 and not factNumberPattern.match(paramParts[0]):
                 qnamedReferences.add(paramParts[0])
         factsArray = []
@@ -116,11 +116,11 @@ def loggingMessageParameters(messageCode, msgIn, modelObjectArgs, fmtArgs, *args
                     else:
                         measures = unit.measures
                         if measures[1]:
-                            propVal = 'mul {}\ndiv {} '.format(
-                                    ', '.join(measureFormat(m) for m in measures[0]),
-                                    ', '.join(measureFormat(m) for m in measures[1]))
+                            propVal = "mul {}\ndiv {} ".format(
+                                    ", ".join(measureFormat(m) for m in measures[0]),
+                                    ", ".join(measureFormat(m) for m in measures[1]))
                         else:
-                            propVal = ', '.join(measureFormat(m) for m in measures[0])
+                            propVal = ", ".join(measureFormat(m) for m in measures[0])
             fmtArgs[param] = propVal
 
         def setArgForConceptProperty(param, modelConceptOrQname, propertyNameParts):
@@ -142,14 +142,14 @@ def loggingMessageParameters(messageCode, msgIn, modelObjectArgs, fmtArgs, *args
                 if isinstance(modelConcept, ModelConcept):
                     propVal = modelConcept.qname.localName
                 elif isinstance(modelConcept, str):
-                    propVal = modelConcept.rpartition(':')[2]
+                    propVal = modelConcept.rpartition(":")[2]
             if propVal is not None:
                 fmtArgs[param] = propVal
 
         # parse parameter names out of msg
         for param in paramNames:
             try:
-                paramParts = param.split('.')
+                paramParts = param.split(".")
                 if len(paramParts) >= 2 and factNumberPattern.match(paramParts[0]):
                     modelFactNum = int(factNumberPattern.match(paramParts[0]).group(1))
                     if 1 <= modelFactNum <= len(factsArray):
@@ -174,7 +174,7 @@ def loggingMessageParameters(messageCode, msgIn, modelObjectArgs, fmtArgs, *args
                     arg.modelXbrl.error("dqcErrorLog:unresolvedParameters",
                                         _("The error message %(messageCode)s has unresolved named parameters: %(unresolvedParameters)s"),
                                         modelObject=modelObjectArgs, messageCode=messageCode,
-                                        unresolvedParameters=', '.join(sorted(missingQnamedArguments)))
+                                        unresolvedParameters=", ".join(sorted(missingQnamedArguments)))
                     break
             for missingArgument in missingQnamedArguments:
                 fmtArgs[missingArgument] = "unavailable"
@@ -201,17 +201,17 @@ def testcaseVariationExpectedCount(modelTestcaseVariation, *args, **kwargs):
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
-    'name': 'Logging - DQC Parameters',
-    'version': '1.0',
-    'description': '''DQC tests logging messages: adds parameter values from infrastructurally
+    "name": "Logging - DQC Parameters",
+    "version": "1.0",
+    "description": """DQC tests logging messages: adds parameter values from infrastructurally
 provided logging arguments.  Usually uses modelObject arguments to supply parameters found
-in message text that can be derived from the arguments.''',
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+in message text that can be derived from the arguments.""",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'CntlrCmdLine.Xbrl.Run': loggingCommandLineXbrlRun,
-    'Logging.Message.Parameters': loggingMessageParameters,
-    'ModelTestcaseVariation.ExpectedSeverity': testcaseVariationExpectedSeverity,
-    'ModelTestcaseVariation.ExpectedCount': testcaseVariationExpectedCount
+    "CntlrCmdLine.Xbrl.Run": loggingCommandLineXbrlRun,
+    "Logging.Message.Parameters": loggingMessageParameters,
+    "ModelTestcaseVariation.ExpectedSeverity": testcaseVariationExpectedSeverity,
+    "ModelTestcaseVariation.ExpectedCount": testcaseVariationExpectedCount
 }

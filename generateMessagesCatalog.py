@@ -1,10 +1,10 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 import os, time, io, ast, sys, traceback
 
 def entityEncode(arg):  # be sure it's a string, vs int, etc, and encode &, <, ".
-    return str(arg).replace("&","&amp;").replace("<","&lt;").replace('"','&quot;')
+    return str(arg).replace("&","&amp;").replace("<","&lt;").replace('"',"&quot;")
 
 if __name__ == "__main__":
     startedAt = time.time()
@@ -32,7 +32,7 @@ if __name__ == "__main__":
                     for item in ast.walk(tree):
                         try:
                             if (isinstance(item, ast.Call) and
-                                (getattr(item.func, "attr", '') or getattr(item.func, "id", '')) # imported function could be by id instead of attr
+                                (getattr(item.func, "attr", "") or getattr(item.func, "id", "")) # imported function could be by id instead of attr
                                 in ("info","warning","log","error","exception")):
                                     funcName = item.func.attr
                                     iArgOffset = 0
@@ -53,14 +53,14 @@ if __name__ == "__main__":
                                                    for elt in ast.walk(levelArg)):
                                                 level = "(dynamic)"
                                             else:
-                                                level = ', '.join(elt.s.lower()
+                                                level = ", ".join(elt.s.lower()
                                                                   for elt in ast.walk(levelArg)
                                                                   if isinstance(elt, ast.Str))
                                         iArgOffset = 1
                                     msgCodeArg = item.args[0 + iArgOffset]  # str or tuple
                                     if isinstance(msgCodeArg,ast.Str):
                                         msgCodes = (msgCodeArg.s,)
-                                    elif isinstance(msgCodeArg, ast.Call) and getattr(msgCodeArg.func, "id", '') == 'ixMsgCode':
+                                    elif isinstance(msgCodeArg, ast.Call) and getattr(msgCodeArg.func, "id", "") == "ixMsgCode":
                                         msgCodes = ("ix{{ver.sect}}:{}".format(msgCodeArg.args[0].s),)
                                     else:
                                         if any(isinstance(elt, (ast.Call, ast.Name))
@@ -73,7 +73,7 @@ if __name__ == "__main__":
                                     msgArg = item.args[1 + iArgOffset]
                                     if isinstance(msgArg, ast.Str):
                                         msg = msgArg.s
-                                    elif isinstance(msgArg, ast.Call) and getattr(msgArg.func, "id", '') == '_':
+                                    elif isinstance(msgArg, ast.Call) and getattr(msgArg.func, "id", "") == "_":
                                         msg = msgArg.args[0].s
                                     elif any(isinstance(elt, (ast.Call,ast.Name))
                                              for elt in ast.walk(msgArg)):
@@ -82,9 +82,9 @@ if __name__ == "__main__":
                                         continue # not sure what to report
                                     keywords = []
                                     for keyword in item.keywords:
-                                        if keyword.arg == 'modelObject':
+                                        if keyword.arg == "modelObject":
                                             pass
-                                        elif keyword.arg == 'messageCodes':
+                                        elif keyword.arg == "messageCodes":
                                             msgCodeArg = keyword.value
                                             if any(isinstance(elt, (ast.Call, ast.Name))
                                                    for elt in ast.walk(msgCodeArg)):
@@ -105,11 +105,11 @@ if __name__ == "__main__":
     for id,msg,level,args,module,line in idMsg:
         try:
             if args and any(isinstance(arg,str) for arg in args):
-                argAttr = "\n         args=\"{0}\"".format(
+                argAttr = '\n         args="{0}"'.format(
                             entityEncode(" ".join(arg for arg in args if arg is not None)))
             else:
                 argAttr = ""
-            lines.append("<message code=\"{0}\"\n         level=\"{3}\"\n         module=\"{4}\" line=\"{5}\"{2}>\n{1}\n</message>"
+            lines.append('<message code="{0}"\n         level="{3}"\n         module="{4}" line="{5}"{2}>\n{1}\n</message>'
                       .format(id,
                               entityEncode(msg),
                               argAttr,
@@ -120,9 +120,9 @@ if __name__ == "__main__":
             print(ex)
             print("traceback {}".format(traceback.format_exc()))
     os.makedirs(arelleSrcPath + os.sep + "doc", exist_ok=True)
-    with io.open(arelleSrcPath + os.sep + "doc" + os.sep + "messagesCatalog.xml", 'wt', encoding='utf-8') as f:
+    with io.open(arelleSrcPath + os.sep + "doc" + os.sep + "messagesCatalog.xml", "wt", encoding="utf-8") as f:
         f.write(
-'''<?xml version="1.0" encoding="utf-8"?>
+"""<?xml version="1.0" encoding="utf-8"?>
 <messages
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="messagesCatalog.xsd"
@@ -140,13 +140,13 @@ are reported as "(dynamic)".)
 
 -->
 
-''')
+""")
         f.write("\n\n".join(sorted(lines)))
         f.write("\n\n</messages>")
 
-    with io.open(arelleSrcPath + os.sep + "doc" + os.sep + "messagesCatalog.xsd", 'wt', encoding='utf-8') as f:
+    with io.open(arelleSrcPath + os.sep + "doc" + os.sep + "messagesCatalog.xsd", "wt", encoding="utf-8") as f:
         f.write(
-'''<?xml version="1.0" encoding="UTF-8"?>
+"""<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="unqualified"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <xs:element name="messages">
@@ -172,6 +172,6 @@ are reported as "(dynamic)".)
     </xs:complexType>
   </xs:element>
 </xs:schema>
-''')
+""")
 
     print("Arelle messages catalog {0:.2f} secs, {1} formula files, {2} messages".format( time.time() - startedAt, numArelleSrcFiles, len(idMsg) ))

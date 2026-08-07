@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from tkinter import Toplevel, N, S, E, W, messagebox
 try:
     from tkinter.ttk import Frame, Button
@@ -13,9 +13,9 @@ from arelle import XmlUtil
 from arelle.UiUtil import gridCell, gridCombobox, label
 from arelle.CntlrWinTooltip import ToolTip
 
-'''
+"""
 caller checks accepted, if True, caller retrieves url
-'''
+"""
 def getNewFactItemOptions(mainWin, newInstanceOptions=None):
     if newInstanceOptions is None: newInstanceOptions = NewFactItemOptions()
     # use prior prevOptionValues for those keys not in existing newInstanceOptions

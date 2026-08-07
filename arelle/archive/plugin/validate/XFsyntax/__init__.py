@@ -1,4 +1,4 @@
-'''
+"""
 XBRL Formula language syntax checker using ebnf parser
 
 for execution of xf formula, please instead use plug-in formulaLoader.py
@@ -6,7 +6,7 @@ for execution of xf formula, please instead use plug-in formulaLoader.py
 requires xf.py from XII conformance-formula/tf/syntax
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
 
 import os
 from arelle.Version import authorLabel, copyrightLabel
@@ -33,7 +33,7 @@ def xfLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
         xf = f.read()
         parser = XFParser()
         try:
-            ast = parser.parse(xf, rule_name='module')
+            ast = parser.parse(xf, rule_name="module")
         except tatsu.exceptions.FailedParse as err:
             modelXbrl.error("xf:syntax",
                             "Unrecoverable error: %(error)s",
@@ -41,24 +41,24 @@ def xfLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
 
     # create dummy modelDocument for successful plugin execution by ModelDopcument
     from arelle.ModelDocument import Type, create as createModelDocument
-    doc = createModelDocument(modelXbrl, Type.LINKBASE, filepath, documentEncoding="utf-8", initialXml='''
+    doc = createModelDocument(modelXbrl, Type.LINKBASE, filepath, documentEncoding="utf-8", initialXml="""
 <!--  Dummy linkbase -->
 <link:linkbase
    xmlns:link="http://www.xbrl.org/2003/linkbase"
    xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"
 />
-''')
+""")
     return doc
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
-    'name': 'Validate XF Syntax',
-    'version': '1.0',
-    'description': '''XBRL Formula XF Syntax Validation only, not execution of formulae.''',
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "Validate XF Syntax",
+    "version": "1.0",
+    "description": """XBRL Formula XF Syntax Validation only, not execution of formulae.""",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'ModelDocument.IsPullLoadable': isXfLoadable,
-    'ModelDocument.PullLoader': xfLoader,
+    "ModelDocument.IsPullLoadable": isXfLoadable,
+    "ModelDocument.PullLoader": xfLoader,
 }

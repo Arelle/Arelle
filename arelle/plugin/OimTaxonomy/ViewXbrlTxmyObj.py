@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from typing import Union, get_origin
 from collections import defaultdict
 from decimal import Decimal
@@ -66,9 +66,9 @@ def viewXbrlTxmyObj(xbrlDts, objClass, tabWin, header, additionalViews=None):
     view.view()
     view.blockSelectEvent = 1
     view.blockViewModelObject = 0
-    view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, '+')
-    view.treeView.bind("<Enter>", view.treeviewEnter, '+')
-    view.treeView.bind("<Leave>", view.treeviewLeave, '+')
+    view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, "+")
+    view.treeView.bind("<Enter>", view.treeviewEnter, "+")
+    view.treeView.bind("<Leave>", view.treeviewLeave, "+")
 
     # languages menu
     menu = view.contextMenu()

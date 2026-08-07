@@ -48,28 +48,28 @@ class ToolTip:
     def __init__(
         self,
         master: tkinter.Misc,
-        text: str | None = 'Your text here',
+        text: str | None = "Your text here",
         delay: int = 500,
         **opts: Any
     ) -> None:
         self.master = master
         self._opts: dict[str, Any] = {
-            'anchor': 'center',
-            'bd': 1,
-            'bg': 'lightyellow',
-            'delay': delay,
-            'fg': 'black',
-            'follow_mouse': 0,
-            'font': None,
-            'justify': 'left',
-            'padx': 4,
-            'pady': 2,
-            'relief': 'solid',
-            'state': 'normal',
-            'text': text,
-            'textvariable': None,
-            'width': 0,
-            'wraplength': 150,
+            "anchor": "center",
+            "bd": 1,
+            "bg": "lightyellow",
+            "delay": delay,
+            "fg": "black",
+            "follow_mouse": 0,
+            "font": None,
+            "justify": "left",
+            "padx": 4,
+            "pady": 2,
+            "relief": "solid",
+            "state": "normal",
+            "text": text,
+            "textvariable": None,
+            "width": 0,
+            "wraplength": 150,
         }
         self.configure(**opts)
         self._tipwindow: tkinter.Toplevel | None = None
@@ -176,7 +176,7 @@ class ToolTip:
 
     def create_contents(self) -> None:
         opts = self._opts.copy()
-        for opt in ('delay', 'follow_mouse', 'state'):
+        for opt in ("delay", "follow_mouse", "state"):
             del opts[opt]
         label = tkinter.Label(self._tipwindow, **opts)
         label.pack()
@@ -184,16 +184,16 @@ class ToolTip:
 
 ##---------demo code-----------------------------------##
 def demo() -> None:
-    root = tkinter.Tk(className='ToolTip-demo')
+    root = tkinter.Tk(className="ToolTip-demo")
     l = tkinter.Listbox(root)
-    l.insert('end', "I'm a listbox")
-    l.pack(side='top')
+    l.insert("end", "I'm a listbox")
+    l.pack(side="top")
     t1 = ToolTip(l, follow_mouse=1, text="I'm a tooltip with follow_mouse set to 1, so I won't be placed outside my parent")
-    b = tkinter.Button(root, text='Quit', command=root.quit)
-    b.pack(side='bottom')
-    t2 = ToolTip(b, text='Enough of this')
+    b = tkinter.Button(root, text="Quit", command=root.quit)
+    b.pack(side="bottom")
+    t2 = ToolTip(b, text="Enough of this")
     root.mainloop()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     demo()

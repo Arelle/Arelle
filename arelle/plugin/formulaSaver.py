@@ -1,4 +1,4 @@
-'''
+"""
 Save formula linkbase into XBRL Formula (syntax) files.
 
 See COPYRIGHT.md for copyright information.
@@ -12,7 +12,7 @@ To run from command line, loading formula linkbase and saving formula syntax fil
     --plugins formulaSaver.py
     --save-xbrl-formula {formula syntax output file.xf}
 
-'''
+"""
 from arelle.ViewUtilFormulae import rootFormulaObjects, formulaObjSortKey
 from arelle.ModelFormulaObject import (ModelValueAssertion, ModelExistenceAssertion, ModelConsistencyAssertion,
                                        ModelAssertionSet,
@@ -74,7 +74,7 @@ class GenerateXbrlFormula:
         if self.xmlns:
             self.xfLines.insert(0, "")
             for prefix, ns in sorted(self.xmlns.items(), reverse=True):
-                self.xfLines.insert(0, "namespace {} = \"{}\";".format(prefix, ns))
+                self.xfLines.insert(0, 'namespace {} = "{}";'.format(prefix, ns))
 
         self.xfLines.insert(0, "")
         self.xfLines.insert(0, "Version 1.0;".format(self.modelXbrl.modelDocument.basename, XmlUtil.dateunionValue(datetime.datetime.now())))
@@ -253,11 +253,11 @@ class GenerateXbrlFormula:
                     linkrole = XmlUtil.childText(memberElt, XbrlConst.df, "linkrole")
                     if linkrole:
                         members.append("linkrole")
-                        members.append("\"{}\"".format(linkrole))
+                        members.append('"{}"'.format(linkrole))
                     arcrole = XmlUtil.childText(memberElt, XbrlConst.df, "arcrole")
                     if arcrole:
                         members.append("arcrole")
-                        members.append("\"{}\"".format(arcrole))
+                        members.append('"{}"'.format(arcrole))
                     axis = XmlUtil.childText(memberElt, XbrlConst.df, "axis")
                     if axis:
                         members.append("axis")
@@ -289,9 +289,9 @@ class GenerateXbrlFormula:
             elif isinstance(fObj, ModelEntityScheme):
                 self.xf = "{}entity-scheme {{{}}};".format(pIndent, fObj.scheme)
             elif isinstance(fObj, ModelEntityRegexpScheme):
-                self.xf = "{}entity-scheme-pattern \"{}\";".format(pIndent, fObj.pattern)
+                self.xf = '{}entity-scheme-pattern "{}";'.format(pIndent, fObj.pattern)
             elif isinstance(fObj, ModelEntityRegexpIdentifier):
-                self.xf = "{}entity-identifier-pattern \"{}\";".format(pIndent, fObj.pattern)
+                self.xf = '{}entity-identifier-pattern "{}";'.format(pIndent, fObj.pattern)
             elif isinstance(fObj, ModelMatchFilter):
                 self.xf = "{}{} ${} {}{};".format(pIndent, kebabCase(fObj.localName), fObj.variable,
                                                   " dimension {}".format(fObj.dimension) if fObj.get("dimension") else "",
@@ -359,7 +359,7 @@ class GenerateXbrlFormula:
                 self.xf = "{}}};".format(pIndent)
         elif isinstance(fObj, ModelMessage):
             role = fObj.role
-            self.xf = "{}{}{}{} \"{}\";".format(
+            self.xf = '{}{}{}{} "{}";'.format(
                 pIndent,
                 "satisfied-message" if fromRel.arcrole == XbrlConst.assertionSatisfiedMessage else "unsatisfied-message",
                 {XbrlConst.standardMessage : "", XbrlConst.terseMessage: "terse", XbrlConst.verboseMessage: "verbose"
@@ -518,14 +518,14 @@ def saveXfCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
 
 
 __pluginInfo__ = {
-    'name': 'Save Formula File',
-    'version': '0.9',
-    'description': "This plug-in adds a feature to output XBRL Formula file from formula linkbase model objects. ",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "Save Formula File",
+    "version": "0.9",
+    "description": "This plug-in adds a feature to output XBRL Formula file from formula linkbase model objects. ",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'CntlrWinMain.Menu.Tools': saveXfMenuEntender,
-    'CntlrCmdLine.Options': saveXfCommandLineOptionExtender,
-    'CntlrCmdLine.Xbrl.Run': saveXfCommandLineXbrlRun,
+    "CntlrWinMain.Menu.Tools": saveXfMenuEntender,
+    "CntlrCmdLine.Options": saveXfCommandLineOptionExtender,
+    "CntlrCmdLine.Xbrl.Run": saveXfCommandLineXbrlRun,
 }

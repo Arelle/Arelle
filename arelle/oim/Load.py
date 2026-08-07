@@ -455,7 +455,7 @@ def xlUnicodeChar(match):
 def xlValue(cell): # excel values may have encoded unicode, such as _0000D_
     v = cell.value
     if isinstance(v, str):
-        v = xlUnicodePattern.sub(xlUnicodeChar, v).replace('\r\n','\n').replace('\r','\n')
+        v = xlUnicodePattern.sub(xlUnicodeChar, v).replace("\r\n","\n").replace("\r","\n")
     elif v is None:
         v = ""
     elif isinstance(v, float):
@@ -496,7 +496,7 @@ class OIMException(Exception):
         self.args = ( self.__repr__(), )
     def __repr__(self):
         if self.code and self.message:
-            return _('[{0}] exception {1}').format(self.code, self.message % self.msgArgs)
+            return _("[{0}] exception {1}").format(self.code, self.message % self.msgArgs)
         else:
             return "Errors noted in log"
 
@@ -504,7 +504,7 @@ class NotOIMException(Exception):
     def __init__(self, **kwargs):
         self.args = ( self.__repr__(), )
     def __repr__(self):
-        return _('[NotOIM] not an OIM document')
+        return _("[NotOIM] not an OIM document")
 
 class FactProduced():
     def clear(self):
@@ -675,11 +675,11 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 raise OIMException("xbrlce:invalidCSVFileFormat",
                       _("CSV file MUST use utf-8 encoding: %(file)s, appears to be %(encoding)s"),
                       file=csvFilePath, encoding=m.lastgroup)
-            _file = modelXbrl.fileSource.file(csvFilePath, encoding='utf-8-sig')[0]
+            _file = modelXbrl.fileSource.file(csvFilePath, encoding="utf-8-sig")[0]
             if CSV_HAS_HEADER_ROW:
                 try:
                     chars = _file.read(1024)
-                    _dialect = csv.Sniffer().sniff(chars, delimiters=[',', '\t', ';', '|']) # also check for disallowed potential separators
+                    _dialect = csv.Sniffer().sniff(chars, delimiters=[",", "\t", ";", "|"]) # also check for disallowed potential separators
                     if _dialect.lineterminator not in ("\r", "\n", "\r\n"):
                         raise OIMException("xbrlce:invalidCSVFileFormat",
                                            _("CSV line ending is not CR, LF or CR LF, file %(file)s"),
@@ -753,15 +753,15 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                     normalizedValueKeyDict[_value] = _key
                             if not XmlValidate.NCNamePattern.match(_key):
                                 ldError("{}:invalidJSONStructure",
-                                      _("The %(map)s alias \"%(alias)s\" must be a canonical NCName value"),
+                                      _('The %(map)s alias "%(alias)s" must be a canonical NCName value'),
                                       modelObject=modelXbrl, map=key, alias=_key)
                             if UrlInvalidPattern.match(_value):
                                 ldError("{}:invalidJSONStructure",
-                                      _("The %(map)s alias \"%(alias)s\" URI must be a canonical URI value: \"%(URI)s\"."),
+                                      _('The %(map)s alias "%(alias)s" URI must be a canonical URI value: "%(URI)s".'),
                                       modelObject=modelXbrl, map=key, alias=_key, URI=_value)
                             elif not (_value and UrlUtil.isAbsolute(_value)) or UrlInvalidPattern.match(_value):
                                 ldError("oimce:invalidURI",
-                                        _("The %(map)s \"%(alias)s\" URI is invalid: \"%(URI)s\"."),
+                                        _('The %(map)s "%(alias)s" URI is invalid: "%(URI)s".'),
                                         modelObject=modelXbrl, map=key, alias=_key, URI=_value)
                         value.clear() # replace with normalized values
                         for _key, _value in normalizedDict.items():
@@ -770,18 +770,18 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         for _errKey, _errValue, _otherValue in value[DUPJSONKEY]:
                             if key in ("namespaces", "linkTypes", "linkGroups"):
                                 ldError("{}:invalidJSON", # {} expanded when loadDictErrors are processed
-                                                _("The %(map)s alias \"%(prefix)s\" is used on uri \"%(uri1)s\" and uri \"\"%(uri2)s."),
+                                                _('The %(map)s alias "%(prefix)s" is used on uri "%(uri1)s" and uri ""%(uri2)s.'),
                                                 modelObject=modelXbrl, map=key, prefix=_errKey, uri1=_errValue, uri2=_otherValue)
                             else:
                                 ldError("{}:invalidJSON", # {} expanded when loadDictErrors are processed
-                                                _("The %(obj)s key \"%(key)s\" is used on multiple objects."),
+                                                _('The %(obj)s key "%(key)s" is used on multiple objects.'),
                                                 modelObject=modelXbrl, obj=key, key=_errKey)
                         del value[DUPJSONKEY]
                     if DUPJSONVALUE in value:
                         if key in ("namespaces", "linkTypes", "linkGroups"):
                             for _errValue, _errKey, _otherKey in value[DUPJSONVALUE]:
                                 ldError("oimce:multipleAliasesForURI",
-                                                _("The \"%(map)s\" value \"%(uri)s\" is used on alias \"%(alias1)s\" and alias \"%(alias2)s\"."),
+                                                _('The "%(map)s" value "%(uri)s" is used on alias "%(alias1)s" and alias "%(alias2)s".'),
                                                 modelObject=modelXbrl, map=key, uri=_errValue, alias1=_errKey, alias2=_otherKey)
                         del value[DUPJSONVALUE]
                 if key in _dict: # don't put the duplicate in the dictionary but report it as error
@@ -896,11 +896,11 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     oimObject = json.loads(_metadata, object_pairs_hook=loadDict)
                 except UnicodeDecodeError as ex:
                     raise OIMException("{}:invalidJSON".format(errPrefix),
-                          _("File MUST use utf-8 encoding: %(file)s \"metadata\" worksheet, error %(error)s"),
+                          _('File MUST use utf-8 encoding: %(file)s "metadata" worksheet, error %(error)s'),
                           file=filepath, error=str(ex))
                 except json.JSONDecodeError as ex:
                     raise OIMException("{}:invalidJSON".format(errPrefix),
-                            "JSON error while %(action)s, %(file)s \"metadata\" worksheet, error %(error)s",
+                            'JSON error while %(action)s, %(file)s "metadata" worksheet, error %(error)s',
                             file=filepath, action=currentAction, error=ex)
             # allow report setup or extension objects processing
             for pluginXbrlMethod in modelXbrl.modelManager.cntlr.plugins.hooks("LoadFromOim.DocumentSetup"):
@@ -1044,7 +1044,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     for i, row in enumerate(openCsvReader(parameterFilePath, CSV_PARAMETER_FILE)):
                         if i == 0:
                             if row != ["name", "value"]:
-                                problems.append(_("The first row must only consist of \"name\" and \"value\" but contains: {}").format(",".join(row)))
+                                problems.append(_('The first row must only consist of "name" and "value" but contains: {}').format(",".join(row)))
                         elif len(row) > 0 and row[0]:
                             name = row[0]
                             if not IDENTIFIER_PATTERN.match(name):
@@ -1260,17 +1260,17 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             for key, value in oimDocumentInfo.get(map, EMPTY_DICT).items():
                 if key in OIMReservedAliasURIs[map] and value not in OIMReservedAliasURIs[map][key]:
                     error("oimce:invalidURIForReservedAlias",
-                          _("The %(map)s URI \"%(uri)s\" is used on standard alias \"%(alias)s\" which requires URI \"%(standardUri)s\"."),
+                          _('The %(map)s URI "%(uri)s" is used on standard alias "%(alias)s" which requires URI "%(standardUri)s".'),
                           modelObject=modelXbrl, map=map, alias=key, uri=value, standardUri=OIMReservedAliasURIs[map][key][0])
                 elif value in OIMReservedURIAlias[map] and key != OIMReservedURIAlias[map][value]:
                     error("oimce:invalidAliasForReservedURI",
-                          _("The %(map)s URI \"%(uri)s\" is bound to alias \"%(key)s\" instead of standard alias \"%(alias)s\"."),
+                          _('The %(map)s URI "%(uri)s" is bound to alias "%(key)s" instead of standard alias "%(alias)s".'),
                           modelObject=modelXbrl, map=key, key=key, uri=value, alias=OIMReservedURIAlias[map][value])
 
         # check baseURL
         if documentBase and not UrlUtil.isAbsolute(documentBase):
             error("oime:invalidBaseURL",
-                  _("The base-url must be absolute: \"%(url)s\"."),
+                  _('The base-url must be absolute: "%(url)s".'),
                   modelObject=modelXbrl, url=documentBase)
 
         factProduced = FactProduced() # pass back fact info to csv Fact producer
@@ -1356,12 +1356,12 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             # local Workbook range
                             tableWb = oimWb
                             _cellValue = xlValue
-                            xlSheetName, _sep, xlNamedRange = tableUrl.partition('!')
+                            xlSheetName, _sep, xlNamedRange = tableUrl.partition("!")
                         else:
                             # check if there's a reference to an Excel workbook file
                             if "#" in tableUrl:
                                 tableUrl, _sep, sheetAndRange = tableUrl.partition("#")
-                                xlSheetName, _sep, xlNamedRange = sheetAndRange.partition('!')
+                                xlSheetName, _sep, xlNamedRange = sheetAndRange.partition("!")
                             tablePath = os.path.join(_dir, tableUrl)
                             # Remove unnecessary relative segments within path. Effected paths are handled fine
                             # when loading from directories, but this fails when loading from ZIP archives.
@@ -1662,12 +1662,12 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                     _dimValue = csvPeriod(dimValue, dimAttr)
                                                     if _dimValue == "referenceTargetNotDuration":
                                                         error("xbrlce:referenceTargetNotDuration",
-                                                              _("Table %(table)s row %(row)s column %(column)s has instant date with period reference \"%(date)s\", from %(source)s, url: %(url)s"),
+                                                              _('Table %(table)s row %(row)s column %(column)s has instant date with period reference "%(date)s", from %(source)s, url: %(url)s'),
                                                               table=tableId, row=rowIndex+1, column=colName, date=dimValue, url=tableUrl, source=dimSource)
                                                         dimValue = NONE_CELL
                                                     elif _dimValue is None: # bad format, raised value error
                                                         error("xbrlce:invalidPeriodRepresentation",
-                                                              _("Table %(table)s row %(row)s column %(column)s has lexical syntax issue with date \"%(date)s\", from %(source)s, url: %(url)s"),
+                                                              _('Table %(table)s row %(row)s column %(column)s has lexical syntax issue with date "%(date)s", from %(source)s, url: %(url)s'),
                                                               table=tableId, row=rowIndex+1, column=colName, date=dimValue, url=tableUrl, source=dimSource)
                                                         dimValue = NONE_CELL
                                                     else:
@@ -1725,7 +1725,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                 fact["decimals"] = dimValue
                                             else:
                                                 error("xbrlce:invalidDecimalsValue",
-                                                      _("Table %(table)s row %(row)s column %(column)s has invalid decimals \"%(decimals)s\", from %(source)s, url: %(url)s"),
+                                                      _('Table %(table)s row %(row)s column %(column)s has invalid decimals "%(decimals)s", from %(source)s, url: %(url)s'),
                                                       table=tableId, row=rowIndex+1, column=colName, decimals=dimValue, url=tableUrl, source=dimSource)
                                     yield (factId, fact)
                                     if factProduced.invalidReferenceTarget:
@@ -1819,7 +1819,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 continue
             # First, test if the prefix/namespace combination is valid
             try:
-                etree.Element('nsmap', nsmap={prefix: namespace})
+                etree.Element("nsmap", nsmap={prefix: namespace})
             except ValueError:
                 # Skip if not valid
                 continue
@@ -2215,13 +2215,13 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     if concept.type.isOimTextFactType:
                         if isJSON and not lang.islower():
                             error("xbrlje:invalidLanguageCodeCase",
-                                  _("Language MUST be lower case: \"%(lang)s\", fact %(factId)s, concept %(concept)s."),
+                                  _('Language MUST be lower case: "%(lang)s", fact %(factId)s, concept %(concept)s.'),
                                   modelObject=modelXbrl, factId=id, concept=conceptSQName, lang=lang)
                         factProduced.dimensionsUsed.add("language")
                         attrs["{http://www.w3.org/XML/1998/namespace}lang"] = lang
                     elif not isCSVorXL:
                         error("oime:misplacedLanguageDimension",
-                              _("Language \"%(lang)s\" provided for non-text concept by fact %(factId)s, concept %(concept)s."),
+                              _('Language "%(lang)s" provided for non-text concept by fact %(factId)s, concept %(concept)s.'),
                               modelObject=modelXbrl, factId=id, concept=conceptSQName, lang=lang)
                         continue # skip creating fact because language would be bad
                 entityAsQn = entityNaQName
@@ -2271,7 +2271,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         (dimName, dimVal["value"] if isinstance(dimVal,dict) else dimVal)
                         for dimName, dimVal in dimensions.items()
                         if ":" in dimName))
-                _start, _sep, _end = period.rpartition('/')
+                _start, _sep, _end = period.rpartition("/")
                 if period == "forever":
                     _periodType = "forever"
                 elif _start == _end or not _start:
@@ -2294,7 +2294,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     for dimName, dimVal in cntxKey[3:]:
                         factProduced.dimensionsUsed.add(dimName)
                 else:
-                    cntxId = 'c-{:02}'.format(len(cntxTbl) + 1)
+                    cntxId = "c-{:02}".format(len(cntxTbl) + 1)
                     qnameDims = {}
                     hasDimErr = False
                     for dimName, dimVal in dimensions.items():
@@ -2352,7 +2352,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 if (canonicalValuesFeature and dimVal is not None and
                                     not CanonicalXmlTypePattern.get(dimConcept.typedDomainElement.baseXsdType, NoCanonicalPattern).match(dimVal)):
                                     error("xbrlje:nonCanonicalValue",
-                                          _("Numeric typed dimension must have canonical %(type)s value \"%(value)s\": %(concept)s."),
+                                          _('Numeric typed dimension must have canonical %(type)s value "%(value)s": %(concept)s.'),
                                           modelObject=modelXbrl, type=dimConcept.typedDomainElement.baseXsdType, concept=dimConcept, value=dimVal)
                                 mem = XmlUtil.addChild(modelXbrl.modelDocument, dimConcept.typedDomainElement.qname, text=dimVal, attributes=memberAttrs, appendChild=False)
                             else:
@@ -2362,7 +2362,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     if hasDimErr:
                         continue
                     try:
-                        _start, _sep, _end = period.rpartition('/')
+                        _start, _sep, _end = period.rpartition("/")
                         if period == "forever":
                             startDateTime = endDateTime = None
                         elif _start == _end or not _start:
@@ -2424,13 +2424,13 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 _divs = []
                                 unitKey = None # use None for pure unit key (may be either no value or empty cell value)
                             else:
-                                _mul, _sep, _div = unitKey.partition('/')
-                                if _mul.startswith('('):
+                                _mul, _sep, _div = unitKey.partition("/")
+                                if _mul.startswith("("):
                                     _mul = _mul[1:-1]
-                                _muls = [u for u in _mul.split('*') if u]
-                                if _div.startswith('('):
+                                _muls = [u for u in _mul.split("*") if u]
+                                if _div.startswith("("):
                                     _div = _div[1:-1]
-                                _divs = [u for u in _div.split('*') if u]
+                                _divs = [u for u in _div.split("*") if u]
                                 if _muls != sorted(_muls) or _divs != sorted(_divs):
                                     error("oimce:invalidUnitStringRepresentation",
                                           _("Unit string representation measures are not in alphabetical order, %(unit)s"),
@@ -2444,7 +2444,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                                                                           _("Unit prefix is not declared: %(unit)s"),
                                                                                           unit=u))
                                           for u in _divs]
-                                unitId = 'u-{:02}'.format(len(unitTbl) + 1)
+                                unitId = "u-{:02}".format(len(unitTbl) + 1)
                                 for _measures in mulQns, divQns:
                                     for _measure in _measures:
                                         XmlUtil.addQnameValue(modelXbrl.modelDocument, _measure)
@@ -2510,7 +2510,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     if (canonicalValuesFeature and text is not None and
                         not CanonicalXmlTypePattern.get(concept.baseXsdType, NoCanonicalPattern).match(text)):
                         error("xbrlje:nonCanonicalValue",
-                              _("Item must have canonical %(type)s value \"%(value)s\": %(concept)s."),
+                              _('Item must have canonical %(type)s value "%(value)s": %(concept)s.'),
                               modelObject=modelXbrl, type=concept.baseXsdType, concept=conceptSQName, value=text)
 
                 decimals = fact.get("decimals")
@@ -2523,7 +2523,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 text = _number.strip()
                             else:
                                 error("xbrlce:invalidDecimalsSuffix",
-                                      _("Fact %(factId)s has invalid decimals \"%(decimals)s\""),
+                                      _('Fact %(factId)s has invalid decimals "%(decimals)s"'),
                                       modelObject=modelXbrl, factId=id, decimals=_sep+_decimals)
                                 continue # skip processing this fact
                         elif decimals is not None:
@@ -2739,7 +2739,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                             except KeyError:
                                 pass
                             tgtElt = XmlUtil.addChild(footnoteLink, XbrlConst.qnLinkFootnote, attributes=attrs)
-                            srcElt = etree.fromstring("<footnote xmlns=\"http://www.w3.org/1999/xhtml\">{}</footnote>"
+                            srcElt = etree.fromstring('<footnote xmlns="http://www.w3.org/1999/xhtml">{}</footnote>'
                                                       .format(xbrlNote["value"]), parser=modelXbrl.modelDocument.parser)
                             if srcElt.__len__() > 0: # has html children
                                 XmlUtil.setXmlns(modelXbrl.modelDocument, "xhtml", "http://www.w3.org/1999/xhtml")
@@ -2845,8 +2845,8 @@ def isOimLoadable(normalizedUri, filepath):
     _ext = os.path.splitext(filepath)[1]
     if _ext in (".csv", ".json", ".xlsx", ".xls"):
         return True
-    elif UrlUtil.isHttpUrl(normalizedUri) and '?' in _ext: # query parameters and not .json, may be JSON anyway
-        with io.open(filepath, 'rt', encoding='utf-8') as f:
+    elif UrlUtil.isHttpUrl(normalizedUri) and "?" in _ext: # query parameters and not .json, may be JSON anyway
+        with io.open(filepath, "rt", encoding="utf-8") as f:
             _fileStart = f.read(4096)
         if _fileStart and re.match(r"\s*\{\s*\"documentType\":\s*\"http:\\+/\\+/www.xbrl.org\\+/WGWD\\+/YYYY-MM-DD\\+/xbrl-json\"", _fileStart):
             return True

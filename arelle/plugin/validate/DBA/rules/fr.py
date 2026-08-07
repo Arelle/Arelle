@@ -82,7 +82,7 @@ def rule_fr7(
         fact1Qn=pluginData.reportingPeriodEndDateQn,
         fact2Qn=pluginData.dateOfApprovalOfAnnualReportQn,
         dimensionQn=pluginData.typeOfReportingPeriodDimensionQn,
-        code='DBA.FR7',
+        code="DBA.FR7",
         message=_("Date of approval of the annual report='%(fact2)s' "
                   "must be after the end date of the accounting period='%(fact1)s'"),
         assertion=lambda endDate, approvalDate: endDate < approvalDate,
@@ -165,8 +165,8 @@ def rule_fr24(
                             yield Validation.error(
                                 codes="DBA.FR24",
                                 msg=_("The value of DescriptionOfQualificationsOfAuditedFinancialStatements must not "
-                                      "contain the text: \'{}\', when TypeOfAuditorAssistance is set to \'{}\' "
-                                      "or \'{}\'").format(
+                                      "contain the text: '{}', when TypeOfAuditorAssistance is set to '{}' "
+                                      "or '{}'").format(
                                     text,
                                     validAuditorFactValues[0],
                                     validAuditorFactValues[1]
@@ -220,7 +220,7 @@ def rule_fr25(
                             yield Validation.error(
                                 codes="DBA.FR25",
                                 msg=_("The value of DescriptionOfQualificationsOfFinancialStatementsExtendedReview must not "
-                                      "contain the text: \'{}\', when TypeOfAuditorAssistance is set to \'{}\' or \'{}\'").format(
+                                      "contain the text: '{}', when TypeOfAuditorAssistance is set to '{}' or '{}'").format(
                                     text,
                                     validAuditorFactValues[0],
                                     validAuditorFactValues[1]
@@ -376,7 +376,7 @@ def rule_fr36(
                 if text in str(description_fact.xValue):
                     yield Validation.error(
                         codes="DBA.FR36",
-                        msg=_("The value of DescriptionsOfQualificationsOfReviewedFinancialStatements must not contain the text: \'{}\'".format(text)),
+                        msg=_("The value of DescriptionsOfQualificationsOfReviewedFinancialStatements must not contain the text: '{}'".format(text)),
                         modelObject=description_fact
                     )
 
@@ -404,7 +404,7 @@ def rule_fr37(
                 if text in str(description_fact.xValue):
                     yield Validation.error(
                         codes="DBA.FR37",
-                        msg=_("The value of DescriptionOfQualificationsOfAssuranceEngagementPerformed must not contain the text: \'{}\'".format(text)),
+                        msg=_("The value of DescriptionOfQualificationsOfAssuranceEngagementPerformed must not contain the text: '{}'".format(text)),
                         modelObject=description_fact
                     )
 
@@ -457,7 +457,7 @@ def rule_fr41(
         if taxExpenseOnOrdinaryActivitiesFact is not None and not taxExpenseOnOrdinaryActivitiesFact.isNil:
             continue
         yield Validation.warning(
-            codes='DBA.FR41',
+            codes="DBA.FR41",
             msg=_("The annual report does not contain information on tax "
                   "on the year's profit. If the profit for the year in the income "
                   "statement is positive, either 'Tax on profit for the year' or "
@@ -515,7 +515,7 @@ def rule_fr52(
     facts = modelXbrl.factsByQname.get(pluginData.proposedExtraordinaryDividendRecognisedInLiabilitiesQn, set())
     if len(facts) > 0:
         yield Validation.warning(
-            codes='DBA.FR52',
+            codes="DBA.FR52",
             msg=_("The concept ProposedExtraordinaryDividendRecognisedInLiabilities should not be used"),
             modelObject=facts
         )
@@ -568,7 +568,7 @@ def rule_fr53(
                     missing_concepts.append(pluginData.nameOfAuditFirmQn.localName)
                 if len(missing_concepts) > 0:
                     yield Validation.warning(
-                        codes='DBA.FR53',
+                        codes="DBA.FR53",
                         msg=_("The following concepts should be tagged: {} when {} is tagged with the value of {}").format(
                             ",".join(missing_concepts),
                             pluginData.typeOfAuditorAssistanceQn.localName,
@@ -623,7 +623,7 @@ def rule_fr56(
                 break
         if not valid:
             yield Validation.warning(
-                codes='DBA.FR56',
+                codes="DBA.FR56",
                 msg=_("The annual report does not contain a profit distribution. "
                       "The annual report must contain a profit and loss statement with a "
                       "distribution of profits."),
@@ -854,7 +854,7 @@ def rule_fr58(
             if len(facts) > 0:
                 return
         yield Validation.warning(
-            codes='DBA.FR58',
+            codes="DBA.FR58",
             msg=_("When the field 'Declaration obligations according to the declaration order ' (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportAudit) is completed, "
                   "one or more of the sub-items below must be indicated: "
                   "Declaration obligations according to the declaration order, including especially the Criminal Code as well as tax, levy and subsidy legislation (audit) (ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCriminalCodeAndFiscalTaxAndSubsidyLegislationAudit)"
@@ -917,14 +917,14 @@ def rule_fr59(
                 consolidatedIndicatorFacts.append(aFact)
     if not checkConsolidated and len(noDimensionIndicatorFacts) > 0 and len(noDimensionDescriptionFacts) == 0:
         yield Validation.error(
-            codes='DBA.FR59.noDimension',
+            codes="DBA.FR59.noDimension",
             msg=_("DescriptionOfQualificationsOfAuditedFinancialStatement must be tagged without dimensions when {} is tagged with the value of {}").format(
                 pluginData.typeOfAuditorAssistanceQn.localName,
                 noDimensionIndicatorFacts[0].xValue),
             modelObject=noDimensionIndicatorFacts[0])
     if checkConsolidated and len(consolidatedIndicatorFacts) > 0 and len(consolidatedDescriptionFacts) == 0:
         yield Validation.error(
-            codes='DBA.FR59.consolidatedSoloDimension',
+            codes="DBA.FR59.consolidatedSoloDimension",
             msg=_("DescriptionOfQualificationsOfAuditedFinancialStatement must be tagged with ConsolidatedSoloDimension when {} is tagged with the value of {}").format(
                 pluginData.typeOfAuditorAssistanceQn.localName,
                 consolidatedIndicatorFacts[0].xValue),
@@ -962,7 +962,7 @@ def rule_fr63(
                         factsInError.append(balanceSheetQnFact)
             if len(factsInError) > 0:
                 yield Validation.error(
-                    codes='DBA.FR63',
+                    codes="DBA.FR63",
                     msg=_("The annual report contains items in the balance sheet (year's figures or comparison "
                           "figures) which are greater than the balance sheet total(Assets). The following "
                           "fields do not comply: {}").format(conceptsInError),
@@ -1043,7 +1043,7 @@ def rule_fr72(
             description_facts = modelXbrl.factsByQname.get(pluginData.descriptionsOfQualificationsOfReviewedFinancialStatementsQn, set())
             if len(description_facts) == 0:
                 yield Validation.warning(
-                    codes='DBA.FR72',
+                    codes="DBA.FR72",
                     msg=_("DescriptionsOfQualificationsOfReviewedFinancialStatements must be tagged when {} is tagged with the value of {}").format(
                         pluginData.typeOfBasisForModifiedOpinionOnFinancialStatementsReviewQn.localName,
                         reviewFact.xValue
@@ -1076,7 +1076,7 @@ def rule_fr73(
             if len(facts) > 0:
                 return
         yield Validation.warning(
-            codes='DBA.FR73',
+            codes="DBA.FR73",
             msg=_("When the field ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsExtendedReview is completed "
                   "one or more of the sub-items below must be indicated: "
                   "ReportingResponsibilitiesAccordingToTheDanishExecutiveOrderOnApprovedAuditorsReportsEspeciallyTheCriminalCodeAndFiscalTaxAndSubsidyLegislationExtendedReview "
@@ -1249,7 +1249,7 @@ def rule_fr81(
 
     Implementation: Check all facts for at least one `lang` attribute that must be either `da` or `en`.
     """
-    hasValidLang = any(fact.xmlLang in {'da', 'en'} for fact in val.modelXbrl.facts)
+    hasValidLang = any(fact.xmlLang in {"da", "en"} for fact in val.modelXbrl.facts)
     if not hasValidLang:
         yield Validation.error(
             codes="DBA.FR81",
@@ -1334,7 +1334,7 @@ def rule_fr87(
                         eltTag = eltTag[_xhtmlNsLen:]
                         if eltTag == "link" and elt.get("type") == "text/css":
                             yield Validation.error(
-                                codes='DBA.FR87',
+                                codes="DBA.FR87",
                                 msg=_("CSS must be embedded in the inline XBRL document. The document contains a link to an external CSS file."),
                                 modelObject=elt,
                             )
@@ -1403,7 +1403,7 @@ def rule_fr89(
                 classFacts.append(fact)
         if len(classFacts) > 0:
             yield Validation.error(
-                codes='DBA.FR89',
+                codes="DBA.FR89",
                 msg=_("TypeOfAuditorAssistance should be {} or {} when {} is tagged with the value of {}.").format(
                     validAuditorFactValues[0],
                     validAuditorFactValues[1],
@@ -1439,7 +1439,7 @@ def rule_fr91(
             generalMeetingFact = next(iter(meetingFacts), None)
         if generalMeetingFact is not None and generalMeetingFact.xValid >= VALID and approvalOfReportFact is not None and approvalOfReportFact.xValid >= VALID and generalMeetingFact.xValue != approvalOfReportFact.xValue:
             yield Validation.error(
-                codes='DBA.FR91',
+                codes="DBA.FR91",
                 msg=_("The annual report contains information about both the general meeting date (gsd:DateOfGeneralMeeting) and the annual accounts meeting date (gsd:DateOfApprovalOfAnnualReport), the values must be the same."),
                 modelObject=[generalMeetingFact, approvalOfReportFact]
             )
@@ -1509,7 +1509,7 @@ def rule_fr92(
                 signature_facts = modelXbrl.factsByQname.get(pluginData.signatureOfAuditorsDateQn, set())
                 if len(signature_facts) == 0:
                     yield Validation.error(
-                        codes='DBA.FR92',
+                        codes="DBA.FR92",
                         msg=_("SignatureOfAuditorsDate must be tagged when {} is tagged with the value of {}").format(
                             pluginData.typeOfAuditorAssistanceQn.localName,
                             fact.xValue
@@ -1537,7 +1537,7 @@ def rule_fr107(
     bookkeepingSystemFacts = val.modelXbrl.factsByQname.get(pluginData.registrationNumberOfTheDigitalStandardBookkeepingSystemUsedQn, set())
     if len(startDatesFacts) > 0 and len(endDatesFacts) > 0 and len(bookkeepingSystemFacts) < 1:
         yield Validation.error(
-            codes='DBA.FR107',
+            codes="DBA.FR107",
             msg=_("The date concepts of `StartDateForUseOfDigitalStandardBookkeepingSystem` and `EndDateForUseOfDigitalStandardBookkeepingSystem`"
                   "are tagged without the concept of `RegistrationNumberOfTheDigitalStandardBookkeepingSystemUsed` being tagged."),
             modelObject=startDatesFacts | endDatesFacts
@@ -1548,7 +1548,7 @@ def rule_fr107(
     bookkeepingSystemFacts = val.modelXbrl.factsByQname.get(pluginData.typeOfDigitalNonregisteredBookkeepingSystemQn, set())
     if len(startDatesFacts) > 0 and len(endDatesFacts) > 0 and len(bookkeepingSystemFacts) < 1:
         yield Validation.error(
-            codes='DBA.FR107',
+            codes="DBA.FR107",
             msg=_("The date concepts of `StartDateForUseOfDigitalNonregisteredBookkeepingSystem` and `EndDateForUseOfDigitalNonregisteredBookkeepingSystem`"
                   "are tagged without the concept of `TypeOfDigitalNonregisteredBookkeepingSystem` being tagged."),
             modelObject=startDatesFacts | endDatesFacts
@@ -1577,7 +1577,7 @@ def rule_fr108(
             nextStartDate = nextPeriod[0].xValue
             if currentEndDate is not None and nextStartDate is not None and cast(datetime.date, currentEndDate) > cast(datetime.date, nextStartDate):
                 yield Validation.error(
-                    codes='DBA.FR108',
+                    codes="DBA.FR108",
                     msg=_("There are periods that overlap between accounting systems.\n"
                           "For registered accounting systems the periods are defined by `StartDateForUseOfDigitalStandardBookkeepingSystem` and `EndDateForUseOfDigitalStandardBookkeepingSystem`. \n"
                           "For non-registered accounting systems the periods are defined by `StartDateForUseOfDigitalNonregisteredBookkeepingSystem` and `EndDateForUseOfDigitalNonregisteredBookkeepingSystem`.\n"
@@ -1627,7 +1627,7 @@ def rule_fr109(
     if len(allGroupedFacts) > 0:
         if (allGroupedFacts[0][0].xValue is not None and cast(datetime.date, allGroupedFacts[0][0].xValue) < cast(datetime.date, accountingPeriodStartFact.xValue)) or (allGroupedFacts[-1][1].xValue is not None and cast(datetime.date, allGroupedFacts[-1][1].xValue) > cast(datetime.date, accountingPeriodEndFact.xValue)):
             yield Validation.error(
-                codes='DBA.FR109',
+                codes="DBA.FR109",
                 msg=_("There are accounting systems whose period is outside the accounting period."),
                 modelObject=[accountingPeriodStartFact, accountingPeriodEndFact, allGroupedFacts[0][0], allGroupedFacts[-1][1]]
             )
@@ -1651,7 +1651,7 @@ def rule_fr115(
         for facts in allGroupedFacts:
             if facts[0].xValue is not None and facts[1].xValue is not None and cast(datetime.date, facts[0].xValue) > cast(datetime.date, facts[1].xValue):
                 yield Validation.error(
-                    codes='DBA.FR115',
+                    codes="DBA.FR115",
                     msg=_("It is not possible to specify an end date for using an accounting system before the start date.\n"
                           "Start Date: %(startDate)s,   End Date: %(endDate)s."),
                     startDate=facts[0].xValue,
@@ -1686,7 +1686,7 @@ def rule_fr116(
         }
         if len(reportedValueFacts) > 1:
             yield Validation.warning(
-                codes='DBA.FR116',
+                codes="DBA.FR116",
                 msg=_("It is not permitted to declare numeric fields with multiple values in the same period."),
                 modelObject=reportedValueFacts,
             )
@@ -1711,7 +1711,7 @@ def rule_fr117(
     invalidFacts = [fact for fact in facts if not fact.isNumeric]
     if len(invalidFacts) > 0:
         yield Validation.warning(
-            codes='DBA.FR117',
+            codes="DBA.FR117",
             msg=_("The rendering dimension may only be used for numeric fields."),
             modelObject=invalidFacts,
         )
@@ -1799,7 +1799,7 @@ def rule_fr118(
 
     if invalidFacts:
         yield Validation.warning(
-            codes='DBA.FR118',
+            codes="DBA.FR118",
             msg=_("Fields that appear in the other rendering dimension must also appear in the reported dimension with a different scale."),
             modelObject=invalidFacts,
         )

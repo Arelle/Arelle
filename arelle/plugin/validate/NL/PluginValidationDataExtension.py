@@ -36,8 +36,8 @@ if TYPE_CHECKING:
 
 
 baseXPath = XPath(
-    './/*[self::xhtml:base or @xml:base]',
-    namespaces={'xhtml': XbrlConst.xhtml, 'xml': XbrlConst.xml},
+    ".//*[self::xhtml:base or @xml:base]",
+    namespaces={"xhtml": XbrlConst.xhtml, "xml": XbrlConst.xml},
     smart_strings=False,
 )
 
@@ -515,7 +515,7 @@ class PluginValidationDataExtension(PluginData):
         for ixdsDocUrl in ixdsDocUrls:
             doc = modelXbrl.urlDocs[ixdsDocUrl]
             filenameParts = self.getFilenameParts(doc.basename, self.getFilenameFormatPattern())
-            if filenameParts and filenameParts['base'] == 'kvk':
+            if filenameParts and filenameParts["base"] == "kvk":
                 return doc
         return None
 

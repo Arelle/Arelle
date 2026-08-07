@@ -1,8 +1,8 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
 
 (originally part of XmlValidate, moved to separate module)
-'''
+"""
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

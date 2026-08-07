@@ -225,7 +225,7 @@ class ViewTuplesGrid(ViewWinGrid.ViewGrid):
     def viewModelObject(self, modelObject: ModelObject) -> None:
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
-            '''
+            """
             try:
                 if isinstance(modelObject, ModelObject.ModelRelationship):
                     conceptId = modelObject.toModelObject.objectId()
@@ -240,5 +240,5 @@ class ViewTuplesGrid(ViewWinGrid.ViewGrid):
                     self.treeView.selection_set(node)
             except KeyError:
                     self.treeView.selection_set(())
-            '''
+            """
             self.blockViewModelObject -= 1

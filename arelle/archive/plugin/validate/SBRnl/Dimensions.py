@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from collections import defaultdict
 from arelle import XbrlConst
 from arelle.ModelDtsObject import ModelConcept
@@ -89,7 +89,7 @@ def checkFilingDimensions(val, drsELRs):
             checkSBRNLMembers(val, hc, priItem, ELR,
                               val.modelXbrl.relationshipSet(XbrlConst.domainMember, ELR).fromModelObject(priItem),
                               ELR, False)
-            if priHcRel.contextElement == 'segment':
+            if priHcRel.contextElement == "segment":
                 val.modelXbrl.error("SBR.NL.2.3.5.06",
                     _("hypercube %(hypercube)s in segment not allowed, ELR role %(linkrole)s"),
                     modelObject=priHcRel, linkrole=ELR, hypercube=hc.qname)
@@ -98,13 +98,13 @@ def checkFilingDimensions(val, drsELRs):
             _("Notall from primary item %(primaryItem)s in ELR role %(linkrole)s to %(hypercube)s"),
             modelObject=val.modelXbrl, primaryItem=notAllRel.fromModelObject.qname, linkrole=notAllRel.linkrole, hypercube=notAllRel.toModelObject.qname)
     for ELR, hypercubes in hypercubesInLinkrole.items():
-        '''removed RH 2011-12-06
+        """removed RH 2011-12-06
         for modelRel in val.modelXbrl.relationshipSet("XBRL-dimensions", ELR).modelRelationships:
             if modelRel.fromModelObject != hc:
                 val.modelXbrl.error("SBR.NL.2.3.5.03",
                     _("ELR role %(linkrole)s, is not dedicated to %(hypercube)s, but also has %(otherQname)s"),
                     modelObject=val.modelXbrl, linkrole=ELR, hypercube=hc.qname, otherQname=modelRel.fromModelObject.qname)
-        '''
+        """
         domains = domainsInLinkrole.get(ELR, emptySet)
         for hc in hypercubes:  # only one member
             for arcrole in (XbrlConst.parentChild, "XBRL-dimensions"):
@@ -160,7 +160,7 @@ def checkFilingDimensions(val, drsELRs):
         if len(linkroles) > 1:
             val.modelXbrl.error("SBR.NL.2.3.6.02",
                 _("Dimension %(dimension)s  usable members same in linkroles %(linkroles)s"),
-                modelObject=val.modelXbrl, dimension=dimDomMems[0].qname, linkroles=', '.join(l for l in linkroles))
+                modelObject=val.modelXbrl, dimension=dimDomMems[0].qname, linkroles=", ".join(l for l in linkroles))
     del dimDomMemsByLinkrole, linkrolesByDimDomMems
     for rel in val.modelXbrl.relationshipSet(XbrlConst.domainMember).modelRelationships:
         if val.modelXbrl.relationshipSet(XbrlConst.domainMember, rel.targetRole).fromModelObject(rel.toModelObject):
@@ -263,7 +263,7 @@ def undirectedFwdCycle(val, fromELR, rels, drsELR, drsRelsFrom, drsRelsTo, fromC
 
 def undirectedRevCycle(val, fromELR, mbrConcept, turnbackRel, drsELR, drsRelsFrom, drsRelsTo, fromConceptELRs, ELRsVisited):
     for arcrole in (XbrlConst.domainMember, XbrlConst.dimensionDomain):
-        '''
+        """
         for ELR in ELRsVisited if (not fromELR) else (fromELR,):
             for rel in val.modelXbrl.relationshipSet(arcrole, ELR).toModelObject(mbrConcept):
                 if not rel.isIdenticalTo(turnbackRel):
@@ -273,7 +273,7 @@ def undirectedRevCycle(val, fromELR, mbrConcept, turnbackRel, drsELR, drsRelsFro
                         return True
                     if undirectedRevCycle(val, relELR, relFrom, turnbackRel, drsELR, fromConcepts, ELRsVisited):
                         return True
-        '''
+        """
         if drsRelsTo:
             mbrDomRels = drsRelsTo[mbrConcept]
         else:

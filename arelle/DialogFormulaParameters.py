@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 from tkinter import Toplevel, N, S, E, W
@@ -15,9 +15,9 @@ if TYPE_CHECKING:
 
 _: TypeGetText
 
-'''
+"""
 caller checks accepted, if True, caller retrieves url
-'''
+"""
 
 
 def getParameters(mainWin: CntlrWinMain) -> None:
@@ -46,12 +46,12 @@ class DialogFormulaParameters(Toplevel):
 
         frame = Frame(self)
 
-        '''
+        """
         dialogFrame = Frame(frame, width=500)
         dialogFrame.columnconfigure(0, weight=1)
         dialogFrame.rowconfigure(0, weight=1)
         dialogFrame.grid(row=0, column=0, columnspan=4, sticky=(N, S, E, W), padx=3, pady=3)
-        '''
+        """
 
         # mainWin.showStatus(_("loading formula options and parameters"))
 

@@ -33,7 +33,7 @@ from ..PluginValidationDataExtension import PluginValidationDataExtension
 _: TypeGetText
 
 
-ALLOWED_NAMED_CHARACTER_REFS = frozenset({'lt', 'gt', 'amp', 'apos', 'quot'})
+ALLOWED_NAMED_CHARACTER_REFS = frozenset({"lt", "gt", "amp", "apos", "quot"})
 BOM_BYTES = sorted({
     codecs.BOM,
     codecs.BOM_BE,
@@ -57,16 +57,16 @@ UNICODE_CHARACTER_DECIMAL_RANGES = (
 )
 UNICODE_CHARACTER_RANGES_PATTERN = regex.compile(
     r"[^" +
-    ''.join(fr"\u{min:04x}-\u{max:04x}" for min, max in UNICODE_CHARACTER_DECIMAL_RANGES) +
+    "".join(fr"\u{min:04x}-\u{max:04x}" for min, max in UNICODE_CHARACTER_DECIMAL_RANGES) +
     "]")
 XHTML_ALLOWED_STYLES = {
-    'font-family',
-    'font-size',
-    'color'
+    "font-family",
+    "font-size",
+    "color"
 }
 XHTML_LIST_ITEM_TYPES = {
-    'ol': frozenset({'1', 'a', 'A', 'i', 'I'}),
-    'ul': frozenset({None, '', 'circle', 'square'}),
+    "ol": frozenset({"1", "a", "A", "i", "I"}),
+    "ul": frozenset({None, "", "circle", "square"}),
 }
 
 
@@ -94,7 +94,7 @@ def rule_fr_nl_1_02(
         if doc.type == ModelDocumentType.INSTANCE:
             for elt in doc.xmlRootElement.iter():
                 if isinstance(elt, ModelComment):
-                    texts = [getattr(elt, 'text')]
+                    texts = [getattr(elt, "text")]
                 else:
                     texts = [elt.elementAttributesStr, elt.textValue]
                 matched = False
@@ -107,12 +107,12 @@ def rule_fr_nl_1_02(
                     errorObjects.append(elt)
     if len(errorObjects) > 0:
         yield Validation.error(
-            codes='NL.FR-NL-1.02',
-            msg=_('Characters MUST be from the Unicode ranges Basic Latin, Latin Supplement and Currency Symbols '
-                  '(ranges %(ranges)s). '
-                  'Found disallowed characters: %(foundChars)s'),
+            codes="NL.FR-NL-1.02",
+            msg=_("Characters MUST be from the Unicode ranges Basic Latin, Latin Supplement and Currency Symbols "
+                  "(ranges %(ranges)s). "
+                  "Found disallowed characters: %(foundChars)s"),
             foundChars=sorted(foundChars),
-            ranges=', '.join(f'{hex(min)}-{hex(max)}' for min, max in UNICODE_CHARACTER_DECIMAL_RANGES),
+            ranges=", ".join(f"{hex(min)}-{hex(max)}" for min, max in UNICODE_CHARACTER_DECIMAL_RANGES),
             modelObject=errorObjects,
         )
 
@@ -134,8 +134,8 @@ def rule_fr_nl_1_03(
         if doc.type == ModelDocumentType.INSTANCE:
             if doc.xmlDocument is not None and doc.xmlDocument.docinfo.doctype:
                 yield Validation.error(
-                    codes='NL.FR-NL-1.03',
-                    msg=_('A DOCTYPE declaration MUST NOT be used in the filing instance document'),
+                    codes="NL.FR-NL-1.03",
+                    msg=_("A DOCTYPE declaration MUST NOT be used in the filing instance document"),
                     modelObject=val.modelXbrl.modelDocument
                 )
 
@@ -169,28 +169,28 @@ def rule_fr_nl_1_04(
                 for i, line in enumerate(file):
                     for match in regex.finditer(pattern, line):
                         decimalValue = None
-                        if (numericMatch := match.group('hex')) is not None:
+                        if (numericMatch := match.group("hex")) is not None:
                             decimalValue = int(numericMatch, 16)
-                        if (numericMatch := match.group('dec')) is not None:
+                        if (numericMatch := match.group("dec")) is not None:
                             decimalValue = int(numericMatch)
                         if decimalValue is not None:
                             if any(min <= decimalValue <= max
                                    for min, max in UNICODE_CHARACTER_DECIMAL_RANGES):
                                 continue  # numeric references in certain ranges are allowed
-                        if (namedMatch := match.group('named')) is not None:
+                        if (namedMatch := match.group("named")) is not None:
                             if namedMatch in ALLOWED_NAMED_CHARACTER_REFS:
                                 continue  # certain named references are allowed
                         foundChars.add(match.group())
                         sourceFileLines.append((doc.filepath, i + 1))
     if len(sourceFileLines) > 0:
         yield Validation.error(
-            codes='NL.FR-NL-1.04',
-            msg=_('Disallowed character references MUST NOT be used. Only numeric character references within certain ranges '
-                  '(%(ranges)s) and certain named references (%(allowedNames)s) are allowed. '
-                  'Found disallowed characters: %(foundChars)s'),
-            allowedNames=', '.join(sorted(f'"&{name};"' for name in ALLOWED_NAMED_CHARACTER_REFS)),
+            codes="NL.FR-NL-1.04",
+            msg=_("Disallowed character references MUST NOT be used. Only numeric character references within certain ranges "
+                  "(%(ranges)s) and certain named references (%(allowedNames)s) are allowed. "
+                  "Found disallowed characters: %(foundChars)s"),
+            allowedNames=", ".join(sorted(f'"&{name};"' for name in ALLOWED_NAMED_CHARACTER_REFS)),
             foundChars=sorted(foundChars),
-            ranges=', '.join(f'{hex(min)}-{hex(max)}' for min, max in UNICODE_CHARACTER_DECIMAL_RANGES),
+            ranges=", ".join(f"{hex(min)}-{hex(max)}" for min, max in UNICODE_CHARACTER_DECIMAL_RANGES),
             sourceFileLines=sourceFileLines
         )
 
@@ -208,11 +208,11 @@ def rule_fr_nl_1_05(
     """
     FR-NL-1.05: The character encoding UTF-8 MUST be used in the filing instance document
     """
-    invalidEncodings = checkDocumentEncoding(val, ['utf-8'], STANDARD_TAXONOMY_URL_PREFIXES, ModelDocumentType.INSTANCE)
+    invalidEncodings = checkDocumentEncoding(val, ["utf-8"], STANDARD_TAXONOMY_URL_PREFIXES, ModelDocumentType.INSTANCE)
     for doc in invalidEncodings:
         yield Validation.error(
-            codes='NL.FR-NL-1.05',
-            msg=_('The XML character encoding \'UTF-8\' MUST be used in the filing instance document'),
+            codes="NL.FR-NL-1.05",
+            msg=_("The XML character encoding 'UTF-8' MUST be used in the filing instance document"),
             modelObject=doc
         )
 
@@ -239,8 +239,8 @@ def rule_fr_nl_1_06(
             match = pattern.match(stem)
             if not match:
                 yield Validation.error(
-                    codes='NL.FR-NL-1.06',
-                    msg=_('The file name of an XBRL instance document MUST NOT contain characters with different meanings on different platforms. ' +
+                    codes="NL.FR-NL-1.06",
+                    msg=_("The file name of an XBRL instance document MUST NOT contain characters with different meanings on different platforms. " +
                           'Only A-Z, a-z, 0-9, "-", and "_" may be used (excluding file extension with period).'),
                     fileName=doc.basename,
                 )
@@ -267,8 +267,8 @@ def rule_fr_nl_1_01(
                 for bom in BOM_BYTES:
                     if initialBytes.startswith(bom):
                         yield Validation.error(
-                            codes='NL.FR-NL-1.01',
-                            msg=_('A BOM (byte order mark) character MUST NOT be used in an XBRL instance document. Found %(bom)s.'),
+                            codes="NL.FR-NL-1.01",
+                            msg=_("A BOM (byte order mark) character MUST NOT be used in an XBRL instance document. Found %(bom)s."),
                             bom=bom,
                             fileName=doc.basename,
                         )
@@ -291,10 +291,10 @@ def rule_fr_nl_2_03(
     modelXbrl = val.modelXbrl
     for doc in modelXbrl.urlDocs.values():
         if doc.type == ModelDocumentType.INSTANCE:
-            lang = doc.xmlRootElement.get('{http://www.w3.org/XML/1998/namespace}lang')
+            lang = doc.xmlRootElement.get("{http://www.w3.org/XML/1998/namespace}lang")
             if not lang:
                 yield Validation.error(
-                    codes='NL.FR-NL-2.03',
+                    codes="NL.FR-NL-2.03",
                     msg=_('The language of a report MUST be included in the "xml:lang" attribute of the "xbrli:xbrl" root element.'),
                     modelObject=doc,
                 )
@@ -316,8 +316,8 @@ def rule_fr_nl_2_04(
     schemaRefModelObjects = getReferencedModelObjects(val, ModelDocumentType.INSTANCE, "schemaRef")
     if len(schemaRefModelObjects) > 1:
         yield Validation.error(
-            codes='NL.FR-NL-2.04',
-            msg=_('The \'link:schemaRef\' element must not appear more than once.'),
+            codes="NL.FR-NL-2.04",
+            msg=_("The 'link:schemaRef' element must not appear more than once."),
             modelObject=schemaRefModelObjects
         )
 
@@ -338,8 +338,8 @@ def rule_fr_nl_2_05(
     linkbaseRefModelObjects = getReferencedModelObjects(val, ModelDocumentType.INSTANCE, "linkbaseRef")
     if len(linkbaseRefModelObjects) > 0:
         yield Validation.error(
-            codes='NL.FR-NL-2.05',
-            msg=_('The \'link:linkbaseRef\' element must not occur.'),
+            codes="NL.FR-NL-2.05",
+            msg=_("The 'link:linkbaseRef' element must not occur."),
             modelObject=linkbaseRefModelObjects
         )
 
@@ -381,7 +381,7 @@ def rule_fr_nl_2_06(
                         sourceFileLines.append((doc.filepath, i + 1))
     if len(sourceFileLines) > 0:
         yield Validation.error(
-            codes='NL.FR-NL-2.06',
+            codes="NL.FR-NL-2.06",
             msg=_('A CDATA end sequence ("]]>") MAY NOT be used in an XBRL instance document.'),
             sourceFileLines=sourceFileLines,
         )
@@ -403,8 +403,8 @@ def rule_fr_nl_2_07(
     for fact in val.modelXbrl.facts:
         if factHasXsiNilAttribute(fact):
             yield Validation.error(
-                codes='NL.FR-NL-2.07',
-                msg=_('The attribute \'xsi:nil\' must not be used.'),
+                codes="NL.FR-NL-2.07",
+                msg=_("The attribute 'xsi:nil' must not be used."),
                 modelObject=fact
             )
 
@@ -428,11 +428,11 @@ def rule_fr_nl_3_01(
     for context in val.modelXbrl.contexts.values():
         eltStart = XmlUtil.child(context.period, XbrlConst.xbrli, "startDate")  # type: ignore[arg-type]
         eltEnd = XmlUtil.child(context.period, XbrlConst.xbrli, "endDate")  # type: ignore[arg-type]
-        if ((eltStart is not None and 'T' in getattr(eltStart, 'text')) or
-                (eltEnd is not None and 'T' in getattr(eltEnd, 'text'))):
+        if ((eltStart is not None and "T" in getattr(eltStart, "text")) or
+                (eltEnd is not None and "T" in getattr(eltEnd, "text"))):
             yield Validation.error(
-                codes='NL.FR-NL-3.01',
-                msg=_('Date elements in an \'xbrli:period\' element must be included without time'),
+                codes="NL.FR-NL-3.01",
+                msg=_("Date elements in an 'xbrli:period' element must be included without time"),
                 modelObject=context
             )
 
@@ -453,8 +453,8 @@ def rule_fr_nl_3_02(
     for context in val.modelXbrl.contexts.values():
         if context.isForeverPeriod:
             yield Validation.error(
-                codes='NL.FR-NL-3.02',
-                msg=_('The element \'xbrli:forever\' must not be used'),
+                codes="NL.FR-NL-3.02",
+                msg=_("The element 'xbrli:forever' must not be used"),
                 modelObject=context
             )
 
@@ -476,8 +476,8 @@ def rule_fr_nl_3_03(
     unusedContexts.sort(key=lambda x: x.id if x.id is not None else "")
     for context in unusedContexts:
         yield Validation.error(
-            codes='NL.FR-NL-3.03',
-            msg=_('Unused context must not exist in XBRL instance document'),
+            codes="NL.FR-NL-3.03",
+            msg=_("Unused context must not exist in XBRL instance document"),
             modelObject=context
         )
 
@@ -498,8 +498,8 @@ def rule_fr_nl_3_04(
     for duplicateContexts in partitionModelXbrlContexts(val.modelXbrl).values():
         if len(duplicateContexts) > 1:
             yield Validation.error(
-                codes='NL.FR-NL-3.04',
-                msg=_('An XBRL instance document MUST NOT contain duplicate \'context\' elements'),
+                codes="NL.FR-NL-3.04",
+                msg=_("An XBRL instance document MUST NOT contain duplicate 'context' elements"),
                 modelObject=duplicateContexts
             )
 
@@ -523,8 +523,8 @@ def rule_fr_nl_4_01(
     for duplicateUnits in duplicates.values():
         if len(duplicateUnits) > 1:
             yield Validation.error(
-                codes='NL.FR-NL-4.01',
-                msg=_('An XBRL instance document MUST NOT contain duplicate \'xbrli:unit\' elements'),
+                codes="NL.FR-NL-4.01",
+                msg=_("An XBRL instance document MUST NOT contain duplicate 'xbrli:unit' elements"),
                 modelObject=duplicateUnits
             )
 
@@ -546,8 +546,8 @@ def rule_fr_nl_4_02(
     unusedUnits.sort(key=lambda x: x.hash)
     for unit in unusedUnits:
         yield Validation.error(
-            codes='NL.FR-NL-4.02',
-            msg=_('Unused unit must not exist in the XBRL instance document'),
+            codes="NL.FR-NL-4.02",
+            msg=_("Unused unit must not exist in the XBRL instance document"),
             modelObject=unit
         )
 
@@ -573,8 +573,8 @@ def rule_fr_nl_5_01(
     for duplicate_facts in duplicateGroups.values():
         if len(duplicate_facts) > 1:
             yield Validation.error(
-                codes='NL.FR-NL-5.01',
-                msg=_('An XBRL instance document must not contain duplicate facts'),
+                codes="NL.FR-NL-5.01",
+                msg=_("An XBRL instance document must not contain duplicate facts"),
                 modelObject=duplicate_facts
             )
 
@@ -595,8 +595,8 @@ def rule_fr_nl_5_03(
     for fact in val.modelXbrl.facts:
         if isEmptyStringItemFact(fact):
             yield Validation.error(
-                codes='NL.FR-NL-5.03',
-                msg=_('An XBRL instance document MUST NOT contain empty item concepts.'),
+                codes="NL.FR-NL-5.03",
+                msg=_("An XBRL instance document MUST NOT contain empty item concepts."),
                 modelObject=fact
             )
 
@@ -617,8 +617,8 @@ def rule_fr_nl_5_06(
     for fact in val.modelXbrl.facts:
         if factHasPrecisionAttribute(fact):
             yield Validation.error(
-                codes='NL.FR-NL-5.06',
-                msg=_('The \'precision\' attribute must not be used.'),
+                codes="NL.FR-NL-5.06",
+                msg=_("The 'precision' attribute must not be used."),
                 modelObject=fact
             )
 
@@ -661,7 +661,7 @@ def rule_fr_nl_5_11(
         except etree.XMLSyntaxError as exc:
             if validType:
                 yield Validation.warning(
-                    codes='NL.FR-NL-5.11',
+                    codes="NL.FR-NL-5.11",
                     msg=_('Encountered XHTML syntax error while parsing "%(typeQname)s" fact value: %(error)s'),
                     typeQname=typeQname,
                     error=exc.msg,
@@ -677,8 +677,8 @@ def rule_fr_nl_5_11(
         invalidListItemTypes = set()
         invalidStyles = set()
         for elt in tree.iter():
-            styleAttr = elt.get('style', '')
-            styles = [x.split(':') for x in styleAttr.split(';')]
+            styleAttr = elt.get("style", "")
+            styles = [x.split(":") for x in styleAttr.split(";")]
             for styleValues in styles:
                 if len(styleValues) > 1:
                     styleProperty = styleValues[0].strip()
@@ -686,17 +686,17 @@ def rule_fr_nl_5_11(
                         invalidStyles.add(styleProperty)
             tag = qname(cast(str, elt.tag)).localName
             parent = elt.getparent()
-            if tag == 'li' and parent is not None:
+            if tag == "li" and parent is not None:
                 parentTag = qname(cast(str, parent.tag)).localName
                 if parentTag in XHTML_LIST_ITEM_TYPES:
-                    typeAttr = elt.get('type')
+                    typeAttr = elt.get("type")
                     if typeAttr not in XHTML_LIST_ITEM_TYPES[parentTag]:
                         invalidListItemTypes.add(f'{parentTag}.li type="{typeAttr}"')
                         continue
         # Generate tag/styling errors per-fact so helpful information about fact contents can be reported
         if len(invalidListItemTypes) > 0:
             yield Validation.error(
-                codes='NL.FR-NL-5.11',
+                codes="NL.FR-NL-5.11",
                 msg=_('Only a limited set of list item ("li") type values are allowed, depending on parent ("ul" or "ol"). '
                       'Found invalid type values: %(invalidListItemTypes)s'),
                 invalidListItemTypes=sorted(invalidListItemTypes),
@@ -704,16 +704,16 @@ def rule_fr_nl_5_11(
             )
         if len(invalidStyles) > 0:
             yield Validation.error(
-                codes='NL.FR-NL-5.11',
-                msg=_('Only a limited set of style properties (%(allowedStyles)s) are allowed in escaped XHTML. '
-                      'Found invalid style properties: %(invalidStyles)s'),
-                allowedStyles=', '.join(sorted(XHTML_ALLOWED_STYLES)),
+                codes="NL.FR-NL-5.11",
+                msg=_("Only a limited set of style properties (%(allowedStyles)s) are allowed in escaped XHTML. "
+                      "Found invalid style properties: %(invalidStyles)s"),
+                allowedStyles=", ".join(sorted(XHTML_ALLOWED_STYLES)),
                 invalidStyles=sorted(invalidStyles),
                 modelObject=fact
             )
     if len(invalidTypeFacts) > 0:
         yield Validation.warning(
-            codes='NL.FR-NL-5.11',
+            codes="NL.FR-NL-5.11",
             msg=_('Formatting using "escaped XHTML" elements MAY ONLY be included in '
                   'fact values of facts tagged with concepts of type "%(typeQname)s"'),
             typeQname=typeQname,
@@ -737,9 +737,9 @@ def rule_fr_nl_6_01(
     for doc in val.modelXbrl.urlDocs.values():
         if doc.type == ModelDocumentType.INSTANCE:
             for elt in doc.xmlRootElement.iter():
-                if elt is not None and hasattr(elt, 'qname') and elt.qname == XbrlConst.qnLinkFootnote:
+                if elt is not None and hasattr(elt, "qname") and elt.qname == XbrlConst.qnLinkFootnote:
                     yield Validation.error(
-                        codes='NL.FR-NL-6.01',
-                        msg=_('Footnotes must not appear in an XBRL instance document.'),
+                        codes="NL.FR-NL-6.01",
+                        msg=_("Footnotes must not appear in an XBRL instance document."),
                         modelObject=elt
                     )

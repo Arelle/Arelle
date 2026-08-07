@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from arelle import ViewFile
 from arelle.ModelDocumentType import ModelDocumentType
 import os
@@ -18,7 +18,7 @@ class ViewRssFeed(ViewFile.View):
 
     def viewRssFeed(self, modelDocument):
         if self.cols:
-            if isinstance(self.cols,str): self.cols = self.cols.replace(',').split()
+            if isinstance(self.cols,str): self.cols = self.cols.replace(",").split()
             unrecognizedCols = []
             for col in self.cols:
                 if col not in ("Company Name", "Accession Number", "Form", "Filing Date", "CIK", "Status", "Period", "Yr End", "Results"):
@@ -26,7 +26,7 @@ class ViewRssFeed(ViewFile.View):
             if unrecognizedCols:
                 self.modelXbrl.error("arelle:unrecognizedRssReportColumn",
                                      _("Unrecognized columns: %(cols)s"),
-                                     modelXbrl=self.modelXbrl, cols=','.join(unrecognizedCols))
+                                     modelXbrl=self.modelXbrl, cols=",".join(unrecognizedCols))
         else:
             self.cols = ["Company Name", "Accession Number", "Form", "Filing Date", "CIK", "Status", "Period", "Yr End", "Results"]
         self.addRow(self.cols, asHeader=True)

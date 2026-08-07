@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 
 import time
 from math import isnan, isinf
@@ -336,7 +336,7 @@ class ValidateXbrlCalc2:
                         d = inferredDecimals(f)
                         sa, sb, _inclA, _inclB = intervalValue(f, d)
                         if ((ia is NIL) ^ (sa is NIL)) or ((ia is not NIL) and (sb < ia or sa > ib)):
-                            self.modelXbrl.log('INCONSISTENCY', "calc2e:summationInconsistency",
+                            self.modelXbrl.log("INCONSISTENCY", "calc2e:summationInconsistency",
                                 _("Summation inconsistent from %(concept)s in section %(section)s reported sum %(reportedSum)s, computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreported contributing items %(unreportedContributors)s"),
                                 modelObject=boundSummationItems[sumKey],
                                 concept=parentConcept.qname, section=self.section,
@@ -399,7 +399,7 @@ class ValidateXbrlCalc2:
                                 break
 
                     if ((ia is NIL) ^ (endBalA is NIL)) or ((ia is not NIL) and (endBalB < ia or endBalA > ib)):
-                        self.modelXbrl.log('INCONSISTENCY', "calc2e:balanceInconsistency",
+                        self.modelXbrl.log("INCONSISTENCY", "calc2e:balanceInconsistency",
                             _("Balance inconsistent from %(concept)s in section %(section)s reported sum %(reportedSum)s, computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreported contributing items %(unreportedContributors)s"),
                             modelObject=boundDurationItems[perKey],
                             concept=parentConcept.qname, section=self.section,
@@ -422,7 +422,7 @@ class ValidateXbrlCalc2:
                             d = inferredDecimals(f)
                             sa, sb, _inclA, _inclB = intervalValue(f, d)
                             if ((ia is NIL) ^ (sa is NIL)) or ((ia is not NIL) and (sb < ia or sa > ib)):
-                                self.modelXbrl.log('INCONSISTENCY', "calc2e:aggregationInconsistency",
+                                self.modelXbrl.log("INCONSISTENCY", "calc2e:aggregationInconsistency",
                                     _("Aggregation inconsistent for %(concept)s, domain %(domain)s in section %(section)s reported sum %(reportedSum)s, computed sum %(computedSum)s context %(contextID)s unit %(unitID)s unreported contributing members %(unreportedContributors)s"),
                                     modelObject=boundAggItems[factDomKey],
                                     concept=concept.qname,
@@ -525,12 +525,12 @@ def checkCalc2(val, *args, **kwargs):
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
-    'name': 'Calc2',
-    'version': '0.9',
-    'description': '''Calculation 2.0 Validation.''',
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "Calc2",
+    "version": "0.9",
+    "description": """Calculation 2.0 Validation.""",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'Validate.XBRL.Finally': checkCalc2
+    "Validate.XBRL.Finally": checkCalc2
 }

@@ -203,13 +203,13 @@ def sakaToGregorian(sakaDateArray):
     return sakaCal.julian_date_to_gregorian(sakaCal.saka_to_julian_date(sakaYr, sakaMo, sakaDay))
 
 __pluginInfo__ = {
-    'name': 'Saka Calendar',
-    'version': '1.0',
-    'description': "India National Calendar date validation and conversion. ",
-    'license': 'LGPL-v3',
-    'author': 'Santhosh Thottingal',
-    'copyright': '(c) Copyright 2008 Santhosh Thottingal <santhosh.thottingal@gmail.com>.',
+    "name": "Saka Calendar",
+    "version": "1.0",
+    "description": "India National Calendar date validation and conversion. ",
+    "license": "LGPL-v3",
+    "author": "Santhosh Thottingal",
+    "copyright": "(c) Copyright 2008 Santhosh Thottingal <santhosh.thottingal@gmail.com>.",
     # classes of mount points (required)
-    'SakaCalendar.FromGregorian': gregorianToSaka,
-    'SakaCalendar.ToGregorian': sakaToGregorian,
+    "SakaCalendar.FromGregorian": gregorianToSaka,
+    "SakaCalendar.ToGregorian": sakaToGregorian,
 }

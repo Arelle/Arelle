@@ -1,4 +1,4 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
 (Does not apply to the XBRL US Database schema and description.)
 
@@ -8,7 +8,7 @@ EDGAR.py implements an OpenSql database extension for SEC's EDGAR
 to use from command line:
    --plugins xbrlDB/ext/EDGAR.py # note this plugin imports xbrlDB plugin
 
-'''
+"""
 import os, time
 from arelle.ModelDocument import Type
 from arelle.UrlUtil import authority
@@ -103,32 +103,32 @@ def extEdgarExistingFilingPk(xbrlOpenDb):
 
 def extEdgarFiling(xbrlOpenDb, now):
     md = xbrlOpenDb.metadata
-    table = xbrlOpenDb.getTable('filing_edgar', 'filing_pk',
-                          ('filing_pk',
-                           'accession_number',
-                           'filing_date',
-                           'authority_html_url',
-                           'entry_url',
-                           'entity_name',
-                           'zip_url',
-                           'fiscal_year',
-                           'fiscal_period',
-                           'restatement_index',
-                           'period_index',
-                           'fiscal_year_end',
-                           'file_number',
-                           'cik',
-                           'tax_number',
-                           'standard_industry_code',
-                           'filer_category',
-                           'public_float',
-                           'trading_symbol',
-                           'legal_state',
-                           'phone',
-                           'phys_addr1', 'phys_addr2', 'phys_city', 'phys_state', 'phys_zip', 'phys_country',
-                           'mail_addr1', 'mail_addr2', 'mail_city', 'mail_state', 'mail_zip', 'mail_country'
+    table = xbrlOpenDb.getTable("filing_edgar", "filing_pk",
+                          ("filing_pk",
+                           "accession_number",
+                           "filing_date",
+                           "authority_html_url",
+                           "entry_url",
+                           "entity_name",
+                           "zip_url",
+                           "fiscal_year",
+                           "fiscal_period",
+                           "restatement_index",
+                           "period_index",
+                           "fiscal_year_end",
+                           "file_number",
+                           "cik",
+                           "tax_number",
+                           "standard_industry_code",
+                           "filer_category",
+                           "public_float",
+                           "trading_symbol",
+                           "legal_state",
+                           "phone",
+                           "phys_addr1", "phys_addr2", "phys_city", "phys_state", "phys_zip", "phys_country",
+                           "mail_addr1", "mail_addr2", "mail_city", "mail_state", "mail_zip", "mail_country"
                           ),
-                          ('filing_pk',),
+                          ("filing_pk",),
                           ((xbrlOpenDb.filingPk,
                             md["accessionNumber"],  # NOT NULL
                             md["filingDate"] or now,  # NOT NULL
@@ -176,11 +176,11 @@ def extEdgarExistingReportPk(xbrlOpenDb):
 
 def extEdgarReport(xbrlOpenDb, now):
     md = xbrlOpenDb.metadata
-    table = xbrlOpenDb.getTable('report_edgar', None,
-                          ('report_pk',
-                           'form_type'
+    table = xbrlOpenDb.getTable("report_edgar", None,
+                          ("report_pk",
+                           "form_type"
                            ),
-                          ('report_pk',),
+                          ("report_pk",),
                           ((xbrlOpenDb.reportPk,
                             md["formType"]
                             ),),
@@ -204,7 +204,7 @@ def extEdgarReportUpdate(xbrlOpenDb):
                    and refDoc in xbrlOpenDb.documentIds:
                     if refDoc.type == Type.SCHEMA:
                         nsAuthority = authority(refDoc.targetNamespace, includeScheme=False)
-                        nsPath = refDoc.targetNamespace.split('/')
+                        nsPath = refDoc.targetNamespace.split("/")
                         if len(nsPath) > 2:
                             if ((nsAuthority in ("fasb.org", "xbrl.us") and nsPath[-2] == "us-gaap") or
                                 (nsAuthority == "xbrl.ifrs.org" and nsPath[-1] in ("ifrs", "ifrs-full", "ifrs-smes"))):
@@ -218,20 +218,20 @@ def extEdgarReportUpdate(xbrlOpenDb):
                                    )
 
 __pluginInfo__ = {
-    'name': 'xbrlDB Extension for SEC EDGAR',
-    'version': '1.0',
-    'description': "This plug-in implements additional database fields for U.S. SEC EDGAR.  ",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
-    'import': ('xbrlDB', ), # import dependent modules
+    "name": "xbrlDB Extension for SEC EDGAR",
+    "version": "1.0",
+    "description": "This plug-in implements additional database fields for U.S. SEC EDGAR.  ",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
+    "import": ("xbrlDB", ), # import dependent modules
     # classes of mount points (required)
-    'xbrlDB.Open.Ext.TableDDLFiles': extEdgarTableDdlFiles,
-    'xbrlDB.Open.Ext.Metadata': extEdgarMetadata,
-    'xbrlDB.Open.Ext.InitializeBatch': extEdgarInitializeBatch,
-    'xbrlDB.Open.Ext.ExistingFilingPk': extEdgarExistingFilingPk,
-    'xbrlDB.Open.Ext.ExtFiling': extEdgarFiling,
-    'xbrlDB.Open.Ext.ExtReport': extEdgarReport,
-    'xbrlDB.Open.Ext.ExistingReportPk': extEdgarExistingReportPk,
-    'xbrlDB.Open.Ext.ExtReportUpdate': extEdgarReportUpdate,
+    "xbrlDB.Open.Ext.TableDDLFiles": extEdgarTableDdlFiles,
+    "xbrlDB.Open.Ext.Metadata": extEdgarMetadata,
+    "xbrlDB.Open.Ext.InitializeBatch": extEdgarInitializeBatch,
+    "xbrlDB.Open.Ext.ExistingFilingPk": extEdgarExistingFilingPk,
+    "xbrlDB.Open.Ext.ExtFiling": extEdgarFiling,
+    "xbrlDB.Open.Ext.ExtReport": extEdgarReport,
+    "xbrlDB.Open.Ext.ExistingReportPk": extEdgarExistingReportPk,
+    "xbrlDB.Open.Ext.ExtReportUpdate": extEdgarReportUpdate,
 }

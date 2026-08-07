@@ -21,8 +21,8 @@ arelle_offline = args.offline
 working_directory = Path(args.working_directory)
 test_directory = Path(args.test_directory)
 
-report_zip_path = test_directory / 'report.zip'
-report_directory = test_directory / 'report'
+report_zip_path = test_directory / "report.zip"
+report_directory = test_directory / "report"
 report_path = report_directory / "report.xbrl"
 print(f"Downloading report: {report_zip_path}")
 download_from_public_s3(
@@ -36,31 +36,31 @@ with zipfile.ZipFile(report_zip_path, "r") as zip_ref:
     zip_ref.extractall(report_directory)
 
 test_cases: dict[str, dict[regex.Pattern[str], int]] = {
-    'none': {},
-    'inconsistent': {
-        regex.compile(r'^\[arelle:duplicateFacts].*with inconsistent duplicate.*mock:StringIncomplete'): 1,
-        regex.compile(r'^\[arelle:duplicateFacts].*with inconsistent duplicate.*mock:MonetaryInconsistent'): 1,
+    "none": {},
+    "inconsistent": {
+        regex.compile(r"^\[arelle:duplicateFacts].*with inconsistent duplicate.*mock:StringIncomplete"): 1,
+        regex.compile(r"^\[arelle:duplicateFacts].*with inconsistent duplicate.*mock:MonetaryInconsistent"): 1,
     },
-    'consistent': {
-        regex.compile(r'^\[arelle:duplicateFacts].*with consistent duplicate.*mock:StringComplete'): 1,
-        regex.compile(r'^\[arelle:duplicateFacts].*with consistent duplicate.*mock:MonetaryComplete'): 1,
-        regex.compile(r'^\[arelle:duplicateFacts].*with consistent duplicate.*mock:MonetaryConsistent'): 1,
+    "consistent": {
+        regex.compile(r"^\[arelle:duplicateFacts].*with consistent duplicate.*mock:StringComplete"): 1,
+        regex.compile(r"^\[arelle:duplicateFacts].*with consistent duplicate.*mock:MonetaryComplete"): 1,
+        regex.compile(r"^\[arelle:duplicateFacts].*with consistent duplicate.*mock:MonetaryConsistent"): 1,
     },
-    'incomplete': {
-        regex.compile(r'^\[arelle:duplicateFacts].*with incomplete duplicate.*mock:StringIncomplete'): 1,
-        regex.compile(r'^\[arelle:duplicateFacts].*with incomplete duplicate.*mock:MonetaryConsistent'): 1,
-        regex.compile(r'^\[arelle:duplicateFacts].*with incomplete duplicate.*mock:MonetaryInconsistent'): 1,
+    "incomplete": {
+        regex.compile(r"^\[arelle:duplicateFacts].*with incomplete duplicate.*mock:StringIncomplete"): 1,
+        regex.compile(r"^\[arelle:duplicateFacts].*with incomplete duplicate.*mock:MonetaryConsistent"): 1,
+        regex.compile(r"^\[arelle:duplicateFacts].*with incomplete duplicate.*mock:MonetaryInconsistent"): 1,
     },
-    'complete': {
-        regex.compile(r'^\[arelle:duplicateFacts].*with complete duplicate.*mock:StringComplete'): 1,
-        regex.compile(r'^\[arelle:duplicateFacts].*with complete duplicate.*mock:MonetaryComplete'): 1,
+    "complete": {
+        regex.compile(r"^\[arelle:duplicateFacts].*with complete duplicate.*mock:StringComplete"): 1,
+        regex.compile(r"^\[arelle:duplicateFacts].*with complete duplicate.*mock:MonetaryComplete"): 1,
     },
-    'all': {
-        regex.compile(r'^\[arelle:duplicateFacts].*with inconsistent\|consistent duplicate.*mock:StringComplete'): 1,
-        regex.compile(r'^\[arelle:duplicateFacts].*with inconsistent\|consistent duplicate.*mock:StringIncomplete'): 1,
-        regex.compile(r'^\[arelle:duplicateFacts].*with inconsistent\|consistent duplicate.*mock:MonetaryComplete'): 1,
-        regex.compile(r'^\[arelle:duplicateFacts].*with inconsistent\|consistent duplicate.*mock:MonetaryConsistent'): 1,
-        regex.compile(r'^\[arelle:duplicateFacts].*with inconsistent\|consistent duplicate.*mock:MonetaryInconsistent'): 1,
+    "all": {
+        regex.compile(r"^\[arelle:duplicateFacts].*with inconsistent\|consistent duplicate.*mock:StringComplete"): 1,
+        regex.compile(r"^\[arelle:duplicateFacts].*with inconsistent\|consistent duplicate.*mock:StringIncomplete"): 1,
+        regex.compile(r"^\[arelle:duplicateFacts].*with inconsistent\|consistent duplicate.*mock:MonetaryComplete"): 1,
+        regex.compile(r"^\[arelle:duplicateFacts].*with inconsistent\|consistent duplicate.*mock:MonetaryConsistent"): 1,
+        regex.compile(r"^\[arelle:duplicateFacts].*with inconsistent\|consistent duplicate.*mock:MonetaryInconsistent"): 1,
     },
 }
 for arg, expected_errors in test_cases.items():
@@ -82,5 +82,5 @@ for arg, expected_errors in test_cases.items():
 assert_result(errors)
 
 print("Cleaning up")
-rmtree(working_directory / 'duplicate_facts_validate' / 'report')
-os.unlink(working_directory / 'duplicate_facts_validate' / 'report.zip')
+rmtree(working_directory / "duplicate_facts_validate" / "report")
+os.unlink(working_directory / "duplicate_facts_validate" / "report.zip")

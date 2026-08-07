@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 
 import regex as re
 from collections import defaultdict
@@ -224,7 +224,7 @@ def validateTaxonomy(dts, txmy):
                 for iPerConst, perConstObj in enumerate(cubeDimObj.periodConstraints):
                     if perConstObj.periodType not in ("instant", "duration"):
                         dts.error("oimte:invalidPeriodRepresentation",
-                                  _("Cube %(name)s period constraint periodType property MUST be \"instant\" or \"duration\"."),
+                                  _('Cube %(name)s period constraint periodType property MUST be "instant" or "duration".'),
                                   xbrlObject=(cubeObj,cubeDimObj), name=name)
                     if perConstObj.timeSpan:
                         if perConstObj.endDate and perConstObj.startDate:

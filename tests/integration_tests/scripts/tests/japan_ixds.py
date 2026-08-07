@@ -16,7 +16,7 @@ args = parse_args(
     this_file.stem,
     "Extract and validate Japanese IXDS instance.",
     cache=this_file.with_suffix(".zip").name,
-    cache_version_id='cYUIJj7jbjR_HgBfkUisSojz5uuELegj',
+    cache_version_id="cYUIJj7jbjR_HgBfkUisSojz5uuELegj",
 )
 arelle_command = args.arelle
 arelle_offline = args.offline
@@ -24,8 +24,8 @@ working_directory = Path(args.working_directory)
 test_directory = Path(args.test_directory)
 arelle_log_file1 = prepare_logfile(test_directory, this_file, name="save")
 arelle_log_file2 = prepare_logfile(test_directory, this_file, name="validate")
-report_zip_path = test_directory / 'report.zip'
-report_directory = test_directory / 'report'
+report_zip_path = test_directory / "report.zip"
+report_directory = test_directory / "report"
 manifest_path = report_directory / "manifest.xml"
 extracted_path = report_directory / "tse-qcedjpfr-21750-2024-06-30-01-2024-07-26_extracted.xbrl"
 print(f"Downloading report: {report_zip_path}")
@@ -67,18 +67,18 @@ run_arelle(
 
 print(f"Checking for log errors: {arelle_log_file1}")
 expected_infos = {
-    regex.compile(r'^\[info:deduplicatedFact] Duplicate fact was excluded'): 2,
+    regex.compile(r"^\[info:deduplicatedFact] Duplicate fact was excluded"): 2,
 }
 errors += validate_log_file(arelle_log_file1, expected_results={"info": expected_infos})
 
 print(f"Checking for log errors: {arelle_log_file2}")
 expected_warnings = {
-    regex.compile(r'^\[arelle:duplicateFacts] Duplicate fact set '): 0,
+    regex.compile(r"^\[arelle:duplicateFacts] Duplicate fact set "): 0,
 }
 errors += validate_log_file(arelle_log_file2, expected_results={"warning": expected_warnings})
 
 assert_result(errors)
 
 print("Cleaning up")
-rmtree(working_directory / 'japan_ixds' / 'report')
-os.unlink(working_directory / 'japan_ixds' / 'report.zip')
+rmtree(working_directory / "japan_ixds" / "report")
+os.unlink(working_directory / "japan_ixds" / "report.zip")

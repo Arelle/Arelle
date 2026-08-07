@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 See COPYRIGHT.md for copyright information.
 
 objectmaker.py is a plug-in that will draw diagrams from linkbases
@@ -7,7 +7,7 @@ objectmaker.py is a plug-in that will draw diagrams from linkbases
 ObjectMaker(r) is a registered trademark of Workiva, Inc.
 
 This product uses graphviz, which must be installed separately on the platform.
-'''
+"""
 import os, io, time
 from tkinter import Menu
 from arelle import ModelDocument, XmlUtil, XbrlConst
@@ -79,10 +79,10 @@ def drawDiagram(modelXbrl, diagramFile, diagramNetwork=None, viewDiagram=False):
     graphName = os.path.splitext(modelXbrl.modelDocument.basename)[0]
     mdl = Digraph(comment=graphName)
     mdl.attr("graph")
-    mdl.node('node_title', graphName, shape="none", fontname="Bitstream Vera Sans")
-    mdl.attr('node', shape="record")
-    mdl.attr('node', fontname="Bitstream Vera Sans")
-    mdl.attr('node', fontsize="8")
+    mdl.node("node_title", graphName, shape="none", fontname="Bitstream Vera Sans")
+    mdl.attr("node", shape="record")
+    mdl.attr("node", fontname="Bitstream Vera Sans")
+    mdl.attr("node", fontsize="8")
 
     if isUML:
         arcroleName = "http://xbrl.us/arcrole/Property"
@@ -272,14 +272,14 @@ def objectmakerCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
         drawDiagram(cntlr.modelManager.modelXbrl, diagramFile, diagramNetwork, viewDiagram)
 
 __pluginInfo__ = {
-    'name': 'ObjectMaker',
-    'version': '1.0',
-    'description': "ObjectMaker(r) diagrams XBRL relationship graphs.",
-    'license': 'Apache-2 (ObjectMaker), Eclipse (Graphviz)',
-    'author': authorLabel,
-    'copyright': copyrightLabel + ' Graphviz (c) 2011 AT&T',
+    "name": "ObjectMaker",
+    "version": "1.0",
+    "description": "ObjectMaker(r) diagrams XBRL relationship graphs.",
+    "license": "Apache-2 (ObjectMaker), Eclipse (Graphviz)",
+    "author": authorLabel,
+    "copyright": copyrightLabel + " Graphviz (c) 2011 AT&T",
     # classes of mount points (required)
-    'CntlrWinMain.Menu.Tools': objectmakerMenuEntender,
-    'CntlrCmdLine.Options': objectmakerCommandLineOptionExtender,
-    'CntlrCmdLine.Xbrl.Run': objectmakerCommandLineXbrlRun,
+    "CntlrWinMain.Menu.Tools": objectmakerMenuEntender,
+    "CntlrCmdLine.Options": objectmakerCommandLineOptionExtender,
+    "CntlrCmdLine.Xbrl.Run": objectmakerCommandLineXbrlRun,
 }

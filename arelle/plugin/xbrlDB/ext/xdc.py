@@ -85,11 +85,11 @@ def extXdcExistingFilingPk(xbrlOpenDb):
 
 def extXdcSubmission(xbrlOpenDb, now):
     md = xbrlOpenDb.metadata
-    table = xbrlOpenDb.getTable('xdc_user', 'user_pk',
-                          ('user_id',
-                           'name'
+    table = xbrlOpenDb.getTable("xdc_user", "user_pk",
+                          ("user_id",
+                           "name"
                            ),
-                          ('user_id',),
+                          ("user_id",),
                           ((md["submitterUserId"],
                             md["submitterUserName"]
                             ),),
@@ -98,12 +98,12 @@ def extXdcSubmission(xbrlOpenDb, now):
         xbrlOpenDb.userId = userId
         break
 
-    table = xbrlOpenDb.getTable('submission_xdc', None,
-                          ('submission_pk',
-                           'submitter_fk',
-                           'source_portal'
+    table = xbrlOpenDb.getTable("submission_xdc", None,
+                          ("submission_pk",
+                           "submitter_fk",
+                           "source_portal"
                            ),
-                          ('submission_pk',),
+                          ("submission_pk",),
                           ((xbrlOpenDb.submissionId,
                             xbrlOpenDb.userId,
                             md["sourcePortal"]
@@ -112,11 +112,11 @@ def extXdcSubmission(xbrlOpenDb, now):
 
 def extXdcFiling(xbrlOpenDb, now):
     md = xbrlOpenDb.metadata
-    table = xbrlOpenDb.getTable('filing_xdc', None,
-                          ('filing_pk',
-                           'filing_id'
+    table = xbrlOpenDb.getTable("filing_xdc", None,
+                          ("filing_pk",
+                           "filing_id"
                            ),
-                          ('filing_pk',
+                          ("filing_pk",
                            ),
                           ((xbrlOpenDb.filingPk,
                             md["filingId"]
@@ -125,18 +125,18 @@ def extXdcFiling(xbrlOpenDb, now):
 
     # add supplemental document references
     supplementalDocumentsTable = xbrlOpenDb.getTable(
-                         'document', 'document_pk',
-                          ('url', 'type'),
-                          ('url',),
+                         "document", "document_pk",
+                          ("url", "type"),
+                          ("url",),
                           set((ensureUrl(docUrl),
                                "attachment")
                               for docUrl in md["supplementalUrls"]),
                           checkIfExisting=True)
 
-    table = xbrlOpenDb.getTable('referenced_documents',
+    table = xbrlOpenDb.getTable("referenced_documents",
                           None, # no id column in this table
-                          ('object_fk','document_fk'),
-                          ('object_fk','document_fk'),
+                          ("object_fk","document_fk"),
+                          ("object_fk","document_fk"),
                           tuple((xbrlOpenDb.filingPk, supplementalDocumentId)
                                 for supplementalDocumentId, _url in supplementalDocumentsTable),
                           checkIfExisting=True)
@@ -163,18 +163,18 @@ def extXdcReport(xbrlOpenDb, now):
                            )
 
 __pluginInfo__ = {
-    'name': 'xbrlDB Extension for Seatig XDC',
-    'version': '1.0',
-    'description': "This plug-in implements additional database fields for Changhong XDC.  ",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
-    'import': ('xbrlDB', ), # import dependent modules
-    'xbrlDB.Open.Ext.TableDDLFiles': extXdcTableDdlFiles,
-    'xbrlDB.Open.Ext.Metadata': extXdcMetadata,
-    'xbrlDB.Open.Ext.ExistingFilingPk': extXdcExistingFilingPk,
-    'xbrlDB.Open.Ext.ExtSubmission': extXdcSubmission,
-    'xbrlDB.Open.Ext.ExtFiling': extXdcFiling,
-    'xbrlDB.Open.Ext.ExistingReportPk': extXdcExistingReportPk,
-    'xbrlDB.Open.Ext.ExtReport': extXdcReport,
+    "name": "xbrlDB Extension for Seatig XDC",
+    "version": "1.0",
+    "description": "This plug-in implements additional database fields for Changhong XDC.  ",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
+    "import": ("xbrlDB", ), # import dependent modules
+    "xbrlDB.Open.Ext.TableDDLFiles": extXdcTableDdlFiles,
+    "xbrlDB.Open.Ext.Metadata": extXdcMetadata,
+    "xbrlDB.Open.Ext.ExistingFilingPk": extXdcExistingFilingPk,
+    "xbrlDB.Open.Ext.ExtSubmission": extXdcSubmission,
+    "xbrlDB.Open.Ext.ExtFiling": extXdcFiling,
+    "xbrlDB.Open.Ext.ExistingReportPk": extXdcExistingReportPk,
+    "xbrlDB.Open.Ext.ExtReport": extXdcReport,
 }

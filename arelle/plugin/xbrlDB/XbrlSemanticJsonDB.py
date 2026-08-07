@@ -73,7 +73,7 @@ def isDBPort(host, port, db, timeout=10):
     t = 2
     while t < timeout:
         try:
-            conn = urllib.request.urlopen("http://{0}:{1}/{2}/status".format(host, port or '80', db))
+            conn = urllib.request.urlopen("http://{0}:{1}/{2}/status".format(host, port or "80", db))
             return True # success but doesn't need password
         except HTTPError:
             return False # success, this is really a postgres socket, wants user name
@@ -91,28 +91,28 @@ def modelObjectDocumentUri(modelObject):
     return UrlUtil.ensureUrl(modelObject.modelDocument.uri)
 
 def modelObjectUri(modelObject):
-    return '#'.join((modelObjectDocumentUri(modelObject),
+    return "#".join((modelObjectDocumentUri(modelObject),
                      XmlUtil.elementFragmentIdentifier(modelObject)))
 
-def qnameUri(qname, sep='#'):
+def qnameUri(qname, sep="#"):
     return sep.join((qname.namespaceURI, qname.localName))
 
-def qnamePrefix_Name(qname, sep=':'):
+def qnamePrefix_Name(qname, sep=":"):
     # substitutte standard prefixes for commonly-defaulted xmlns namespaces
-    prefix = {XbrlConst.xsd: 'xsd',
-              XbrlConst.xml: 'xml',
-              XbrlConst.xbrli: 'xbrli',
-              XbrlConst.link: 'link',
-              XbrlConst.gen: 'gen',
-              XbrlConst.xlink: 'xlink'
+    prefix = {XbrlConst.xsd: "xsd",
+              XbrlConst.xml: "xml",
+              XbrlConst.xbrli: "xbrli",
+              XbrlConst.link: "link",
+              XbrlConst.gen: "gen",
+              XbrlConst.xlink: "xlink"
               }.get(qname.namespaceURI, qname.prefix)
     return sep.join((prefix, qname.localName))
 
-def modelObjectQnameUri(modelObject, sep='#'):
+def modelObjectQnameUri(modelObject, sep="#"):
     return qnameUri(modelObject.qname, sep)
 
-def modelObjectNameUri(modelObject, sep='#'):
-    return '#'.join((modelObjectDocumentUri(modelObject),
+def modelObjectNameUri(modelObject, sep="#"):
+    return "#".join((modelObjectDocumentUri(modelObject),
                      modelObject.name)) # for schema definitions with name attribute
 
 class XJDBException(Exception):
@@ -122,7 +122,7 @@ class XJDBException(Exception):
         self.kwargs = kwargs
         self.args = ( self.__repr__(), )
     def __repr__(self):
-        return _('[{0}] exception: {1}').format(self.code, self.message % self.kwargs)
+        return _("[{0}] exception: {1}").format(self.code, self.message % self.kwargs)
 
 def jsonDefaultEncoder(obj):
     if isinstance(obj, Decimal):
@@ -141,8 +141,8 @@ class XbrlSemanticJsonDatabaseConnection():
         if self.isJsonFile:
             self.jsonFile = database
         else:
-            connectionUrl = "http://{0}:{1}".format(host, port or '80')
-            self.url = connectionUrl + '/' + database
+            connectionUrl = "http://{0}:{1}".format(host, port or "80")
+            self.url = connectionUrl + "/" + database
             # Create an OpenerDirector with support for Basic HTTP Authentication...
             auth_handler = urllib.request.HTTPBasicAuthHandler()
             if user:
@@ -172,45 +172,45 @@ class XbrlSemanticJsonDatabaseConnection():
 
     def execute(self, activity, graph=None, query=None):
         if graph is not None:
-            headers = {'User-agent':   'Arelle/1.0',
-                       'Accept':       'application/json',
-                       'Content-Type': "text/json; charset='UTF-8'"}
+            headers = {"User-agent":   "Arelle/1.0",
+                       "Accept":       "application/json",
+                       "Content-Type": "text/json; charset='UTF-8'"}
             data = str(json.dumps(graph,
                                            sort_keys=True,  # allow comparability of json files
                                            ensure_ascii=False,
                                            indent=2,
                                            default=jsonDefaultEncoder)) # might not be unicode in 2.7
         elif query is not None:
-            headers = {'User-agent':   'Arelle/1.0',
-                       'Accept':       'application/json'}
+            headers = {"User-agent":   "Arelle/1.0",
+                       "Accept":       "application/json"}
             data = ("query=" + query)
         else:
             return None
         # turtle may be mixture of line strings and strings with \n-separated lines
         if TRACEJSONFILE:
-            with io.open(TRACEJSONFILE, 'at', encoding='utf-8') as fh:
+            with io.open(TRACEJSONFILE, "at", encoding="utf-8") as fh:
                 fh.write("\n\n>>> sent: \n")
                 fh.write(data)
         if self.isJsonFile and data is not None:
-            with io.open(self.jsonFile, 'at', encoding='utf-8') as fh:
+            with io.open(self.jsonFile, "at", encoding="utf-8") as fh:
                 fh.write(data)
             return None
         if graph is not None or query is not None:
             url = self.url + "/json"
         request = urllib.request.Request(url,
-                                         data=data.encode('utf-8'),
+                                         data=data.encode("utf-8"),
                                          headers=headers)
         try:
             with self.conn.open(request, timeout=self.timeout) as fp:
-                results = fp.read().decode('utf-8')
+                results = fp.read().decode("utf-8")
             try:
                 results = json.loads(results)
             except ValueError:
                 pass # leave results as string
         except HTTPError as err:
-            results = err.fp.read().decode('utf-8')
+            results = err.fp.read().decode("utf-8")
         if TRACEJSONFILE:
-            with io.open(TRACEJSONFILE, "a", encoding='utf-8') as fh:
+            with io.open(TRACEJSONFILE, "a", encoding="utf-8") as fh:
                 fh.write("\n\n>>> received: \n{0}".format(str(results)))
         if isinstance(results, str) and query is not None:
             parser = etree.HTMLParser()
@@ -296,34 +296,34 @@ class XbrlSemanticJsonDatabaseConnection():
     def insertFiling(self, rssItem, g):
         self.showStatus("insert filing")
         # accession graph -> document vertices
-        new_filing = {'documents': []}
+        new_filing = {"documents": []}
         if self.modelXbrl.modelDocument.creationSoftwareComment:
-            new_filing['creation_software'] = self.modelXbrl.modelDocument.creationSoftwareComment
+            new_filing["creation_software"] = self.modelXbrl.modelDocument.creationSoftwareComment
         datetimeNow = datetime.datetime.now()
         datetimeNowStr = XmlUtil.dateunionValue(datetimeNow)
         entryUri = modelObjectDocumentUri(self.modelXbrl)
         if rssItem is not None:  # sec accession
             # set self.
-            new_filing['filingType'] = "SEC filing"
+            new_filing["filingType"] = "SEC filing"
             # for an RSS Feed entry from SEC, use rss item's accession information
-            new_filing['filingNumber'] = filingNumber = rssItem.accessionNumber
-            new_filing['acceptedTimestamp'] = XmlUtil.dateunionValue(rssItem.acceptanceDatetime)
-            new_filing['filingDate'] = XmlUtil.dateunionValue(rssItem.filingDate)
-            new_filing['entityId'] = rssItem.cikNumber
-            new_filing['entityName'] = rssItem.companyName
-            new_filing['SICCode'] = rssItem.assignedSic
-            new_filing['SECHtmlUrl'] = rssItem.htmlUrl
-            new_filing['entryUrl'] = rssItem.url
+            new_filing["filingNumber"] = filingNumber = rssItem.accessionNumber
+            new_filing["acceptedTimestamp"] = XmlUtil.dateunionValue(rssItem.acceptanceDatetime)
+            new_filing["filingDate"] = XmlUtil.dateunionValue(rssItem.filingDate)
+            new_filing["entityId"] = rssItem.cikNumber
+            new_filing["entityName"] = rssItem.companyName
+            new_filing["SICCode"] = rssItem.assignedSic
+            new_filing["SECHtmlUrl"] = rssItem.htmlUrl
+            new_filing["entryUrl"] = rssItem.url
             self.filingURI = rssItem.htmlUrl
         else:
             # not an RSS Feed item, make up our own accession ID (the time in seconds of epoch)
             intNow = int(time.time())
-            new_filing['filingNumber'] = filingNumber = str(intNow)
+            new_filing["filingNumber"] = filingNumber = str(intNow)
             self.filingId = int(time.time())    # only available if entered from an SEC filing
-            new_filing['filingType'] = "independent filing"
-            new_filing['acceptedTimestamp'] = datetimeNowStr
-            new_filing['filingDate'] = datetimeNowStr
-            new_filing['entryUrl'] = UrlUtil.ensureUrl(self.modelXbrl.fileSource.url)
+            new_filing["filingType"] = "independent filing"
+            new_filing["acceptedTimestamp"] = datetimeNowStr
+            new_filing["filingDate"] = datetimeNowStr
+            new_filing["entryUrl"] = UrlUtil.ensureUrl(self.modelXbrl.fileSource.url)
             self.filingURI = filingNumber
 
         g[FILINGS][self.filingURI] = new_filing
@@ -331,12 +331,12 @@ class XbrlSemanticJsonDatabaseConnection():
 
         # for now only one report per filing (but SEC may have multiple in future, such as form SD)
         self.reportURI = modelObjectDocumentUri(self.modelXbrl)
-        self.report = {'filing': self.filingURI,
-                       'aspectProxies': {},
-                       'relationshipSets': {},
-                       'dataPoints': {},
-                       'messages': {}}
-        new_filing['reports'] = {self.reportURI: self.report}
+        self.report = {"filing": self.filingURI,
+                       "aspectProxies": {},
+                       "relationshipSets": {},
+                       "dataPoints": {},
+                       "messages": {}}
+        new_filing["reports"] = {self.reportURI: self.report}
 
         # relationshipSets are a dts property
         self.relationshipSets = [(arcrole, ELR, linkqname, arcqname)
@@ -357,12 +357,12 @@ class XbrlSemanticJsonDatabaseConnection():
                     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
                     PREFIX DTS: <http://xbrl.org/2013/rdf/DTS/>
                     SELECT distinct ?doc WHERE { ?doc rdf:type DTS:Document
-                    FILTER( """ + '\n|| '.join(docFilters) + ") .}")
+                    FILTER( """ + "\n|| ".join(docFilters) + ") .}")
             try:
-                for result in results['results']['bindings']:
-                    doc = result['doc']
-                    if doc.get('type') == 'uri':
-                        self.existingDocumentUris.add(doc['value'])
+                for result in results["results"]["bindings"]:
+                    doc = result["doc"]
+                    if doc.get("type") == "uri":
+                        self.existingDocumentUris.add(doc["value"])
             except KeyError:
                 pass # no existingDocumentUris
 
@@ -375,16 +375,16 @@ class XbrlSemanticJsonDatabaseConnection():
             docUri = modelObjectDocumentUri(modelDocument)
             if docUri not in self.existingDocumentUris:
                 documents[docUri] = {
-                    'url': docUri,
-                    'documentType': Type.typeName[modelDocument.type],
-                    'references': [modelObjectDocumentUri(doc)
+                    "url": docUri,
+                    "documentType": Type.typeName[modelDocument.type],
+                    "references": [modelObjectDocumentUri(doc)
                                    for doc, ref in modelDocument.referencesDocument.items()
                                    if doc.inDTS and ref.referenceTypes & {"href", "import", "include"}],
-                    'resources': {}
+                    "resources": {}
                     }
-            self.filing['documents'].append(docUri)
+            self.filing["documents"].append(docUri)
             if modelDocument.uri == self.modelXbrl.modelDocument.uri: # entry document
-                self.report['entryPoint'] = docUri
+                self.report["entryPoint"] = docUri
 
     def conceptsUsed(self):
         conceptsUsed = set(f.qname for f in self.modelXbrl.factsInInstance)
@@ -430,11 +430,11 @@ class XbrlSemanticJsonDatabaseConnection():
         self.arcroleType_id = {}
 
 
-        '''
+        """
         if any((not self.document_isNew[modelDocument.uri])
                for modelDocument in self.modelXbrl.urlDocs.values()):
             conceptsUsed = self.conceptsUsed()
-        '''
+        """
         conceptsUsed = self.conceptsUsed()
 
         for modelDocument in self.modelXbrl.urlDocs.values():
@@ -450,94 +450,94 @@ class XbrlSemanticJsonDatabaseConnection():
                                     (isNewDocument or modelConcept in conceptsUsed)]
                 if docUri not in self.existingDocumentUris:
                     # adding document as new
-                    document['dataTypes'] = dataTypes = {}
+                    document["dataTypes"] = dataTypes = {}
                     for modelType in self.modelXbrl.qnameTypes.values():
                         if modelType.modelDocument is modelDocument:
                             dataTypes[modelType.name] = dataType = {
-                                'dataType': modelObjectNameUri(modelType),
-                                'document': modelObjectDocumentUri(modelType),
-                                'url': modelObjectUri(modelType),
-                                'namespaceURI': modelType.qname.namespaceURI,
-                                'localName': modelType.name,
+                                "dataType": modelObjectNameUri(modelType),
+                                "document": modelObjectDocumentUri(modelType),
+                                "url": modelObjectUri(modelType),
+                                "namespaceURI": modelType.qname.namespaceURI,
+                                "localName": modelType.name,
                                 }
                             xbrliBaseType = modelType.baseXbrliTypeQname
                             if not isinstance(xbrliBaseType, (tuple,list)):
                                 xbrliBaseType = (xbrliBaseType,)
                             for baseType in xbrliBaseType:
                                 if baseType is not None:
-                                    dataType['baseType'] = qnameUri(baseType)
+                                    dataType["baseType"] = qnameUri(baseType)
                                     if baseType.namespaceURI == "http://www.w3.org/2001/XMLSchema":
-                                        dataType['baseXsdType'] = qnameUri(baseType)
+                                        dataType["baseXsdType"] = qnameUri(baseType)
 
                             typeDerivedFrom = modelType.typeDerivedFrom
                             if not isinstance(typeDerivedFrom, (tuple,list)): # list if a union
                                 typeDerivedFrom = (typeDerivedFrom,)
                             for dt in typeDerivedFrom:
                                 if dt is not None:
-                                    dataType['derivedFrom'] = modelObjectNameUri(dt)
+                                    dataType["derivedFrom"] = modelObjectNameUri(dt)
 
-                            for prop in ('isTextBlock', 'isDomainItemType'):
+                            for prop in ("isTextBlock", "isDomainItemType"):
                                 propertyValue = getattr(modelType, prop, None)
                                 if propertyValue:
                                     dataType[prop] = propertyValue
-                    document['aspects'] = aspects = {}
+                    document["aspects"] = aspects = {}
                     for modelConcept in modelConcepts:
                         aspects[modelConcept.name] = aspect = {
-                            'document': modelObjectDocumentUri(modelConcept),
-                            'url': modelObjectUri(modelConcept),
-                            'namespaceURI': modelConcept.qname.namespaceURI,
-                            'localName': modelConcept.name,
-                            'isAbstract': modelConcept.isAbstract
+                            "document": modelObjectDocumentUri(modelConcept),
+                            "url": modelObjectUri(modelConcept),
+                            "namespaceURI": modelConcept.qname.namespaceURI,
+                            "localName": modelConcept.name,
+                            "isAbstract": modelConcept.isAbstract
                             }
                         if modelConcept.periodType:
-                            aspect['periodType'] = modelConcept.periodType
+                            aspect["periodType"] = modelConcept.periodType
                         if modelConcept.balance:
-                            aspect['balance'] = modelConcept.balance
+                            aspect["balance"] = modelConcept.balance
 
-                        for prop in ('isItem', 'isTuple', 'isLinkPart',
-                                     'isNumeric', 'isMonetary', 'isExplicitDimension',
-                                     'isDimensionItem', 'isPrimaryItem',
-                                     'isTypedDimension', 'isDomainMember', 'isHypercubeItem',
-                                     'isShares', 'isTextBlock', 'isNillable'):
+                        for prop in ("isItem", "isTuple", "isLinkPart",
+                                     "isNumeric", "isMonetary", "isExplicitDimension",
+                                     "isDimensionItem", "isPrimaryItem",
+                                     "isTypedDimension", "isDomainMember", "isHypercubeItem",
+                                     "isShares", "isTextBlock", "isNillable"):
                             propertyValue = getattr(modelConcept, prop, None)
                             if propertyValue:
                                 aspect[prop] = propertyValue
 
                         conceptType = modelConcept.type
                         if conceptType is not None:
-                            aspect['dataType'] = modelObjectNameUri(conceptType)
+                            aspect["dataType"] = modelObjectNameUri(conceptType)
 
                         substitutionGroup = modelConcept.substitutionGroup
                         if substitutionGroup is not None:
-                            aspect['substitutionGroup'] = modelObjectNameUri(substitutionGroup)
-                    document['roleTypes'] = roleTypes = {}
+                            aspect["substitutionGroup"] = modelObjectNameUri(substitutionGroup)
+                    document["roleTypes"] = roleTypes = {}
                     for modelRoleTypes in self.modelXbrl.roleTypes.values():
                         for modelRoleType in modelRoleTypes:
                             roleTypes[modelRoleType.roleURI] = roleType = {
-                                'document': modelObjectDocumentUri(modelRoleType),
-                                'url': modelObjectUri(modelRoleType),
-                                'roleURI': modelRoleType.roleURI,
-                                'definition': modelRoleType.definition,
-                                'usedOn': [modelObjectUri(self.modelXbrl.qnameConcepts[qn])
+                                "document": modelObjectDocumentUri(modelRoleType),
+                                "url": modelObjectUri(modelRoleType),
+                                "roleURI": modelRoleType.roleURI,
+                                "definition": modelRoleType.definition,
+                                "usedOn": [modelObjectUri(self.modelXbrl.qnameConcepts[qn])
                                            for qn in modelRoleType.usedOns]
                                 }
-                    document['arcroleTypes'] = arcroleTypes = {}
+                    document["arcroleTypes"] = arcroleTypes = {}
                     for modelArcroleTypes in self.modelXbrl.arcroleTypes.values():
                         for modelArcroleType in modelArcroleTypes:
                             arcroleTypes[modelRoleType.roleURI] = arcroleType = {
-                                'document': modelObjectDocumentUri(modelArcroleType),
-                                'url': modelObjectUri(modelArcroleType),
-                                'arcroleURI': modelArcroleType.roleURI,
-                                'definition': modelArcroleType.definition,
-                                'usedOn': [modelObjectUri(self.modelXbrl.qnameConcepts[qn])
+                                "document": modelObjectDocumentUri(modelArcroleType),
+                                "url": modelObjectUri(modelArcroleType),
+                                "arcroleURI": modelArcroleType.roleURI,
+                                "definition": modelArcroleType.definition,
+                                "usedOn": [modelObjectUri(self.modelXbrl.qnameConcepts[qn])
                                            for qn in modelArcroleType.usedOns],
-                                'cyclesAllowed': modelArcroleType.cyclesAllowed
+                                "cyclesAllowed": modelArcroleType.cyclesAllowed
                                 }
 
                     activity = "Insert data dictionary types, aspects, roles, and arcroles for " + modelDocument.uri
 
 
-    '''
+    """
     def insertValidCombinations(self):
         # document-> validCombinationsSet-> cubes
         self.showStatus("insert ValidCombinations")
@@ -558,7 +558,7 @@ class XbrlSemanticJsonDatabaseConnection():
         drsPriItems(val, fromELR, fromPriItem
 
         ... this becomes an unweildly large model, don't see a use case for compiling it out
-'''
+"""
     def insertAspectProxies(self, qnames):
         aspectQnames = [qname
                         for qname in qnames
@@ -568,10 +568,10 @@ class XbrlSemanticJsonDatabaseConnection():
 
     def insertAspectProxy(self, aspectQName, aspectProxyUri):
         concept = self.modelXbrl.qnameConcepts[aspectQName]
-        self.report['aspectProxies'][aspectProxyUri] = aspectProxy = {
-            'report': self.reportURI,
-            'document': modelObjectDocumentUri(concept),
-            'name': concept.name
+        self.report["aspectProxies"][aspectProxyUri] = aspectProxy = {
+            "report": self.reportURI,
+            "document": modelObjectDocumentUri(concept),
+            "name": concept.name
             }
         self.aspect_proxy[aspectQName] = aspectProxy
         self.aspect_proxy_uri[aspectQName] = aspectProxyUri
@@ -604,16 +604,16 @@ class XbrlSemanticJsonDatabaseConnection():
             unitIDs = set()  # units processed already
             periodProxies = {}
             entityIdentifierAspectProxies = {}
-            dataPoints = self.report['dataPoints']
+            dataPoints = self.report["dataPoints"]
             for fact in self.modelXbrl.factsInInstance:
                 self.insertAspectProxies( (fact.qname,) )
                 factId = XmlUtil.elementFragmentIdentifier(fact)
                 dataPoints[factId] = dataPoint = {
-                    'document': modelObjectDocumentUri(fact),
-                    'id': factId,
-                    'sourceLine': fact.sourceline,
-                    'dataPointUrl': modelObjectUri(fact),
-                    'baseItem': self.aspectQnameProxyId(fact.qname)
+                    "document": modelObjectDocumentUri(fact),
+                    "id": factId,
+                    "sourceLine": fact.sourceline,
+                    "dataPointUrl": modelObjectUri(fact),
+                    "baseItem": self.aspectQnameProxyId(fact.qname)
                     }
 
                 context = fact.context
@@ -625,46 +625,46 @@ class XbrlSemanticJsonDatabaseConnection():
                                                   qnamePrefix_Name(XbrlConst.qnXbrliIdentifier),
                                                   entityIdentifier)
                         e = self.insertAspectProxy(XbrlConst.qnXbrliIdentifier, entityIdentifierAspectProxy)
-                        e['scheme'] = entityScheme
-                        e['identifier'] = entityIdentifier
+                        e["scheme"] = entityScheme
+                        e["identifier"] = entityIdentifier
                         entityIdentifierAspectProxies[context.entityIdentifier] = entityIdentifierAspectProxy
                     else:
                         entityIdentifierAspectProxy = entityIdentifierAspectProxies[context.entityIdentifier]
-                    dataPoint['entityIdentifier'] = entityIdentifierAspectProxy
+                    dataPoint["entityIdentifier"] = entityIdentifierAspectProxy
 
                     if context.isForeverPeriod:
                         period = "forever"
                     if context.isInstantPeriod:
-                        endDate = XmlUtil.dateunionValue(context.instantDatetime, subtractOneDay=True).replace(':','_')
+                        endDate = XmlUtil.dateunionValue(context.instantDatetime, subtractOneDay=True).replace(":","_")
                         period = "instant/{}".format(endDate)
                     else:
-                        startDate = XmlUtil.dateunionValue(context.startDatetime).replace(':','_')
-                        endDate = XmlUtil.dateunionValue(context.endDatetime, subtractOneDay=True).replace(':','_')
+                        startDate = XmlUtil.dateunionValue(context.startDatetime).replace(":","_")
+                        endDate = XmlUtil.dateunionValue(context.endDatetime, subtractOneDay=True).replace(":","_")
                         period = "duration/{}/{}".format(startDate, endDate)
                     if period not in periodProxies:
                         periodProxy = "{}/{}".format(
                                                   qnamePrefix_Name(XbrlConst.qnXbrliPeriod),
                                                   period)
                         p = self.insertAspectProxy(XbrlConst.qnXbrliPeriod, periodProxy)
-                        p['isForever'] = context.isForeverPeriod
-                        p['isInstant'] = context.isInstantPeriod
+                        p["isForever"] = context.isForeverPeriod
+                        p["isInstant"] = context.isInstantPeriod
                         if context.isStartEndPeriod:
                             d = context.startDatetime
                             if d.hour == 0 and d.minute == 0 and d.second == 0:
                                 d = d.date()
-                            p['startDate'] = d
+                            p["startDate"] = d
                         if context.isStartEndPeriod or context.isInstantPeriod:
                             d = context.endDatetime
                             if d.hour == 0 and d.minute == 0 and d.second == 0:
                                 d = (d - datetime.timedelta(1)).date()
-                            p['endDate'] = d
+                            p["endDate"] = d
                         periodProxies[period] = periodProxy
                     else:
                         periodProxy = periodProxies[period]
-                    dataPoint['period'] = periodProxy
+                    dataPoint["period"] = periodProxy
 
-                    dataPoint['contextUrl'] = modelObjectUri(context)
-                    dataPoint['contextId'] = context.id
+                    dataPoint["contextUrl"] = modelObjectUri(context)
+                    dataPoint["contextId"] = context.id
                     if context.id not in contextAspectValueSelections:
                         contextAspectValueSelections[context.id] = contextAspectValueSelection = []
 
@@ -678,51 +678,51 @@ class XbrlSemanticJsonDatabaseConnection():
                             dimProxy = "{}/{}".format(dim, v)
                             d = self.insertAspectProxy(dimVal.dimensionQname, dimProxy)
                             contextAspectValueSelection.append(dimProxy)
-                            d['aspect'] = dim
+                            d["aspect"] = dim
                             if dimVal.isExplicit:
-                                d['aspectValue'] = v
+                                d["aspectValue"] = v
                             else:
-                                d['typedValue'] = v
+                                d["typedValue"] = v
                     else:
                         contextAspectValueSelection = contextAspectValueSelections[context.id]
-                    dataPoint['aspectValueSelections'] = contextAspectValueSelection
+                    dataPoint["aspectValueSelections"] = contextAspectValueSelection
                     if fact.isNumeric:
                         if fact.precision == "INF":
-                            dataPoint['precision'] = "INF"
+                            dataPoint["precision"] = "INF"
                         elif fact.precision is not None:
-                            dataPoint['precision'] = fact.precision
+                            dataPoint["precision"] = fact.precision
                         if fact.decimals == "INF":
-                            dataPoint['decimals'] = "INF"
+                            dataPoint["decimals"] = "INF"
                         elif fact.decimals is not None:
-                            dataPoint['decimals'] = fact.decimals
+                            dataPoint["decimals"] = fact.decimals
                         if fact.unit is not None:
                             unit = fact.unit
                             unitProxy = "{}/{}".format(
                                                       qnamePrefix_Name(XbrlConst.qnXbrliUnit),
                                                       unit.id)
-                            dataPoint['unit'] = unitProxy
+                            dataPoint["unit"] = unitProxy
                             if unit.id not in unitIDs:
                                 unitIDs.add(unit.id)
                                 u = self.insertAspectProxy(XbrlConst.qnXbrliUnit, unitProxy)
-                                u['unitId'] = unit.id
+                                u["unitId"] = unit.id
 
                                 mults, divs = unit.measures
-                                u['multiplyMeasures'] = [qnameUri(qn) for qn in mults]
+                                u["multiplyMeasures"] = [qnameUri(qn) for qn in mults]
                                 if divs:
-                                    u['divideMeasures'] = [qnameUri(qn) for qn in divs]
+                                    u["divideMeasures"] = [qnameUri(qn) for qn in divs]
                     if fact.xmlLang is None and fact.concept is not None and fact.concept.baseXsdType is not None:
-                        dataPoint['value'] = fact.xValue
+                        dataPoint["value"] = fact.xValue
                         # The insert with base XSD type but no language
                     elif fact.xmlLang is not None:
                         # assuming string type with language
-                        dataPoint['language'] = fact.xmlLang
-                        dataPoint['value'] = fact.value
+                        dataPoint["language"] = fact.xmlLang
+                        dataPoint["value"] = fact.value
                     else:
                         # Otherwise insert as plain liternal with no language or datatype
-                        dataPoint['value'] = fact.value
+                        dataPoint["value"] = fact.value
 
                     if fact.modelTupleFacts:
-                        dataPoint['tuple'] = [XmlUtil.elementFragmentIdentifier(tupleFact)
+                        dataPoint["tuple"] = [XmlUtil.elementFragmentIdentifier(tupleFact)
                                               for tupleFact in fact.modelTupleFacts]
 
 
@@ -741,7 +741,7 @@ class XbrlSemanticJsonDatabaseConnection():
                 aspectQnamesUsed.add(arcqname)
         self.insertAspectProxies(aspectQnamesUsed)
 
-        relationshipSets = self.report['relationshipSets']
+        relationshipSets = self.report["relationshipSets"]
         relSetIds = {}
         for i, relationshipSetKey in enumerate(self.relationshipSets):
             arcrole, linkrole, linkqname, arcqname = relationshipSetKey
@@ -752,13 +752,13 @@ class XbrlSemanticJsonDatabaseConnection():
                                    os.path.basename(linkrole))
                 relSetIds[relationshipSetKey] = relSetId
                 relationshipSets[relSetId] = relationshipSet = {
-                    'arcrole': arcrole,
-                    'linkrole': linkrole,
-                    'arcname': self.aspectQnameProxyId(arcqname),
-                    'linkname': self.aspectQnameProxyId(linkqname),
-                    'report': self.reportURI,
-                    'roots': [],
-                    'relationships': []
+                    "arcrole": arcrole,
+                    "linkrole": linkrole,
+                    "arcname": self.aspectQnameProxyId(arcqname),
+                    "linkname": self.aspectQnameProxyId(linkqname),
+                    "report": self.reportURI,
+                    "roots": [],
+                    "relationships": []
                     }
 
         # do tree walk to build relationships with depth annotated, no targetRole navigation
@@ -773,11 +773,11 @@ class XbrlSemanticJsonDatabaseConnection():
                     visited.add(rel)
 
                     if not doVertices:
-                        _relProp = {'seq': seq,
-                                    'depth': depth,
-                                    'order': rel.orderDecimal,
-                                    'priority': rel.priority,
-                                    'relSetId': relSetId
+                        _relProp = {"seq": seq,
+                                    "depth": depth,
+                                    "order": rel.orderDecimal,
+                                    "priority": rel.priority,
+                                    "relSetId": relSetId
                                     }
                     if isinstance(rel.fromModelObject, ModelConcept):
                         if doVertices:
@@ -803,19 +803,19 @@ class XbrlSemanticJsonDatabaseConnection():
                             targetUri = 0 # just can't be None, but doesn't matter on doVertices pass
                         else:
                             if rel.preferredLabel:
-                                _relProp['preferredLabel'] = rel.preferredLabel
+                                _relProp["preferredLabel"] = rel.preferredLabel
                             if rel.arcrole in (XbrlConst.all, XbrlConst.notAll):
-                                _relProp['cubeClosed'] = rel.closed
+                                _relProp["cubeClosed"] = rel.closed
                             elif rel.arcrole in (XbrlConst.dimensionDomain, XbrlConst.domainMember):
-                                _relProp['aspectValueUsable'] = rel.usable
+                                _relProp["aspectValueUsable"] = rel.usable
                             elif rel.arcrole == XbrlConst.summationItem:
-                                _relProp['weight'] = rel.weightDecimal
+                                _relProp["weight"] = rel.weightDecimal
                             if relationshipSet.arcrole == "XBRL-dimensions":
-                                _relProp['arcrole'] = rel.arcrole
+                                _relProp["arcrole"] = rel.arcrole
                             if toModelObject.role:
-                                _relProp['resourceRole'] = toModelObject.role
+                                _relProp["resourceRole"] = toModelObject.role
                             targetUri = modelObjectUri(toModelObject)
-                            targetId = toModelObject.modelDocument.basename + '#' + XmlUtil.elementFragmentIdentifier(toModelObject)
+                            targetId = toModelObject.modelDocument.basename + "#" + XmlUtil.elementFragmentIdentifier(toModelObject)
                     else:
                         targetUri = None # tbd
                     if sourceUri is not None and targetUri is not None:
@@ -830,25 +830,25 @@ class XbrlSemanticJsonDatabaseConnection():
                                     targetRelSetKey = relSetKey
                                     break
                             if not doVertices:
-                                _relProp['targetLinkrole'] = rel.targetRole
-                                _relProp['targetRelSet'] = targetRelationshipSetId
+                                _relProp["targetLinkrole"] = rel.targetRole
+                                _relProp["targetRelSet"] = targetRelationshipSetId
                         else:
                             targetRelSetKey = relationshipSetKey
                             targetRelSet = relationshipSet
                         if doVertices:
                             relId = None
                         else:
-                            _relProp['from'] = sourceUri
-                            _relProp['fromQname'] = sourceQname
-                            _relProp['to'] = targetUri
+                            _relProp["from"] = sourceUri
+                            _relProp["fromQname"] = sourceQname
+                            _relProp["to"] = targetUri
                             _arcrole = os.path.basename(rel.arcrole)
                             relId = "{}/{}/{}/{}".format(
                                             _arcrole,
                                             os.path.basename(rel.linkrole),
                                             sourceId,
                                             targetId)
-                            _relProp['relId'] = relId
-                            _relProp['relSetKey'] = relationshipSetKey
+                            _relProp["relId"] = relId
+                            _relProp["relSetKey"] = relationshipSetKey
 
                             relE.append(_relProp)
                         seq += 1
@@ -870,34 +870,34 @@ class XbrlSemanticJsonDatabaseConnection():
                 if resources:
                     for resource in resources:
                         resourceUri = modelObjectUri(resource)
-                        r = {'url': resourceUri,
-                             'value': resource.stringValue
+                        r = {"url": resourceUri,
+                             "value": resource.stringValue
                             }
                         if resource.xmlLang:
-                            r['language'] = resource.xmlLang
+                            r["language"] = resource.xmlLang
                         if resource.role:
-                            r['role'] = resource.role
-                        self.documents[modelObjectDocumentUri(resource)]['resources'][
+                            r["role"] = resource.role
+                        self.documents[modelObjectDocumentUri(resource)]["resources"][
                                         XmlUtil.elementFragmentIdentifier(resource)] = r
 
                 self.insertAspectProxies(aspectQnamesUsed)
             else:
                 for j, rel in enumerate(relE):
-                    relId = rel['relId']
-                    relSetId = rel['relSetId']
+                    relId = rel["relId"]
+                    relSetId = rel["relSetId"]
                     relSet = relationshipSets[relSetId]
                     r = dict((k,v)
                              for k,v in rel.items()
-                             if k not in ('relId', 'relPredicate', 'relSetId', 'relSetKey', 'fromQname'))
-                    relSet['relationships'].append(r)
-                    if rel.get('depth', 0) == 1:
-                        relSet['roots'].append(r)
-                    sourceQname = rel['fromQname']
+                             if k not in ("relId", "relPredicate", "relSetId", "relSetKey", "fromQname"))
+                    relSet["relationships"].append(r)
+                    if rel.get("depth", 0) == 1:
+                        relSet["roots"].append(r)
+                    sourceQname = rel["fromQname"]
                     if sourceQname in self.aspect_proxy:
                         self.aspect_proxy[sourceQname] \
-                            .setdefault('relationships', {}) \
-                            .setdefault(rel['relSetId'], []) \
-                            .append(rel['to'])
+                            .setdefault("relationships", {}) \
+                            .setdefault(rel["relSetId"], []) \
+                            .append(rel["to"])
 
                 # TBD: do we want to link resources to the dts (by role, class, or otherwise?)
 
@@ -915,28 +915,28 @@ class XbrlSemanticJsonDatabaseConnection():
         messageRefs = [] # direct link to objects
         for i, logEntry in enumerate(logEntries):
             messageId = "message/{}".format(i+1)
-            self.report['messages'][messageId] = m = {
-                'code': logEntry['code'],
-                'level': logEntry['level'],
-                'value': logEntry['message']['text'],
-                'report': self.reportURI,
-                'messageId': messageId
+            self.report["messages"][messageId] = m = {
+                "code": logEntry["code"],
+                "level": logEntry["level"],
+                "value": logEntry["message"]["text"],
+                "report": self.reportURI,
+                "messageId": messageId
                 }
             # capture message ref's
-            for ref in logEntry['refs']:
-                modelObject = self.modelXbrl.modelObject(ref.get('objectId',''))
+            for ref in logEntry["refs"]:
+                modelObject = self.modelXbrl.modelObject(ref.get("objectId",""))
                 # for now just find a concept
                 aspectObj = None
                 if isinstance(modelObject, ModelFact):
                     factId = XmlUtil.elementFragmentIdentifier(modelObject)
-                    dataPoint = self.report['dataPoints'][factId]
-                    dataPoint.setdefault('messages', []).append(messageId)
+                    dataPoint = self.report["dataPoints"][factId]
+                    dataPoint.setdefault("messages", []).append(messageId)
                 elif isinstance(modelObject, ModelConcept):
                     # be sure there's a proxy
                     self.insertAspectProxies( (modelObject.qname,))  # need imediate use of proxy
-                    self.aspectQnameProxy(modelObject.qname).setdefault('messages', []).append(messageId)
+                    self.aspectQnameProxy(modelObject.qname).setdefault("messages", []).append(messageId)
                 elif isinstance(modelObject, ModelRelationship):
-                    ''' TBD
+                    """ TBD
                     sourceId = qnamePrefix_Name(modelObject.fromModelObject.qname)
                     toModelObject = modelObject.toModelObject
                     if isinstance(toModelObject, ModelConcept):
@@ -951,7 +951,7 @@ class XbrlSemanticJsonDatabaseConnection():
                                     os.path.basename(modelObject.linkrole),
                                     sourceId,
                                     targetId) )
-                    '''
+                    """
                 else:
                     continue
 

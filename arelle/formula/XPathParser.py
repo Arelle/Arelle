@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 import logging
@@ -56,16 +56,16 @@ FormulaToken = Union[
     int,
     str,
     Decimal,
-    'Expr',
-    'OpDef',
-    'OperationDef',
-    'ProgHeader',
-    'QNameDef',
-    'RangeDecl',
-    'VariableRef',
+    "Expr",
+    "OpDef",
+    "OperationDef",
+    "ProgHeader",
+    "QNameDef",
+    "RangeDecl",
+    "VariableRef",
 ]
 
-RecursiveFormulaTokens = Sequence[Union[FormulaToken, 'RecursiveFormulaTokens']]
+RecursiveFormulaTokens = Sequence[Union[FormulaToken, "RecursiveFormulaTokens"]]
 
 ExpressionStack = list[FormulaToken]
 
@@ -170,7 +170,7 @@ class QNameDef(ModelValue.QName):
         return self.qnameValueHash
 
     def __repr__(self) -> str:
-        return "{0}QName({1})".format('@' if self.isAttribute else '', str(self))
+        return "{0}QName({1})".format("@" if self.isAttribute else "", str(self))
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, QNameDef):
@@ -217,8 +217,8 @@ def pushQName(sourceStr: str, loc: int, toks: ParseResults) -> QNameDef | None:
         return None
     if xmlElement is not None:
         nsLocalname: tuple[str | None, str, str | None]
-        if qname == '*':  # prevent simple wildcard from taking the default namespace
-            nsLocalname = (None, '*', None)
+        if qname == "*":  # prevent simple wildcard from taking the default namespace
+            nsLocalname = (None, "*", None)
         else:
             prefixedNameToNamespaceLocalname = XmlUtil.prefixedNameToNamespaceLocalname(xmlElement, qname, defaultNsmap=defaultNsmap)
             if prefixedNameToNamespaceLocalname is None:
@@ -252,7 +252,7 @@ def pushQName(sourceStr: str, loc: int, toks: ParseResults) -> QNameDef | None:
 
 def pushAttr(sourceStr: str, loc: int, toks: ParseResults) -> QNameDef:
     # usually has QName of attr already on exprstack, get rid of it
-    if toks[0] == '@' and len(exprStack) > 0 and len(toks) > 1 and exprStack[-1] == toks[1]:
+    if toks[0] == "@" and len(exprStack) > 0 and len(toks) > 1 and exprStack[-1] == toks[1]:
         exprStack.remove(toks[1])
     if isinstance(toks[1], QNameDef):
         attr = toks[1]
@@ -298,12 +298,12 @@ class OperationDef:
         self.name = name
         if skipFirstTok:
             toks1 = toks[1] if len(toks) > 1 else None
-            if isinstance(toks1, str) and isinstance(name, str) and name in ('/', '//', 'rootChild', 'rootDescendant'):
-                if toks1 == '*':
-                    toks1 = QNameDef(loc, None, '*', '*')
-                elif toks1.startswith('*:'):
-                    toks1 = QNameDef(loc, None, '*', toks1[2:])
-                elif toks1.endswith(':*'):
+            if isinstance(toks1, str) and isinstance(name, str) and name in ("/", "//", "rootChild", "rootDescendant"):
+                if toks1 == "*":
+                    toks1 = QNameDef(loc, None, "*", "*")
+                elif toks1.startswith("*:"):
+                    toks1 = QNameDef(loc, None, "*", toks1[2:])
+                elif toks1.endswith(":*"):
                     prefix = toks1[:-2]
                     assert xmlElement is not None
                     ns = XmlUtil.xmlns(xmlElement, prefix)
@@ -313,13 +313,13 @@ class OperationDef:
                             _("wildcard prefix not defined for %(token)s"),
                             modelObject=xmlElement,
                             token=toks1)
-                    toks1 = QNameDef(loc, prefix, ns, '*')
+                    toks1 = QNameDef(loc, prefix, ns, "*")
                 self.args = [toks1] + toks[2:]  # special case for wildcard path segment
             else:
                 self.args = toks[1:]
-            '''
+            """
             self.args = toks[1:]
-            '''
+            """
         else:  # for others first token is just op code, no expression
             self.args = toks[:]
 
@@ -357,10 +357,10 @@ def pushOperation(sourceStr: str, loc: int, toks: ParseResults) -> OperationDef:
 
 def pushUnaryOperation(sourceStr: str, loc: int, toks: ParseResults) -> OperationDef:
     if isinstance(toks[0], str):
-        operation = OperationDef(sourceStr, loc, 'u' + toks[0], toks, True)
+        operation = OperationDef(sourceStr, loc, "u" + toks[0], toks, True)
         exprStack.append(operation)
     else:
-        operation = OperationDef(sourceStr, loc, 'u' + toks[0].name, toks, True)
+        operation = OperationDef(sourceStr, loc, "u" + toks[0].name, toks, True)
         # exprStack[exprStack.index(toks[0]):] = [operation]  # replace tokens with production
         exprStack[exprStackToksRIndex(toks):] = [operation]  # replace tokens with production
     return operation
@@ -393,7 +393,7 @@ def pushFunction(sourceStr: str, loc: int, toks: ParseResults) -> OperationDef:
 
 
 def pushSequence(sourceStr: str, loc: int, toks: ParseResults) -> OperationDef:
-    operation = OperationDef(sourceStr, loc, 'sequence', toks, False)
+    operation = OperationDef(sourceStr, loc, "sequence", toks, False)
     # print ("push seq toks={} \n  op={}\n  exprStk1={}".format(toks, operation, exprStack))
     if len(toks) == 0:  # empty sequence
         exprStack.append(operation)
@@ -406,7 +406,7 @@ def pushSequence(sourceStr: str, loc: int, toks: ParseResults) -> OperationDef:
 
 def pushPredicate(sourceStr: str, loc: int, toks: ParseResults) -> OperationDef:
     # drop the predicate op, used to clean expression stack
-    predicate = OperationDef(sourceStr, loc, 'predicate', toks[1:], False)
+    predicate = OperationDef(sourceStr, loc, "predicate", toks[1:], False)
     # exprStack[exprStack.index(toks[0]):] = [predicate]  # replace tokens with production
     exprStack[exprStackToksRIndex(toks):] = [predicate]  # replace tokens with production
     return predicate
@@ -414,14 +414,14 @@ def pushPredicate(sourceStr: str, loc: int, toks: ParseResults) -> OperationDef:
 
 def pushRootStep(sourceStr: str, loc: int, toks: ParseResults) -> OperationDef | None:
     # drop the predicate op, used to clean expression stack
-    if toks[0] == '/':
-        op = 'rootChild'
-    elif toks[0] == '//':
-        op = 'rootDescendant'
-    elif toks[0] == '.':
-        op = 'contextItem'
-    elif toks[0] == '..':
-        op = 'contextItemParent'
+    if toks[0] == "/":
+        op = "rootChild"
+    elif toks[0] == "//":
+        op = "rootDescendant"
+    elif toks[0] == ".":
+        op = "contextItem"
+    elif toks[0] == "..":
+        op = "contextItemParent"
     else:
         return None
     rootStep = OperationDef(sourceStr, loc, op, toks[1:], False)
@@ -522,7 +522,7 @@ qName = Regex(
 #               r"[_\-\."
 #               "\xB7A-Za-z0-9\xC0-\xD6\xD8-\xF6\xF8-\xFF\u0100-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u0300-\u036F\u203F-\u2040]*")
 
-ncName = Word(alphas + '_', alphanums + '_-.')
+ncName = Word(alphas + "_", alphanums + "_-.")
 prefixOp = Literal(":")
 
 exponentLiteralStr = r"[eE]"
@@ -535,9 +535,9 @@ integerLiteralStr = plusorminusLiteralStr + r"?" + digitsStr
 decimalFractionLiteralStr = plusorminusLiteralStr + "?" + decimalPointStr + digitsStr
 infLiteralStr = plusorminusLiteralStr + r"?INF"
 
-decimalPoint = Literal('.')
+decimalPoint = Literal(".")
 exponentLiteral = Regex(exponentLiteralStr)
-plusorminusLiteral = Literal('+') | Literal('-')
+plusorminusLiteral = Literal("+") | Literal("-")
 digits = Word(nums)
 integerLiteral = Regex(integerLiteralStr)
 decimalFractionLiteral = Regex(decimalFractionLiteralStr)
@@ -831,7 +831,7 @@ opn = {
 }
 
 # Recursive function that evaluates the stack
-'''
+"""
 def evaluateStack( self, s ):
     op = s.pop()
     if isinstance(op,FunctionDef):
@@ -861,7 +861,7 @@ def evaluateStack( self, s ):
             return self.evaluateStack( s )
         else:
             return op
-'''
+"""
 
 
 def normalizeExpr(expr: str) -> str:
@@ -870,17 +870,17 @@ def normalizeExpr(expr: str) -> str:
     commentNesting = 0
     c: str | None
     for c in expr:
-        if prior == '\r':
-            if c == '\n' or c == '\x85':
-                c = '\n'
+        if prior == "\r":
+            if c == "\n" or c == "\x85":
+                c = "\n"
                 prior = None
             else:
-                prior = '\n'
-        elif c == '\x85' or c == '\u2028':
-            c = '\n'
-        elif prior == '(' and c == ':':
+                prior = "\n"
+        elif c == "\x85" or c == "\u2028":
+            c = "\n"
+        elif prior == "(" and c == ":":
             commentNesting += 1
-        elif commentNesting > 0 and prior == ':' and c == ')':
+        elif commentNesting > 0 and prior == ":" and c == ")":
             commentNesting -= 1
             prior = None
             c = None
@@ -888,10 +888,10 @@ def normalizeExpr(expr: str) -> str:
             result.append(prior)
         prior = c
     if prior:
-        if prior == '\r':
-            prior = '\n'
+        if prior == "\r":
+            prior = "\n"
         result.append(prior)
-    return ''.join(result)
+    return "".join(result)
 
 
 isInitialized = False
@@ -922,14 +922,14 @@ def initializeParser(modelManager: ModelManager) -> bool:
 
 def exceptionErrorIndication(exception: XPathException | ParseBaseException) -> str:
     errorAt = exception.column
-    source = ''
-    for line in exception.line.split('\n'):
+    source = ""
+    for line in exception.line.split("\n"):
         if len(source) > 0:
-            source += '\n'
+            source += "\n"
         assert errorAt is not None
         if 0 <= errorAt <= len(line):
-            source += line[:errorAt] + '\u274b' + line[errorAt:]
-            source += '\n' + ' ' * (errorAt - 1) + '^ \n'
+            source += line[:errorAt] + "\u274b" + line[errorAt:]
+            source += "\n" + " " * (errorAt - 1) + "^ \n"
         else:
             source += line
         errorAt -= len(line) + 1
@@ -1036,7 +1036,7 @@ def parse(
                 source=normalizedExpr)
             modelXbrl.debug("debug", str(traceback.format_exception(*sys.exc_info())))
 
-        '''
+        """
         code = []
         compile(exprStack, code)
         pyCode = ''.join(code)
@@ -1046,7 +1046,7 @@ def parse(
                  pyCode),
             "info", "formula:trace")
         return pyCode
-        '''
+        """
         returnProg = exprStack
     exprStack = []  # dereference
     xmlElement = None
@@ -1150,7 +1150,7 @@ def clearNamedProgs(ownerObject: ModelFormulaResource, progsListName: str) -> No
 
 def codeModule(code: Iterable[Any]) -> str:
     return \
-        '''
+        """
         def flatten(x):
             result = []
             for el in x:
@@ -1159,8 +1159,8 @@ def codeModule(code: Iterable[Any]) -> str:
                 else:
                     result.append(el)
             return result
-        ''' + \
-        ''.join(code)
+        """ + \
+        "".join(code)
 
 
 def parser_unit_test() -> None:
@@ -1175,7 +1175,7 @@ def parser_unit_test() -> None:
     test3 = "if (sum(1,2,3) gt 123) then 33 else 44"
     test3a = "sum(1,2,3,min(4,5,6))"
 
-    '''
+    """
                  "for $a in $b, $c in $d, $e in $f return 'foo'",
                  "for $a in $b, $c in $d return (3 + 4)",
                  "some $a in $b, $c in $d satisfies (3 * $a + 4 * $b)",
@@ -1277,7 +1277,7 @@ def parser_unit_test() -> None:
                  "node-name(/a/b/c)",
                  "()", "(1)",
                  "empty( () )",
-    '''
+    """
     # tests = [locals()[t] for t in locals().keys() if t.startswith("test")]
     tests = [test1, test1a, test1b, test2a, test2b, test3, test3a]
 
@@ -1306,21 +1306,21 @@ def parser_unit_test() -> None:
         try:
             L = xpathExpr.parse_string(normalizeExpr(test), parse_all=True)
         except (ParseException, ParseSyntaxException) as err:
-            L = ['Parse Failure', test, err]
+            L = ["Parse Failure", test, err]
 
         # show result of parsing the input string
         if debug_flag:
             log.append("{0}->{1}".format(test, L))
-        if len(L) == 0 or L[0] != 'Parse Failure':
+        if len(L) == 0 or L[0] != "Parse Failure":
             if debug_flag:
                 log.append("exprStack={0}".format(exprStack))
-                '''
+                """
                 code = []
                 compile(exprStack, code)
                 print ("code=", ''.join(code))
-                '''
+                """
             # calculate result , store a copy in ans , display the result to user
-            '''
+            """
             result=evaluateStack(exprStack)
             variables['ans']=result
             print (result)
@@ -1330,9 +1330,9 @@ def parser_unit_test() -> None:
             if len(varStack)==1:
                 variables[varStack.pop()]=result
             if debug_flag: print ("variables=",variables)
-            '''
+            """
         else:
-            log.append('Parse Failure')
+            log.append("Parse Failure")
             log.append(L[2].line)
             log.append(" " * (L[2].column - 1) + "^")
             log.append(L[2])
@@ -1340,8 +1340,8 @@ def parser_unit_test() -> None:
     print("see log in c:\\temp\\testLog.txt")
     import io
 
-    with io.open("c:\\temp\\testLog.txt", 'wt', encoding='utf-8') as f:
-        f.write('\n'.join(str(l) for l in log))
+    with io.open("c:\\temp\\testLog.txt", "wt", encoding="utf-8") as f:
+        f.write("\n".join(str(l) for l in log))
 
 
 if __name__ == "__main__":

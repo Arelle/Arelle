@@ -35,7 +35,7 @@ class PluginProcessPoolExecutor(ProcessPoolExecutor):
             maxWorkers: int | None = None,
             mpContext: BaseContext | None = None,
     ) -> None:
-        if getattr(sys, 'frozen', False):
+        if getattr(sys, "frozen", False):
             # Revisit this when cx_Freeze is upgraded to 6.16
             # https://github.com/marcelotduarte/cx_Freeze/pull/1956
             raise RuntimeError("Multiprocessing plugins aren't supported in frozen builds. Run Arelle from source.")

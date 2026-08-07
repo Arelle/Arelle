@@ -11,15 +11,15 @@ from .FormType import FormType
 
 class Ordinance(Enum):
     # Source: ESE140110 Guide Attachment 4
-    AUDIT_CERTIFICATION = 'aud'
-    CORPORATE_AFFAIRS = 'crp'
-    IFRS = 'igp'
-    INTERNAL_CONTROL = 'ctl'
-    JAPANESE_GAAP = 'pfs'
-    LARGE_SHAREHOLDING = 'lvh'
-    SPECIFIED_SECURITIES = 'sps'
-    TENDER_OFFERS_FOR_SHARES_OTHER = 'too'
-    TENDER_OFFERS_FOR_SHARES_OWN = 'toi'
+    AUDIT_CERTIFICATION = "aud"
+    CORPORATE_AFFAIRS = "crp"
+    IFRS = "igp"
+    INTERNAL_CONTROL = "ctl"
+    JAPANESE_GAAP = "pfs"
+    LARGE_SHAREHOLDING = "lvh"
+    SPECIFIED_SECURITIES = "sps"
+    TENDER_OFFERS_FOR_SHARES_OTHER = "too"
+    TENDER_OFFERS_FOR_SHARES_OWN = "toi"
 
     @classmethod
     def parse(cls, value: str | None) -> Ordinance | None:
@@ -31,27 +31,27 @@ class Ordinance(Enum):
 
 class DocumentType(Enum):
     # Source: ESE140110 Guide Attachment 4
-    ANNUAL_SECURITIES_REPORT = 'asr'
-    AUDIT_REPORT = 'aar'
-    EXTRAORDINARY_REPORT = 'esr'
-    INTERIM_AND_INTERNAL_CONTROL_AUDIT_REPORT = 'aai'
-    INTERIM_AUDIT_REPORT = 'sar'
-    INTERNAL_CONTROL_AUDIT_REPORT = 'iar'
-    INTERNAL_CONTROL_REPORT = 'icr'
-    LARGE_SHAREHOLDING_REPORT = 'lvh'
-    OPINION_STATEMENT = 'pst'
-    QUARTERLY_REPORT = 'qsr' # Deprecated?
-    QUARTERLY_REVIEW_REPORT = 'qrr'
-    RESPONSE_TO_QUESTIONS_REPORT = 'toa'
-    SECURITIES_REGISTRATION_STATEMENT = 'srs'
-    SECURITIES_REGISTRATION_STATEMENT_DEEMED = 'drs'
-    SEMI_ANNUAL_REPORT = 'ssr'
-    SHARE_REPURCHASE_STATUS_REPORT = 'sbr'
-    SHELF_REGISTRATION_STATEMENT = 'rst'
-    SHELF_REGISTRATION_SUPPLEMENT = 'rep'
-    TENDER_OFFER_REPORT = 'tor'
-    TENDER_OFFER_STATEMENT = 'ton'
-    TENDER_OFFER_WITHDRAWAL_NOTICE = 'wto'
+    ANNUAL_SECURITIES_REPORT = "asr"
+    AUDIT_REPORT = "aar"
+    EXTRAORDINARY_REPORT = "esr"
+    INTERIM_AND_INTERNAL_CONTROL_AUDIT_REPORT = "aai"
+    INTERIM_AUDIT_REPORT = "sar"
+    INTERNAL_CONTROL_AUDIT_REPORT = "iar"
+    INTERNAL_CONTROL_REPORT = "icr"
+    LARGE_SHAREHOLDING_REPORT = "lvh"
+    OPINION_STATEMENT = "pst"
+    QUARTERLY_REPORT = "qsr" # Deprecated?
+    QUARTERLY_REVIEW_REPORT = "qrr"
+    RESPONSE_TO_QUESTIONS_REPORT = "toa"
+    SECURITIES_REGISTRATION_STATEMENT = "srs"
+    SECURITIES_REGISTRATION_STATEMENT_DEEMED = "drs"
+    SEMI_ANNUAL_REPORT = "ssr"
+    SHARE_REPURCHASE_STATUS_REPORT = "sbr"
+    SHELF_REGISTRATION_STATEMENT = "rst"
+    SHELF_REGISTRATION_SUPPLEMENT = "rep"
+    TENDER_OFFER_REPORT = "tor"
+    TENDER_OFFER_STATEMENT = "ton"
+    TENDER_OFFER_WITHDRAWAL_NOTICE = "wto"
 
     @classmethod
     def parse(cls, value: str | None) -> DocumentType | None:
@@ -67,23 +67,23 @@ class Taxonomy(Enum):
     # determine the applicable taxonomies in the FilingFormat configurations below.
     # The prefixes associated with each taxonomy were inferred from the above
     # document and "(Appendix) Conventions and Rules for EDINET Taxonomy" (ESE140304.pdf)
-    DEI = 'jpdei' # 'ＤＥＩタクソノミ'
-    FINANCIAL_STATEMENT = 'jppfs' # '財務諸表本表タクソノミ'
-    IFRS = 'jpigp' # 国際会計基準タクソノミ
-    DISCLOSURE_ORDINANCE = 'jpcrp' # '開示府令タクソノミ'
-    EXTRAORDINARY_REPORT = 'jpcrp-esr' # '臨時報告書タクソノミ'
-    STATUS_OF_SHARE_BUYBACKS = 'jpsps-esr' # '自己株券買付状況報告書タクソノミ'
-    CABINET_OFFICE_ORDINANCE_ON_SPECIFIED_SECURITIES_DISCLOSURE = 'jpsps' # '特定有価証券開示府令タクソノミ'
-    STATUS_OF_SPECIFIC_SECURITIES_TREASURY_STOCK_PURCHASES = 'jpsps-sbr' # '特定有価証券自己株券買付状況報告書タクソノミ'
-    SPECIFIED_SECURITIES_EXTRAORDINARY_REPORT = 'jpsps-esr' # '特定有価証券臨時報告書タクソノミ'
-    TENDER_OFFER_NOTIFICATION = 'jptoo-ton' # '他社株公開買付届出書タクソノミ'
-    OTHER_COMPANY_OPINION_STATEMENT = 'jptoo-pst' # '他社株意見表明報告書タクソノミ'
-    TENDER_OFFER_WITHDRAWAL_NOTIFICATION = 'jptoo-wto' # '他社株公開買付撤回届出書タクソノミ'
-    TENDER_OFFER_REPORT = 'jptoo-tor' # '他社株公開買付報告書タクソノミ'
-    OTHER_COMPANY_STOCK_QUESTION_AND_ANSWER_REPORT = 'jptoo-toa' # '他社株対質問回答報告書タクソノミ'
-    TENDER_OFFER = 'jptoi' # '自社株公開買付タクソノミ'
-    LARGE_VOLUME_HOLDINGS = 'jplvh' # '大量保有タクソノミ'
-    INTERNAL_CONTROL = 'jpctl' # '内部統制タクソノミ'
+    DEI = "jpdei" # 'ＤＥＩタクソノミ'
+    FINANCIAL_STATEMENT = "jppfs" # '財務諸表本表タクソノミ'
+    IFRS = "jpigp" # 国際会計基準タクソノミ
+    DISCLOSURE_ORDINANCE = "jpcrp" # '開示府令タクソノミ'
+    EXTRAORDINARY_REPORT = "jpcrp-esr" # '臨時報告書タクソノミ'
+    STATUS_OF_SHARE_BUYBACKS = "jpsps-esr" # '自己株券買付状況報告書タクソノミ'
+    CABINET_OFFICE_ORDINANCE_ON_SPECIFIED_SECURITIES_DISCLOSURE = "jpsps" # '特定有価証券開示府令タクソノミ'
+    STATUS_OF_SPECIFIC_SECURITIES_TREASURY_STOCK_PURCHASES = "jpsps-sbr" # '特定有価証券自己株券買付状況報告書タクソノミ'
+    SPECIFIED_SECURITIES_EXTRAORDINARY_REPORT = "jpsps-esr" # '特定有価証券臨時報告書タクソノミ'
+    TENDER_OFFER_NOTIFICATION = "jptoo-ton" # '他社株公開買付届出書タクソノミ'
+    OTHER_COMPANY_OPINION_STATEMENT = "jptoo-pst" # '他社株意見表明報告書タクソノミ'
+    TENDER_OFFER_WITHDRAWAL_NOTIFICATION = "jptoo-wto" # '他社株公開買付撤回届出書タクソノミ'
+    TENDER_OFFER_REPORT = "jptoo-tor" # '他社株公開買付報告書タクソノミ'
+    OTHER_COMPANY_STOCK_QUESTION_AND_ANSWER_REPORT = "jptoo-toa" # '他社株対質問回答報告書タクソノミ'
+    TENDER_OFFER = "jptoi" # '自社株公開買付タクソノミ'
+    LARGE_VOLUME_HOLDINGS = "jplvh" # '大量保有タクソノミ'
+    INTERNAL_CONTROL = "jpctl" # '内部統制タクソノミ'
 
     @classmethod
     def parse(cls, value: str) -> Taxonomy | None:
@@ -100,7 +100,7 @@ class FilingFormat:
     taxonomies: frozenset[Taxonomy]
 
     def includesTaxonomyPrefix(self, prefix: str) -> bool:
-        taxonomy = Taxonomy.parse(prefix.split('_')[0])
+        taxonomy = Taxonomy.parse(prefix.split("_")[0])
         return taxonomy is not None and (
             taxonomy == Taxonomy.DEI or # DEI is always included
             taxonomy in self.taxonomies

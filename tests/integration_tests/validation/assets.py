@@ -6,103 +6,103 @@ from tests.integration_tests.validation.conformance_suite_config import Conforma
 
 # https://taxonomies.xbrl.org/taxonomy/68
 LEI_2018_11_01 = ConformanceSuiteAssetConfig.public_taxonomy_package(
-    Path('lei-taxonomy-CR-2018-11-01.zip'),
-    public_download_url='http://www.xbrl.org/taxonomy/int/lei/lei-taxonomy-CR-2018-11-01.zip',
+    Path("lei-taxonomy-CR-2018-11-01.zip"),
+    public_download_url="http://www.xbrl.org/taxonomy/int/lei/lei-taxonomy-CR-2018-11-01.zip",
 )
 # https://taxonomies.xbrl.org/taxonomy/87
 LEI_2020_07_02 = ConformanceSuiteAssetConfig.public_taxonomy_package(
-    Path('lei-taxonomy-REC-2020-07-02.zip'),
-    public_download_url='https://www.xbrl.org/taxonomy/int/lei/lei-taxonomy-REC-2020-07-02.zip',
+    Path("lei-taxonomy-REC-2020-07-02.zip"),
+    public_download_url="https://www.xbrl.org/taxonomy/int/lei/lei-taxonomy-REC-2020-07-02.zip",
 )
 ESEF_PACKAGES: dict[int, list[ConformanceSuiteAssetConfig]] = {
     2017: [
         # https://www.esma.europa.eu/document/esma-esef-taxonomy-2017
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('esef_taxonomy_2017.zip'),
-            public_download_url='https://www.esma.europa.eu/sites/default/files/library/esef_taxonomy_2017.zip',
+            Path("esef_taxonomy_2017.zip"),
+            public_download_url="https://www.esma.europa.eu/sites/default/files/library/esef_taxonomy_2017.zip",
         ),
         # https://www.ifrs.org/issued-standards/ifrs-taxonomy/ifrs-taxonomy-2017/
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('IFRST_2017-03-09.zip'),
-            public_download_url='http://xbrl.ifrs.org/taxonomy/2017-03-09/IFRST_2017-03-09.zip',
+            Path("IFRST_2017-03-09.zip"),
+            public_download_url="http://xbrl.ifrs.org/taxonomy/2017-03-09/IFRST_2017-03-09.zip",
         ),
         LEI_2018_11_01,
     ],
     2019: [
         # https://www.esma.europa.eu/document/esma-esef-taxonomy-2019
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('esef_taxonomy_2019.zip'),
-            public_download_url='https://www.esma.europa.eu/sites/default/files/library/esef_taxonomy_2019.zip',
+            Path("esef_taxonomy_2019.zip"),
+            public_download_url="https://www.esma.europa.eu/sites/default/files/library/esef_taxonomy_2019.zip",
         ),
         # https://www.ifrs.org/issued-standards/ifrs-taxonomy/ifrs-taxonomy-2019/
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('IFRST_2019-03-27.zip'),
-            public_download_url='https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRST_2019-03-27.zip',
+            Path("IFRST_2019-03-27.zip"),
+            public_download_url="https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRST_2019-03-27.zip",
         ),
         LEI_2018_11_01,
     ],
     2020: [
         # https://www.esma.europa.eu/document/esma-esef-taxonomy-2020
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('esef_taxonomy_2020.zip'),
-            public_download_url='https://www.esma.europa.eu/sites/default/files/library/esef_taxonomy_2020.zip',
+            Path("esef_taxonomy_2020.zip"),
+            public_download_url="https://www.esma.europa.eu/sites/default/files/library/esef_taxonomy_2020.zip",
         ),
         # https://www.ifrs.org/issued-standards/ifrs-taxonomy/ifrs-taxonomy-2020/
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('IFRST_2020-03-16.zip'),
-            public_download_url='https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRST_2020-03-16.zip',
+            Path("IFRST_2020-03-16.zip"),
+            public_download_url="https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRST_2020-03-16.zip",
         ),
         LEI_2020_07_02,
     ],
     2021: [
         # https://www.esma.europa.eu/document/esma-esef-taxonomy-2021
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('esef_taxonomy_2021.zip'),
-            public_download_url='https://www.esma.europa.eu/sites/default/files/library/esef_taxonomy_2021.zip',
+            Path("esef_taxonomy_2021.zip"),
+            public_download_url="https://www.esma.europa.eu/sites/default/files/library/esef_taxonomy_2021.zip",
         ),
         # https://www.ifrs.org/issued-standards/ifrs-taxonomy/ifrs-taxonomy-2021/
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('IFRST_2021-03-24.zip'),
-            public_download_url='https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRST_2021-03-24.zip',
+            Path("IFRST_2021-03-24.zip"),
+            public_download_url="https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRST_2021-03-24.zip",
         ),
         LEI_2020_07_02,
     ],
     2022: [
         # https://www.esma.europa.eu/document/esef-taxonomy-2022
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('esef_taxonomy_2022_v1.1.zip'),
-            public_download_url='https://www.esma.europa.eu/sites/default/files/2023-12/esef_taxonomy_2022_v1.1.zip',
+            Path("esef_taxonomy_2022_v1.1.zip"),
+            public_download_url="https://www.esma.europa.eu/sites/default/files/2023-12/esef_taxonomy_2022_v1.1.zip",
         ),
         # https://www.ifrs.org/issued-standards/ifrs-taxonomy/ifrs-accounting-taxonomy-2022/
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('IFRSAT-2022-03-24.zip'),
-            public_download_url='https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRSAT-2022-03-24.zip',
+            Path("IFRSAT-2022-03-24.zip"),
+            public_download_url="https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRSAT-2022-03-24.zip",
         ),
         LEI_2020_07_02,
     ],
     2024: [
         # https://www.esma.europa.eu/document/esef-taxonomy-2024
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('esef_taxonomy_2024.zip'),
-            public_download_url='https://www.esma.europa.eu/sites/default/files/2025-01/esef_taxonomy_2024.zip',
+            Path("esef_taxonomy_2024.zip"),
+            public_download_url="https://www.esma.europa.eu/sites/default/files/2025-01/esef_taxonomy_2024.zip",
         ),
         # https://www.ifrs.org/issued-standards/ifrs-taxonomy/ifrs-accounting-taxonomy-2024/
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('IFRSAT-2024-03-27_29.08.24.zip'),
-            public_download_url='https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRSAT-2024-03-27_29.08.24.zip'
+            Path("IFRSAT-2024-03-27_29.08.24.zip"),
+            public_download_url="https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRSAT-2024-03-27_29.08.24.zip"
         ),
         LEI_2020_07_02,
     ],
     2025: [
         # https://www.esma.europa.eu/document/esef-taxonomy-2025
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('esef_taxonomy-2025_12_31.zip'),
-            public_download_url='https://www.esma.europa.eu/sites/default/files/2026-04/esef_taxonomy-2025_12_31.zip',
+            Path("esef_taxonomy-2025_12_31.zip"),
+            public_download_url="https://www.esma.europa.eu/sites/default/files/2026-04/esef_taxonomy-2025_12_31.zip",
         ),
         # https://www.ifrs.org/issued-standards/ifrs-taxonomy/ifrs-accounting-taxonomy-2025/
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('IFRSAT-2025.zip'),
-            public_download_url='https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRSAT-2025.zip'
+            Path("IFRSAT-2025.zip"),
+            public_download_url="https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRSAT-2025.zip"
         ),
         LEI_2020_07_02,
     ],
@@ -112,119 +112,119 @@ ESEF_PACKAGES: dict[int, list[ConformanceSuiteAssetConfig]] = {
 # Exclude IFRS so that we can combine this with 2025.
 NL_INLINE_2024_PACKAGES_WITHOUT_IFRS = [
     ConformanceSuiteAssetConfig.public_taxonomy_package(
-        Path('kvk-2024_taxonomie.zip'),
-        public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-01/kvk-2024_taxonomie.zip',
+        Path("kvk-2024_taxonomie.zip"),
+        public_download_url="https://www.sbr-nl.nl/sites/default/files/2025-01/kvk-2024_taxonomie.zip",
     ),
     ConformanceSuiteAssetConfig.public_taxonomy_package(
-        Path('rj-2024_taxonomie.zip'),
-        public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-01/rj-2024_taxonomie.zip',
+        Path("rj-2024_taxonomie.zip"),
+        public_download_url="https://www.sbr-nl.nl/sites/default/files/2025-01/rj-2024_taxonomie.zip",
     ),
     ConformanceSuiteAssetConfig.public_taxonomy_package(
-        Path('bw2-titel9_taxonomie.zip'),
-        public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-01/bw2-titel9_taxonomie.zip',
+        Path("bw2-titel9_taxonomie.zip"),
+        public_download_url="https://www.sbr-nl.nl/sites/default/files/2025-01/bw2-titel9_taxonomie.zip",
     ),
     ConformanceSuiteAssetConfig.public_taxonomy_package(
-        Path('ncgc-2022_taxonomie.zip'),
-        public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-01/ncgc-2022_taxonomie.zip',
+        Path("ncgc-2022_taxonomie.zip"),
+        public_download_url="https://www.sbr-nl.nl/sites/default/files/2025-01/ncgc-2022_taxonomie.zip",
     ),
     ConformanceSuiteAssetConfig.public_taxonomy_package(
-        Path('wnt-2024_taxonomie.zip'),
-        public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-01/wnt-2024_taxonomie.zip',
+        Path("wnt-2024_taxonomie.zip"),
+        public_download_url="https://www.sbr-nl.nl/sites/default/files/2025-01/wnt-2024_taxonomie.zip",
     ),
     ConformanceSuiteAssetConfig.public_taxonomy_package(
-        Path('IFRSAT-2024-03-27_29.08.24.zip'),
-        public_download_url='https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRSAT-2024-03-27_29.08.24.zip',
+        Path("IFRSAT-2024-03-27_29.08.24.zip"),
+        public_download_url="https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRSAT-2024-03-27_29.08.24.zip",
     ),
     ConformanceSuiteAssetConfig.public_taxonomy_package(
-        Path('KVK_taxonomie_2024_draft.zip'),
-        public_download_url='',
+        Path("KVK_taxonomie_2024_draft.zip"),
+        public_download_url="",
     ),
     ConformanceSuiteAssetConfig.public_taxonomy_package(
-        Path('JenV_taxonomie_2024_draft.zip'),
-        public_download_url='',
+        Path("JenV_taxonomie_2024_draft.zip"),
+        public_download_url="",
     ),
     ConformanceSuiteAssetConfig.public_taxonomy_package(
-        Path('RJ_taxonomie_2024_draft.zip'),
-        public_download_url='',
+        Path("RJ_taxonomie_2024_draft.zip"),
+        public_download_url="",
     ),
     LEI_2020_07_02,
 ]
 
-NL_BASE = ConformanceSuiteAssetConfig.public_taxonomy_package(Path('nltaxonomie-nl-20240326.zip'))
+NL_BASE = ConformanceSuiteAssetConfig.public_taxonomy_package(Path("nltaxonomie-nl-20240326.zip"))
 NL_PACKAGES: dict[str, list[ConformanceSuiteAssetConfig]] = {
-    'NT16': [
+    "NT16": [
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('NT16_20220803_Taxonomie_SBRlight.zip'),
-            public_download_url='https://www.sbr-nl.nl/sites/default/files/bestanden/taxonomie/NT16_20220803%20Taxonomie%20%28SBRlight%29.zip',
+            Path("NT16_20220803_Taxonomie_SBRlight.zip"),
+            public_download_url="https://www.sbr-nl.nl/sites/default/files/bestanden/taxonomie/NT16_20220803%20Taxonomie%20%28SBRlight%29.zip",
         ),
         NL_BASE,
     ],
-    'NT17': [
+    "NT17": [
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('NT17_20230811_Taxonomie_SBRLight.zip'),
-            public_download_url='https://www.sbr-nl.nl/sites/default/files/bestanden/taxonomie/NT17_20230811%20Taxonomie%20SBRLight.zip'
+            Path("NT17_20230811_Taxonomie_SBRLight.zip"),
+            public_download_url="https://www.sbr-nl.nl/sites/default/files/bestanden/taxonomie/NT17_20230811%20Taxonomie%20SBRLight.zip"
         ),
         NL_BASE,
     ],
-    'NT18': [
+    "NT18": [
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('NT18_20240126_Taxonomie_SBRLight.zip'),
-            public_download_url='https://www.sbr-nl.nl/sites/default/files/bestanden/taxonomie/NT18_20240126%20Taxonomie%20%28SBRLight%29.zip',
+            Path("NT18_20240126_Taxonomie_SBRLight.zip"),
+            public_download_url="https://www.sbr-nl.nl/sites/default/files/bestanden/taxonomie/NT18_20240126%20Taxonomie%20%28SBRLight%29.zip",
         ),
         NL_BASE,
     ],
-    'NT19': [
+    "NT19": [
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('NT19_20241209_Taxonomie_SBRLight.zip'),
-            public_download_url='https://www.sbr-nl.nl/sites/default/files/bestanden/taxonomie/NT19_20241209%20Taxonomie%28SBRlight%29.zip',
+            Path("NT19_20241209_Taxonomie_SBRLight.zip"),
+            public_download_url="https://www.sbr-nl.nl/sites/default/files/bestanden/taxonomie/NT19_20241209%20Taxonomie%28SBRlight%29.zip",
         ),
         NL_BASE,
     ],
-    'NT20': [
+    "NT20": [
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('NT20_20251128_Taxonomie_SBR.zip'),
-            public_download_url='https://www.sbr-nl.nl/sites/default/files/bestanden/taxonomie/NT20_20251128%20Taxonomie%20%28SBR%29.zip',
+            Path("NT20_20251128_Taxonomie_SBR.zip"),
+            public_download_url="https://www.sbr-nl.nl/sites/default/files/bestanden/taxonomie/NT20_20251128%20Taxonomie%20%28SBR%29.zip",
         ),
         NL_BASE,
     ],
-    'NL-INLINE-2024': NL_INLINE_2024_PACKAGES_WITHOUT_IFRS + [
+    "NL-INLINE-2024": NL_INLINE_2024_PACKAGES_WITHOUT_IFRS + [
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('ifrs-2024_taxonomie.zip'),
-            public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-01/ifrs-2024_taxonomie.zip',
+            Path("ifrs-2024_taxonomie.zip"),
+            public_download_url="https://www.sbr-nl.nl/sites/default/files/2025-01/ifrs-2024_taxonomie.zip",
         ),
     ],
-    'NL-INLINE-2025': [
+    "NL-INLINE-2025": [
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('kvk-2025_taxonomie.zip'),
-            public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-12/kvk-2025_taxonomie.zip',
+            Path("kvk-2025_taxonomie.zip"),
+            public_download_url="https://www.sbr-nl.nl/sites/default/files/2025-12/kvk-2025_taxonomie.zip",
         ),
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('rj-2025_taxonomie.zip'),
-            public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-12/rj-2025_taxonomie.zip',
+            Path("rj-2025_taxonomie.zip"),
+            public_download_url="https://www.sbr-nl.nl/sites/default/files/2025-12/rj-2025_taxonomie.zip",
         ),
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('bw2-titel9-2025_taxonomie.zip'),
-            public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-12/bw2-titel9-2025_taxonomie.zip',
+            Path("bw2-titel9-2025_taxonomie.zip"),
+            public_download_url="https://www.sbr-nl.nl/sites/default/files/2025-12/bw2-titel9-2025_taxonomie.zip",
         ),
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('ncgc-2025_taxonomie.zip'),
-            public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-12/ncgc-2025_taxonomie.zip',
+            Path("ncgc-2025_taxonomie.zip"),
+            public_download_url="https://www.sbr-nl.nl/sites/default/files/2025-12/ncgc-2025_taxonomie.zip",
         ),
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('ifrs-2024_taxonomie.zip'),
-            public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-12/ifrs-2024_taxonomie.zip',
+            Path("ifrs-2024_taxonomie.zip"),
+            public_download_url="https://www.sbr-nl.nl/sites/default/files/2025-12/ifrs-2024_taxonomie.zip",
         ),
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('wnt-2025_taxonomie.zip'),
-            public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-01/wnt-2024_taxonomie.zip',
+            Path("wnt-2025_taxonomie.zip"),
+            public_download_url="https://www.sbr-nl.nl/sites/default/files/2025-01/wnt-2024_taxonomie.zip",
         ),
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('ww-2025_taxonomie.zip'),
-            public_download_url='https://www.sbr-nl.nl/sites/default/files/2025-12/2025-122/ww-2025_taxonomie.zip',
+            Path("ww-2025_taxonomie.zip"),
+            public_download_url="https://www.sbr-nl.nl/sites/default/files/2025-12/2025-122/ww-2025_taxonomie.zip",
         ),
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('IFRSAT-2024-03-27_29.08.24.zip'),
-            public_download_url='https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRSAT-2024-03-27_29.08.24.zip',
+            Path("IFRSAT-2024-03-27_29.08.24.zip"),
+            public_download_url="https://www.ifrs.org/content/dam/ifrs/standards/taxonomy/ifrs-taxonomies/IFRSAT-2024-03-27_29.08.24.zip",
         ),
         LEI_2020_07_02,
     ],
@@ -232,19 +232,19 @@ NL_PACKAGES: dict[str, list[ConformanceSuiteAssetConfig]] = {
 
 UKFRC_PACKAGES: dict[int, ConformanceSuiteAssetConfig] = {
     2022: ConformanceSuiteAssetConfig.public_taxonomy_package(
-        Path('FRC-2022-Taxonomy.zip'),
-        public_download_url='https://www.frc.org.uk/documents/969/FRC-2022-Taxonomy.zip',
+        Path("FRC-2022-Taxonomy.zip"),
+        public_download_url="https://www.frc.org.uk/documents/969/FRC-2022-Taxonomy.zip",
     ),
     2023: ConformanceSuiteAssetConfig.public_taxonomy_package(
-        Path('The_2023_Taxonomy_suite_v1.0.1.zip'),
-        public_download_url='https://www.frc.org.uk/documents/372/The_2023_Taxonomy_suite_v1.0.1.zip',
+        Path("The_2023_Taxonomy_suite_v1.0.1.zip"),
+        public_download_url="https://www.frc.org.uk/documents/372/The_2023_Taxonomy_suite_v1.0.1.zip",
     ),
     2024: ConformanceSuiteAssetConfig.public_taxonomy_package(
-        Path('FRC-2024-Taxonomy-v1.0.0_GJp67Do.zip'),
-        public_download_url='https://www.frc.org.uk/documents/6566/FRC-2024-Taxonomy-v1.0.0_GJp67Do.zip',
+        Path("FRC-2024-Taxonomy-v1.0.0_GJp67Do.zip"),
+        public_download_url="https://www.frc.org.uk/documents/6566/FRC-2024-Taxonomy-v1.0.0_GJp67Do.zip",
     ),
     2025: ConformanceSuiteAssetConfig.public_taxonomy_package(
-        Path('FRC-2025-Taxonomy-v1.0.0_LK4mek8.zip'),
-        public_download_url='https://www.frc.org.uk/documents/7759/FRC-2025-Taxonomy-v1.0.0_LK4mek8.zip',
+        Path("FRC-2025-Taxonomy-v1.0.0_LK4mek8.zip"),
+        public_download_url="https://www.frc.org.uk/documents/7759/FRC-2025-Taxonomy-v1.0.0_LK4mek8.zip",
     ),
 }

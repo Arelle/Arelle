@@ -19,7 +19,7 @@ class XbrlObject:
 
     @property
     def entryLoadingUrl(self):
-        href = str(getattr(getattr(self, 'taxonomy', None), 'name', '(none)'))
+        href = str(getattr(getattr(self, "taxonomy", None), "name", "(none)"))
         className = type(self).__name__
         if className.startswith("Xbrl"):
             classIndex = getattr(self, "_classIndex", None)

@@ -36,6 +36,6 @@ class LogToPrintHandler(logging.Handler):
         except UnicodeEncodeError:
             # extra parentheses in print to allow for 3-to-2 conversion
             print((logEntry
-                   .encode(sys.stdout.encoding, 'backslashreplace')
-                   .decode(sys.stdout.encoding, 'strict')),
+                   .encode(sys.stdout.encoding, "backslashreplace")
+                   .decode(sys.stdout.encoding, "strict")),
                   file=file)

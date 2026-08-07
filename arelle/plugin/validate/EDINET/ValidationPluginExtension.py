@@ -30,9 +30,9 @@ class ValidationPluginExtension(ValidationPlugin):
             _("EDINET manifest(s) detected (%(manifests)s). Loading %(count)s instances (%(instances)s)."),
             messageCode="info",
             messageArgs={
-                "manifests": ', '.join(instance.type for instance in instances),
+                "manifests": ", ".join(instance.type for instance in instances),
                 "count": len(instances),
-                "instances": ', '.join(instance.id for instance in instances),
+                "instances": ", ".join(instance.id for instance in instances),
             }, level=logging.INFO
         )
         pluginData = ControllerPluginData.get(filesource.cntlr, self.name)
@@ -44,7 +44,7 @@ class ValidationPluginExtension(ValidationPlugin):
             for ixbrlFile in instance.ixbrlFiles:
                 filesource.select(str(ixbrlFile))
                 entrypoints.append({"file": filesource.url})
-            entrypointFiles.append({'ixds': entrypoints, 'id': instance.id})
+            entrypointFiles.append({"ixds": entrypoints, "id": instance.id})
         return entrypointFiles
 
     def newPluginData(self, cntlr: Cntlr, validateXbrl: ValidateXbrl | None) -> PluginData:

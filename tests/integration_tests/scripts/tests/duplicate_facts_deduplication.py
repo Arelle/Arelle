@@ -21,8 +21,8 @@ arelle_offline = args.offline
 working_directory = Path(args.working_directory)
 test_directory = Path(args.test_directory)
 
-report_zip_path = test_directory / 'report.zip'
-report_directory = test_directory / 'report'
+report_zip_path = test_directory / "report.zip"
+report_directory = test_directory / "report"
 report_path = report_directory / "report.xbrl"
 print(f"Downloading report: {report_zip_path}")
 download_from_public_s3(
@@ -36,39 +36,39 @@ with zipfile.ZipFile(report_zip_path, "r") as zip_ref:
     zip_ref.extractall(report_directory)
 
 ALL_TESTCASES = {
-    regex.compile(r'^\[info:deduplicatedFact].*mock:NonNumeric, value=COMPLETE, decimals=\(none\)'): 2,
-    regex.compile(r'^\[info:deduplicatedFact].*mock:NonNumeric, value=COMPLETE 1, decimals=\(none\)'): 1,
-    regex.compile(r'^\[info:deduplicatedFact].*mock:NonNumeric, value=COMPLETE 2, decimals=\(none\)'): 1,
-    regex.compile(r'^\[info:deduplicatedFact].*mock:Numeric, value=100\.000000, decimals=INF'): 3,
-    regex.compile(r'^\[info:deduplicatedFact].*mock:Numeric, value=200\.000000, decimals=INF'): 1,
-    regex.compile(r'^\[info:deduplicatedFact].*mock:Date, value=2001-01-01, decimals=\(none\)'): 2,
-    regex.compile(r'^\[info:deduplicatedFact].*mock:Date, value=2001-02-01, decimals=\(none\)'): 1,
-    regex.compile(r'^\[info:deduplicatedFact].*mock:Day, value=---01, decimals=\(none\)'): 2,
-    regex.compile(r'^\[info:deduplicatedFact].*mock:Day, value=---02, decimals=\(none\)'): 1,
-    regex.compile(r'^\[info:deduplicatedFact].*mock:Month, value=--01, decimals=\(none\)'): 2,
-    regex.compile(r'^\[info:deduplicatedFact].*mock:Month, value=--02, decimals=\(none\)'): 1,
-    regex.compile(r'^\[info:deduplicatedFact].*mock:Year, value=2001, decimals=\(none\)'): 2,
-    regex.compile(r'^\[info:deduplicatedFact].*mock:Year, value=2002, decimals=\(none\)'): 1,
-    regex.compile(r'^\[info:deduplicatedFact].*mock:MonthDay, value=--01-01, decimals=\(none\)'): 2,
-    regex.compile(r'^\[info:deduplicatedFact].*mock:MonthDay, value=--02-01, decimals=\(none\)'): 1,
-    regex.compile(r'^\[info:deduplicatedFact].*mock:YearMonth, value=2001-01, decimals=\(none\)'): 2,
-    regex.compile(r'^\[info:deduplicatedFact].*mock:YearMonth, value=2002-01, decimals=\(none\)'): 1,
+    regex.compile(r"^\[info:deduplicatedFact].*mock:NonNumeric, value=COMPLETE, decimals=\(none\)"): 2,
+    regex.compile(r"^\[info:deduplicatedFact].*mock:NonNumeric, value=COMPLETE 1, decimals=\(none\)"): 1,
+    regex.compile(r"^\[info:deduplicatedFact].*mock:NonNumeric, value=COMPLETE 2, decimals=\(none\)"): 1,
+    regex.compile(r"^\[info:deduplicatedFact].*mock:Numeric, value=100\.000000, decimals=INF"): 3,
+    regex.compile(r"^\[info:deduplicatedFact].*mock:Numeric, value=200\.000000, decimals=INF"): 1,
+    regex.compile(r"^\[info:deduplicatedFact].*mock:Date, value=2001-01-01, decimals=\(none\)"): 2,
+    regex.compile(r"^\[info:deduplicatedFact].*mock:Date, value=2001-02-01, decimals=\(none\)"): 1,
+    regex.compile(r"^\[info:deduplicatedFact].*mock:Day, value=---01, decimals=\(none\)"): 2,
+    regex.compile(r"^\[info:deduplicatedFact].*mock:Day, value=---02, decimals=\(none\)"): 1,
+    regex.compile(r"^\[info:deduplicatedFact].*mock:Month, value=--01, decimals=\(none\)"): 2,
+    regex.compile(r"^\[info:deduplicatedFact].*mock:Month, value=--02, decimals=\(none\)"): 1,
+    regex.compile(r"^\[info:deduplicatedFact].*mock:Year, value=2001, decimals=\(none\)"): 2,
+    regex.compile(r"^\[info:deduplicatedFact].*mock:Year, value=2002, decimals=\(none\)"): 1,
+    regex.compile(r"^\[info:deduplicatedFact].*mock:MonthDay, value=--01-01, decimals=\(none\)"): 2,
+    regex.compile(r"^\[info:deduplicatedFact].*mock:MonthDay, value=--02-01, decimals=\(none\)"): 1,
+    regex.compile(r"^\[info:deduplicatedFact].*mock:YearMonth, value=2001-01, decimals=\(none\)"): 2,
+    regex.compile(r"^\[info:deduplicatedFact].*mock:YearMonth, value=2002-01, decimals=\(none\)"): 1,
 }
 
 test_cases: dict[str, dict[regex.Pattern[str], int]] = {
-    'complete': {
-        regex.compile(r'^\[info:deduplicatedInstance].*removing 26 fact'): 1,
+    "complete": {
+        regex.compile(r"^\[info:deduplicatedInstance].*removing 26 fact"): 1,
     },
-    'consistent-pairs': {
-        regex.compile(r'^\[info:deduplicatedFact].*mock:Numeric, value=100\.000000, decimals=0'): 2,
-        regex.compile(r'^\[info:deduplicatedFact].*mock:Numeric, value=100\.100000, decimals=1'): 2,
-        regex.compile(r'^\[info:deduplicatedFact].*mock:Numeric, value=200\.000000, decimals=0'): 1,
-        regex.compile(r'^\[info:deduplicatedInstance].*removing 31 fact'): 1,
+    "consistent-pairs": {
+        regex.compile(r"^\[info:deduplicatedFact].*mock:Numeric, value=100\.000000, decimals=0"): 2,
+        regex.compile(r"^\[info:deduplicatedFact].*mock:Numeric, value=100\.100000, decimals=1"): 2,
+        regex.compile(r"^\[info:deduplicatedFact].*mock:Numeric, value=200\.000000, decimals=0"): 1,
+        regex.compile(r"^\[info:deduplicatedInstance].*removing 31 fact"): 1,
     },
-    'consistent-sets': {
-        regex.compile(r'^\[info:deduplicatedFact].*mock:Numeric, value=100\.000000, decimals=0'): 1,
-        regex.compile(r'^\[info:deduplicatedFact].*mock:Numeric, value=100\.100000, decimals=1'): 1,
-        regex.compile(r'^\[info:deduplicatedInstance].*removing 28 fact'): 1,
+    "consistent-sets": {
+        regex.compile(r"^\[info:deduplicatedFact].*mock:Numeric, value=100\.000000, decimals=0"): 1,
+        regex.compile(r"^\[info:deduplicatedFact].*mock:Numeric, value=100\.100000, decimals=1"): 1,
+        regex.compile(r"^\[info:deduplicatedInstance].*removing 28 fact"): 1,
     },
 }
 for arg, expected_infos in test_cases.items():
@@ -93,5 +93,5 @@ for arg, expected_infos in test_cases.items():
 assert_result(errors)
 
 print("Cleaning up")
-rmtree(working_directory / 'duplicate_facts_deduplication' / 'report')
-os.unlink(working_directory / 'duplicate_facts_deduplication' / 'report.zip')
+rmtree(working_directory / "duplicate_facts_deduplication" / "report")
+os.unlink(working_directory / "duplicate_facts_deduplication" / "report.zip")

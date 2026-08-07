@@ -4,14 +4,14 @@ from tests.integration_tests.validation.conformance_suite_config import Conforma
 config = ConformanceSuiteConfig(
     assets=[
         ConformanceSuiteAssetConfig.local_conformance_suite(
-            Path('dba_multi_2024'),
-            entry_point=Path('index.xml'),
+            Path("dba_multi_2024"),
+            entry_point=Path("index.xml"),
         ),
-        ConformanceSuiteAssetConfig.public_taxonomy_package(Path('ARL-XBRL20241001-20240930-3_U.zip')),
+        ConformanceSuiteAssetConfig.public_taxonomy_package(Path("ARL-XBRL20241001-20240930-3_U.zip")),
     ],
-    base_taxonomy_validation='none',
-    disclosure_system='arl-2024-multi-target-preview',
-    info_url='https://erhvervsstyrelsen.dk/vejledning-teknisk-vejledning-og-dokumentation-regnskab-20-taksonomier-aktuelle',
+    base_taxonomy_validation="none",
+    disclosure_system="arl-2024-multi-target-preview",
+    info_url="https://erhvervsstyrelsen.dk/vejledning-teknisk-vejledning-og-dokumentation-regnskab-20-taksonomier-aktuelle",
     name=PurePath(__file__).stem,
-    plugins=frozenset({'validate/DBA'}),
+    plugins=frozenset({"validate/DBA"}),
 )

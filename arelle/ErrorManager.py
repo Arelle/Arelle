@@ -73,8 +73,8 @@ class ErrorManager:
         self._logCount.clear()
 
     def isLoggingEffectiveFor(self, logger: logging.Logger, **kwargs: Any) -> bool:  # args can be messageCode(s) and level
-        messageCodeFilter = getattr(logger, 'messageCodeFilter', None)
-        messageLevelFilter = getattr(logger, 'messageLevelFilter', None)
+        messageCodeFilter = getattr(logger, "messageCodeFilter", None)
+        messageLevelFilter = getattr(logger, "messageLevelFilter", None)
         if "messageCodes" in kwargs or "messageCode" in kwargs:
             if "messageCodes" in kwargs:
                 messageCodes = kwargs["messageCodes"]
@@ -105,8 +105,8 @@ class ErrorManager:
     ) -> None:
         """Same as error(), but level passed in as argument
         """
-        messageCodeFilter = getattr(logger, 'messageCodeFilter', None)
-        messageLevelFilter = getattr(logger, 'messageLevelFilter', None)
+        messageCodeFilter = getattr(logger, "messageCodeFilter", None)
+        messageLevelFilter = getattr(logger, "messageLevelFilter", None)
         # determine logCode
         messageCode = self._effectiveMessageCode(codes)
         if messageCode == "asrtNoLog":
@@ -169,7 +169,7 @@ class ErrorManager:
                     if entryLoadingUrl is not None:
                         entryUrl = entryLoadingUrl
                     else:
-                        assert fileSource is not None, 'Expected FileSource to be available for fallback entry URL.'
+                        assert fileSource is not None, "Expected FileSource to be available for fallback entry URL."
                         entryUrl = fileSource.url
                 refs: list[dict[str, Any]] = []
                 modelObjectArgs_complex = argValue if isinstance(argValue, (tuple,list,set)) else (argValue,)
@@ -208,7 +208,7 @@ class ErrorManager:
                             if len(modelObjectArgs) > 1 and getattr(arg,"tag",None) == "instance":
                                 continue # skip IXDS top level element
                             fragmentIdentifier = "#" + cast(str, XmlUtil.elementFragmentIdentifier(_arg))
-                            if not hasattr(_arg, 'modelDocument') and _arg.namespaceURI == XbrlConst.svg and len(refs) > 0:
+                            if not hasattr(_arg, "modelDocument") and _arg.namespaceURI == XbrlConst.svg and len(refs) > 0:
                                 # This is an embedded SVG document without its own file.
                                 # Set the href to the containing document element that defined the encoded SVG.
                                 # and define a nestedHrefs attribute with the fragment identifier.
@@ -303,10 +303,10 @@ class ErrorManager:
             return str(argValue).lower()  # show lower case true/false xml values
         if isinstance(argValue, int):
             # need locale-dependent formatting
-            return format_string(self._modelManager.locale, '%i', argValue)
+            return format_string(self._modelManager.locale, "%i", argValue)
         if isinstance(argValue, (float, Decimal)):
             # need locale-dependent formatting
-            return format_string(self._modelManager.locale, '%f', argValue)
+            return format_string(self._modelManager.locale, "%f", argValue)
         if isinstance(argValue, tuple):
             return tuple(self._loggableValue(x) for x in argValue)
         if isinstance(argValue, list):

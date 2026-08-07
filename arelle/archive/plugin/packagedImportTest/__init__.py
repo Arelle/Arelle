@@ -1,8 +1,8 @@
-'''
+"""
 pluginPackages test case
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from os import path
 from arelle.Version import authorLabel, copyrightLabel
 from . import importTestImported1
@@ -30,17 +30,17 @@ def foo():
     print ("parent (__init__) of imported packaged plug-ins")
 
 __pluginInfo__ = {
-    'name': 'Import Test Package Parent',
-    'version': '0.9',
-    'description': "This is a imports-containing packaged (__init__) plugin.",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "Import Test Package Parent",
+    "version": "0.9",
+    "description": "This is a imports-containing packaged (__init__) plugin.",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'CntlrWinMain.Menu.Tools': parentMenuEntender,
-    'CntlrCmdLine.Options': parentCommandLineOptionExtender,
-    'CntlrCmdLine.Utility.Run': parentCommandLineUtilityRun,
-    'Import.Packaged.Entry1': foo,
+    "CntlrWinMain.Menu.Tools": parentMenuEntender,
+    "CntlrCmdLine.Options": parentCommandLineOptionExtender,
+    "CntlrCmdLine.Utility.Run": parentCommandLineUtilityRun,
+    "Import.Packaged.Entry1": foo,
     # imported plugins
-    'import': ('importTestChild1.py', 'importTestChild2.py', "module_import_subtree")
+    "import": ("importTestChild1.py", "importTestChild2.py", "module_import_subtree")
 }

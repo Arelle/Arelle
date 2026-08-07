@@ -100,10 +100,10 @@ ARGUMENTS: list[dict[str, Any]] = [
         "help": "Filter test cases (see --testcaseFilter)",
     }
 ]
-DOWNLOAD_MISSING = 'missing'
-DOWNLOAD_OVERWRITE = 'overwrite'
-SELECT_ALL = 'all'
-SELECT_PUBLIC = 'public'
+DOWNLOAD_MISSING = "missing"
+DOWNLOAD_OVERWRITE = "overwrite"
+SELECT_ALL = "all"
+SELECT_PUBLIC = "public"
 
 
 def _get_conformance_suite_names(select_option: str) -> tuple[ConformanceSuiteConfig, ...]:
@@ -112,7 +112,7 @@ def _get_conformance_suite_names(select_option: str) -> tuple[ConformanceSuiteCo
     elif select_option == SELECT_PUBLIC:
         return PUBLIC_CONFORMANCE_SUITE_CONFIGS
     elif select_option:
-        filter_list = select_option.split(',')
+        filter_list = select_option.split(",")
         names = []
         for filter_item in filter_list:
             match_configs = [c for c in ALL_CONFORMANCE_SUITE_CONFIGS if c.name == filter_item]
@@ -121,7 +121,7 @@ def _get_conformance_suite_names(select_option: str) -> tuple[ConformanceSuiteCo
             names.extend(match_configs)
         return tuple(names)
     else:
-        raise ValueError('Please use --all, --public, or --name to specify which conformance suites to use.')
+        raise ValueError("Please use --all, --public, or --name to specify which conformance suites to use.")
 
 
 def run_conformance_suites(
@@ -153,9 +153,9 @@ def run_conformance_suites(
             shards: list[int] = []
             full_run = True
             if shard:
-                for part in shard.split(','):
-                    if '-' in part:
-                        start, end = part.split('-')
+                for part in shard.split(","):
+                    if "-" in part:
+                        start, end = part.split("-")
                         shards.extend(range(int(start), int(end) + 1))
                     else:
                         shards.append(int(part))
@@ -173,9 +173,9 @@ def run_conformance_suites(
                 save_timing_file(config, results)
                 actual_results_path = save_actual_results_file(config, results)
                 if full_run:
-                    expected_results_path = CONFORMANCE_SUITE_EXPECTED_RESOURCES_DIRECTORY / Path(config.name).with_suffix('.csv')
+                    expected_results_path = CONFORMANCE_SUITE_EXPECTED_RESOURCES_DIRECTORY / Path(config.name).with_suffix(".csv")
                     if expected_results_path.exists():
-                        save_diff_html_file(expected_results_path, actual_results_path, Path(f'conf-{config.name}-diff.html'))
+                        save_diff_html_file(expected_results_path, actual_results_path, Path(f"conf-{config.name}-diff.html"))
             all_results.extend(results)
     return all_results
 
@@ -184,9 +184,9 @@ def run_conformance_suites_options(options: Namespace) -> list[ParameterSet]:
     select_option = get_select_option(options)
     download_option = get_download_option(options)
     assert download_option or options.test, \
-        'Specify at least one of download, list, or test.'
+        "Specify at least one of download, list, or test."
     assert download_option or not options.download_private, \
-        'Private download must only be enabled if download option is provided.'
+        "Private download must only be enabled if download option is provided."
     return run_conformance_suites(
         select_option=select_option,
         test_option=options.test,
@@ -227,10 +227,10 @@ def run() -> None:
     options = parser.parse_args(sys.argv[1:])
     if options.list:
         for config in ALL_CONFORMANCE_SUITE_CONFIGS:
-            print(f'{config.name}\n'
-                  f'\tInfo:       {config.info_url}\n'
-                  f'\tDownload:   {config.entry_point_asset.public_download_url or config.membership_url}\n'
-                  f'\tEntry Point: {config.entry_point_path}')
+            print(f"{config.name}\n"
+                  f"\tInfo:       {config.info_url}\n"
+                  f"\tDownload:   {config.entry_point_asset.public_download_url or config.membership_url}\n"
+                  f"\tEntry Point: {config.entry_point_path}")
     else:
         run_conformance_suites_options(options)
 

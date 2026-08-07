@@ -36,7 +36,7 @@ def get_document_id(doc: ModelDocument) -> str:
     checked_paths = set()
     file_source = doc.modelXbrl.fileSource
     # Try basefile
-    basefile: str = cast(str, getattr(file_source, 'basefile', None))
+    basefile: str = cast(str, getattr(file_source, "basefile", None))
     if basefile is not None:
         basefile = PurePath(basefile).as_posix()
         if basefile in parents:
@@ -64,7 +64,7 @@ def get_document_id(doc: ModelDocument) -> str:
     else:
         checked_paths.add(file_source_url)
     raise ValueError(f'Could not determine basepath. '
-                     f'None of the checked paths ({checked_paths}) were parents of \"{doc.filepath}\".')
+                     f'None of the checked paths ({checked_paths}) were parents of "{doc.filepath}".')
 
 
 def get_document_id_from_basepath(doc: ModelDocument, basepath: str) -> str:
@@ -157,7 +157,7 @@ def get_test_data(
         test_cases: list[ModelDocument] = []
         if strict_testcase_index and model_document.type == ModelDocumentType.TESTCASESINDEX:  # type: ignore[union-attr]
             model_errors = sorted(cntlr.modelManager.modelXbrl.errors)  # type: ignore[union-attr]
-            assert 'IOerror' not in model_errors, f'One or more testcases referenced by testcases index "{model_document.filepath}" were not found.'  # type: ignore[union-attr]
+            assert "IOerror" not in model_errors, f'One or more testcases referenced by testcases index "{model_document.filepath}" were not found.'  # type: ignore[union-attr]
         collect_test_data(
             cntlr=cntlr,
             expected_failure_ids=expected_failure_ids,
@@ -175,8 +175,8 @@ def get_test_data(
                 test_cases_with_no_variations.add(test_case_file_id)
             else:
                 for mv in test_case.testcaseVariations:
-                    test_id = f'{test_case_file_id}:{mv.id}'
-                    if mv.status == 'skip':
+                    test_id = f"{test_case_file_id}:{mv.id}"
+                    if mv.status == "skip":
                         skipped_test_cases.add(test_id)
                         continue  # don't report variations skipped due to shards
                     marks = []
@@ -195,13 +195,13 @@ def get_test_data(
                                 expected_results["WARNING"][str(warning)] += 1
                     # Arelle adds message code frequencies to the end, but conformance suites usually don't.
                     # Skip assertion results dictionaries.
-                    actual = [regex.sub(r' \(\d+\)$', '', code) for code in mv.actual if not isinstance(code, dict)]
+                    actual = [regex.sub(r" \(\d+\)$", "", code) for code in mv.actual if not isinstance(code, dict)]
                     param = pytest.param(
                         {
-                            'status': mv.status,
-                            'expected': json.dumps(expected_results),
-                            'actual': actual,
-                            'duration': mv.duration,
+                            "status": mv.status,
+                            "expected": json.dumps(expected_results),
+                            "actual": actual,
+                            "duration": mv.duration,
                         },
                         id=test_id,
                         marks=marks,
@@ -212,7 +212,7 @@ def get_test_data(
         test_id_frequencies = Counter(cast(str, p.id) for p in results)
         nonunique_test_ids = {test_id: count for test_id, count in test_id_frequencies.items() if count > 1}
         if nonunique_test_ids:
-            raise Exception(f'Some test IDs are not unique.  Frequencies of nonunique test IDs: {nonunique_test_ids}.')
+            raise Exception(f"Some test IDs are not unique.  Frequencies of nonunique test IDs: {nonunique_test_ids}.")
         nonexistent_expected_failure_ids = expected_failure_ids - skipped_test_cases - test_id_frequencies.keys()
         if nonexistent_expected_failure_ids:
             raise Exception(f"Some expected failure IDs don't match any test cases: {sorted(nonexistent_expected_failure_ids)}.")
@@ -251,7 +251,7 @@ def collect_test_data(
     elif model_document.type in (ModelDocumentType.TESTCASE, ModelDocumentType.REGISTRYTESTCASE):
         test_cases.append(model_document)
     else:
-        raise Exception('Unhandled model document type: {}'.format(model_document.type))
+        raise Exception("Unhandled model document type: {}".format(model_document.type))
 
 
 def isExpectedFailure(

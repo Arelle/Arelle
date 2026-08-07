@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-'''
+"""
 This package is python_ntlm, unaltered, from the original at:
 
     https://github.com/mullender/python-ntlm/tree/master/python30/ntlm
@@ -19,7 +19,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library.  If not, see <http://www.gnu.org/licenses/> or <http://www.gnu.org/licenses/lgpl.txt>.
 
 
-'''
+"""
 
 # provide HTTPNtlmAuthHandler to Arelle as a plugin
 
@@ -31,12 +31,12 @@ def getHTTPNtlmAuthHandler(*args, **kwargs):
         return None
 
 __pluginInfo__ = {
-    'name': 'NTLM Proxy Handler',
-    'version': '1.1.0',
-    'description': "Python NTLM proxy handler.",
-    'license': 'LGPL 3.0',
-    'author': 'Matthijs Mullender',
-    'copyright': 'Not copyrighted.',
+    "name": "NTLM Proxy Handler",
+    "version": "1.1.0",
+    "description": "Python NTLM proxy handler.",
+    "license": "LGPL 3.0",
+    "author": "Matthijs Mullender",
+    "copyright": "Not copyrighted.",
     # classes of mount points (required)
-    'Proxy.HTTPNtlmAuthHandler': getHTTPNtlmAuthHandler
+    "Proxy.HTTPNtlmAuthHandler": getHTTPNtlmAuthHandler
     }

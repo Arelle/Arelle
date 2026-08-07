@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 import regex as re
 from collections import defaultdict
 from arelle import (ModelDocument, ModelRelationshipSet, XmlUtil, XbrlConst)
@@ -65,7 +65,7 @@ def validateFiling(val, modelXbrl):
         if not any(hrefElt.localName == "linkbaseRef" and hrefElt.get("{http://www.w3.org/1999/xlink}role") == "http://www.xbrl.org/2003/role/presentationLinkbaseRef"
                    for hrefElt, hrefDoc, hrefId in modelXbrl.modelDocument.hrefObjects):
             modelXbrl.error("SBR.NL.2.2.10.01",
-                'Entrypoint schema must have a presentation linkbase', modelObject=modelXbrl.modelDocument)
+                "Entrypoint schema must have a presentation linkbase", modelObject=modelXbrl.modelDocument)
     # all-labels and references checks
     for concept in modelXbrl.qnameConcepts.values():
         conceptHasDefaultLangStandardLabel = False
@@ -135,10 +135,10 @@ def validateFiling(val, modelXbrl):
 
     # checks on all documents: instance, schema, instance
     checkFilingDTS(val, modelXbrl.modelDocument, [])
-    ''' removed RH 2011-12-23, corresponding use of nameWordsTable in ValidateFilingDTS
+    """ removed RH 2011-12-23, corresponding use of nameWordsTable in ValidateFilingDTS
     if val.validateSBRNL:
         del val.nameWordsTable
-    '''
+    """
     val.modelXbrl.profileActivity("... filer DTS checks", minTimeToShow=1.0)
 
     conceptRelsUsedWithPreferredLabels = defaultdict(list)
@@ -169,7 +169,7 @@ def validateFiling(val, modelXbrl):
                                 conceptFrom=modelRel.fromModelObject.qname, conceptTo=modelRel.toModelObject.qname,
                                 ineffectivity=modelRel.ineffectivity)
                 if arcrole == XbrlConst.parentChild:
-                    isStatementSheet = any(linkroleDefinitionStatementSheet.match(roleType.definition or '')
+                    isStatementSheet = any(linkroleDefinitionStatementSheet.match(roleType.definition or "")
                                            for roleType in val.modelXbrl.roleTypes.get(ELR,()))
                     conceptsPresented = set()
                     # 6.12.2 check for distinct order attributes
@@ -255,7 +255,7 @@ def validateFiling(val, modelXbrl):
                                 _("Dimension-default in from %(conceptFrom)s to %(conceptTo)s in role %(linkrole)s is not allowed"),
                                 modelObject=modelRel, conceptFrom=modelRel.fromModelObject.qname, conceptTo=modelRel.toModelObject.qname,
                                 linkrole=modelRel.linkrole)
-                    ''' removed per RH 2013-01-11
+                    """ removed per RH 2013-01-11
                     if not (XbrlConst.isStandardArcrole(arcrole) or XbrlConst.isDefinitionOrXdtArcrole(arcrole)):
                         for modelRel in val.modelXbrl.relationshipSet(arcrole).modelRelationships:
                             relTo = modelRel.toModelObject
@@ -269,7 +269,7 @@ def validateFiling(val, modelXbrl):
                                     _("The source and target of an arc must be in the DTS from %(elementFrom)s to %(elementTo)s, in linkrole %(linkrole)s, arcrole %(arcrole)s"),
                                     modelObject=modelRel, elementFrom=relFrom.qname, elementTo=relTo.qname,
                                     linkrole=modelRel.linkrole, arcrole=arcrole)
-                        '''
+                        """
 
     del localPreferredLabels # dereference
     del usedCalcFromTosELR
@@ -303,7 +303,7 @@ def validateFiling(val, modelXbrl):
                         _("Concept %(concept)s has enumeration and is not based on stringItemType"),
                         modelObject=modelType, concept=modelType.qname)
 
-    ''' removed RH 2011-12-23, corresponding use of nameWordsTable in ValidateFilingDTS
+    """ removed RH 2011-12-23, corresponding use of nameWordsTable in ValidateFilingDTS
     # build camelCasedNamesTable
     self.nameWordsTable = {}
     for name in modelXbrl.nameConcepts.keys():
@@ -320,7 +320,7 @@ def validateFiling(val, modelXbrl):
         if words:
             self.nameWordsTable[name] = words
     self.modelXbrl.profileActivity("... build name words table", minTimeToShow=1.0)
-    '''
+    """
 
 
 
@@ -386,7 +386,7 @@ def validateFiling(val, modelXbrl):
                 if NS in val.namespacePrefix and prefix != val.namespacePrefix[NS]:
                     modelXbrl.error("SBR.NL.3.2.4.04",
                         _("The assigned namespace prefix %(assignedPrefix)s for the schema that declares the targetnamespace %(namespace)s, MUST be adhired by all other NT schemas, referencedPrefix: %(referencedPrefix)s"),
-                        modelObject=doc.xmlRootElement, namespace=NS, assignedPrefix=val.namespacePrefix.get(NS, ''), referencedPrefix=prefix)
+                        modelObject=doc.xmlRootElement, namespace=NS, assignedPrefix=val.namespacePrefix.get(NS, ""), referencedPrefix=prefix)
 
     # check non-concept elements that can appear in elements for labels (concepts checked by
     labelsRelationshipSet = modelXbrl.relationshipSet((XbrlConst.conceptLabel, XbrlConst.elementLabel))
@@ -434,7 +434,7 @@ def checkConceptLabels(val, modelXbrl, labelsRelationshipSet, disclosureSystem, 
             if modelLabel.xmlLang.startswith(disclosureSystem.defaultXmlLang) and \
                modelLabel.role == XbrlConst.standardLabel:
                 hasDefaultLangStandardLabel = True
-            dupDetectKey = ( (modelLabel.role or ''), modelLabel.xmlLang)
+            dupDetectKey = ( (modelLabel.role or ""), modelLabel.xmlLang)
             if dupDetectKey in dupLabels:
                 modelXbrl.error("SBR.NL.2.2.1.05",
                     _("Concept %(concept)s has duplicated labels for role %(role)s lang %(lang)s."),

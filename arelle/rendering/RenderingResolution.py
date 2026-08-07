@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 import os, io, sys, json
 from collections import defaultdict, OrderedDict
 from arelle import XbrlConst
@@ -221,7 +221,7 @@ def resolveTableAxesStructure(view, strctMdlTable, tblBrkdnRelSet):
     for hdrNonStdRoles in (view.colHdrNonStdRoles, view.rowHdrNonStdRoles):
         iCodeRole = -1
         for i, hdrNonStdRole in enumerate(hdrNonStdRoles):
-            if 'code' in os.path.basename(hdrNonStdRole).lower():
+            if "code" in os.path.basename(hdrNonStdRole).lower():
                 iCodeRole = i
                 break
         if iCodeRole >= 0 and len(hdrNonStdRoles) > 1 and iCodeRole < len(hdrNonStdRoles) - 1:
@@ -364,7 +364,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                     childDefnMdlNode = subtreeRel.toModelObject
 
                     if childDefnMdlNode.isMerged:
-                        '''
+                        """
                         childSubtreeRels = view.defnSubtreeRelSet.fromModelObject(childDefnMdlNode)
                         for childSubtreeRel in childSubtreeRels:
                             mergedChildDefnMdlNode = childSubtreeRel.toModelObject
@@ -379,7 +379,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                                 if childDefnMdlNode.tagSelector is not None and not gStrctNode.tagSelector:
                                     gStrctNode.tagSelector = childDefnMdlNode.tagSelector
                             # print(childStrctNode.aspectsCovered())
-                        '''
+                        """
                         childMergeAspects = mergeAspects.copy() if mergeAspects else {}
                         for mergedAspect in childDefnMdlNode.aspectsCovered():
                             aspect = childDefnMdlNode.aspectValue(view.rendrCntx, mergedAspect)
@@ -600,7 +600,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                                                           returnGenLabel=False,
                                                           returnMsgFormatString=False,
                                                           layoutMdlSortOrder=True)
-                               or '') # exception on trying to sort if header returns None
+                               or "") # exception on trying to sort if header returns None
                 #test case 1200 v10i may require fact in instance order
                 if defnMdlNode.aspectsCovered() == {Aspect.CONCEPT}:
                     childList.sort(key=lambda childStrctMdlNode:
@@ -641,7 +641,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
             if isinstance(defnMdlNode, (NoneType, DefnMdlBreakdown)) and not strctMdlNode.strctMdlChildNodes: # childless root ordinate, make a child to iterate in producing table
                 subOrdContext = StrctMdlBreakdown(strctMdlNode, defnMdlNode, axis)
         except ResolutionException as ex:
-            if sys.version[0] >= '3':
+            if sys.version[0] >= "3":
                 #import traceback
                 #traceback.print_tb(ex.__traceback__)
                 raise ex.with_traceback(ex.__traceback__)  # provide original traceback information
@@ -652,7 +652,7 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                                     _("Exception in resolution of definition node %(node)s: %(error)s"),
                                     modelObject=defnMdlNode, node=defnMdlNode.qname, error=str(ex)
                                     )
-            if sys.version[0] >= '3':
+            if sys.version[0] >= "3":
                 raise e.with_traceback(ex.__traceback__)  # provide original traceback information
             else:
                 raise e

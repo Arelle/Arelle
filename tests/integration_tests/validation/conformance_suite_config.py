@@ -10,7 +10,7 @@ from typing import Literal
 
 from tests.integration_tests.github import OS_CORES
 
-CONFORMANCE_SUITE_PATH_PREFIX = 'tests/resources/conformance_suites'
+CONFORMANCE_SUITE_PATH_PREFIX = "tests/resources/conformance_suites"
 
 
 class AssetSource(Enum):
@@ -42,22 +42,22 @@ class ConformanceSuiteAssetConfig:
 
     def __post_init__(self) -> None:
         if self.source.is_s3():
-            assert self.s3_key is not None, 'Must provide S3 key for S3 assets.'
+            assert self.s3_key is not None, "Must provide S3 key for S3 assets."
         else:
             assert self.s3_key is None, \
-                'S3 key must not be provided for non-S3 assets.'
+                "S3 key must not be provided for non-S3 assets."
             assert self.s3_version_id is None, \
-                'S3 version ID must not be provided for non-S3 assets.'
+                "S3 version ID must not be provided for non-S3 assets."
         assert bool(self.entry_point) == bool(self.entry_point_root),\
-            'Entry point and entry point root must be both None or both set.'
+            "Entry point and entry point root must be both None or both set."
 
     @cached_property
     def local_directory(self) -> Path:
         if self.type == AssetType.CONFORMANCE_SUITE:
             return Path(CONFORMANCE_SUITE_PATH_PREFIX)
         if self.type == AssetType.TAXONOMY_PACKAGE:
-            return Path('tests/resources/packages')
-        return Path('tests/resources')
+            return Path("tests/resources/packages")
+        return Path("tests/resources")
 
     @cached_property
     def full_entry_point(self) -> Path | None:
@@ -115,10 +115,10 @@ class ConformanceSuiteAssetConfig:
     @staticmethod
     def cache_package(name: str, s3_version_id: str) -> ConformanceSuiteAssetConfig:
         return ConformanceSuiteAssetConfig(
-            local_filename=Path(f'temp-{name}-cache.zip'),
+            local_filename=Path(f"temp-{name}-cache.zip"),
             source=AssetSource.S3_PUBLIC,
             type=AssetType.CACHE_PACKAGE,
-            s3_key=f'{name}.zip',
+            s3_key=f"{name}.zip",
             s3_version_id=s3_version_id,
         )
 
@@ -176,7 +176,7 @@ class ConformanceSuiteAssetConfig:
             entry_point: Path,
             public_download_url: str | None = None,
             source: AssetSource = AssetSource.S3_PRIVATE) -> ConformanceSuiteAssetConfig:
-        assert entry_point.parent == Path('.'), f'Entry point must be a path with no directories: {entry_point}'
+        assert entry_point.parent == Path("."), f"Entry point must be a path with no directories: {entry_point}"
         return ConformanceSuiteAssetConfig.extracted_conformance_suite(
             ((name, extract_to),),
             entry_point_root=entry_point_root,
@@ -203,7 +203,7 @@ class ConformanceSuiteConfig:
     additional_plugins_by_prefix: list[tuple[str, frozenset[str]]] = field(default_factory=list)
     args: list[str] = field(default_factory=list)
     assets: list[ConformanceSuiteAssetConfig] = field(default_factory=list)
-    base_taxonomy_validation: Literal['disclosureSystem', 'none', 'all', None] = None
+    base_taxonomy_validation: Literal["disclosureSystem", "none", "all", None] = None
     cache_version_id: str | None = None
     capture_warnings: bool = True
     ci_enabled: bool = True
@@ -217,7 +217,7 @@ class ConformanceSuiteConfig:
     shards: int = 1
     strict_testcase_index: bool = True
     required_locale_by_ids: dict[str, re.Pattern[str]] = field(default_factory=dict)
-    test_case_result_options: Literal['match-all', 'match-any'] = 'match-all'
+    test_case_result_options: Literal["match-all", "match-any"] = "match-all"
 
     def __post_init__(self) -> None:
         redundant_plugins = [(prefix, overlap)
@@ -225,31 +225,31 @@ class ConformanceSuiteConfig:
             for overlap in [self.plugins & additional_plugins]
             if overlap]
         assert not redundant_plugins, \
-            f'Plugins specified both as default and additional: {redundant_plugins}'
+            f"Plugins specified both as default and additional: {redundant_plugins}"
         overlapping_prefixes = [(p1, p2)
             for (p1, _), (p2, _) in itertools.combinations(self.additional_plugins_by_prefix, 2)
             if p1.startswith(p2) or p2.startswith(p1)]
         assert not overlapping_prefixes, \
-            f'Overlapping prefixes are not supported: {overlapping_prefixes}'
+            f"Overlapping prefixes are not supported: {overlapping_prefixes}"
         assert not (self.shards == 1 and self.additional_plugins_by_prefix), \
-            'Cannot specify additional_plugins_by_prefix with only one shard.'
+            "Cannot specify additional_plugins_by_prefix with only one shard."
         plugin_combinations = len({plugins for _, plugins in self.additional_plugins_by_prefix}) + 1
         assert plugin_combinations <= self.shards, \
-            'Too few shards to accommodate the number of plugin combinations:' \
-            f' combinations={plugin_combinations} shards={self.shards}'
+            "Too few shards to accommodate the number of plugin combinations:" \
+            f" combinations={plugin_combinations} shards={self.shards}"
         overlapping_expected_testcase_ids = self.expected_failure_ids.intersection(self.required_locale_by_ids)
         assert not overlapping_expected_testcase_ids, \
-            f'Testcase IDs in both expected failures and required locales: {sorted(overlapping_expected_testcase_ids)}'
+            f"Testcase IDs in both expected failures and required locales: {sorted(overlapping_expected_testcase_ids)}"
         overlapping_expected_failure_testcase_ids = self.expected_failure_ids.intersection(self.expected_additional_testcase_errors.keys())
         assert not overlapping_expected_failure_testcase_ids, \
-            f'Testcase IDs in both expected failures and expected additional errors: {sorted(overlapping_expected_failure_testcase_ids)}'
+            f"Testcase IDs in both expected failures and expected additional errors: {sorted(overlapping_expected_failure_testcase_ids)}"
         if self.shards > 1:
             ci_core_counts = set(OS_CORES.values())
             assert any(self.shards % core_count == 0 for core_count in ci_core_counts), \
-                f'Shards setting not optimized for CI CPU cores: {self.shards}'
+                f"Shards setting not optimized for CI CPU cores: {self.shards}"
         disclosure_systems = {ds for _, ds in self.disclosure_system_by_prefix} | {str(self.disclosure_system)}
         assert self.shards >= len(disclosure_systems), \
-            f'Too few shards to accommodate disclosure systems: shards={self.shards} disclosure systems={sorted(disclosure_systems)}.'
+            f"Too few shards to accommodate disclosure systems: shards={self.shards} disclosure systems={sorted(disclosure_systems)}."
 
     @property
     def runs_without_network(self) -> bool:
@@ -259,7 +259,7 @@ class ConformanceSuiteConfig:
     def entry_point_asset(self) -> ConformanceSuiteAssetConfig:
         entry_points = [asset for asset in self.assets if asset.entry_point]
         assert len(entry_points) == 1, \
-            'Exactly one asset with entry point must be configured.'
+            "Exactly one asset with entry point must be configured."
         return entry_points[0]
 
     @cached_property

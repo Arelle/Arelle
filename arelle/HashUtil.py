@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 from datetime import date, datetime
@@ -26,7 +26,7 @@ class Md5Sum:
 
     def toHex(self) -> str:
         s = hex(self.value)[2:]
-        if s.endswith('L'):
+        if s.endswith("L"):
             return s[:-1]
         return s
 
@@ -66,23 +66,23 @@ def md5hash(argList: HashArg | Iterable[HashArg]) -> Md5Sum:
             if firstMd5arg:
                 firstMd5arg = False
             else:
-                _md5.update(b'\x1E')
+                _md5.update(b"\x1E")
             if isinstance(_arg, QName):
                 if _arg.namespaceURI:
-                    _md5.update(_arg.namespaceURI.encode('utf-8', 'replace'))
-                    _md5.update(b'\x1F')
-                _md5.update(_arg.localName.encode('utf-8', 'replace'))
+                    _md5.update(_arg.namespaceURI.encode("utf-8", "replace"))
+                    _md5.update(b"\x1F")
+                _md5.update(_arg.localName.encode("utf-8", "replace"))
             elif isinstance(_arg, str):
-                _md5.update(_arg.encode('utf-8', 'replace'))
+                _md5.update(_arg.encode("utf-8", "replace"))
             elif isinstance(_arg, datetime):  # always in isodate format
-                _md5.update("{0.year:04}-{0.month:02}-{0.day:02}T{0.hour:02}:{0.minute:02}:{0.second:02}".format(_arg).encode('utf-8', 'replace'))
+                _md5.update("{0.year:04}-{0.month:02}-{0.day:02}T{0.hour:02}:{0.minute:02}:{0.second:02}".format(_arg).encode("utf-8", "replace"))
             elif isinstance(_arg, date):
-                _md5.update("{0.year:04}-{0.month:02}-{0.day:02}".format(_arg).encode('utf-8', 'replace'))
+                _md5.update("{0.year:04}-{0.month:02}-{0.day:02}".format(_arg).encode("utf-8", "replace"))
             elif isinstance(_arg, ModelObject):
                 # use inner text list
-                _md5.update('\x1F'.join(text.strip()
+                _md5.update("\x1F".join(text.strip()
                                         for text in XmlUtil.innerTextNodes(_arg, True, None, True, False))
-                            .encode('utf-8', 'replace'))
+                            .encode("utf-8", "replace"))
     if firstMd5arg:
         md5sum = MD5SUM0
     else:

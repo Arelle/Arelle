@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 import csv, io, json
@@ -134,7 +134,7 @@ class View:
             if style == "rendering":
                 html = io.StringIO(
 '''
-<html xmlns="http://www.w3.org/1999/xhtml" dir="''' + self.langDir + '''">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="''' + self.langDir + """">
     <head>
         <meta http-equiv="content-type" content="text/html;charset=utf-8" />
         <STYLE type="text/css">
@@ -156,7 +156,7 @@ class View:
             .abstractCell{border-top:1.0pt solid windowtext;border-right:.5pt solid windowtext;border-bottom:.5pt solid windowtext;border-left:.5pt solid windowtext;background:#e8e8e8;}
             .blockedCell{border-top:1.0pt solid windowtext;border-right:.5pt solid windowtext;border-bottom:.5pt solid windowtext;border-left:.5pt solid windowtext;background:#eee;}
             .tblCell{border-top:.5pt solid windowtext;border-right:.5pt solid windowtext;border-bottom:.5pt solid windowtext;border-left:.5pt solid windowtext;}
-            ''' + cssExtras + '''
+            """ + cssExtras + """
         </STYLE>
     </head>
     <body>
@@ -164,12 +164,12 @@ class View:
         </table>
     </body>
 </html>
-'''
+"""
                 )
             else:
                 html = io.StringIO(
 '''
-<html xmlns="http://www.w3.org/1999/xhtml" dir="''' + self.langDir + '''">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="''' + self.langDir + """">
     <head>
         <meta http-equiv="content-type" content="text/html;charset=utf-8" />
         <STYLE type="text/css">
@@ -188,7 +188,7 @@ class View:
         </table>
     </body>
 </html>
-'''
+"""
                 )
             self.xmlDoc = etree.parse(html)
             html.close()

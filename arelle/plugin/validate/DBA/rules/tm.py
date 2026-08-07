@@ -34,8 +34,8 @@ def rule_tm12(
     return errorOnRequiredFact(
         val.modelXbrl,
         pluginData.identificationNumberCvrOfReportingEntityQn,
-        'DBA.TM12',
-        _('{} must be tagged in the document.').format(pluginData.identificationNumberCvrOfReportingEntityQn.localName)
+        "DBA.TM12",
+        _("{} must be tagged in the document.").format(pluginData.identificationNumberCvrOfReportingEntityQn.localName)
     )
 
 
@@ -52,7 +52,7 @@ def rule_tm13(
     """
     DBA.TM13: gsd:IdentificationNumberCvrOfReportingEntity must only be tagged once if tagged
     """
-    return errorOnMultipleFacts(val.modelXbrl, pluginData.identificationNumberCvrOfReportingEntityQn, 'DBA.TM13')
+    return errorOnMultipleFacts(val.modelXbrl, pluginData.identificationNumberCvrOfReportingEntityQn, "DBA.TM13")
 
 
 @validation(
@@ -68,7 +68,7 @@ def rule_tm16(
     """
     DBA.TM16: gsd:InformationOnTypeOfSubmittedReport must only be tagged once if tagged
     """
-    return errorOnMultipleFacts(val.modelXbrl, pluginData.informationOnTypeOfSubmittedReportQn, 'DBA.TM16')
+    return errorOnMultipleFacts(val.modelXbrl, pluginData.informationOnTypeOfSubmittedReportQn, "DBA.TM16")
 
 
 @validation(
@@ -93,10 +93,10 @@ def rule_tm18(
             valid_facts.append(fact)
     if len(valid_facts) > 1:
         yield Validation.error(
-            'DBA.TM18',
-            _('ReportingPeriodStartDate with either no dimensionality or with the default dimension of '
-              'TypeOfReportingPeriodDimension:AllReportingPeriodsMember must only be tagged once. {} facts '
-              'were found.').format(len(valid_facts)),
+            "DBA.TM18",
+            _("ReportingPeriodStartDate with either no dimensionality or with the default dimension of "
+              "TypeOfReportingPeriodDimension:AllReportingPeriodsMember must only be tagged once. {} facts "
+              "were found.").format(len(valid_facts)),
             modelObject=valid_facts
         )
 
@@ -123,10 +123,10 @@ def rule_tm20(
             valid_facts.append(fact)
     if len(valid_facts) > 1:
         yield Validation.error(
-            'DBA.TM20',
-            _('ReportingPeriodEndDate with either no dimensionality or with the default dimension of '
-              'TypeOfReportingPeriodDimension:AllReportingPeriodsMember must only be tagged once. {} facts '
-              'were found.').format(len(valid_facts)),
+            "DBA.TM20",
+            _("ReportingPeriodEndDate with either no dimensionality or with the default dimension of "
+              "TypeOfReportingPeriodDimension:AllReportingPeriodsMember must only be tagged once. {} facts "
+              "were found.").format(len(valid_facts)),
             modelObject=valid_facts
         )
 
@@ -144,7 +144,7 @@ def rule_tm22(
     """
     DBA.TM22: gsd:NameOfReportingEntity must only be tagged once if tagged
     """
-    return errorOnMultipleFacts(val.modelXbrl, pluginData.nameOfReportingEntityQn, 'DBA.TM22')
+    return errorOnMultipleFacts(val.modelXbrl, pluginData.nameOfReportingEntityQn, "DBA.TM22")
 
 
 @validation(
@@ -160,7 +160,7 @@ def rule_tm24(
     """
     DBA.TM24: gsd:NameOfSubmittingEnterprise must only be tagged once if tagged
     """
-    return errorOnMultipleFacts(val.modelXbrl, pluginData.nameOfSubmittingEnterpriseQn, 'DBA.TM24')
+    return errorOnMultipleFacts(val.modelXbrl, pluginData.nameOfSubmittingEnterpriseQn, "DBA.TM24")
 
 
 @validation(
@@ -179,8 +179,8 @@ def rule_tm25(
     return errorOnRequiredFact(
         val.modelXbrl,
         pluginData.addressOfSubmittingEnterpriseStreetAndNumberQn,
-        'DBA.TM25',
-        _('{} must be tagged in the document.').format(pluginData.addressOfSubmittingEnterpriseStreetAndNumberQn.localName)
+        "DBA.TM25",
+        _("{} must be tagged in the document.").format(pluginData.addressOfSubmittingEnterpriseStreetAndNumberQn.localName)
     )
 
 
@@ -197,7 +197,7 @@ def rule_tm26(
     """
     DBA.TM26: gsd:AddressOfSubmittingEnterpriseStreetAndNumber must only be tagged once if tagged
     """
-    return errorOnMultipleFacts(val.modelXbrl, pluginData.addressOfSubmittingEnterpriseStreetAndNumberQn, 'DBA.TM26')
+    return errorOnMultipleFacts(val.modelXbrl, pluginData.addressOfSubmittingEnterpriseStreetAndNumberQn, "DBA.TM26")
 
 
 @validation(
@@ -216,8 +216,8 @@ def rule_tm27(
     return errorOnRequiredFact(
         val.modelXbrl,
         pluginData.addressOfSubmittingEnterprisePostcodeAndTownQn,
-        'DBA.TM27',
-        _('{} must be tagged in the document.').format(pluginData.addressOfSubmittingEnterprisePostcodeAndTownQn.localName)
+        "DBA.TM27",
+        _("{} must be tagged in the document.").format(pluginData.addressOfSubmittingEnterprisePostcodeAndTownQn.localName)
     )
 
 
@@ -234,7 +234,7 @@ def rule_tm28(
     """
     DBA.TM28: gsd:AddressOfSubmittingEnterprisePostcodeAndTown must only be tagged once if tagged
     """
-    return errorOnMultipleFacts(val.modelXbrl, pluginData.addressOfSubmittingEnterprisePostcodeAndTownQn, 'DBA.TM28')
+    return errorOnMultipleFacts(val.modelXbrl, pluginData.addressOfSubmittingEnterprisePostcodeAndTownQn, "DBA.TM28")
 
 
 @validation(
@@ -255,8 +255,8 @@ def rule_tm29(
         approval_facts = val.modelXbrl.factsByQname.get(pluginData.dateOfApprovalOfAnnualReportQn, set())
         if len(meeting_facts) == 0 and len(approval_facts) == 0:
             yield Validation.error(
-                'DBA.TM29',
-                _('Either DateOfGeneralMeeting or DateOfApprovalOfReport must be tagged in the document.')
+                "DBA.TM29",
+                _("Either DateOfGeneralMeeting or DateOfApprovalOfReport must be tagged in the document.")
             )
 
 
@@ -273,7 +273,7 @@ def rule_tm30(
     """
     DBA.TM30: gsd:DateOfGeneralMeeting must only be tagged once if tagged
     """
-    return errorOnMultipleFacts(val.modelXbrl, pluginData.dateOfGeneralMeetingQn, 'DBA.TM30')
+    return errorOnMultipleFacts(val.modelXbrl, pluginData.dateOfGeneralMeetingQn, "DBA.TM30")
 
 
 @validation(
@@ -293,8 +293,8 @@ def rule_tm31(
         dateFacts = val.modelXbrl.factsByQname.get(pluginData.dateOfApprovalOfAnnualReportQn, set())
         if len(dateFacts) > 1:
             yield Validation.error(
-                'DBA.TM31',
-                _('{} must only be tagged once. {} facts were found.').format(
+                "DBA.TM31",
+                _("{} must only be tagged once. {} facts were found.").format(
                     pluginData.dateOfApprovalOfAnnualReportQn.localName,
                     len(dateFacts)
                 ),
@@ -326,9 +326,9 @@ def rule_tm32(
             valid_facts.append(fact)
     if len(valid_facts) > 1:
         yield Validation.error(
-            'DBA.TM32',
-            _('ReportingPeriodStartDate with the dimension of TypeOfReportingPeriodDimension:RegisteredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMember '
-              'must only be tagged once. {} facts were found.').format(len(valid_facts)),
+            "DBA.TM32",
+            _("ReportingPeriodStartDate with the dimension of TypeOfReportingPeriodDimension:RegisteredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMember "
+              "must only be tagged once. {} facts were found.").format(len(valid_facts)),
             modelObject=valid_facts
         )
 
@@ -357,8 +357,8 @@ def rule_tm33(
             valid_facts.append(fact)
     if len(valid_facts) > 1:
         yield Validation.error(
-            'DBA.TM33',
-            _('ReportingPeriodEndDate with the dimension of TypeOfReportingPeriodDimension:RegisteredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMember '
-              'must only be tagged once. {} facts were found.').format(len(valid_facts)),
+            "DBA.TM33",
+            _("ReportingPeriodEndDate with the dimension of TypeOfReportingPeriodDimension:RegisteredReportingPeriodDeviatingFromReportedReportingPeriodDueArbitraryDatesMember "
+              "must only be tagged once. {} facts were found.").format(len(valid_facts)),
             modelObject=valid_facts
         )

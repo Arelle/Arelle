@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 import logging
 import time
 from collections import defaultdict
@@ -300,7 +300,7 @@ def executeCallTest(val, name, callTuple, testTuple) -> None:
             callExprStack = XPathParser.parse(val, callTuple[0], callTuple[1], name + " call", Trace.CALL)
             xpathContext = XPathContext.create(val.modelXbrl, sourceElement=callTuple[1])
             result = xpathContext.evaluate(callExprStack)
-            xpathContext.inScopeVars[qname('result', noPrefixIsNoNamespace=True)] = result
+            xpathContext.inScopeVars[qname("result", noPrefixIsNoNamespace=True)] = result
             val.modelXbrl.info(
                 "formula:trace",
                 _("%(name)s result %(result)s"),
@@ -346,7 +346,7 @@ def executeCallTest(val, name, callTuple, testTuple) -> None:
         val.modelXbrl.modelManager.showStatus(_("ready"), 2000)
 
 
-def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compileOnly=False) -> None:
+def validate(val, xpathContext=None, parametersOnly=False, statusMsg="", compileOnly=False) -> None:
     for e in ("xbrl.5.1.4.3:cycles", "xbrlgene:violatedCyclesConstraint"):
         if e in val.modelXbrl.errors:
             val.modelXbrl.info(
@@ -363,7 +363,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
         val.modelXbrl.profileStat(_("initializeXPath2Grammar"))  # only provide stat when not yet initialized
     val.modelXbrl.modelManager.showStatus(statusMsg)
     val.modelXbrl.profileActivity()
-    initialErrorCount = val.modelXbrl.logCount.get(logging._checkLevel('ERROR'), 0)
+    initialErrorCount = val.modelXbrl.logCount.get(logging._checkLevel("ERROR"), 0)
 
     # global parameter names
     parameterQnames = set()
@@ -499,7 +499,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                     error=err.message,
                     messageCodes=("xbrlve:parameterTypeMismatch", "err:FORG0001"),
                 )
-        ''' Removed as per WG discussion 2012-12-20. This duplication checking unfairly presupposes URI based
+        """ Removed as per WG discussion 2012-12-20. This duplication checking unfairly presupposes URI based
            implementation and exceeds the scope of linkbase validation
         elif not parametersOnly: # is a modelInstance
             if val.parameters and paramQname in val.parameters:
@@ -516,7 +516,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                 val.modelXbrl.error("xbrlvarinste:standardInputInstanceNotUnique",
                     _("Standard input instance resource parameter has multiple XBRL instances"),
                     modelObject=modelParameter)
-        '''
+        """
     val.modelXbrl.profileActivity("... parameter checks and select evaluation", minTimeToShow=1.0)
 
     val.modelXbrl.profileStat(_("parametersProcessing"))
@@ -742,7 +742,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
         pluginXbrlMethod(val.modelXbrl, xpathContext)
 
     if (
-        initialErrorCount < val.modelXbrl.logCount.get(logging._checkLevel('ERROR'), 0)
+        initialErrorCount < val.modelXbrl.logCount.get(logging._checkLevel("ERROR"), 0)
         or compileOnly
         or formulaOptions.compileOnly
         or getattr(val, "validateFormulaCompileOnly", False)
@@ -799,7 +799,7 @@ def validate(val, xpathContext=None, parametersOnly=False, statusMsg='', compile
                     "formula:trace",
                     _("Formula/assertion IDs restriction pattern: %(ids)s"),
                     modelXbrl=val.modelXbrl,
-                    ids=', '.join(_runIdPattern),
+                    ids=", ".join(_runIdPattern),
                 )
         except:
             val.modelXbrl.info(
@@ -1343,7 +1343,7 @@ def checkFilterAspectModel(val, variableSet, filterRelationships, xpathContext, 
     result = set()  # all of the aspects found to be covered
     if uncoverableAspects is None:
         # protect 2.7 conversion
-        oppositeAspectModel = ({'dimensional', 'non-dimensional'} - {variableSet.aspectModel}).pop()
+        oppositeAspectModel = ({"dimensional", "non-dimensional"} - {variableSet.aspectModel}).pop()
         try:
             uncoverableAspects = aspectModels[oppositeAspectModel] - aspectModels[variableSet.aspectModel]
         except KeyError:  # bad aspect model, not an issue for this test
@@ -1749,21 +1749,21 @@ def checkMessageExpressions(val, message):
             if skipTo:
                 if c == skipTo:
                     skipTo = None
-            if expression is not None and c in ('\'', '"'):
+            if expression is not None and c in ("'", '"'):
                 skipTo = c
-            elif lastC == c and c in ('{', '}'):
+            elif lastC == c and c in ("{", "}"):
                 lastC = None
-            elif lastC == '{':
+            elif lastC == "{":
                 bracketNesting += 1
                 expression = []
                 lastC = None
-            elif c == '}' and expression is not None:
-                expressions.append(''.join(expression).strip())
+            elif c == "}" and expression is not None:
+                expressions.append("".join(expression).strip())
                 expression = None
                 formatString.append("0[{0}]".format(expressionIndex))
                 expressionIndex += 1
                 lastC = c
-            elif lastC == '}':
+            elif lastC == "}":
                 bracketNesting -= 1
                 lastC = c
             else:
@@ -1774,7 +1774,7 @@ def checkMessageExpressions(val, message):
             else:
                 formatString.append(c)
 
-        if lastC == '}':
+        if lastC == "}":
             bracketNesting -= 1
         if bracketNesting != 0:
             val.modelXbrl.error(
@@ -1784,7 +1784,7 @@ def checkMessageExpressions(val, message):
                 _("Message %(xlinkLabel)s: unbalanced %(character)s character(s) in: %(text)s"),
                 modelObject=message,
                 xlinkLabel=message.xlinkLabel,
-                character='{' if bracketNesting < 0 else '}',
+                character="{" if bracketNesting < 0 else "}",
                 text=message.text,
                 messageCodes=(
                     "xbrlmsge:missingLeftCurlyBracketInMessage",
@@ -1793,7 +1793,7 @@ def checkMessageExpressions(val, message):
             )
         else:
             message.expressions = expressions
-            message.formatString = ''.join(formatString)
+            message.formatString = "".join(formatString)
         if not message.xmlLang:
             val.modelXbrl.error(
                 "xbrlmsge:xbrlmsge:missingMessageLanguage",
@@ -1807,10 +1807,10 @@ def checkMessageExpressions(val, message):
 def checkValidationMessageVariables(val, modelVariableSet, varNames, paramNames):
     if isinstance(modelVariableSet, ModelConsistencyAssertion):
         varSetVars = (
-            qname(XbrlConst.ca, 'aspect-matched-facts'),
-            qname(XbrlConst.ca, 'acceptance-radius'),
-            qname(XbrlConst.ca, 'absolute-acceptance-radius-expression'),
-            qname(XbrlConst.ca, 'proportional-acceptance-radius-expression'),
+            qname(XbrlConst.ca, "aspect-matched-facts"),
+            qname(XbrlConst.ca, "acceptance-radius"),
+            qname(XbrlConst.ca, "absolute-acceptance-radius-expression"),
+            qname(XbrlConst.ca, "proportional-acceptance-radius-expression"),
         )
     elif isinstance(modelVariableSet, ModelExistenceAssertion):
         varSetVars = (XbrlConst.qnEaTestExpression,)

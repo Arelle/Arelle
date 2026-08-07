@@ -1,9 +1,9 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
 License: https://www.apache.org/licenses/LICENSE-2.0
 
 usage: python3 {tr2 or tr3 input-file} {tr4 output-file}
-'''
+"""
 
 import io, os, sys, time
 from lxml import etree

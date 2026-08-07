@@ -372,9 +372,9 @@ class ModelVersReport(ModelDocument.ModelDocument):
                 '<toDTS>{1}</toDTS>'
                 '<assignment id="versioningTask"><{2}/></assignment>'
             '</report></nsmap>'.format(
-                ''.join(['<link:schemaRef xlink:type="simple" xlink:href="{0}"/>'.format(self.relativeUri(uri))
+                "".join(['<link:schemaRef xlink:type="simple" xlink:href="{0}"/>'.format(self.relativeUri(uri))
                            for uri in self.entryURIs(fromDTS)]),
-                ''.join(['<link:schemaRef xlink:type="simple" xlink:href="{0}"/>'.format(self.relativeUri(uri))
+                "".join(['<link:schemaRef xlink:type="simple" xlink:href="{0}"/>'.format(self.relativeUri(uri))
                            for uri in self.entryURIs(toDTS)]),
                 categoryType,
                 Version.version,

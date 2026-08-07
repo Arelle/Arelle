@@ -113,7 +113,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
     if val.authority and val.authority.startswith("UKFRC"):
         if modelXbrl.fileSource and modelXbrl.fileSource.taxonomyPackage and modelXbrl.fileSource.taxonomyPackage["publisherCountry"] != "GB":
             modelXbrl.error("UKFRC.1.2.publisherCountrySetting",
-                        _("The \"Publisher Country\" element of the report package metadata for a UKSEF report MUST be set to \"GB\" but was \"%(publisherCountry)s\"."),
+                        _('The "Publisher Country" element of the report package metadata for a UKSEF report MUST be set to "GB" but was "%(publisherCountry)s".'),
                         modelObject=modelXbrl, publisherCountry=modelXbrl.fileSource.taxonomyPackage["publisherCountry"] )
 
     reportXmlLang = None
@@ -276,7 +276,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             requiredToDisplayFacts = []
             requiredToDisplayFactIds: dict[Any, Any] = {}
             firstIxdsDoc = True
-            contentOtherThanXHTMLGuidance = 'ESEF.2.5.1' if val.consolidated else 'ESEF.4.1.3'  # Different reference for iXBRL and stand-alone XHTML
+            contentOtherThanXHTMLGuidance = "ESEF.2.5.1" if val.consolidated else "ESEF.4.1.3"  # Different reference for iXBRL and stand-alone XHTML
             # ModelDocument.load has None as a return type. For typing reasons, we need to guard against that here.
             assert modelXbrl.modelDocument is not None
             for ixdsHtmlRootElt in (modelXbrl.ixdsHtmlElements if val.consolidated else # ix root elements for all ix docs in IXDS
@@ -474,7 +474,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             hiddenFactRef = hiddenFactRefMatch.group(2)
                             if hiddenFactRef not in hiddenEltIds:
                                 modelXbrl.error("ESEF.2.4.1.esefIxHiddenStyleNotLinkingFactInHiddenSection",
-                                    _("\"%(styleIxHiddenProperty)s\" style identifies id attribute of a fact that is not in ix:hidden section: %(factId)s"),
+                                    _('"%(styleIxHiddenProperty)s" style identifies id attribute of a fact that is not in ix:hidden section: %(factId)s'),
                                     modelObject=ixElt, styleIxHiddenProperty=styleIxHiddenProperty, factId=hiddenFactRef)
                             else:
                                 presentedHiddenEltIds[hiddenFactRef].append(ixElt)
@@ -485,7 +485,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     requiredToDisplayFacts.append(ixElt)
             if requiredToDisplayFacts:
                 modelXbrl.error("ESEF.2.4.1.factInHiddenSectionNotInReport",
-                    _("The ix:hidden section contains %(countUnreferenced)s fact(s) whose @id is not applied on any \"-esef-ix- hidden\" style: %(elements)s"),
+                    _('The ix:hidden section contains %(countUnreferenced)s fact(s) whose @id is not applied on any "-esef-ix- hidden" style: %(elements)s'),
                     modelObject=requiredToDisplayFacts,
                     countUnreferenced=len(requiredToDisplayFacts),
                     elements=", ".join(sorted(set(str(f.qname) for f in requiredToDisplayFacts))))
@@ -523,7 +523,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         for (contextScheme, contextIdentifier), contextElts in contextIdentifiers.items():
             if contextScheme != requiredScheme:
                 modelXbrl.warning("ESEF.2.1.1.nonLEIContextScheme" if requiredScheme == iso17442 else "UK.ESEF.2.1.1.contextScheme",
-                    _("The scheme attribute of the xbrli:identifier element should have \"%(requiredScheme)s\" as its content: %(contextScheme)s"),
+                    _('The scheme attribute of the xbrli:identifier element should have "%(requiredScheme)s" as its content: %(contextScheme)s'),
                     modelObject=contextElts, contextScheme=contextScheme, requiredScheme=requiredScheme)
             elif contextScheme == iso17442:
                 leiValidity = LeiUtil.checkLei(contextIdentifier)
@@ -640,7 +640,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         if orphanedFootnotes:
             modelXbrl.warning("ESEF.2.3.1.unusedFootnote",
                 _("Every nonempty link:footnote element SHOULD be linked to at least one fact. Unused footnote ids: %(ids)s"),
-                modelObject=orphanedFootnotes, ids=', '.join([f'"{footnote.id}"' for footnote in orphanedFootnotes]))
+                modelObject=orphanedFootnotes, ids=", ".join([f'"{footnote.id}"' for footnote in orphanedFootnotes]))
 
         ftLangNotUsedByTextFacts = set()
         ftLangNotUsedByTextLangs = set()

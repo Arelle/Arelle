@@ -19,9 +19,9 @@ _: TypeGetText
 
 
 _entryPointRefSearchTermEndings = [
-    '/__init__.py',
-    '.py',
-    '/',
+    "/__init__.py",
+    ".py",
+    "/",
 ]
 
 
@@ -142,7 +142,7 @@ class EntryPointRef:
         :param plugin_manager: PluginManager instance. If not provided, uses the global PluginManager instance.
         :return: List of all discovered entry points.
         """
-        entryPoints = list(entry_points(group='arelle.plugin'))
+        entryPoints = list(entry_points(group="arelle.plugin"))
         entryPointRefs = []
         for entryPoint in entryPoints:
             entryPointRef = EntryPointRef.fromEntryPoint(entryPoint, plugin_manager=plugin_manager)
@@ -179,7 +179,7 @@ class EntryPointRef:
         :param search: Search term or searchable text
         :return: Normalized string
         """
-        search = search.replace('\\', '/')
+        search = search.replace("\\", "/")
         while True:
             for ending in _entryPointRefSearchTermEndings:
                 if search.endswith(ending):

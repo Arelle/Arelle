@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 
 from arelle.ModelValue import qname
 from arelle.Version import copyrightLabel
@@ -274,12 +274,12 @@ def checkCorporateActions(val, *args, **kwargs):
         for f in caFacts["OptionType"]:
             if f.xValue != "Cash":
                 modelXbrl.error("US-CA.onlyOneOptionAllowed.26",
-                    _("The Option Type for a mandatory cash dividend, %(value)s must be defined as \"Cash\"."),
+                    _('The Option Type for a mandatory cash dividend, %(value)s must be defined as "Cash".'),
                     modelObject=f, fact="OptionType", value=f.value)
         for f in caFacts["PayoutType"]:
             if f.xValue != "Dividend":
                 modelXbrl.error("US-CA.paymentOptions.17",
-                    _("The Payout Type for a cash dividend, %(value)s must be defined as \"Dividend\"."),
+                    _('The Payout Type for a cash dividend, %(value)s must be defined as "Dividend".'),
                     modelObject=f, fact="PayoutType", value=f.value)
 
     for f1 in caFacts["PayoutAmount"]:
@@ -316,7 +316,7 @@ def checkCorporateActions(val, *args, **kwargs):
             if eventTypeMember:
                 if f.xValue not in eventTypeMap[eventTypeMember.localName]:
                     modelXbrl.error("US-CA.eventTypeMatch.20",
-                        _("The %(fact)s, %(value)s must be defined as \"Cash Dividend\" or \"Sale Of Rights\"."),
+                        _('The %(fact)s, %(value)s must be defined as "Cash Dividend" or "Sale Of Rights".'),
                         modelObject=f, fact="EventType", value=f.value)
         paymentDateFacts = caFacts["PaymentDate"]
         for fEvent in paymentDateFacts:
@@ -427,13 +427,13 @@ def checkCorporateActions(val, *args, **kwargs):
         for f in caFacts["PayoutType"]:
             if f.xValue != "Dividend":
                 modelXbrl.error("US-CA.stockDiv.paymentOptions.44",
-                    _("The Payout Type for a cash dividend must be defined as a \"Dividend\"."),
+                    _('The Payout Type for a cash dividend must be defined as a "Dividend".'),
                     modelObject=f, fact="PayoutType")
 
         for f in caFacts["OptionType"]:
             if f.xValue != "Securities":
                 modelXbrl.error("US-CA.stockDiv.optionType.45",
-                    _("The Option Type for a cash dividend must be defined as a \"Securities\"."),
+                    _('The Option Type for a cash dividend must be defined as a "Securities".'),
                     modelObject=f, fact="OptionType")
 
         for f in caFacts["EventType"]:
@@ -441,7 +441,7 @@ def checkCorporateActions(val, *args, **kwargs):
             if eventTypeMember:
                 if f.xValue not in eventTypeMap[eventTypeMember.localName]:
                     modelXbrl.error("US-CA.stockDiv-mand.eventTypeMatch.46",
-                        _("The %(fact)s, %(value)s must be defined as \"Stock Dividend\"."),
+                        _('The %(fact)s, %(value)s must be defined as "Stock Dividend".'),
                         modelObject=f, fact="EventType", value=f.value)
 
         paymentDateFacts = caFacts["PaymentDate"]
@@ -535,10 +535,10 @@ def checkCorporateActions(val, *args, **kwargs):
             if eventTypeMember:
                 if f.xValue not in eventTypeMap[eventTypeMember.localName]:
                     modelXbrl.error("US-CA.cancel.eventTypeMatch.37",
-                        _("The %(fact)s, %(value)s must be defined as \"Stock Dividend\"."),
+                        _('The %(fact)s, %(value)s must be defined as "Stock Dividend".'),
                         modelObject=f, fact="EventType", value=f.value)
 
-    if 'facts' in locals():
+    if "facts" in locals():
         del facts
     del caFacts  # dereference explicitly
 
@@ -546,12 +546,12 @@ def checkCorporateActions(val, *args, **kwargs):
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
-    'name': 'Validate XBRL-US Corporate Actions',
-    'version': '0.9',
-    'description': '''XBRL-US Corporate Actions Validation.''',
-    'license': 'Apache-2',
-    'author': 'Ewe S. Gap',
-    'copyright': copyrightLabel,
+    "name": "Validate XBRL-US Corporate Actions",
+    "version": "0.9",
+    "description": """XBRL-US Corporate Actions Validation.""",
+    "license": "Apache-2",
+    "author": "Ewe S. Gap",
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'Validate.XBRL.Finally': checkCorporateActions
+    "Validate.XBRL.Finally": checkCorporateActions
 }

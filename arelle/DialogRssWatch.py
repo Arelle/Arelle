@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 import os
@@ -24,9 +24,9 @@ if TYPE_CHECKING:
 
 _: TypeGetText
 
-'''
+"""
 caller checks accepted, if True, caller retrieves url
-'''
+"""
 
 
 def getOptions(mainWin: CntlrWinMain) -> None:

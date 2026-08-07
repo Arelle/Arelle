@@ -1,9 +1,9 @@
-'''
+"""
 Save Instance Infoset is an example of a plug-in to both GUI menu and command line/web service
 that will save facts decorated with ptv:periodType, ptv:balance, ptv:decimals and ptv:precision (inferred).
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from arelle.Version import authorLabel, copyrightLabel
 
 def generateInstanceInfoset(dts, instanceInfosetFile):
@@ -97,25 +97,25 @@ def saveInstanceInfosetCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kw
         generateInstanceInfoset(cntlr.modelManager.modelXbrl, options.instanceInfosetFile)
 
 def validateInstanceInfoset(dts, instanceInfosetFile):
-    if getattr(dts.modelManager, 'generateInfosetOutFiles', False):
+    if getattr(dts.modelManager, "generateInfosetOutFiles", False):
         generateInstanceInfoset(dts,
                         # normalize file to instance
                         dts.modelManager.cntlr.webCache.normalizeUrl(instanceInfosetFile, dts.uri))
 
 
 __pluginInfo__ = {
-    'name': 'Save Instance Infoset (PTV)',
-    'version': '0.9',
-    'description': "This plug-in adds a feature to output an instance \"ptv\" infoset.  "
+    "name": "Save Instance Infoset (PTV)",
+    "version": "0.9",
+    "description": 'This plug-in adds a feature to output an instance "ptv" infoset.  '
                     "(Does not offset infoset hrefs and schemaLocations for directory offset from DTS.) "
                     "The ptv infoset is the source instance with facts having ptv:periodType, ptv:balance (where applicable), ptv:decimals and ptv:precision (inferred).  ",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'CntlrWinMain.Menu.Tools': saveInstanceInfosetMenuEntender,
-    'CntlrCmdLine.Options': saveInstanceInfosetCommandLineOptionExtender,
-    'CntlrCmdLine.Xbrl.Loaded': saveInstanceInfosetCommandLineXbrlLoaded,
-    'CntlrCmdLine.Xbrl.Run': saveInstanceInfosetCommandLineXbrlRun,
-    'Validate.Infoset': validateInstanceInfoset,
+    "CntlrWinMain.Menu.Tools": saveInstanceInfosetMenuEntender,
+    "CntlrCmdLine.Options": saveInstanceInfosetCommandLineOptionExtender,
+    "CntlrCmdLine.Xbrl.Loaded": saveInstanceInfosetCommandLineXbrlLoaded,
+    "CntlrCmdLine.Xbrl.Run": saveInstanceInfosetCommandLineXbrlRun,
+    "Validate.Infoset": validateInstanceInfoset,
 }

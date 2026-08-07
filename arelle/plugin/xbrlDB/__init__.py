@@ -1,4 +1,4 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
 (Does not apply to the XBRL US Database schema and description.)
 
@@ -10,7 +10,7 @@ Two implementations are provided:
 
 (2) an graph database, based on the XBRL Abstract Model PWD 2.
 
-'''
+"""
 
 import time, os, io, sys, logging
 from arelle.Locale import format_string
@@ -101,7 +101,7 @@ def xbrlDBmenuEntender(cntlr, menu, *args, **kwargs):
                         cntlr.addToLog(_("Unable to determine server type!\n  ") +
                                        _("Probing host {0} port {1} unable to determine server type.")
                                                .format(host, port))
-                        cntlr.config["xbrlDBconnection"] = (host, port, user, password, db, timeout, '') # forget type
+                        cntlr.config["xbrlDBconnection"] = (host, port, user, password, db, timeout, "") # forget type
                         cntlr.saveConfig()
                         return
                     cntlr.addToLog(_("Database type {} identified.").format(dbType))
@@ -122,7 +122,7 @@ def xbrlDBmenuEntender(cntlr, menu, *args, **kwargs):
                      "error": str(ex),
                      "exc_info": True,
                      "traceback": traceback.format_exc()})
-                cntlr.config["xbrlDBconnection"] = (host, port, user, password, db, timeout, '') # forget type
+                cntlr.config["xbrlDBconnection"] = (host, port, user, password, db, timeout, "") # forget type
                 cntlr.saveConfig()
         import threading
         thread = threading.Thread(target=backgroundStoreIntoDB)
@@ -213,12 +213,12 @@ def xbrlDBCommandLineXbrlRun(cntlr, options, modelXbrl, entrypoint, *args, **kwa
         storeIntoDB(dbConnection, modelXbrl, entrypoint=entrypoint)
 
 def xbrlDBvalidateRssItem(val, modelXbrl, rssItem, *args, **kwargs):
-    if hasattr(val.modelXbrl, 'xbrlDBconnection'):
+    if hasattr(val.modelXbrl, "xbrlDBconnection"):
         storeIntoDB(val.modelXbrl.xbrlDBconnection, modelXbrl, rssItem)
 
 def xbrlDBtestcaseVariationXbrlLoaded(val, modelXbrl, *args, **kwargs):
     if _storeIntoDBoptions:
-        return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl)
+        return storeIntoDB(_storeIntoDBoptions.split(","), modelXbrl)
 
 def xbrlDBdialogRssWatchDBconnection(*args, **kwargs):
     try:
@@ -241,7 +241,7 @@ def xbrlDBrssWatchHasWatchAction(rssWatchOptions, *args, **kwargs):
 def xbrlDBrssDoWatchAction(modelXbrl, rssWatchOptions, rssItem, *args, **kwargs):
     dbConnectionString = rssWatchOptions.get("xbrlDBconnection")
     if dbConnectionString:
-        dbConnection = dbConnectionString.split(',')
+        dbConnection = dbConnectionString.split(",")
         storeIntoDB(dbConnection, modelXbrl)
 
 def xbrlDBLoaderSetup(cntlr, options, *args, **kwargs):
@@ -251,7 +251,7 @@ def xbrlDBLoaderSetup(cntlr, options, *args, **kwargs):
     _storeIntoDBoptions = getattr(options, "storeIntoXbrlDb", None)
     _schemaRefSubstitutions = None
     if _storeIntoDBoptions:
-        dbConnection = _storeIntoDBoptions.split(',')
+        dbConnection = _storeIntoDBoptions.split(",")
         if len(dbConnection) > 7 and dbConnection[6] == "sqliteDpmDB":
             for extraArg in dbConnection[7:]:
                 argName, _sep, argValue = extraArg.partition("=")
@@ -265,7 +265,7 @@ def xbrlDBLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
 
     # load from DB and save XBRL in filepath, returning modelDocument
     extraArgs = {"loadDBsaveToFile": filepath, "logStoredMsg": False}
-    dbConnection = _loadFromDBoptions.split(',')
+    dbConnection = _loadFromDBoptions.split(",")
     if len(dbConnection) > 7:
         for extraArg in dbConnection[7:]:
             argName, _sep, argValue = extraArg.partition("=")
@@ -277,16 +277,16 @@ def xbrlDBmodelXbrlInit(modelXbrl, *args, **kwargs):
 
 def xbrlDBstartStreaming(modelXbrl, *args, **kwargs):
     if _storeIntoDBoptions:
-        return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl, streamingState="start", logStoredMsg=False)
+        return storeIntoDB(_storeIntoDBoptions.split(","), modelXbrl, streamingState="start", logStoredMsg=False)
 
 def xbrlDBstreamingFacts(modelXbrl, modelFacts, *args, **kwargs):
     if _storeIntoDBoptions:
-        return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl, streamingState="acceptFacts", streamedFacts=modelFacts, logStoredMsg=False)
+        return storeIntoDB(_storeIntoDBoptions.split(","), modelXbrl, streamingState="acceptFacts", streamedFacts=modelFacts, logStoredMsg=False)
 
 def xbrlDBfinishStreaming(modelXbrl, *args, **kwargs):
     if _storeIntoDBoptions:
         modelXbrl.xbrlDBprocessedByStreaming = True
-        return storeIntoDB(_storeIntoDBoptions.split(','), modelXbrl, streamingState="finish", logStoredMsg=False)
+        return storeIntoDB(_storeIntoDBoptions.split(","), modelXbrl, streamingState="finish", logStoredMsg=False)
 
 def modelDocumentInstanceSchemaRefRewriter(modelDocument, url, *args, **kwargs):
     if _schemaRefSubstitutions:
@@ -323,36 +323,36 @@ class LogToDbHandler(logging.Handler):
 
 
 __pluginInfo__ = {
-    'name': 'xbrlDB',
-    'version': '0.9',
-    'description': "This plug-in implements the XBRL Public Postgres, Abstract Model and DPM Databases.  ",
-    'aliases': [
-        'XBRL Database',
+    "name": "xbrlDB",
+    "version": "0.9",
+    "description": "This plug-in implements the XBRL Public Postgres, Abstract Model and DPM Databases.  ",
+    "aliases": [
+        "XBRL Database",
     ],
-    'license': 'Apache-2 (Arelle plug-in), BSD license (pg8000 library)',
-    'author': authorLabel,
-    'copyright': f'{copyrightLabel} \n'
-                'uses: oracledb Copyright (c) 2016, 2025 Oracle and/or its affiliates., \n'
-                '      pg8000, Copyright (c) 2007-2009, Mathieu Fenniak (Postgres DB), \n'
-                '      pyodbc, no copyright, Michael Kleehammer (MS SQL), \n'
-                '      PyMySQL, Copyright (c) 2010, 2013 PyMySQL contributors (MySQL DB), and\n'
-                '      rdflib, Copyright (c) 2002-2012, RDFLib Team (RDF DB)',
+    "license": "Apache-2 (Arelle plug-in), BSD license (pg8000 library)",
+    "author": authorLabel,
+    "copyright": f"{copyrightLabel} \n"
+                "uses: oracledb Copyright (c) 2016, 2025 Oracle and/or its affiliates., \n"
+                "      pg8000, Copyright (c) 2007-2009, Mathieu Fenniak (Postgres DB), \n"
+                "      pyodbc, no copyright, Michael Kleehammer (MS SQL), \n"
+                "      PyMySQL, Copyright (c) 2010, 2013 PyMySQL contributors (MySQL DB), and\n"
+                "      rdflib, Copyright (c) 2002-2012, RDFLib Team (RDF DB)",
     # classes of mount points (required)
-    'CntlrWinMain.Menu.Tools': xbrlDBmenuEntender,
-    'CntlrCmdLine.Options': xbrlDBcommandLineOptionExtender,
-    'CntlrCmdLine.Utility.Run': xbrlDBLoaderSetup,
-    'CntlrCmdLine.Xbrl.Loaded': xbrlDBCommandLineXbrlLoaded,
-    'CntlrCmdLine.Xbrl.Run': xbrlDBCommandLineXbrlRun,
-    'DialogRssWatch.FileChoices': xbrlDBdialogRssWatchDBconnection,
-    'DialogRssWatch.ValidateChoices': xbrlDBdialogRssWatchValidateChoices,
-    'ModelDocument.PullLoader': xbrlDBLoader,
-    'RssWatch.HasWatchAction': xbrlDBrssWatchHasWatchAction,
-    'RssWatch.DoWatchAction': xbrlDBrssDoWatchAction,
-    'ModelXbrl.Init': xbrlDBmodelXbrlInit,
-    'Streaming.Start': xbrlDBstartStreaming,
-    'Streaming.Facts': xbrlDBstreamingFacts,
-    'Streaming.Finish': xbrlDBfinishStreaming,
-    'Validate.RssItem': xbrlDBvalidateRssItem,
-    'TestcaseVariation.Xbrl.Loaded': xbrlDBtestcaseVariationXbrlLoaded,
-    'ModelDocument.InstanceSchemaRefRewriter': modelDocumentInstanceSchemaRefRewriter
+    "CntlrWinMain.Menu.Tools": xbrlDBmenuEntender,
+    "CntlrCmdLine.Options": xbrlDBcommandLineOptionExtender,
+    "CntlrCmdLine.Utility.Run": xbrlDBLoaderSetup,
+    "CntlrCmdLine.Xbrl.Loaded": xbrlDBCommandLineXbrlLoaded,
+    "CntlrCmdLine.Xbrl.Run": xbrlDBCommandLineXbrlRun,
+    "DialogRssWatch.FileChoices": xbrlDBdialogRssWatchDBconnection,
+    "DialogRssWatch.ValidateChoices": xbrlDBdialogRssWatchValidateChoices,
+    "ModelDocument.PullLoader": xbrlDBLoader,
+    "RssWatch.HasWatchAction": xbrlDBrssWatchHasWatchAction,
+    "RssWatch.DoWatchAction": xbrlDBrssDoWatchAction,
+    "ModelXbrl.Init": xbrlDBmodelXbrlInit,
+    "Streaming.Start": xbrlDBstartStreaming,
+    "Streaming.Facts": xbrlDBstreamingFacts,
+    "Streaming.Finish": xbrlDBfinishStreaming,
+    "Validate.RssItem": xbrlDBvalidateRssItem,
+    "TestcaseVariation.Xbrl.Loaded": xbrlDBtestcaseVariationXbrlLoaded,
+    "ModelDocument.InstanceSchemaRefRewriter": modelDocumentInstanceSchemaRefRewriter
 }

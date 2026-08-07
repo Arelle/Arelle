@@ -101,7 +101,7 @@ DISCLOSURE_SYSTEM_VALIDATION_TYPE = "ESEF"
 
 def validateEntity(modelXbrl: ModelXbrl, filename:str, filesource: FileSource) -> None:
     consolidated = not any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names)
-    contentOtherThanXHTMLGuidance = 'ESEF.2.5.1' if consolidated else 'ESEF.4.1.3'
+    contentOtherThanXHTMLGuidance = "ESEF.2.5.1" if consolidated else "ESEF.4.1.3"
     fullname = filesource.basedUrl(filename)
     file = filesource.file(fullname)
     try:
@@ -204,7 +204,7 @@ class ESEFPlugin(PluginHooks):
         disclosureSystemYear = getDisclosureSystemYear(modelXbrl)
         if isEntry:
             if any("unconsolidated" in n for n in modelXbrl.modelManager.disclosureSystem.names):
-                if disclosureSystemYear > 2021 and re.match(r'.*[.](7z|rar|tar|jar)', normalizedUri):
+                if disclosureSystemYear > 2021 and re.match(r".*[.](7z|rar|tar|jar)", normalizedUri):
                     modelXbrl.error("ESEF.Arelle.InvalidSubmissionFormat",
                                     _("Unrecognized submission format."),
                                     modelObject=modelXbrl)
@@ -398,7 +398,7 @@ class ESEFPlugin(PluginHooks):
         if not shouldRunEsefValidationRules(val):
             return None
         modelXbrl = val.modelXbrl
-        if hasattr(val, 'priorFormulaOptionsRunIDs'):  # reset environment formula run IDs if they were saved
+        if hasattr(val, "priorFormulaOptionsRunIDs"):  # reset environment formula run IDs if they were saved
             modelXbrl.modelManager.formulaOptions.runIDs = val.priorFormulaOptionsRunIDs
         sumWrnMsgs = sumErrMsgs = 0
         for e in modelXbrl.errors:

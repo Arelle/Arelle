@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 
 # changed from reporting locs to reporting relationships: HF 2020-06-23
 
@@ -109,7 +109,7 @@ def setup(val, *args, **kwargs):
             deprecationsJsonFile = usgaapDoc.filepathdir + os.sep + "deprecated-concepts.json"
             file = None
             try:
-                file = openFileStream(cntlr, deprecationsJsonFile, 'rt', encoding='utf-8')
+                file = openFileStream(cntlr, deprecationsJsonFile, "rt", encoding="utf-8")
                 val.usgaapDeprecations = json.load(file)
                 file.close()
             except Exception:
@@ -137,10 +137,10 @@ def setup(val, *args, **kwargs):
                     for labelRel in deprecationsInstance.relationshipSet(XbrlConst.conceptLabel).modelRelationships:
                         modelDocumentation = labelRel.toModelObject
                         conceptName = labelRel.fromModelObject.name
-                        if modelDocumentation.role == 'http://www.xbrl.org/2009/role/deprecatedLabel':
-                            val.usgaapDeprecations[conceptName] = (val.usgaapDeprecations.get(conceptName, ('',''))[0], modelDocumentation.text)
-                        elif modelDocumentation.role == 'http://www.xbrl.org/2009/role/deprecatedDateLabel':
-                            val.usgaapDeprecations[conceptName] = (modelDocumentation.text, val.usgaapDeprecations.get(conceptName, ('',''))[1])
+                        if modelDocumentation.role == "http://www.xbrl.org/2009/role/deprecatedLabel":
+                            val.usgaapDeprecations[conceptName] = (val.usgaapDeprecations.get(conceptName, ("",""))[0], modelDocumentation.text)
+                        elif modelDocumentation.role == "http://www.xbrl.org/2009/role/deprecatedDateLabel":
+                            val.usgaapDeprecations[conceptName] = (modelDocumentation.text, val.usgaapDeprecations.get(conceptName, ("",""))[1])
                     jsonStr = str(json.dumps(val.usgaapDeprecations, ensure_ascii=False, indent=0)) # might not be unicode in 2.7
                     saveFile(cntlr, deprecationsJsonFile, jsonStr)  # 2.7 gets unicode this way
                     deprecationsInstance.close()
@@ -150,10 +150,10 @@ def setup(val, *args, **kwargs):
             ugtDefaultDimensionsJsonFile = usgaapDoc.filepathdir + os.sep + "ugt-default-dimensions.json"
             file = None
             try:
-                file = openFileStream(cntlr, ugtCalcsJsonFile, 'rt', encoding='utf-8')
+                file = openFileStream(cntlr, ugtCalcsJsonFile, "rt", encoding="utf-8")
                 val.usgaapCalculations = json.load(file)
                 file.close()
-                file = openFileStream(cntlr, ugtDefaultDimensionsJsonFile, 'rt', encoding='utf-8')
+                file = openFileStream(cntlr, ugtDefaultDimensionsJsonFile, "rt", encoding="utf-8")
                 val.usgaapDefaultDimensions = json.load(file)
                 file.close()
             except Exception:
@@ -223,7 +223,7 @@ def factCheck(val, fact, *args, **kwargs):
                 if typeName == "perUnitItemType" and any(m.namespaceURI == XbrlConst.iso4217 or
                                                          m in (XbrlConst.qnXbrliPure, XbrlConst.qnXbrliShares)
                                                          for m in unit.measures[1]):
-                    val.modelXbrl.log('WARNING-SEMANTIC', "US-BPG.2.3.3.perUnitItemType",
+                    val.modelXbrl.log("WARNING-SEMANTIC", "US-BPG.2.3.3.perUnitItemType",
                         _("PureItemType fact %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s has disallowed unit denominator %(denominator)s"),
                         modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
                         value=fact.effectiveValue, denominator=", ".join((str(m) for m in unit.measures[1])))
@@ -237,7 +237,7 @@ def factCheck(val, fact, *args, **kwargs):
                         dec = int(fact.decimals)
                         vround = round(vf, dec)
                         if vf != vround:
-                            val.modelXbrl.log('WARNING-SEMANTIC', "US-BPG.2.4.1",
+                            val.modelXbrl.log("WARNING-SEMANTIC", "US-BPG.2.4.1",
                                 _("Decimal disagreement %(fact)s in context %(contextID)s unit %(unitID)s value %(value)s has insignificant value %(insignificantValue)s"),
                                 modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
                                 value=fact.effectiveValue, insignificantValue=Locale.format(val.modelXbrl.locale, "%.*f",
@@ -248,7 +248,7 @@ def factCheck(val, fact, *args, **kwargs):
                     if any(val.linroleDefinitionIsDisclosure.match(roleType.definition)
                            for rel in val.modelXbrl.relationshipSet(XbrlConst.parentChild).toModelObject(concept)
                            for roleType in val.modelXbrl.roleTypes.get(rel.linkrole,())):
-                        val.modelXbrl.log('WARNING-SEMANTIC', "US-BPG.2.5.1",
+                        val.modelXbrl.log("WARNING-SEMANTIC", "US-BPG.2.5.1",
                             _("Disclosure %(fact)s in context %(contextID)s value %(value)s is a fraction"),
                             modelObject=fact, fact=fact.qname, contextID=fact.contextID, value=fact.value)
 
@@ -274,7 +274,7 @@ def factCheck(val, fact, *args, **kwargs):
                         elif member.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"):
                             val.deprecatedMembers[member].append(fact)
     except Exception as err:
-        val.modelXbrl.log('WARNING-SEMANTIC', "US-BPG.testingException",
+        val.modelXbrl.log("WARNING-SEMANTIC", "US-BPG.testingException",
             _("%(fact)s in context %(contextID)s unit %(unitID)s value %(value)s cannot be tested due to: %(err)s"),
             modelObject=fact, fact=fact.qname, contextID=fact.contextID, unitID=fact.unitID,
             value=fact.effectiveValue, err=err)
@@ -292,13 +292,13 @@ def final(val, conceptsUsed, *args, **kwargs):
             if concept.qname.namespaceURI == ugtNamespace:
                 if concept.name in val.usgaapDeprecations:
                     deprecation = val.usgaapDeprecations[concept.name]
-                    val.modelXbrl.log('WARNING-SEMANTIC', "FASB:deprecated{0}".format(depType),
+                    val.modelXbrl.log("WARNING-SEMANTIC", "FASB:deprecated{0}".format(depType),
                         _("%(deprecation)s of fact(s) %(fact)s (e.g., in context %(contextID)s value %(value)s) was deprecated on %(date)s: %(documentation)s"),
                         modelObject=facts, fact=facts[0].qname, contextID=facts[0].contextID, value=facts[0].value,
                         deprecation=depType,
                         date=deprecation[0], documentation=deprecation[1])
             elif concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"):
-                val.modelXbrl.log('WARNING-SEMANTIC', "FASB:deprecated{0}".format(depType),
+                val.modelXbrl.log("WARNING-SEMANTIC", "FASB:deprecated{0}".format(depType),
                     _("%(deprecation)s of facts %(fact)s in context %(contextID)s value %(value)s was deprecated on %(date)s"),
                     modelObject=facts, fact=facts[0].qname, contextID=facts[0].contextID, value=facts[0].value,
                     deprecation=depType,
@@ -333,7 +333,7 @@ def final(val, conceptsUsed, *args, **kwargs):
                                ]
     if extensionConceptsUnused:
         for concept in sorted(extensionConceptsUnused, key=lambda c: str(c.qname)):
-            val.modelXbrl.log('INFO-SEMANTIC', "US-BPG.1.7.1.unusedExtensionConcept",
+            val.modelXbrl.log("INFO-SEMANTIC", "US-BPG.1.7.1.unusedExtensionConcept",
                 _("Company extension concept is unused: %(concept)s"),
                 modelObject=concept, concept=concept.qname)
 
@@ -358,12 +358,12 @@ def final(val, conceptsUsed, *args, **kwargs):
     for concept, rels in standardConceptsUnused.items():
         if concept.qname.namespaceURI == ugtNamespace and concept.name in val.usgaapDeprecations:
             deprecation = val.usgaapDeprecations[concept.name]
-            val.modelXbrl.log('INFO-SEMANTIC', "FASB:deprecatedConcept",
+            val.modelXbrl.log("INFO-SEMANTIC", "FASB:deprecatedConcept",
                 _("Unused concept %(concept)s has extension relationships and was deprecated on %(date)s: %(documentation)s"),
                 modelObject=rels, concept=concept.qname,
                 date=deprecation[0], documentation=deprecation[1])
         elif concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"):
-            val.modelXbrl.log('INFO-SEMANTIC', "FASB:deprecatedConcept",
+            val.modelXbrl.log("INFO-SEMANTIC", "FASB:deprecatedConcept",
                 _("Unused concept %(concept)s has extension relationships was deprecated on %(date)s"),
                 modelObject=rels, concept=concept.qname,
                 date=concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"))
@@ -373,18 +373,18 @@ def final(val, conceptsUsed, *args, **kwargs):
               (concept.type is not None and concept.type.isDomainItemType) or
               # this or branch only pertains to fact concepts
               not concept.isAbstract)):
-            val.modelXbrl.log('INFO-SEMANTIC', "US-BPG.1.7.1.unusedStandardConceptInExtensionRelationship",
+            val.modelXbrl.log("INFO-SEMANTIC", "US-BPG.1.7.1.unusedStandardConceptInExtensionRelationship",
                 _("Company extension relationships of unused standard concept: %(concept)s"),
                 modelObject=rels, concept=concept.qname)
     for concept, rels in standardConceptsDeprecated.items():
         if concept.qname.namespaceURI == ugtNamespace and concept.name in val.usgaapDeprecations:
             deprecation = val.usgaapDeprecations[concept.name]
-            val.modelXbrl.log('INFO-SEMANTIC', "FASB:deprecatedConcept",
+            val.modelXbrl.log("INFO-SEMANTIC", "FASB:deprecatedConcept",
                 _("Concept %(concept)s has extension relationships and was deprecated on %(date)s: %(documentation)s"),
                 modelObject=rels, concept=concept.qname,
                 date=deprecation[0], documentation=deprecation[1])
         elif concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"):
-            val.modelXbrl.log('INFO-SEMANTIC', "FASB:deprecatedConcept",
+            val.modelXbrl.log("INFO-SEMANTIC", "FASB:deprecatedConcept",
                 _("Concept %(concept)s has extension relationships was deprecated on %(date)s"),
                 modelObject=rels, concept=concept.qname,
                 date=concept.get("{http://fasb.org/us-gaap/attributes}deprecatedDate"))
@@ -395,7 +395,7 @@ def final(val, conceptsUsed, *args, **kwargs):
     del val.deprecatedDimensions
     del val.deprecatedMembers
 
-    if hasattr(val, 'usgaapCalculations'):
+    if hasattr(val, "usgaapCalculations"):
         """
         The UGT calcuations are loaded and cached from the US-GAAP.
 
@@ -444,7 +444,7 @@ def final(val, conceptsUsed, *args, **kwargs):
                                     for roleType in val.modelXbrl.roleTypes.get(rel.linkrole,()):
                                         if (val.linkroleDefinitionStatementSheet.match(roleType.definition) and
                                             val.modelXbrl.relationshipSet(XbrlConst.parentChild,rel.linkrole)
-                                            .isRelated(totalConcept,'sibling-or-descendant',itemConcept)):
+                                            .isRelated(totalConcept,"sibling-or-descendant",itemConcept)):
                                             filingELR = rel.linkrole
                                             break
                                     if filingELR:
@@ -510,14 +510,14 @@ def final(val, conceptsUsed, *args, **kwargs):
                                 args[argName] = ugtELR
                         msg.append(_("\n\nCorresponding facts in contexts: \n%(contextIDs)s\n"))
                         args["contextIDs"] = ", ".join(sorted(contextIDs))
-                    val.modelXbrl.log('WARNING-SEMANTIC', "US-BPG:missingCalculation",
-                        ''.join(msg),
+                    val.modelXbrl.log("WARNING-SEMANTIC", "US-BPG:missingCalculation",
+                        "".join(msg),
                         **args)
                     issues = []
         val.modelXbrl.profileStat(_("validate US-BGP missing calcs"), time.time() - startedAt)
 
 
-    if hasattr(val, 'usgaapDefaultDimensions'):
+    if hasattr(val, "usgaapDefaultDimensions"):
         """
         The UGT default dimensions are loaded and cached from US-GAAP.
 
@@ -535,7 +535,7 @@ def final(val, conceptsUsed, *args, **kwargs):
                     msgObjects = (defaultDimRel, defaultDimRel.toModelObject)
                 else:
                     msgObjects = defaultDimRel
-                val.modelXbrl.log('WARNING-SEMANTIC', "secStaffObservation.E.16.defaultDimension",
+                val.modelXbrl.log("WARNING-SEMANTIC", "secStaffObservation.E.16.defaultDimension",
                     _("UGT-defined dimension %(dimension)s has extension defined default %(extensionDefault)s, predefined default is %(predefinedDefault)s"),
                     modelObject=msgObjects,
                     dimension=defaultDimRel.fromModelObject.qname,
@@ -547,23 +547,23 @@ def final(val, conceptsUsed, *args, **kwargs):
     del val.linroleDefinitionIsDisclosure
     del val.linkroleDefinitionStatementSheet
     del val.ugtNamespace
-    if hasattr(val, 'usgaapDeprecations'):
+    if hasattr(val, "usgaapDeprecations"):
         del val.usgaapDeprecations
-    if hasattr(val, 'usgaapDefaultDimensions'):
+    if hasattr(val, "usgaapDefaultDimensions"):
         del val.usgaapDefaultDimensions
-    if hasattr(val, 'usgaapCalculations'):
+    if hasattr(val, "usgaapCalculations"):
         del val.usgaapCalculations
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
-    'name': 'Validate XBRL-US Best Practice Guidance',
-    'version': '0.9',
-    'description': '''XBRL-US Best Practice Guidance Validation.''',
-    'license': 'Apache-2',
-    'author': 'Ewe S. Gap',
-    'copyright': copyrightLabel,
+    "name": "Validate XBRL-US Best Practice Guidance",
+    "version": "0.9",
+    "description": """XBRL-US Best Practice Guidance Validation.""",
+    "license": "Apache-2",
+    "author": "Ewe S. Gap",
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'Validate.EFM.Start': setup,
-    'Validate.EFM.Fact': factCheck,
-    'Validate.EFM.Finally': final
+    "Validate.EFM.Start": setup,
+    "Validate.EFM.Fact": factCheck,
+    "Validate.EFM.Finally": final
 }

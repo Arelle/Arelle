@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 import os
 import regex as re
 from arelle import (ModelDocument, XmlUtil, XbrlConst)
@@ -88,7 +88,7 @@ def checkFilingDTS(val, modelDocument, visited):
                             val.modelXbrl.error("SBR.NL.2.2.2.02",
                                 _("Concept %(concept)s is also defined in standard taxonomy schema %(standardSchema)s without a general-special relationship"),
                                 modelObject=c, concept=modelConcept.qname, standardSchema=os.path.basename(c.modelDocument.uri))
-                ''' removed RH 2011-12-23 corresponding set up of table in ValidateFiling
+                """ removed RH 2011-12-23 corresponding set up of table in ValidateFiling
                 if val.validateSBRNL and name in val.nameWordsTable:
                     if not any( any( genrlSpeclRelSet.isRelated(c, "child", modelConcept)
                                      for c in val.modelXbrl.nameConcepts.get(partialWordName, []))
@@ -96,7 +96,7 @@ def checkFilingDTS(val, modelDocument, visited):
                         val.modelXbrl.error("SBR.NL.2.3.2.01",
                             _("Concept %(specialName)s is appears to be missing a general-special relationship to %(generalNames)s"),
                             modelObject=c, specialName=modelConcept.qname, generalNames=', or to '.join(val.nameWordsTable[name]))
-                '''
+                """
 
                 if modelConcept.isTuple:
                     if modelConcept.substitutionGroupQname.localName == "presentationTuple" and modelConcept.substitutionGroupQname.namespaceURI.endswith("/basis/sbr/xbrl/xbrl-syntax-extension"): # namespace may change each year
@@ -265,7 +265,7 @@ def checkFilingDTS(val, modelDocument, visited):
                              definesTypes or definesDimensions or definesDomains or definesHypercubes)):
                     val.modelXbrl.error("SBR.NL.2.2.1.01",
                         _("Taxonomy schema may only define one of these: %(contents)s"),
-                        modelObject=modelDocument, contents=', '.join(schemaContents))
+                        modelObject=modelDocument, contents=", ".join(schemaContents))
             elif not any(refDoc.inDTS and refDoc.targetNamespace not in val.disclosureSystem.baseTaxonomyNamespaces
                          for refDoc in modelDocument.referencesDocument.keys()): # no linkbase ref or includes
                 val.modelXbrl.error("SBR.NL.2.2.1.01",

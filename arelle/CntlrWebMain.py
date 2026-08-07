@@ -1,8 +1,8 @@
-'''
+"""
 Use this module to start Arelle in web server mode.
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 import io
@@ -34,15 +34,15 @@ Options = None
 
 _os_pid = os.getpid()
 
-GETorPOST = ('GET', 'POST')
-GET = 'GET'
-POST = 'POST'
+GETorPOST = ("GET", "POST")
+GET = "GET"
+POST = "POST"
 
 _CNTLR: CntlrCmdLine | None = None
 
 def getCntlr() -> CntlrCmdLine:
     if _CNTLR is None:
-        raise ValueError(_('_CNTLR accessed before it was set.'))
+        raise ValueError(_("_CNTLR accessed before it was set."))
     return _CNTLR
 
 def setCntlr(cntlr: CntlrCmdLine) -> None:
@@ -53,13 +53,13 @@ def getLogHandler() -> LogToBufferHandler:
     cntlr = getCntlr()
     if isinstance(cntlr.logHandler, LogToBufferHandler):
         return cntlr.logHandler
-    raise ValueError(_('webserver requires log to buffer.'))
+    raise ValueError(_("webserver requires log to buffer."))
 
 _RUNTIME_OPTIONS: RuntimeOptions | None = None
 
 def getRuntimeOptions() -> RuntimeOptions:
     if _RUNTIME_OPTIONS is None:
-        raise ValueError(_('_RUNTIME_OPTIONS accessed before it was set.'))
+        raise ValueError(_("_RUNTIME_OPTIONS accessed before it was set."))
     options = deepcopy(_RUNTIME_OPTIONS)
     return options
 
@@ -90,7 +90,7 @@ def startWebserver(cntlr: CntlrCmdLine, options: RuntimeOptions) -> Bottle | Non
     """
     setCntlr(cntlr)
     setRuntimeOptions(options)
-    if not os.getenv('ARELLE_WEBSERVER_NO_SECURITY_WARNING'):
+    if not os.getenv("ARELLE_WEBSERVER_NO_SECURITY_WARNING"):
         print(
             _("WARNING: Arelle's built-in webserver performs no authentication and must only be "
             "reachable by trusted users. It can read arbitrary files from this host and load "
@@ -115,53 +115,53 @@ def startWebserver(cntlr: CntlrCmdLine, options: RuntimeOptions) -> Bottle | Non
         pluginResult = pluginMethod(app, cntlr, host, port, server)
         break # only provide for a single plugin of this class
     if not (isinstance(pluginResult, str) and "skip-routes" in pluginResult):
-        app.route('/rest/login', GET, login_form)
-        app.route('/rest/login', POST, login_submit)
-        app.route('/rest/logout', GET, logout)
-        app.route('/favicon.ico', GET, arelleIcon)
-        app.route('/rest/xbrl/<file:path>/open', GETorPOST, validation)
-        app.route('/rest/xbrl/<file:path>/close', GETorPOST, validation)
-        app.route('/rest/xbrl/<file:path>/validation/xbrl', GETorPOST, validation)
-        app.route('/rest/xbrl/<file:path>/DTS', GETorPOST, validation)
-        app.route('/rest/xbrl/<file:path>/concepts', GETorPOST, validation)
-        app.route('/rest/xbrl/<file:path>/pre', GETorPOST, validation)
-        app.route('/rest/xbrl/<file:path>/table', GETorPOST, validation)
-        app.route('/rest/xbrl/<file:path>/cal', GETorPOST, validation)
-        app.route('/rest/xbrl/<file:path>/dim', GETorPOST, validation)
-        app.route('/rest/xbrl/<file:path>/facts', GETorPOST, validation)
-        app.route('/rest/xbrl/<file:path>/factTable', GETorPOST, validation)
-        app.route('/rest/xbrl/<file:path>/roleTypes', GETorPOST, validation)
-        app.route('/rest/xbrl/<file:path>/arcroleTypes', GETorPOST, validation)
-        app.route('/rest/xbrl/<file:path>/formulae', GETorPOST, validation)
-        app.route('/rest/xbrl/validation', GETorPOST, validation)
-        app.route('/rest/xbrl/view', GETorPOST, validation)
-        app.route('/rest/xbrl/open', GETorPOST, validation)
-        app.route('/rest/xbrl/close', GETorPOST, validation)
-        app.route('/images/<imgFile>', GET, image)
-        app.route('/rest/xbrl/diff', GET, diff)
-        app.route('/rest/configure', GET, configure)
-        app.route('/rest/stopWebServer', GET, stopWebServer)
-        app.route('/quickbooks/server.asmx', POST, quickbooksServer)
-        app.route('/rest/quickbooks/<qbReport>/xbrl-gl/<file:path>', GET, quickbooksGLrequest)
-        app.route('/rest/quickbooks/<qbReport>/xbrl-gl/<file:path>/view', GET, quickbooksGLrequest)
-        app.route('/rest/quickbooks/<qbReport>/xbrl-gl/view', GET, quickbooksGLrequest)
-        app.route('/rest/quickbooks/response', GET, quickbooksGLresponse)
-        app.route('/quickbooks/server.html', GET, quickbooksWebPage)
-        app.route('/quickbooks/localhost.crt', GET, localhostCertificate)
-        app.route('/localhost.crt', GET, localhostCertificate)
-        app.route('/rest/test/test', GETorPOST, testTest)
-        app.route('/help', GET, helpREST)
-        app.route('/about', GET, about)
-        app.route('/', GET, indexPageREST)
+        app.route("/rest/login", GET, login_form)
+        app.route("/rest/login", POST, login_submit)
+        app.route("/rest/logout", GET, logout)
+        app.route("/favicon.ico", GET, arelleIcon)
+        app.route("/rest/xbrl/<file:path>/open", GETorPOST, validation)
+        app.route("/rest/xbrl/<file:path>/close", GETorPOST, validation)
+        app.route("/rest/xbrl/<file:path>/validation/xbrl", GETorPOST, validation)
+        app.route("/rest/xbrl/<file:path>/DTS", GETorPOST, validation)
+        app.route("/rest/xbrl/<file:path>/concepts", GETorPOST, validation)
+        app.route("/rest/xbrl/<file:path>/pre", GETorPOST, validation)
+        app.route("/rest/xbrl/<file:path>/table", GETorPOST, validation)
+        app.route("/rest/xbrl/<file:path>/cal", GETorPOST, validation)
+        app.route("/rest/xbrl/<file:path>/dim", GETorPOST, validation)
+        app.route("/rest/xbrl/<file:path>/facts", GETorPOST, validation)
+        app.route("/rest/xbrl/<file:path>/factTable", GETorPOST, validation)
+        app.route("/rest/xbrl/<file:path>/roleTypes", GETorPOST, validation)
+        app.route("/rest/xbrl/<file:path>/arcroleTypes", GETorPOST, validation)
+        app.route("/rest/xbrl/<file:path>/formulae", GETorPOST, validation)
+        app.route("/rest/xbrl/validation", GETorPOST, validation)
+        app.route("/rest/xbrl/view", GETorPOST, validation)
+        app.route("/rest/xbrl/open", GETorPOST, validation)
+        app.route("/rest/xbrl/close", GETorPOST, validation)
+        app.route("/images/<imgFile>", GET, image)
+        app.route("/rest/xbrl/diff", GET, diff)
+        app.route("/rest/configure", GET, configure)
+        app.route("/rest/stopWebServer", GET, stopWebServer)
+        app.route("/quickbooks/server.asmx", POST, quickbooksServer)
+        app.route("/rest/quickbooks/<qbReport>/xbrl-gl/<file:path>", GET, quickbooksGLrequest)
+        app.route("/rest/quickbooks/<qbReport>/xbrl-gl/<file:path>/view", GET, quickbooksGLrequest)
+        app.route("/rest/quickbooks/<qbReport>/xbrl-gl/view", GET, quickbooksGLrequest)
+        app.route("/rest/quickbooks/response", GET, quickbooksGLresponse)
+        app.route("/quickbooks/server.html", GET, quickbooksWebPage)
+        app.route("/quickbooks/localhost.crt", GET, localhostCertificate)
+        app.route("/localhost.crt", GET, localhostCertificate)
+        app.route("/rest/test/test", GETorPOST, testTest)
+        app.route("/help", GET, helpREST)
+        app.route("/about", GET, about)
+        app.route("/", GET, indexPageREST)
         if server == "cgi":
             # catch a non-REST interface by cgi Interface (may be a cgi app exe module, etc)
-            app.route('<cgiAppPath:path>', GETorPOST, cgiInterface)
+            app.route("<cgiAppPath:path>", GETorPOST, cgiInterface)
     if not (isinstance(pluginResult, str) and "skip-run" in pluginResult):
         if server == "wsgi":
             return app
         elif server == "cgi":
             if sys.stdin is None:
-                sys.stdin = open(os.devnull, 'r')
+                sys.stdin = open(os.devnull, "r")
             app.run(server=server)
             sys.exit(0)
         elif server:
@@ -177,11 +177,11 @@ def cgiInterface(cgiAppPath: str) -> str | HTTPResponse:
     #    fh.write("trace 2 arg={}\n".format(cgiAppPath))
     if not request.query:  # no parameters, index page
         return indexPageCGI()
-    elif 'about' in request.query:
+    elif "about" in request.query:
         return about(cgiAppPath + "?image=arelle32.gif")
-    elif 'help' in request.query:
+    elif "help" in request.query:
         return helpREST()
-    elif 'image' in request.query:
+    elif "image" in request.query:
         return image(request.query.image)
     else:
         return indexPageCGI()
@@ -193,11 +193,11 @@ def login_form() -> str:
 
     :returns: str -- HTML login form to enter and submit via method=POST these fields: name, password
     """
-    return _('''<html><body><form method="POST"><table>
+    return _("""<html><body><form method="POST"><table>
                 <tr><td>Name:</td><td><input name="name" type="text" /></td></tr>
                 <tr><td>Password:</td><td><input name="password" type="password" /></td></tr>
                 <tr><td>&nbsp;</td><td><input type="submit" value="Submit" /></td></tr>
-                </table></form></body></html>''')
+                </table></form></body></html>""")
 
 def login_submit() -> str:
     """Login of fields from login form (post to */rest/login*).  Saves user ID for future use.
@@ -205,8 +205,8 @@ def login_submit() -> str:
     :param name: User ID
     :param password: Password
     """
-    name     = request.forms.get('name')
-    password = request.forms.get('password')
+    name     = request.forms.get("name")
+    password = request.forms.get("password")
     if checkLogin(name, password):
         return _("<p>You are logged in as user: {0}</p>").format(name)
     else:
@@ -238,7 +238,7 @@ def arelleIcon() -> HTTPResponse:
     :returns: ico -- Icon file for browsers
     """
     cntlr = getCntlr()
-    return static_file("arelle.ico", root=cntlr.imagesDir, mimetype='image/vnd.microsoft.icon')
+    return static_file("arelle.ico", root=cntlr.imagesDir, mimetype="image/vnd.microsoft.icon")
 
 def image(imgFile: str) -> HTTPResponse:
     """Request for an image file for URL display (get */images/<imgFile>*).
@@ -273,7 +273,7 @@ validationKeyVarName = {
     "arcroleTypes": "arcroleTypesFile"
     }
 
-supportedViews = {'DTS', 'concepts', 'pre', 'table', 'cal', 'dim', 'facts', 'factTable', 'formulae', 'roleTypes', 'arcroleTypes'}
+supportedViews = {"DTS", "concepts", "pre", "table", "cal", "dim", "facts", "factTable", "formulae", "roleTypes", "arcroleTypes"}
 
 def validation(file: str | None = None) -> str | bytes:
     """REST request to validate, by *get* or *post*, to URL patterns including */rest/xbrl/<file:path>/{open|close|validation|DTS...}*,
@@ -283,21 +283,21 @@ def validation(file: str | None = None) -> str | bytes:
     :returns: html, xhtml, xml, json, text -- Return per media type argument and request arguments
     """
     errors = []
-    flavor = request.query.flavor or 'standard'
-    media = request.query.media or 'html'
-    requestPathParts = request.urlparts[2].split('/')
-    isValidation = 'validation' == requestPathParts[-1] or 'validation' == requestPathParts[-2]
+    flavor = request.query.flavor or "standard"
+    media = request.query.media or "html"
+    requestPathParts = request.urlparts[2].split("/")
+    isValidation = "validation" == requestPathParts[-1] or "validation" == requestPathParts[-2]
     view = request.query.view
     viewArcrole = request.query.viewArcrole
     sourceZipStream = None
-    if request.method == 'POST':
+    if request.method == "POST":
         mimeType = request.get_header("Content-Type")
         if mimeType and mimeType.startswith("multipart/form-data"):
             if upload := request.files.get("upload"):
                 sourceZipStream = FileNamedBytesIO(upload.filename, upload.file.read())
             else:
                 errors.append(_("POST 'multipart/form-data' request must include 'upload' part containing the XBRL file to process."))
-        elif mimeType in ('application/zip', 'application/x-zip', 'application/x-zip-compressed', 'multipart/x-zip'):
+        elif mimeType in ("application/zip", "application/x-zip", "application/x-zip-compressed", "multipart/x-zip"):
             sourceZipStream = FileNamedBytesIO(request.get_header("X-File-Name"), request.body.read())
         else:
             errors.append(_("POST request must provide an XBRL zip file to process. Content-Type '{0}' not recognized as a zip file.").format(mimeType))
@@ -307,20 +307,20 @@ def validation(file: str | None = None) -> str | bytes:
     if isValidation:
         if view or viewArcrole:
             errors.append(_("Only validation or one view can be specified in one requested."))
-        if media not in ('xml', 'xhtml', 'html', 'json', 'text', 'zip') and not (sourceZipStream and media == 'zip'):
+        if media not in ("xml", "xhtml", "html", "json", "text", "zip") and not (sourceZipStream and media == "zip"):
             errors.append(_("Media '{0}' is not supported for validation (please select xhtml, html, xml, json or text)").format(media))
     elif view or viewArcrole:
-        if media not in ('xml', 'xhtml', 'html', 'csv', 'xlsx', 'json'):
+        if media not in ("xml", "xhtml", "html", "csv", "xlsx", "json"):
             errors.append(_("Media '{0}' is not supported for view (please select xhtml, html, xml, csv, xlsx or json)").format(media))
     elif requestPathParts[-1] not in ("open", "close"):
         errors.append(_("Neither validation nor view requested, nothing to do."))
-    if (flavor not in ('standard', 'standard-except-formula', 'formula-compile-only', 'formula-compile-and-run')
-        and not flavor.startswith('edgar') and not flavor.startswith('sec')):
+    if (flavor not in ("standard", "standard-except-formula", "formula-compile-only", "formula-compile-and-run")
+        and not flavor.startswith("edgar") and not flavor.startswith("sec")):
         errors.append(_("Flavor '{0}' is not supported").format(flavor))
     if view and view not in supportedViews:
         errors.append(_("View '{0}' is not supported").format(view))
     if errors:
-        errors.insert(0, _("URL: ") + (file or request.query.file or '(no file)'))
+        errors.insert(0, _("URL: ") + (file or request.query.file or "(no file)"))
         return errorReport(errors, media)
     options = getRuntimeOptions()
     isFormulaOnly = False
@@ -349,7 +349,7 @@ def validation(file: str | None = None) -> str | bytes:
             # common support issue.
             options.calcs = value
         elif key == "packages":
-            packages = value.split('|')
+            packages = value.split("|")
             if options.packages:
                 options.packages.extend(packages)
             else:
@@ -362,8 +362,8 @@ def validation(file: str | None = None) -> str | bytes:
         else:
             setattr(options, key, value)
     if file:
-        options.entrypointFile = file.replace(';','/')
-    requestPathParts = set(request.urlparts[2].split('/'))
+        options.entrypointFile = file.replace(";","/")
+    requestPathParts = set(request.urlparts[2].split("/"))
     viewFile = None
     if isValidation:
         if not isFormulaOnly:
@@ -408,17 +408,17 @@ def runOptionsAndGetResult(
     cntlr = getCntlr()
     successful = cntlr.run(options, sourceZipStream, responseZipStream)
     if media == "xml":
-        response.content_type = 'text/xml; charset=UTF-8'
+        response.content_type = "text/xml; charset=UTF-8"
     elif media == "csv":
-        response.content_type = 'text/csv; charset=UTF-8'
+        response.content_type = "text/csv; charset=UTF-8"
     elif media == "json":
-        response.content_type = 'application/json; charset=UTF-8'
+        response.content_type = "application/json; charset=UTF-8"
     elif media == "text":
-        response.content_type = 'text/plain; charset=UTF-8'
+        response.content_type = "text/plain; charset=UTF-8"
     elif media == "zip":
-        response.content_type = 'application/zip; charset=UTF-8'
+        response.content_type = "application/zip; charset=UTF-8"
     else:
-        response.content_type = 'text/html; charset=UTF-8'
+        response.content_type = "text/html; charset=UTF-8"
     logHandler = getLogHandler()
     result: bytes | str
     if successful and viewFile:
@@ -466,7 +466,7 @@ def diff() -> str:
         options.versReportFile = fh
         getCntlr().run(options)
         reportContents = fh.getvalue()
-    response.content_type = 'text/xml; charset=UTF-8'
+    response.content_type = "text/xml; charset=UTF-8"
     return reportContents
 
 def configure() -> str:
@@ -474,7 +474,7 @@ def configure() -> str:
 
     :returns: html -- Status of configuration request (e.g., proxy or plug-ins).
     """
-    if not request.query.proxy and not request.query.plugins and not request.query.packages and 'environment' not in request.query:
+    if not request.query.proxy and not request.query.plugins and not request.query.packages and "environment" not in request.query:
         return _("proxy, plugins, packages or environment must be specified")
     options = getRuntimeOptions()
     if request.query.proxy:
@@ -483,13 +483,13 @@ def configure() -> str:
         _rejectRemotePlugins(request.query.plugins)
         options.plugins = request.query.plugins
     if request.query.packages:
-        options.packages = request.query.packages.split('|')
+        options.packages = request.query.packages.split("|")
     setRuntimeOptions(options)
-    if 'environment' in request.query:
+    if "environment" in request.query:
         options.showEnvironment = True
     cntlr = getCntlr()
     cntlr.run(options)
-    response.content_type = 'text/html; charset=UTF-8'
+    response.content_type = "text/html; charset=UTF-8"
     logHandler = getLogHandler()
     return htmlBody(tableRows(logHandler.getLines(), header=_("Configuration Request")))
 
@@ -501,7 +501,7 @@ def stopWebServer() -> str:
         import signal
         os.kill(_os_pid, signal.SIGTERM)
     threading.Thread(target=stopSoon, args=(2.5,), daemon=True).start()
-    response.content_type = 'text/html; charset=UTF-8'
+    response.content_type = "text/html; charset=UTF-8"
     return htmlBody(tableRows((time.strftime("Received at %Y-%m-%d %H:%M:%S"),
                                "Good bye...",),
                               header=_("Stop Request")))
@@ -519,7 +519,7 @@ def quickbooksServer() -> str:
     (Part of QuickBooks protocol, see module CntlrQuickBooks.)
     """
     from arelle import CntlrQuickBooks
-    response.content_type = 'text/xml; charset=UTF-8'
+    response.content_type = "text/xml; charset=UTF-8"
     cntlr = getCntlr()
     return CntlrQuickBooks.server(cntlr, request.body, request.urlparts)
 
@@ -532,15 +532,15 @@ def quickbooksGLrequest(qbReport: str | None = None, file: str | None = None) ->
     from arelle.CntlrQuickBooks import qbRequest, supportedQbReports
     from arelle.ModelValue import dateTime
     errors = []
-    requestPathParts = request.urlparts[2].split('/')
+    requestPathParts = request.urlparts[2].split("/")
     viewRequested = "view" == requestPathParts[-1]
-    media = request.query.media or 'html'
+    media = request.query.media or "html"
     fromDate = request.query.fromDate
     toDate = request.query.toDate
     if qbReport not in supportedQbReports:
         errors.append(_("QuickBooks report '{0}' is not supported (please select from: {1})").format(
-                          qbReport, ', '.join(supportedQbReports)))
-    if media not in ('xml', 'xhtml', 'html'):
+                          qbReport, ", ".join(supportedQbReports)))
+    if media not in ("xml", "xhtml", "html"):
         errors.append(_("Media '{0}' is not supported for xbrl-gl (please select xhtml, html or xml)").format(media))
     if not fromDate or dateTime(fromDate) is None:
         errors.append(_("FromDate '{0}' missing or not valid").format(fromDate))
@@ -549,14 +549,14 @@ def quickbooksGLrequest(qbReport: str | None = None, file: str | None = None) ->
     if errors:
         return errorReport(errors, media)
     ticket = qbRequest(qbReport, fromDate, toDate, file)
-    result = htmlBody(tableRows([_("Request queued for QuickBooks...")], header=_("Quickbooks Request")), script='''
+    result = htmlBody(tableRows([_("Request queued for QuickBooks...")], header=_("Quickbooks Request")), script="""
 <script type="text/javascript">
 <!--
 var timer = setInterval("autoRefresh()", 1000 * 10);
 function autoRefresh(){{location.href = "/rest/quickbooks/response?ticket={0}&media={1}&view={2}";}}
 //-->
 </script>
-'''.format(ticket, media, viewRequested))
+""".format(ticket, media, viewRequested))
     return result
 
 def quickbooksGLresponse() -> str | bytes:
@@ -577,14 +577,14 @@ def quickbooksGLresponse() -> str | bytes:
     if status != "Done" or ticket not in CntlrQuickBooks.xbrlInstances:
         return htmlBody(tableRows([_("{0}, Waiting 20 seconds...").format(status)],
                                   header=_("Quickbooks Request")),
-                                  script='''
+                                  script="""
 <script type="text/javascript">
 <!--
 var timer = setInterval("autoRefresh()", 1000 * 20);
 function autoRefresh(){{clearInterval(timer);self.location.reload(true);}}
 //-->
 </script>
-''')
+""")
     CntlrQuickBooks.qbRequestStatus.pop(ticket)
 
     instanceUuid = CntlrQuickBooks.xbrlInstances[ticket]
@@ -596,11 +596,11 @@ function autoRefresh(){{clearInterval(timer);self.location.reload(true);}}
     return runOptionsAndGetResult(options, media, viewFile)
 
 def quickbooksWebPage() -> str:
-    return htmlBody(_('''<table width="700p">
+    return htmlBody(_("""<table width="700p">
 <tr><th colspan="2">Arelle QuickBooks Global Ledger Interface</th></tr>
 <tr><td>checkbox</td><td>Trial Balance.</td></tr>
 <tr><td>close button</td><td>Done</td></tr>
-</table>'''))
+</table>"""))
 
 def localhostCertificate() -> str:
     """Interface to QuickBooks server responding to  *get* requests for a host certificate */quickbooks/localhost.crt* or */localhost.crt*.
@@ -609,7 +609,7 @@ def localhostCertificate() -> str:
 
     :returns: self-signed certificate
     """
-    return '''
+    return """
 -----BEGIN CERTIFICATE-----
 MIIDljCCAn4CAQAwDQYJKoZIhvcNAQEEBQAwgZAxCzAJBgNVBAYTAlVTMRMwEQYD
 VQQIEwpDYWxpZm9ybmlhMQ8wDQYDVQQHEwZFbmNpbm8xEzARBgNVBAoTCmFyZWxs
@@ -632,7 +632,7 @@ QnJ9IaIU1HOusplC13A0tKhmRMGNz9v+Vqdj7J/kpdTH7FNMulrJTv/0ezTPjaOB
 QhpLdqly7hWJ23blbQQv4ILT2CiPDotJslcKDT7GzvPoDu6rIs2MpsB/4RDYejYU
 +3cu//C8LvhjkQ==
 -----END CERTIFICATE-----
-'''
+"""
 
 def helpREST() -> str:
     """Help web page for *get* requests to */help*.
@@ -640,7 +640,7 @@ def helpREST() -> str:
     :returns: html - Table of CntlrWebMain web API
     """
     cntlr = getCntlr()
-    return htmlBody(_('''<table>
+    return htmlBody(_("""<table>
 <tr><th colspan="2">Arelle web API</th></tr>
 <tr><td>/help</td><td>This web page.</td></tr>
 <tr><td>/about</td><td>About web page, copyrights, etc.</td></tr>
@@ -652,8 +652,8 @@ Do not expose it to untrusted users or networks.</td></tr>
 
 <tr><th colspan="2">Validation</th></tr>
 <tr><td>/rest/xbrl/{file}/validation/xbrl</td><td>Validate document at {file}.</td></tr>
-''') +
-(_('''
+""") +
+(_("""
 <tr><td>\u00A0</td><td>For an http POST of a zip file (mime type application/zip), {file} is the relative file path inside the zip file.</td></tr>
 <tr><td>\u00A0</td><td>For an http GET request, {file} may be a web url, and may have "/" characters replaced by ";" characters
 (but that is not necessary).</td></tr>
@@ -662,9 +662,9 @@ document in the POSTed zip archived file c.xbrl and return structured xml result
 <tr><td>/rest/xbrl/validation</td><td>(Alternative syntax) Validate document, file is provided as a parameter (see below).</td></tr>
 <tr><td style="text-align=right;">Example:</td><td><code>/rest/xbrl/validation?file=c.xbrl&amp;media=xml</code>: Validate entry instance
 document c.xbrl (in POSTed zip) and return structured xml results.</td></tr>
-''')
+""")
 if cntlr.isGAE else
-_('''
+_("""
 <tr><td>\u00A0</td><td>For a browser request or http GET request, {file} may be local or web url, and may have "/" characters replaced by ";" characters
 (but that is not necessary).</td></tr>
 <tr><td style="text-align=right;">Example:</td><td><code>/rest/xbrl/c:/a/b/c.xbrl/validation/xbrl?media=xml</code>: Validate entry instance
@@ -673,8 +673,8 @@ document at c:/a/b/c.xbrl (on local drive) and return structured xml results.</t
 <tr><td>/rest/xbrl/validation</td><td>(Alternative syntax) Validate document, file is provided as a parameter (see below).</td></tr>
 <tr><td style="text-align=right;">Example:</td><td><code>/rest/xbrl/validation?file=c:/a/b/c.xbrl&amp;media=xml</code>: Validate entry instance
 document at c:/a/b/c.xbrl (on local drive) and return structured xml results.</td></tr>
-''')) +
-_(r'''
+""")) +
+_(r"""
 <tr><td></td><td>Parameters are optional after "?" character, and are separated by "&amp;" characters,
 as follows:</td></tr>
 <tr><td style="text-indent: 1em;">flavor</td><td><code>standard</code>: XBRL 2.1 and XDT validation.  (If formulas are present they will also be compiled and run.)  (default)
@@ -834,11 +834,11 @@ Enter 'show' to view packages configuration, , or '|' separated package URLs:
 (Note that packages are transient on Google App Engine, specify with &amp;packages to other rest commands.)
 </td></tr>
 <tr><td style="text-indent: 1em;">environment</td><td>Show host environment (config and cache directories).</td></tr>
-''') +
-(_('''
+""") +
+(_("""
 <tr><td>/rest/stopWebServer</td><td>Shut down (terminate process after 2.5 seconds delay).</td></tr>
-''') if cntlr.isGAE else '') +
-'</table>')
+""") if cntlr.isGAE else "") +
+"</table>")
 
 def about(arelleImgFile: str | None = None) -> str:
     from lxml import etree
@@ -847,7 +847,7 @@ def about(arelleImgFile: str | None = None) -> str:
     :returns: html - About web page
     """
     cntlr = getCntlr()
-    return htmlBody(_('''<table width="700p">
+    return htmlBody(_("""<table width="700p">
 <tr><th colspan="2">About arelle</th></tr>
 <tr><td rowspan="12" style="vertical-align:top;"><img src="%s"/></td><td>arelle&reg; %s (%sbit). An open source XBRL platform</td></tr>
 <tr><td>&copy; 2011-present Workiva, Inc..  All rights reserved.</td></tr>
@@ -864,7 +864,7 @@ See the License for the specific language governing permissions and limitations 
 <tr><td style="text-indent: 2.0em;">PyParsing &copy; 2003-2010 Paul T. McGuire</td></tr>
 <tr><td style="text-indent: 2.0em;">lxml %s.%s.%s &copy; 2004 Infrae, ElementTree &copy; 1999-2004 by Fredrik Lundh</td></tr>
 <tr><td style="text-indent: 2.0em;">Bottle &copy; 2011 Marcel Hellkamp</td></tr>
-</table>''') % (arelleImgFile or '/images/arelle32.gif',
+</table>""") % (arelleImgFile or "/images/arelle32.gif",
                 Version.__version__, cntlr.systemWordSize,
                 sys.version_info[0],sys.version_info[1],sys.version_info[2],
                 etree.LXML_VERSION[0],etree.LXML_VERSION[1],etree.LXML_VERSION[2]) )
@@ -874,23 +874,23 @@ def indexPageREST() -> str:
 
     :returns: html - Web page of choices to navigate to */help* or */about*.
     """
-    return htmlBody(_('''<table width="700p">
+    return htmlBody(_("""<table width="700p">
 <tr><th colspan="2">Arelle Web Services</th></tr>
 <tr><td>/help</td><td>Help web page, web services API.</td></tr>
 <tr><td>/about</td><td>About web page, copyrights, license, included software.</td></tr>
-</table>'''))
+</table>"""))
 
 def indexPageCGI() -> str:
     """Default web page response for *get* CGI request with no parameters.
 
     :returns: html - Web page of choices to navigate to *?help* or *?about*.
     """
-    return htmlBody(_('''<table width="700p">
+    return htmlBody(_("""<table width="700p">
 <tr><th colspan="2">Arelle CGI Services</th></tr>
 <tr><td>?help</td><td>Help web page, CGI services.</td></tr>
 <tr><td>?about</td><td>About web page, copyrights, license, included software.</td></tr>
 <tr><td>REST API</td><td>The Arelle REST API is supported through CGI if the entire CGI path is wildcard-mapped to the arelleCmdLine executable.</td></tr>
-</table>'''))
+</table>"""))
 
 
 def htmlBody(body: str, script: str = "") -> str:
@@ -903,7 +903,7 @@ def htmlBody(body: str, script: str = "") -> str:
     :returns: html - Web page of choices to navigate to */help* or */about*.
     """
     cntlr = getCntlr()
-    return '''
+    return """
 <?xml version="1.0" encoding="utf-8"?>
 <html xmlns="http://www.w3.org/1999/xhtml" dir="%s">
 %s    <head>
@@ -921,7 +921,7 @@ def htmlBody(body: str, script: str = "") -> str:
     %s
     </body>
 </html>
-''' % (cntlr.uiLangDir, script, body)
+""" % (cntlr.uiLangDir, script, body)
 
 def tableRows(lines: Iterable[str], header: str | None = None) -> str:
     """Wraps lines of text into a one-column table (for display of text results of operations, such as processing messages and status, to web browser).
@@ -947,26 +947,26 @@ def errorReport(errors: list[str], media: str = "html") -> str:
     :returns: html - <table> html string.
     """
     if media == "text":
-        response.content_type = 'text/plain; charset=UTF-8'
-        return '\n'.join(errors)
+        response.content_type = "text/plain; charset=UTF-8"
+        return "\n".join(errors)
     else:
-        response.content_type = 'text/html; charset=UTF-8'
+        response.content_type = "text/html; charset=UTF-8"
         return htmlBody(tableRows(errors, header=_("Messages")))
 
 def multipartResponse(parts: tuple[tuple[str, str, str], ...]) -> str:
     # call with ( (filename, contentType, content), ...)
-    boundary='----multipart-boundary-%s----' % (uuid.uuid1(),)
-    response.content_type = 'multipart/mixed; boundary=%s' % (boundary,)
+    boundary="----multipart-boundary-%s----" % (uuid.uuid1(),)
+    response.content_type = "multipart/mixed; boundary=%s" % (boundary,)
     buf = []
 
     for filename, contentType, content in parts:
         buf.append("\r\n" + boundary + "\r\n")
         buf.append('Content-Disposition: attachment; filename="{0}";\r\n'.format(filename))
-        buf.append('Content-Type: {0};\r\n'.format(contentType))
-        buf.append('Content-Length: {0}\r\n'.format(len(content)))
-        buf.append('\r\n')
+        buf.append("Content-Type: {0};\r\n".format(contentType))
+        buf.append("Content-Length: {0}\r\n".format(len(content)))
+        buf.append("\r\n")
         buf.append(content)
     buf.append("\r\n" + boundary + "\r\n")
-    s = ''.join(buf)
+    s = "".join(buf)
     response.content_length = len(s)
     return s

@@ -91,7 +91,7 @@ class LinkRelationships:
         global ModelRelationship
         if ModelRelationship is None:
             from arelle.ModelDtsObject import ModelRelationship
-        linkElement = cast('ModelLink | LinkPrototype', self)
+        linkElement = cast("ModelLink | LinkPrototype", self)
         linkrole = linkElement.role
         labeledResources = linkElement.labeledResources
         modelDocument = linkElement.modelDocument
@@ -110,11 +110,11 @@ class LinkRelationships:
             for fromResource in labeledResources[fromLabel]:
                 if not isinstance(fromResource, (ModelResourceBase, LocPrototypeBase)):
                     continue
-                fromResourceTyped = cast('ModelResource | LocPrototype', fromResource)
+                fromResourceTyped = cast("ModelResource | LocPrototype", fromResource)
                 for toResource in labeledResources[toLabel]:
                     if not isinstance(toResource, (ModelResourceBase, LocPrototypeBase)):
                         continue
-                    toResourceTyped = cast('ModelResource | LocPrototype', toResource)
+                    toResourceTyped = cast("ModelResource | LocPrototype", toResource)
                     fromResourceElement = fromResourceTyped.dereference()
                     toResourceElement = toResourceTyped.dereference()
                     modelRel = ModelRelationship(modelDocument, linkChild, fromResourceElement, toResourceElement, linkrole=linkrole)  # type: ignore[arg-type]

@@ -78,7 +78,7 @@ VALID_EXPECTED_ERRORS = _merge_expected_error_maps(
     VALID_EXPECTED_ERRORS,
     {
         # 2026 samples are mostly the same as 2025, so start from a copy.
-        k.replace('valid/index.xml:', 'samples/2026/index.xml:'): v
+        k.replace("valid/index.xml:", "samples/2026/index.xml:"): v
         for k, v in VALID_EXPECTED_ERRORS.items()
     },{
         # 2026 sample introduced invalid `sign="-"` to a couple of facts.
@@ -275,28 +275,28 @@ EXPECTED_ADDITIONAL_TESTCASE_ERRORS = _merge_expected_error_maps(
 config = ConformanceSuiteConfig(
     assets=[
         ConformanceSuiteAssetConfig.local_conformance_suite(
-            Path('edinet'),
-            entry_point=Path('index.xml'),
+            Path("edinet"),
+            entry_point=Path("index.xml"),
         ),
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('edinet-2025.zip'),
+            Path("edinet-2025.zip"),
             # with added META-INF
-            public_download_url='https://www.fsa.go.jp/search/20241112/1c_Taxonomy.zip',
+            public_download_url="https://www.fsa.go.jp/search/20241112/1c_Taxonomy.zip",
         ),
         ConformanceSuiteAssetConfig.public_taxonomy_package(
-            Path('edinet-2026.zip'),
+            Path("edinet-2026.zip"),
             # with added META-INF
-            public_download_url='https://www.fsa.go.jp/search/20251111/1c_Taxonomy.zip',
+            public_download_url="https://www.fsa.go.jp/search/20251111/1c_Taxonomy.zip",
         ),
     ],
-    base_taxonomy_validation='none',
-    disclosure_system='EDINET-2025',
-    disclosure_system_by_prefix=[('samples/2026/', 'EDINET-2026')],
+    base_taxonomy_validation="none",
+    disclosure_system="EDINET-2025",
+    disclosure_system_by_prefix=[("samples/2026/", "EDINET-2026")],
     expected_additional_testcase_errors={f"*{s}": val for s, val in EXPECTED_ADDITIONAL_TESTCASE_ERRORS.items()},
     expected_failure_ids=frozenset([]),
-    info_url='https://disclosure2.edinet-fsa.go.jp/weee0020.aspx',
+    info_url="https://disclosure2.edinet-fsa.go.jp/weee0020.aspx",
     name=PurePath(__file__).stem,
-    plugins=frozenset({'validate/EDINET', 'inlineXbrlDocumentSet'}),
+    plugins=frozenset({"validate/EDINET", "inlineXbrlDocumentSet"}),
     shards=4,
-    test_case_result_options='match-all',
+    test_case_result_options="match-all",
 )

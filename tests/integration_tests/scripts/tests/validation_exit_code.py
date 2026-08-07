@@ -23,8 +23,8 @@ arelle_offline = args.offline
 working_directory = args.working_directory
 test_directory = args.test_directory
 arelle_log_file = prepare_logfile(test_directory, this_file)
-samples_zip_path = test_directory / 'samples.zip'
-samples_directory = test_directory / 'samples'
+samples_zip_path = test_directory / "samples.zip"
+samples_directory = test_directory / "samples"
 warning_target_path = samples_directory / "warning.xbrl"
 error_target_path = samples_directory / "error.xbri"
 print(f"Downloading samples: {samples_zip_path}")

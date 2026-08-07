@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 import json
@@ -355,7 +355,7 @@ class DisclosureSystem:
                 status = _("loaded")
             else:
                 status = _("unable to load disclosure system {}").format(name)
-                self.modelManager.cntlr.addToLog(_("Disclosure System \"%(name)s\" not recognized (a plug-in may be needed)."),
+                self.modelManager.cntlr.addToLog(_('Disclosure System "%(name)s" not recognized (a plug-in may be needed).'),
                                                  messageCode="arelle:disclosureSystemName",
                                                  messageArgs={"name": name}, level=logging.ERROR)
 
@@ -363,7 +363,7 @@ class DisclosureSystem:
                 etree.LxmlError) as err:
             status = _("exception during loading")
             result = False
-            self.modelManager.cntlr.addToLog(_("Disclosure System \"%(name)s\" loading error: %(error)s"),
+            self.modelManager.cntlr.addToLog(_('Disclosure System "%(name)s" loading error: %(error)s'),
                                              messageCode="arelle:disclosureSystemLoadingError",
                                              messageArgs={"error": str(err), "name": name}, level=logging.ERROR)
             etree.clear_error_log()
@@ -440,7 +440,7 @@ class DisclosureSystem:
 
             except (EnvironmentError,
                     etree.LxmlError) as err:
-                self.modelManager.cntlr.addToLog(_("Disclosure System \"%(name)s\" import %(importFile)s, error: %(error)s"),
+                self.modelManager.cntlr.addToLog(_('Disclosure System "%(name)s" import %(importFile)s, error: %(error)s'),
                                                  messageCode="arelle:disclosureSystemImportError",
                                                  messageArgs={"error": str(err), "name": self.name, "importFile": basename},
                                                  level=logging.ERROR)
@@ -484,7 +484,7 @@ class DisclosureSystem:
                                 self.validTaxonomiesDict[href] = "Allowed" + attType
             except (EnvironmentError,
                     etree.LxmlError) as err:
-                self.modelManager.cntlr.addToLog(_("Disclosure System \"%(name)s\" import %(importFile)s, error: %(error)s"),
+                self.modelManager.cntlr.addToLog(_('Disclosure System "%(name)s" import %(importFile)s, error: %(error)s'),
                                                  messageCode="arelle:disclosureSystemImportError",
                                                  messageArgs={"error": str(err), "name": self.name, "importFile": basename},
                                                  level=logging.ERROR)
@@ -502,7 +502,7 @@ class DisclosureSystem:
                 self.mappedPaths.append((elt.get("from"), elt.get("to")))  # type: ignore[arg-type]
         except (EnvironmentError,
                 etree.LxmlError) as err:
-            self.modelManager.cntlr.addToLog(_("Disclosure System \"%(name)s\" import %(importFile)s, error: %(error)s"),
+            self.modelManager.cntlr.addToLog(_('Disclosure System "%(name)s" import %(importFile)s, error: %(error)s'),
                                              messageCode="arelle:disclosureSystemImportError",
                                              messageArgs={"error": str(err), "name": self.name, "importFile": basename},
                                              level=logging.ERROR)

@@ -28,10 +28,10 @@ class DeiRequirements:
 
     def _load(self) -> dict[QName, dict[FilingFormat, DeiItemStatus | None]]:
         if self._data is None:
-            with open(self._csvPath, encoding='utf-8') as f:
+            with open(self._csvPath, encoding="utf-8") as f:
                 data = [
                     [
-                        DeiItemStatus.parse(cell) for cell in line.strip().split(',')
+                        DeiItemStatus.parse(cell) for cell in line.strip().split(",")
                     ]
                     for line in f.readlines()
                 ]
@@ -60,10 +60,10 @@ class DeiRequirements:
 
 class DeiItemStatus(Enum):
     # The values of the enum correspond to the symbols used in the spreadsheet.
-    PROHIBITED = '×'
-    OPTIONAL = '△'
-    CONDITIONAL = '○'
-    REQUIRED = '◎'
+    PROHIBITED = "×"
+    OPTIONAL = "△"
+    CONDITIONAL = "○"
+    REQUIRED = "◎"
 
     @classmethod
     def parse(cls, value: str) -> DeiItemStatus | None:
@@ -77,42 +77,42 @@ class DeiItemStatus(Enum):
 # The order is preserved. The index is used to map to other data structures.
 DEI_LOCAL_NAMES = (
     # Submitter Information (提出者情報)
-    'EDINETCodeDEI',
-    'FundCodeDEI',
-    'SecurityCodeDEI',
-    'FilerNameInJapaneseDEI',
-    'FilerNameInEnglishDEI',
-    'FundNameInJapaneseDEI',
-    'FundNameInEnglishDEI',
+    "EDINETCodeDEI",
+    "FundCodeDEI",
+    "SecurityCodeDEI",
+    "FilerNameInJapaneseDEI",
+    "FilerNameInEnglishDEI",
+    "FundNameInJapaneseDEI",
+    "FundNameInEnglishDEI",
 
     # Document Submission Information (提出書類情報)
-    'CabinetOfficeOrdinanceDEI',
-    'DocumentTypeDEI',
-    'AccountingStandardsDEI',
-    'WhetherConsolidatedFinancialStatementsArePreparedDEI',
-    'IndustryCodeWhenConsolidatedFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI',
-    'IndustryCodeWhenFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI',
+    "CabinetOfficeOrdinanceDEI",
+    "DocumentTypeDEI",
+    "AccountingStandardsDEI",
+    "WhetherConsolidatedFinancialStatementsArePreparedDEI",
+    "IndustryCodeWhenConsolidatedFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI",
+    "IndustryCodeWhenFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI",
 
     # Current Fiscal Year (当会計期間)
-    'CurrentFiscalYearStartDateDEI',
-    'CurrentPeriodEndDateDEI',
-    'TypeOfCurrentPeriodDEI',
-    'CurrentFiscalYearEndDateDEI',
+    "CurrentFiscalYearStartDateDEI",
+    "CurrentPeriodEndDateDEI",
+    "TypeOfCurrentPeriodDEI",
+    "CurrentFiscalYearEndDateDEI",
 
     # Previous Fiscal Year (比較対象会計期間)
-    'PreviousFiscalYearStartDateDEI',
-    'ComparativePeriodEndDateDEI',
-    'PreviousFiscalYearEndDateDEI',
+    "PreviousFiscalYearStartDateDEI",
+    "ComparativePeriodEndDateDEI",
+    "PreviousFiscalYearEndDateDEI",
 
     # Next Fiscal Year (次の中間期の会計期間)
-    'NextFiscalYearStartDateDEI',
-    'EndDateOfQuarterlyOrSemiAnnualPeriodOfNextFiscalYearDEI',
+    "NextFiscalYearStartDateDEI",
+    "EndDateOfQuarterlyOrSemiAnnualPeriodOfNextFiscalYearDEI",
 
-    'NumberOfSubmissionDEI',
-    'AmendmentFlagDEI',
-    'IdentificationOfDocumentSubjectToAmendmentDEI',
+    "NumberOfSubmissionDEI",
+    "AmendmentFlagDEI",
+    "IdentificationOfDocumentSubjectToAmendmentDEI",
 
     # Type of Correction (訂正の種類)
-    'ReportAmendmentFlagDEI',
-    'XBRLAmendmentFlagDEI',
+    "ReportAmendmentFlagDEI",
+    "XBRLAmendmentFlagDEI",
 )

@@ -1,8 +1,8 @@
-'''
+"""
 Sample custom functions plugin for formula custom functions
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from arelle import XbrlUtil
 from arelle.formula import XPathContext
 from arelle.ModelValue import qname
@@ -48,12 +48,12 @@ def customFunctions():
     }
 
 __pluginInfo__ = {
-    'name': 'Custom Formula Functions (example)',
-    'version': '1.0',
-    'description': "This plug-in adds a custom function implemented by a plug-in.  ",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "Custom Formula Functions (example)",
+    "version": "1.0",
+    "description": "This plug-in adds a custom function implemented by a plug-in.  ",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'Formula.CustomFunctions': customFunctions,
+    "Formula.CustomFunctions": customFunctions,
 }

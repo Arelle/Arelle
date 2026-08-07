@@ -43,7 +43,7 @@ def rule_frta_2_1_9(
             errors.append(elt)
     if len(errors) > 0:
         yield Validation.warning(
-            codes='EDINET.EC5710W.FRTA.2.1.9',
+            codes="EDINET.EC5710W.FRTA.2.1.9",
             msg=_("All documentation of a concept must be contained in XBRL linkbases. "
                   "Taxonomy element declarations should not use the XML Schema documentation element."),
             modelObject=errors,
@@ -71,7 +71,7 @@ def rule_frta_2_1_10(
             errors.append(concept)
     if len(errors) > 0:
         yield Validation.warning(
-            codes='EDINET.EC5710W.FRTA.2.1.10',
+            codes="EDINET.EC5710W.FRTA.2.1.10",
             msg=_("All extension taxonomy concepts must have a standard label. "
                   "A standard label is not specified for a concept in an "
                   "extension taxonomy. When adding a concept to an extension taxonomy, "
@@ -142,13 +142,13 @@ def rule_frta_2_1_11(
         for role, duplicateLabels in duplicateLabelsByRole.items():
             for value, concepts in duplicateLabels:
                 yield Validation.warning(
-                    codes='EDINET.EC5710W.FRTA.2.1.11',
+                    codes="EDINET.EC5710W.FRTA.2.1.11",
                     msg=_("All concepts within a taxonomy schema should have a unique label for the "
                           "standard or verbose role in each language used. "
                           "The %(role)s label contains a duplicate label ('%(value)s') in the same "
                           "language ('%(lang)s'). Define either the standard label or the verbose label "
                           "so that they are unique in the same language."),
-                    role='standard' if role == XbrlConst.standardLabel else 'verbose',
+                    role="standard" if role == XbrlConst.standardLabel else "verbose",
                     value=value,
                     lang=lang,
                     modelObject=concepts,
@@ -177,7 +177,7 @@ def rule_frta_3_1_10(
                 errors.append(roleType)
     if len(errors) > 0:
         yield Validation.warning(
-            codes='EDINET.EC5710W.FRTA.3.1.10',
+            codes="EDINET.EC5710W.FRTA.3.1.10",
             msg=_("Role types defined in the extension taxonomy must have a definition."),
             modelObject=errors,
         )
@@ -204,7 +204,7 @@ def rule_frta_4_2_2(
         schemaElts = {elt for elt in modelDocument.xmlRootElement.iterdescendants(XbrlConst.qnXsdSchema.clarkNotation)}
         if len(schemaElts) > 0:
             yield Validation.warning(
-                codes='EDINET.EC5710W.FRTA.4.2.2',
+                codes="EDINET.EC5710W.FRTA.4.2.2",
                 msg=_("The root of a taxonomy schema file MUST be the XMLSchema element."),
                 modelObject=modelDocument,
             )
@@ -229,20 +229,20 @@ def rule_frta_4_2_4(
         if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl) or not modelDocument.type == ModelDocumentType.SCHEMA:
             continue
         rootElt = modelDocument.xmlRootElement
-        if rootElt.get('elementFormDefault') != 'qualified' or rootElt.get('attributeFormDefault') != 'unqualified':
+        if rootElt.get("elementFormDefault") != "qualified" or rootElt.get("attributeFormDefault") != "unqualified":
             yield Validation.warning(
-                codes='EDINET.EC5710W.FRTA.4.2.4',
+                codes="EDINET.EC5710W.FRTA.4.2.4",
                 msg=_("The XMLSchema root in taxonomy schema files must have the 'elementFormDefault' attribute set as "
                       "'qualified' and the 'attributeFormDefault' attribute set as 'unqualified'"),
                 modelObject=modelDocument,
             )
         formUsages = []
         for elt in rootElt.iterdescendants([XbrlConst.qnXsdElement.clarkNotation, XbrlConst.qnXsdAttribute.clarkNotation]):
-            if elt.get('form') is not None:
+            if elt.get("form") is not None:
                 formUsages.append(elt)
         if len(formUsages) > 0:
             yield Validation.warning(
-                codes='EDINET.EC5710W.FRTA.4.2.4',
+                codes="EDINET.EC5710W.FRTA.4.2.4",
                 msg=_("The 'form' attribute is not allowed on 'xsd:element' or 'xsd:attribute' declarations in a schema file"),
                 modelObject=formUsages,
             )
@@ -270,7 +270,7 @@ def rule_frta_4_2_7(
         }
         if len(usedLangs) > 1:
             yield Validation.warning(
-                codes='EDINET.EC5710W.FRTA.4.2.7',
+                codes="EDINET.EC5710W.FRTA.4.2.7",
                 msg=_("A label linkbase should only contain labels defined in a single language. This linkbase uses the following languages: %(langs)s"),
                 langs=usedLangs,
                 modelObject=modelDocument,
@@ -294,9 +294,9 @@ def rule_frta_4_2_11(
         if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl) or not modelDocument.type == ModelDocumentType.SCHEMA:
             continue
         rootElt = modelDocument.xmlRootElement
-        if rootElt.get('targetNamespace') is None or rootElt.get('targetNamespace') == "":
+        if rootElt.get("targetNamespace") is None or rootElt.get("targetNamespace") == "":
             yield Validation.warning(
-                codes='EDINET.EC5710W.FRTA.4.2.11',
+                codes="EDINET.EC5710W.FRTA.4.2.11",
                 msg=_("Every schema in a DTS must define a non-empty targetNamespace attribute value."),
                 modelObject=modelDocument,
             )

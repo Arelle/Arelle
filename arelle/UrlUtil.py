@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 import base64
@@ -25,11 +25,11 @@ def stripIxdsSurrogatePrefix(path: str) -> str:
 
 def authority(url: str, includeScheme: bool=True) -> str:
     if url:
-        authSep = url.find(':')
+        authSep = url.find(":")
         if authSep > -1:
             scheme = url[0:authSep]
             authPart = authSep + (3 if scheme in ("http", "https", "ftp") else 1) # allow urn:
-            pathPart = url.find('/', authPart)
+            pathPart = url.find("/", authPart)
             if pathPart > -1:
                 if includeScheme:
                     return url[0:pathPart]
@@ -58,13 +58,13 @@ _malformedPercentEncoding = re.compile(r"%(?![0-9a-fA-F]{2})")
 def splitDecodeFragment(url: str) -> tuple[str, str]:
     if url is None: # urldefrag returns byte strings for none, instead of unicode strings
         return "", ""
-    urlPart, fragPart = url.split('#', 1) if '#' in url else (url, '')
+    urlPart, fragPart = url.split("#", 1) if "#" in url else (url, "")
     return (urlPart, unquote(fragPart, "utf-8"))
 
 def anyUriQuoteForPSVI(uri: str) -> str:
     # only quote if quotable character found
-    if any(c in {' ', '<', '>', '"', '{', '}', '|', '\\', '^', '~', '`'} or
-           not '\x1f' < c < '\x7f'
+    if any(c in {" ", "<", ">", '"', "{", "}", "|", "\\", "^", "~", "`"} or
+           not "\x1f" < c < "\x7f"
            for c in uri):
         return quote(uri, safe="/_.-%#!~*'();?:@&=+$,")
     return uri
@@ -73,7 +73,7 @@ def isValidAbsolute(url: str) -> bool:
     global absoluteUrlPattern
     if absoluteUrlPattern is None:
         absoluteUrlPattern = re.compile(
-            ''' seems to have an error
+            """ seems to have an error
             # from http://stackoverflow.com/questions/827557/how-do-you-validate-a-url-with-a-regular-expression-in-python
             "(?P<scheme>[a-zA-Z][a-zA-Z0-9+.-]*):(?://(?P<iauthority>(?:(?P<iuserinfo>(?:(?:[a-zA-Z0-9._~-]"
             "|[\xa0-\ud7ff\uf900-\ufdcf\ufdf0-\uffef])|%[0-9A-F][0-9A-F]|[!$&'()*+,;=]|:)*)@)?(?P<ihost>"
@@ -132,9 +132,9 @@ def isValidAbsolute(url: str) -> bool:
             "|[\xa0-\ud7ff\uf900-\ufdcf\ufdf0-\uffef])|%[0-9A-F][0-9A-F]|[!$&'()*+,;=]|:|@)|[\ue000-\uf8ff]"
             "|/|\\?)*))?(?:\\#(?P<ifragment>(?:(?:(?:[a-zA-Z0-9._~-]|[\xa0-\ud7ff\uf900-\ufdcf\ufdf0-\uffef])"
             "|%[0-9A-F][0-9A-F]|[!$&'()*+,;=]|:|@)|/|\\?)*))?)"
-            '''
+            """
 
-            ''' for Python 3.3 only
+            """ for Python 3.3 only
             "(?P<scheme>[a-zA-Z][a-zA-Z0-9+.-]*):"
             "(?://(?P<iauthority>(?:(?P<iuserinfo>(?:(?:[a-zA-Z0-9._~-]|"
             "[\xa0-\ud7ff\uf900-\ufdcf\ufdf0-\uffef\U00010000-\U0001fffd\U00020000-\U0002fffd"
@@ -250,7 +250,7 @@ def isValidAbsolute(url: str) -> bool:
             "\U00070000-\U0007fffd\U00080000-\U0008fffd\U00090000-\U0009fffd\U000a0000-\U000afffd"
             "\U000b0000-\U000bfffd\U000c0000-\U000cfffd\U000d0000-\U000dfffd\U000e1000-\U000efffd])"
             "|%[0-9A-F][0-9A-F]|[!$&'()*+,;=]|:|@)|/|\\?)*))?)"
-            '''
+            """
 
             # note this pattern does not process urn: as valid!!!
             # regex to validate a full URL from http://stackoverflow.com/questions/827557/how-do-you-validate-a-url-with-a-regular-expression-in-python/835527#835527
@@ -385,7 +385,7 @@ def ensureUrl(maybeUrl: str) -> str:
     if isAbsolute(maybeUrl) or isHttpUrl(maybeUrl):
         return maybeUrl
     # probably a local file
-    return urljoin('file:', pathname2url(maybeUrl))
+    return urljoin("file:", pathname2url(maybeUrl))
 
 def parseRfcDatetime(rfc2822date: str) -> datetime | None:
     if rfc2822date:
@@ -404,7 +404,7 @@ def relativeUri(baseUri: str, relativeUri: str) -> str: # return uri relative to
     mRelUri = zipRelativeFilePattern.match(relativeUri)
     if mBaseUri and not mRelUri:
         baseUri = mBaseUri.group(1) # remove the zip part so relative URI is within zip
-    return os.path.relpath(relativeUri, os.path.dirname(baseUri)).replace('\\','/')
+    return os.path.relpath(relativeUri, os.path.dirname(baseUri)).replace("\\","/")
 
 
 @overload

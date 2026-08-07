@@ -55,13 +55,13 @@ def checkFilingDimensions(
                 if hasHypercubeArcrole == XbrlConst.all:
                     if not hasHcRel.isClosed and isExtensionObject(val, hasHcRel):
                         val.modelXbrl.error("ESEF.3.4.2.openPositiveHypercubeInDefinitionLinkbase",
-                            _("Hypercubes appearing as target of definition arc with http://xbrl.org/int/dim/arcrole/all arcrole MUST have xbrldt:closed attribute set to \"true\""
+                            _('Hypercubes appearing as target of definition arc with http://xbrl.org/int/dim/arcrole/all arcrole MUST have xbrldt:closed attribute set to "true"'
                               ": hypercube %(hypercube)s, linkrole %(linkrole)s, primary item %(primaryItem)s"),
                             modelObject=hasHcRel, hypercube=hc.qname, linkrole=hasHcRel.linkrole, primaryItem=sourceConcept.qname)
                 elif hasHypercubeArcrole == XbrlConst.notAll:
                     if hasHcRel.isClosed and isExtensionObject(val, hasHcRel):
                         val.modelXbrl.error("ESEF.3.4.2.closedNegativeHypercubeInDefinitionLinkbase",
-                            _("Hypercubes appearing as target of definition arc with http://xbrl.org/int/dim/arcrole/notAll arcrole MUST have xbrldt:closed attribute set to \"false\""
+                            _('Hypercubes appearing as target of definition arc with http://xbrl.org/int/dim/arcrole/notAll arcrole MUST have xbrldt:closed attribute set to "false"'
                               ": hypercube %(hypercube)s, linkrole %(linkrole)s, primary item %(primaryItem)s"),
                             modelObject=hasHcRel, hypercube=hc.qname, linkrole=hasHcRel.linkrole, primaryItem=sourceConcept.qname)
                     if isExtensionObject(val, hasHcRel):
@@ -99,7 +99,7 @@ def checkFilingDimensions(
                (not nsExcl or not nsExclPat.match(cast(str, qn.namespaceURI))))
     if i:
         val.modelXbrl.error("ESEF.3.4.2.extensionTaxonomyLineItemNotLinkedToAnyHypercube",
-            _("Line items that do not require any dimensional information to tag data MUST be linked to the dedicated \"Line items not dimensionally qualified\" hypercube in %(linkrole)s declared in esef_cor.xsd, primary item %(qnames)s"),
+            _('Line items that do not require any dimensional information to tag data MUST be linked to the dedicated "Line items not dimensionally qualified" hypercube in %(linkrole)s declared in esef_cor.xsd, primary item %(qnames)s'),
             modelObject=i, linkrole=lineItemsNotQualifiedLinkroles[0], qnames=", ".join(sorted(str(c.qname) for c in i)))
 
     # check ELRs with WiderNarrower relationships

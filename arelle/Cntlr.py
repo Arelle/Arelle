@@ -51,7 +51,7 @@ if TYPE_CHECKING:
 
 osPrcs: Any = None
 LOG_TEXT_MAX_LENGTH = 32767
-cxFrozen = getattr(sys, 'frozen', False)
+cxFrozen = getattr(sys, "frozen", False)
 
 TypeLogFileName = Union[
     str,
@@ -216,12 +216,12 @@ class Cntlr:
                 configHomeDir = sys.argv[i + 1]
                 break
         if not configHomeDir: # not in argv, may be an environment parameter
-            configHomeDir = os.getenv('XDG_CONFIG_HOME')
+            configHomeDir = os.getenv("XDG_CONFIG_HOME")
         if not configHomeDir:  # look for path configDir/CONFIG_HOME
             configHomeDirFile = os.path.join(self.configDir, "XDG_CONFIG_HOME")
             if os.path.exists(configHomeDirFile):
                 try:
-                    with io.open(configHomeDirFile, 'rt', encoding='utf-8') as f:
+                    with io.open(configHomeDirFile, "rt", encoding="utf-8") as f:
                         configHomeDir = f.read().strip()
                     if configHomeDir and not os.path.isabs(configHomeDir):
                         configHomeDir = os.path.abspath(configHomeDir)  # make into a full path if relative
@@ -245,8 +245,8 @@ class Cntlr:
         elif self.isMSW:
             if self.hasFileSystem and not configHomeDir:
                 tempDir = tempfile.gettempdir()
-                if tempDir.lower().endswith('local\\temp'):
-                    impliedAppDir = tempDir[:-10] + 'local'
+                if tempDir.lower().endswith("local\\temp"):
+                    impliedAppDir = tempDir[:-10] + "local"
                 else:
                     impliedAppDir = tempDir
                 self.userAppDir = os.path.join( impliedAppDir, "Arelle")
@@ -285,18 +285,18 @@ class Cntlr:
             self.configJsonFile = self.userAppDir + os.sep + "config.json"
             if os.path.exists(self.configJsonFile):
                 try:
-                    with io.open(self.configJsonFile, 'rt', encoding='utf-8') as f:
+                    with io.open(self.configJsonFile, "rt", encoding="utf-8") as f:
                         config = json.load(f)
                 except Exception as ex:
                     config = None # restart with a new config
         self.config = config or {
-            'fileHistory': [],
-            'windowGeometry': "{0}x{1}+{2}+{3}".format(800, 500, 200, 100),
+            "fileHistory": [],
+            "windowGeometry": "{0}x{1}+{2}+{3}".format(800, 500, 200, 100),
         }
 
         # start language translation for domain
         self.setUiLanguage(uiLang or self.config.get("userInterfaceLangOverride",None), fallbackToDefault=True)
-        Locale.setDisableRTL(self.config.get('disableRtl', False))
+        Locale.setDisableRTL(self.config.get("disableRtl", False))
 
         # Order is load-bearing:
         # PluginManager initialization can load plugins using the WebCache, but the WebCache uses plugin hooks.
@@ -356,7 +356,7 @@ class Cntlr:
 
     @property
     def uiLangDir(self) -> str:
-        return 'rtl' if getattr(self, 'uiLang', '')[0:2].lower() in {"ar", "he"} else 'ltr'
+        return "rtl" if getattr(self, "uiLang", "")[0:2].lower() in {"ar", "he"} else "ltr"
 
     @property
     def uiLocale(self) -> str | None:
@@ -384,7 +384,7 @@ class Cntlr:
         except OSError:
             if fallbackToDefault and not locale:
                 locale = langCodes[0]
-            isEnglishLocale = locale and locale.lower().startswith('en')
+            isEnglishLocale = locale and locale.lower().startswith("en")
             if fallbackToDefault or isEnglishLocale:
                 self.uiLang = cast(str, locale) if isEnglishLocale else XbrlConst.defaultLocale
                 gettext.install("arelle", self.localeDir)
@@ -457,7 +457,7 @@ class Cntlr:
                 self.logger.setLevel((logLevel or "debug").upper())
             except ValueError:
                 self.addToLog(_("Unknown log level name: {0}, please choose from {1}").format(
-                    logLevel, ', '.join(logging.getLevelName(l).lower()
+                    logLevel, ", ".join(logging.getLevelName(l).lower()
                                         for l in sorted([i for i in logging._levelToName.keys()
                                                          if isinstance(i, int) and i > 0]))),
                               level=logging.ERROR, messageCode="arelle:logLevel")
@@ -519,8 +519,8 @@ class Cntlr:
             except UnicodeEncodeError:
                 # extra parentheses in print to allow for 3-to-2 conversion
                 print((message
-                       .encode(sys.stdout.encoding, 'backslashreplace')
-                       .decode(sys.stdout.encoding, 'strict')))
+                       .encode(sys.stdout.encoding, "backslashreplace")
+                       .decode(sys.stdout.encoding, "strict")))
 
     def showStatus(self, message: str, clearAfter: int | None = None) -> None:
         """Dummy method for specialized controller classes to specialize,
@@ -555,7 +555,7 @@ class Cntlr:
     def saveConfig(self) -> None:
         """Save user preferences configuration (in json configuration file)."""
         if self.hasFileSystem and not self.disablePersistentConfig:
-            with io.open(self.configJsonFile, 'wt', encoding='utf-8') as f:
+            with io.open(self.configJsonFile, "wt", encoding="utf-8") as f:
                 # might not be unicode in 2.7
                 jsonStr = str(json.dumps(self.config, ensure_ascii=False, indent=2, sort_keys=True))
                 f.write(jsonStr)  # 2.7 getss unicode this way
@@ -603,7 +603,7 @@ class Cntlr:
         :type realm: str
         :returns: tuple -- ('myusername','mypassword')
         """
-        return ('myusername','mypassword')
+        return ("myusername","mypassword")
 
     # default web authentication password
     def internet_logon(
@@ -624,7 +624,7 @@ class Cntlr:
                             'cancel' to abandon retrieval
                             'no' if the file is expected and valid contents (not a logon request)
         """
-        return 'cancel'
+        return "cancel"
 
     # if no text, then return what is on the clipboard, otherwise place text onto clipboard
     def clipboardData(self, text: str | None = None) -> Any:
@@ -641,15 +641,15 @@ class Cntlr:
                 if sys.platform == "darwin":
                     import subprocess
                     if text is None:
-                        p = subprocess.Popen(['pbpaste'], stdout=subprocess.PIPE)
+                        p = subprocess.Popen(["pbpaste"], stdout=subprocess.PIPE)
                         retcode = p.wait()
                         assert p.stdout is not None
-                        text = p.stdout.read().decode('utf-8')  # default utf8 may not be right for mac type:ignore[union-attr]
+                        text = p.stdout.read().decode("utf-8")  # default utf8 may not be right for mac type:ignore[union-attr]
                         return text
                     else:
-                        p = subprocess.Popen(['pbcopy'], stdin=subprocess.PIPE)
+                        p = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
                         assert p.stdin is not None
-                        p.stdin.write(text.encode('utf-8'))  # default utf8 may not be right for mac
+                        p.stdin.write(text.encode("utf-8"))  # default utf8 may not be right for mac
                         p.stdin.close()
                         retcode = p.wait()
                 elif sys.platform.startswith("win"):
@@ -682,13 +682,13 @@ class Cntlr:
                 if osPrcs is None:
                     import win32process as osPrcs
 
-                process_memory = osPrcs.GetProcessMemoryInfo(osPrcs.GetCurrentProcess())['WorkingSetSize']
+                process_memory = osPrcs.GetProcessMemoryInfo(osPrcs.GetCurrentProcess())["WorkingSetSize"]
                 if isinstance(process_memory, int):
                     return process_memory / 1024
             elif sys.platform == "sunos5": # ru_maxrss is broken on sparc
                 if osPrcs is None:
                     import resource as osPrcs
-                return int(subprocess.getoutput("ps -p {0} -o rss".format(os.getpid())).rpartition('\n')[2])
+                return int(subprocess.getoutput("ps -p {0} -o rss".format(os.getpid())).rpartition("\n")[2])
             else: # unix or linux where ru_maxrss works
                 import resource as osPrcs  # is this needed?
                 # in KB

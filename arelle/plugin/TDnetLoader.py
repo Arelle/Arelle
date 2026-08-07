@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-'''
+"""
 TDnetLoader is a plug-in to both GUI menu and command line/web service
 that loads a TDnet html index file.  TDnet is Tokyo Stock Exchange's
 Timely Disclosure Network.
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from lxml import html
 import datetime, os
 import regex as re
@@ -121,7 +121,7 @@ def tdNetLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                     col = 0
                     rowData = {}
                     for tdElt in trElt.iter(tag="td"):
-                        text = ''.join(t.strip() for t in tdElt.itertext())
+                        text = "".join(t.strip() for t in tdElt.itertext())
                         if tdElt.get("class") == "tableh": #header
                             type = {"時刻": "time",
                                     "コード": "code",
@@ -195,13 +195,13 @@ def tdNetLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
 
 
 __pluginInfo__ = {
-    'name': 'TDnet Loader',
-    'version': '0.9',
-    'description': "This plug-in loads Tokyo Stock Exchange Timely Disclosure Network XBRL documents.  ",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "TDnet Loader",
+    "version": "0.9",
+    "description": "This plug-in loads Tokyo Stock Exchange Timely Disclosure Network XBRL documents.  ",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
     # take out for now: 'CntlrCmdLine.Options': streamingOptionsExtender,
-    'ModelDocument.PullLoader': tdNetLoader,
+    "ModelDocument.PullLoader": tdNetLoader,
 }

@@ -15,15 +15,15 @@ args = parse_args(
     this_file.stem,
     "Confirm ixbrl-viewer plugin runs successfully from the command line.",
     cache=this_file.with_suffix(".zip").name,
-    cache_version_id='P.uruiqpYrdNHGzX.XuJPGS3QS6_qY9g',
+    cache_version_id="P.uruiqpYrdNHGzX.XuJPGS3QS6_qY9g",
 )
 arelle_command = args.arelle
 arelle_offline = args.offline
 working_directory = Path(args.working_directory)
 test_directory = Path(args.test_directory)
 arelle_log_file = prepare_logfile(test_directory, this_file)
-samples_zip_path = test_directory / 'samples.zip'
-samples_directory = test_directory / 'samples'
+samples_zip_path = test_directory / "samples.zip"
+samples_directory = test_directory / "samples"
 target_path = samples_directory / "samples/src/ixds-test/document1.html"
 viewer_path = test_directory / "viewer.html"
 print(f"Downloading samples: {samples_zip_path}")
@@ -59,7 +59,7 @@ errors += validate_log_file(arelle_log_file)
 assert_result(errors)
 
 print("Cleaning up")
-rmtree(working_directory / 'ixbrl-viewer_cli' / 'samples')
-os.unlink(working_directory / 'ixbrl-viewer_cli' / 'samples.zip')
-os.unlink(working_directory / 'ixbrl-viewer_cli' / 'viewer.html')
-os.unlink(working_directory / 'ixbrl-viewer_cli' / 'ixbrlviewer.js')
+rmtree(working_directory / "ixbrl-viewer_cli" / "samples")
+os.unlink(working_directory / "ixbrl-viewer_cli" / "samples.zip")
+os.unlink(working_directory / "ixbrl-viewer_cli" / "viewer.html")
+os.unlink(working_directory / "ixbrl-viewer_cli" / "ixbrlviewer.js")

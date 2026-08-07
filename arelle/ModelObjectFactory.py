@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 from arelle.ModelObject import ModelObject
@@ -68,11 +68,11 @@ VERSIONINGREPORT = 3
 RSSFEED = 4
 
 LINK_LOCALNAME_TO_MODEL_CLASS = {
-    'loc': ModelLocator,
-    'label': ModelResource,
-    'reference': ModelResource,
-    'roleType': ModelRoleType,
-    'arcroleType': ModelRoleType,
+    "loc": ModelLocator,
+    "label": ModelResource,
+    "reference": ModelResource,
+    "roleType": ModelRoleType,
+    "arcroleType": ModelRoleType,
 } | {
     q.localName: ModelObject
     for q in [

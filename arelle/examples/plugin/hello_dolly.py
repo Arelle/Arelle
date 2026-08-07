@@ -20,7 +20,7 @@ LYRICS =  ["I said hello, dolly,......well, hello, dolly", \
             ]
 
 def randomLyric():
-    ''' A random lyrics.'''
+    """ A random lyrics."""
     return LYRICS[randint(0, len(LYRICS) - 1)]
 
 def helloMenuEntender(cntlr, menu):
@@ -48,17 +48,17 @@ def helloCommandLineUtilityRun(cntlr, options, **kwargs):
 
 
 __pluginInfo__ = {
-    'name': 'Hello Dolly',
-    'version': '0.9',
-    'description': "This is not just a plug-in, it symbolizes the hope and enthusiasm "
+    "name": "Hello Dolly",
+    "version": "0.9",
+    "description": "This is not just a plug-in, it symbolizes the hope and enthusiasm "
                     "of an entire generation summed up in two words sung most famously "
                     "by Louis Armstrong: Hello, Dolly. When activated you will randomly "
                     "see a lyric from Hello, Dolly.",
-    'license': 'Apache-2',
-    'author': 'R\xe9gis D\xce9camps',
-    'copyright': copyrightLabel,
+    "license": "Apache-2",
+    "author": "R\xe9gis D\xce9camps",
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'CntlrWinMain.Menu.Tools': helloMenuEntender,
-    'CntlrCmdLine.Options': helloCommandLineOptionExtender,
-    'CntlrCmdLine.Utility.Run': helloCommandLineUtilityRun,
+    "CntlrWinMain.Menu.Tools": helloMenuEntender,
+    "CntlrCmdLine.Options": helloCommandLineOptionExtender,
+    "CntlrCmdLine.Utility.Run": helloCommandLineUtilityRun,
 }

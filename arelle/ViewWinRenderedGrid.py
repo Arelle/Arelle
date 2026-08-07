@@ -267,7 +267,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
             self.dataRows = self.dataRows = 0  # type: ignore[has-type]
             lytMdlZHdrs = self.lytMdlTable.lytMdlAxisHeaders("z")
             if lytMdlZHdrs is not None:
-                '''
+                """
                 for lytMdlZGrp in lytMdlZHdrs.lytMdlGroups:
                     for lytMdlZHdr in lytMdlZGrp.lytMdlHeaders:
                         dataRow = 0
@@ -275,7 +275,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                             dataRow += 1
                         if dataRow > self.numZHdrs:
                             self.numZHdrs = dataRow
-                '''
+                """
                 dataRow = len(lytMdlZHdrs.lytMdlGroups)
                 if dataRow > self.numZHdrs:
                     self.numZHdrs = dataRow

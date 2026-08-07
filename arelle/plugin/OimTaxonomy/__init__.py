@@ -133,15 +133,15 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                             if key == "namespaces":
                                 if not XmlValidate.NCNamePattern.match(_key):
                                     ldError("{}:invalidJSONStructure",
-                                          _("The %(map)s alias \"%(alias)s\" must be a canonical NCName value"),
+                                          _('The %(map)s alias "%(alias)s" must be a canonical NCName value'),
                                           modelObject=modelXbrl, map=key, alias=_key)
                                 if UrlInvalidPattern.match(_value):
                                     ldError("{}:invalidJSONStructure",
-                                          _("The %(map)s alias \"%(alias)s\" URI must be a canonical URI value: \"%(URI)s\"."),
+                                          _('The %(map)s alias "%(alias)s" URI must be a canonical URI value: "%(URI)s".'),
                                           modelObject=modelXbrl, map=key, alias=_key, URI=_value)
                                 elif not (_value and UrlUtil.isAbsolute(_value)) or UrlInvalidPattern.match(_value):
                                     ldError("oimce:invalidURI",
-                                            _("The %(map)s \"%(alias)s\" URI is invalid: \"%(URI)s\"."),
+                                            _('The %(map)s "%(alias)s" URI is invalid: "%(URI)s".'),
                                             modelObject=modelXbrl, map=key, alias=_key, URI=_value)
                         value.clear() # replace with normalized values
                         for _key, _value in normalizedDict.items():
@@ -150,18 +150,18 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                         for _errKey, _errValue, _otherValue in value[DUPJSONKEY]:
                             if key in ("namespaces", ):
                                 ldError("{}:invalidJSON", # {} expanded when loadDictErrors are processed
-                                                _("The %(map)s alias \"%(prefix)s\" is used on uri \"%(uri1)s\" and uri \"\"%(uri2)s."),
+                                                _('The %(map)s alias "%(prefix)s" is used on uri "%(uri1)s" and uri ""%(uri2)s.'),
                                                 modelObject=modelXbrl, map=key, prefix=_errKey, uri1=_errValue, uri2=_otherValue)
                             else:
                                 ldError("{}:invalidJSON", # {} expanded when loadDictErrors are processed
-                                                _("The %(obj)s key \"%(key)s\" is used on multiple objects."),
+                                                _('The %(obj)s key "%(key)s" is used on multiple objects.'),
                                                 modelObject=modelXbrl, obj=key, key=_errKey)
                         del value[DUPJSONKEY]
                     if DUPJSONVALUE in value:
                         if key in ("namespaces", ):
                             for _errValue, _errKey, _otherKey in value[DUPJSONVALUE]:
                                 ldError("oimce:multipleAliasesForURI",
-                                                _("The \"%(map)s\" value \"%(uri)s\" is used on alias \"%(alias1)s\" and alias \"%(alias2)s\"."),
+                                                _('The "%(map)s" value "%(uri)s" is used on alias "%(alias1)s" and alias "%(alias2)s".'),
                                                 modelObject=modelXbrl, map=key, uri=_errValue, alias1=_errKey, alias2=_otherKey)
                         del value[DUPJSONVALUE]
                 if key in _dict: # don't put the duplicate in the dictionary but report it as error
@@ -170,7 +170,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                     _dict[DUPJSONKEY].append((key, value, _dict[key]))
                 else: # do put into dictionary, only report if it's a map object
                     _dict[key] = value
-                    '''
+                    """
                     if isinstance(value, str):
                         if value in _valueKeyDict:
                             if DUPJSONVALUE not in _dict:
@@ -178,7 +178,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                             _dict[DUPJSONVALUE].append((value, key, _valueKeyDict[value]))
                         else:
                             _valueKeyDict[value] = key
-                    '''
+                    """
             return _dict
 
         errPrefix = "xbrlte"
@@ -379,7 +379,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                 if isinstance(eltClass, str) or getattr(eltClass, "__name__", "").startswith("Xbrl"): # nested Xbrl objects
                                     if isinstance(listObj, dict):
                                         # this handles lists of dict objects.  For dicts of key-value dict objects see above.
-                                        createTaxonomyObjects(propName, listObj, newObj, pathParts + [f'{propName}[{iObj}]'])
+                                        createTaxonomyObjects(propName, listObj, newObj, pathParts + [f"{propName}[{iObj}]"])
                                     else:
                                         error("xbrlte:invalidObjectType",
                                               _("Object expected but non-object found: %(listObj)s, jsonObj: %(path)s"),
@@ -954,7 +954,7 @@ def isOimTaxonomyLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwarg
     lastFilePathIsOIM = False
     _ext = os.path.splitext(filepath)[1]
     if _ext == ".json":
-        with io.open(filepath, 'rt', encoding='utf-8') as f:
+        with io.open(filepath, "rt", encoding="utf-8") as f:
             _fileStart = f.read(4096)
         if _fileStart and oimTaxonomyDocTypePattern.match(_fileStart):
             lastFilePathIsOIM = True
@@ -1020,18 +1020,18 @@ def oimTaxonomyViews(cntlr, xbrlDts):
     return False
 
 __pluginInfo__ = {
-    'name': 'OIM Taxonomy',
-    'version': '1.2',
-    'description': "This plug-in implements XBRL taxonomy objects loaded from JSON.",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "OIM Taxonomy",
+    "version": "1.2",
+    "description": "This plug-in implements XBRL taxonomy objects loaded from JSON.",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'CntlrCmdLine.Options': optionsExtender,
-    'CntlrCmdLine.Filing.Start': filingStart,
-    'CntlrCmdLine.Xbrl.Loaded': oimTaxonomyLoaded,
-    'CntlrWinMain.Xbrl.Views': oimTaxonomyViews,
-    'ModelDocument.IsPullLoadable': isOimTaxonomyLoadable,
-    'ModelDocument.PullLoader': oimTaxonomyLoader,
-    'Validate.XBRL.Start': oimTaxonomyValidator
+    "CntlrCmdLine.Options": optionsExtender,
+    "CntlrCmdLine.Filing.Start": filingStart,
+    "CntlrCmdLine.Xbrl.Loaded": oimTaxonomyLoaded,
+    "CntlrWinMain.Xbrl.Views": oimTaxonomyViews,
+    "ModelDocument.IsPullLoadable": isOimTaxonomyLoadable,
+    "ModelDocument.PullLoader": oimTaxonomyLoader,
+    "Validate.XBRL.Start": oimTaxonomyValidator
 }

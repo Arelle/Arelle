@@ -6,15 +6,15 @@ from tests.integration_tests.validation.conformance_suite_config import (
 )
 
 
-ZIP_PATH = Path('uksef-conformance-suite-v2.0.zip')
+ZIP_PATH = Path("uksef-conformance-suite-v2.0.zip")
 EXTRACTED_PATH = Path(ZIP_PATH.stem)
-EXTRACTED_ZIP_PATH = EXTRACTED_PATH / 'uksef-conformance-suite-v2.0' / 'uksef-conformance-suite-v2.0.zip'
+EXTRACTED_ZIP_PATH = EXTRACTED_PATH / "uksef-conformance-suite-v2.0" / "uksef-conformance-suite-v2.0.zip"
 EXTRACTED_EXTRACTED_PATH = Path(EXTRACTED_ZIP_PATH.parent) / EXTRACTED_ZIP_PATH.stem
 
 
 config = ConformanceSuiteConfig(
     args=[
-        '--formula', 'none',
+        "--formula", "none",
     ],
     assets=[
         ConformanceSuiteAssetConfig.extracted_conformance_suite(
@@ -23,8 +23,8 @@ config = ConformanceSuiteConfig(
                 (EXTRACTED_ZIP_PATH, EXTRACTED_EXTRACTED_PATH),
             ),
             entry_point_root=EXTRACTED_EXTRACTED_PATH / "uksef-conformance-suite",
-            entry_point=Path('index.xml'),
-            public_download_url='https://www.frc.org.uk/documents/8116/uksef-conformance-suite-v2.0.zip',
+            entry_point=Path("index.xml"),
+            public_download_url="https://www.frc.org.uk/documents/8116/uksef-conformance-suite-v2.0.zip",
             source=AssetSource.S3_PUBLIC,
         )
     ] +
@@ -32,75 +32,75 @@ config = ConformanceSuiteConfig(
     [
         package for year in [2022, 2024] for package in ESEF_PACKAGES[year]
     ],
-    base_taxonomy_validation='none',
-    expected_additional_testcase_errors={f'*tests/FRC/{s}': val for s, val in {
-        'FRC_07/index.xml:TC2_invalid': {
+    base_taxonomy_validation="none",
+    expected_additional_testcase_errors={f"*tests/FRC/{s}": val for s, val in {
+        "FRC_07/index.xml:TC2_invalid": {
             # By the same logic that FRC_06:TC2 fires multipleIdentifiers, so should FRC_07:TC2
-            'multipleIdentifiers': 1,
+            "multipleIdentifiers": 1,
         },
-        'FRC_08/index.xml:TC2_invalid': {
+        "FRC_08/index.xml:TC2_invalid": {
             # Unexpected segment also triggers lxml error
-            'lxml.SCHEMAV_ELEMENT_CONTENT': 20,
+            "lxml.SCHEMAV_ELEMENT_CONTENT": 20,
             # Testcase does not specify count (1 is default), so 19 additional occurrences
-            'xmlSchema:elementUnexpected': 19,
+            "xmlSchema:elementUnexpected": 19,
         },
         # Test case references TC2_valid.zip, but actual file in suite has .xbri extension.
-        'FRC_09/index.xml:TC2_valid': {
-            'FileSourceError': 1,
-            'tpe:invalidArchiveFormat': 1
+        "FRC_09/index.xml:TC2_valid": {
+            "FileSourceError": 1,
+            "tpe:invalidArchiveFormat": 1
         },
         # Test case references TC3_valid.zip, but actual file in suite has .xbri extension.
-        'FRC_09/index.xml:TC3_valid': {
-            'FileSourceError': 1,
-            'tpe:invalidArchiveFormat': 1
+        "FRC_09/index.xml:TC3_valid": {
+            "FileSourceError": 1,
+            "tpe:invalidArchiveFormat": 1
         },
         # Report package uses CR document type URI instead of rec URI.
-        'FRC_09/index.xml:TC4_valid': {'rpe:unsupportedReportPackageVersion': 1},
+        "FRC_09/index.xml:TC4_valid": {"rpe:unsupportedReportPackageVersion": 1},
     }.items()},
-    expected_failure_ids=frozenset({f'tests/FRC/{s}' for s in [
+    expected_failure_ids=frozenset({f"tests/FRC/{s}" for s in [
         # FRC XBRL Tagging Guide not yet implemented.
-        'FRC_01/index.xml:TC6_invalid',
-        'FRC_01/index.xml:TC7_invalid',
-        'FRC_01/index.xml:TC8_invalid',
-        'FRC_01/index.xml:TC9_invalid',
-        'FRC_02/index.xml:TC3_invalid',
-        'FRC_03/index.xml:TC2_invalid',
-        'FRC_03/index.xml:TC3_invalid',
-        'FRC_03/index.xml:TC4_invalid',
-        'FRC_04/index.xml:TC2_invalid',
-        'FRC_05/index.xml:TC4_invalid',
-        'FRC_05/index.xml:TC5_invalid',
-        'FRC_05/index.xml:TC6_invalid',
-        'FRC_09/index.xml:TC6_invalid',
-        'FRC_10/index.xml:TC3_invalid',
-        'FRC_10/index.xml:TC4_invalid',
-        'FRC_10/index.xml:TC5_invalid',
-        'FRC_10/index.xml:TC6_invalid',
-        'FRC_11/index.xml:TC2_invalid',
-        'FRC_11/index.xml:TC3_invalid',
-        'FRC_12/index.xml:TC3_invalid',
-        'FRC_13/index.xml:TC2_invalid',
-        'FRC_13/index.xml:TC3_invalid',
-        'FRC_14/index.xml:TC4_invalid',
-        'FRC_14/index.xml:TC5_invalid',
-        'FRC_14/index.xml:TC6_invalid',
-        'FRC_14/index.xml:TC7_invalid',
-        'FRC_15/index.xml:TC2_invalid',
-        'FRC_15/index.xml:TC3_invalid',
-        'FRC_15/index.xml:TC4_invalid',
-        'FRC_16/index.xml:TC2_invalid',
-        'FRC_17/index.xml:TC2_invalid',
-        'FRC_17/index.xml:TC3_invalid',
-        'FRC_18/index.xml:TC3_invalid',
-        'FRC_18/index.xml:TC4_invalid',
-        'FRC_19/index.xml:TC2_invalid',
-        'FRC_20/index.xml:TC3_invalid',
-        'FRC_21/index.xml:TC2_invalid',
-        'FRC_21/index.xml:TC3_invalid',
+        "FRC_01/index.xml:TC6_invalid",
+        "FRC_01/index.xml:TC7_invalid",
+        "FRC_01/index.xml:TC8_invalid",
+        "FRC_01/index.xml:TC9_invalid",
+        "FRC_02/index.xml:TC3_invalid",
+        "FRC_03/index.xml:TC2_invalid",
+        "FRC_03/index.xml:TC3_invalid",
+        "FRC_03/index.xml:TC4_invalid",
+        "FRC_04/index.xml:TC2_invalid",
+        "FRC_05/index.xml:TC4_invalid",
+        "FRC_05/index.xml:TC5_invalid",
+        "FRC_05/index.xml:TC6_invalid",
+        "FRC_09/index.xml:TC6_invalid",
+        "FRC_10/index.xml:TC3_invalid",
+        "FRC_10/index.xml:TC4_invalid",
+        "FRC_10/index.xml:TC5_invalid",
+        "FRC_10/index.xml:TC6_invalid",
+        "FRC_11/index.xml:TC2_invalid",
+        "FRC_11/index.xml:TC3_invalid",
+        "FRC_12/index.xml:TC3_invalid",
+        "FRC_13/index.xml:TC2_invalid",
+        "FRC_13/index.xml:TC3_invalid",
+        "FRC_14/index.xml:TC4_invalid",
+        "FRC_14/index.xml:TC5_invalid",
+        "FRC_14/index.xml:TC6_invalid",
+        "FRC_14/index.xml:TC7_invalid",
+        "FRC_15/index.xml:TC2_invalid",
+        "FRC_15/index.xml:TC3_invalid",
+        "FRC_15/index.xml:TC4_invalid",
+        "FRC_16/index.xml:TC2_invalid",
+        "FRC_17/index.xml:TC2_invalid",
+        "FRC_17/index.xml:TC3_invalid",
+        "FRC_18/index.xml:TC3_invalid",
+        "FRC_18/index.xml:TC4_invalid",
+        "FRC_19/index.xml:TC2_invalid",
+        "FRC_20/index.xml:TC3_invalid",
+        "FRC_21/index.xml:TC2_invalid",
+        "FRC_21/index.xml:TC3_invalid",
     ]}),
-    info_url='https://www.frc.org.uk/library/standards-codes-policy/accounting-and-reporting/frc-taxonomies/frc-taxonomies-documentation-and-guidance/',
+    info_url="https://www.frc.org.uk/library/standards-codes-policy/accounting-and-reporting/frc-taxonomies/frc-taxonomies-documentation-and-guidance/",
     name=PurePath(__file__).stem,
-    disclosure_system='uksef-only-2025',
-    plugins=frozenset({'inlineXbrlDocumentSet', 'validate/ESEF'}),
+    disclosure_system="uksef-only-2025",
+    plugins=frozenset({"inlineXbrlDocumentSet", "validate/ESEF"}),
     shards=4,
 )

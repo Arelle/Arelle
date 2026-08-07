@@ -1,9 +1,9 @@
-'''
+"""
 Unpack SEC EIS File is an example of a plug-in to the GUI menu
 that will save the unpacked contents of an SEC EIS File in a directory.
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from arelle.Version import authorLabel, copyrightLabel
 
 def unpackEIS(cntlr, eisFile, unpackToDir):
@@ -23,7 +23,7 @@ def unpackEIS(cntlr, eisFile, unpackToDir):
             unpackedFiles.append(file)
         fIn.close()
 
-    cntlr.addToLog("[info:unpackEIS] Unpacked files " + ', '.join(unpackedFiles))
+    cntlr.addToLog("[info:unpackEIS] Unpacked files " + ", ".join(unpackedFiles))
 
 def unpackSecEisMenuEntender(cntlr, menu, *args, **kwargs):
     def askUnpackDirectory():
@@ -37,7 +37,7 @@ def unpackSecEisMenuEntender(cntlr, menu, *args, **kwargs):
         from tkinter.filedialog import askdirectory
         unpackToDir = askdirectory(parent=cntlr.parent,
                                    initialdir=cntlr.config.setdefault("unpackSecEisFileDir","."),
-                                   title='Please select a directory for unpacked EIS Contents')
+                                   title="Please select a directory for unpacked EIS Contents")
         import os
         cntlr.config["openSecEisFileDir"] = os.path.dirname(eisFile)
         cntlr.config["unpackSecEisFileDir"] = unpackToDir
@@ -51,12 +51,12 @@ def unpackSecEisMenuEntender(cntlr, menu, *args, **kwargs):
                      command=lambda: askUnpackDirectory() )
 
 __pluginInfo__ = {
-    'name': 'Unpack SEC EIS File',
-    'version': '0.9',
-    'description': "This plug-in unpacks the contents of an SEC EIS file.",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "Unpack SEC EIS File",
+    "version": "0.9",
+    "description": "This plug-in unpacks the contents of an SEC EIS file.",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'CntlrWinMain.Menu.Tools': unpackSecEisMenuEntender,
+    "CntlrWinMain.Menu.Tools": unpackSecEisMenuEntender,
 }

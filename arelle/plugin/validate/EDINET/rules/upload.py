@@ -58,7 +58,7 @@ FILE_COUNT_LIMITS = {
     Path("XBRL"): 99_990,
 }
 
-FILENAME_STEM_PATTERN = regex.compile(r'[a-zA-Z0-9_-]*')
+FILENAME_STEM_PATTERN = regex.compile(r"[a-zA-Z0-9_-]*")
 
 
 @validation(
@@ -94,13 +94,13 @@ def rule_EC0100E(
     for path, pathInfo in uploadContents.uploadPathsByPath.items():
         if pathInfo.isRootSubdirectory and path.name not in ALLOWED_ROOT_SUBDIRECTORIES:
             yield Validation.error(
-                codes='EDINET.EC0100E',
+                codes="EDINET.EC0100E",
                 msg=_("An illegal directory is found directly under the root directory. "
                       "Directory name or file name: '%(rootSubdirectory)s'. "
                       "Delete all folders except the following folders that exist directly "
                       "under the root folder, and then upload again: %(allowedDirectories)s."),
                 rootSubdirectory=path.name,
-                allowedDirectories=', '.join(f"'{d}'" for d in ALLOWED_ROOT_SUBDIRECTORIES)
+                allowedDirectories=", ".join(f"'{d}'" for d in ALLOWED_ROOT_SUBDIRECTORIES)
             )
 
 
@@ -134,7 +134,7 @@ def rule_EC0124E_EC0187E(
         depth = len(emptyDirectory.parts)
         if depth == rootSubdirectoryDepth:
             yield Validation.error(
-                codes='EDINET.EC0124E',
+                codes="EDINET.EC0124E",
                 msg=_("There is no file directly under '%(emptyDirectory)s'. "
                       "No empty folders directly beneath the root folder. "
                       "Please store the file in the appropriate folder or delete the folder and upload again."),
@@ -142,7 +142,7 @@ def rule_EC0124E_EC0187E(
             )
         elif depth > rootSubdirectoryDepth:
             yield Validation.error(
-                codes='EDINET.EC0187E',
+                codes="EDINET.EC0187E",
                 msg=_("'%(parentDirectory)s' contains a subordinate directory ('%(emptyDirectory)s') with no files. "
                       "Please store the file in the corresponding subfolder or delete the subfolder and upload again."),
                 parentDirectory=str(emptyDirectory.parent),
@@ -164,7 +164,7 @@ def rule_EC0129E(
     """
     EDINET.EC0129E: Limit the number of subfolders to 3 or less from the XBRL directory.
     """
-    startingDirectory = 'XBRL'
+    startingDirectory = "XBRL"
     uploadFilepaths = pluginData.getUploadFilepaths(fileSource)
     for path in uploadFilepaths:
         parents = [parent.name for parent in path.parents]
@@ -176,12 +176,12 @@ def rule_EC0129E(
         depth = len(parents)
         if depth > 3:
             yield Validation.error(
-                codes='EDINET.EC0129E',
+                codes="EDINET.EC0129E",
                 msg=_("The subordinate directories of %(path)s go up to the level %(depth)s (directories: %(parents)s). "
                       "Please limit the number of subfolders to 3 or less and upload again."),
                 path=str(path),
                 depth=depth,
-                parents=', '.join(f"'{parent}'" for parent in reversed(parents)),
+                parents=", ".join(f"'{parent}'" for parent in reversed(parents)),
                 file=str(path)
             )
 
@@ -212,7 +212,7 @@ def rule_EC0130E(
         ext = path.suffix
         if ext not in validExtensions:
             yield Validation.error(
-                codes='EDINET.EC0130E',
+                codes="EDINET.EC0130E",
                 msg=_("The file extension '%(ext)s' is not valid at '%(path)s'. "
                       "Valid extensions at this location are: %(validExtensions)s. "
                       "Please change the file extension to a configurable extension and upload it again. "
@@ -221,7 +221,7 @@ def rule_EC0130E(
                       "'Document File Specifications'."),
                 ext=ext,
                 path=str(path),
-                validExtensions=', '.join(f"'{e}'" for e in validExtensions),
+                validExtensions=", ".join(f"'{e}'" for e in validExtensions),
                 file=str(path)
             )
 
@@ -260,14 +260,14 @@ def rule_EC0132E(
                 manifestFound = True
         if not coverPageFound and reportFolderType != ReportFolderType.AUDIT_DOC:
             yield Validation.error(
-                codes='EDINET.EC0132E',
+                codes="EDINET.EC0132E",
                 msg=_("Cover page does not exist in '%(expectedManifestDirectory)s'. "
                       "Please store the cover file directly under the relevant folder and upload it again. "),
                 expectedManifestDirectory=str(manifestPath.parent),
             )
         if not manifestFound:
             yield Validation.error(
-                codes='EDINET.EC0132E',
+                codes="EDINET.EC0132E",
                 msg=_("'%(expectedManifestName)s' does not exist in '%(expectedManifestDirectory)s'. "
                       "Please store the manifest file directly under the relevant folder and upload it again. "),
                 expectedManifestName=manifestPath.name,
@@ -294,7 +294,7 @@ def rule_EC0183E(
         return  # File size is not available, cannot validate
     if size > 55_000_000:  # Interpretting MB as megabytes (1,000,000 bytes)
         yield Validation.error(
-            codes='EDINET.EC0183E',
+            codes="EDINET.EC0183E",
             msg=_("The compressed file size exceeds 55MB. "
                   "Please compress the file to a size of 55MB or less and upload it again."),
         )
@@ -314,7 +314,7 @@ def rule_EC0188E(
     """
     EDINET.EC0188E: There is an HTML file directly under PublicDoc or PrivateDoc whose first 7 characters are not numbers.
     """
-    pattern = regex.compile(r'^\d{7}')
+    pattern = regex.compile(r"^\d{7}")
     uploadFilepaths = pluginData.getUploadFilepaths(fileSource)
     docFolders = frozenset({"PublicDoc", "PrivateDoc"})
     for path in uploadFilepaths:
@@ -324,7 +324,7 @@ def rule_EC0188E(
             continue
         if pattern.match(path.name) is None:
             yield Validation.error(
-                codes='EDINET.EC0188E',
+                codes="EDINET.EC0188E",
                 msg=_("There is an html file directly under PublicDoc or PrivateDoc whose first 7 characters are not numbers: '%(path)s'."
                       "Please change the first 7 characters of the file name of the file directly under the folder to numbers "
                       "and upload it again."),
@@ -358,7 +358,7 @@ def rule_EC0192E(
         # Only applies to PrivateDoc correction reports
         if pathInfo.isCorrection and pathInfo.reportFolderType == ReportFolderType.PRIVATE_DOC:
             yield Validation.error(
-                codes='EDINET.EC0192E',
+                codes="EDINET.EC0192E",
                 msg=_("The cover file for PrivateDoc ('%(file)s') cannot be set because it uses a PublicDoc cover file. "
                       "Please delete the cover file from PrivateDoc and upload it again."),
                 file=str(path),
@@ -395,7 +395,7 @@ def rule_EC0198E(
         actual = fileCounts[directory]
         if actual > limit:
             yield Validation.error(
-                codes='EDINET.EC0198E',
+                codes="EDINET.EC0198E",
                 msg=_("The number of files in %(directory)s exceeds the upper limit (%(actual)s > %(limit)s). "
                       "Please reduce the number of files in the folder to below the maximum and try uploading again."),
                 directory=str(directory),
@@ -439,7 +439,7 @@ def rule_EC0233E(
         errorPathInfos = pathInfos[:pathInfos.index(coverPagePath)]
         for pathInfo in errorPathInfos:
             yield Validation.error(
-                codes='EDINET.EC0233E',
+                codes="EDINET.EC0233E",
                 msg=_("There is a file in the report directory in '%(reportPath)s' that comes before the cover "
                       "file ('%(coverPage)s') in file name sort order. "
                       "Directory name or file name: '%(path)s'. "
@@ -475,7 +475,7 @@ def rule_EC0234E(
             continue
         if pathInfo.isSubdirectory and pathInfo.isCoverPage:
             yield Validation.error(
-                codes='EDINET.EC0234E',
+                codes="EDINET.EC0234E",
                 msg=_("A cover file ('%(coverPage)s') exists in an unsupported subdirectory. "
                       "Directory: '%(directory)s'. "
                       "Please make sure there is no cover file in the subfolder and upload again."),
@@ -503,7 +503,7 @@ def rule_EC0237E(
         if len(str(path)) <= 259:
             continue
         yield Validation.error(
-            codes='EDINET.EC0237E',
+            codes="EDINET.EC0237E",
             msg=_("The directory or file path ('%(path)s') to the lowest level exceeds the maximum value (259 characters). "
                   "Please shorten the absolute path of the folder (or file) "
                   "to 259 characters or less and try uploading again."),
@@ -530,7 +530,7 @@ def rule_EC0206E(
         if size > 0:
             continue
         yield Validation.error(
-            codes='EDINET.EC0206E',
+            codes="EDINET.EC0206E",
             msg=_("An empty file exists. "
                   "File name: '%(path)s'. "
                   "Please delete the empty file and upload again."),
@@ -557,7 +557,7 @@ def rule_EC0349E(
     uploadContents = pluginData.getUploadContents()
     if uploadContents is None:
         return
-    xbrlDirectoryPath = uploadContents.rootDirectory / Path('XBRL')
+    xbrlDirectoryPath = uploadContents.rootDirectory / Path("XBRL")
     allowedPaths = {uploadContents.rootDirectory / p.xbrlDirectory for p in (
         ReportFolderType.AUDIT_DOC,
         ReportFolderType.PRIVATE_DOC,
@@ -568,7 +568,7 @@ def rule_EC0349E(
             continue
         if path not in allowedPaths:
             yield Validation.error(
-                codes='EDINET.EC0349E',
+                codes="EDINET.EC0349E",
                 msg=_("An unexpected directory or file exists directly beneath the XBRL directory. "
                       "Directory or file name: '%(file)s'."),
                 file=path.name,
@@ -606,7 +606,7 @@ def rule_EC0352E(
         patterns = pathInfo.reportFolderType.ixbrlFilenamePatterns
         if not any(pattern.fullmatch(path.name) for pattern in patterns):
             yield Validation.error(
-                codes='EDINET.EC0352E',
+                codes="EDINET.EC0352E",
                 msg=_("A file with an invalid name exists. "
                       "File path: '%(path)s'."),
                 path=str(path),
@@ -642,12 +642,12 @@ def rule_cover_items(
         rootElt = doc.xmlRootElement
         coverPageTextFound = False
         for elt in rootElt.iterdescendants():
-            if not coverPageTextFound and elt.text and '【表紙】' in elt.text:
+            if not coverPageTextFound and elt.text and "【表紙】" in elt.text:
                 coverPageTextFound = True
                 break
         if not coverPageTextFound:
             yield Validation.error(
-                codes='EDINET.EC1000E',
+                codes="EDINET.EC1000E",
                 msg=_("There is no '【表紙】' on the cover page. "
                       "File name: '%(file)s'. "
                       "Please add '【表紙】' to the relevant file."),
@@ -675,7 +675,7 @@ def rule_cover_items(
                 continue
             if elt.qname in prohibitedCoverItems:
                 yield Validation.error(
-                    codes='EDINET.EC1003E',
+                    codes="EDINET.EC1003E",
                     msg=_("Cover item %(localName)s is not necessary. "
                           "File name: '%(file)s' (line %(line)s). "
                           "Please add the cover item %(localName)s to the relevant file."),
@@ -688,7 +688,7 @@ def rule_cover_items(
             foundFactsByQname[elt.qname].append(elt)
             if elt.qname in seenInSequence:
                 yield Validation.error(
-                    codes='EDINET.EC1002E',
+                    codes="EDINET.EC1002E",
                     msg=_("Cover item %(localName)s is duplicated. "
                           "File name: '%(file)s'. "
                           "Please check the cover item %(localName)s of the relevant file "
@@ -706,7 +706,7 @@ def rule_cover_items(
             if not sequenceQueue[0] == elt.qname:
                 outOfSequence = True
                 yield Validation.error(
-                    codes='EDINET.EC1004E',
+                    codes="EDINET.EC1004E",
                     msg=_("Cover item %(localName)s is not in the correct order. "
                           "File name: '%(file)s'. "
                           "Please correct the order of cover items in the appropriate file."),
@@ -722,7 +722,7 @@ def rule_cover_items(
             # No facts found.
             if len(foundFacts) == 0:
                 yield Validation.error(
-                    codes='EDINET.EC1001E',
+                    codes="EDINET.EC1001E",
                     msg=_("Cover item %(localName)s is missing. "
                           "File name: '%(file)s'. "
                           "Please add the cover item %(localName)s to the relevant file."),
@@ -732,7 +732,7 @@ def rule_cover_items(
             # Fact(s) found, but no valid, non-nil value.
             elif not any(f.xValid >= VALID and not f.isNil for f in foundFacts):
                 yield Validation.error(
-                    codes='EDINET.EC1005E',
+                    codes="EDINET.EC1005E",
                     msg=_("Cover item %(localName)s is missing a valid value. "
                           "File name: '%(file)s'. "
                           "Please enter a valid value for %(localName)s in the relevant file."),
@@ -758,10 +758,10 @@ def rule_EC1006E(
     for doc in val.modelXbrl.urlDocs.values():
         for elt in pluginData.getProhibitedTagElements(doc):
             yield Validation.error(
-                codes='EDINET.EC1006E',
+                codes="EDINET.EC1006E",
                 msg=_("Prohibited tag (%(tag)s) is used in HTML. File name: %(file)s (line %(line)s). "
                       "Please correct the prohibited tags for the relevant files. "
-                      "For information on prohibited tags, please refer to \"4-1-4 Prohibited Rules\" "
+                      'For information on prohibited tags, please refer to "4-1-4 Prohibited Rules" '
                       "in the Validation Guidelines."),
                 tag=elt.qname.localName,
                 file=doc.basename,
@@ -799,7 +799,7 @@ def rule_uri_references(
     for uriReference in pluginData.uriReferences:
         if UrlUtil.isAbsolute(uriReference.attributeValue):
             yield Validation.error(
-                codes='EDINET.EC1007E',
+                codes="EDINET.EC1007E",
                 msg=_("The URI in the HTML specifies a URL or absolute path. "
                       "File name: '%(file)s' (line %(line)s). "
                       "Please change the links in the files to relative paths."),
@@ -818,7 +818,7 @@ def rule_uri_references(
 
         if reportFullPath not in referenceFullPath.parents:
             yield Validation.error(
-                codes='EDINET.EC1035E',
+                codes="EDINET.EC1035E",
                 msg=_("The URI in the HTML specifies a path that navigates "
                       "outside of the report folder '%(reportPath)s'. "
                       "File name: '%(file)s' (line %(line)s). "
@@ -834,7 +834,7 @@ def rule_uri_references(
         if not documentPathInfo.isSubdirectory:
             if documentFullPath.parent not in referenceFullPath.parent.parents:
                 yield Validation.error(
-                    codes='EDINET.EC1013E',
+                    codes="EDINET.EC1013E",
                     msg=_("The URI in the HTML file directly beneath '%(reportPath)s' "
                           "specifies a path not under a subdirectory. "
                           "File name: '%(file)s' (line %(line)s). "
@@ -849,7 +849,7 @@ def rule_uri_references(
 
         elif referenceFullPath.parent == reportFullPath:
             yield Validation.error(
-                codes='EDINET.EC1015E',
+                codes="EDINET.EC1015E",
                 msg=_("The URI in the HTML file within a subdirectory specifies a "
                       "path to a file located directly beneath '%(reportPath)s'. "
                       "File name: '%(file)s' (line %(line)s). "
@@ -865,7 +865,7 @@ def rule_uri_references(
         referencePathInfo = uploadContents.uploadPathsByFullPath.get(referenceFullPath)
         if referencePathInfo is not None and referencePathInfo.isDirectory:
             yield Validation.error(
-                codes='EDINET.EC1014E',
+                codes="EDINET.EC1014E",
                 msg=_("The URI in the HTML specifies a path to a directory. "
                       "File name: '%(file)s' (line %(line)s). "
                       "Please update the URI to reference a file."),
@@ -875,9 +875,9 @@ def rule_uri_references(
             )
             continue
 
-        if referenceFullPath.suffix.lower() == '.pdf':
+        if referenceFullPath.suffix.lower() == ".pdf":
             yield Validation.error(
-                codes='EDINET.EC1023E',
+                codes="EDINET.EC1023E",
                 msg=_("The URI in the HTML specifies a path to a PDF file. "
                       "File name: '%(file)s' (line %(line)s). "
                       "Please remove the link from the relevant file."),
@@ -889,7 +889,7 @@ def rule_uri_references(
 
         if not val.modelXbrl.fileSource.exists(str(referenceFullPath)):
             yield Validation.error(
-                codes='EDINET.EC1021E',
+                codes="EDINET.EC1021E",
                 msg=_("The linked file ('%(path)s') does not exist. "
                       "File name: '%(file)s' (line %(line)s). "
                       "Please update the URI to reference a file."),
@@ -920,7 +920,7 @@ def rule_EC1009R(
             continue
         if size > 2_500_000:
             yield Validation.info_semantic(
-                codes='EDINET.EC1009R',
+                codes="EDINET.EC1009R",
                 msg=_("The HTML file size exceeds the maximum limit. "
                       "File name: '%(path)s'. "
                       "Please split the file so that the file size is 2.5MB or less."),
@@ -948,7 +948,7 @@ def rule_EC1016E(
         if size <= 300_000:  # Interpretting KB as kilobytes (1,000 bytes)
             continue
         yield Validation.error(
-            codes='EDINET.EC1016E',
+            codes="EDINET.EC1016E",
             msg=_("The image file is over 300KB. "
                   "File name: '%(path)s'. "
                   "Please create an image file with a size of 300KB or less."),
@@ -983,7 +983,7 @@ def rule_EC1017E(
     unusedSubdirectoryFilepaths = existingSubdirectoryFilepaths - usedFilepaths
     for path in unusedSubdirectoryFilepaths:
         yield Validation.error(
-            codes='EDINET.EC1017E',
+            codes="EDINET.EC1017E",
             msg=_("There is an unused file. "
                   "File name: '%(file)s'. "
                   "Please remove the file or reference it in the HTML."),
@@ -1046,7 +1046,7 @@ def rule_html_elements(
     Note: Some violations of EC1020E (such as multiple DOCTYPE declarations) prevent Arelle from parsing
     the XML at all, and thus an XML schema error will be triggered rather than this validation error.
     """
-    checkNames = frozenset({'body', 'head', 'html'})
+    checkNames = frozenset({"body", "head", "html"})
     for modelDocument in val.modelXbrl.urlDocs.values():
         path = Path(modelDocument.uri)
         if path.suffix not in HTML_EXTENSIONS:
@@ -1065,19 +1065,19 @@ def rule_html_elements(
                 lang = elt.get(XbrlConst.qnXmlLang.clarkNotation)
                 if lang is not None and lang not in JAPAN_LANGUAGE_CODES:
                     yield Validation.error(
-                        codes='EDINET.EC1011E',
+                        codes="EDINET.EC1011E",
                         msg=_("The language setting is not Japanese. "
                               "File name: %(file)s (line %(line)s). "
                               "Please set the lang attribute on the given line of the "
                               "relevant file to one of the following: %(langValues)s."),
                         file=modelDocument.basename,
                         line=elt.sourceline,
-                        langValues=', '.join(JAPAN_LANGUAGE_CODES),
+                        langValues=", ".join(JAPAN_LANGUAGE_CODES),
                     )
 
         if any(count > 1 for count in eltCounts.values()):
             yield Validation.error(
-                codes='EDINET.EC1020E',
+                codes="EDINET.EC1020E",
                 msg=_("The HTML syntax is incorrect. "
                       "File name: '%(path)s'. "
                       "When writing a DOCTYPE declaration, do not define it multiple times. "
@@ -1104,7 +1104,7 @@ def rule_EC1031E(
     for doc in val.modelXbrl.urlDocs.values():
         for elt, attributeName in pluginData.getProhibitedAttributeElements(doc):
             yield Validation.error(
-                codes='EDINET.EC1031E',
+                codes="EDINET.EC1031E",
                 msg=_("Prohibited attribute '%(attributeName)s' is used in HTML. "
                       "File name: %(file)s (line %(line)s). "
                       "Please correct the tag attributes of the relevant file."),
@@ -1145,13 +1145,13 @@ def rule_EC5003E(
                 illegalChars = findProhibitedCharacters(line, illegalCharactersPattern)
                 if illegalChars:
                     yield Validation.error(
-                        codes='EDINET.EC5003E',
+                        codes="EDINET.EC5003E",
                         msg=_("Prohibited characters are used: %(chars)s "
                               "File name: '%(file)s' (line %(line)s). "
                               "The file in question contains prohibited characters. "
                               "Please correct the prohibited characters. "),
-                        chars=', '.join(
-                            f'{c} (&#{ord(c)};)'
+                        chars=", ".join(
+                            f"{c} (&#{ord(c)};)"
                             for c in sorted(illegalChars)
                         ),
                         file=filepath,
@@ -1188,7 +1188,7 @@ def rule_EC5032E(
                     Taxonomy.IFRS in instance.filingFormat.taxonomies
             ):
                 yield Validation.error(
-                    codes='EDINET.EC5032E',
+                    codes="EDINET.EC5032E",
                     msg=_("A manifest file for an IFRS submission defines multiple instances. "
                           "File: '%(path)s'. "
                           "If you use the IFRS taxonomy, please specify only one instance."),
@@ -1219,11 +1219,11 @@ def rule_EC8023W(
     immediately before the target element, not nested within, or separated by, siblings elements. The use of
     this symbol in sample filings support this interpretation.
     """
-    negativeChar = '△'
+    negativeChar = "△"
     for fact in val.modelXbrl.facts:
         if not isinstance(fact, ModelInlineFact):
             continue
-        if fact.localName != 'nonFraction':
+        if fact.localName != "nonFraction":
             continue
         if fact.qname.namespaceURI == pluginData.namespaces.jpigp:  # type: ignore[union-attr]
             continue
@@ -1243,21 +1243,21 @@ def rule_EC8023W(
                 if strippedText:
                     precedingChar = strippedText[-1]
 
-        if fact.sign == '-' :
+        if fact.sign == "-" :
             if precedingChar != negativeChar:
                 yield Validation.warning(
-                    codes='EDINET.EC8023W',
+                    codes="EDINET.EC8023W",
                     msg=_("In an inline XBRL file, if the sign attribute of the ix:nonFraction "
-                          "element is set to \"-\" (minus), you must set \"△\" immediately "
+                          'element is set to "-" (minus), you must set "△" immediately '
                           "before the ix:nonFraction element tag."),
                     modelObject=fact,
                 )
         else:
             if precedingChar == negativeChar:
                 yield Validation.warning(
-                    codes='EDINET.EC8023W',
+                    codes="EDINET.EC8023W",
                     msg=_("In an inline XBRL file, if the sign attribute of the ix:nonFraction "
-                          "element is not set to \"-\" (minus), there is no need to set \"△\" "
+                          'element is not set to "-" (minus), there is no need to set "△" '
                           "immediately before the ix:nonFraction element tag."),
                     modelObject=fact,
                 )
@@ -1301,7 +1301,7 @@ def rule_filenames(
             continue
         if isReportFile:
             yield Validation.error(
-                codes='EDINET.EC0200E',
+                codes="EDINET.EC0200E",
                 msg=_("There is a file inside the XBRL directory that uses characters "
                       "other than those allowed (alphanumeric characters, '-' and '_'). "
                       "File: '%(path)s'. "
@@ -1310,7 +1310,7 @@ def rule_filenames(
             )
         else:
             yield Validation.error(
-                codes='EDINET.EC0121E',
+                codes="EDINET.EC0121E",
                 msg=_("There is a directory or file in '%(directory)s' that contains more "
                       "than 31 characters or uses characters other than those allowed "
                       "(alphanumeric characters, '-' and '_'). "
@@ -1357,7 +1357,7 @@ def rule_manifest_preferredFilename(
     for instance in instances:
         if len(instance.preferredFilename) == 0:
             yield Validation.error(
-                codes='EDINET.EC5804E',
+                codes="EDINET.EC5804E",
                 msg=_("The instance file name is not set. "
                       "Set the instance name as the preferredFilename attribute value "
                       "of the instance element in the manifest file. (manifest: '%(manifest)s', id: %(id)s)"),
@@ -1367,9 +1367,9 @@ def rule_manifest_preferredFilename(
             continue
 
         preferredFilename = Path(instance.preferredFilename)
-        if preferredFilename.suffix != '.xbrl':
+        if preferredFilename.suffix != ".xbrl":
             yield Validation.error(
-                codes='EDINET.EC5805E',
+                codes="EDINET.EC5805E",
                 msg=_("The instance file extension is not '.xbrl'. "
                       "File name: '%(preferredFilename)s'. "
                       "Please change the extension of the instance name set in the "
@@ -1389,7 +1389,7 @@ def rule_manifest_preferredFilename(
         if not match:
             if reportFolderType == ReportFolderType.AUDIT_DOC:
                 yield Validation.warning(
-                    codes='EDINET.EC8009W',
+                    codes="EDINET.EC8009W",
                     msg=_("The file name of the audit report instance set in the manifest "
                           "file does not conform to the rules. "
                           "File name: '%(file)s'. "
@@ -1399,7 +1399,7 @@ def rule_manifest_preferredFilename(
                 )
             else:
                 yield Validation.warning(
-                    codes='EDINET.EC8008W',
+                    codes="EDINET.EC8008W",
                     msg=_("The file name of the report instance set in the manifest "
                           "file does not comply with the regulations. "
                           "File name: '%(file)s'. "
@@ -1415,7 +1415,7 @@ def rule_manifest_preferredFilename(
     for path, filenames in duplicateFilenames.items():
         for filename in filenames:
             yield Validation.error(
-                codes='EDINET.EC5806E',
+                codes="EDINET.EC5806E",
                 msg=_("The same instance file name is set multiple times. "
                       "File name: '%(preferredFilename)s'. "
                       "The preferredFilename attribute value of the instance "
