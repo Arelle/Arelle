@@ -1,11 +1,14 @@
 '''
 See COPYRIGHT.md for copyright information.
 '''
-from collections import defaultdict
-import os, datetime
-from arelle import (ModelObject)
+from __future__ import annotations
 
-def setup(view):
+import datetime
+from collections import defaultdict
+from typing import Any
+
+
+def setup(view: Any) -> None:
     relsSet = view.modelXbrl.relationshipSet(view.arcrole, view.linkrole, view.linkqname, view.arcqname)
     view.concepts = set(fact.concept for fact in view.modelXbrl.facts)
     view.linkroles = set(
@@ -14,7 +17,8 @@ def setup(view):
                 for rels in (relsSet.fromModelObject(c), relsSet.toModelObject(c))
                     for rel in rels)
 
-def setupLinkrole(view, linkrole):
+
+def setupLinkrole(view: Any, linkrole: str) -> None:
     view.linkrole = linkrole
     relsSet = view.modelXbrl.relationshipSet(view.arcrole, view.linkrole, view.linkqname, view.arcqname)
     concepts = set(c for c in view.concepts if relsSet.fromModelObject(c) or relsSet.toModelObject(c))
@@ -22,12 +26,12 @@ def setupLinkrole(view, linkrole):
     contexts = set(f.context for f in facts)
 
     view.periodContexts = defaultdict(set)
-    contextStartDatetimes = {}
+    contextStartDatetimes: dict[str, datetime.datetime] = {}
     view.dimensionMembers = defaultdict(set)
     view.entityIdentifiers = set()
     for context in contexts:
         if context.isForeverPeriod:
-            contextkey = datetime.datetime(datetime.MINYEAR,1,1)
+            contextkey: datetime.datetime = datetime.datetime(datetime.MINYEAR, 1, 1)
         else:
             contextkey = context.endDatetime
         objectId = context.objectId()
