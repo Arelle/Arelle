@@ -326,7 +326,6 @@ module = [
     'arelle.DialogLanguage',
     'arelle.DialogNewFactItem',
     'arelle.DialogOpenArchive',
-    'arelle.DialogPackageManager',
     'arelle.DialogURL',
     'arelle.DialogUserPassword',
     'arelle.InstanceAspectsEvaluator',
