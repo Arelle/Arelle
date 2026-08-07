@@ -17,8 +17,8 @@ this_file = Path(__file__)
 args = parse_args(
     this_file.stem,
     "Smoke test load from Excel plugin.",
-    cache='load_from_excel.zip',
-    cache_version_id='oGRKSXanaohN6PKnXckFFpzNPhIr.Yq9',
+    cache="load_from_excel.zip",
+    cache_version_id="oGRKSXanaohN6PKnXckFFpzNPhIr.Yq9",
 )
 arelle_command = args.arelle
 arelle_offline = args.offline
@@ -26,7 +26,7 @@ working_directory = Path(args.working_directory)
 test_directory = Path(args.test_directory)
 arelle_log_file = prepare_logfile(test_directory, this_file)
 
-excel_taxonomy_path = test_directory / 'XII_Taxonomy.xlsx'
+excel_taxonomy_path = test_directory / "XII_Taxonomy.xlsx"
 print(f"Downloading Excel file: {excel_taxonomy_path}")
 download_from_public_s3(
     excel_taxonomy_path,

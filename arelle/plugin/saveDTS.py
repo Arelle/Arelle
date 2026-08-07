@@ -1,9 +1,9 @@
-'''
+"""
 Save DTS is an example of a plug-in to both GUI menu and command line/web service
 that will save the files of a DTS into a zip file.
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from arelle.Version import authorLabel, copyrightLabel
 
 def package(dts):
@@ -22,7 +22,7 @@ def package(dts):
                  modelObject=dts)
     entryFilename = dts.fileSource.url
     pkgFilename = entryFilename + ".zip"
-    with ZipFile(pkgFilename, 'w', compression) as zipFile:
+    with ZipFile(pkgFilename, "w", compression) as zipFile:
         numFiles = 0
         for fileUri in sorted(dts.urlDocs.keys()):
             if not isHttpUrl(fileUri):
@@ -64,16 +64,16 @@ def saveDtsCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
 
 
 __pluginInfo__ = {
-    'name': 'Save DTS',
-    'version': '0.9',
-    'description': "This plug-in adds a feature to package the whole DTS into a zip archive. "
+    "name": "Save DTS",
+    "version": "0.9",
+    "description": "This plug-in adds a feature to package the whole DTS into a zip archive. "
                    "Note that remote files are not included in the package. "
                    "Python's zlib module is used for compression (if avaliable).",
-    'license': 'Apache-2',
-    'author': 'R\u00e9gis D\u00e9camps',
-    'copyright': copyrightLabel,
+    "license": "Apache-2",
+    "author": "R\u00e9gis D\u00e9camps",
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'CntlrWinMain.Menu.Tools': saveDtsMenuEntender,
-    'CntlrCmdLine.Options': saveDtsCommandLineOptionExtender,
-    'CntlrCmdLine.Xbrl.Run': saveDtsCommandLineXbrlRun,
+    "CntlrWinMain.Menu.Tools": saveDtsMenuEntender,
+    "CntlrCmdLine.Options": saveDtsCommandLineOptionExtender,
+    "CntlrCmdLine.Xbrl.Run": saveDtsCommandLineXbrlRun,
 }

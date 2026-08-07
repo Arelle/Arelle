@@ -843,7 +843,7 @@ class StrctMdlStructuralNode(StrctMdlNode):
             return self.strctMdlParentNode.strctMdlParentNode.aspectValue(aspect, depth=depth + 1)
         return None
 
-    '''
+    """
     @property
     def primaryItemQname(self):  # for compatibility with viewRelationsihps
         if Aspect.CONCEPT in self.aspects:
@@ -852,7 +852,7 @@ class StrctMdlStructuralNode(StrctMdlNode):
     @property
     def explicitDims(self):
         return self.defnMdlNode.explicitDims
-    '''
+    """
 
     @property
     def tableDefinitionNode(self) -> Any:
@@ -911,13 +911,13 @@ class StrctMdlStructuralNode(StrctMdlNode):
                 else:
                     # take closest structural node
                     hasClash = True
-            ''' reported in static analysis by RenderingEvaluator.py
+            """ reported in static analysis by RenderingEvaluator.py
             if hasClash:
                 from arelle.ModelFormulaObject import aspectStr
                 view.modelXbrl.error("xbrlte:aspectClashBetweenBreakdowns",
                     _("Aspect %(aspect)s covered by multiple axes."),
                     modelObject=view.modelTable, aspect=aspectStr(aspect))
-            '''
+            """
         if structuralNode:
             definitionNodeConstraintSet = structuralNode.constraintSet(tagSelectors)
             if definitionNodeConstraintSet is not None and definitionNodeConstraintSet.aspectValueDependsOnVars(aspect):
@@ -996,10 +996,10 @@ class DefnMdlTable(ModelFormulaResource):
                     rels.append(rel)
             self._filterRelationships = rels
             return rels
-    ''' now only accessed from structural node
+    """ now only accessed from structural node
     def header(self, role=None, lang=None, strip=False, evaluate=True):
         return self.genLabel(role=role, lang=lang, strip=strip)
-    '''
+    """
 
     @property
     def definitionLabelsView(self) -> tuple[tuple[str, str], ...]:
@@ -1185,14 +1185,14 @@ class DefnMdlDefinitionNode(ModelFormulaResource):
         # compiled by FormulaResource compile()
         return xpCtx.evaluateAtomicValue(self.valueProg, "xs:string", fact)  # type: ignore[arg-type]
 
-    '''
+    """
     @property
     def primaryItemQname(self):  # for compatibility with viewRelationsihps
         return None
     @property
     def explicitDims(self):
         return set()
-    '''
+    """
 
     @property
     def isAbstract(self) -> bool:  # type: ignore[override]
@@ -1200,7 +1200,7 @@ class DefnMdlDefinitionNode(ModelFormulaResource):
 
     def cardinalityAndDepth(self, structuralNode: StrctMdlNode, **kwargs: Any) -> tuple[int, int]:
         return 1, 1 if structuralNode.header(evaluate=False) is not None else 0
-    ''' now only accessed from structural node (mulst have table context for evaluate)
+    """ now only accessed from structural node (mulst have table context for evaluate)
     def header(self, role=None, lang=None, strip=False, evaluate=True):
         if role is None:
             # check for message before checking for genLabel
@@ -1216,7 +1216,7 @@ class DefnMdlDefinitionNode(ModelFormulaResource):
                         return result.strip()
                     return result
         return self.genLabel(role=role, lang=lang, strip=strip)
-    '''
+    """
 
     @property
     def definitionNodeView(self) -> str:
@@ -1325,7 +1325,7 @@ class DefnMdlConstraintSet(ModelFormulaRules):
     def aspectsModelCovered(self) -> set[int]:
         return set(aspectModelAspect.get(aspect, aspect) for aspect in self.aspectsCovered())
 
-    '''
+    """
     @property
     def primaryItemQname(self):
         return self.evaluateRule(self.modelXbrl.rendrCntx, Aspect.CONCEPT)
@@ -1347,7 +1347,7 @@ class DefnMdlConstraintSet(ModelFormulaRules):
         return self.evaluateRule(self.modelXbrl.rendrCntx,
                                  {"instant": Aspect.INSTANT,
                                   "duration": Aspect.END}[periodType])
-    '''
+    """
 
     def cardinalityAndDepth(self, structuralNode: StrctMdlNode, **kwargs: Any) -> tuple[int, int]:
         if self.aspectValues or self.aspectProgs or structuralNode.header(role="*", evaluate=False) is not None:

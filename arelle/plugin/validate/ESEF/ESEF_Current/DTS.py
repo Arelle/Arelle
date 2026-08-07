@@ -249,7 +249,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
                 modelObject=typedDimsInExtTxmy, concepts=", ".join(str(c.qname) for c in typedDimsInExtTxmy))
         if domainMembersWrongType:
             val.modelXbrl.error("ESEF.3.2.2.domainMemberWrongDataType",
-                _("Domain members MUST have domainItemType data type as defined in \"%(xbrlReference)s\": concept %(concepts)s."),
+                _('Domain members MUST have domainItemType data type as defined in "%(xbrlReference)s": concept %(concepts)s.'),
                 modelObject=domainMembersWrongType, xbrlReference=xbrlReference322,
                 concepts=", ".join(str(c.qname) for c in domainMembersWrongType))
         # HF - think this is only about reported line items, not ext line items (?)
@@ -264,7 +264,7 @@ def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesCon
         if extLineItemsWronglyAnchored:
             val.modelXbrl.error("ESEF.3.3.1.anchoringWrongArcrole",
                 _("Anchoring relationships for concepts MUST use "
-                  "\"http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower\" arcrole: %(concepts)s."),
+                  '"http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower" arcrole: %(concepts)s.'),
                 modelObject=extLineItemsWronglyAnchored, concepts=", ".join(sorted(str(c.qname) for c in extLineItemsWronglyAnchored)))
         if extMonetaryConceptsWithoutBalance:
             val.modelXbrl.error("ESEF.RTS.Annex.IV.Par.4.2.monetaryConceptWithoutBalance",

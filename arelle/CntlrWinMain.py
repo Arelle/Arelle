@@ -1,8 +1,8 @@
-'''
+"""
 This module is Arelle's controller in windowing interactive UI mode
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
 # mypy: disable-error-code="no-untyped-call"
 from __future__ import annotations
 
@@ -25,9 +25,9 @@ from arelle.logging.formatters.LogFormatter import LogFormatter, logRefsFileLine
 from arelle.typing import TypeGetText
 from arelle.utils.EntryPointDetection import parseEntrypointFileInput
 
-if sys.platform == 'win32' and getattr(sys, 'frozen', False):
+if sys.platform == "win32" and getattr(sys, "frozen", False):
     # need the .dll directory in path to be able to access Tk and Tcl DLLs efore importinng Tk, etc.
-    os.environ['PATH'] = os.path.dirname(sys.executable) + ";" + os.environ['PATH']
+    os.environ["PATH"] = os.path.dirname(sys.executable) + ";" + os.environ["PATH"]
 
 from tkinter import (
     END,
@@ -163,7 +163,7 @@ class CntlrWinMain(Cntlr.Cntlr):
             #parent.iconwindow(label)
         else:
             self.iconImage = PhotoImage(file=imgpath + "arelle-mac-icon-4.gif") # must keep reference during life of window
-            parent.tk.call('wm', 'iconphoto', parent._w, self.iconImage)  # type: ignore[attr-defined]
+            parent.tk.call("wm", "iconphoto", parent._w, self.iconImage)  # type: ignore[attr-defined]
             #parent.iconbitmap("@" + imgpath + "arelle.xbm")
             # try with gif file
             #parent.iconbitmap(path + "arelle.gif")
@@ -285,7 +285,7 @@ class CntlrWinMain(Cntlr.Cntlr):
         self.noCertificateCheck = BooleanVar(value=self.webCache.noCertificateCheck)
         self.noCertificateCheck.trace_add("write", self.setNoCertificateCheck)
         cacheMenu.add_checkbutton(label=_("No certificate check"), underline=0, variable=self.noCertificateCheck, onvalue=True, offvalue=False)
-        '''
+        """
         self.webCache.recheck  = self.config.setdefault("webRecheck",False)
         self.webRecheck = BooleanVar(value=self.webCache.webRecheck)
         self.webRecheck.trace_add("write", self.setWebRecheck)
@@ -294,13 +294,13 @@ class CntlrWinMain(Cntlr.Cntlr):
         self.downloadNotify = BooleanVar(value=self.webCache.retrievalNotify)
         self.downloadNotify.trace_add("write", self.setRetrievalNotify)
         cacheMenu.add_checkbutton(label=_("Notify file downloads"), underline=0, variable=self.workOffline, onvalue=True, offvalue=False)
-        '''
+        """
 
         internetCacheRecheckMenu = Menu(cacheMenu, tearoff=0)
         self.webCache.recheck = self.config.setdefault("internetRecheck", "weekly")
         self.internetRecheckVar = StringVar(value=self.webCache.recheck)
         self._internetRecheckLabel = _("Internet recheck Interval")
-        _recheck_initial = 'disable' if self.webCache.workOffline else 'normal'
+        _recheck_initial = "disable" if self.webCache.workOffline else "normal"
         self.internetRecheckVar.trace_add("write", self.setInternetRecheck)
 
         _internetRecheckEntries = ((_("daily"), "daily"), (_("weekly"), "weekly"), (_("monthly"), "monthly"), (_("never"), "never"))
@@ -475,7 +475,7 @@ class CntlrWinMain(Cntlr.Cntlr):
         window.columnconfigure(0, weight=1)
         window.rowconfigure(0, weight=1)
 
-        priorState = self.config.get('windowState')
+        priorState = self.config.get("windowState")
         screenW = self.parent.winfo_screenwidth() - 16 # allow for window edge
         screenH = self.parent.winfo_screenheight() - 64 # allow for caption and menus
         if priorState == "zoomed":
@@ -483,7 +483,7 @@ class CntlrWinMain(Cntlr.Cntlr):
             w = screenW
             h = screenH
         else:
-            priorGeometry = re.match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)",self.config.get('windowGeometry', ''))
+            priorGeometry = re.match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)",self.config.get("windowGeometry", ""))
             if priorGeometry and priorGeometry.lastindex is not None and priorGeometry.lastindex >= 4:
                 try:
                     w = int(priorGeometry.group(1))
@@ -514,7 +514,7 @@ class CntlrWinMain(Cntlr.Cntlr):
                 except:
                     pass
         # set top/btm divider
-        topLeftW, topLeftH = self.config.get('tabWinTopLeftSize', (250, 300))
+        topLeftW, topLeftH = self.config.get("tabWinTopLeftSize", (250, 300))
         if isinstance(topLeftW, (int, float)) and isinstance(topLeftH, (int, float)) and 10 < topLeftW < w - 60:
             self.tabWinTopLeft.config(width=int(topLeftW))
         if isinstance(topLeftH, (int, float)) and 10 < topLeftH < h - 60:
@@ -538,7 +538,7 @@ class CntlrWinMain(Cntlr.Cntlr):
         for arg in sys.argv:
             if not arg: continue
             if lastArg == "--skipLoading": # skip loading matching files (list of unix patterns)
-                self.modelManager.skipLoading = re.compile('|'.join(fnmatch.translate(f) for f in arg.split('|')))  # type: ignore[assignment]
+                self.modelManager.skipLoading = re.compile("|".join(fnmatch.translate(f) for f in arg.split("|")))  # type: ignore[assignment]
             elif arg == "--skipDTS": # skip DTS loading, discovery, etc
                 self.modelManager.skipDTS = True
             lastArg = arg
@@ -667,7 +667,7 @@ class CntlrWinMain(Cntlr.Cntlr):
                 try:
                     modelXbrl = view.modelXbrl
                     filename = modelXbrl.modelDocument.filepath
-                    if filename.endswith('.xsd'): # DTS entry point, no instance saved yet!
+                    if filename.endswith(".xsd"): # DTS entry point, no instance saved yet!
                         filename = None
                 except AttributeError:
                     pass
@@ -789,7 +789,7 @@ class CntlrWinMain(Cntlr.Cntlr):
         tkinter.messagebox.showwarning(_("arelle - Save what?"),
                                        _("Nothing has been selected that can be saved.  \nPlease select a view pane that can be saved."),
                                        parent=self.parent)
-        '''
+        """
         if self.filename is None:
             filename = self.uiFileDialog("save",
                     title=_("arelle - Save File"),
@@ -816,7 +816,7 @@ class CntlrWinMain(Cntlr.Cntlr):
                                 self.filename, err),
                                 parent=self.parent)
         return True;
-        '''
+        """
 
     def fileSaveExistingFile(self, event: Any = None, view: Any = None, fileType: str | None = None, *ignore: Any) -> Any:
         return self.fileSave(view=view, fileType=fileType, filenameFromInstance=True)
@@ -1070,13 +1070,13 @@ class CntlrWinMain(Cntlr.Cntlr):
                     if firstTableLinkroleURI is not None:
                         ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopLeft, ("Tables", (XbrlConst.parentChild,)), lang=self.labelLang, linkrole=indexLinkroleURI,
                                                                    treeColHdr="Table Index", showRelationships=False, showColumns=False, expandAll=False, hasTableIndex=True)
-                '''
+                """
                 elif (modelXbrl.modelDocument.type in (ModelDocument.Type.INSTANCE, ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET) and
                       not modelXbrl.hasTableRendering):
                     currentAction = "facttable ELRs view"
                     ViewWinRelationshipSet.viewRelationshipSet(modelXbrl, self.tabWinTopLeft, ("Tables", (XbrlConst.parentChild,)), lang=self.labelLang,
                                                                treeColHdr="Fact Table Index", showLinkroles=True, showColumns=False, showRelationships=False, expandAll=False)
-                '''
+                """
                 currentAction = "tree view of DTS"
                 ViewWinDTS.viewDTS(modelXbrl, self.tabWinTopLeft, altTabWin=self.tabWinTopRt)
                 currentAction = "view of concepts"
@@ -1329,7 +1329,7 @@ class CntlrWinMain(Cntlr.Cntlr):
             self.config["tabWinTopLeftSize"] = (self.tabWinTopLeft.winfo_width() - adjustW,
                                                 self.tabWinTopLeft.winfo_height() - adjustH)
             super(CntlrWinMain, self).close(saveConfig=True)
-            self.parent.unbind_all('')
+            self.parent.unbind_all("")
             self.parent.destroy()
             if self.logFile:
                 self.logFile.close()
@@ -1344,8 +1344,8 @@ class CntlrWinMain(Cntlr.Cntlr):
         duplicateTypeArg = DuplicateTypeArg(value)
         self.modelManager.validateDuplicateFacts = duplicateTypeArg.duplicateType()
         self.config["validateDuplicateFacts"] = value
-        self.addToLog('ModelManager.validateDuplicateFacts = {}'.format(
-            self.modelManager.validateDuplicateFacts), messageCode='debug', level=logging.DEBUG)
+        self.addToLog("ModelManager.validateDuplicateFacts = {}".format(
+            self.modelManager.validateDuplicateFacts), messageCode="debug", level=logging.DEBUG)
         self.saveConfig()
 
     def setWorkOffline(self, *args: Any) -> None:
@@ -1354,15 +1354,15 @@ class CntlrWinMain(Cntlr.Cntlr):
         self.saveConfig()
         # disable internet recheck choices when working offline
         if self.workOffline.get():
-            self._cacheMenu.entryconfig(self._internetRecheckLabel, state='disable')
+            self._cacheMenu.entryconfig(self._internetRecheckLabel, state="disable")
         else:
-            self._cacheMenu.entryconfig(self._internetRecheckLabel, state='normal')
+            self._cacheMenu.entryconfig(self._internetRecheckLabel, state="normal")
 
     def setInternetRecheck(self, *args: Any) -> None:
         self.webCache.recheck = self.internetRecheckVar.get()
         self.config["internetRecheck"] = self.webCache.recheck
-        self.addToLog('WebCache.recheck = {}'.format(self.webCache.recheck), messageCode='debug', level=logging.DEBUG)
-        self.addToLog('WebCache.maxAgeSeconds = {}'.format(self.webCache.maxAgeSeconds), messageCode='debug', level=logging.DEBUG)
+        self.addToLog("WebCache.recheck = {}".format(self.webCache.recheck), messageCode="debug", level=logging.DEBUG)
+        self.addToLog("WebCache.maxAgeSeconds = {}".format(self.webCache.maxAgeSeconds), messageCode="debug", level=logging.DEBUG)
         self.saveConfig()
 
     def setNoCertificateCheck(self, *args: Any) -> None:
@@ -1393,11 +1393,11 @@ class CntlrWinMain(Cntlr.Cntlr):
 
     def manageWebCache(self) -> None:
         if sys.platform.startswith("win"):
-            command = 'explorer'
+            command = "explorer"
         elif sys.platform in ("darwin", "macos"):
-            command = 'open'
+            command = "open"
         else: # linux/unix
-            command = 'xdg-open'
+            command = "xdg-open"
         try:
             subprocess.Popen([command,self.webCache.cacheDir])
         except:
@@ -1593,12 +1593,12 @@ class CntlrWinMain(Cntlr.Cntlr):
                               "An open source XBRL platform\n"
                               "{copyrightLabel}\n"
                               "http://www.arelle.org\nsupport@arelle.org\n\n"
-                              "Licensed under the Apache License, Version 2.0 (the \"License\"); "
+                              'Licensed under the Apache License, Version 2.0 (the "License"); '
                               "you may not use this file except in compliance with the License.  "
                               "You may obtain a copy of the License at\n\n"
                               "http://www.apache.org/licenses/LICENSE-2.0\n\n"
                               "Unless required by applicable law or agreed to in writing, software "
-                              "distributed under the License is distributed on an \"AS IS\" BASIS, "
+                              'distributed under the License is distributed on an "AS IS" BASIS, '
                               "WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  "
                               "See the License for the specific language governing permissions and "
                               "limitations under the License."
@@ -1613,9 +1613,9 @@ class CntlrWinMain(Cntlr.Cntlr):
                                   wordSize=self.systemWordSize,
                                   platform=platform.machine(),
                                   copyrightLabel=copyrightLabel.replace("(c)", "\u00a9"),
-                                  pythonVersion=f'{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}',
-                                  tcltkVersion=Tcl().eval('info patchlevel'),
-                                  lxmlVersion=f'{etree.LXML_VERSION[0]}.{etree.LXML_VERSION[1]}.{etree.LXML_VERSION[2]}',
+                                  pythonVersion=f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}",
+                                  tcltkVersion=Tcl().eval("info patchlevel"),
+                                  lxmlVersion=f"{etree.LXML_VERSION[0]}.{etree.LXML_VERSION[1]}.{etree.LXML_VERSION[2]}",
                           ))
 
 
@@ -1767,14 +1767,14 @@ class CntlrWinMain(Cntlr.Cntlr):
                                            "save":win32gui.GetSaveFileNameW}[action](
                             hwndOwner=(owner if owner else parent).winfo_id(),
                             hInstance=win32gui.GetModuleHandle(None),
-                            Filter='\0'.join(e for t in filetypes+['\0'] for e in t),
+                            Filter="\0".join(e for t in filetypes+["\0"] for e in t),
                             MaxFile=4096,
                             InitialDir=initialdir,
                             Title=title,
                             DefExt=defaultextension)
                 return filename
             except win32gui.error:
-                return ''
+                return ""
         else:
             return {"open":tkinter.filedialog.askopenfilename,
                     "save":tkinter.filedialog.asksaveasfilename}[action](
@@ -1802,7 +1802,7 @@ class WinMainLogHandler(logging.Handler):
         self.logRecordBuffer = None
 
     def flush(self) -> None:
-        ''' Nothing to flush '''
+        """ Nothing to flush """
 
     def emit(self, logRecord: logging.LogRecord) -> None:
         if self.logRecordBuffer is not None:
@@ -1841,7 +1841,7 @@ class TkinterCallWrapper:
 
 def main() -> None:
     # this is the entry called by arelleGUI.pyw for windows
-    if getattr(sys, 'frozen', False) and sys.platform == 'win32':
+    if getattr(sys, "frozen", False) and sys.platform == "win32":
         # windows requires fake stdout/stderr because no write/flush (e.g., EDGAR/render LocalViewer pybottle)
         class dummyFrozenStream:
             def __init__(self) -> None: pass
@@ -1864,9 +1864,9 @@ def main() -> None:
             if sys.platform == "darwin" and not __file__.endswith(".app/Contents/MacOS/arelleGUI"):
                 # not built app - launches behind python or eclipse
                 application.lift()
-                application.call('wm', 'attributes', '.', '-topmost', True)
-                cntlrWinMain.uiThreadQueue.put((application.call, ['wm', 'attributes', '.', '-topmost', False]))
-                processName = "arelleGUI" if getattr(sys, 'frozen', False) else "python"
+                application.call("wm", "attributes", ".", "-topmost", True)
+                cntlrWinMain.uiThreadQueue.put((application.call, ["wm", "attributes", ".", "-topmost", False]))
+                processName = "arelleGUI" if getattr(sys, "frozen", False) else "python"
                 os.system(f'/usr/bin/osascript -e \'tell app "Finder" to set frontmost of process "{processName}" to true\'')
             application.mainloop()
         except Exception: # unable to start Tk or other fatal error
@@ -1877,7 +1877,7 @@ def main() -> None:
                 syslog.syslog(syslog.LOG_ALERT, logMsg)  # type: ignore[attr-defined,unused-ignore]
             try: # this may crash.  Note syslog has 1k message length
                 logMsg = "tcl_pkgPath {} tcl_library {} tcl version {}".format(
-                    Tcl().getvar("tcl_pkgPath"), Tcl().getvar("tcl_library"), Tcl().eval('info patchlevel'))
+                    Tcl().getvar("tcl_pkgPath"), Tcl().getvar("tcl_library"), Tcl().eval("info patchlevel"))
                 if syslog is not None:
                     syslog.syslog(syslog.LOG_ALERT, logMsg)  # type: ignore[attr-defined,unused-ignore]
                 #print(logMsg, file=sys.stderr)
@@ -1887,7 +1887,7 @@ def main() -> None:
                 syslog.closelog()  # type: ignore[attr-defined,unused-ignore]
 
 if __name__ == "__main__":
-    if getattr(sys, 'frozen', False):
+    if getattr(sys, "frozen", False):
         multiprocessing.freeze_support()
     # this is the entry called by MacOS open and MacOS shell scripts
     # check if ARELLE_ARGS are used to emulate command line operation

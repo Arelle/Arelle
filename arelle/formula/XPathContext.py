@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 import datetime
@@ -88,7 +88,7 @@ AtomizedValue = Union[
     range,
 ]
 
-RecursiveContextItem = Union[ContextItem, Iterable['RecursiveContextItem']]
+RecursiveContextItem = Union[ContextItem, Iterable["RecursiveContextItem"]]
 ResultStack = MutableSequence[Sequence[ContextItem]]
 
 # deferred types initialization
@@ -127,9 +127,9 @@ class XPathException(Exception):
 
     def __repr__(self) -> str:
         if self.column:
-            return _('[{0}] exception at {1} in {2}').format(self.code, self.column, self.message)
+            return _("[{0}] exception at {1} in {2}").format(self.code, self.column, self.message)
         else:
-            return _('[{0}] exception {1}').format(self.code, self.message)
+            return _("[{0}] exception {1}").format(self.code, self.message)
 
     @property
     def sourceErrorIndication(self) -> str:
@@ -137,9 +137,9 @@ class XPathException(Exception):
 
 
 class FunctionNumArgs(Exception):
-    def __init__(self, errCode: str = 'err:XPST0017', errText: str | None = None) -> None:
+    def __init__(self, errCode: str = "err:XPST0017", errText: str | None = None) -> None:
         self.errCode = errCode
-        self.errText = errText or _('Number of arguments do not match signature arity')
+        self.errText = errText or _("Number of arguments do not match signature arity")
         self.args = (self.__repr__(),)
 
     def __repr__(self) -> str:
@@ -151,8 +151,8 @@ class FunctionArgType(Exception):
             self,
             argIndex: int | str,
             expectedType: str,
-            foundObject: str | QName | Sequence[FormulaToken] | None = '',
-            errCode: str = 'err:XPTY0004',
+            foundObject: str | QName | Sequence[FormulaToken] | None = "",
+            errCode: str = "err:XPTY0004",
             value: str | None = None
     ) -> None:
         self.errCode = errCode
@@ -209,14 +209,14 @@ def create(
 
 
 # note: 2.2% execution time savings by having these sets/lists as constant instead of in expression where used
-VALUE_OPS = {'+', '-', '*', 'div', 'idiv', 'mod', 'to', 'gt', 'ge', 'eq', 'ne', 'lt', 'le'}
-GENERALCOMPARISON_OPS = {'>', '>=', '=', '!=', '<', '<='}
-NODECOMPARISON_OPS = {'is', '>>', '<<'}
-COMBINING_OPS = {'intersect', 'except', 'union', '|'}
-LOGICAL_OPS = {'and', 'or'}
-UNARY_OPS = {'u+', 'u-'}
-FORSOMEEVERY_OPS = {'for', 'some', 'every'}
-PATH_OPS = {'/', '//', 'rootChild', 'rootDescendant'}
+VALUE_OPS = {"+", "-", "*", "div", "idiv", "mod", "to", "gt", "ge", "eq", "ne", "lt", "le"}
+GENERALCOMPARISON_OPS = {">", ">=", "=", "!=", "<", "<="}
+NODECOMPARISON_OPS = {"is", ">>", "<<"}
+COMBINING_OPS = {"intersect", "except", "union", "|"}
+LOGICAL_OPS = {"and", "or"}
+UNARY_OPS = {"u+", "u-"}
+FORSOMEEVERY_OPS = {"for", "some", "every"}
+PATH_OPS = {"/", "//", "rootChild", "rootDescendant"}
 SEQUENCE_TYPES = (tuple, list, set)
 GREGORIAN_TYPES = (gYearMonth, gYear, gMonthDay, gDay, gMonth)
 
@@ -294,7 +294,7 @@ class XPathContext:
         setProgHeader = False
         for p in exprStack:
             result: RecursiveContextItem | None = None
-            if isinstance(p, QNameDef) or (p == '*' and parentOp in ('/', '//')):  # path step QName or wildcard
+            if isinstance(p, QNameDef) or (p == "*" and parentOp in ("/", "//")):  # path step QName or wildcard
                 # step axis operation
                 if len(resultStack) == 0 or not self.isNodeSequence(resultStack[-1]):
                     resultStack.append([contextItem, ])
@@ -323,16 +323,16 @@ class XPathContext:
                         elif op in self.customFunctions:  # plug in method custom functions
                             result = self.customFunctions[op](self, p, contextItem, args)  # use plug-in's method
                         elif op.unprefixed and localname in {
-                            'attribute',
-                            'comment',
-                            'document-node',
-                            'element',
-                            'item',
-                            'node',
-                            'processing-instruction',
-                            'schema-attribute',
-                            'schema-element',
-                            'text',
+                            "attribute",
+                            "comment",
+                            "document-node",
+                            "element",
+                            "item",
+                            "node",
+                            "processing-instruction",
+                            "schema-attribute",
+                            "schema-element",
+                            "text",
                         }:
                             # step axis operation
                             if len(resultStack) == 0 or not self.isNodeSequence(resultStack[-1]):
@@ -355,21 +355,21 @@ class XPathContext:
                         ):
                             result = self.modelXbrl.modelManager.customTransforms[op](cast(str, args[0][0]))
                         else:
-                            raise XPathException(p, 'err:XPST0017', _('Function call not identified: {0}.').format(op))
+                            raise XPathException(p, "err:XPST0017", _("Function call not identified: {0}.").format(op))
                     except FunctionNumArgs as err:
                         raise XPathException(p, err.errCode, "{}: {}".format(err.errText, op))
                     except FunctionArgType as err:
-                        raise XPathException(p, err.errCode, _('Argument {0} does not match expected type {1} for {2} {3}.').format(
+                        raise XPathException(p, err.errCode, _("Argument {0} does not match expected type {1} for {2} {3}.").format(
                             err.argNum, err.expectedType, op, err.foundObject))
                     except FunctionNotAvailable:
-                        raise XPathException(p, 'err:XPST0017', _('Function named {0} does not have a custom or built-in implementation.').format(op))
+                        raise XPathException(p, "err:XPST0017", _("Function named {0} does not have a custom or built-in implementation.").format(op))
                 elif op in VALUE_OPS:
                     # binary arithmetic operations and value comparisons
                     s1: Sequence[ContextItem] = self.atomize(p, resultStack.pop()) if len(resultStack) > 0 else []
                     s2: Sequence[ContextItem] = self.atomize(p, self.evaluate(p.args, contextItem=contextItem))
                     # value comparisons
                     if len(s1) > 1 or len(s2) > 1:
-                        raise XPathException(p, 'err:XPTY0004', _("Value operation '{0}' sequence length error").format(op))
+                        raise XPathException(p, "err:XPTY0004", _("Value operation '{0}' sequence length error").format(op))
                     if len(s1) == 0 or len(s2) == 0:
                         result = []
                     else:
@@ -378,53 +378,53 @@ class XPathContext:
                         assert testTypeCompatibility is not None
                         testTypeCompatibility(self, p, op, op1, op2)
                         if type(op1) != type(op2) and op in (
-                            '+',
-                            '-',
-                            '*',
-                            'div',
-                            'idiv',
-                            'mod',
-                            'ge',
-                            'gt',
-                            'le',
-                            'lt',
-                            'eq',
-                            'ne',
+                            "+",
+                            "-",
+                            "*",
+                            "div",
+                            "idiv",
+                            "mod",
+                            "ge",
+                            "gt",
+                            "le",
+                            "lt",
+                            "eq",
+                            "ne",
                         ):
                             # check if type promotion needed (Decimal-float, not needed for integer-Decimal)
                             if isinstance(op1, Decimal) and isinstance(op2, float):
                                 op1 = float(op1)  # per http://http://www.w3.org/TR/xpath20/#dt-type-promotion 1b
                             elif isinstance(op2, Decimal) and isinstance(op1, float):
                                 op2 = float(op2)
-                        if op == '+':
+                        if op == "+":
                             result = op1 + op2  # type: ignore[assignment,operator]
-                        elif op == '-':
+                        elif op == "-":
                             result = op1 - op2  # type: ignore[assignment,operator]
-                        elif op == '*':
+                        elif op == "*":
                             result = op1 * op2  # type: ignore[assignment,operator]
-                        elif op in ('div', 'idiv', "mod"):
+                        elif op in ("div", "idiv", "mod"):
                             try:
-                                if op == 'div':
+                                if op == "div":
                                     result = op1 / op2  # type: ignore[assignment,operator]
-                                elif op == 'idiv':
+                                elif op == "idiv":
                                     result = op1 // op2  # type: ignore[assignment,operator]
-                                elif op == 'mod':
+                                elif op == "mod":
                                     result = op1 % op2  # type: ignore[assignment,operator]
                             except ZeroDivisionError:
-                                raise XPathException(p, 'err:FOAR0001', _('Attempt to divide by zero: {0} {1} {2}.').format(op1, op, op2))
-                        elif op == 'ge':
+                                raise XPathException(p, "err:FOAR0001", _("Attempt to divide by zero: {0} {1} {2}.").format(op1, op, op2))
+                        elif op == "ge":
                             result = op1 >= op2 # type: ignore[operator]
-                        elif op == 'gt':
+                        elif op == "gt":
                             result = op1 > op2 # type: ignore[operator]
-                        elif op == 'le':
+                        elif op == "le":
                             result = op1 <= op2 # type: ignore[operator]
-                        elif op == 'lt':
+                        elif op == "lt":
                             result = op1 < op2 # type: ignore[operator]
-                        elif op == 'eq':
+                        elif op == "eq":
                             result = op1 == op2
-                        elif op == 'ne':
+                        elif op == "ne":
                             result = op1 != op2
-                        elif op == 'to':
+                        elif op == "to":
                             result = range(int(op1), int(op2) + 1)  # type: ignore[arg-type]
                 elif op in GENERALCOMPARISON_OPS:
                     # general comparisons
@@ -435,17 +435,17 @@ class XPathContext:
                     for op1 in s1:
                         for op2 in s2:
                             testTypeCompatibility(self, p, op, op1, op2)
-                            if op == '>=':
+                            if op == ">=":
                                 result = op1 >= op2  # type: ignore[operator]
-                            elif op == '>':
+                            elif op == ">":
                                 result = op1 > op2  # type: ignore[operator]
-                            elif op == '<=':
+                            elif op == "<=":
                                 result = op1 <= op2  # type: ignore[operator]
-                            elif op == '<':
+                            elif op == "<":
                                 result = op1 < op2  # type: ignore[operator]
-                            elif op == '=':
+                            elif op == "=":
                                 result = op1 == op2
-                            elif op == '!=':
+                            elif op == "!=":
                                 result = op1 != op2
                             if result:
                                 break
@@ -456,7 +456,7 @@ class XPathContext:
                     s1 = resultStack.pop() if len(resultStack) > 0 else []
                     _s2 = self.evaluate(p.args, contextItem=contextItem)
                     if len(s1) > 1 or len(_s2) > 1 or not self.isNodeSequence(s1) or not self.isNodeSequence(_s2[0]):
-                        raise XPathException(p, 'err:XPTY0004', _('Node comparison sequence error'))
+                        raise XPathException(p, "err:XPTY0004", _("Node comparison sequence error"))
                     if len(s1) == 0 or len(_s2[0]) == 0:
                         result = []
                     else:
@@ -465,11 +465,11 @@ class XPathContext:
                         result = False
                         for op1 in s1:
                             for _op2 in _s2:
-                                if op == 'is':
+                                if op == "is":
                                     result = n1 == n2
-                                elif op == '>>':
+                                elif op == ">>":
                                     result = op1 > _op2  # type: ignore[operator]
-                                elif op == '<<':
+                                elif op == "<<":
                                     result = op1 <= _op2  # type: ignore[operator]
                             if result:
                                 break
@@ -478,14 +478,14 @@ class XPathContext:
                     s1 = resultStack.pop() if len(resultStack) > 0 else []
                     s2 = self.flattenSequence(self.evaluate(p.args, contextItem=contextItem))
                     if not self.isNodeSequence(s1) or not self.isNodeSequence(s2):
-                        raise XPathException(p, 'err:XPTY0004', _('Node operation sequence error'))
+                        raise XPathException(p, "err:XPTY0004", _("Node operation sequence error"))
                     set1 = set(s1)
                     set2 = set(s2)
-                    if op == 'intersect':
+                    if op == "intersect":
                         resultset = set1 & set2
-                    elif op == 'except':
+                    elif op == "except":
                         resultset = set1 - set2
-                    elif op == 'union' or op == '|':
+                    elif op == "union" or op == "|":
                         resultset = set1 | set2
                     # convert to a list in document order
                     result = self.documentOrderedNodes(resultset)
@@ -496,38 +496,38 @@ class XPathContext:
                     else:
                         op1 = self.effectiveBooleanValue(p, resultStack.pop()) if len(resultStack) > 0 else False
                         # consider short circuit possibilities
-                        if op == 'or' and op1:
+                        if op == "or" and op1:
                             result = True
-                        elif op == 'and' and not op1:
+                        elif op == "and" and not op1:
                             result = False
                         else:  # must evaluate other operand
                             op2 = self.effectiveBooleanValue(p, self.evaluate(p.args, contextItem=contextItem))
-                            if op == 'and':
+                            if op == "and":
                                 result = op1 and op2
-                            elif op == 'or':
+                            elif op == "or":
                                 result = op1 or op2
                 elif op in UNARY_OPS:
                     s1 = self.atomize(p, self.evaluate(p.args, contextItem=contextItem))
                     if len(s1) > 1:
-                        raise XPathException(p, 'err:XPTY0004', _('Unary expression sequence length error'))
+                        raise XPathException(p, "err:XPTY0004", _("Unary expression sequence length error"))
                     if len(s1) == 0:
                         result = []
                     else:
                         op1 = s1[0]
-                        if op == 'u+':
+                        if op == "u+":
                             result = op1
-                        elif op == 'u-':
+                        elif op == "u-":
                             result = -op1 # type: ignore[assignment,operator]
-                elif op == 'instance':
+                elif op == "instance":
                     result = False
                     s1 = self.flattenSequence(resultStack.pop()) if len(resultStack) > 0 else []
                     arity = len(s1)
                     if len(p.args) > 1:
                         occurenceIndicator = p.args[1]
                         if (
-                            (occurenceIndicator == '?' and arity in (0, 1))
-                            or (occurenceIndicator == '+' and arity >= 1)
-                            or (occurenceIndicator == '*')
+                            (occurenceIndicator == "?" and arity in (0, 1))
+                            or (occurenceIndicator == "+" and arity >= 1)
+                            or (occurenceIndicator == "*")
                         ):
                             result = True
                     elif arity == 1:
@@ -558,7 +558,7 @@ class XPathContext:
                                     if isinstance(x, ModelObject):
                                         if len(t.args) >= 1:
                                             qn = t.args[0]
-                                            if qn == '*' or (isinstance(qn, QNameDef) and (qn == x.qname or qn == qnWild)):
+                                            if qn == "*" or (isinstance(qn, QNameDef) and (qn == x.qname or qn == qnWild)):
                                                 result = True
                                                 if len(t.args) >= 2 and isinstance(t.args[1], QNameDef):
                                                     modelXbrl = x.modelDocument.modelXbrl
@@ -572,29 +572,29 @@ class XPathContext:
                                 # elif t.name == "item" comes here and result stays True
                             if not result:
                                 break
-                elif op == 'sequence':
+                elif op == "sequence":
                     result = self.evaluate(p.args, contextItem=contextItem)
-                elif op == 'predicate':
+                elif op == "predicate":
                     result = self.predicate(p, resultStack.pop()) if len(resultStack) > 0 else []
                 elif op in FORSOMEEVERY_OPS:  # for, some, every
                     _result: ResultStack = []
                     self.evaluateRangeVars(op, p.args[0], p.args[1:], contextItem, _result)
                     result = _result
-                elif op == 'if':
+                elif op == "if":
                     exprArg = cast(Expr, p.args[0])
                     exprArgStack = cast(Iterable[FormulaToken], exprArg.expr[0])
                     test = self.effectiveBooleanValue(p, self.evaluate(exprArgStack, contextItem=contextItem))
                     opDef = cast(OperationDef, p.args[1 if test else 2])
                     result = self.evaluate(opDef.args, contextItem=contextItem)
-                elif op == '.':
+                elif op == ".":
                     result = contextItem
-                elif op == '..':
+                elif op == "..":
                     result = XmlUtil.parent(cast(ModelObject, contextItem))
                 elif op in PATH_OPS:
-                    if op in ('rootChild', 'rootDescendant'):
+                    if op in ("rootChild", "rootDescendant"):
                         # fix up for multi-instance
                         resultStack.append([self.inputXbrlInstance.targetXbrlElementTree, ])
-                        op = '/' if op == 'rootChild' else '//'
+                        op = "/" if op == "rootChild" else "//"
                     # contains QNameDefs and predicates
                     innerFocusNodes: Sequence[ContextItem] | ContextItem
                     if len(resultStack) > 0:
@@ -643,14 +643,14 @@ class XPathContext:
             if isinstance(_type, QName) and _type.namespaceURI == XbrlConst.xsd:
                 _type = "xs:" + _type.localName
             if isinstance(_type, str):
-                prefix, sep, localName = _type.rpartition(':')
-                if prefix == 'xs':
-                    if localName.endswith('*'):
+                prefix, sep, localName = _type.rpartition(":")
+                if prefix == "xs":
+                    if localName.endswith("*"):
                         localName = localName[:-1]
                     if isinstance(result, (tuple, list, set)):
                         from arelle import FunctionXs
 
-                        if _type.endswith('*'):
+                        if _type.endswith("*"):
                             return [FunctionXs.call(self, progHeader, localName, [r, ]) for r in result]
                         elif len(result) > 0:
                             return FunctionXs.call(self, progHeader, localName, [cast(Sequence[str], result)[0], ])
@@ -687,18 +687,18 @@ class XPathContext:
                     for rv in r:
                         self.inScopeVars[rvQname] = rv
                         self.evaluateRangeVars(op, args[0], args[1:], contextItem, result)
-                        if op != 'for' and len(result) > 0:
+                        if op != "for" and len(result) > 0:
                             break  # short circuit evaluation
-                    if op == 'every' and len(result) == 0:
+                    if op == "every" and len(result) == 0:
                         result.append(True)  # true if no false result returned during iteration
                     if hasPrevValue:
                         self.inScopeVars[rvQname] = prevValue
         elif isinstance(p, Expr):
-            if p.name == 'return':
+            if p.name == "return":
                 result.append(self.evaluate(cast(Iterable[FormulaToken], p.expr), contextItem=contextItem))
-            elif p.name == 'satisfies':
+            elif p.name == "satisfies":
                 boolresult = self.effectiveBooleanValue(p, self.evaluate(cast(Iterable[FormulaToken], p.expr), contextItem=contextItem))
-                if (op == 'every') != boolresult:
+                if (op == "every") != boolresult:
                     # stop short circuit eval
                     result.append(boolresult)
 
@@ -717,7 +717,7 @@ class XPathContext:
         targetSequence: list[str | ModelObject | ModelAttribute] = []
         for node in sourceSequence:
             if not isinstance(node, (ModelObject, etree._ElementTree, PrototypeElementTree, PrototypeObject, ModelAttribute)):
-                raise XPathException(self.progHeader, 'err:XPTY0020', _('Axis step {0} context item is not a node: {1}').format(op, node))
+                raise XPathException(self.progHeader, "err:XPTY0020", _("Axis step {0} context item is not a node: {1}").format(op, node))
             targetNodes: MutableSequence[str | ModelObject | ModelAttribute] = []
             if isinstance(p, QNameDef):
                 ns = p.namespaceURI
@@ -742,7 +742,7 @@ class XPathContext:
                                 targetNodes.append(ModelAttribute(node, p.clarkNotation, UNKNOWN, value, value, value))
                         elif modelAttribute.xValid >= VALID or modelAttribute.xValid == UNKNOWN:  # may be undeclared attribute
                             targetNodes.append(modelAttribute)
-                elif op == '/' or op is None:
+                elif op == "/" or op is None:
                     if axis is None or axis == "child":
                         if isinstance(node, (ModelObject, etree._ElementTree, PrototypeElementTree, PrototypeObject)):
                             targetNodes = XmlUtil.children(cast(ModelObject, node), ns, localname, ixTarget=True)  # type: ignore[assignment]
@@ -823,10 +823,10 @@ class XPathContext:
                                 and (localname == following.localName or localname == "*")
                             ):
                                 targetNodes.append(following)
-                elif op == '//':
+                elif op == "//":
                     if isinstance(node, (ModelObject, etree._ElementTree, PrototypeElementTree, PrototypeObject)):
                         targetNodes = XmlUtil.descendants(node, ns, localname, ixTarget=True)  # type: ignore[assignment]
-                elif op == '..':
+                elif op == "..":
                     if isinstance(node, ModelAttribute):
                         targetNodes = [node.modelElement]
                     else:
@@ -836,13 +836,13 @@ class XPathContext:
                     # note this is not string value, just child text
                     targetNodes = [node.textValue]
                     # todo: add element, attribute, node, etc...
-            elif p == '*':  # wildcard
-                if op == '/' or op is None:
+            elif p == "*":  # wildcard
+                if op == "/" or op is None:
                     if isinstance(node, (ModelObject, etree._ElementTree, PrototypeElementTree)):
-                        targetNodes = XmlUtil.children(node, '*', '*', ixTarget=True)  # type: ignore[assignment]
-                elif op == '//':
+                        targetNodes = XmlUtil.children(node, "*", "*", ixTarget=True)  # type: ignore[assignment]
+                elif op == "//":
                     if isinstance(node, (ModelObject, etree._ElementTree, PrototypeElementTree)):
-                        targetNodes = XmlUtil.descendants(node, '*', '*', ixTarget=True)  # type: ignore[assignment]
+                        targetNodes = XmlUtil.descendants(node, "*", "*", ixTarget=True)  # type: ignore[assignment]
             targetSequence.extend(targetNodes)
         return targetSequence
 
@@ -881,7 +881,7 @@ class XPathContext:
         e: ModelObject | None = None
         if isinstance(x, ModelFact):
             if x.isTuple:
-                raise XPathException(p, 'err:FOTY0012', _('Atomizing tuple {0} that does not have a typed value').format(x))
+                raise XPathException(p, "err:FOTY0012", _("Atomizing tuple {0} that does not have a typed value").format(x))
             if x.isNil or x.concept is None:
                 return []
             baseXsdType = x.concept.baseXsdType
@@ -896,7 +896,7 @@ class XPathContext:
                 e = x
             if e is not None:
                 if getattr(e, "xValid", 0) == VALID_NO_CONTENT:
-                    raise XPathException(p, 'err:FOTY0012', _('Atomizing element {0} that does not have a typed value').format(x))
+                    raise XPathException(p, "err:FOTY0012", _("Atomizing element {0} that does not have a typed value").format(x))
                 if e.get("{http://www.w3.org/2001/XMLSchema-instance}nil") == "true":
                     return []
                 try:
@@ -917,12 +917,12 @@ class XPathContext:
             try:
                 x = float(v)
             except ValueError:
-                raise XPathException(p, 'err:FORG0001', _('Atomizing {0} to a {1} does not have a proper value').format(x, baseXsdType))
+                raise XPathException(p, "err:FORG0001", _("Atomizing {0} to a {1} does not have a proper value").format(x, baseXsdType))
         elif baseXsdType == "decimal":
             try:
                 x = Decimal(v)
             except InvalidOperation:
-                raise XPathException(p, 'err:FORG0001', _('Atomizing {0} to decimal does not have a proper value').format(x))
+                raise XPathException(p, "err:FORG0001", _("Atomizing {0} to decimal does not have a proper value").format(x))
         elif baseXsdType in (
             "integer",
             "nonPositiveInteger", "negativeInteger", "nonNegativeInteger", "positiveInteger",
@@ -934,7 +934,7 @@ class XPathContext:
             try:
                 x = int(v)
             except ValueError:
-                raise XPathException(p, 'err:FORG0001', _('Atomizing {0} to an integer does not have a proper value').format(x))
+                raise XPathException(p, "err:FORG0001", _("Atomizing {0} to an integer does not have a proper value").format(x))
         elif baseXsdType == "boolean":
             x = v == "true" or v == "1"
         elif baseXsdType == "QName" and e is not None:
@@ -977,7 +977,7 @@ class XPathContext:
 
     def traceEffectiveVariableValue(self, elt: ModelObject, varname: str) -> str | None:
         # used for tracing variable value
-        if varname.startswith('$'):
+        if varname.startswith("$"):
             varQname = qname(elt, varname[1:])
             if varQname in self.inScopeVars:
                 varValue = self.inScopeVars[varQname]
@@ -1005,7 +1005,7 @@ class XPathContext:
                 sequence.append(el)
         return sequence
 
-    '''  (note: slice operation makes the below slower than the above by about 15%)
+    """  (note: slice operation makes the below slower than the above by about 15%)
     def flattenSequence(self, x):
         sequenceTypes=SEQUENCE_TYPES
         if not isinstance(x, sequenceTypes):
@@ -1023,7 +1023,7 @@ class XPathContext:
                 else:
                     i += 1
         return x
-    '''
+    """
 
     # order nodes
     def documentOrderedNodes(self, x: Iterable[ContextItem]) -> Sequence[ContextItem]:

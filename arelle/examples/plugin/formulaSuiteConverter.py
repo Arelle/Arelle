@@ -1,4 +1,4 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
 
 XBRL formula conf suite converter
@@ -8,7 +8,7 @@ XBRL formula conf suite converter
      --plugin formulaSuiteConverter
      --source-test-suite-dir {directory containing index.xml file for suite)
      --converted-test-suite-dir {directory receiving converted suite)
-'''
+"""
 from arelle import ModelXbrl, XmlUtil
 from arelle.ModelDocument import Type
 from arelle.ModelValue import qname
@@ -196,15 +196,15 @@ def commandLineOptionExtender(parser, *args, **kwargs):
                       help=_("The destination directory to save the converted XF files."))
 
 __pluginInfo__ = {
-    'name': 'Formula Suite Converter',
-    'version': '0.9',
-    'description': "Convert XBRL Formula conformance suite to XF.",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "Formula Suite Converter",
+    "version": "0.9",
+    "description": "Convert XBRL Formula conformance suite to XF.",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # use formulaSaver tt output XF and saveLoadableOIM to output json instance
-    'import': ('formulaSaver', 'saveLoadableOIM'),
+    "import": ("formulaSaver", "saveLoadableOIM"),
     # classes of mount points (required)
-    'CntlrCmdLine.Options': commandLineOptionExtender,
-    'CntlrCmdLine.Utility.Run': convertSuite
+    "CntlrCmdLine.Options": commandLineOptionExtender,
+    "CntlrCmdLine.Utility.Run": convertSuite
 }

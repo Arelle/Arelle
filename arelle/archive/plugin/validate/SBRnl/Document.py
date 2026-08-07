@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from arelle import ModelDocument, XmlUtil, XbrlConst
 from arelle.ModelDtsObject import ModelConcept, ModelLocator, ModelResource, ModelType
 from arelle.ModelValue import qname
@@ -10,7 +10,7 @@ from arelle import XmlValidate
 from lxml import etree
 import regex as re
 
-xsd1_1datatypes = {qname(XbrlConst.xsd,'anyAtomicType'), qname(XbrlConst.xsd,'yearMonthDuration'), qname(XbrlConst.xsd,'dayTimeDuration'), qname(XbrlConst.xsd,'dateTimeStamp'), qname(XbrlConst.xsd,'precisionDecimal')}
+xsd1_1datatypes = {qname(XbrlConst.xsd,"anyAtomicType"), qname(XbrlConst.xsd,"yearMonthDuration"), qname(XbrlConst.xsd,"dayTimeDuration"), qname(XbrlConst.xsd,"dateTimeStamp"), qname(XbrlConst.xsd,"precisionDecimal")}
 
 def checkDTSdocument(val, modelDocument, isFilingDocument):
     if not isFilingDocument:
@@ -41,11 +41,11 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                     lookingForPrecedingComment = False
                 else:
                     modelXbrl.error("SBR.NL.2.2.0.05" if isSchema else "SBR.NL.2.3.0.05",
-                            _('%(docType)s must have only one comment node before schema element'),
+                            _("%(docType)s must have only one comment node before schema element"),
                             modelObject=modelDocument, docType=modelDocument.gettype().title())
         if lookingForPrecedingComment:
             modelXbrl.error("SBR.NL.2.2.0.04" if isSchema else "SBR.NL.2.3.0.04",
-                _('%(docType)s must have comment node only on line 2'),
+                _("%(docType)s must have comment node only on line 2"),
                 modelObject=modelDocument, docType=modelDocument.gettype().title())
 
         if isSchema:
@@ -56,7 +56,7 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                 if localName == "schema":
                     if elt.get("targetNamespace") is None:
                         val.modelXbrl.error("SBR.NL.2.2.0.08",
-                            _('Schema element must have a targetNamespace attribute'),
+                            _("Schema element must have a targetNamespace attribute"),
                             modelObject=elt)
                     if (elt.get("attributeFormDefault") != "unqualified" or
                         elt.get("elementFormDefault") != "qualified"):
@@ -66,7 +66,7 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                     for attrName in ("blockDefault", "finalDefault", "version"):
                         if elt.get(attrName) is not None:
                             val.modelXbrl.error("SBR.NL.2.2.0.10",
-                                _('Schema element must not have a %(attribute)s attribute'),
+                                _("Schema element must not have a %(attribute)s attribute"),
                                 modelObject=elt, attribute=attrName)
                 else:
                     if localName in ("assert", "openContent", "fallback"):
@@ -81,7 +81,7 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                                                         ("form", False, "2.2.2.12"),):
                             if (elt.get(attr) is not None) != presence:
                                 val.modelXbrl.error("SBR.NL.{0}".format(errCode),
-                                    _('Schema element %(concept)s %(requirement)s contain attribute %(attribute)s'),
+                                    _("Schema element %(concept)s %(requirement)s contain attribute %(attribute)s"),
                                     modelObject=elt, concept=elt.get("name"),
                                     requirement=(_("MUST NOT"),_("MUST"))[presence], attribute=attr,
                                     messageCodes=("SBR.NL.2.2.2.09", "SBR.NL.2.2.2.10", "SBR.NL.2.2.2.11", "SBR.NL.2.2.2.12"))
@@ -96,7 +96,7 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                             if not parentIsSchema: # root element
                                 if elt.get("name") is not None and (elt.isItem or elt.isTuple):
                                     val.modelXbrl.error("SBR.NL.2.2.2.01",
-                                        _('Schema concept definition is not at the root level: %(concept)s'),
+                                        _("Schema concept definition is not at the root level: %(concept)s"),
                                         modelObject=elt, concept=elt.get("name"))
                             elif eltQname not in val.typedDomainQnames:
                                 for attr, presence, errCode in (("abstract", True, "2.2.2.08"),
@@ -105,7 +105,7 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                                                                 ("substitutionGroup", True, "2.2.2.18"),):
                                     if (elt.get(attr) is not None) != presence:
                                         val.modelXbrl.error("SBR.NL.{0}".format(errCode),
-                                            _('Schema root element %(concept)s %(requirement)s contain attribute %(attribute)s'),
+                                            _("Schema root element %(concept)s %(requirement)s contain attribute %(attribute)s"),
                                             modelObject=elt, concept=elt.get("name"),
                                             requirement=(_("MUST NOT"),_("MUST"))[presence], attribute=attr,
                                             messageCodes=("SBR.NL.2.2.2.08", "SBR.NL.2.2.2.13", "SBR.NL.2.2.2.15", "SBR.NL.2.2.2.18"))
@@ -138,7 +138,7 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                             eltDecl = elt.dereference()
                             if (elt.get("minOccurs") is None or elt.get("maxOccurs") is None):
                                 val.modelXbrl.error("SBR.NL.2.2.2.14",
-                                    _('Schema %(element)s must have minOccurs and maxOccurs'),
+                                    _("Schema %(element)s must have minOccurs and maxOccurs"),
                                     modelObject=elt, element=eltDecl.qname)
                             elif elt.get("maxOccurs") != "1" and eltDecl.isItem:
                                 val.modelXbrl.error("SBR.NL.2.2.2.30",
@@ -153,7 +153,7 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                             attrValue = elt.get(attrName)
                             if  attrValue is None:
                                 val.modelXbrl.error("SBR.NL.2.2.2.14",
-                                    _('Schema %(element)s must have %(attrName)s'),
+                                    _("Schema %(element)s must have %(attrName)s"),
                                     modelObject=elt, element=elt.elementQname, attrName=attrName)
                             elif attrValue != "1":
                                 val.modelXbrl.error("SBR.NL.2.2.2.33",
@@ -175,17 +175,17 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                             parent.getparent().localName != "schema" or parent.getparent().namespaceURI != XbrlConst.xsd or
                             XmlUtil.previousSiblingElement(parent) != None):
                             val.modelXbrl.error("SBR.NL.2.2.0.12",
-                                _('Annotation/appinfo record must be be behind schema and before import'), modelObject=elt)
+                                _("Annotation/appinfo record must be be behind schema and before import"), modelObject=elt)
                         nextSiblingElement = XmlUtil.nextSiblingElement(parent)
                         if nextSiblingElement is not None and nextSiblingElement.localName != "import":
                             val.modelXbrl.error("SBR.NL.2.2.0.14",
-                                _('Annotation/appinfo record must be followed only by import'),
+                                _("Annotation/appinfo record must be followed only by import"),
                                 modelObject=elt)
                     elif localName == "annotation":
                         val.annotationsCount += 1
                         if not XmlUtil.hasChild(elt,XbrlConst.xsd,"appinfo"):
                             val.modelXbrl.error("SBR.NL.2.2.0.12",
-                                _('Schema file annotation missing appinfo element must be be behind schema and before import'),
+                                _("Schema file annotation missing appinfo element must be be behind schema and before import"),
                                 modelObject=elt)
                     elif localName in {"all", "documentation", "any", "anyAttribute", "attributeGroup",
                                        # comment out per R.H. 2011-11-16 "complexContent", "complexType", "extension",
@@ -210,7 +210,7 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                     roleURI = elt.get(uriAttr)
                     if elt.localName == "arcroleType":
                         val.modelXbrl.error("SBR.NL.2.2.4.01",
-                                _('ArcroleType is not allowed %(roleURI)s'),
+                                _("ArcroleType is not allowed %(roleURI)s"),
                                 modelObject=elt, roleURI=roleURI)
                     else: # roleType
                         roleTypeModelObject = modelDocument.idObjects.get(elt.get("id"))
@@ -236,7 +236,7 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                                         modelObject=elt, element=elt.qname, usedOn=qName, role=roleURI)
             if val.annotationsCount > 1:
                 modelXbrl.error("SBR.NL.2.2.0.22",
-                    _('Schema has %(annotationsCount)s xs:annotation elements, only 1 allowed'),
+                    _("Schema has %(annotationsCount)s xs:annotation elements, only 1 allowed"),
                     modelObject=modelDocument, annotationsCount=val.annotationsCount)
     if modelDocument.type == ModelDocument.Type.LINKBASE:
         for elt in modelDocument.xmlRootElement.iter():
@@ -332,7 +332,7 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
             modelXbrl.error("SBR.NL.3.2.3.04",
                 _("Namespace URI's MUST use only signs from a-z0-9_-/: %(namespaceURI)s"),
                 modelObject=modelDocument, namespaceURI=modelDocument.targetNamespace)
-        if not modelDocument.targetNamespace.startswith('http://www.nltaxonomie.nl'):
+        if not modelDocument.targetNamespace.startswith("http://www.nltaxonomie.nl"):
             modelXbrl.error("SBR.NL.3.2.3.05",
                 _("Namespace URI's MUST start with 'http://www.nltaxonomie.nl': %(namespaceURI)s"),
                 modelObject=modelDocument, namespaceURI=modelDocument.targetNamespace)
@@ -511,7 +511,7 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
             xmlLang = elt.get("{http://www.w3.org/XML/1998/namespace}lang")
             if val.validateXmlLang and xmlLang is not None:
                 if not val.disclosureSystem.xmlLangPattern.match(xmlLang): # corrected merge of pre-plugin code per LOGIUS
-                    val.modelXbrl.error("SBR.NL.2.3.8.01" if xmlLang.startswith('nl') else "SBR.NL.2.3.8.02" if xmlLang.startswith('en') else "arelle:langError",
+                    val.modelXbrl.error("SBR.NL.2.3.8.01" if xmlLang.startswith("nl") else "SBR.NL.2.3.8.02" if xmlLang.startswith("en") else "arelle:langError",
                         _("Element %(element)s %(xlinkLabel)s has unauthorized xml:lang='%(lang)s'"),
                         modelObject=elt, element=elt.qname,
                         xlinkLabel=elt.get("{http://www.w3.org/1999/xlink}label"),
@@ -612,7 +612,7 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                     _("Folder names must be less than 15 characters: %(folder)s"),
                     modelObject=modelDocument, folder=pathSegment)
             if pathSegment in ("bd", "kvk", "cbs"):
-                partnerPrefix = pathSegment + '-'
+                partnerPrefix = pathSegment + "-"
             lastPathSegment = pathSegment
         if modelDocument.basename.lower() != modelDocument.basename:
             modelXbrl.error("SBR.NL.3.2.1.05",
@@ -631,29 +631,29 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                 requiredLinkrole = "http://www.nltaxonomie.nl/" + nsYrOrVer + "/" + pathDir + "/"
                 if modelDocument == modelXbrl.modelDocument:  # entry point
                     nsYr = "{year}"
-                    if '2009' <= nsParts[3] < '2020':  # must be a year, use as year
+                    if "2009" <= nsParts[3] < "2020":  # must be a year, use as year
                         nsYr = nsParts[3]
                     else: # look for year in parts of basename of required namespace
                         for nsPart in nsParts:
-                            for baseNamePart in nsPart.split('-'):
-                                if '2009' <= baseNamePart < '2020':
+                            for baseNamePart in nsPart.split("-"):
+                                if "2009" <= baseNamePart < "2020":
                                     nsYr = baseNamePart
                                     break
-                    if not requiredNamespace.endswith('-' + nsYr):
-                        requiredNamespace += '-' + nsYr
+                    if not requiredNamespace.endswith("-" + nsYr):
+                        requiredNamespace += "-" + nsYr
                 if not modelDocument.targetNamespace.startswith(requiredNamespace):
                     modelXbrl.error("SBR.NL.3.2.3.06",
                         _("Namespace URI's MUST be constructed like %(requiredNamespace)s: %(namespaceURI)s"),
                         modelObject=modelDocument, requiredNamespace=requiredNamespace, namespaceURI=modelDocument.targetNamespace)
             else:
-                requiredLinkrole = ''
+                requiredLinkrole = ""
             # concept checks
             for modelConcept in modelDocument.xmlRootElement.iterdescendants(tag="{http://www.w3.org/2001/XMLSchema}element"):
                 if isinstance(modelConcept, ModelConcept):
                     # 6.7.16 name not duplicated in standard taxonomies
                     name = modelConcept.get("name")
                     if name:
-                        ''' removed per RH 2013-03-25
+                        """ removed per RH 2013-03-25
                         substititutionGroupQname = modelConcept.substitutionGroupQname
                         if substititutionGroupQname:
                             if name.endswith("Member") ^ (substititutionGroupQname.localName == "domainMemberItem" and
@@ -686,7 +686,7 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                                 modelXbrl.error("SBR.NL.3.2.5.16",
                                     _("Concept %(concept)s must end in Title to be in sbr:presentationItem substitution group"),
                                     modelObject=modelConcept, concept=modelConcept.qname)
-                        '''
+                        """
                         if len(name) > 200:
                             modelXbrl.error("SBR.NL.3.2.12.02" if modelConcept.isLinkPart
                                                 else "SBR.NL.3.2.5.21" if (modelConcept.isItem or modelConcept.isTuple)
@@ -761,7 +761,7 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                     modelXbrl.error("SBR.NL.3.2.9.04",
                         _("Linkrole URI's MUST NOT be longer than 255 characters, length is %(len)s: %(linkrole)s"),
                         modelObject=modelRoleTypes, len=len(roleURI), linkrole=roleURI)
-                ''' removed per RH 2013-03-13 e-mail
+                """ removed per RH 2013-03-13 e-mail
                 if not roleURI.startswith('http://www.nltaxonomie.nl'):
                     modelXbrl.error("SBR.NL.3.2.9.05",
                         _("Linkrole URI's MUST start with 'http://www.nltaxonomie.nl': %(linkrole)s"),
@@ -772,13 +772,13 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                         modelXbrl.error("SBR.NL.3.2.9.06",
                             _("Linkrole URI's MUST have the following construct: http://www.nltaxonomie.nl / {folder path} / {functional name} - {domain or axis or table or lineitem}: %(linkrole)s"),
                             modelObject=modelRoleTypes, linkrole=roleURI)
-                '''
+                """
                 for modelRoleType in modelRoleTypes:
                     if len(modelRoleType.id) > 255:
                         modelXbrl.error("SBR.NL.3.2.10.02",
                             _("Linkrole @id MUST NOT exceed 255 characters, length is %(length)s: %(linkroleID)s"),
                             modelObject=modelRoleType, length=len(modelRoleType.id), linkroleID=modelRoleType.id)
-                partnerPrefix = modelRoleTypes[0].modelDocument.basename.split('-')
+                partnerPrefix = modelRoleTypes[0].modelDocument.basename.split("-")
                 if partnerPrefix:  # first element before dash is prefix
                     urnPartnerLinkroleStart = "urn:{0}:linkrole:".format(partnerPrefix[0])
                     if not roleURI.startswith(urnPartnerLinkroleStart):

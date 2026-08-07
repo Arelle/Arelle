@@ -99,10 +99,10 @@ def rule_br_kvk_2_04(
             if contextDates in validDurations:
                 continue
         yield Validation.error(
-            codes='NL.BR-KVK-2.04',
-            msg=_('The period in the context MUST correspond to the period of the current (%(currentDuration)s) or '
-                  'previous (%(previousDuration)s) financial reporting period, or one day before the start of the comparative '
-                  'financial year (%(instants)s) where the context must be instant. Context: %(contextId)s'),
+            codes="NL.BR-KVK-2.04",
+            msg=_("The period in the context MUST correspond to the period of the current (%(currentDuration)s) or "
+                  "previous (%(previousDuration)s) financial reporting period, or one day before the start of the comparative "
+                  "financial year (%(instants)s) where the context must be instant. Context: %(contextId)s"),
             modelObject=context,
             contextId=contextId,
             currentDuration=[str(d) for d in currentDuration],
@@ -132,13 +132,13 @@ def rule_br_kvk_3_01(
     for unitId, unit in modelXbrl.units.items():
         for measures in unit.measures:
             for measure in measures:
-                if measure.namespaceURI == 'http://www.xbrl.org/2003/iso4217':
+                if measure.namespaceURI == "http://www.xbrl.org/2003/iso4217":
                     currencyUnitIds.add(unitId)
                     currencyMeasures.append(measure)
                     units.add(unit)
     if len(currencyMeasures) != 1:
         yield Validation.error(
-            codes='NL.BR-KVK-3.01',
+            codes="NL.BR-KVK-3.01",
             msg=_('A measure element with a namespace prefix that refers to the "http://www.xbrl.org/2003/iso4217" '
                   'namespace MUST appear exactly once in the instance document. Units: %(unitIds)s, Measures: %(measures)s'),
             modelObject=units,
@@ -167,9 +167,9 @@ def rule_br_kvk_4_07(
     filingDate = date.today()
     if currentPeriodEndDate >= filingDate:
         yield Validation.error(
-            codes='NL.BR-KVK-4.07',
-            msg=_('The jenv-bw2-i:FinancialReportingPeriodCurrentEndDate (%(currentPeriodEndDate)s) '
-                  'MUST be before the date of filing (%(filingDate)s).'),
+            codes="NL.BR-KVK-4.07",
+            msg=_("The jenv-bw2-i:FinancialReportingPeriodCurrentEndDate (%(currentPeriodEndDate)s) "
+                  "MUST be before the date of filing (%(filingDate)s)."),
             currentPeriodEndDate=currentPeriodEndDate,
             filingDate=filingDate,
         )
@@ -195,9 +195,9 @@ def rule_br_kvk_4_10(
     filingDate = date.today()
     if documentAdoptionDate > filingDate:
         yield Validation.error(
-            codes='NL.BR-KVK-4.10',
-            msg=_('The jenv-bw2-i:DocumentAdoptionDate (%(documentAdoptionDate)s) '
-                  'MUST NOT be after the date of filing (%(filingDate)s).'),
+            codes="NL.BR-KVK-4.10",
+            msg=_("The jenv-bw2-i:DocumentAdoptionDate (%(documentAdoptionDate)s) "
+                  "MUST NOT be after the date of filing (%(filingDate)s)."),
             documentAdoptionDate=documentAdoptionDate,
             filingDate=filingDate,
         )
@@ -221,12 +221,12 @@ def rule_br_kvk_4_12(
     """
     modelXbrl = val.modelXbrl
     resubmissionConceptQname = pluginData.documentResubmissionUnsurmountableInaccuraciesQn
-    if not any(f.value == 'Ja' for f in modelXbrl.factsByQname.get(resubmissionConceptQname, set())):
+    if not any(f.value == "Ja" for f in modelXbrl.factsByQname.get(resubmissionConceptQname, set())):
         return
     documentAdoptionStatusQname = pluginData.documentAdoptionStatusQn
-    if not any(f.value == 'Ja' for f in modelXbrl.factsByQname.get(documentAdoptionStatusQname, set())):
+    if not any(f.value == "Ja" for f in modelXbrl.factsByQname.get(documentAdoptionStatusQname, set())):
         yield Validation.error(
-            codes='NL.BR-KVK-4.12',
+            codes="NL.BR-KVK-4.12",
             msg=_('For a corrected annual report, an annual report to be corrected '
                   'MUST be filed with the Trade Register. '
                   'If %(resubmissionConceptQname)s is "Ja" (Yes), '
@@ -255,7 +255,7 @@ def rule_br_kvk_4_16(
     """
     modelXbrl = val.modelXbrl
     resubmissionConceptQname = pluginData.documentResubmissionUnsurmountableInaccuraciesQn
-    if not any(f.value == 'Ja' for f in modelXbrl.factsByQname.get(resubmissionConceptQname, set())):
+    if not any(f.value == "Ja" for f in modelXbrl.factsByQname.get(resubmissionConceptQname, set())):
         return
     requiredConceptQnames = (
         pluginData.documentAdoptionDateQn,
@@ -264,7 +264,7 @@ def rule_br_kvk_4_16(
     for conceptQname in requiredConceptQnames:
         if not any(f.value for f in modelXbrl.factsByQname.get(conceptQname, set())):
             yield Validation.error(
-                codes='NL.BR-KVK-4.16',
+                codes="NL.BR-KVK-4.16",
                 msg=_('A corrected financial statement MUST be established. '
                       'If %(resubmissionConceptQname)s is "Ja" (Yes), '
                       '%(conceptQname)s must be filled for a corrected financial statement.'),
@@ -293,9 +293,9 @@ def rule_br_kvk_4_17(
         delta = relativedelta.relativedelta(current_period_end, previous_period_start)
         if (delta.years == 2 and (delta.months > 0 or delta.days > 0)) or delta.years > 2:
             yield Validation.error(
-                codes='NL.BR-KVK-4.17',
-                msg=_('The current and previous financial reporting period MUST be less than 2 years. '
-                      'Previous Period Start: %(start)s  Current Period End: %(end)s '),
+                codes="NL.BR-KVK-4.17",
+                msg=_("The current and previous financial reporting period MUST be less than 2 years. "
+                      "Previous Period Start: %(start)s  Current Period End: %(end)s "),
                 start=previous_period_start,
                 end=current_period_end
             )
@@ -326,12 +326,12 @@ def rule_br_kvk_4_20(
             for periodChild in contextChild:
                 if not isinstance(periodChild, ModelObject):
                     continue
-                xValid = getattr(periodChild, 'xValid', None)
-                sValue = getattr(periodChild, 'sValue', None)
+                xValid = getattr(periodChild, "xValid", None)
+                sValue = getattr(periodChild, "sValue", None)
                 if (xValid == INVALID) or \
                         (sValue is not None and pattern.match(str(sValue))) is None:
                     yield Validation.error(
-                        codes='NL.BR-KVK-4.20',
+                        codes="NL.BR-KVK-4.20",
                         msg=_('Each date in an XBRL instance MUST be a valid date. '
                               'Date parsing for %(periodElement)s in context "%(contextId)s" with value "%(periodValue)s" '
                               'failed with message: "%(valueError)s" '),
@@ -339,18 +339,18 @@ def rule_br_kvk_4_20(
                         contextId=contextId,
                         periodElement=periodChild.qname.localName,
                         periodValue=periodChild.sValue,
-                        valueError=getattr(periodChild, 'xValueError', None) or 'does not match YYYY-MM-DD',
+                        valueError=getattr(periodChild, "xValueError", None) or "does not match YYYY-MM-DD",
                     )
     # Check date fact values
     for fact in modelXbrl.factsByDatatype(notStrict=True, typeQname=XbrlConst.qnXbrliDateItemType) or []:
         if (fact.xValid == INVALID) or \
                 pattern.match(str(fact.sValue)) is None:
             yield Validation.error(
-                codes='NL.BR-KVK-4.20',
+                codes="NL.BR-KVK-4.20",
                 msg=_('Each date in an XBRL instance MUST be a valid date. '
                       'Date parsing for fact %(factQname)s with value "%(factValue)s" failed with message: "%(valueError)s" '),
                 modelObject=fact,
                 factQname=fact.qname,
                 factValue=fact.sValue,
-                valueError=fact.xValueError or 'does not match YYYY-MM-DD',
+                valueError=fact.xValueError or "does not match YYYY-MM-DD",
             )

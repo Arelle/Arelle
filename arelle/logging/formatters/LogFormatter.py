@@ -28,8 +28,8 @@ class LogFormatter(logging.Formatter):
                 formattedMessage += "[{0}] ".format(getattr(record, "messageCode", ""))
             if getattr(record, "msg", ""):
                 formattedMessage += record.msg + " "
-            if isinstance(record.args, dict) and 'error' in record.args: # args may be list or empty
-                formattedMessage += record.args['error']
+            if isinstance(record.args, dict) and "error" in record.args: # args may be list or empty
+                formattedMessage += record.args["error"]
             formattedMessage += " \nMessage log error: " + str(ex)
         if hasattr(record, "file"):
             delattr(record, "file")
@@ -43,7 +43,7 @@ def logRefsFileLines(refs: list[dict[str, Any]]) -> str:
         if href:
             hrefWithoutFakeIxdsPrefix = UrlUtil.stripIxdsSurrogatePrefix(href)
             fileLines[hrefWithoutFakeIxdsPrefix.partition("#")[0]].add(ref.get("sourceLine") or 0)
-    return ", ".join(file + " " + ', '.join(str(line)
+    return ", ".join(file + " " + ", ".join(str(line)
                                             for line in sorted(lines, key=lambda l: l)
                                             if line)
                      for file, lines in sorted(fileLines.items()))

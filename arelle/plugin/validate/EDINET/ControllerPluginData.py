@@ -92,11 +92,11 @@ class ControllerPluginData(PluginData):
     @lru_cache(1)
     def getIllegalCharactersPattern(self) -> regex.Pattern[str]:
         allowedCharacters = set()
-        with open(self._allowedCharacterSheetPath, 'r', encoding='utf-8') as file:
+        with open(self._allowedCharacterSheetPath, "r", encoding="utf-8") as file:
             for line in file:
-                part = line.strip().split(' ')[0]
+                part = line.strip().split(" ")[0]
                 assert 2 <= len(part) <= 6, f"Invalid line in allowed character sheet: {line}"
-                char = bytes.fromhex(part).decode(encoding='utf-8')
+                char = bytes.fromhex(part).decode(encoding="utf-8")
                 assert char not in allowedCharacters, f"Duplicate character in allowed character sheet: {line}"
                 allowedCharacters.add(char)
         return regex.compile(f'[^{regex.escape("".join(allowedCharacters))}]')
@@ -130,7 +130,7 @@ class ControllerPluginData(PluginData):
             reportPath = None
             depth = len(parents)
             if depth > DEPTH_XBRL_DIRECTORY:
-                isCorrection = parents[DEPTH_XBRL_DIRECTORY] != 'XBRL'
+                isCorrection = parents[DEPTH_XBRL_DIRECTORY] != "XBRL"
                 if not isCorrection:
                     if depth > DEPTH_REPORT_DIRECTORY:
                         formName = parents[DEPTH_REPORT_DIRECTORY]
@@ -159,7 +159,7 @@ class ControllerPluginData(PluginData):
             )
         self._uploadContents = UploadContents(
             reports={k: frozenset(v) for k, v in reports.items() if len(v) > 0},
-            rootDirectory=next((p.rootDirectory for p in uploadPaths.values()), Path('.')),
+            rootDirectory=next((p.rootDirectory for p in uploadPaths.values()), Path(".")),
             uploadPaths=list(uploadPaths.values())
         )
         return self._uploadContents
@@ -179,7 +179,7 @@ class ControllerPluginData(PluginData):
             for parent in path.parents:
                 if parent in paths:
                     continue
-                paths[parent] = zipfile.Path(fileSource.fs, parent.as_posix() + '/')
+                paths[parent] = zipfile.Path(fileSource.fs, parent.as_posix() + "/")
         return {
             path: paths[path]
             for path in sorted(paths)
@@ -218,7 +218,7 @@ class ControllerPluginData(PluginData):
                 continue
             if manifestInstance.type != ReportFolderType.PUBLIC_DOC.value:
                 continue
-            facts = modelXbrl.factsByLocalName.get('WhetherConsolidatedFinancialStatementsArePreparedDEI', set())
+            facts = modelXbrl.factsByLocalName.get("WhetherConsolidatedFinancialStatementsArePreparedDEI", set())
             for fact in facts:
                 if fact.xValue == True:
                     return True

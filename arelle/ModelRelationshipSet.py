@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 import sys
@@ -396,7 +396,7 @@ class ModelRelationshipSet:
             ) -> str | ModelObject | list[str] | list[ModelObject] | None:
         _lang = lang.lower() if lang else lang # lang processing is case insensitive
         langLabels: list[str] | list[ModelObject] = []
-        wildRole = role == '*'
+        wildRole = role == "*"
         labels = self.fromModelObject(modelFrom)
         if linkroleHint:  # order of preference of linkroles to find label
             try:

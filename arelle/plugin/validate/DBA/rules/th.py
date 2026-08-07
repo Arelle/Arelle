@@ -67,8 +67,8 @@ def rule_th05 (
     contextIssues = getContextIssues(val.modelXbrl)
     for context in contextIssues.contextsWithSegments:
         yield Validation.error(
-            'DBA.TH05',
-            _('Contexts should not contain segments.'),
+            "DBA.TH05",
+            _("Contexts should not contain segments."),
             modelObject=context,
         )
 
@@ -91,8 +91,8 @@ def rule_th06 (
         if fact is not None and fact.context is not None:
             if fact.context.isForeverPeriod:
                 yield Validation.error(
-                    'DBA.TH06',
-                    _('The CVR (gsd:IdentificationNumberCvrOfReportingEntity) context period cannot be forever.'),
+                    "DBA.TH06",
+                    _("The CVR (gsd:IdentificationNumberCvrOfReportingEntity) context period cannot be forever."),
                     modelObject=fact,
                 )
 
@@ -164,7 +164,7 @@ def rule_th14 (
         if fact is not None and fact.xValid >= VALID:
             if fact.xValue in pluginData.forbiddenTypeOfSubmittedReportEnumerations:
                 yield Validation.error(
-                    'DBA.TH14',
+                    "DBA.TH14",
                     _('gsd:InformationOnTypeOfSubmittedReport MUST NOT use the following enumerations:'
                       '"Selskabsselvangivelse", "Erklæring om undtagelse fra aflæggelse årsrapport", "ESG-rapport", "ESG report"'
                       'InformationOnTypeOfSubmittedReport is reported as "{}".').format(

@@ -114,7 +114,7 @@ def compileAspectCoverFilter( sourceStr, loc, toks ):
         elif dimElt is not None:
             if isinstance(tok, XPathExpression):
                 lbGen.subElement(filterElt, dimElt, text=str(tok))
-            elif ':' in tok: # it's a QName
+            elif ":" in tok: # it's a QName
                 lbGen.subElement(filterElt, dimElt, text=tok)
             else: # it's a local name, requires general & aspect cover filter
                 lbGen.checkXmlns("xfi")
@@ -444,7 +444,7 @@ def compileConceptFilter( sourceStr, loc, toks ):
             elif useTok:
                 if isinstance(tok, XPathExpression):
                     lbGen.subElement(subEltParent, "cf:qnameExpression", text=str(tok))
-                elif ':' in tok: # it's a QName
+                elif ":" in tok: # it's a QName
                     lbGen.subElement(subEltParent, "cf:qname", text=lbGen.checkedQName(tok))
                 else: # it's a local name, requires general & aspect cover filter
                     lbGen.checkXmlns("xfi")
@@ -501,9 +501,9 @@ def compileConceptRelationFilter( sourceStr, loc, toks ):
         elif afterConceptRel and beforeSubElt:
             if isinstance(tok, XPathExpression):
                 lbGen.subElement(filterElt, "crf:qnameExpression", text=str(tok))
-            elif tok.startswith('$'):
+            elif tok.startswith("$"):
                 lbGen.subElement(filterElt, "crf:variable", text=tok)
-            elif ':' in tok: # it's a QName
+            elif ":" in tok: # it's a QName
                 lbGen.subElement(filterElt, "crf:qname", text=lbGen.checkedQName(tok))
             else: # it's a local name, requires general & aspect cover filter
                 lbGen.checkXmlns("xfi")
@@ -606,7 +606,7 @@ def compileDimensionFilter( sourceStr, loc, toks ):
             if isinstance(tok, XPathExpression):
                 dimQNameExpr = str(tok)
                 lbGen.subElement(dimElt, "df:qnameExpression", text=dimQNameExpr)
-            elif ':' in tok: # it's a QName
+            elif ":" in tok: # it's a QName
                 lbGen.subElement(dimElt, "df:qname", text=lbGen.checkedQName(tok))
                 dimQNameExpr = "resolve-QName({})".format(lbGen.checkedQName(tok))
             else: # it's a local name
@@ -617,9 +617,9 @@ def compileDimensionFilter( sourceStr, loc, toks ):
             memElt = lbGen.subElement(filterElt, "df:member")
             if isinstance(tok, XPathExpression):
                 lbGen.subElement(memElt, "df:qnameExpression", text=str(tok))
-            elif tok.startswith('$'):
+            elif tok.startswith("$"):
                 lbGen.subElement(memElt, "df:variable", text=tok[1:]) # remove $ from variable name
-            elif ':' in tok: # it's a QName
+            elif ":" in tok: # it's a QName
                 lbGen.subElement(memElt, "df:qname", text=lbGen.checkedQName(tok))
             else: # it's a local name
                 lbGen.checkXmlns("xfi")
@@ -1161,7 +1161,7 @@ def compileRelativeFilter( sourceStr, loc, toks ):
 def compileSeverity( sourceStr, loc, toks ):
     return []
 
-''' not supported by OIM
+""" not supported by OIM
 def compileTupleFilter( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
     filterLabel = "filter{}".format(lbGen.labelNbr("filter"))
@@ -1201,7 +1201,7 @@ def compileTupleFilter( sourceStr, loc, toks ):
             lbGen.subElement(relationElt, "tf:qname", text=lbGen.checkedQName(tupleRelationTok))
     return [FormulaArc("variable:variableFilterArc", attrib=arcAttrib),
             FormulaResourceElt(filterElt)]
-'''
+"""
 
 def compileUnitFilter( sourceStr, loc, toks ):
     global lastLoc; lastLoc = loc
@@ -1336,9 +1336,9 @@ def compileXfsGrammar( cntlr, debugParsing ):
                      r"([0-9]{4})-([0-9]{2})-([0-9]{2})")
 
 
-    decimalPoint = Literal('.')
-    exponentLiteral = CaselessLiteral('e')
-    plusorminusLiteral = Literal('+') | Literal('-')
+    decimalPoint = Literal(".")
+    exponentLiteral = CaselessLiteral("e")
+    plusorminusLiteral = Literal("+") | Literal("-")
     digits = Word(nums)
     integerLiteral = Combine( Opt(plusorminusLiteral) + digits )
     decimalFractionLiteral = Combine( Opt(plusorminusLiteral) + decimalPoint + digits )
@@ -1545,14 +1545,14 @@ def compileXfsGrammar( cntlr, debugParsing ):
         ).set_parse_action(compileRelativeFilter).ignore(xfsComment).set_name("relative-filter").set_debug(debugParsing)
 
 
-    ''' not supported by OIM
+    """ not supported by OIM
     tupleFilter = (
         ZeroOrMore( Keyword("not") | Keyword("covering") | Keyword("non-covering") ) +
         (Keyword("parent") + (qName | xpathExpression) |
          Keyword("ancestor") + (qName | xpathExpression) |
          Keyword("sibling") + variableRef) + separator
         ).set_parse_action(compileTupleFilter).ignore(xfsComment).set_name("tuple-filter").set_debug(debugParsing)
-    '''
+    """
 
     valueFilter = (
         Opt( Keyword("not") ) +
@@ -1730,7 +1730,7 @@ def parse(cntlr, _logMessage, xfFiles, modelXbrl=None, debugParsing=False):
                     nextLine = len(sourceString)
                     atEnd = True
                 if lineStart <= errAt < nextLine:
-                    codeLines.append(sourceString[lineStart:errAt] + '\u274b' + sourceString[errAt:nextLine])
+                    codeLines.append(sourceString[lineStart:errAt] + "\u274b" + sourceString[errAt:nextLine])
                 else:
                     codeLines.append(sourceString[lineStart:nextLine])
                 lineStart = nextLine + 1
@@ -1813,76 +1813,76 @@ def parse(cntlr, _logMessage, xfFiles, modelXbrl=None, debugParsing=False):
     return None
 
 formulaPrefixes = {
-    "xlink": ('http://www.w3.org/1999/xlink',),
-    "link": ('http://www.xbrl.org/2003/linkbase', 'http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd'),
-    "xbrli": ('http://www.xbrl.org/2003/instance',),
-    "generic": ('http://xbrl.org/2008/generic', 'http://www.xbrl.org/2008/generic-link.xsd'),
-    "formula": ('http://xbrl.org/2008/formula', 'http://www.xbrl.org/2008/formula.xsd'),
-    "validation": ('http://xbrl.org/2008/validation', 'http://www.xbrl.org/2008/validation.xsd'),
-    "variable": ('http://xbrl.org/2008/variable', 'http://www.xbrl.org/2008/variable.xsd'),
-    "label": ('http://xbrl.org/2008/label', 'http://www.xbrl.org/2008/generic-label.xsd'),
-    "msg": ('http://xbrl.org/2010/message', 'http://www.xbrl.org/2010/generic-message.xsd'),
-    "ca": ('http://xbrl.org/2008/assertion/consistency', 'http://www.xbrl.org/2008/consistency-assertion.xsd'),
-    "ea": ('http://xbrl.org/2008/assertion/existence', 'http://www.xbrl.org/2008/existence-assertion.xsd'),
-    "va": ('http://xbrl.org/2008/assertion/value', 'http://www.xbrl.org/2008/value-assertion.xsd'),
-    "bf": ('http://xbrl.org/2008/filter/boolean', 'http://www.xbrl.org/2008/boolean-filter.xsd'),
-    "cf": ('http://xbrl.org/2008/filter/concept', 'http://www.xbrl.org/2008/concept-filter.xsd'),
-    "df": ('http://xbrl.org/2008/filter/dimension', 'http://www.xbrl.org/2008/dimension-filter.xsd'),
-    "ef": ('http://xbrl.org/2008/filter/entity', 'http://www.xbrl.org/2008/entity-filter.xsd'),
-    "gf": ('http://xbrl.org/2008/filter/general', 'http://www.xbrl.org/2008/general-filter.xsd'),
-    "mf": ('http://xbrl.org/2008/filter/match', 'http://www.xbrl.org/2008/match-filter.xsd'),
-    "pf": ('http://xbrl.org/2008/filter/period', 'http://www.xbrl.org/2008/period-filter.xsd'),
-    "rf": ('http://xbrl.org/2008/filter/relative', 'http://www.xbrl.org/2008/relative-filter.xsd'),
+    "xlink": ("http://www.w3.org/1999/xlink",),
+    "link": ("http://www.xbrl.org/2003/linkbase", "http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"),
+    "xbrli": ("http://www.xbrl.org/2003/instance",),
+    "generic": ("http://xbrl.org/2008/generic", "http://www.xbrl.org/2008/generic-link.xsd"),
+    "formula": ("http://xbrl.org/2008/formula", "http://www.xbrl.org/2008/formula.xsd"),
+    "validation": ("http://xbrl.org/2008/validation", "http://www.xbrl.org/2008/validation.xsd"),
+    "variable": ("http://xbrl.org/2008/variable", "http://www.xbrl.org/2008/variable.xsd"),
+    "label": ("http://xbrl.org/2008/label", "http://www.xbrl.org/2008/generic-label.xsd"),
+    "msg": ("http://xbrl.org/2010/message", "http://www.xbrl.org/2010/generic-message.xsd"),
+    "ca": ("http://xbrl.org/2008/assertion/consistency", "http://www.xbrl.org/2008/consistency-assertion.xsd"),
+    "ea": ("http://xbrl.org/2008/assertion/existence", "http://www.xbrl.org/2008/existence-assertion.xsd"),
+    "va": ("http://xbrl.org/2008/assertion/value", "http://www.xbrl.org/2008/value-assertion.xsd"),
+    "bf": ("http://xbrl.org/2008/filter/boolean", "http://www.xbrl.org/2008/boolean-filter.xsd"),
+    "cf": ("http://xbrl.org/2008/filter/concept", "http://www.xbrl.org/2008/concept-filter.xsd"),
+    "df": ("http://xbrl.org/2008/filter/dimension", "http://www.xbrl.org/2008/dimension-filter.xsd"),
+    "ef": ("http://xbrl.org/2008/filter/entity", "http://www.xbrl.org/2008/entity-filter.xsd"),
+    "gf": ("http://xbrl.org/2008/filter/general", "http://www.xbrl.org/2008/general-filter.xsd"),
+    "mf": ("http://xbrl.org/2008/filter/match", "http://www.xbrl.org/2008/match-filter.xsd"),
+    "pf": ("http://xbrl.org/2008/filter/period", "http://www.xbrl.org/2008/period-filter.xsd"),
+    "rf": ("http://xbrl.org/2008/filter/relative", "http://www.xbrl.org/2008/relative-filter.xsd"),
     # "tf": ('http://xbrl.org/2008/filter/tuple', 'http://www.xbrl.org/2008/tuple-filter.xsd'),
-    "uf": ('http://xbrl.org/2008/filter/unit', 'http://www.xbrl.org/2008/unit-filter.xsd'),
-    "vf": ('http://xbrl.org/2008/filter/value', 'http://www.xbrl.org/2008/value-filter.xsd'),
-    "acf": ('http://xbrl.org/2010/filter/aspect-cover', 'http://www.xbrl.org/2010/aspect-cover-filter.xsd'),
-    "crf": ('http://xbrl.org/2010/filter/concept-relation', 'http://www.xbrl.org/2010/concept-relation-filter.xsd'),
-    "cfi": ('http://xbrl.org/2010/custom-function', 'http://www.xbrl.org/2010/custom-function-implementation.xsd'),
-    "xfi": ('http://www.xbrl.org/2008/function/instance',),
-    "xsi": ('http://www.w3.org/2001/XMLSchema-instance',),
-    "xs": ('http://www.w3.org/2001/XMLSchema',),
-    "xfs": ('http://arelle.org/2016/xfs',)
+    "uf": ("http://xbrl.org/2008/filter/unit", "http://www.xbrl.org/2008/unit-filter.xsd"),
+    "vf": ("http://xbrl.org/2008/filter/value", "http://www.xbrl.org/2008/value-filter.xsd"),
+    "acf": ("http://xbrl.org/2010/filter/aspect-cover", "http://www.xbrl.org/2010/aspect-cover-filter.xsd"),
+    "crf": ("http://xbrl.org/2010/filter/concept-relation", "http://www.xbrl.org/2010/concept-relation-filter.xsd"),
+    "cfi": ("http://xbrl.org/2010/custom-function", "http://www.xbrl.org/2010/custom-function-implementation.xsd"),
+    "xfi": ("http://www.xbrl.org/2008/function/instance",),
+    "xsi": ("http://www.w3.org/2001/XMLSchema-instance",),
+    "xs": ("http://www.w3.org/2001/XMLSchema",),
+    "xfs": ("http://arelle.org/2016/xfs",)
     }
 
 formulaArcroleRefs = {
     "assertion-set": ("http://xbrl.org/arcrole/2008/assertion-set", "http://www.xbrl.org/2008/validation.xsd#assertion-set"),
-    "element-label": ('http://xbrl.org/arcrole/2008/element-label','http://www.xbrl.org/2008/generic-label.xsd#element-label'),
-    "variable-filter": ('http://xbrl.org/arcrole/2008/variable-filter', 'http://www.xbrl.org/2008/variable.xsd#variable-filter'),
-    "variable-set": ('http://xbrl.org/arcrole/2008/variable-set', 'http://www.xbrl.org/2008/variable.xsd#variable-set'),
-    "variable-set-precondition": ('http://xbrl.org/arcrole/2008/variable-set-precondition', 'http://www.xbrl.org/2008/variable.xsd#variable-set-precondition'),
-    "consistency-assertion-formula": ('http://xbrl.org/arcrole/2008/consistency-assertion-formula', 'http://www.xbrl.org/2008/consistency-assertion.xsd#consistency-assertion-formula'),
+    "element-label": ("http://xbrl.org/arcrole/2008/element-label","http://www.xbrl.org/2008/generic-label.xsd#element-label"),
+    "variable-filter": ("http://xbrl.org/arcrole/2008/variable-filter", "http://www.xbrl.org/2008/variable.xsd#variable-filter"),
+    "variable-set": ("http://xbrl.org/arcrole/2008/variable-set", "http://www.xbrl.org/2008/variable.xsd#variable-set"),
+    "variable-set-precondition": ("http://xbrl.org/arcrole/2008/variable-set-precondition", "http://www.xbrl.org/2008/variable.xsd#variable-set-precondition"),
+    "consistency-assertion-formula": ("http://xbrl.org/arcrole/2008/consistency-assertion-formula", "http://www.xbrl.org/2008/consistency-assertion.xsd#consistency-assertion-formula"),
     "assertion-unsatisfied-message": ("http://xbrl.org/arcrole/2010/assertion-unsatisfied-message", "http://www.xbrl.org/2010/validation-message.xsd#assertion-unsatisfied-message"),
     "assertion-satisfied-message": ("http://xbrl.org/arcrole/2010/assertion-satisfied-message", "http://www.xbrl.org/2010/validation-message.xsd#assertion-satisfied-message"),
-    "boolean-filter": ('http://xbrl.org/arcrole/2008/boolean-filter', 'http://www.xbrl.org/2008/boolean-filter.xsd#boolean-filter'),
-    "function-implementation": ('http://xbrl.org/arcrole/2010/function-implementation','http://www.xbrl.org/2010/custom-function-implementation.xsd#cfi-implementation')
+    "boolean-filter": ("http://xbrl.org/arcrole/2008/boolean-filter", "http://www.xbrl.org/2008/boolean-filter.xsd#boolean-filter"),
+    "function-implementation": ("http://xbrl.org/arcrole/2010/function-implementation","http://www.xbrl.org/2010/custom-function-implementation.xsd#cfi-implementation")
     }
 
 formulaRoleRefs = {
-    "label": ('http://xbrl.org/role/2008/label','http://www.xbrl.org/2008/generic-label.xsd#standard-label'),
+    "label": ("http://xbrl.org/role/2008/label","http://www.xbrl.org/2008/generic-label.xsd#standard-label"),
     "message": ("http://www.xbrl.org/2010/role/message", "http://www.xbrl.org/2010/generic-message.xsd#standard-message")
     }
 
 fnNamespaceFunctions = {
-    'node-name', 'nilled', 'string', 'data', 'base-uri', 'document-uri', 'error', 'trace', 'dateTime',
-    'abs', 'ceiling', 'floor', 'round', 'round-half-to-even',
-    'codepoints-to-string', 'string-to-codepoints', 'compare', 'codepoint-equal', 'concat', 'string-join',
-    'substring', 'string-length', 'normalize-space', 'normalize-unicode', 'upper-case', 'lower-case', 'translate',
-    'encode-for-uri', 'iri-to-uri', 'escape-html-uri',
-    'contains', 'starts-with', 'ends-with', 'substring-before', 'substring-after', 'matches', 'replace', 'tokenize',
-    'resolve-uri', 'true', 'false', 'not', 'years-from-duration', 'months-from-duration', 'days-from-duration',
-    'hours-from-duration', 'minutes-from-duration', 'seconds-from-duration', 'year-from-dateTime',
-    'month-from-dateTime', 'day-from-dateTime', 'hours-from-dateTime', 'minutes-from-dateTime',
-    'seconds-from-dateTime', 'timezone-from-dateTime', 'year-from-date', 'month-from-date', 'day-from-date',
-    'timezone-from-date', 'hours-from-time', 'minutes-from-time', 'seconds-from-time', 'timezone-from-time',
-    'adjust-dateTime-to-timezone', 'adjust-date-to-timezone', 'adjust-time-to-timezone',
-    'resolve-QName', 'QName', 'prefix-from-QName', 'local-name-from-QName', 'namespace-uri-from-QName',
-    'namespace-uri-for-prefix', 'in-scope-prefixes', 'name', 'local-name', 'namespace-uri',
-    'number', 'lang', 'root', 'boolean', 'index-of', 'empty', 'exists', 'distinct-values',
-    'insert-before', 'remove', 'reverse', 'subsequence', 'unordered', 'zero-or-one', 'one-or-more', 'exactly-one',
-    'deep-equal', 'count', 'avg', 'max', 'min', 'sum', 'id', 'idref', 'doc', 'doc-available', 'collection',
-    'position', 'last', 'current-dateTime', 'current-date', 'current-time', 'implicit-timezone',
-    'default-collation', 'static-base-uri', 'format-number'
+    "node-name", "nilled", "string", "data", "base-uri", "document-uri", "error", "trace", "dateTime",
+    "abs", "ceiling", "floor", "round", "round-half-to-even",
+    "codepoints-to-string", "string-to-codepoints", "compare", "codepoint-equal", "concat", "string-join",
+    "substring", "string-length", "normalize-space", "normalize-unicode", "upper-case", "lower-case", "translate",
+    "encode-for-uri", "iri-to-uri", "escape-html-uri",
+    "contains", "starts-with", "ends-with", "substring-before", "substring-after", "matches", "replace", "tokenize",
+    "resolve-uri", "true", "false", "not", "years-from-duration", "months-from-duration", "days-from-duration",
+    "hours-from-duration", "minutes-from-duration", "seconds-from-duration", "year-from-dateTime",
+    "month-from-dateTime", "day-from-dateTime", "hours-from-dateTime", "minutes-from-dateTime",
+    "seconds-from-dateTime", "timezone-from-dateTime", "year-from-date", "month-from-date", "day-from-date",
+    "timezone-from-date", "hours-from-time", "minutes-from-time", "seconds-from-time", "timezone-from-time",
+    "adjust-dateTime-to-timezone", "adjust-date-to-timezone", "adjust-time-to-timezone",
+    "resolve-QName", "QName", "prefix-from-QName", "local-name-from-QName", "namespace-uri-from-QName",
+    "namespace-uri-for-prefix", "in-scope-prefixes", "name", "local-name", "namespace-uri",
+    "number", "lang", "root", "boolean", "index-of", "empty", "exists", "distinct-values",
+    "insert-before", "remove", "reverse", "subsequence", "unordered", "zero-or-one", "one-or-more", "exactly-one",
+    "deep-equal", "count", "avg", "max", "min", "sum", "id", "idref", "doc", "doc-available", "collection",
+    "position", "last", "current-dateTime", "current-date", "current-time", "implicit-timezone",
+    "default-collation", "static-base-uri", "format-number"
     }
 
 class XPathExpression:
@@ -1928,7 +1928,7 @@ class FormulaLbGenerator:
         self.defaultLanguage = None
 
     def newLb(self):
-        initialXml = '''
+        initialXml = """
 <!--  Generated by Arelle(r) http://arelle.org -->
 <link:linkbase
 {0}
@@ -1946,7 +1946,7 @@ xsi:schemaLocation=""
 
 <generic:link xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link"/>
 </link:linkbase>
-'''.format('\n'.join("xmlns{0}='{1}'".format((":" + prefix) if prefix else "",
+""".format("\n".join("xmlns{0}='{1}'".format((":" + prefix) if prefix else "",
                                              namespace)
                      for prefix in ("xlink", "link", "xbrli", "xsi", "xs", "generic", "xfi")
                      for namespace in (formulaPrefixes[prefix][0],))
@@ -2173,19 +2173,19 @@ def cmdLineOptionExtender(parser, *args, **kwargs):
 
 
 __pluginInfo__ = {
-    'name': 'XBRL Formula File Loader',
-    'version': '0.9',
-    'description': "This plug-in loads XBRL formula files into formula linkbase.  ",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "XBRL Formula File Loader",
+    "version": "0.9",
+    "description": "This plug-in loads XBRL formula files into formula linkbase.  ",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'ModelDocument.IsPullLoadable': isXfLoadable,
-    'ModelDocument.PullLoader': xfLoader,
-    'CntlrWinMain.Xbrl.Loaded': guiXbrlLoaded,
-    'CntlrCmdLine.Options': cmdLineOptionExtender,
-    'CntlrCmdLine.Xbrl.Loaded': cmdLineXbrlLoaded,
-    'CntlrCmdLine.Filing.Start': cmdLineFilingStart,
+    "ModelDocument.IsPullLoadable": isXfLoadable,
+    "ModelDocument.PullLoader": xfLoader,
+    "CntlrWinMain.Xbrl.Loaded": guiXbrlLoaded,
+    "CntlrCmdLine.Options": cmdLineOptionExtender,
+    "CntlrCmdLine.Xbrl.Loaded": cmdLineXbrlLoaded,
+    "CntlrCmdLine.Filing.Start": cmdLineFilingStart,
 }
 
 if __name__ == "__main__":
@@ -2208,12 +2208,12 @@ if __name__ == "__main__":
             print("\narelle(r) xf formula loader"
                   f"{copyrightLabel}\n"
                   "All rights reserved\nhttp://www.arelle.org\nsupport@arelle.org\n\n"
-                  "Licensed under the Apache License, Version 2.0 (the \"License\"); "
+                  'Licensed under the Apache License, Version 2.0 (the "License"); '
                   "you may not \nuse this file except in compliance with the License.  "
                   "You may obtain a copy \nof the License at "
                   "'http://www.apache.org/licenses/LICENSE-2.0'\n\n"
                   "Unless required by applicable law or agreed to in writing, software \n"
-                  "distributed under the License is distributed on an \"AS IS\" BASIS, \n"
+                  'distributed under the License is distributed on an "AS IS" BASIS, \n'
                   "WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  \n"
                   "See the License for the specific language governing permissions and \n"
                   "limitations under the License.")

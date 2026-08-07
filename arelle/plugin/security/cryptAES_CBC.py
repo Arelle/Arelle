@@ -79,9 +79,9 @@ def securityFileSourceFile(cntlr, ownerObject, filepath, binary, stripDeclaratio
             # detect encoding if there is an XML header
             encoding = XmlUtil.encoding(bytesdata[0:512],
                                         default=cntlr.modelManager.disclosureSystem.defaultXmlEncoding
-                                                if cntlr else 'utf-8')
+                                                if cntlr else "utf-8")
             # return decoded string
-            text = bytesdata[0:-bytesdata[-1]].decode(encoding or 'utf-8') # trim AES CBC padding and decode
+            text = bytesdata[0:-bytesdata[-1]].decode(encoding or "utf-8") # trim AES CBC padding and decode
             bytesdata = None # dereference before text operation
             if stripDeclaration: # file source may strip XML declaration for libxml
                 xmlDeclarationMatch = FileSource.XMLdeclaration.search(text)
@@ -109,16 +109,16 @@ def securityWrite(ownerObject, filepath, data):
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
-    'name': 'Security Crypt AES_CBC',
-    'version': '1.0',
-    'description': '''AES_CBC security encryption''',
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "Security Crypt AES_CBC",
+    "version": "1.0",
+    "description": """AES_CBC security encryption""",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'Security.Crypt.Init': securityInit,
-    'Security.Crypt.Filing.Start': securityFilingStart,
-    'Security.Crypt.FileSource.Exists': securityFileSourceExists,
-    'Security.Crypt.FileSource.File': securityFileSourceFile,
-    'Security.Crypt.Write': securityWrite
+    "Security.Crypt.Init": securityInit,
+    "Security.Crypt.Filing.Start": securityFilingStart,
+    "Security.Crypt.FileSource.Exists": securityFileSourceExists,
+    "Security.Crypt.FileSource.File": securityFileSourceFile,
+    "Security.Crypt.Write": securityWrite
 }

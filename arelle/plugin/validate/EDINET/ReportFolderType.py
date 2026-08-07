@@ -40,7 +40,7 @@ class ReportFolderType(Enum):
 
     @cached_property
     def manifestName(self) -> str:
-        return f'manifest_{self.value}.xml'
+        return f"manifest_{self.value}.xml"
 
     @cached_property
     def manifestPath(self) -> Path:
@@ -56,7 +56,7 @@ class ReportFolderType(Enum):
 
     @cached_property
     def xbrlDirectory(self) -> Path:
-        return Path('XBRL') / str(self.value)
+        return Path("XBRL") / str(self.value)
 
     @cached_property
     def xbrlFilenamePatterns(self) -> list[Pattern[str]]:
@@ -70,8 +70,8 @@ class ReportFolderType(Enum):
 
 
 class ExtensionCategory(Enum):
-    ATTACH = 'ATTACH'
-    DOC = 'DOC'
+    ATTACH = "ATTACH"
+    DOC = "DOC"
 
     def getValidExtensions(self, isAmendment: bool, isSubdirectory: bool) -> frozenset[str] | None:
         amendmentMap = VALID_EXTENSIONS[isAmendment]
@@ -90,11 +90,11 @@ FORM_TYPE_EXTENSION_CATEGORIES = {
 }
 
 
-HTML_EXTENSIONS = frozenset({'.htm', '.html', '.xhtml'})
-IMAGE_EXTENSIONS = frozenset({'.jpeg', '.jpg', '.gif', '.png'})
+HTML_EXTENSIONS = frozenset({".htm", ".html", ".xhtml"})
+IMAGE_EXTENSIONS = frozenset({".jpeg", ".jpg", ".gif", ".png"})
 ASSET_EXTENSIONS = frozenset(HTML_EXTENSIONS | IMAGE_EXTENSIONS)
-XBRL_EXTENSIONS = frozenset(HTML_EXTENSIONS | {'.xml', '.xsd'})
-ATTACH_EXTENSIONS = frozenset(HTML_EXTENSIONS | {'.pdf', })
+XBRL_EXTENSIONS = frozenset(HTML_EXTENSIONS | {".xml", ".xsd"})
+ATTACH_EXTENSIONS = frozenset(HTML_EXTENSIONS | {".pdf", })
 
 # Is Amendment -> Category -> Is Subdirectory
 VALID_EXTENSIONS = {

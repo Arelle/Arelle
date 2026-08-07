@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from tkinter import Toplevel, StringVar, N, S, E, W, EW, DISABLED, NORMAL, messagebox
 try:
     from tkinter.ttk import Frame, Button, Label, Entry
@@ -12,9 +12,9 @@ from arelle.WebCache import ProxyTuple
 import sys
 import regex as re
 
-'''
+"""
 caller checks accepted, if True, caller retrieves url
-'''
+"""
 def askUserPassword(parent, host, realm, untilDoneEvent, result):
     dialog = DialogUserPassword(parent, _("Authentication Request"), host=host, realm=realm)
     if dialog.accepted:
@@ -135,11 +135,11 @@ class DialogUserPassword(Toplevel):
         self.enabledWidgets = []
         if useOsProxy is not None:
             if sys.platform.startswith("win"):
-                hostProxy = _('Microsoft Windows Internet Settings')
+                hostProxy = _("Microsoft Windows Internet Settings")
             elif sys.platform in ("darwin", "macos"):
-                hostProxy = _('Mac OS X System Configuration')
+                hostProxy = _("Mac OS X System Configuration")
             else: # linux/unix
-                hostProxy = _('environment variables')
+                hostProxy = _("environment variables")
             useOsProxyCb = checkbox(frame, 0, y, text=_("Use proxy server of {0}").format(hostProxy))
             useOsProxyCb.grid(columnspan=5)
             useOsProxyCb.valueVar.set(useOsProxy)

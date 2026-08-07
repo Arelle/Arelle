@@ -59,36 +59,36 @@ ARGUMENTS: list[dict[str, Any]] = [
 
 
 def run_script_options(options: Namespace) -> list[ParameterSet]:
-    assert options.arelle, '--arelle is required'
+    assert options.arelle, "--arelle is required"
     if options.all:
         scripts = get_all_scripts()
         if options.download_cache:
             download_and_apply_cache(
                 ALL_SCRIPTS_ZIP,
-                version_id='CNTq_CLLvVEpcpxw9x4ipF76gD7zvZWD'
+                version_id="CNTq_CLLvVEpcpxw9x4ipF76gD7zvZWD"
             )
     elif options.all_frozen_builds:
         scripts = get_frozen_build_scripts()
     else:
-        assert options.name, '--name or --all is required'
+        assert options.name, "--name or --all is required"
         scripts = [
             s
             for s in get_all_scripts()
-            if s.stem in options.name.split(',')
+            if s.stem in options.name.split(",")
         ]
     all_results = []
-    assert scripts, 'No scripts found'
+    assert scripts, "No scripts found"
     for script in scripts:
-        modulePath = script.parent.joinpath(script.stem).as_posix().replace('/', '.')
-        args = [sys.executable, '-m', modulePath]
-        args.extend(['--arelle', options.arelle])
+        modulePath = script.parent.joinpath(script.stem).as_posix().replace("/", ".")
+        args = [sys.executable, "-m", modulePath]
+        args.extend(["--arelle", options.arelle])
         if options.download_cache and not options.all:
             # Only pass download cache arg if we didn't just download ALL_SCRIPTS_ZIP above
-            args.append('--download-cache')
+            args.append("--download-cache")
         if options.offline:
-            args.append('--offline')
+            args.append("--offline")
         if options.working_directory is not None:
-            args.extend(['--working-directory', options.working_directory])
+            args.extend(["--working-directory", options.working_directory])
 
         print(f'Running integration test script "{script.stem}": {args}')
         result = subprocess.run(args, capture_output=True)
@@ -96,8 +96,8 @@ def run_script_options(options: Namespace) -> list[ParameterSet]:
         stderr = result.stderr.decode().strip()
         param = pytest.param(
             {
-                'returncode': returncode,
-                'stderr': stderr
+                "returncode": returncode,
+                "stderr": stderr
             },
             id=script.stem,
             marks=[],

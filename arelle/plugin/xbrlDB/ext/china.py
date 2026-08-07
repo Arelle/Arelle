@@ -56,18 +56,18 @@ def extChinaExistingFilingPk(xbrlOpenDb):
 
 def extChinaFiling(xbrlOpenDb, now):
     md = xbrlOpenDb.metadata
-    table = xbrlOpenDb.getTable('filing_china', None,
-                          ('filing_pk',
-                           'entity_name',
-                           'entity_province',
-                           'entity_approval_date',
-                           'entity_approval_number',
-                           'entity_sponsor',
-                           'entity_license_number',
-                           'entity_industries',
-                           'entity_ticker_symbol'
+    table = xbrlOpenDb.getTable("filing_china", None,
+                          ("filing_pk",
+                           "entity_name",
+                           "entity_province",
+                           "entity_approval_date",
+                           "entity_approval_number",
+                           "entity_sponsor",
+                           "entity_license_number",
+                           "entity_industries",
+                           "entity_ticker_symbol"
                            ),
-                          ('filing_pk',
+                          ("filing_pk",
                            ),
                           ((xbrlOpenDb.filingPk,
                             md["filingId"],
@@ -83,15 +83,15 @@ def extChinaFiling(xbrlOpenDb, now):
                           checkIfExisting=True)
 
 __pluginInfo__ = {
-    'name': 'xbrlDB Extension for China CAS and SASAC',
-    'version': '1.0',
-    'description': "This plug-in implements additional database fields for China CAS and SASAC.  ",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
-    'import': ('xbrlDB', ), # import dependent modules
-    'xbrlDB.Open.Ext.TableDDLFiles': extChinaTableDdlFiles,
-    'xbrlDB.Open.Ext.Metadata': extChinaMetadata,
-    'xbrlDB.Open.Ext.ExistingFilingPk': extChinaExistingFilingPk,
-    'xbrlDB.Open.Ext.ExtFiling': extChinaFiling,
+    "name": "xbrlDB Extension for China CAS and SASAC",
+    "version": "1.0",
+    "description": "This plug-in implements additional database fields for China CAS and SASAC.  ",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
+    "import": ("xbrlDB", ), # import dependent modules
+    "xbrlDB.Open.Ext.TableDDLFiles": extChinaTableDdlFiles,
+    "xbrlDB.Open.Ext.Metadata": extChinaMetadata,
+    "xbrlDB.Open.Ext.ExistingFilingPk": extChinaExistingFilingPk,
+    "xbrlDB.Open.Ext.ExtFiling": extChinaFiling,
 }

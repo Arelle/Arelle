@@ -29,7 +29,7 @@ class CoverItemRequirements:
 
     def _load(self) -> dict[str, list[str]]:
         if self._data is None:
-            with open(self._jsonPath, encoding='utf-8') as f:
+            with open(self._jsonPath, encoding="utf-8") as f:
                 self._data = json.load(f)
         return self._data
 

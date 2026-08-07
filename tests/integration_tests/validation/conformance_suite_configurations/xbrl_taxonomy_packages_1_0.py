@@ -12,8 +12,8 @@ config = ConformanceSuiteConfig(
             entry_point=Path("index.xml"),
         ),
     ],
-    info_url='https://specifications.xbrl.org/work-product-index-taxonomy-packages-taxonomy-packages-1.0.html',
-    membership_url='https://www.xbrl.org/join',
+    info_url="https://specifications.xbrl.org/work-product-index-taxonomy-packages-taxonomy-packages-1.0.html",
+    membership_url="https://www.xbrl.org/join",
     name=PurePath(__file__).stem,
-    test_case_result_options='match-any',
+    test_case_result_options="match-any",
 )

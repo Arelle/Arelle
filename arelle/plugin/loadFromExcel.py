@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-'''
+"""
 loadFromExcel.py is an example of a plug-in that will load an extension taxonomy from Excel
 input and optionally save an (extension) DTS.
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
 import os, io, sys, time, traceback, json, posixpath
 import regex as re
 from fnmatch import fnmatch
@@ -58,7 +58,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
     def xlValue(cell): # excel values may have encoded unicode, such as _0000D_
         v = cell.value
         if isinstance(v, str):
-            return xlUnicodePattern.sub(xlUnicodeChar, v).replace('\r\n','\n').replace('\r','\n')
+            return xlUnicodePattern.sub(xlUnicodeChar, v).replace("\r\n","\n").replace("\r","\n")
         return v
 
     defaultLabelLang = saveXmlLang or "en"
@@ -466,14 +466,14 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 for h,i in headerCols.items():
                     if isinstance(h, tuple) and "indented" in h:
                        presentationIndentColumn = i
-            if 'linkrole' in headerCols:
+            if "linkrole" in headerCols:
                 hasLinkroleSeparateRow = False
-            if 'preferredLabel' in headerCols and any(isinstance(h, tuple) and h[0] == 'label' and h[1] == '/preferredLabel'
+            if "preferredLabel" in headerCols and any(isinstance(h, tuple) and h[0] == "label" and h[1] == "/preferredLabel"
                                                       for h in headerCols):
                 hasPreferredLabelTextColumn = True
-            if 'depth' in headerCols:
+            if "depth" in headerCols:
                 hasDepthColumn = True
-            if 'presentationParent' in headerCols:
+            if "presentationParent" in headerCols:
                 hasPresentationParentColumn = True
             if not hasDepthColumn and hasPresentationParentColumn:
                 topDepth = 0
@@ -501,25 +501,25 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     if strip and isinstance(v, str):
                         v = v.strip()
                     if nameChars and isinstance(v, str):
-                        v = ''.join(c for c in v if c.isalnum() or c in ('.', '_', '-'))
+                        v = "".join(c for c in v if c.isalnum() or c in (".", "_", "-"))
                     if v is None:
                         return default
                     return v
             return default
 
         def valueNameChars(v):
-            return ''.join(c for c in v if c.isalnum() or c in ('.', '_', '-'))
+            return "".join(c for c in v if c.isalnum() or c in (".", "_", "-"))
 
         def rowPrefixNameValues(row):
-            prefix = cellValue(row, 'prefix', nameChars=True)
-            if cellHasValue(row, 'name', str):
+            prefix = cellValue(row, "prefix", nameChars=True)
+            if cellHasValue(row, "name", str):
                 if not prefix: # maybe name is a qname
-                    prefix, _sep, _name = cellValue(row, 'name').partition(":")
+                    prefix, _sep, _name = cellValue(row, "name").partition(":")
                     if not _sep: # no prefix at all, whole string is name
                         prefix = ""
-                    name = cellValue(row, 'name', nameChars=True)[len(prefix):]
+                    name = cellValue(row, "name", nameChars=True)[len(prefix):]
                 else:
-                    name = cellValue(row, 'name', nameChars=True)
+                    name = cellValue(row, "name", nameChars=True)
             else:
                 name = None
             if not prefix and "prefix" not in headerCols and genElementsDoc is not None:
@@ -545,8 +545,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 setHeaderCols(row)
                 hasConceptAttributeColumn = any(v.startswith("attribute, ") for v in headerCols if isinstance(v,str))
                 hasRelationshipAttributeColumn = any(v.startswith("relationship attribute, ") for v in headerCols if isinstance(v,str))
-            elif not (hasLinkroleSeparateRow and (iRow + 1) in headerRows) and 'depth' in headerCols:
-                depth = cellValue(row, 'depth')
+            elif not (hasLinkroleSeparateRow and (iRow + 1) in headerRows) and "depth" in headerCols:
+                depth = cellValue(row, "depth")
                 if isinstance(depth, int) and depth < topDepth:
                     topDepth = depth
 
@@ -571,7 +571,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                 elif isELRrow:
                     currentELR = currentELRdefinition = None
                     for colCell in row:
-                        v = str(xlValue(colCell) or '')
+                        v = str(xlValue(colCell) or "")
                         if v.startswith("http://"):
                             currentELR = v
                         elif not currentELRdefinition and v.endswith("　科目一覧"):
@@ -591,8 +591,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                         if hasGenLB:
                             genLB.append( LBentry(role=currentELR, name=currentELRdefinition, isELR=True) )
                 elif headerCols:
-                    if "linkrole" in headerCols and cellHasValue(row, 'linkrole', str):
-                        v = cellValue(row, 'linkrole', strip=True)
+                    if "linkrole" in headerCols and cellHasValue(row, "linkrole", str):
+                        v = cellValue(row, "linkrole", strip=True)
                         _trialELR = _trialELRdefinition = None
                         if v.startswith("http://"):
                             _trialELR = v
@@ -614,8 +614,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                 if hasGenLB:
                                     genLB.append( LBentry(role=currentELR, name=currentELRdefinition, isELR=True) )
                     prefix, name = rowPrefixNameValues(row)
-                    if cellHasValue(row, 'depth', int):
-                        depth = cellValue(row, 'depth')
+                    if cellHasValue(row, "depth", int):
+                        depth = cellValue(row, "depth")
                     elif hasPresentationIndentColumnIndentations:
                         if row[presentationIndentColumn].value is not None:
                             depth = int(row[presentationIndentColumn].alignment.indent)
@@ -625,24 +625,24 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                         depth = None # non-ELR section, no depth
                     else: # depth provided by parent reference
                         depth = 0
-                    subsGrp = cellValue(row, 'substitutionGroup')
+                    subsGrp = cellValue(row, "substitutionGroup")
                     isConcept = subsGrp in ("xbrli:item", "xbrli:tuple",
                                             "xbrldt:hypercubeItem", "xbrldt:dimensionItem")
                     if (prefix in genDocs) and name not in genDocs[prefix].extensionElements and name:
                         thisDoc = genDocs[prefix]
                         # elements row
-                        eltType = cellValue(row, 'type')
-                        eltTypePrefix = cellValue(row, 'typePrefix')
+                        eltType = cellValue(row, "type")
+                        eltTypePrefix = cellValue(row, "typePrefix")
                         if not eltType:
-                            eltType = 'xbrli:stringItemType'
-                        elif eltTypePrefix and ':' not in eltType:
-                            eltType = eltTypePrefix + ':' + eltType
-                        elif ':' not in eltType and eltType.endswith("ItemType"):
-                            eltType = 'xbrli:' + eltType
-                        abstract = cellValue(row, 'abstract')
-                        nillable = cellValue(row, 'nillable')
-                        balance = cellValue(row, 'balance')
-                        periodType = cellValue(row, 'periodType')
+                            eltType = "xbrli:stringItemType"
+                        elif eltTypePrefix and ":" not in eltType:
+                            eltType = eltTypePrefix + ":" + eltType
+                        elif ":" not in eltType and eltType.endswith("ItemType"):
+                            eltType = "xbrli:" + eltType
+                        abstract = cellValue(row, "abstract")
+                        nillable = cellValue(row, "nillable")
+                        balance = cellValue(row, "balance")
+                        periodType = cellValue(row, "periodType")
                         eltAttrs = {"name": name, "id": (prefix or "") + "_" + name}
                         if eltType:
                             eltAttrs["type"] = eltType
@@ -708,10 +708,10 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                         if eltFacets is None: eltFacets = {}
                                         eltFacets[facet] = v
                         # if extension type is this schema, add extensionType for facets
-                        if eltType and ':' in eltType:
+                        if eltType and ":" in eltType:
                             _typePrefix, _sep, _typeName = eltType.rpartition(":")
-                            baseType = cellValue(row, 'baseType')
-                            baseTypePrefix = cellValue(row, 'baseTypePrefix')
+                            baseType = cellValue(row, "baseType")
+                            baseTypePrefix = cellValue(row, "baseTypePrefix")
                             if baseType and baseTypePrefix:
                                 _baseType = "{}:{}".format(baseTypePrefix, baseType)
                             elif baseType:
@@ -738,9 +738,9 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                 if colCell.value is not None:
                                     _label = xlValue(colCell)
                                     break
-                            print ("Sheet {} row {} has relationships and no \"name\" field, label: {}".format(importSheetName, iRow+1, _label))
+                            print ('Sheet {} row {} has relationships and no "name" field, label: {}'.format(importSheetName, iRow+1, _label))
                         if hasPreLB:
-                            preferredLabel = cellValue(row, 'preferredLabel')
+                            preferredLabel = cellValue(row, "preferredLabel")
                             if hasDepthColumn or hasPresentationIndentColumnIndentations:
                                 entryList = lbDepthList(preLB, depth)
                                 if entryList is not None and isConcept:
@@ -752,7 +752,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                         entryList.append( LBentry(prefix=prefix, name=name, arcrole=XbrlConst.parentChild,
                                                                   role=preferredLabel) )
                             elif hasPresentationParentColumn:
-                                preParent = cellValue(row, 'presentationParent', default='') # only one top parent makes sense
+                                preParent = cellValue(row, "presentationParent", default="") # only one top parent makes sense
                                 if preParent:
                                     preParentPrefix, _sep, preParentName = preParent.rpartition(":")
                                     preParentName = valueNameChars(preParentName)
@@ -795,14 +795,14 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                         elif isConcept:
                                             # explicit dimension
                                             role = None # default for a default dimension
-                                            if "dimensionDefault" in headerCols and cellHasValue(row, 'dimensionDefault', (str,bool)):
-                                                v = cellValue(row, 'dimensionDefault', strip=True)
+                                            if "dimensionDefault" in headerCols and cellHasValue(row, "dimensionDefault", (str,bool)):
+                                                v = cellValue(row, "dimensionDefault", strip=True)
                                                 if v:
                                                     role = "_dimensionDefault_"
                                             entryList.append( LBentry(prefix=prefix, name=name, arcrole="_dimensions_", role=role) )
                         if hasCalLB:
-                            calcParents = cellValue(row, 'calculationParent', default='').split()
-                            calcWeights = str(cellValue(row, 'calculationWeight', default='')).split() # may be float or string
+                            calcParents = cellValue(row, "calculationParent", default="").split()
+                            calcWeights = str(cellValue(row, "calculationWeight", default="")).split() # may be float or string
                             if calcParents and calcWeights:
                                 # may be multiple parents split by whitespace
                                 for i, calcParent in enumerate(calcParents):
@@ -825,7 +825,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     prefix, name = rowPrefixNameValues(row)
                     if name is not None and (prefix in genDocs or extensionPrefixForCoreLabels or hasRelationshipToCol):
                         thisDoc = genDocs.get(extensionPrefixForCoreLabels or prefix) # None for relationshipTo a imported concept
-                        preferredLabel = cellValue(row, 'preferredLabel')
+                        preferredLabel = cellValue(row, "preferredLabel")
                         for colItem, iCol in headerCols.items():
                             if isinstance(colItem, tuple):
                                 colItemType = colItem[0]
@@ -840,7 +840,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                                     if colItemType in ("label", "reference", "relationship to"):
                                         values = (v,)
                                     elif colItemType in ("labels", "references"):
-                                        values = v.split('\n')
+                                        values = v.split("\n")
 
                                 if preferredLabel and "indented" in colItem and not hasPreferredLabelTextColumn:  # indented column sets preferredLabel if any
                                     role = preferredLabel
@@ -985,8 +985,8 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
               isEntry=(parentDoc is None),
               # initialComment="extracted from OIM {}".format(mappedUri),
               documentEncoding="utf-8",
-              base='', # block pathname from becomming absolute
-              initialXml='''
+              base="", # block pathname from becomming absolute
+              initialXml="""
         <{eltName}
             targetNamespace="{targetNamespace}"
             attributeFormDefault="unqualified"
@@ -1000,12 +1000,12 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             xmlns:xlink="http://www.w3.org/1999/xlink"
             xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
             {schemaVersion}{xmlLang} />
-        '''.format(eltName=eltName,
+        """.format(eltName=eltName,
                    targetNamespace=thisDoc.extensionSchemaNamespaceURI,
                    extensionPrefix=thisDoc.extensionSchemaPrefix,
-                   importXmlns=''.join('xmlns:{0}="{1}"\n'.format(prefix, namespaceURI)
+                   importXmlns="".join('xmlns:{0}="{1}"\n'.format(prefix, namespaceURI)
                                        for prefix, namespaceURI in thisDoc.importXmlns.items()),
-                   schemaVersion='version="{}" '.format(thisDoc.extensionSchemaVersion) if thisDoc.extensionSchemaVersion else '',
+                   schemaVersion='version="{}" '.format(thisDoc.extensionSchemaVersion) if thisDoc.extensionSchemaVersion else "",
                    xmlLang='\n xml:lang="{}"'.format(saveXmlLang) if saveXmlLang else "",
                    ),
                 initialComment=thisDoc.initialComment
@@ -1117,12 +1117,12 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
             if eltFacets and "type" in eltAttrs:
                 eltType = eltAttrs["type"]
                 del eltAttrs["type"]
-            if any(':' in attrname for attrname in eltAttrs.keys()): # fix up any prefixed attr names to be clark notation
+            if any(":" in attrname for attrname in eltAttrs.keys()): # fix up any prefixed attr names to be clark notation
                 for attrname, attrvalue in eltAttrs.copy().items():
-                    if not attrname.startswith('{') and ':' in attrname:
+                    if not attrname.startswith("{") and ":" in attrname:
                         del eltAttrs[attrname]
                         eltAttrs[schemaElt.prefixedNameQname(attrname).clarkNotation] = attrvalue
-            isConcept = eltAttrs.get('substitutionGroup') in (
+            isConcept = eltAttrs.get("substitutionGroup") in (
                 "xbrli:item", "xbrli:tuple", "xbrldt:hypercubeItem", "xbrldt:dimensionItem")
             elt = XmlUtil.addChild(schemaElt,
                                    XbrlConst.xsd, "element",
@@ -1765,7 +1765,7 @@ def loadFromExcel(cntlr, modelXbrl, excelFile, mappedUri):
                     thisDoc.thisLBdir = posixpath.dirname(filename)
                     if generate and lbType == lbRefType:
                         # output presentation linkbase
-                        lbDoc = ModelDocument.create(modelXbrl, ModelDocument.Type.LINKBASE, filename, base='', initialXml="""
+                        lbDoc = ModelDocument.create(modelXbrl, ModelDocument.Type.LINKBASE, filename, base="", initialXml="""
                         <linkbase
                             xmlns="http://www.xbrl.org/2003/linkbase"
                             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -1930,7 +1930,7 @@ def guiXbrlLoaded(cntlr, modelXbrl, attach, *args, **kwargs):
         from tkinter.filedialog import askdirectory
         outputDtsDir = askdirectory(parent=cntlr.parent,
                                     initialdir=cntlr.config.setdefault("outputDtsDir","."),
-                                    title='Please select a directory for output DTS Contents')
+                                    title="Please select a directory for output DTS Contents")
         cntlr.config["outputDtsDir"] = outputDtsDir
         cntlr.saveConfig()
         if outputDtsDir:
@@ -2007,18 +2007,18 @@ class LBentry:
         return "LBentry(prefix={},name={})".format(self.prefix,self.name)
 
 __pluginInfo__ = {
-    'name': 'Load From Excel',
-    'version': '1.02',
-    'description': "This plug-in loads XBRL from Excel and saves the resulting XBRL DTS.",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "Load From Excel",
+    "version": "1.02",
+    "description": "This plug-in loads XBRL from Excel and saves the resulting XBRL DTS.",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'FileSource.EntrypointFiles': excelEntrypointFiles,
-    'ModelDocument.IsPullLoadable': isExcelLoadable,
-    'ModelDocument.PullLoader': excelLoader,
-    'CntlrWinMain.Xbrl.Loaded': guiXbrlLoaded,
-    'CntlrCmdLine.Filing.Start': excelLoaderFilingStart,
-    'CntlrCmdLine.Options': excelLoaderOptionExtender,
-    'CntlrCmdLine.Xbrl.Loaded': cmdLineXbrlLoaded
+    "FileSource.EntrypointFiles": excelEntrypointFiles,
+    "ModelDocument.IsPullLoadable": isExcelLoadable,
+    "ModelDocument.PullLoader": excelLoader,
+    "CntlrWinMain.Xbrl.Loaded": guiXbrlLoaded,
+    "CntlrCmdLine.Filing.Start": excelLoaderFilingStart,
+    "CntlrCmdLine.Options": excelLoaderOptionExtender,
+    "CntlrCmdLine.Xbrl.Loaded": cmdLineXbrlLoaded
 }

@@ -56,7 +56,7 @@ def fileSourceEntrypointFiles(*args: Any, **kwargs: Any) -> list[dict[str, Any]]
 def loggingSeverityReleveler(modelXbrl: ModelXbrl, level: str, messageCode: str, args: Any, **kwargs: Any) -> tuple[str | None, str | None]:
     if level not in RELEVELER_MAP:
         return level, messageCode
-    messageCodes = list(args.get('messageCodes') or [])
+    messageCodes = list(args.get("messageCodes") or [])
     if messageCode is not None:
         messageCodes.append(messageCode)
     for code in messageCodes:

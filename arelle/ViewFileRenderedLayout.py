@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 import os
 from datetime import timedelta
 from collections import OrderedDict
@@ -61,7 +61,7 @@ class ViewRenderedLayout(ViewFile.View):
 
 
     def tableModelQName(self, localName):
-        return '{' + self.tableModelNamespace + '}' + localName
+        return "{" + self.tableModelNamespace + "}" + localName
 
     def viewReloadDueToMenuAction(self, *args):
         self.view()
@@ -78,7 +78,7 @@ class ViewRenderedLayout(ViewFile.View):
             for lytMdlTable in lytMdlTableSet.lytMdlTables:
                 tableElt = etree.SubElement(tableSetElt, self.tableModelQName("table"))
                 for name, value in lytMdlTable.strctMdlTable.tblParamValues.items():
-                    tableElt.append(etree.Comment(f" ${name} = \"{value}\" "))
+                    tableElt.append(etree.Comment(f' ${name} = "{value}" '))
                 for lytMdlHeaders in lytMdlTable.lytMdlHeaders:
                     hdrsElt = etree.SubElement(tableElt, self.tableModelQName("headers"), attrib={"axis": lytMdlHeaders.axis})
                     for lytMdlGroup in lytMdlHeaders.lytMdlGroups:
@@ -138,8 +138,8 @@ class ViewRenderedLayout(ViewFile.View):
                                         if isinstance(aspectValue, ModelObject):
                                             valueElt.append(deepcopy(aspectValue))
                                         elif isinstance(aspectValue, dict):
-                                            aspectElt = etree.Element("{http://www.xbrl.org/2003/instance}identifier", {"scheme": aspectValue['scheme']})
-                                            aspectElt.text = str(aspectValue['identifier'])
+                                            aspectElt = etree.Element("{http://www.xbrl.org/2003/instance}identifier", {"scheme": aspectValue["scheme"]})
+                                            aspectElt.text = str(aspectValue["identifier"])
                                             valueElt.append(aspectElt)
                                     elif aspect == Aspect.UNIT:
                                         aspectElt = etree.SubElement(valueElt, "{http://www.xbrl.org/2003/instance}unit")
@@ -147,7 +147,7 @@ class ViewRenderedLayout(ViewFile.View):
                                             for unitElt in aspectValue.iterchildren():
                                                 aspectElt.append(deepcopy(unitElt))
                                         elif isinstance(aspectValue, dict):
-                                            for m in aspectValue['measures']:
+                                            for m in aspectValue["measures"]:
                                                 etree.SubElement(aspectElt, "{http://www.xbrl.org/2003/instance}measure").text = str(m)
                                     else:
                                         if isinstance(aspectValue, ModelObject):

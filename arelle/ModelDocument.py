@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 import os, io
 from zipfile import ZipFile
@@ -493,7 +493,7 @@ def create(modelXbrl: ModelXbrl, type: int, uri: str, schemaRefs: list[str] | No
         initialComment = "<!--" + initialComment + "-->"
     # XML document has nsmap root element to replace nsmap as new xmlns entries are required
     if initialXml and type in (Type.INSTANCE, Type.SCHEMA, Type.LINKBASE, Type.RSSFEED, Type.TESTCASE):
-        Xml = '<nsmap>{}{}</nsmap>'.format(initialComment or '', initialXml or '')
+        Xml = "<nsmap>{}{}</nsmap>".format(initialComment or "", initialXml or "")
     elif type == Type.INSTANCE:
         # modelXbrl.uriDir = os.path.dirname(normalizedUri)
         if xbrliNamespacePrefix is not None:
@@ -508,9 +508,9 @@ def create(modelXbrl: ModelXbrl, type: int, uri: str, schemaRefs: list[str] | No
             for schemaRef in schemaRefs:
                 Xml += '<link:schemaRef xlink:type="simple" xlink:href="{0}"/>'.format(schemaRef.replace("\\","/"))
         if xbrliNamespacePrefix is not None:
-            Xml += f'</{xbrliNamespacePrefix}:xbrl></nsmap>'
+            Xml += f"</{xbrliNamespacePrefix}:xbrl></nsmap>"
         else:
-            Xml += '</xbrl></nsmap>'
+            Xml += "</xbrl></nsmap>"
     elif type == Type.SCHEMA:
         Xml = ('<nsmap>{}<schema xmlns="http://www.w3.org/2001/XMLSchema" /></nsmap>').format(initialComment)
     elif type == Type.RSSFEED:
@@ -519,7 +519,7 @@ def create(modelXbrl: ModelXbrl, type: int, uri: str, schemaRefs: list[str] | No
         Xml = None
     else:
         type = Type.UnknownXML
-        Xml = '<nsmap>{0}</nsmap>'.format(initialXml or '')
+        Xml = "<nsmap>{0}</nsmap>".format(initialXml or "")
     if Xml:
         import io
         file = io.StringIO(Xml)
@@ -758,7 +758,7 @@ class ModelDocument(ModelDocumentBase):
 
     def updateFileHistoryIfNeeded(self) -> None:
         myCntlr = self.modelXbrl.modelManager.cntlr
-        updateFileHistory = getattr(myCntlr, 'updateFileHistory', None)
+        updateFileHistory = getattr(myCntlr, "updateFileHistory", None)
         if updateFileHistory:
             try:
                 cntlr = cast("CntlrWinMain", self.modelXbrl.modelManager.cntlr)
@@ -777,7 +777,7 @@ class ModelDocument(ModelDocumentBase):
         elif outputZip:
             fh = io.StringIO()
         else:
-            fh = open( (overrideFilepath or self.filepath), "w", encoding='utf-8')
+            fh = open( (overrideFilepath or self.filepath), "w", encoding="utf-8")
         XmlUtil.writexml(fh, self.xmlDocument, encoding=encoding, **kwargs)  # type: ignore[arg-type]
         if outputZip:
             fh.seek(0)
@@ -853,12 +853,12 @@ class ModelDocument(ModelDocumentBase):
             return self._creationSoftwareComment
         except AttributeError:
             # first try for comments before root element
-            initialComment = ''
+            initialComment = ""
             node = self.xmlRootElement
             while node.getprevious() is not None:
                 node = node.getprevious()  # type: ignore[assignment]
                 if isinstance(node, etree._Comment):
-                    initialComment = node.text + '\n' + initialComment
+                    initialComment = node.text + "\n" + initialComment
             if initialComment:
                 self._creationSoftwareComment: str | None = initialComment
             else:
@@ -902,10 +902,10 @@ class ModelDocument(ModelDocumentBase):
         if text is None:
             return matches
         import regex as re
-        creditPattern = re.compile(r'Software Credit: (.*)', re.IGNORECASE)
-        for line in text.split('\n'):
+        creditPattern = re.compile(r"Software Credit: (.*)", re.IGNORECASE)
+        for line in text.split("\n"):
             if creditPattern.search(line):
-                creditMatch = creditPattern.sub(r'\1', line).strip()
+                creditMatch = creditPattern.sub(r"\1", line).strip()
                 matches.append(creditMatch)
         if matches:
             return matches
@@ -916,7 +916,7 @@ class ModelDocument(ModelDocumentBase):
             creationSoftwareNames = []
             try:
                 with io.open(os.path.join(self.modelXbrl.modelManager.cntlr.configDir, "creationSoftwareNames.json"),
-                             'rt', encoding='utf-8') as f:
+                             "rt", encoding="utf-8") as f:
                     for key, pattern in json.load(f):
                         if key != "_description_":
                             creationSoftwareNames.append( (key, re.compile(pattern, re.IGNORECASE)) )
@@ -1045,18 +1045,18 @@ class ModelDocument(ModelDocumentBase):
                         edgarCode="du-0311-Xml-Base-Used",
                         modelObject=element, attribute=baseAttr, element=element.qname)
                 else:
-                    ''' HF 2019-09-29: believe this is wrong
+                    """ HF 2019-09-29: believe this is wrong
                     if baseAttr.startswith("/"):
                         base = baseAttr
                     else:
                         base = baseAttr + base
-                    '''
+                    """
                     base = baseAttr + base
                     if base.startswith("/"):
                         break # break because it is now absolute
             baseElt = baseElt.getparent()  # type: ignore[assignment]
         if base: # neither None nor ''
-            if base.startswith('http://') or isLegacyAbs(base):
+            if base.startswith("http://") or isLegacyAbs(base):
                 return base
             else:
                 return os.path.dirname(self.uri) + "/" + base
@@ -1577,7 +1577,7 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
                 target = elt.get("target")
                 targetReferenceAttrsDict = targetReferenceAttrElts[target]
                 for attrName, attrValue in elt.items():
-                    if attrName.startswith('{') and not attrName.startswith(ixNStag) and attrName != "{http://www.w3.org/XML/1998/namespace}base":
+                    if attrName.startswith("{") and not attrName.startswith(ixNStag) and attrName != "{http://www.w3.org/XML/1998/namespace}base":
                         if attrName in targetReferenceAttrsDict:
                             modelXbrl.error(ixMsgCode("referencesAttributeDuplication",ns=mdlDoc.ixNS,name="references",sect="validation"),
                                             _("Inline XBRL ix:references attribute %(name)s duplicated in target %(target)s"),
@@ -1751,7 +1751,7 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
             else:
                 tuple = tuplesByTupleID[tupleRef]
         else:
-            for tupleParent in modelFact.iterancestors(tag=ixNStag + '*'):
+            for tupleParent in modelFact.iterancestors(tag=ixNStag + "*"):
                 if tupleParent.localName == "tuple":
                     tuple = tupleParent
                 break
@@ -1810,7 +1810,7 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
             # check if any chain element is descendant of another
             chainSet = set(chain)
             for chainElt in chain:
-                for chainEltAncestor in chainElt.iterancestors(tag=chainElt.modelDocument.ixNStag + '*'):
+                for chainEltAncestor in chainElt.iterancestors(tag=chainElt.modelDocument.ixNStag + "*"):
                     if chainEltAncestor in chainSet:
                         if hasattr(chain[0], "_continuationElement"):
                             del chain[0]._continuationElement # break chain to prevent looping in chain
@@ -2119,11 +2119,11 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
                 if toIdsNotFound:
                     modelXbrl.error(ixMsgCode("relationshipToRef", ns=XbrlConst.ixbrl11, name="relationship", sect="validation"),
                                     _("Inline relationship toRef(s) %(toIds)s not found."),
-                                    modelObject=modelInlineRel, toIds=', '.join(sorted(toIdsNotFound)))
+                                    modelObject=modelInlineRel, toIds=", ".join(sorted(toIdsNotFound)))
                 if fromToMatchedIds:
                     modelXbrl.error(ixMsgCode("relationshipFromToMatch", ns=XbrlConst.ixbrl11, name="relationship", sect="validation"),
                                     _("Inline relationship has matching values in fromRefs and toRefs: %(fromToMatchedIds)s"),
-                                    modelObject=modelInlineRel, fromToMatchedIds=', '.join(sorted(fromToMatchedIds)))
+                                    modelObject=modelInlineRel, fromToMatchedIds=", ".join(sorted(fromToMatchedIds)))
                 for fromLabel in fromLabels:
                     for toLabel in toLabels: # toLabels is empty if no to fact or footnote is in target
                         linkPrototype.childElements.append(ArcPrototype(modelIxdsDocument, linkPrototype, XbrlConst.qnLinkFootnoteArc,
@@ -2133,8 +2133,8 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
                 if toFootnoteIds and toFactQnames:
                     modelXbrl.error(ixMsgCode("relationshipReferencesMixed", ns=XbrlConst.ixbrl11, name="relationship", sect="validation"),
                                     _("Inline relationship references footnote(s) %(toFootnoteIds)s and thereby is not allowed to reference %(toFactQnames)s."),
-                                    modelObject=modelInlineRel, toFootnoteIds=', '.join(sorted(toFootnoteIds)),
-                                    toFactQnames=', '.join(sorted(toFactQnames)))
+                                    modelObject=modelInlineRel, toFootnoteIds=", ".join(sorted(toFootnoteIds)),
+                                    toFactQnames=", ".join(sorted(toFactQnames)))
 
     del modelInlineFootnotesById, linkPrototypes, linkModelInlineFootnoteIds # dereference
 
@@ -2145,7 +2145,7 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
             modelXbrl.error(ixMsgCode("continuationReferences", ns=XbrlConst.ixbrl11, name="continuation", sect="validation"),
                             _("continuedAt %(continuedAt)s has %(referencesCount)s references on %(sourceElements)s elements, only one reference allowed."),
                             modelObject=_contReferences, continuedAt=_contAt, referencesCount=len(_contReferences),
-                            sourceElements=', '.join(str(qn) for qn in sorted(_refEltQnames)))
+                            sourceElements=", ".join(str(qn) for qn in sorted(_refEltQnames)))
 
     # check for orphan or mis-located continuation elements
     for _contAt, _contElt in continuationElements.items():

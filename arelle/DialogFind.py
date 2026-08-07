@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from tkinter import Toplevel, N, S, E, W, messagebox
 try:
     from tkinter.ttk import Frame, Button
@@ -17,11 +17,11 @@ from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelRssItem import ModelRssItem
 from arelle.ModelFormulaObject import Trace
 
-'''
+"""
 caller checks accepted, if True, caller retrieves url
-'''
+"""
 
-reMetaChars = '[]\\^$.|?*+(){}'
+reMetaChars = "[]\\^$.|?*+(){}"
 
 newFindOptions = {
     "direction": "down",
@@ -138,11 +138,11 @@ class DialogFind(Toplevel):
         buttonFrame = Frame(frame)
         buttonFrame.grid(columnspan=4, sticky=E, padx=8)
         findButton = Button(buttonFrame, text=_("Find"), width=12, command=self.find)
-        ToolTip(findButton, text=_('Compile (if regular expression or XPath 2), and find first match (if down direction) or last match (if up direction).  '), wraplength=240)
+        ToolTip(findButton, text=_("Compile (if regular expression or XPath 2), and find first match (if down direction) or last match (if up direction).  "), wraplength=240)
         nextButton = Button(buttonFrame, text=_("Next"), width=12, command=self.next)
-        ToolTip(nextButton, text=_('Advance to the next matched object (in selected direction).  '), wraplength=240)
+        ToolTip(nextButton, text=_("Advance to the next matched object (in selected direction).  "), wraplength=240)
         closeButton = Button(buttonFrame, text=_("Close"), width=12, command=self.close)
-        ToolTip(closeButton, text=_('Close the find dialog.  '), wraplength=240)
+        ToolTip(closeButton, text=_("Close the find dialog.  "), wraplength=240)
         findButton.grid(row=1, column=1, pady=3)
         nextButton.grid(row=1, column=2, pady=3)
         closeButton.grid(row=1, column=3, padx=3)
@@ -241,8 +241,8 @@ class DialogFind(Toplevel):
         try:
             if exprType == "text":
                 # escape regex metacharacters
-                pattern = re.compile(''.join(
-                         [(('\\' + c) if c in reMetaChars else c) for c in expr]),
+                pattern = re.compile("".join(
+                         [(("\\" + c) if c in reMetaChars else c) for c in expr]),
                          re.IGNORECASE)
                 isRE = True
                 isXP = False
@@ -322,16 +322,16 @@ class DialogFind(Toplevel):
         for obj in objsFound:
             if inMessagesLog:
                 numMessages += 1
-                self.objsList.append( ('m', "{0:06}".format(obj), obj) )
+                self.objsList.append( ("m", "{0:06}".format(obj), obj) )
             elif isinstance(obj,ModelConcept):
                 numConcepts += 1
-                self.objsList.append( ('c', obj.localName, obj.objectId()) )
+                self.objsList.append( ("c", obj.localName, obj.objectId()) )
             elif isinstance(obj,ModelFact):
                 numFacts += 1
-                self.objsList.append( ('f', obj.__hash__(), obj.objectId()) )
+                self.objsList.append( ("f", obj.__hash__(), obj.objectId()) )
             elif isinstance(obj,ModelRssItem):
                 numRssItems += 1
-                self.objsList.append( ('r', obj.__hash__(), obj.objectId()) )
+                self.objsList.append( ("r", obj.__hash__(), obj.objectId()) )
         self.objsList.sort()
         if numConcepts:
             self.result += "{0} concepts".format(numConcepts)

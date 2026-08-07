@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 import datetime
@@ -33,7 +33,7 @@ xmlnsStripPattern = re.compile(r'\s*xmlns(:[\w.-]+)?="[^"]*"')
 
 _consecutiveSpacePattern = re.compile(r" {2,}")
 _replaceWhitespaceTable = str.maketrans("\t\n\r", " " * 3)
-_ESCAPE_TEXT_TABLE = str.maketrans({'&': '&amp;', '<': '&lt;', '>': '&gt;'})
+_ESCAPE_TEXT_TABLE = str.maketrans({"&": "&amp;", "<": "&lt;", ">": "&gt;"})
 
 
 class XmlDeclarationLocationException(Exception):
@@ -44,7 +44,7 @@ def xmlns(element: ModelObject, prefix: str | None) -> str | None:
     ns = element.nsmap.get(prefix)
     if ns:
         return ns
-    if prefix == 'xml': # not normally declared explicitly
+    if prefix == "xml": # not normally declared explicitly
         return xml
     return ns # return results of get (which may be no namespace
 
@@ -52,7 +52,7 @@ def xmlnsprefix(element: etree._Element | ModelObject, ns: str | None) -> str | 
     if ns is None:
         return None
     if ns == xml: # never declared explicitly
-        return 'xml'
+        return "xml"
     for prefix, NS in element.nsmap.items():
         if NS == ns:
             if prefix is not None:
@@ -66,7 +66,7 @@ def targetNamespace(element: ModelObject) -> str | None:
     while treeElt is not None:
         if treeElt.localName == "schema" and treeElt.namespaceURI == xsd and treeElt.get("targetNamespace"):
             return treeElt.get("targetNamespace")
-        treeElt = cast('ModelObject', treeElt.getparent())
+        treeElt = cast("ModelObject", treeElt.getparent())
     return None
 
 def schemaLocation(element: etree._Element, namespace: str, returnElement: bool = False) -> etree._Element | str | None:
@@ -92,7 +92,7 @@ def clarkNotationToPrefixNsLocalname(
     clarkName: str,
     isAttribute: bool = False
 ) -> tuple[str | None, str | None, str]:
-    ns, sep, localName = clarkName[1:].partition('}')
+    ns, sep, localName = clarkName[1:].partition("}")
     if sep:
         prefix = xmlnsprefix(element, ns)
         if prefix is None and isAttribute:
@@ -146,18 +146,18 @@ def prefixedNameToClarkNotation(element: ModelObject, prefixedName: str) -> str 
 def encoding(xml: str | bytes, default: str = "utf-8") -> str:
     if isinstance(xml,bytes):
         s = xml[0:120]
-        if s.startswith(b'\xef\xbb\xbf'):
-            return 'utf-8-sig'
-        if s.startswith(b'\xff\xfe'):
-            return 'utf-16'
-        if s.startswith(b'\xfe\xff'):
-            return 'utf-16'
-        if s.startswith(b'\xff\xfe\x00\x00'):
-            return 'utf-32'
-        if s.startswith(b'\x00\x00\xfe\xff'):
-            return 'utf-32'
-        if s.startswith(b'# -*- coding: utf-8 -*-'):
-            return 'utf-8'  # python utf=encoded
+        if s.startswith(b"\xef\xbb\xbf"):
+            return "utf-8-sig"
+        if s.startswith(b"\xff\xfe"):
+            return "utf-16"
+        if s.startswith(b"\xfe\xff"):
+            return "utf-16"
+        if s.startswith(b"\xff\xfe\x00\x00"):
+            return "utf-32"
+        if s.startswith(b"\x00\x00\xfe\xff"):
+            return "utf-32"
+        if s.startswith(b"# -*- coding: utf-8 -*-"):
+            return "utf-8"  # python utf=encoded
         if b"x\0m\0l" in s:
             str = s.decode("utf-16")
         else:
@@ -187,8 +187,8 @@ def textNotStripped(element: ModelObject | PrototypeObject | None) -> str:
         return ""
     return element.textValue  # allows embedded comment nodes, returns '' if None
 
-_SELF_CLOSING_TAGS = frozenset({'area', 'base', 'basefont', 'br', 'col', 'frame', 'hr', 'img',
-                                'input', 'isindex', 'link', 'meta', 'param'})
+_SELF_CLOSING_TAGS = frozenset({"area", "base", "basefont", "br", "col", "frame", "hr", "img",
+                                "input", "isindex", "link", "meta", "param"})
 
 def selfClosable(elt: ModelObject) -> bool:
     return elt.qname.localName in _SELF_CLOSING_TAGS
@@ -262,14 +262,14 @@ def escapedNode(
     ixResolveUris: bool
 ) -> str:
     if elt.namespaceURI in ixbrlAll:
-        return ''  # do not yield XML for nested facts
+        return ""  # do not yield XML for nested facts
     if ixResolveUris:
         uriAttrs = htmlEltUriAttrs.get(elt.qname.localName, ())
     else:
         uriAttrs = ()
-    s = ['<']
+    s = ["<"]
     if not start and not empty:
-        s.append('/')
+        s.append("/")
     if ixEscape == "html" and elt.qname.namespaceURI == xhtml:
         tagName = elt.qname.localName # force xhtml prefix to be default
     else:
@@ -284,14 +284,14 @@ def escapedNode(
             if n in uriAttrs:
                 v = resolveHtmlUri(elt, n, v).replace(" ", "%20") # %20 replacement needed for conformance test passing
             s.append(' {0}="{1}"'.format(qname(elt, n),
-                v.replace("&","&amp;").replace('"', '&quot;')))
+                v.replace("&","&amp;").replace('"', "&quot;")))
     if not start and empty:
         if selfClosable(elt):
-            s.append('/')
+            s.append("/")
         else:
-            s.append('></' + tagName)
-    s.append('>')
-    return ''.join(s)
+            s.append("></" + tagName)
+    s.append(">")
+    return "".join(s)
 
 def escapedText(text: str) -> str:
     return text.translate(_ESCAPE_TEXT_TABLE)
@@ -315,7 +315,7 @@ def parentId(
     while element is not None:
         if element.namespaceURI == parentNamespaceURI and element.localName == parentLocalName:
             return element.get("id")
-        element = cast('ModelObject', element.getparent())
+        element = cast("ModelObject", element.getparent())
     return None
 
 def hasChild(
@@ -356,9 +356,9 @@ def ancestor(
     ancestorLocalNames: str | tuple[str, ...]
 ) -> ModelObject | None:
     treeElt = element.getparent()
-    wildNamespaceURI = not ancestorNamespaceURI or ancestorNamespaceURI == '*'
+    wildNamespaceURI = not ancestorNamespaceURI or ancestorNamespaceURI == "*"
     if not isinstance(ancestorLocalNames,tuple): ancestorLocalNames = (ancestorLocalNames ,)
-    wildLocalName = ancestorLocalNames == ('*',)
+    wildLocalName = ancestorLocalNames == ("*",)
     while isinstance(treeElt,ModelObjectBase):
         if wildNamespaceURI or treeElt.elementNamespaceURI == ancestorNamespaceURI:
             if treeElt.localName in ancestorLocalNames or wildLocalName:
@@ -373,13 +373,13 @@ def parent(
     ixTarget: bool = False
 ) -> ModelObject | None:
     if ixTarget and hasattr(element, "parentElement"):
-        p = getattr(element, 'parentElement')
+        p = getattr(element, "parentElement")
     else:
         p = element.getparent()
     if parentNamespaceURI or parentLocalNames:
-        wildNamespaceURI = not parentNamespaceURI or parentNamespaceURI == '*'
+        wildNamespaceURI = not parentNamespaceURI or parentNamespaceURI == "*"
         if isinstance(p,ModelObjectBase):
-            p = cast('ModelObject', p)
+            p = cast("ModelObject", p)
             if wildNamespaceURI or p.elementNamespaceURI == parentNamespaceURI:
                 if isinstance(parentLocalNames,tuple):
                     if p.localName in parentLocalNames:
@@ -387,7 +387,7 @@ def parent(
                 elif p.localName == parentLocalNames:
                     return p
         return None
-    return cast('ModelObject', p)
+    return cast("ModelObject", p)
 
 def ancestors(
     element: ModelObject,
@@ -397,7 +397,7 @@ def ancestors(
     if ancestorNamespaceURI is None and ancestorLocalNames is None:
         return list(element.iterancestors())
     ancestors = []
-    wildNamespaceURI = not ancestorNamespaceURI or ancestorNamespaceURI == '*'
+    wildNamespaceURI = not ancestorNamespaceURI or ancestorNamespaceURI == "*"
     treeElt = element.getparent()
     while isinstance(treeElt,ModelObjectBase):
         if wildNamespaceURI or treeElt.elementNamespaceURI == ancestorNamespaceURI:
@@ -415,7 +415,7 @@ def ancestorOrSelfAttr(element: ModelObject, attrClarkName: str) -> str | None:
         attr = treeElt.get(attrClarkName)
         if attr is not None:
             return attr
-        treeElt = cast('ModelObject', treeElt.getparent())
+        treeElt = cast("ModelObject", treeElt.getparent())
     return None
 
 def childAttr(
@@ -448,18 +448,18 @@ def children(
 ) -> Sequence[ModelObject]:
     children = []
     if not isinstance(childLocalNames,tuple): childLocalNames = (childLocalNames ,)
-    wildLocalName = childLocalNames == ('*',)
-    wildNamespaceURI = not childNamespaceURIs or childNamespaceURIs == '*'
+    wildLocalName = childLocalNames == ("*",)
+    wildNamespaceURI = not childNamespaceURIs or childNamespaceURIs == "*"
     if not isinstance(childNamespaceURIs,tuple) and childNamespaceURIs is not None:
         childNamespaceURIs = (childNamespaceURIs,)
     if childNamespaceURIs is None:
         childNamespaceURIs = tuple() # empty tuple to support `in` operator
     if isinstance(element,ModelObjectBase):
-        for child in (getattr(element, 'ixIter')() if ixTarget and hasattr(element, "ixIter") else
+        for child in (getattr(element, "ixIter")() if ixTarget and hasattr(element, "ixIter") else
                       element.iterchildren()):
             if not isinstance(child, ModelObjectBase):
                 continue
-            child = cast('ModelObject', child)
+            child = cast("ModelObject", child)
             if ((wildNamespaceURI or (child.qname.namespaceURI if ixTarget else child.elementNamespaceURI) in childNamespaceURIs) and
                 (wildLocalName or (child.qname.localName if ixTarget else child.localName) in childLocalNames)):
                 children.append(child)
@@ -541,8 +541,8 @@ def descendants(
 ) -> Sequence[ModelObject | PrototypeObject]:
     descendants = []
     if not isinstance(descendantLocalNames,tuple): descendantLocalNames = (descendantLocalNames ,)
-    wildLocalName = descendantLocalNames == ('*',)
-    wildNamespaceURI = not descendantNamespaceURI or descendantNamespaceURI == '*'
+    wildLocalName = descendantLocalNames == ("*",)
+    wildNamespaceURI = not descendantNamespaceURI or descendantNamespaceURI == "*"
     if isinstance(
         element, (ModelObjectBase, etree._ElementTree, PrototypeElementTreeBase, PrototypeObjectBase)
     ):
@@ -554,18 +554,18 @@ def descendants(
             # Note 2022-09-27 PrototypeObject has no iter(), ModelObject however has.
             else element.iter()  # type: ignore[union-attr]
         ):
-            _childNamespaceURI = getattr(child, 'elementNamespaceURI', None)
-            _childLocalName = getattr(child, 'localName', None)
+            _childNamespaceURI = getattr(child, "elementNamespaceURI", None)
+            _childLocalName = getattr(child, "localName", None)
             if isinstance(child, (ModelObjectBase, PrototypeObjectBase)) and ixTarget:
-                child = cast('ModelObject | PrototypeObject', child)
-                childQname: QName | None = getattr(child, 'qname', None)
+                child = cast("ModelObject | PrototypeObject", child)
+                childQname: QName | None = getattr(child, "qname", None)
                 if childQname:
                     _childNamespaceURI = childQname.namespaceURI
                     _childLocalName = childQname.localName
             if (isinstance(child,(ModelObjectBase,PrototypeObjectBase)) and
                 (wildNamespaceURI or _childNamespaceURI == descendantNamespaceURI) and
                 (wildLocalName or _childLocalName in descendantLocalNames)):
-                child = cast('ModelObject | PrototypeObject', child)
+                child = cast("ModelObject | PrototypeObject", child)
                 if attrName:
                     if child.get(attrName) == attrValue or (attrValue == "*" and child.get(attrName) is not None):
                         descendants.append(child)
@@ -581,7 +581,7 @@ def isDescendantOf(element: ModelObject, ancestorElement: ModelObject) -> bool:
     while element is not None:
         if element == ancestorElement:
             return True
-        element = cast('ModelObject', element.getparent())
+        element = cast("ModelObject", element.getparent())
     return False
 
 def schemaDescendantsNames(
@@ -774,9 +774,9 @@ def copyNodes(parent: ModelObject, elts: Sequence[ModelObject] | ModelObject) ->
         parent.append(copyElt)  # type: ignore[arg-type]
         for attrTag, attrValue in origElt.items():
             qn = qname(attrTag, noPrefixIsNoNamespace=True)
-            prefix = xmlnsprefix(origElt, getattr(qn, 'namespaceURI'))
+            prefix = xmlnsprefix(origElt, getattr(qn, "namespaceURI"))
             if prefix:
-                setXmlns(modelDocument, prefix, getattr(qn, 'namespaceURI'))
+                setXmlns(modelDocument, prefix, getattr(qn, "namespaceURI"))
                 copyElt.set(attrTag, attrValue)
             else:
                 copyElt.set(attrTag, attrValue)
@@ -793,7 +793,7 @@ def copyNodes(parent: ModelObject, elts: Sequence[ModelObject] | ModelObject) ->
                     copyElt.text = text
         for childNode in origElt:
             if isinstance(childNode,ModelObjectBase):
-                childNode = cast('ModelObject', childNode)
+                childNode = cast("ModelObject", childNode)
                 copyNodes(copyElt,childNode)  # type: ignore[arg-type]
 
 def copyChildren(parent: ModelObject, elt: ModelObject) -> None:
@@ -814,7 +814,7 @@ def copyIxFootnoteHtml(
         tgtStack = [[tgtHtml, "text"]] # stack of current targetStack element, and current text attribute
     isExclude = False
     if isinstance(srcXml,ModelObjectBase):
-        srcXml = cast('ModelObject', srcXml)
+        srcXml = cast("ModelObject", srcXml)
         isExclude = srcXml.localName == "exclude" and srcXml.namespaceURI in ixbrlAll
     if not isExclude:
         tgtStackLen = len(tgtStack)
@@ -826,7 +826,7 @@ def copyIxFootnoteHtml(
                 setattr(tgtElt, tgtNode, (getattr(tgtElt, tgtNode) or "") + _tx)
         for srcChild in srcXml.iterchildren():
             if isinstance(srcChild,ModelObjectBase):
-                srcChild = cast('ModelObject', srcChild)
+                srcChild = cast("ModelObject", srcChild)
                 if not srcChild.namespaceURI in ixbrlAll:
                     # ensure xhtml has an xmlns
                     if targetModelDocument is not None and srcChild.namespaceURI == xhtml and xhtml not in tgtHtml.nsmap.values():
@@ -839,7 +839,7 @@ def copyIxFootnoteHtml(
                     tgtStack[-1][1] = "tail"
                 else:
                     copyIxFootnoteHtml(srcChild, tgtHtml, targetModelDocument, withText=withText, isContinChainElt=False, tgtStack=tgtStack, srcLevel=srcLevel+1)
-        if not (isinstance(srcXml,ModelObjectBase) and cast('ModelObject', srcXml).namespaceURI in ixbrlAll):
+        if not (isinstance(srcXml,ModelObjectBase) and cast("ModelObject", srcXml).namespaceURI in ixbrlAll):
             del tgtStack[tgtStackLen:]
             tgtStack[-1][1] = "tail"
     if withText and srcLevel > 0: # don't take tail of entry level ix:footnote or ix:continuatino
@@ -855,8 +855,8 @@ def copyIxFootnoteHtml(
 
 def addComment(parent: etree._Element, commentText: str) -> None:
     comment = str(commentText)
-    if '--' in comment: # replace -- with - - (twice, in case more than 3 '-' together)
-        comment = comment.replace('--', '- -').replace('--', '- -')
+    if "--" in comment: # replace -- with - - (twice, in case more than 3 '-' together)
+        comment = comment.replace("--", "- -").replace("--", "- -")
     child = etree.Comment( comment )
     parent.append(child)
 
@@ -888,19 +888,19 @@ def addQnameValue(modelDocument: ModelDocument | ModelObject, qnameValue: QName 
     elif isinstance(modelDocument, etree._ElementTree):
         xmlRootElement = modelDocument.getroot()
         if xmlRootElement.tag == "nsmap": xmlRootElement = xmlRootElement[0]
-    ns = qnameValue.namespaceURI or '' # None can't be used as a no-namespace prefix
+    ns = qnameValue.namespaceURI or "" # None can't be used as a no-namespace prefix
     existingPrefix = xmlnsprefix(xmlRootElement, ns)
     if existingPrefix is not None:  # namespace is already declared, use that for qnameValue's prefix
-        return qnameValue.localName if len(existingPrefix) == 0 else existingPrefix + ':' + qnameValue.localName  # ModelValue type hints
+        return qnameValue.localName if len(existingPrefix) == 0 else existingPrefix + ":" + qnameValue.localName  # ModelValue type hints
     prefix = qnameValue.prefix
     dupNum = 2 # start with _2 being 'second' use of same prefix, etc.
     while (dupNum < 10000): # check if another namespace has prefix already (but don't die if running away)
         if xmlns(xmlRootElement, prefix) is None:
             break   # ok to use this prefix
-        prefix = "{0}_{1}".format(qnameValue.prefix if qnameValue.prefix else '', dupNum)
+        prefix = "{0}_{1}".format(qnameValue.prefix if qnameValue.prefix else "", dupNum)
         dupNum += 1
     setXmlns(modelDocument, prefix, ns)  # type: ignore[arg-type]
-    return f'{prefix}:{qnameValue.localName}' if prefix else qnameValue.localName
+    return f"{prefix}:{qnameValue.localName}" if prefix else qnameValue.localName
 
 
 def setXmlns(modelDocument: etree._ElementTree | ModelDocument, prefix: str | None, namespaceURI: str) -> None:
@@ -913,13 +913,13 @@ def setXmlns(modelDocument: etree._ElementTree | ModelDocument, prefix: str | No
     if prefix == "":
         prefix = None  # default xmlns prefix stores as None
     if prefix not in root.nsmap:
-        if root.tag == 'nsmap': # already have an xmlns-extension root element
+        if root.tag == "nsmap": # already have an xmlns-extension root element
             newmap = root.nsmap
             newmap[prefix] = namespaceURI
-            newroot = etree.Element('nsmap', nsmap=newmap)
+            newroot = etree.Element("nsmap", nsmap=newmap)
             newroot.extend(root)
         else:  # new xmlns-extension root
-            newroot = etree.Element('nsmap', nsmap={prefix: namespaceURI})
+            newroot = etree.Element("nsmap", nsmap={prefix: namespaceURI})
             comments = []
             comment = root.getprevious()
             while isinstance(comment, etree._Comment):
@@ -960,7 +960,7 @@ DATETIME_MAXYEAR = datetime.datetime(datetime.MAXYEAR,12,31)
 def tzinfo(tz: str | None) -> datetime.timezone | None:
     if tz is None:
         return None
-    elif tz == 'Z':
+    elif tz == "Z":
         return datetime.timezone(datetime.timedelta(0))
     else:
         return datetime.timezone(datetime.timedelta(hours=int(tz[0:3]), minutes=int(tz[4:6])))
@@ -1017,7 +1017,7 @@ def datetimeValue(
                 hour = 0
             ms = 0
             if fracSec and fracSec[0] == ".":
-                ms = int(fracSec[1:7].ljust(6,'0'))
+                ms = int(fracSec[1:7].ljust(6,"0"))
             result = datetime.datetime(int(match.group(1)),int(match.group(2)),int(match.group(3)),hour,min,sec,ms,tzinfo(tz))
             if hour24:  #add one day
                 result += datetime.timedelta(1)
@@ -1041,11 +1041,11 @@ def dateunionValue(
         return "INVALID"
     tz = tzinfoStr(datetimeValue)
     isDate = getattr(
-        datetimeValue, 'dateOnly', False) or not hasattr(datetimeValue, 'hour')
+        datetimeValue, "dateOnly", False) or not hasattr(datetimeValue, "hour")
     if isDate or (
-        getattr(datetimeValue, 'hour') == 0
-        and getattr(datetimeValue, 'minute') == 0
-        and getattr(datetimeValue, 'second') == 0
+        getattr(datetimeValue, "hour") == 0
+        and getattr(datetimeValue, "minute") == 0
+        and getattr(datetimeValue, "second") == 0
     ):
         d = datetimeValue
         if subtractOneDay and not isDate: d -= datetime.timedelta(1)
@@ -1059,9 +1059,9 @@ def dateunionValue(
             datetimeValue.year,
             datetimeValue.month,
             datetimeValue.day,
-            getattr(datetimeValue, 'hour'),
-            getattr(datetimeValue, 'minute'),
-            getattr(datetimeValue, 'second'),
+            getattr(datetimeValue, "hour"),
+            getattr(datetimeValue, "minute"),
+            getattr(datetimeValue, "second"),
             tz
         )
 
@@ -1127,32 +1127,32 @@ def elementFragmentIdentifier(element: etree.ElementBase | etree._Element | Mode
         return None
     if getattr(element, "sourceElement", None) is not None: # prototype element
         return elementFragmentIdentifier(getattr(element, "sourceElement"))
-    if isinstance(element, etree.ElementBase) and element.get('id'):
-        return element.get('id')  # "short hand pointer" for element fragment identifier
+    if isinstance(element, etree.ElementBase) and element.get("id"):
+        return element.get("id")  # "short hand pointer" for element fragment identifier
     else:
         childSequence: list[str] = [""] # "" represents document element for / (root) on the join below
         while element is not None:
             if isinstance(element, etree.ElementBase):
-                if element.get('id'):  # has ID, use as start of path instead of root
-                    _id = element.get('id')
+                if element.get("id"):  # has ID, use as start of path instead of root
+                    _id = element.get("id")
                     assert isinstance(_id, str)
                     childSequence[0] = _id
                     break
-                childSequence.insert(1, str(getattr(element, 'elementSequence')))
+                childSequence.insert(1, str(getattr(element, "elementSequence")))
             element = element.getparent()
         location = "/".join(childSequence)
         return "element({0})".format(location)
 
 def elementIndex(element: Any) -> int:
     if isinstance(element, etree.ElementBase):
-        return cast(int, getattr(element, 'elementSequence'))
+        return cast(int, getattr(element, "elementSequence"))
     return 0
 
 def elementChildSequence(element: etree._Element | etree.ElementBase | ModelObject | None) -> str:
     childSequence = [""] # "" represents document element for / (root) on the join below
     while element is not None:
         if isinstance(element,etree.ElementBase):
-            childSequence.insert(1, str(getattr(element, 'elementSequence')))
+            childSequence.insert(1, str(getattr(element, "elementSequence")))
         element = element.getparent()
     return "/".join(childSequence)
 
@@ -1179,14 +1179,14 @@ def xmlstring(
             _tail = elt.tail or ""
         else:
             _text = _tail = ""
-        return _text + ('\n' if prettyPrint else '').join(
+        return _text + ("\n" if prettyPrint else "").join(
             xmlstring(child, stripXmlns, prettyPrint)
             for child in elt.iterchildren()) + _tail
     xml = etree.tostring(elt, encoding=str, pretty_print=prettyPrint)
     if not prettyPrint:
         xml = xml.strip()
     if stripXmlns:
-        return xmlnsStripPattern.sub('', xml)
+        return xmlnsStripPattern.sub("", xml)
     else:
         return xml
 
@@ -1194,7 +1194,7 @@ def writexml(
     writer: TextIO,
     node: etree._ElementTree | etree._Element | ModelObject,
     encoding: str | None = None,
-    indent: str = '',
+    indent: str = "",
     xmlcharrefreplace: bool = False,
     edgarcharrefreplace: bool = False,
     skipInvalid: bool = False,
@@ -1210,13 +1210,13 @@ def writexml(
         for child in node.iter():
             if child.getparent() is not None:
                 break   # stop depth first iteration after comment and root node
-            if child.tag == 'nsmap':
+            if child.tag == "nsmap":
                 for nsmapChild in child:
                     writexml(writer, nsmapChild, indent=indent, xmlcharrefreplace=xmlcharrefreplace, edgarcharrefreplace=edgarcharrefreplace, skipInvalid=skipInvalid, parentNsmap={}) # force all xmlns in next element
             else:
                 writexml(writer, child, indent=indent, xmlcharrefreplace=xmlcharrefreplace, edgarcharrefreplace=edgarcharrefreplace, skipInvalid=skipInvalid, parentNsmap={})
     elif isinstance(node,etree._Comment): # ok to use minidom implementation
-        commentText = node.text if isinstance(node.text, str) else ''
+        commentText = node.text if isinstance(node.text, str) else ""
         writer.write(indent + "<!--" + commentText + "-->\n")
     elif isinstance(node,etree._ProcessingInstruction): # ok to use minidom implementation
         writer.write(indent + str(node) + "\n")
@@ -1233,7 +1233,7 @@ def writexml(
                     writer.write('<?xml version="1.0"?>\n')
                 parentNsmap = {}
         if isinstance(node,ModelObjectBase):
-            node = cast('ModelObject', node)
+            node = cast("ModelObject", node)
             tag = node.prefixedName
             isXmlElement = node.namespaceURI != xhtml
             isFootnote = node.qname == qnLinkFootnote
@@ -1241,7 +1241,7 @@ def writexml(
                 return
         else:
             nodeTag = cast(str, node.tag)
-            ns, sep, localName = nodeTag.partition('}')
+            ns, sep, localName = nodeTag.partition("}")
             if sep:
                 ns = ns[1:]
                 prefix = xmlnsprefix(node,ns)
@@ -1256,7 +1256,7 @@ def writexml(
         if isXmlElement: writer.write(indent)
         writer.write("<" + tag)
         attrs = {}
-        for prefix, ns in sorted((k if k is not None else '', v)
+        for prefix, ns in sorted((k if k is not None else "", v)
                                  # items wrapped in set for 2.7 compatibility
                                  for k, v in (node.nsmap.items() - parentNsmap.items())):
             if prefix:
@@ -1264,7 +1264,7 @@ def writexml(
             else:
                 attrs["xmlns"] = ns
         for aTag,aValue in node.items():
-            ns, sep, localName = aTag.partition('}')
+            ns, sep, localName = aTag.partition("}")
             if sep:
                 prefix = xmlnsprefix(node,ns[1:])
                 if prefix:
@@ -1284,12 +1284,12 @@ def writexml(
             lenAttrs += 4 + len(aName) + len(aValue)
         indentAttrs = ("\n" + indent + "  ") if indent is not None and numAttrs > 1 and lenAttrs > 60 and not isFootnote else " "
         for aName in aSortedNames:
-            writer.write("%s%s=\"" % (indentAttrs, aName))
+            writer.write('%s%s="' % (indentAttrs, aName))
             if aName != "xsi:schemaLocation":
-                writer.write(''.join("&amp;" if c == "&"
-                                     else '&quot;' if c == '"'
-                                     else "&#x%x;" % ord(c) if c >= '\x80' and xmlcharrefreplace
-                                     else "&#x%x;" % ord(c) if c in ('^', '\x7F') and edgarcharrefreplace
+                writer.write("".join("&amp;" if c == "&"
+                                     else "&quot;" if c == '"'
+                                     else "&#x%x;" % ord(c) if c >= "\x80" and xmlcharrefreplace
+                                     else "&#x%x;" % ord(c) if c in ("^", "\x7F") and edgarcharrefreplace
                                      else c
                                      for c in attrs[aName]))
             else:
@@ -1301,30 +1301,30 @@ def writexml(
                         writer.write(indentUri + a_uri)
                     else:
                         writer.write(a_uri)
-            writer.write("\"")
+            writer.write('"')
         hasChildNodes = False
         firstChild = True
 
         text = node.text
         if text is not None:
-            text = ''.join("&amp;" if c == "&"
+            text = "".join("&amp;" if c == "&"
                            else "&#160;" if c == "\u00A0"
                            else "&lt;" if c == "<"
                            else "&gt;" if c == ">"
                            else "&#173;" if c == "\u00AD"
-                           else "&#x%x;" % ord(c) if c >= '\x80' and xmlcharrefreplace
-                           else "&#x%x;" % ord(c) if c in ('^', '\x7F') and edgarcharrefreplace
+                           else "&#x%x;" % ord(c) if c >= "\x80" and xmlcharrefreplace
+                           else "&#x%x;" % ord(c) if c in ("^", "\x7F") and edgarcharrefreplace
                            else c
                            for c in text)
         tail = node.tail
         if tail is not None:
-            tail = ''.join("&amp;" if c == "&"
+            tail = "".join("&amp;" if c == "&"
                            else "&#160;" if c == "\u00A0"
                            else "&lt;" if c == "<"
                            else "&gt;" if c == ">"
                            else "&#173;" if c == "\u00AD"
-                           else "&#x%x;" % ord(c) if c >= '\x80' and xmlcharrefreplace
-                           else "&#x%x;" % ord(c) if c in ('^', '\x7F') and edgarcharrefreplace
+                           else "&#x%x;" % ord(c) if c >= "\x80" and xmlcharrefreplace
+                           else "&#x%x;" % ord(c) if c in ("^", "\x7F") and edgarcharrefreplace
                            else c
                            for c in tail)
         for child in node.iterchildren():
@@ -1336,7 +1336,7 @@ def writexml(
                     writer.write(text)
                 firstChild = False
             writexml(writer, child,
-                     indent=indent+'    ' if indent is not None and not isFootnote else '',
+                     indent=indent+"    " if indent is not None and not isFootnote else "",
                      xmlcharrefreplace=xmlcharrefreplace, edgarcharrefreplace=edgarcharrefreplace, skipInvalid=skipInvalid)
         if hasChildNodes:
             if isXmlElement and not isFootnote and indent is not None:

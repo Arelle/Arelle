@@ -154,7 +154,7 @@ def validateImage(
             imglen = 0
             with modelXbrl.fileSource.file(normalizedUri, binary=True)[0] as fh:
                 imgContents = cast(bytes, fh.read())
-                imglen += len(imgContents or '')
+                imglen += len(imgContents or "")
                 yield from checkImageContents(normalizedUri, modelXbrl, elts, os.path.splitext(image)[1], True, imgContents, params, False, val)
                 imgContents = b""  # deref, may be very large
             if params.checkMinExternalResourceSize and imglen < minExternalRessourceSize:
@@ -163,7 +163,7 @@ def validateImage(
                     _("Images SHOULD be included in the XHTML document as a base64 encoded string unless their size exceeds the minimum size for the authority (%(maxImageSize)s): %(file)s."),
                     modelObject=elts, maxImageSize=minExternalRessourceSize, file=os.path.basename(normalizedUri), evaluatedMsg=evaluatedMsg)
         except IOError as err:
-            fileReferencingImage = os.path.basename(baseUrl) if baseUrl else ''
+            fileReferencingImage = os.path.basename(baseUrl) if baseUrl else ""
             yield Validation.error((f"{contentOtherThanXHTMLGuidance}.imageFileCannotBeLoaded", "NL.NL-KVK.3.5.1.imageFileCannotBeLoaded"),
                                    _("Error opening the file '%(src)s' referenced by '%(fileReferencingImage)s': %(error)s"),
                                    modelObject=elts, src=image, fileReferencingImage=fileReferencingImage, error=err, evaluatedMsg=evaluatedMsg)

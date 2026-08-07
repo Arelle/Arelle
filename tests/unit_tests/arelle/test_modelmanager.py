@@ -8,8 +8,8 @@ def test_independent_model_manager():
 
     XULE does this.
     """
-    cntlr = CntlrCmdLine(uiLang='en')
-    file_source = openFileSource('arelle/config/empty-instance.xml', cntlr)
+    cntlr = CntlrCmdLine(uiLang="en")
+    file_source = openFileSource("arelle/config/empty-instance.xml", cntlr)
     modelManager = ModelManager.initialize(cntlr)
     modelXbrl = modelManager.load(file_source)
     assert modelXbrl

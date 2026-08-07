@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 import logging
@@ -52,7 +52,7 @@ else:
 
 profileStatNumber = 0
 
-AUTO_LOCATE_ELEMENT = '771407c0-1d0c-11e1-be5e-028037ec0200' # singleton meaning choose best location for new element
+AUTO_LOCATE_ELEMENT = "771407c0-1d0c-11e1-be5e-028037ec0200" # singleton meaning choose best location for new element
 DEFAULT = sys.intern("default")
 NONDEFAULT = sys.intern("non-default")
 DEFAULTorNONDEFAULT = sys.intern("default-or-non-default")
@@ -138,7 +138,7 @@ def loadSchemalocatedSchemas(modelXbrl: ModelXbrl) -> None:
             modelDocumentsSchemaLocated |= modelDocuments
 
 
-MatchSubstitutionGroupValueType = TypeVar('MatchSubstitutionGroupValueType', type[ModelObject], bool)
+MatchSubstitutionGroupValueType = TypeVar("MatchSubstitutionGroupValueType", type[ModelObject], bool)
 
 
 class ModelXbrl:
@@ -552,7 +552,7 @@ class ModelXbrl:
             from arelle import ViewWinDTS
             for view in self.views:
                 if isinstance(view, ViewWinDTS.ViewDTS):
-                    cast('CntlrWinMain', self.modelManager.cntlr).uiThreadQueue.put((view.view, []))
+                    cast("CntlrWinMain", self.modelManager.cntlr).uiThreadQueue.put((view.view, []))
 
     def saveInstance(self, **kwargs: Any) -> Any:
         """Saves current instance document file.
@@ -656,7 +656,7 @@ class ModelXbrl:
         xbrlElt = self.modelDocument.xmlRootElement
         if cast(str, afterSibling) == AUTO_LOCATE_ELEMENT:
             afterSibling = XmlUtil.lastChild(xbrlElt, XbrlConst.xbrli, ("schemaLocation", "roleType", "arcroleType", "context"))
-        cntxId = id if id else 'c-{0:02}'.format( len(self.contexts) + 1)
+        cntxId = id if id else "c-{0:02}".format( len(self.contexts) + 1)
         newCntxElt = cast(ModelContext, XmlUtil.addChild(xbrlElt, XbrlConst.xbrli, "context", attributes=("id", cntxId),
                                       afterSibling=cast(Optional[ModelObject], afterSibling), beforeSibling=beforeSibling))
         entityElt = XmlUtil.addChild(newCntxElt, XbrlConst.xbrli, "entity")
@@ -677,10 +677,10 @@ class ModelXbrl:
         segmentElt = None
         scenarioElt = None
         if dims: # requires primary item to determin ambiguous concepts
-            ''' in theory we have to check full set of dimensions for validity in source or any other
+            """ in theory we have to check full set of dimensions for validity in source or any other
                 context element, but for shortcut will see if each dimension is already reported in an
                 unambiguous valid contextElement
-            '''
+            """
             fpDims: dict[int | QName, QName | DimValuePrototype]
             if priItem is not None: # creating concept for a specific fact
                 dims[2] = priItem # Aspect.CONCEPT: prototype needs primary item as an aspect
@@ -692,7 +692,7 @@ class ModelXbrl:
                         _("Create context for %(priItem)s, cannot determine valid context elements, no suitable hypercubes"),
                         modelObject=self, priItem=priItem)
                     # fp.context.qnameDims is actually of type dict[QName, DimValuePrototype]
-                fpDims = cast(dict[Union[int, 'QName'], Union['QName', DimValuePrototype]], fp.context.qnameDims)  # type: ignore[union-attr]
+                fpDims = cast(dict[Union[int, "QName"], Union["QName", DimValuePrototype]], fp.context.qnameDims)  # type: ignore[union-attr]
             else:
                 fpDims = dims # dims known to be valid (such as for inline extraction)
             for dimQname in sorted(fpDims.keys()):
@@ -716,8 +716,8 @@ class ModelXbrl:
                         _("Create context, %(dimension)s, cannot determine context element, either no all relationship or validation issue"),
                         modelObject=self, dimension=dimQname),
                     continue
-                dimAttr = ("dimension", XmlUtil.addQnameValue(xbrlElt, cast('QName', dimQname)))  # Typing thinks dimQname might still be an integer
-                if cast('DimValuePrototype | ModelDimensionValue', dimValue).isTyped:  # Typing thinks that this can also be a QName
+                dimAttr = ("dimension", XmlUtil.addQnameValue(xbrlElt, cast("QName", dimQname)))  # Typing thinks dimQname might still be an integer
+                if cast("DimValuePrototype | ModelDimensionValue", dimValue).isTyped:  # Typing thinks that this can also be a QName
                     dimElt = XmlUtil.addChild(contextElt, XbrlConst.xbrldi, "xbrldi:typedMember",
                                               attributes=dimAttr)
                     if isinstance(dimValue, (arelle.ModelInstanceObject.ModelDimensionValue, DimValuePrototype)) and dimValue.isTyped and dimValue.typedMember is not None:
@@ -766,9 +766,9 @@ class ModelXbrl:
         """
         assert self.modelDocument is not None
         xbrlElt = self.modelDocument.xmlRootElement
-        if afterSibling == cast('ModelObject', AUTO_LOCATE_ELEMENT):
+        if afterSibling == cast("ModelObject", AUTO_LOCATE_ELEMENT):
             afterSibling = XmlUtil.lastChild(xbrlElt, XbrlConst.xbrli, ("schemaLocation", "roleType", "arcroleType", "context", "unit"))
-        unitId = id if id else 'u-{0:02}'.format( len(self.units) + 1)
+        unitId = id if id else "u-{0:02}".format( len(self.units) + 1)
         newUnitElt = XmlUtil.addChild(xbrlElt, XbrlConst.xbrli, "unit", attributes=("id", unitId),
                                       afterSibling=afterSibling, beforeSibling=beforeSibling)
         if len(divideBy) == 0:
@@ -969,7 +969,7 @@ class ModelXbrl:
             parent = self.modelDocument.xmlRootElement
         self.makeelementParentModelObject = parent
         newFact = cast(
-            'ModelFact', XmlUtil.addChild(parent, conceptQname, attributes=attributes, text=text,
+            "ModelFact", XmlUtil.addChild(parent, conceptQname, attributes=attributes, text=text,
                                         afterSibling=afterSibling, beforeSibling=beforeSibling)
         )
         if hasattr(self, "_factsByQname"):
@@ -1032,7 +1032,7 @@ class ModelXbrl:
             if isinstance(objectId, (ModelObject,FactPrototype)):
                 modelObject = objectId
             elif isinstance(objectId, str) and objectId.startswith("_"):
-                modelObject = cast('ModelObject', self.modelObject(objectId))
+                modelObject = cast("ModelObject", self.modelObject(objectId))
             if modelObject is not None:
                 for view in self.views:
                     view.viewModelObject(modelObject)
@@ -1052,19 +1052,19 @@ class ModelXbrl:
         """Same as error(), but as info
         """
         """@messageCatalog=[]"""
-        self.log('DEBUG', codes, msg, **args)
+        self.log("DEBUG", codes, msg, **args)
 
     def info(self, codes: str | tuple[str, ...], msg: str, **args: Any) -> None:
         """Same as error(), but as info
         """
         """@messageCatalog=[]"""
-        self.log('INFO', codes, msg, **args)
+        self.log("INFO", codes, msg, **args)
 
     def warning(self, codes: str | tuple[str, ...], msg: str, **args: Any) -> None:
         """Same as error(), but as warning, and no error code saved for Validate
         """
         """@messageCatalog=[]"""
-        self.log('WARNING', codes, msg, **args)
+        self.log("WARNING", codes, msg, **args)
 
     def validation(self, val: Validation) -> None:
         """Same as log, but parameters passed in from Validation object
@@ -1113,13 +1113,13 @@ class ModelXbrl:
         :param messageCodes: If first parameter codes, above, is dynamically formatted, this is a documentation string of the message codes only used for extraction of the message catalog document (not used in run-time processing).
         """
         """@messageCatalog=[]"""
-        self.log('ERROR', codes, msg, **args)
+        self.log("ERROR", codes, msg, **args)
 
     def exception(self, codes: str | tuple[str, ...], msg: str, **args: str) -> None:
         """Same as error(), but as exception
         """
         """@messageCatalog=[]"""
-        self.log('CRITICAL', codes, msg, **args)
+        self.log("CRITICAL", codes, msg, **args)
 
     def logProfileStats(self) -> None:
         """Logs profile stats that were collected
@@ -1128,20 +1128,20 @@ class ModelXbrl:
         timeEFM = format_string(self.modelManager.locale, _("%.3f secs"), self.profileStats.get("validateEFM", (0,0,0))[1])
         self.info("info:profileStats",
                 _("Profile statistics \n") +
-                ' \n'.join(format_string(self.modelManager.locale, _("%s %.3f secs, %.0fK"), (statName, statValue[1], statValue[2]), grouping=True)
+                " \n".join(format_string(self.modelManager.locale, _("%s %.3f secs, %.0fK"), (statName, statValue[1], statValue[2]), grouping=True)
                            for statName, statValue in sorted(self.profileStats.items(), key=lambda item: item[1])) +
                 " \n", # put instance reference on fresh line in traces
                 modelObject=self.modelXbrl.modelDocument, profileStats=self.profileStats,
                 timeTotal=timeTotal, timeEFM=timeEFM)
 
     def profileStat(self, name: str | None = None, stat: float | None = None) -> None:
-        '''
+        """
         order 1xx - load, import, setup, etc
         order 2xx - views, 26x - table lb
         3xx diff, other utilities
         5xx validation
         6xx formula
-        '''
+        """
         if self.modelManager.collectProfileStats:
             import time
             global profileStatNumber
@@ -1189,7 +1189,7 @@ class ModelXbrl:
         import os
         entryFilename = cast(str, self.fileSource.url)
         pkgFilename = entryFilename + ".zip"
-        with ZipFile(pkgFilename, 'w') as zip:
+        with ZipFile(pkgFilename, "w") as zip:
             numFiles = 0
             for fileUri in sorted(self.urlDocs.keys()):
                 if not isHttpUrl(fileUri):

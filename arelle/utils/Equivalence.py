@@ -13,8 +13,8 @@ from typing import (
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-T = TypeVar('T')
-K = TypeVar('K')
+T = TypeVar("T")
+K = TypeVar("K")
 
 def partitionIntoEquivalenceClasses(items: Iterable[T], key: Callable[[T], K]) -> dict[K, tuple[T, ...]]:
     d = defaultdict(list)

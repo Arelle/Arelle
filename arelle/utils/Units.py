@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from arelle.ModelInstanceObject import ModelUnit
 
 class UnitHashKey:
-    __slots__ = ('unit', 'hash')
+    __slots__ = ("unit", "hash")
     unit: ModelUnit
     hash: int
 

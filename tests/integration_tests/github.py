@@ -1,6 +1,6 @@
-LINUX = 'ubuntu-24.04'
-MACOS = 'macos-26'
-WINDOWS = 'windows-2025'
+LINUX = "ubuntu-24.04"
+MACOS = "macos-26"
+WINDOWS = "windows-2025"
 
 # number of cores on the runners
 # https://docs.github.com/en/actions/reference/runners/github-hosted-runners

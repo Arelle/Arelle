@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 
 UNVALIDATED = 0 # note that these values may be used a constants in code for better efficiency
 UNKNOWN = 1

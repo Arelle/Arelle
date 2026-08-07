@@ -39,9 +39,9 @@ class TestOrderedSet:
         assert list(os) == [1, 2, 3, 4, 5]
 
     def test_update_with_string(self):
-        os = OrderedSet(['a', 'b'])
+        os = OrderedSet(["a", "b"])
         os.update("bcd")
-        assert list(os) == ['a', 'b', 'c', 'd']
+        assert list(os) == ["a", "b", "c", "d"]
 
     def test_discard(self):
         os = OrderedSet([1, 2, 3, 4])

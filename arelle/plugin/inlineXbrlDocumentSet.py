@@ -169,7 +169,7 @@ class ModelInlineXbrlDocumentSet(ModelDocument):
         for instanceElt in self.xmlRootElement.iter(tag="{http://disclosure.edinet-fsa.go.jp/2013/manifest}instance"):
             targetId = instanceElt.id
             self.targetDocumentId = targetId
-            self.targetDocumentPreferredFilename = instanceElt.get('preferredFilename')
+            self.targetDocumentPreferredFilename = instanceElt.get("preferredFilename")
             for ixbrlElt in instanceElt.iter(tag="{http://disclosure.edinet-fsa.go.jp/2013/manifest}ixbrl"):
                 uri = ixbrlElt.textValue.strip()
                 if uri:
@@ -246,7 +246,7 @@ def inlineXbrlDocumentSetLoader(modelXbrl, normalizedUri, filepath, isEntry=Fals
         for url in modelXbrl.ixdsDocUrls:
             xml.append("<instance>{}</instance>\n".format(url))
         xml.append("</instances>\n")
-        ixdocset = create(modelXbrl, Type.INLINEXBRLDOCUMENTSET, docsetUrl, isEntry=True, initialXml="".join(xml), entrypoint=kwargs.get('entrypoint'))
+        ixdocset = create(modelXbrl, Type.INLINEXBRLDOCUMENTSET, docsetUrl, isEntry=True, initialXml="".join(xml), entrypoint=kwargs.get("entrypoint"))
         ixdocset.type = Type.INLINEXBRLDOCUMENTSET
         ixdocset.targetDocumentPreferredFilename = None # possibly no inline docs in this doc set
         for i, elt in enumerate(ixdocset.xmlRootElement.iter(tag="instance")):
@@ -304,7 +304,7 @@ def createTargetInstance(
         if elt.tag in ("a", "img"):
             for attrTag, attrValue in elt.items():
                 if attrTag in ("href", "src") and not isHttpUrl(attrValue) and not isLegacyAbs(attrValue):
-                    attrValue = attrValue.partition('#')[0] # remove anchor
+                    attrValue = attrValue.partition("#")[0] # remove anchor
                     if attrValue: # ignore anchor references to base document
                         attrValue = os.path.normpath(attrValue) # change url path separators to host separators
                         file = os.path.join(sourceDir,attrValue)
@@ -348,9 +348,9 @@ def createTargetInstance(
     for context in sorted(modelXbrl.contexts.values(), key=lambda c: c.objectIndex): # contexts may come from multiple IXDS files
         ignore = targetInstance.createContext(context.entityIdentifier[0],
                                                context.entityIdentifier[1],
-                                               'instant' if context.isInstantPeriod else
-                                               'duration' if context.isStartEndPeriod
-                                               else 'forever',
+                                               "instant" if context.isInstantPeriod else
+                                               "duration" if context.isStartEndPeriod
+                                               else "forever",
                                                context.startDatetime,
                                                context.endDatetime,
                                                None,
@@ -645,10 +645,10 @@ def runSaveTargetDocumentMenuCommand(
         filingZip = None
         filingFiles = set()
         if responseZipStream is not None:
-            filingZip = zipfile.ZipFile(responseZipStream, 'w', zipfile.ZIP_DEFLATED, True)
+            filingZip = zipfile.ZipFile(responseZipStream, "w", zipfile.ZIP_DEFLATED, True)
         if saveTargetFiling:
             if filingZip is None:
-                filingZip = zipfile.ZipFile(os.path.splitext(targetFilename)[0] + ".zip", 'w', zipfile.ZIP_DEFLATED, True)
+                filingZip = zipfile.ZipFile(os.path.splitext(targetFilename)[0] + ".zip", "w", zipfile.ZIP_DEFLATED, True)
             # copy referencedDocs to two levels
             def addRefDocs(doc):
                 for refDoc in doc.referencesDocument.keys():
@@ -668,7 +668,7 @@ def runSaveTargetDocumentMenuCommand(
                 for f in filingFiles if f.startswith(instDir)
             ]
             if sourceZipStream is not None:
-                with zipfile.ZipFile(sourceZipStream, 'r') as sourceZip:
+                with zipfile.ZipFile(sourceZipStream, "r") as sourceZip:
                     for filingFile, arcname in copyFilingPaths:
                         filingFile = filingFile.replace(instDir + os.sep, "")
                         sourceFile = sourceZip.read(filingFile)
@@ -815,11 +815,11 @@ def saveTargetInstanceOverriden(cntlr, deduplicationType: DeduplicationType | No
     :param deduplicationType: The deduplication type to be used, if set.
     :return: True if instance extraction is overridden by another plugin.
     """
-    for pluginXbrlMethod in cntlr.plugins.hooks('InlineDocumentSet.SavesTargetInstance'):
+    for pluginXbrlMethod in cntlr.plugins.hooks("InlineDocumentSet.SavesTargetInstance"):
         if pluginXbrlMethod():
             if deduplicationType is not None:
-                raise RuntimeError(_('Deduplication is enabled but could not be performed because instance '
-                                   'extraction was performed by another plugin.'))
+                raise RuntimeError(_("Deduplication is enabled but could not be performed because instance "
+                                   "extraction was performed by another plugin."))
             return True
     return False
 
@@ -957,7 +957,7 @@ def selectTargetDocument(modelXbrl, modelIxdsDocument, **kwargs):
     if not hasattr(modelXbrl, "ixdsTarget"): # DTS discoverey deferred until all ix docs loaded
         # isolate any documents to separate IXDSes according to authority submission rules
         modelXbrl.targetIXDSesToLoad = [] # [[target,[ixdsHtmlElements], ...]
-        for pluginXbrlMethod in modelXbrl.modelManager.cntlr.plugins.hooks('InlineDocumentSet.IsolateSeparateIXDSes'):
+        for pluginXbrlMethod in modelXbrl.modelManager.cntlr.plugins.hooks("InlineDocumentSet.IsolateSeparateIXDSes"):
             separateIXDSesHtmlElements = pluginXbrlMethod(modelXbrl, modelIxdsDocument, **kwargs)
             if len(separateIXDSesHtmlElements) > 1: # [[ixdsHtml1, ixdsHtml2], [ixdsHtml3...] ...]
                 for separateIXDSHtmlElements in separateIXDSesHtmlElements[1:]:
@@ -1020,32 +1020,32 @@ def ixdsTargetDiscoveryCompleted(modelXbrl, modelIxdsDocument):
             modelIxdsDocument.targetDocumentSchemaRefs.add(modelIxdsDocument.relativeUri(referencedDoc.uri))
 
 __pluginInfo__ = {
-    'name': 'Inline XBRL Document Set',
-    'version': '1.1',
-    'description': "This plug-in adds a feature to read manifest files of inline XBRL document sets "
+    "name": "Inline XBRL Document Set",
+    "version": "1.1",
+    "description": "This plug-in adds a feature to read manifest files of inline XBRL document sets "
                     " and to save the embedded XBRL instance document.  "
                     "Support single target instance documents in a single document set.  ",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'InlineDocumentSet.Discovery': inlineDocsetDiscovery,
-    'InlineDocumentSet.Url.Separator': inlineDocsetUrlSeparator,
-    'InlineDocumentSet.CreateTargetInstance': createTargetInstance,
-    'CntlrWinMain.Filing.Start': guiFilingStart,
-    'CntlrWinMain.Menu.File.Open': fileOpenMenuEntender,
-    'CntlrWinMain.Menu.Tools': saveTargetDocumentMenuEntender,
-    'CntlrCmdLine.Options': commandLineOptionExtender,
-    'CntlrCmdLine.Filing.Start': commandLineFilingStart,
-    'CntlrCmdLine.Xbrl.Run': commandLineXbrlRun,
-    'ModelDocument.PullLoader': inlineXbrlDocumentSetLoader,
-    'ModelDocument.IdentifyType': identifyInlineXbrlDocumentSet,
-    'ModelDocument.Discover': discoverInlineXbrlDocumentSet,
-    'ModelDocument.DiscoverIxdsDts': discoverIxdsDts,
-    'ModelDocument.SelectIxdsTarget': selectTargetDocument,
-    'ModelDocument.IxdsTargetDiscovered': ixdsTargetDiscoveryCompleted,
-    'ModelTestcaseVariation.ReadMeFirstUris': testcaseVariationReadMeFirstUris,
-    'ModelTestcaseVariation.ArchiveIxds': testcaseVariationArchiveIxds,
-    'ModelTestcaseVariation.ReportPackageIxds': testcaseVariationReportPackageIxds,
-    'ModelTestcaseVariation.ResultXbrlInstanceUri': testcaseVariationResultInstanceUri,
+    "InlineDocumentSet.Discovery": inlineDocsetDiscovery,
+    "InlineDocumentSet.Url.Separator": inlineDocsetUrlSeparator,
+    "InlineDocumentSet.CreateTargetInstance": createTargetInstance,
+    "CntlrWinMain.Filing.Start": guiFilingStart,
+    "CntlrWinMain.Menu.File.Open": fileOpenMenuEntender,
+    "CntlrWinMain.Menu.Tools": saveTargetDocumentMenuEntender,
+    "CntlrCmdLine.Options": commandLineOptionExtender,
+    "CntlrCmdLine.Filing.Start": commandLineFilingStart,
+    "CntlrCmdLine.Xbrl.Run": commandLineXbrlRun,
+    "ModelDocument.PullLoader": inlineXbrlDocumentSetLoader,
+    "ModelDocument.IdentifyType": identifyInlineXbrlDocumentSet,
+    "ModelDocument.Discover": discoverInlineXbrlDocumentSet,
+    "ModelDocument.DiscoverIxdsDts": discoverIxdsDts,
+    "ModelDocument.SelectIxdsTarget": selectTargetDocument,
+    "ModelDocument.IxdsTargetDiscovered": ixdsTargetDiscoveryCompleted,
+    "ModelTestcaseVariation.ReadMeFirstUris": testcaseVariationReadMeFirstUris,
+    "ModelTestcaseVariation.ArchiveIxds": testcaseVariationArchiveIxds,
+    "ModelTestcaseVariation.ReportPackageIxds": testcaseVariationReportPackageIxds,
+    "ModelTestcaseVariation.ResultXbrlInstanceUri": testcaseVariationResultInstanceUri,
 }

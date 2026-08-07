@@ -93,13 +93,13 @@ class FormulaXPathChecker:
                 axis = p.axis
                 if p.isAttribute:
                     if p.localName != "id":
-                        raise XPathException(self.progHeader, 'navigateAttr', 'Axis step {} to {}'.format(op, p.localName))
-                elif op in ('/', '//', '..') or op is None:
-                    raise XPathException(self.progHeader, 'navigateStep', 'Operation {} Axis step {} to {}'.format(op or "", axis or "", p.localName))
+                        raise XPathException(self.progHeader, "navigateAttr", "Axis step {} to {}".format(op, p.localName))
+                elif op in ("/", "//", "..") or op is None:
+                    raise XPathException(self.progHeader, "navigateStep", "Operation {} Axis step {} to {}".format(op or "", axis or "", p.localName))
             elif isinstance(p, OperationDef) and isinstance(p.name,QNameDef):
-                raise XPathException(p, 'navigate', 'Operation {} Axis step {} to {}'.format(op, p, p.name.localName))
+                raise XPathException(p, "navigate", "Operation {} Axis step {} to {}".format(op, p, p.name.localName))
             else:
-                raise XPathException(p, 'navigate', 'Operation {} Axis step to {}'.format(op, p))
+                raise XPathException(p, "navigate", "Operation {} Axis step to {}".format(op, p))
 
     def evaluateRangeVars(self, op, p, args):
         if isinstance(p, RangeDecl):
@@ -107,16 +107,16 @@ class FormulaXPathChecker:
             if args and len(args) >= 1:
                 self.evaluateRangeVars(op, args[0], args[1:])
         elif isinstance(p, Expr):
-            if p.name == 'return':
+            if p.name == "return":
                 self.evalProg(p.expr)
-            elif p.name == 'satisfies':
+            elif p.name == "satisfies":
                 self.evalProg(p.expr)
 
 
     def evalProg(self, exprStack, parentOp=None):
         setProgHeader = False
         for p in exprStack:
-            if isinstance(p,QNameDef) or (p == '*' and parentOp in ('/', '//')): # path step QName or wildcard
+            if isinstance(p,QNameDef) or (p == "*" and parentOp in ("/", "//")): # path step QName or wildcard
                 # step axis operation
                 self.stepAxis(parentOp, p)
             elif isinstance(p,OperationDef):
@@ -124,12 +124,12 @@ class FormulaXPathChecker:
                 if isinstance(op, QNameDef): # function call
                     args = self.evalProg(p.args)
                     ns = op.namespaceURI; localname = op.localName
-                    if op.unprefixed and localname in {'attribute', 'comment', 'document-node', 'element',
-                       'item', 'node', 'processing-instruction', 'schema-attribute', 'schema-element', 'text'}:
+                    if op.unprefixed and localname in {"attribute", "comment", "document-node", "element",
+                       "item", "node", "processing-instruction", "schema-attribute", "schema-element", "text"}:
                         # step axis operation
                         self.stepAxis(parentOp, p)
                     elif (op.unprefixed or ns == XbrlConst.fn) and localname in FNs_BLOCKED:
-                        raise XPathException(p, 'function is restricted', 'Function is restricted {}'.format(p))
+                        raise XPathException(p, "function is restricted", "Function is restricted {}".format(p))
                 elif op in VALUE_OPS:
                     self.evalProg(p.args)
                 elif op in GENERALCOMPARISON_OPS:
@@ -146,12 +146,12 @@ class FormulaXPathChecker:
                     self.evalProg(p.args)
                 elif op in UNARY_OPS:
                     self.evalProg(p.args)
-                elif op == 'sequence':
+                elif op == "sequence":
                     result = self.evalProg(p.args)
                 elif op in FORSOMEEVERY_OPS: # for, some, every
                     result = []
                     self.evaluateRangeVars(op, p.args[0], p.args[1:])
-                elif op == 'if':
+                elif op == "if":
                     self.evalProg(p.args[0].expr[0])
                     self.evalProg(p.args[1].args) # evaluate both arguments
                     self.evalProg(p.args[2].args)
@@ -283,9 +283,9 @@ def validateFormulaCompiled(modelXbrl, xpathContext):
 
 def validateUtilityRun(cntlr, options, *args, **kwargs):
     if getattr(options, "checkPackageEntries", False) and not options.entrypointFile:
-        setattr(options, 'entrypointFile', '[]') # set empty entrypoints list so CntlrCmdLine continues to CntlrCmdLine.Filing.Start pugin
-        setattr(options, 'formulaAction', 'validate')
-        setattr(options, 'validate', True)
+        setattr(options, "entrypointFile", "[]") # set empty entrypoints list so CntlrCmdLine continues to CntlrCmdLine.Filing.Start pugin
+        setattr(options, "formulaAction", "validate")
+        setattr(options, "validate", True)
 
 def setupPackageEntrypoints(cntlr, options, filesource, entrypointFiles, *args, **kwargs):
     # check package entries formula code
@@ -309,16 +309,16 @@ def setupPackageEntrypoints(cntlr, options, filesource, entrypointFiles, *args, 
                         entrypointFiles.append({"file":url[1]})
 
 __pluginInfo__ = {
-    'name': 'Formula XPath Checker',
-    'version': '0.9',
-    'description': "This plug-in checks for restricted XPath in formula expressions. ",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "Formula XPath Checker",
+    "version": "0.9",
+    "description": "This plug-in checks for restricted XPath in formula expressions. ",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'CntlrCmdLine.Options': checkFormulaXPathCommandLineOptionExtender,
-    'CntlrCmdLine.Utility.Run': validateUtilityRun,
-    'CntlrCmdLine.Filing.Start': setupPackageEntrypoints,
-    'CntlrCmdLine.Xbrl.Run': checkFormulaXPathCommandLineXbrlRun,
-    'ValidateFormula.Compiled': validateFormulaCompiled
+    "CntlrCmdLine.Options": checkFormulaXPathCommandLineOptionExtender,
+    "CntlrCmdLine.Utility.Run": validateUtilityRun,
+    "CntlrCmdLine.Filing.Start": setupPackageEntrypoints,
+    "CntlrCmdLine.Xbrl.Run": checkFormulaXPathCommandLineXbrlRun,
+    "ValidateFormula.Compiled": validateFormulaCompiled
 }

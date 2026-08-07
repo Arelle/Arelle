@@ -4,8 +4,8 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 import socket
 
-INTERNET_CONNECTIVITY = 'internetConnectivity'
-OFFLINE = 'offline'
+INTERNET_CONNECTIVITY = "internetConnectivity"
+OFFLINE = "offline"
 
 
 class WarnSocket(socket.socket):

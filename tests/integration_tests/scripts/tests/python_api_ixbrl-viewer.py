@@ -18,13 +18,13 @@ args = parse_args(
     this_file.stem,
     "Confirm ixbrl-viewer plugin runs successfully using Arelle's Python API.",
     arelle=False,
-    cache='ixbrl-viewer_cli.zip',
-    cache_version_id='P.uruiqpYrdNHGzX.XuJPGS3QS6_qY9g',
+    cache="ixbrl-viewer_cli.zip",
+    cache_version_id="P.uruiqpYrdNHGzX.XuJPGS3QS6_qY9g",
 )
 arelle_offline = args.offline
 working_directory = Path(args.working_directory)
 test_directory = Path(args.test_directory)
-samples_zip_path = test_directory / 'samples.zip'
+samples_zip_path = test_directory / "samples.zip"
 target_path = samples_zip_path / "samples/src/ixds-test/document1.html"
 viewer_path = test_directory / "viewer.html"
 print(f"Downloading samples: {samples_zip_path}")
@@ -39,7 +39,7 @@ class TestFilter(logging.Filter):
     filtered_records: list[LogRecord] = []
 
     def filter(self, record: LogRecord) -> bool:
-        if record.levelname == 'INFO':
+        if record.levelname == "INFO":
             self.filtered_records.append(record)
             return False
         return True
@@ -48,22 +48,22 @@ class TestFilter(logging.Filter):
 log_filter = TestFilter()
 print(f"Generating IXBRL viewer: {viewer_path}")
 # include start
-with open(samples_zip_path, 'rb') as stream:
+with open(samples_zip_path, "rb") as stream:
     options = RuntimeOptions(
         entrypointFile=str(target_path),
-        internetConnectivity='offline' if arelle_offline else 'online',
+        internetConnectivity="offline" if arelle_offline else "online",
         keepOpen=True,
         logFile="logToStructuredMessage",
         logFormat="[%(messageCode)s] %(message)s - %(file)s",
         logPropagate=False,
         pluginOptions={
-            'saveViewerDest': str(viewer_path),
-            'viewer_feature_review': True,
+            "saveViewerDest": str(viewer_path),
+            "viewer_feature_review": True,
         },
-        plugins='ixbrl-viewer',
+        plugins="ixbrl-viewer",
     )
     # Plugin default options haven't been applied yet.
-    assert not hasattr(options, 'viewerURL')
+    assert not hasattr(options, "viewerURL")
     with Session() as session:
         session.run(
             options,
@@ -73,7 +73,7 @@ with open(samples_zip_path, 'rb') as stream:
         # Plugin default options were applied.
         assert hasattr(options, "viewerURL")
         assert options.viewerURL.endswith("ixbrlviewer.js")
-        log_xml = session.get_logs('xml')
+        log_xml = session.get_logs("xml")
 # include end
 
 print(f"Checking for viewer: {viewer_path}")
@@ -84,7 +84,7 @@ print("Checking for filtered logs...")
 expected_filtered = 5
 actual_filtered = len(log_filter.filtered_records)
 if actual_filtered != expected_filtered:
-    errors.append(f'Expected {expected_filtered} filtered log records, found {actual_filtered}.')
+    errors.append(f"Expected {expected_filtered} filtered log records, found {actual_filtered}.")
 
 print("Checking log XML for errors...")
 errors += validate_log_xml(log_xml)
@@ -93,8 +93,8 @@ assert_result(errors)
 
 print("Cleaning up")
 try:
-    os.unlink(working_directory / 'python_api_ixbrl-viewer' / 'samples.zip')
-    os.unlink(working_directory / 'python_api_ixbrl-viewer' / 'viewer.html')
-    os.unlink(working_directory / 'python_api_ixbrl-viewer' / 'ixbrlviewer.js')
+    os.unlink(working_directory / "python_api_ixbrl-viewer" / "samples.zip")
+    os.unlink(working_directory / "python_api_ixbrl-viewer" / "viewer.html")
+    os.unlink(working_directory / "python_api_ixbrl-viewer" / "ixbrlviewer.js")
 except PermissionError as exc:
     print(f"Failed to cleanup test files: {exc}")

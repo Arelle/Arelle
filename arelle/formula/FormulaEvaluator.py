@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 import datetime
 import itertools
 import logging
@@ -62,7 +62,7 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
         if xpCtx.formulaOptions.timeVariableSetEvaluation:
             varSet.timeEvaluationStarted = timeEvaluationsStarted = time.time()
         varSet.evaluationNumber = 0
-        initialTraceCount = xpCtx.modelXbrl.logCount.get(logging.getLevelName('INFO'), 0)
+        initialTraceCount = xpCtx.modelXbrl.logCount.get(logging.getLevelName("INFO"), 0)
         evaluateVar(xpCtx, varSet, 0, {}, uncoveredAspectFacts)
         if isinstance(varSet, ModelExistenceAssertion):
             prog = varSet.testProg
@@ -136,7 +136,7 @@ def evaluate(xpCtx, varSet, variablesInScope=False, uncoveredAspectFacts=None):
                 elif unsatSeverity == "ERROR":
                     varSet.countErrorMessages += 1
         if xpCtx.formulaOptions.traceVariableSetExpressionResult and initialTraceCount == xpCtx.modelXbrl.logCount.get(
-            logging._checkLevel('INFO'), 0
+            logging._checkLevel("INFO"), 0
         ):
             xpCtx.modelXbrl.info(
                 "formula:trace",
@@ -373,7 +373,7 @@ def evaluateVariableBindings(xpCtx, varSet, uncoveredAspectFacts):
                 label=label,
                 result=result,
                 expression=expression,
-                evaluatedExpression=''.join(
+                evaluatedExpression="".join(
                     xpCtx.traceEffectiveVariableValue(varSet, expr)
                     for grp in expressionVariablesPattern.findall(expression)
                     for expr in grp
@@ -1382,7 +1382,7 @@ def formulaAspectValue(xpCtx, formula, aspect, srcMissingErr):
         aspectSourceValue = VariableBindingError(
             srcMissingErr,
             _("neither source {0}, nor an aspect rule, were found.").format(
-                sourceQname if sourceQname else ''
+                sourceQname if sourceQname else ""
             ),
         )
     for vb in xpCtx.varBindings.values():

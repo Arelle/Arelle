@@ -107,7 +107,7 @@ table {background:#fff}
 
 
 def indexFileHTML(indexBaseName: str) -> str:
-    return f'''<!DOCTYPE html>
+    return f"""<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -172,7 +172,7 @@ def indexFileHTML(indexBaseName: str) -> str:
   </div>
 </body>
 </html>
-'''
+"""
 
 
 def generateHtmlEbaTablesetFiles(dts: ModelXbrl, indexFile: str, lang: str = "en") -> None:

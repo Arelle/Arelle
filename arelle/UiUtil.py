@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
@@ -144,7 +144,7 @@ class gridHdr(Label):
         text: str | None,
         columnspan: int | None = None,
         rowspan: int | None = None,
-        anchor: str = 'center',
+        anchor: str = "center",
         padding: Any = None,
         wraplength: int | None = None,
         width: int | None = None,
@@ -441,24 +441,24 @@ class scrolledFrame(Frame):
         # create a frame inside the canvas which will be scrolled with it
         self.interior = interior = Frame(canvas)
         self.interior_id = canvas.create_window(0, 0, window=interior, anchor=NW)
-        interior.bind('<Configure>', self._configure_interior)
-        canvas.bind('<Configure>', self._configure_canvas)
+        interior.bind("<Configure>", self._configure_interior)
+        canvas.bind("<Configure>", self._configure_canvas)
 
     def _configure_interior(self, event: Event[Any]) -> None:
         # update the scrollbars to match the size of the inner frame
         interiorW = self.interior.winfo_reqwidth()
         interiorH = self.interior.winfo_reqheight()
         self.canvas.config(scrollregion=(0, 0, interiorW, interiorH))
-        ''' needed if scrolling only in 1 direction (for the axis that doesn't have scrollbar)
+        """ needed if scrolling only in 1 direction (for the axis that doesn't have scrollbar)
         if interiorW != self.canvas.winfo_width():
             # update the canvas's width to fit the inner frame
             self.canvas.config(width=interiorW)
         if interiorH != self.canvas.winfo_height():
             self.canvas.config(height=interiorH)
-        '''
+        """
 
     def _configure_canvas(self, event: Event[Any]) -> None:
-        ''' needed if only scrolling in one direction
+        """ needed if only scrolling in one direction
         canvasW = self.canvas.winfo_width()
         if self.interior.winfo_reqwidth() != canvasW:
             # update the inner frame's width to fill the canvas
@@ -466,7 +466,7 @@ class scrolledFrame(Frame):
         canvasH = self.canvas.winfo_height()
         if self.interior.winfo_reqheight() != canvasH:
             self.canvas.itemconfigure(self.interior_id, height=canvasH)
-        '''
+        """
 
     def clearGrid(self) -> None:
         x, y = self.size()
@@ -474,9 +474,9 @@ class scrolledFrame(Frame):
             widget.destroy()
         if x > 1 and y > 1:  # not gridTblHdr
             for x in range(x):
-                self.tk.call(('grid', 'columnconfigure', str(self), x, '-minsize', 0))
+                self.tk.call(("grid", "columnconfigure", str(self), x, "-minsize", 0))
             for y in range(y):
-                self.tk.call(('grid', 'rowconfigure', str(self), y, '-minsize', 0))
+                self.tk.call(("grid", "rowconfigure", str(self), y, "-minsize", 0))
             self.config(width=1, height=1)
         self.update()
         self.colsConfigured = False
@@ -528,12 +528,12 @@ class scrolledHeaderedFrame(Frame):
         self.bodyHscrollbar.config(command=self._hscroll_body)
         self.columnconfigure(1, weight=1)
         self.rowconfigure(2, weight=1)
-        '''
+        """
         self.rowHdrCanvas.columnconfigure(1, weight=1)
         self.colHdrCanvas.rowconfigure(2, weight=1)
         self.bodyCanvas.columnconfigure(1, weight=1)
         self.bodyCanvas.rowconfigure(2, weight=1)
-        '''
+        """
 
         # reset the view
         self.colHdrCanvas.xview_moveto(0)
@@ -550,20 +550,20 @@ class scrolledHeaderedFrame(Frame):
         self.colHdrInterior_id = self.colHdrCanvas.create_window(0, 0, window=self.colHdrInterior, anchor=NW)
         self.rowHdrInterior_id = self.rowHdrCanvas.create_window(0, 0, window=self.rowHdrInterior, anchor=NW)
         self.bodyInterior_id = self.bodyCanvas.create_window(0, 0, window=self.bodyInterior, anchor=NW)
-        self.colHdrInterior.bind('<Configure>', self._configure_colHdrInterior)
-        self.rowHdrInterior.bind('<Configure>', self._configure_rowHdrInterior)
-        self.bodyInterior.bind('<Configure>', self._configure_bodyInterior)
-        self.colHdrCanvas.bind('<Configure>', self._configure_colHdrCanvas)
-        self.rowHdrCanvas.bind('<Configure>', self._configure_rowHdrCanvas)
-        self.bodyCanvas.bind('<Configure>', self._configure_bodyCanvas)
-        '''
+        self.colHdrInterior.bind("<Configure>", self._configure_colHdrInterior)
+        self.rowHdrInterior.bind("<Configure>", self._configure_rowHdrInterior)
+        self.bodyInterior.bind("<Configure>", self._configure_bodyInterior)
+        self.colHdrCanvas.bind("<Configure>", self._configure_colHdrCanvas)
+        self.rowHdrCanvas.bind("<Configure>", self._configure_rowHdrCanvas)
+        self.bodyCanvas.bind("<Configure>", self._configure_bodyCanvas)
+        """
         self.colHdrInterior.bind('<Configure>', self._configure_interiors)
         self.rowHdrInterior.bind('<Configure>', self._configure_rowHdrInterior)
         self.bodyInterior.bind('<Configure>', self._configure_rowHdrInterior)
         self.colHdrCanvas.bind('<Configure>', self._configure_canvases)
         self.rowHdrCanvas.bind('<Configure>', self._configure_canvases)
         #self.bodyCanvas.bind('<Configure>', self._configure_canvases)
-        '''
+        """
         # on linux Button-4, Button-5 events
         #self.rowHdrCanvas.bind("<MouseWheel>", self._mousewheel)
         #self.bodyCanvas.bind("<MouseWheel>", self._mousewheel)
@@ -595,9 +595,9 @@ class scrolledHeaderedFrame(Frame):
                 widget.destroy()
             if x > 1 and y > 1:  # not gridTblHdr
                 for x in range(x):
-                    grid.tk.call(('grid', 'columnconfigure', grid._w, x, '-minsize', 0))  # type: ignore[attr-defined]
+                    grid.tk.call(("grid", "columnconfigure", grid._w, x, "-minsize", 0))  # type: ignore[attr-defined]
                 for y in range(y):
-                    grid.tk.call(('grid', 'rowconfigure', grid._w, y, '-minsize', 0))  # type: ignore[attr-defined]
+                    grid.tk.call(("grid", "rowconfigure", grid._w, y, "-minsize", 0))  # type: ignore[attr-defined]
                 grid.config(width=1, height=1)
                 grid.master.configure(width=1, height=1, scrollregion=(0, 0, 1, 1))  # type: ignore[call-arg]
         self.update()
@@ -680,7 +680,7 @@ class scrolledHeaderedFrame(Frame):
         isRowHdrCell = event.widget.master == self.rowHdrInterior
         isBodyCell = event.widget.master == self.bodyInterior
         if isColHdrCell:
-            if hasattr(cell, 'columnspan') and cell.columnspan:
+            if hasattr(cell, "columnspan") and cell.columnspan:
                 columnspan = cell.columnspan  # this is the non borders columns spanned
             else:
                 columnspan = 1
@@ -689,32 +689,32 @@ class scrolledHeaderedFrame(Frame):
             wWiderAlloced = 0
             wNumWider = 0
             for X in range(x, x + columnspan, 2):  # spanned cols divided equally over their columns
-                bodyColW = self.bodyInterior.tk.call(('grid', 'columnconfigure', str(self.bodyInterior), X, '-minsize'))
+                bodyColW = self.bodyInterior.tk.call(("grid", "columnconfigure", str(self.bodyInterior), X, "-minsize"))
                 if bodyColW > w:
                     wWiderAlloced += bodyColW
                     wNumWider += 1
             if cellspan - wNumWider > 0 and cellW > wWiderAlloced:
                 W = int((cellW - wWiderAlloced) / (cellspan - wNumWider))
                 for X in range(x, x + columnspan, 2):  # spanned cols divided equally over their columns
-                    bodyColW = self.bodyInterior.tk.call(('grid', 'columnconfigure', self.bodyInterior._w, X, '-minsize'))  # type: ignore[attr-defined]
+                    bodyColW = self.bodyInterior.tk.call(("grid", "columnconfigure", self.bodyInterior._w, X, "-minsize"))  # type: ignore[attr-defined]
                     if W > bodyColW:  # even cells only
-                        self.bodyInterior.tk.call(('grid', 'columnconfigure', self.bodyInterior._w, X, '-minsize', W))  # type: ignore[attr-defined]
+                        self.bodyInterior.tk.call(("grid", "columnconfigure", self.bodyInterior._w, X, "-minsize", W))  # type: ignore[attr-defined]
         if isRowHdrCell:
-            rowspan = getattr(cell, 'rowspan', None) or 1
-            bodyRowH = self.bodyInterior.tk.call(('grid', 'rowconfigure', self.bodyInterior._w, y, '-minsize'))  # type: ignore[attr-defined]
+            rowspan = getattr(cell, "rowspan", None) or 1
+            bodyRowH = self.bodyInterior.tk.call(("grid", "rowconfigure", self.bodyInterior._w, y, "-minsize"))  # type: ignore[attr-defined]
             cellHperRow = (cellH - (rowspan // 2 * 3)) / ((rowspan + 1) // 2)  # rowspan includes spanned separators
             if cellHperRow > bodyRowH:
                 for ySpanned in range(y + rowspan - 1, y - 1, -2):
-                    self.bodyInterior.tk.call(('grid', 'rowconfigure', self.bodyInterior._w, ySpanned, '-minsize', cellHperRow))  # type: ignore[attr-defined]
+                    self.bodyInterior.tk.call(("grid", "rowconfigure", self.bodyInterior._w, ySpanned, "-minsize", cellHperRow))  # type: ignore[attr-defined]
         if isBodyCell:
-            rowHdrH = self.rowHdrInterior.tk.call(('grid', 'rowconfigure', self.rowHdrInterior._w, y, '-minsize'))  # type: ignore[attr-defined]
+            rowHdrH = self.rowHdrInterior.tk.call(("grid", "rowconfigure", self.rowHdrInterior._w, y, "-minsize"))  # type: ignore[attr-defined]
             if cellH > rowHdrH:
-                self.rowHdrInterior.tk.call(('grid', 'rowconfigure', self.rowHdrInterior._w, y, '-minsize', cellH))  # type: ignore[attr-defined]
-            colHdrW = self.colHdrInterior.tk.call(('grid', 'columnconfigure', self.colHdrInterior._w, x, '-minsize'))  # type: ignore[attr-defined]
+                self.rowHdrInterior.tk.call(("grid", "rowconfigure", self.rowHdrInterior._w, y, "-minsize", cellH))  # type: ignore[attr-defined]
+            colHdrW = self.colHdrInterior.tk.call(("grid", "columnconfigure", self.colHdrInterior._w, x, "-minsize"))  # type: ignore[attr-defined]
             if cellW > colHdrW:
-                self.colHdrInterior.tk.call(('grid', 'columnconfigure', self.colHdrInterior._w, x, '-minsize', cellW))  # type: ignore[attr-defined]
+                self.colHdrInterior.tk.call(("grid", "columnconfigure", self.colHdrInterior._w, x, "-minsize", cellW))  # type: ignore[attr-defined]
             elif colHdrW > cellW:
-                self.bodyInterior.tk.call(('grid', 'columnconfigure', self.bodyInterior._w, x, '-minsize', colHdrW))  # type: ignore[attr-defined]
+                self.bodyInterior.tk.call(("grid", "columnconfigure", self.bodyInterior._w, x, "-minsize", colHdrW))  # type: ignore[attr-defined]
         self.blockConfigureCell = False
 
     def conformHdrsToBody(self) -> None:
@@ -734,16 +734,16 @@ class scrolledHeaderedFrame(Frame):
             wWiderAlloced = 0
             wNumWider = 0
             for X in range(x, x + columnspan * 2, 2):  # spanned cols divided equally over their columns
-                bodyColW = self.bodyInterior.tk.call(('grid', 'columnconfigure', self.bodyInterior._w, X, '-minsize'))  # type: ignore[attr-defined]
+                bodyColW = self.bodyInterior.tk.call(("grid", "columnconfigure", self.bodyInterior._w, X, "-minsize"))  # type: ignore[attr-defined]
                 if bodyColW > w:  # even cells only
                     wWiderAlloced += bodyColW
                     wNumWider += 1
             if columnspan - wNumWider > 0 and hdrCellW > wWiderAlloced:
                 W = int((hdrCellW - wWiderAlloced) / (columnspan - wNumWider))
                 for X in range(x, x + columnspan * 2, 2):  # spanned cols divided equally over their columns
-                    bodyColW = self.bodyInterior.tk.call(('grid', 'columnconfigure', self.bodyInterior._w, X, '-minsize'))  # type: ignore[attr-defined]
+                    bodyColW = self.bodyInterior.tk.call(("grid", "columnconfigure", self.bodyInterior._w, X, "-minsize"))  # type: ignore[attr-defined]
                     if W > bodyColW:  # even (body) cells only
-                        self.bodyInterior.tk.call(('grid', 'columnconfigure', self.bodyInterior._w, X, '-minsize', W))  # type: ignore[attr-defined]
+                        self.bodyInterior.tk.call(("grid", "columnconfigure", self.bodyInterior._w, X, "-minsize", W))  # type: ignore[attr-defined]
 
     def conformBodyCellsToHeader(self) -> None:
         self.bodyCellsConfigured = True
@@ -754,10 +754,10 @@ class scrolledHeaderedFrame(Frame):
             bodyCellW = bodyCell.winfo_reqwidth()
             bodyCellH = bodyCell.winfo_reqheight()
             x = bodyCell.x  # type: ignore[attr-defined]
-            hdrColW = self.colHdrInterior.tk.call(('grid', 'columnconfigure', self.colHdrInterior._w, x, '-minsize'))  # type: ignore[attr-defined]
+            hdrColW = self.colHdrInterior.tk.call(("grid", "columnconfigure", self.colHdrInterior._w, x, "-minsize"))  # type: ignore[attr-defined]
             if bodyCellW < hdrColW:
-                self.bodyInterior.tk.call(('grid', 'columnconfigure', self.bodyInterior._w, x, '-minsize', hdrColW))  # type: ignore[attr-defined]
+                self.bodyInterior.tk.call(("grid", "columnconfigure", self.bodyInterior._w, x, "-minsize", hdrColW))  # type: ignore[attr-defined]
             y = bodyCell.y  # type: ignore[attr-defined]
-            rowColH = self.colHdrInterior.tk.call(('grid', 'rowconfigure', self.rowHdrInterior._w, y, '-minsize'))  # type: ignore[attr-defined]
+            rowColH = self.colHdrInterior.tk.call(("grid", "rowconfigure", self.rowHdrInterior._w, y, "-minsize"))  # type: ignore[attr-defined]
             if bodyCellH < rowColH:
-                self.bodyInterior.tk.call(('grid', 'rowconfigure', self.bodyInterior._w, y, '-minsize', rowColH))  # type: ignore[attr-defined]
+                self.bodyInterior.tk.call(("grid", "rowconfigure", self.bodyInterior._w, y, "-minsize", rowColH))  # type: ignore[attr-defined]

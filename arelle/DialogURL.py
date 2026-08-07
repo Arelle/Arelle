@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from tkinter import Toplevel, StringVar, N, S, E, W, EW
 try:
     from tkinter.ttk import Frame, Button, Label, Entry
@@ -9,9 +9,9 @@ except ImportError:
 from arelle.CntlrWinTooltip import ToolTip
 import regex as re
 
-'''
+"""
 caller checks accepted, if True, caller retrieves url
-'''
+"""
 def askURL(parent, url=None, buttonSEC=False, buttonRSS=False):
     dialog = DialogURL(parent, url, buttonSEC, buttonRSS)
     if dialog.accepted:

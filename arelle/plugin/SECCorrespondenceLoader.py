@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-'''
+"""
 SECCorrespondenceLoader is a plug-in to both GUI menu and command line/web service
 that loads a Correspondence tar.gz file.
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
 import datetime, os, time
 import regex as re
 from arelle import FileSource, ModelDocument
@@ -92,7 +92,7 @@ def secCorrespondenceLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
         for instanceFile in sorted(os.listdir(tempdir)): # modelXbrl.fileSource.dir:
             if instanceFile != ".":
                 rssObject.rssItems.append(
-                    SECCorrespondenceItem(modelXbrl, instanceFile, mappedUri + '/' + instanceFile))
+                    SECCorrespondenceItem(modelXbrl, instanceFile, mappedUri + "/" + instanceFile))
         return rssObject
     elif "rssItem" in kwargs and ".nc.tar.gz/" in mappedUri:
         rssItem = kwargs["rssItem"]
@@ -127,7 +127,7 @@ def secCorrespondenceLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                     rssItem.assignedSic = v
                 elif tag == "fiscal-year-end":
                     try:
-                        rssItem.fiscalYearEnd = v[0:2] + '-' + v[2:4]
+                        rssItem.fiscalYearEnd = v[0:2] + "-" + v[2:4]
                     except (IndexError, TypeError):
                         pass
             match = re.search("<PDF>(.*)</PDF>", s, re.DOTALL)
@@ -148,7 +148,7 @@ def secCorrespondenceLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                     pass
                 uuIn.close()
                 uuOut.close()
-                text = ''.join(pageText)
+                text = "".join(pageText)
             else:
                 match = re.search("<TEXT>(.*)</TEXT>", s, re.DOTALL)
                 if match:
@@ -162,15 +162,15 @@ def secCorrespondenceLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                                            ModelDocument.Type.UnknownXML,
                                            rssItem.url,
                                            isEntry=True,
-                                           base='', # block pathname from becomming absolute
-                                           initialXml='<DummyXml/>')
+                                           base="", # block pathname from becomming absolute
+                                           initialXml="<DummyXml/>")
         else:
             instDoc = ModelDocument.create(modelXbrl,
                                            ModelDocument.Type.INSTANCE,
                                            rssItem.url,
                                            isEntry=True,
-                                           base='', # block pathname from becomming absolute
-                                           initialXml='''
+                                           base="", # block pathname from becomming absolute
+                                           initialXml="""
 <xbrli:xbrl xmlns:doc="http://arelle.org/doc/2014-01-31"
     xmlns:link="http://www.xbrl.org/2003/linkbase"
     xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -186,7 +186,7 @@ def secCorrespondenceLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     </xbrli:context>
     <doc:Correspondence contextRef="pubDate">{text}</doc:Correspondence>
 </xbrli:xbrl>
-            '''.format(cik=rssItem.cikNumber,
+            """.format(cik=rssItem.cikNumber,
                        pubDate=rssItem.pubDate.date(),
                        text=text.strip().replace("&","&amp;").replace("<","&lt;")))
             #modelXbrl.info("info", "loaded in %.2f sec" % (time.time() - startedAt),
@@ -205,13 +205,13 @@ def secCorrespondenceCloser(modelDocument, *args, **kwargs):
 
 
 __pluginInfo__ = {
-    'name': 'SEC Correspondence Loader',
-    'version': '0.9',
-    'description': "This plug-in loads SEC Correspondence.  ",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': f'{copyrightLabel} \nPyPDF (c) Copyright 2012 Jeet Sukumaran',
+    "name": "SEC Correspondence Loader",
+    "version": "0.9",
+    "description": "This plug-in loads SEC Correspondence.  ",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": f"{copyrightLabel} \nPyPDF (c) Copyright 2012 Jeet Sukumaran",
     # classes of mount points (required)
-    'ModelDocument.PullLoader': secCorrespondenceLoader,
-    'ModelDocument.CustomCloser': secCorrespondenceCloser,
+    "ModelDocument.PullLoader": secCorrespondenceLoader,
+    "ModelDocument.CustomCloser": secCorrespondenceCloser,
 }

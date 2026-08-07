@@ -1,4 +1,4 @@
-'''
+"""
 sphinxContext provides the validation and execution context for Sphinx language expressions.
 
 See COPYRIGHT.md for copyright information.
@@ -7,7 +7,7 @@ Sphinx is a Rules Language for XBRL described by a Sphinx 2 Primer
 (c) Copyright 2012 CoreFiling, Oxford UK.
 Sphinx copyright applies to the Sphinx language, not to this software.
 Workiva, Inc. conveys neither rights nor license for the Sphinx language.
-'''
+"""
 
 from collections import OrderedDict
 from .SphinxParser import astNode, astWith
@@ -167,7 +167,7 @@ class HyperspaceBinding:
 
     @property
     def qname(self): # used in implicitFilter winnowing trace
-        return ''
+        return ""
 
     def __repr__(self):
         if self.fallenBack:

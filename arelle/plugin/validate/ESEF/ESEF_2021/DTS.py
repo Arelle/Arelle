@@ -144,16 +144,16 @@ def checkFilingDTS(
                                 if label.role == XbrlConst.standardLabel:
                                     hasStandardLabel = True
                                     # allow Joe's Bar, N.A.  to be JoesBarNA -- remove ', allow A. as not article "a"
-                                    lc3name = ''.join(re.sub(r"['.-]", "", lc3wordAdjust(w[0] or w[2] or w[3] or w[4]))
+                                    lc3name = "".join(re.sub(r"['.-]", "", lc3wordAdjust(w[0] or w[2] or w[3] or w[4]))
                                                       for w in re.findall(r"((\w+')+\w+)|(A[.-])|([.-]A(?=\W|$))|(\w+)",
-                                                                          unicodedata.normalize('NFKD', label.textValue)
-                                                                          .encode('ASCII', 'ignore').decode()  # remove diacritics
+                                                                          unicodedata.normalize("NFKD", label.textValue)
+                                                                          .encode("ASCII", "ignore").decode()  # remove diacritics
                                                                           )
                                                       # if w[4].lower() not in ("the", "a", "an")
                                                       )
                                     lc3names.append(lc3name)
                                     if (name == lc3name or
-                                        (name and lc3name and lc3name[0].isdigit() and name[1:] == lc3name and (name[0].isalpha() or name[0] == '_'))):
+                                        (name and lc3name and lc3name[0].isdigit() and name[1:] == lc3name and (name[0].isalpha() or name[0] == "_"))):
                                         hasLc3Match = True
                                 else:
                                     hasNonStandardLabel = True
@@ -202,7 +202,7 @@ def checkFilingDTS(
                 modelObject=typedDimsInExtTxmy, concepts=", ".join(str(c.qname) for c in typedDimsInExtTxmy))
         if domainMembersWrongType:
             val.modelXbrl.error("ESEF.3.2.2.domainMemberWrongDataType",
-                _("Domain members MUST have domainItemType data type as defined in \"http://www.xbrl.org/dtr/type/nonNumeric-2009-12-16.xsd\": concept %(concepts)s."),
+                _('Domain members MUST have domainItemType data type as defined in "http://www.xbrl.org/dtr/type/nonNumeric-2009-12-16.xsd": concept %(concepts)s.'),
                 modelObject=domainMembersWrongType, concepts=", ".join(str(c.qname) for c in domainMembersWrongType))
         # HF - think this is only about reported line items, not ext line items (?)
         #if extLineItemsWithoutHypercube:
@@ -216,7 +216,7 @@ def checkFilingDTS(
         if extLineItemsWronglyAnchored:
             val.modelXbrl.error("ESEF.3.3.1.anchoringWrongArcrole",
                 _("Anchoring relationships for concepts MUST use "
-                  "\"http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower\" arcrole: %(concepts)s."),
+                  '"http://www.esma.europa.eu/xbrl/esef/arcrole/wider-narrower" arcrole: %(concepts)s.'),
                 modelObject=extLineItemsWronglyAnchored, concepts=", ".join(sorted(str(c.qname) for c in extLineItemsWronglyAnchored)))
         if extAbstractConcepts and val.authParam["extensionAbstractContexts"] != "allowed":
             val.modelXbrl.log(val.authParam["extensionAbstractContexts"].upper(),

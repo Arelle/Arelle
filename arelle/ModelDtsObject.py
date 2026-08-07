@@ -108,7 +108,7 @@ class AllowsNamespaceMixin(ABC):
                     return True
             return False
         except AttributeError:
-            self._namespaces = self.get("namespace", '').split()  # type: ignore[attr-defined]
+            self._namespaces = self.get("namespace", "").split()  # type: ignore[attr-defined]
             self._isAny = (not self._namespaces) or "##any" in self._namespaces
             return self.allowsNamespace(namespaceURI)
 
@@ -213,7 +213,7 @@ class ModelRoleType(ModelObject):
 
     def __repr__(self) -> str:
         return ("{0}[{1}, uri: {2}, definition: {3}, {4} line {5}])"
-                .format('modelArcroleType' if self.isArcrole else 'modelRoleType',
+                .format("modelArcroleType" if self.isArcrole else "modelRoleType",
                         self.objectIndex,
                         self.arcroleURI if self.isArcrole else self.roleURI,
                         self.definition,
@@ -295,7 +295,7 @@ class ParticlesList(list):  # type: ignore[type-arg]
                 if isinstance(mdlObj, ModelObject):
                     p = str(mdlObj.qname)
                 else:
-                    p = 'None'
+                    p = "None"
             elif isinstance(particle, ModelAny):
                 p = "any"
             else:
@@ -422,7 +422,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     @property
     def abstract(self) -> str:
         """(str) -- Value of abstract attribute or 'false' if absent"""
-        return self.get("abstract", 'false')
+        return self.get("abstract", "false")
 
     @property
     def isAbstract(self) -> bool:  # type: ignore[override]
@@ -502,7 +502,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         """(dict) -- Facets declared for element type"""
         return self.type.facets if self.type is not None else None
 
-    ''' unused, remove???
+    """ unused, remove???
     def baseXsdAttrType(self,attrName):
         try:
             return self._baseXsdAttrType[attrName]
@@ -513,7 +513,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
                 attrType = "anyType"
             self._baseXsdAttrType[attrName] = attrType
             return attrType
-    '''
+    """
 
     @property
     def baseXbrliType(self) -> str | None:
@@ -683,12 +683,12 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     @property
     def nillable(self) -> str:
         """(str) --Value of the nillable attribute or its default"""
-        return self.get("nillable", 'false')
+        return self.get("nillable", "false")
 
     @property
     def isNillable(self) -> bool:
         """(bool) -- True if nillable"""
-        return self.get("nillable") == 'true'
+        return self.get("nillable") == "true"
 
     @property
     def block(self) -> str | None:
@@ -1050,11 +1050,11 @@ class ModelAttribute(ModelNamableTerm):
             if typeqname in self.modelXbrl.qnameTypes:
                 return typeqname
             # try substitution group for type
-            ''' HF: I don't think attributes can have a substitution group ??
+            """ HF: I don't think attributes can have a substitution group ??
             subs = self.substitutionGroup
             if subs:
                 return subs.typeQname
-            '''
+            """
         return None
 
     @property
@@ -1845,7 +1845,7 @@ class RelationStatus:
 
 arcCustAttrsExclusions: set[str] = {XbrlConst.xlink, "use","priority","order","weight","preferredLabel"}
 modelObjectAttrs: frozenset[str] = frozenset(dir(ModelObject))
-DECIMAL_1_0 = decimal.Decimal('1.0')
+DECIMAL_1_0 = decimal.Decimal("1.0")
 
 class ModelRelationship(ModelObject):
     """
@@ -2279,7 +2279,7 @@ class ModelRelationship(ModelObject):
     def __dir__(self) -> list[str]:
         # Ignore ModelObject attributes because most relate to the underlying lxml element,
         # which ModelRelationship does not have.
-        return [a for a in object.__dir__(self) if a.startswith('__') or a not in modelObjectAttrs]
+        return [a for a in object.__dir__(self) if a.startswith("__") or a not in modelObjectAttrs]
 
     @property
     def viewConcept(self) -> ModelConcept | None:

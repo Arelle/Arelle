@@ -1,4 +1,4 @@
-'''
+"""
 Save RSS Messages: custom log RSS messages
 
 Intended to provide csv (or other) file for post-processing and database loading.
@@ -6,7 +6,7 @@ Intended to provide csv (or other) file for post-processing and database loading
 See COPYRIGHT.md for copyright information.
 (Does not apply to the XBRL US Database schema and description.)
 
-'''
+"""
 
 import time, os, io, sys, logging
 from arelle.Locale import format_string
@@ -34,11 +34,11 @@ def saveMessages(saveMessagesFile, modelXbrl, rssItem=None, **kwargs):
             messageRefs = []
             for i, logEntry in enumerate(loggingEntries):
                 sequenceInReport = str(i+1)
-                for ref in logEntry['refs']:
-                    modelObject = modelXbrl.modelObject(ref.get('objectId',''))
-                    sourceLine = ref.get('sourceLine', None)
+                for ref in logEntry["refs"]:
+                    modelObject = modelXbrl.modelObject(ref.get("objectId",""))
+                    sourceLine = ref.get("sourceLine", None)
                     refType = None
-                    href = ref.get('href')
+                    href = ref.get("href")
                     qname = value = None
                     # for now just find a concept
                     if isinstance(modelObject, ModelLocator): # dereference
@@ -68,28 +68,28 @@ def saveMessages(saveMessagesFile, modelXbrl, rssItem=None, **kwargs):
                                          refType,
                                          qname,
                                          value])
-                _messageCode = logEntry['code']
+                _messageCode = logEntry["code"]
                 if _messageCode.startswith("DQC.US."):
-                    _shortMessageCode = _messageCode.rpartition('.')[0]
+                    _shortMessageCode = _messageCode.rpartition(".")[0]
                 else:
                     _shortMessageCode = _messageCode
                 messages.append([instanceFile,
                                  companyName, formType, filingDate,
                                  sequenceInReport,
                                  _messageCode, _shortMessageCode,
-                                 logEntry['level'],
-                                 logEntry['message']['text']])
+                                 logEntry["level"],
+                                 logEntry["message"]["text"]])
             if messages:
                 with open(saveMessagesFile, mode="at", encoding="utf-8") as fh:
-                    fh.write(''.join(','.join(('"{}"'.format(str(c).replace('"', '""'))
-                                               if c is not None else '')
-                                                for c in m) + '\n'
+                    fh.write("".join(",".join(('"{}"'.format(str(c).replace('"', '""'))
+                                               if c is not None else "")
+                                                for c in m) + "\n"
                                      for m in messages))
                 fileParts = os.path.splitext(saveMessagesFile)
                 with open(fileParts[0] + "_refs" + fileParts[1], mode="at", encoding="utf-8") as fh:
-                    fh.write(''.join(','.join(('"{}"'.format(str(c).replace('"', '""'))
-                                               if c is not None else '')
-                                                for c in mr) + '\n'
+                    fh.write("".join(",".join(('"{}"'.format(str(c).replace('"', '""'))
+                                               if c is not None else "")
+                                                for c in mr) + "\n"
                                      for mr in messageRefs))
 
 def saveMsgsCommandLineOptionExtender(parser, *args, **kwargs):
@@ -113,7 +113,7 @@ def saveMsgsCommandLineXbrlRun(cntlr, options, modelXbrl, *args, **kwargs):
         saveMessages(options.saveMessagesFile, modelXbrl)
 
 def saveMsgsValidateRssItem(val, modelXbrl, rssItem, *args, **kwargs):
-    if hasattr(val.modelXbrl, 'saveMessagesFile'):
+    if hasattr(val.modelXbrl, "saveMessagesFile"):
         saveMessages(val.modelXbrl.saveMessagesFile, modelXbrl, rssItem)
 
 def saveMsgsTestcaseVariationXbrlLoaded(val, modelXbrl, *args, **kwargs):
@@ -162,19 +162,19 @@ class LogHandler(logging.Handler):
 
 
 __pluginInfo__ = {
-    'name': 'Logging - Save Messages',
-    'version': '1.2',
-    'description': "This plug-in saves logger messages of instances for post processing.  ",
-    'license': 'Apache-2 (Arelle plug-in), BSD license (pg8000 library)',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "Logging - Save Messages",
+    "version": "1.2",
+    "description": "This plug-in saves logger messages of instances for post processing.  ",
+    "license": "Apache-2 (Arelle plug-in), BSD license (pg8000 library)",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'CntlrCmdLine.Options': saveMsgsCommandLineOptionExtender,
-    'CntlrCmdLine.Utility.Run': saveMsgsLoaderSetup,
-    'CntlrCmdLine.Xbrl.Loaded': saveMsgsCommandLineXbrlLoaded,
-    'CntlrCmdLine.Xbrl.Run': saveMsgsCommandLineXbrlRun,
-    'RssWatch.HasWatchAction': saveMsgsrssWatchHasWatchAction,
-    'RssWatch.DoWatchAction': saveMsgsrssDoWatchAction,
-    'Validate.RssItem': saveMsgsValidateRssItem,
-    'TestcaseVariation.Xbrl.Loaded': saveMsgsTestcaseVariationXbrlLoaded,
+    "CntlrCmdLine.Options": saveMsgsCommandLineOptionExtender,
+    "CntlrCmdLine.Utility.Run": saveMsgsLoaderSetup,
+    "CntlrCmdLine.Xbrl.Loaded": saveMsgsCommandLineXbrlLoaded,
+    "CntlrCmdLine.Xbrl.Run": saveMsgsCommandLineXbrlRun,
+    "RssWatch.HasWatchAction": saveMsgsrssWatchHasWatchAction,
+    "RssWatch.DoWatchAction": saveMsgsrssDoWatchAction,
+    "Validate.RssItem": saveMsgsValidateRssItem,
+    "TestcaseVariation.Xbrl.Loaded": saveMsgsTestcaseVariationXbrlLoaded,
 }

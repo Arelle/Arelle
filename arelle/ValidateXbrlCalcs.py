@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 from collections import defaultdict, OrderedDict
 from math import (log10, isnan, isinf, fabs, floor, pow)
@@ -240,13 +240,13 @@ class ValidateXbrlCalcs:
                             if calc11:
                                 siRels = sumConceptItemRels[sumConcept]
                                 if itemConcept in siRels:
-                                    yield Validation.error('calc11e:duplicateCalculationRelationships',
+                                    yield Validation.error("calc11e:duplicateCalculationRelationships",
                                         _("Duplicate summation-item relationships from total concept %(sumConcept)s to contributing concept %(itemConcept)s in link role %(linkrole)s"),
                                         modelObject=(siRels[itemConcept], modelRel), linkrole=modelRel.linkrole,
                                         sumConcept=sumConcept.qname, itemConcept=itemConcept.qname)
                                 siRels[itemConcept] = modelRel
                                 if not sumConcept.isDecimal or not itemConcept.isDecimal:  # type: ignore[attr-defined]
-                                    yield Validation.error('calc11e:nonDecimalItemNode',
+                                    yield Validation.error("calc11e:nonDecimalItemNode",
                                         _("The source and target of a Calculations v1.1 relationship MUST both be decimal concepts: %(sumConcept)s, %(itemConcept)s, link role %(linkrole)s"),
                                         modelObject=(sumConcept, itemConcept, modelRel), linkrole=modelRel.linkrole,
                                         sumConcept=sumConcept.qname, itemConcept=itemConcept.qname)
@@ -773,25 +773,25 @@ def wrappedFactWithWeight(fact: ModelFact, weight: Decimal, roundedValue: Decima
 
 def wrappedSummationAndItems(fact: ModelFact, roundedSum: Decimal, boundSummationItems: list[ObjectPropertyViewWrapper]) -> list[ObjectPropertyViewWrapper]:
     # need hash of facts and their values from boundSummationItems
-    ''' ARELLE-281, replace: faster python-based hash (replace with hashlib for fewer collisions)
+    """ ARELLE-281, replace: faster python-based hash (replace with hashlib for fewer collisions)
     itemValuesHash = hash( tuple(( hash(b.modelObject.qname), hash(b.extraProperties[1][1]) )
                                  # sort by qname so we don't care about reordering of summation terms
                                  for b in sorted(boundSummationItems,
                                                        key=lambda b: b.modelObject.qname)) )
     sumValueHash = hash( (hash(fact.qname), hash(roundedSum)) )
-    '''
+    """
     sha256 = hashlib.sha256()
     # items hash: sort by qname so we don't care about reordering of summation terms in linkbase updates
     for b in sorted(boundSummationItems, key=lambda b: b.modelObject.qname):
-        sha256.update(b.modelObject.qname.namespaceURI.encode('utf-8','replace'))  # type: ignore[union-attr] #qname of erroneous submission may not be utf-8 perfectly encodable
-        sha256.update(b.modelObject.qname.localName.encode('utf-8','replace'))
-        sha256.update(str(b.extraProperties[1][1]).encode('utf-8','replace'))
+        sha256.update(b.modelObject.qname.namespaceURI.encode("utf-8","replace"))  # type: ignore[union-attr] #qname of erroneous submission may not be utf-8 perfectly encodable
+        sha256.update(b.modelObject.qname.localName.encode("utf-8","replace"))
+        sha256.update(str(b.extraProperties[1][1]).encode("utf-8","replace"))
     itemValuesHash = sha256.hexdigest()
     # summation value hash
     sha256 = hashlib.sha256()
-    sha256.update(fact.qname.namespaceURI.encode('utf-8','replace'))  # type: ignore[union-attr]
-    sha256.update(fact.qname.localName.encode('utf-8','replace'))
-    sha256.update(str(roundedSum).encode('utf-8','replace'))
+    sha256.update(fact.qname.namespaceURI.encode("utf-8","replace"))  # type: ignore[union-attr]
+    sha256.update(fact.qname.localName.encode("utf-8","replace"))
+    sha256.update(str(roundedSum).encode("utf-8","replace"))
     sumValueHash = sha256.hexdigest()
     # return list of bound summation followed by bound contributing items
     return [ObjectPropertyViewWrapper(fact,

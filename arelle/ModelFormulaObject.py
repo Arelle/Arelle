@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 from collections import defaultdict
@@ -377,17 +377,17 @@ class ModelFormulaRules:
         if aspect in self.aspectValues:
             return self.aspectValues[aspect]
         if aspect in (Aspect.CONCEPT, Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY) or isinstance(aspect, QName):
-            type = 'xs:QName'
+            type = "xs:QName"
         elif aspect == Aspect.ENTITY_IDENTIFIER:
-            type = 'xs:string'
+            type = "xs:string"
         elif aspect == Aspect.START:
-            type = 'xs:DATETIME_START'
+            type = "xs:DATETIME_START"
         elif aspect in (Aspect.INSTANT, Aspect.END, Aspect.INSTANT_END):
-            type = 'xs:DATETIME_INSTANT_END'
+            type = "xs:DATETIME_INSTANT_END"
         elif aspect in (Aspect.DECIMALS, Aspect.PRECISION):
-            type = 'xs:float'
+            type = "xs:float"
         else:
-            type = 'xs:string'
+            type = "xs:string"
         if aspect in (Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY): # return list of results
             if aspect in self.aspectProgs:
                 return tuple(xpCtx.evaluateAtomicValue(prog, type) for prog in self.aspectProgs[aspect])  # type: ignore[arg-type,union-attr]
@@ -2305,7 +2305,7 @@ class ModelExplicitDimension(ModelFilter):
                                         return set()
                                     relSet = fact.modelXbrl.relationshipSet(memberModel.arcrole, memberModel.linkrole)  # type: ignore[union-attr]
                                     if relSet:
-                                        ''' removed by Erratum 2011-03-10
+                                        """ removed by Erratum 2011-03-10
                                         # check for ambiguous filter member network
                                         linkQnames = set()
                                         arcQnames = set()
@@ -2318,27 +2318,27 @@ class ModelExplicitDimension(ModelFilter):
                                                                      memberModel.linkrole, memberModel.arcrole, self.dimQname, linkQnames, arcQnames) ,
                                                                      "err", "xbrldfe:ambiguousFilterMemberNetwork")
                                                 return []
-                                        '''
+                                        """
                                         if relSet.isRelated(matchMemQname, memberModel.axis, memQname):  # type: ignore[arg-type]
                                             factOk = True
                                             break
                                         elif not domainMembersExist and relSet.isRelated(matchMemQname, memberModel.axis):  # type: ignore[arg-type]
                                             domainMembersExist = True # don't need to throw an error
-                                ''' removed by erratum 2011-03-10
+                                """ removed by erratum 2011-03-10
                                 else: # check dynamic mem qname for validity
                                     from arelle.ValidateXbrlDimensions import checkPriItemDimValueValidity
                                     if not checkPriItemDimValueValidity(self, fact.concept, dimConcept, memConcept):
                                         self.modelXbrl.error(_("{0} is not a valid domain member for dimension {1} of primary item {2}.").format(matchMemQname, dimConcept.qname, fact.qname),
                                                              "err", "xbrldfe:invalidDomainMember")
                                         return set()
-                                '''
-                            '''
+                                """
+                            """
                             if not factOk:
                                 if not domainMembersExist and memberModel.axis:
                                     self.modelXbrl.error(_("No member found in the network of explicit dimension concept {0}").format(dimQname),
                                                          "err", "xbrldfe:invalidDomainMember")
                                     return set()
-                            '''
+                            """
                     else: # no member for dimension
                         factOk = False
                 else:

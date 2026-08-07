@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 import regex as re
 import math
@@ -323,7 +323,7 @@ class ValidateXbrl:
 
             if modelXbrl.hasXDT:
                 modelXbrl.modelManager.showStatus(_("validating dimensions"))
-                ''' uncomment if using otherFacts in checkFact
+                """ uncomment if using otherFacts in checkFact
                 dimCheckableFacts = set(f
                                         for f in modelXbrl.factsInInstance
                                         if f.concept.isItem and f.context is not None)
@@ -331,7 +331,7 @@ class ValidateXbrl:
                     f = dimCheckableFacts.pop()
                     ValidateXbrlDimensions.checkFact(self, f, dimCheckableFacts)
                 del dimCheckableFacts
-                '''
+                """
                 self.checkFactsDimensions(modelXbrl.facts) # check fact dimensions in document order
                 self.checkContextsDimensions(modelXbrl.contexts.values())
                 modelXbrl.profileStat(_("validateDimensions"))
@@ -686,7 +686,7 @@ class ValidateXbrl:
                    arcElt.get("{http://www.w3.org/1999/xlink}arcrole") == XbrlConst.factFootnote:
                     if fromLabel not in locLabels:
                         self.modelXbrl.error("xbrl.4.11.1.3.1:factFootnoteArcFrom",
-                            _("Footnote arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to %(xlinkLabelTo)s \"from\" is not a loc"),
+                            _('Footnote arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to %(xlinkLabelTo)s "from" is not a loc'),
                             modelObject=arcElt,
                             linkrole=modelLink.role, xlinkLabelFrom=fromLabel, xlinkLabelTo=toLabel)
                     if not((toLabel in resourceLabels and resourceLabels[toLabel] is not None
@@ -694,7 +694,7 @@ class ValidateXbrl:
                            (toLabel in locLabels and locLabels[toLabel].dereference() is not None  # type: ignore[attr-defined]
                               and locLabels[toLabel].dereference().qname == XbrlConst.qnLinkFootnote)):  # type: ignore[attr-defined]
                         self.modelXbrl.error("xbrl.4.11.1.3.1:factFootnoteArcTo",
-                            _("Footnote arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to %(xlinkLabelTo)s \"to\" is not a footnote resource"),
+                            _('Footnote arc in extended link %(linkrole)s from %(xlinkLabelFrom)s to %(xlinkLabelTo)s "to" is not a footnote resource'),
                             modelObject=arcElt,
                             linkrole=modelLink.role, xlinkLabelFrom=fromLabel, xlinkLabelTo=toLabel)
             # check unprohibited label arcs to remote locs

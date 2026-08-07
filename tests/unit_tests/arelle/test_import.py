@@ -7,24 +7,24 @@ import pytest
 from tests.unit_tests.common import THIRD_PARTY_PATH_PREFIXES
 
 KNOWN_FAILURES = frozenset([
-    'arelle.CntlrProfiler',
-    'arelle.FunctionXfi',
-    'arelle.ViewCsvRelationshipSet',
-    'arelle.archive.LoadSavePreLbCsv',
-    'arelle.archive.SaveTableToExelle',
-    'arelle.archive.TR3toTR4',
-    'arelle.archive.plugin.loadFromOIM-2018',
-    'arelle.archive.plugin.sphinx.SphinxEvaluator',
-    'arelle.archive.plugin.validate.XFsyntax.xf',
-    'arelle.formula.FormulaEvaluator',
+    "arelle.CntlrProfiler",
+    "arelle.FunctionXfi",
+    "arelle.ViewCsvRelationshipSet",
+    "arelle.archive.LoadSavePreLbCsv",
+    "arelle.archive.SaveTableToExelle",
+    "arelle.archive.TR3toTR4",
+    "arelle.archive.plugin.loadFromOIM-2018",
+    "arelle.archive.plugin.sphinx.SphinxEvaluator",
+    "arelle.archive.plugin.validate.XFsyntax.xf",
+    "arelle.formula.FormulaEvaluator",
 ])
 
 # Don't test common third party plugins which may be copied into a developer's workspace.
-IGNORE_MODULE_PREFIXES = tuple(p.replace('/', '.') for p in THIRD_PARTY_PATH_PREFIXES)
+IGNORE_MODULE_PREFIXES = tuple(p.replace("/", ".") for p in THIRD_PARTY_PATH_PREFIXES)
 MODULE_NAMES = [
     module_name
-    for g in glob.glob('arelle/**/*.py', recursive=True)
-    if not (module_name := g.replace('/', '.').replace('\\', '.').replace('.py', '')).startswith(IGNORE_MODULE_PREFIXES)
+    for g in glob.glob("arelle/**/*.py", recursive=True)
+    if not (module_name := g.replace("/", ".").replace("\\", ".").replace(".py", "")).startswith(IGNORE_MODULE_PREFIXES)
 ]
 TEST_PARAMS = [
     pytest.param(
@@ -36,6 +36,6 @@ TEST_PARAMS = [
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize('module_name', TEST_PARAMS)
+@pytest.mark.parametrize("module_name", TEST_PARAMS)
 def test(module_name):
-    subprocess.run([sys.executable, '-c', f'import {module_name}'], check=True)
+    subprocess.run([sys.executable, "-c", f"import {module_name}"], check=True)

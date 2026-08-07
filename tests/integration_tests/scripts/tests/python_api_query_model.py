@@ -23,7 +23,7 @@ arelle_offline = args.offline
 working_directory = Path(args.working_directory)
 test_directory = Path(args.test_directory)
 arelle_log_file = prepare_logfile(test_directory, this_file)
-report_zip_path = test_directory / 'TC2_invalid.zip'
+report_zip_path = test_directory / "TC2_invalid.zip"
 target_path = report_zip_path
 print(f"Downloading report: {report_zip_path}")
 download_from_public_s3(
@@ -48,24 +48,24 @@ print(f"Validating report: {target_path}")
 # include start
 options = RuntimeOptions(
     entrypointFile=str(report_zip_path),
-    disclosureSystemName='esef-2024',
-    internetConnectivity='offline',
+    disclosureSystemName="esef-2024",
+    internetConnectivity="offline",
     keepOpen=True,
     logFile=str(arelle_log_file),
     logFormat="[%(messageCode)s] %(message)s - %(file)s",
     packages=package_paths,
-    plugins='validate/ESEF',
+    plugins="validate/ESEF",
     validate=True,
 )
-target_qname = qname('https://xbrl.ifrs.org/taxonomy/2022-03-24/ifrs-full', 'Equity')
+target_qname = qname("https://xbrl.ifrs.org/taxonomy/2022-03-24/ifrs-full", "Equity")
 with Session() as session:
     session.run(options)
     model_xbrls = session.get_models()
     for model_xbrl in model_xbrls:
         equity_facts: set[ModelFact] = model_xbrl.factsByQname.get(target_qname, set())
         for equity_fact in equity_facts:
-            print(f'Found Equity fact with value: {equity_fact.xValue}')
-    log_xml = session.get_logs('xml')
+            print(f"Found Equity fact with value: {equity_fact.xValue}")
+    log_xml = session.get_logs("xml")
 # include end
 
 assert len(model_xbrls) == 1
@@ -73,6 +73,6 @@ assert len(equity_facts) == 17, len(equity_facts)
 
 print("Cleaning up")
 try:
-    os.unlink(working_directory / 'python_api_query_model' / 'TC2_invalid.zip')
+    os.unlink(working_directory / "python_api_query_model" / "TC2_invalid.zip")
 except PermissionError as exc:
     print(f"Failed to cleanup test files: {exc}")

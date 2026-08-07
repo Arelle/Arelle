@@ -1,10 +1,10 @@
-'''
+"""
 Sample custom functions plugin for formula XML Element, Attribute creation functions
 
 >>> note that this function has been renamed xfi:create-element and moved to FunctionXfi.py <<<
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from arelle import XbrlUtil
 from arelle.formula import XPathContext
 from arelle.ModelValue import qname, QName
@@ -14,7 +14,7 @@ from arelle.Version import authorLabel, copyrightLabel
 from arelle import XmlValidate
 from lxml import etree
 
-'''
+"""
 Create an XML element in a "scratchpad" in-memory XML document, to behave like the results
 of an fn:doc() that would provide XML elements which can be consumed by formula typed
 dimension and OCC constructs.
@@ -38,10 +38,10 @@ A function definition is required in the formula linkbase:
   <variable:input type="xs:anyAtomicType" /> <!-- optional value, () or '' if none -->
   <variable:input type="element()*" /> <!-- optional sequence of child elements, this parameter can be omitted if no child elements -->
 </variable:function>
-'''
+"""
 def  xfxc_element(xc, p, contextItem, args):
     if not 2 <= len(args) <= 4: raise XPathContext.FunctionNumArgs()
-    qn = qnameArg(xc, p, args, 0, 'QName', emptyFallback=None)
+    qn = qnameArg(xc, p, args, 0, "QName", emptyFallback=None)
     attrArg = args[1] if isinstance(args[1],(list,tuple)) else (args[1],)
     # attributes have to be pairs
     if attrArg:
@@ -54,7 +54,7 @@ def  xfxc_element(xc, p, contextItem, args):
     else:
         attrParam = None
 
-    value = atomicArg(xc, p, args, 2, "xs:anyAtomicType", emptyFallback='')
+    value = atomicArg(xc, p, args, 2, "xs:anyAtomicType", emptyFallback="")
     if not value: # be sure '' is None so no text node is created
         value = None
     if len(args) < 4:
@@ -95,12 +95,12 @@ def xfxcFunctions():
     }
 
 __pluginInfo__ = {
-    'name': 'Formula Xml Creation Functions',
-    'version': '1.0',
-    'description': "This plug-in adds a custom function to create xml elements, such as for typed dimensions, implemented by a plug-in.  ",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "Formula Xml Creation Functions",
+    "version": "1.0",
+    "description": "This plug-in adds a custom function to create xml elements, such as for typed dimensions, implemented by a plug-in.  ",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'Formula.CustomFunctions': xfxcFunctions,
+    "Formula.CustomFunctions": xfxcFunctions,
 }

@@ -1,9 +1,9 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
 (Does not apply to the XBRL US Database schema and description.)
 
 This module provides database interfaces to postgres SQL
-'''
+"""
 from arelle import XbrlConst
 
 def EFMlinkRoleURIstructure(dts, roleURI):

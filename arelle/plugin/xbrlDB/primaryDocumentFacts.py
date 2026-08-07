@@ -1,9 +1,9 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
 (Does not apply to the XBRL US Database schema and description.)
 
 Represents modelFacts in an (SEC) filing primary document
-'''
+"""
 import os
 import regex as re
 from lxml import html, etree
@@ -12,38 +12,38 @@ from arelle.ModelValue import qname
 
 # part, item, element
 SEC10Kparts = {
-            ('I', '1'): 'Business',
-            ('I', '1A'): 'RiskFactors',
-            ('I', '1B'): 'UnresolvedStaffComments',
-            ('I', '2'): 'Properties',
-            ('I', '3'): 'LegalProceedings',
-            ('I', '4'): 'MineSafetyDisclosures',
-            ('II', '5'): 'MarketForEquityAndSecurities',
-            ('II', '6'): 'SelectedFinancialData',
-            ('II', '7'): 'ManagementDiscussionAndAnalysis',
-            ('II', '7A'): 'MarketRiskDisclosures',
-            ('II', '8'): 'FinancialStatements',
-            ('II', '9'): 'ChangesDisagreementsOnDisclosure',
-            ('II', '9A'): 'ControlsAndProcedures',
-            ('II', '9B'): 'OtherInformation',
-            ('III', '10'): 'Governance',
-            ('III', '11'): 'ExecutiveCompensation',
-            ('III', '12'): 'SecurityOwnership',
-            ('III', '13'): 'RelationshipsAndDirectorIndependence',
-            ('III', '14'): 'PrincipalAccountingFeesAndServices',
-            ('IV', '15'): 'Exhibits'}
+            ("I", "1"): "Business",
+            ("I", "1A"): "RiskFactors",
+            ("I", "1B"): "UnresolvedStaffComments",
+            ("I", "2"): "Properties",
+            ("I", "3"): "LegalProceedings",
+            ("I", "4"): "MineSafetyDisclosures",
+            ("II", "5"): "MarketForEquityAndSecurities",
+            ("II", "6"): "SelectedFinancialData",
+            ("II", "7"): "ManagementDiscussionAndAnalysis",
+            ("II", "7A"): "MarketRiskDisclosures",
+            ("II", "8"): "FinancialStatements",
+            ("II", "9"): "ChangesDisagreementsOnDisclosure",
+            ("II", "9A"): "ControlsAndProcedures",
+            ("II", "9B"): "OtherInformation",
+            ("III", "10"): "Governance",
+            ("III", "11"): "ExecutiveCompensation",
+            ("III", "12"): "SecurityOwnership",
+            ("III", "13"): "RelationshipsAndDirectorIndependence",
+            ("III", "14"): "PrincipalAccountingFeesAndServices",
+            ("IV", "15"): "Exhibits"}
 SEC10Qparts = {
-            ('II', '1A'): 'RiskFactors',
-            ('II', '1'): 'LegalProceedings',
-            ('II', '4'): 'MineSafetyDisclosures',
-            ('II', '2'): 'MarketForEquityAndSecurities',
-            ('I', '2'): 'ManagementDiscussionAndAnalysis',
-            ('I', '3'): 'MarketRiskDisclosures',
-            ('I', '1'): 'FinancialStatements',
-            ('I', '4'): 'ControlsAndProcedures',
-            ('II', '5'): 'OtherInformation',
-            ('II', '6'): 'Exhibits',
-            ('II', '3'): 'Defaults'}
+            ("II", "1A"): "RiskFactors",
+            ("II", "1"): "LegalProceedings",
+            ("II", "4"): "MineSafetyDisclosures",
+            ("II", "2"): "MarketForEquityAndSecurities",
+            ("I", "2"): "ManagementDiscussionAndAnalysis",
+            ("I", "3"): "MarketRiskDisclosures",
+            ("I", "1"): "FinancialStatements",
+            ("I", "4"): "ControlsAndProcedures",
+            ("II", "5"): "OtherInformation",
+            ("II", "6"): "Exhibits",
+            ("II", "3"): "Defaults"}
 
 # single-line matches, the match starts at newline and ends at end of each line
 partPattern = re.compile(r"^\W*part\W+([ivx]+)(\W|$)", re.IGNORECASE + re.MULTILINE)
@@ -64,35 +64,35 @@ def loadPrimaryDocumentFacts(dts, rssItem, entityInformation):
         formType = entityInformation.get("form-type")
         fileUrl = entityInformation.get("primary-document-url")
         reloadCache = False
-    if fileUrl and formType and (formType.startswith('10-K') or formType.startswith('10-Q')):
+    if fileUrl and formType and (formType.startswith("10-K") or formType.startswith("10-Q")):
         if fileUrl.endswith(".txt") or fileUrl.endswith(".htm"):
-            if formType.startswith('10-K'):
+            if formType.startswith("10-K"):
                 parts = SEC10Kparts
-            elif formType.startswith('10-Q'):
+            elif formType.startswith("10-Q"):
                 parts = SEC10Qparts
             # try to load and use it
             normalizedUrl = dts.modelManager.cntlr.webCache.normalizeUrl(fileUrl)
-            text = ''
+            text = ""
             try:
                 filePath = dts.modelManager.cntlr.webCache.getfilename(normalizedUrl, reload=reloadCache)
                 if filePath:
-                    if filePath.endswith('.txt'):
-                        with open(filePath, encoding='utf-8') as fh:
+                    if filePath.endswith(".txt"):
+                        with open(filePath, encoding="utf-8") as fh:
                             text = fh.read()
-                    elif filePath.endswith('.htm'):
+                    elif filePath.endswith(".htm"):
                         doc = html.parse(filePath)
                         textParts = []
                         def iterTextParts(parent):
                             for node in parent.iterchildren():
                                 if isinstance(node, etree._Element):
-                                    if node.tag in ('p', 'P', 'br', 'BR', 'div', 'DIV'):
-                                        textParts.append('\n')
-                                    textParts.append(node.text or '')
+                                    if node.tag in ("p", "P", "br", "BR", "div", "DIV"):
+                                        textParts.append("\n")
+                                    textParts.append(node.text or "")
                                     iterTextParts(node)
                                 if node.tail: # use tail whether element, comment, or processing instruction
                                     textParts.append(node.tail)
                         iterTextParts(doc.getroot())
-                        text = ' '.join(textParts)
+                        text = " ".join(textParts)
             except  (IOError, EnvironmentError, AttributeError) as err: # attribute err if html has no root element
                 dts.info("xpDB:primaryDocumentLoadingError",
                                     _("Loading XBRL DB: primary document loading error: %(error)s"),
@@ -112,7 +112,7 @@ def loadPrimaryDocumentFacts(dts, rssItem, entityInformation):
             for partMatch in partPattern.finditer(text):
                 part = partMatch.group(1).upper()
                 if partPrev is not None:
-                    if part != 'I' and part == partPrev:
+                    if part != "I" and part == partPrev:
                         # two of these parts without second part 1, use signature or first item for 2nd part 1
                         missing2ndPart1 = True
                     partSpan[partPrev].end = partMatch.start(0)
@@ -128,15 +128,15 @@ def loadPrimaryDocumentFacts(dts, rssItem, entityInformation):
                     signaturesStarts.append(signaturesMatch.start(0))
 
                 #check if PART I missing then use first signatures
-                if 'I' in partSpan and 'II' in partSpan:
-                    if len(signaturesStarts) == 2 and signaturesStarts[0] > partSpan['I'].start:
-                        partSpan['I'].start = signaturesStarts[0]
-                        partSpan['I'].end = partSpan['II'].start
+                if "I" in partSpan and "II" in partSpan:
+                    if len(signaturesStarts) == 2 and signaturesStarts[0] > partSpan["I"].start:
+                        partSpan["I"].start = signaturesStarts[0]
+                        partSpan["I"].end = partSpan["II"].start
                     else:
                         # use ASSETS as start of part 1
                         for assetsMatch in assetsPattern.finditer(text):
-                            partSpan['I'].start = assetsMatch.end(0)
-                            partSpan['I'].end = partSpan['II'].start
+                            partSpan["I"].start = assetsMatch.end(0)
+                            partSpan["I"].end = partSpan["II"].start
                             break
 
 

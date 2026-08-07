@@ -69,26 +69,26 @@ class CacheBuilderPlugin(PluginHooks):
         **kwargs: Any,
     ) -> None:
         parser.add_option(
-            '--cache-builder-path',
-            action='store',
-            dest='cacheBuilderPath',
-            help='Sets the path where the cache builder output should be written to. If an archive does not exist it will be created.',
+            "--cache-builder-path",
+            action="store",
+            dest="cacheBuilderPath",
+            help="Sets the path where the cache builder output should be written to. If an archive does not exist it will be created.",
         )
         parser.add_option(
-            '--cache-builder-append',
-            action='store_true',
-            dest='cacheBuilderAppend',
-            help='Sets whether the cache builder should append to an existing archive or overwrite it.',
+            "--cache-builder-append",
+            action="store_true",
+            dest="cacheBuilderAppend",
+            help="Sets whether the cache builder should append to an existing archive or overwrite it.",
         )
 
     @staticmethod
     def cntlrCmdLineUtilityRun(cntlr: Cntlr, options: RuntimeOptions, *args: Any, **kwargs: Any) -> None:
         assert CacheBuilderPlugin.cacheBuilder is None, \
-            'Cache builder attempted to create multiple cache archives in the same plugin lifecycle.'
+            "Cache builder attempted to create multiple cache archives in the same plugin lifecycle."
         assert options.cacheBuilderPath is not None, \
             '"cacheBuilderPath" must be set for cache builder to run.'
         os.makedirs(Path(options.cacheBuilderPath).parent, exist_ok=True)
-        mode = 'a' if options.cacheBuilderAppend else 'w'
+        mode = "a" if options.cacheBuilderAppend else "w"
         cacheZip = zipfile.ZipFile(options.cacheBuilderPath, cast(Literal, mode), zipfile.ZIP_DEFLATED)
         atexit.register(cacheZip.close)
         CacheBuilderPlugin.cacheBuilder = CacheBuilder(cntlr, cacheZip)
@@ -106,7 +106,7 @@ __pluginInfo__ = {
     "license": "Apache-2",
     "author": authorLabel,
     "copyright": copyrightLabel,
-    'CntlrCmdLine.Options': CacheBuilderPlugin.cntlrCmdLineOptions,
-    'CntlrCmdLine.Utility.Run': CacheBuilderPlugin.cntlrCmdLineUtilityRun,
+    "CntlrCmdLine.Options": CacheBuilderPlugin.cntlrCmdLineOptions,
+    "CntlrCmdLine.Utility.Run": CacheBuilderPlugin.cntlrCmdLineUtilityRun,
     "FileSource.File": CacheBuilderPlugin.fileSourceFile,
 }

@@ -41,7 +41,7 @@ from arelle.utils.validate.Facts import isValidNonNilFact
 
 _: TypeGetText
 
-DISALLOWED_LABEL_WHITE_SPACE_CHARACTERS = regex.compile(r'\s{2,}')
+DISALLOWED_LABEL_WHITE_SPACE_CHARACTERS = regex.compile(r"\s{2,}")
 XBRLI_IDENTIFIER_PATTERN = regex.compile(r"^[A-Z]\d{5}-\d{3}$")
 GFM_CONTEXT_DATE_PATTERN = regex.compile(r"^[12][0-9]{3}-[01][0-9]-[0-3][0-9]$")
 GFM_RECOMMENDED_NAMESPACE_PREFIXES = {
@@ -87,7 +87,7 @@ def rule_gfm_1_1_3(
             uri = elt.attrib.get(XbrlConst.qnXlinkHref.clarkNotation)
             values.append((modelDocument, elt, uri))
         for elt in rootElt.iterdescendants(XbrlConst.qnXsdImport.clarkNotation):
-            uri = elt.attrib.get('schemaLocation')
+            uri = elt.attrib.get("schemaLocation")
             values.append((modelDocument, elt, uri))
         for elt in rootElt.iterdescendants(XbrlConst.qnLinkLinkbase.clarkNotation):
             uri = elt.attrib.get(XbrlConst.qnXsiSchemaLocation.clarkNotation)
@@ -101,7 +101,7 @@ def rule_gfm_1_1_3(
         if uri in val.modelXbrl.urlUnloadableDocs:
             continue  # Already blocked, error fired.
         if not isHttpUrl(uri):
-            if '/' not in uri:
+            if "/" not in uri:
                 continue  # Valid relative path
         if pluginData.isStandardTaxonomyUrl(uri, val.modelXbrl):
             continue  # Valid external URL
@@ -112,7 +112,7 @@ def rule_gfm_1_1_3(
             if not any(scheme == "element" for scheme, __ in XmlUtil.xpointerSchemes(hrefId)):
                 continue  # Valid shorthand xpointer
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.1.3',
+            codes="EDINET.EC5700W.GFM.1.1.3",
             msg=_("The URI content of the xlink:href attribute, the xsi:schemaLocation "
                   "attribute and the schemaLocation attribute must be relative and "
                   "contain no forward slashes, or a recognized external location of "
@@ -136,7 +136,7 @@ def rule_gfm_1_1_6(
     """
     EDINET.EC5700W: [GFM 1.1.6] Filing must have one or more submitter specific(extension) taxonomies
     """
-    if not hasattr(val, 'hasExtensionSchema'):
+    if not hasattr(val, "hasExtensionSchema"):
         val.hasExtensionSchema = False
     for modelDocument in val.modelXbrl.urlDocs.values():
         if isExtensionUri(modelDocument.uri, val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES) and modelDocument.type == ModelDocumentType.SCHEMA:
@@ -144,7 +144,7 @@ def rule_gfm_1_1_6(
             break
     if not val.hasExtensionSchema:
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.1.6',
+            codes="EDINET.EC5700W.GFM.1.1.6",
             msg=_("Filing is missing an extension taxonomy."),
             modelObject=val.modelXbrl,
         )
@@ -176,7 +176,7 @@ def rule_gfm_1_1_7(
                     baseElements.append(elt)
     if len(baseElements) > 0:
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.1.7',
+            codes="EDINET.EC5700W.GFM.1.1.7",
             msg=_("Attribute xml:base must not appear in any filing document."),
             modelObject=baseElements,
         )
@@ -197,9 +197,9 @@ def rule_gfm_1_2_1(
     """
     entityIdentifierValues = val.modelXbrl.entityIdentifiersInDocument()
     for entityId in entityIdentifierValues:
-        if entityId[0] != 'http://disclosure.edinet-fsa.go.jp':
+        if entityId[0] != "http://disclosure.edinet-fsa.go.jp":
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.2.1',
+                codes="EDINET.EC5700W.GFM.1.2.1",
                 msg=_("The scheme of the entity identifier is: '%(scheme)s' but it must be 'http://disclosure.edinet-fsa.go.jp'."),
                 scheme=entityId[0],
                 modelObject=entityId,
@@ -223,7 +223,7 @@ def rule_gfm_1_2_2(
     for entityId in entityIdentifierValues:
         if not XBRLI_IDENTIFIER_PATTERN.match(entityId[1]):
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.2.2',
+                codes="EDINET.EC5700W.GFM.1.2.2",
                 msg=_("The entity identifier element: '%(element)s' is incorrect. It must take the form of 'X00000-000'."),
                 element=entityId[1],
                 modelObject=entityId,
@@ -246,8 +246,8 @@ def rule_gfm_1_2_3(
     entityIdentifierValues = val.modelXbrl.entityIdentifiersInDocument()
     if len(entityIdentifierValues) >1:
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.2.3',
-            msg=_('All identifier elements must be identical.'),
+            codes="EDINET.EC5700W.GFM.1.2.3",
+            msg=_("All identifier elements must be identical."),
                 modelObject = val.modelXbrl
             )
 
@@ -268,8 +268,8 @@ def rule_gfm_1_2_4(
     contextIssues = getContextIssues(val.modelXbrl)
     if contextIssues.contextsWithSegments:
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.2.4',
-            msg=_('Set the scenario element in the context. Do not set the segment element.'),
+            codes="EDINET.EC5700W.GFM.1.2.4",
+            msg=_("Set the scenario element in the context. Do not set the segment element."),
             modelObject=contextIssues.contextsWithSegments,
         )
 
@@ -291,9 +291,9 @@ def rule_gfm_1_2_5(
     contextIssues = getContextIssues(val.modelXbrl)
     if contextIssues.contextsWithImproperContent:
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.2.5',
-            msg=_('Please delete all child elements other than the xbrldi:explicitMember '
-                  'element from the segment element or scenario element.'),
+            codes="EDINET.EC5700W.GFM.1.2.5",
+            msg=_("Please delete all child elements other than the xbrldi:explicitMember "
+                  "element from the segment element or scenario element."),
             modelObject=contextIssues.contextsWithImproperContent,
         )
 
@@ -313,8 +313,8 @@ def rule_gfm_1_2_7(
     """
     for contexts in getDuplicateContextGroups(val.modelXbrl):
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.2.7',
-            msg=_('Duplicate context. Remove the duplicate.'),
+            codes="EDINET.EC5700W.GFM.1.2.7",
+            msg=_("Duplicate context. Remove the duplicate."),
             modelObject = contexts
         )
 
@@ -338,8 +338,8 @@ def rule_gfm_1_2_8(
     unusedContexts.sort(key=lambda x: x.id if x.id is not None else "")
     for context in unusedContexts:
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.2.8',
-            msg=_('If you are not using a context, delete it if it is not needed.'),
+            codes="EDINET.EC5700W.GFM.1.2.8",
+            msg=_("If you are not using a context, delete it if it is not needed."),
             modelObject=context
         )
 
@@ -367,7 +367,7 @@ def rule_gfm_1_2_9(
     if len(invalidDurationContexts) > 0:
         for context in invalidDurationContexts:
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.2.9',
+                codes="EDINET.EC5700W.GFM.1.2.9",
                 msg=_("Set the context's startDate and endDate elements to different dates."),
                 modelObject=context
             )
@@ -388,8 +388,8 @@ def rule_gfm_1_2_10(
     """
     for duplicateUnits in getDuplicateUnitGroups(val.modelXbrl):
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.2.10',
-            msg=_('The unit element contains duplicate content. Please remove the duplicates.'),
+            codes="EDINET.EC5700W.GFM.1.2.10",
+            msg=_("The unit element contains duplicate content. Please remove the duplicates."),
             modelObject = duplicateUnits
         )
 
@@ -421,10 +421,10 @@ def rule_gfm_1_2_13(
                 for fact in facts:
                     if not any(fact.context.isEqualTo(mq.context) for mq in matchingQnames):  # type: ignore[union-attr]
                         yield Validation.warning(
-                            codes='EDINET.EC5700W.GFM.1.2.13',
-                            msg=_('There is an element whose xml:lang attribute is in a language other than Japanese, '
-                                  'but there is no element whose xml:lang attribute is in Japanese. Delete the non-Japanese element, '
-                                  'or set an element whose xml:lang attribute is in Japanese.'),
+                            codes="EDINET.EC5700W.GFM.1.2.13",
+                            msg=_("There is an element whose xml:lang attribute is in a language other than Japanese, "
+                                  "but there is no element whose xml:lang attribute is in Japanese. Delete the non-Japanese element, "
+                                  "or set an element whose xml:lang attribute is in Japanese."),
                             modelObject = fact
                         )
 
@@ -447,10 +447,10 @@ def rule_gfm_1_2_14(
     problematicFacts = pluginData.getProblematicTextBlocks(val.modelXbrl)
     if len(problematicFacts) > 0:
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.2.14',
-            msg=_('The content of an element with a data type of nonnum:textBlockItemType is not well-formed XML (a format that conforms to XML grammar, '
-                  'such as all start and end tags being in pairs, and the end tag of a nested tag not coming after the end tag of its parent tag). '
-                  'Correct the content so that it is well-formed.'),
+            codes="EDINET.EC5700W.GFM.1.2.14",
+            msg=_("The content of an element with a data type of nonnum:textBlockItemType is not well-formed XML (a format that conforms to XML grammar, "
+                  "such as all start and end tags being in pairs, and the end tag of a nested tag not coming after the end tag of its parent tag). "
+                  "Correct the content so that it is well-formed."),
             modelObject = problematicFacts
         )
 
@@ -481,7 +481,7 @@ def rule_gfm_1_2_16(
             errors.append(fact)
     if len(errors) > 0:
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.2.16',
+            codes="EDINET.EC5700W.GFM.1.2.16",
             msg=_("Use the decimals attribute instead of the precision attribute."),
             modelObject=errors,
         )
@@ -517,7 +517,7 @@ def rule_gfm_1_2_22(
                     errors.append(child)
     if len(errors) > 0:
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.2.22',
+            codes="EDINET.EC5700W.GFM.1.2.22",
             msg=_("Do not use extension arcroles for the link:footnoteArc element. "
                   "Use the standard 'http://www.xbrl.org/2003/arcrole/fact-footnote' arcrole instead."),
             modelObject=errors,
@@ -553,7 +553,7 @@ def rule_gfm_1_2_25(
                 errors.append(elt)
     if len(errors) > 0:
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.2.25',
+            codes="EDINET.EC5700W.GFM.1.2.25",
             msg=_("Set the date in the period element in the following "
                   "format: YYYY-MM-DD."),
             modelObject=errors,
@@ -599,7 +599,7 @@ def rule_gfm_1_2_26(
             errors.append(fact)
     if len(errors) > 0:
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.2.26',
+            codes="EDINET.EC5700W.GFM.1.2.26",
             msg=_("The decimals attribute value must not cause truncation of "
                   "non-zero digits in the fact value. Update the fact value to "
                   "match the precision of the decimals attribute, or update the"
@@ -627,7 +627,7 @@ def rule_gfm_1_2_27(
     unusedUnits.sort(key=lambda x: x.hash)
     if len(unusedUnits) > 0:
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.2.27',
+            codes="EDINET.EC5700W.GFM.1.2.27",
             msg=_("Delete unused units from the instance."),
             modelObject=unusedUnits
         )
@@ -656,7 +656,7 @@ def rule_gfm_1_2_28(
             if prefix in GFM_RECOMMENDED_NAMESPACE_PREFIXES[namespace]:
                 continue
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.2.28',
+                codes="EDINET.EC5700W.GFM.1.2.28",
                 msg=_("The prefix declaration '%(prefix)s' for the namespace '%(namespace)s' "
                       "is incorrect. "
                       "Correct the prefix (%(prefixes)s)."),
@@ -686,7 +686,7 @@ def rule_gfm_1_2_30(
             errors.append(elt)
     if len(errors) > 0:
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.2.30',
+            codes="EDINET.EC5700W.GFM.1.2.30",
             msg=_("A context must not contain the xbrli:forever element."),
             modelObject=errors
         )
@@ -714,7 +714,7 @@ def rule_gfm_1_3_1(
             warnings.append(elt)
     if len(warnings) > 0:
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.3.1',
+            codes="EDINET.EC5700W.GFM.1.3.1",
             msg=_("The submitter-specific taxonomy contains include elements."),
             modelObject=warnings
         )
@@ -741,18 +741,18 @@ def rule_gfm_1_3_2(
         if not isExtensionUri(document.uri, val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES) or not document.type == ModelDocumentType.SCHEMA:
             continue
         for refDoc in document.referencesDocument.values():
-            if 'import' not in refDoc.referenceTypes:
+            if "import" not in refDoc.referenceTypes:
                 continue
 
             assert isinstance(refDoc.referringModelObject, ModelObject)
-            namespace = refDoc.referringModelObject.attrib.get('namespace')
-            schemaLocation = refDoc.referringModelObject.attrib.get('schemaLocation')
+            namespace = refDoc.referringModelObject.attrib.get("namespace")
+            schemaLocation = refDoc.referringModelObject.attrib.get("schemaLocation")
             if not namespace or not schemaLocation:
                 continue
             expectedXSDLocationSet = val.disclosureSystem.standardTaxonomiesDict.get(namespace)
             if expectedXSDLocationSet is not None and schemaLocation not in expectedXSDLocationSet:
                 yield Validation.warning(
-                    codes='EDINET.EC5700W.GFM.1.3.2',
+                    codes="EDINET.EC5700W.GFM.1.3.2",
                     msg=_("The schemaLocation attribute of the xsd:import element specifying the EDINET taxonomy does not point to a valid location. "
                           "The schemaLocation attribute value '%(schemaLocation)s'."),
                     schemaLocation = schemaLocation,
@@ -779,11 +779,11 @@ def rule_gfm_1_3_8(
             continue
         rootElt = modelDocument.xmlRootElement
         for elt in rootElt.iterdescendants(XbrlConst.qnLinkLinkbaseRef.clarkNotation):
-            if elt.attrib.get(XbrlConst.qnXlinkType.clarkNotation) in ('extended', 'arc', 'resource', 'locator'):
+            if elt.attrib.get(XbrlConst.qnXlinkType.clarkNotation) in ("extended", "arc", "resource", "locator"):
                 embeddedElements.append(elt)
     if len(embeddedElements) > 0:
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.3.8',
+            codes="EDINET.EC5700W.GFM.1.3.8",
             msg=_("The submitter-specific taxonomy has an embedded linkbase."),
             modelObject=embeddedElements
         )
@@ -805,7 +805,7 @@ def rule_gfm_1_3_10(
     for modelRoleTypes in val.modelXbrl.roleTypes.values():
         if modelRoleTypes and len(modelRoleTypes) > 1:
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.3.10',
+                codes="EDINET.EC5700W.GFM.1.3.10",
                 msg=_("Remove the duplicate link:roleType element. Duplicate roleURI: %(roleURI)s"),
                 roleURI=modelRoleTypes[0].roleURI,
                 modelObject=modelRoleTypes
@@ -834,7 +834,7 @@ def rule_gfm_1_3_11(
             usedOns = modelRoleType.usedOns
             if not usedOns.isdisjoint(requiredUsedOns) and len(requiredUsedOns - usedOns) > 0:
                 yield Validation.warning(
-                    codes='EDINET.EC5700W.GFM.1.3.11',
+                    codes="EDINET.EC5700W.GFM.1.3.11",
                     msg=_("The usedOn attribute of the extended link role should be set to include all of link:presentationLink, link:calculationLink, and link:definitionLink. "
                           "Extended link role roleURI: %(roleURI)s is missing %(usedOn)s."),
                     roleURI=modelRoleType.roleURI,
@@ -864,7 +864,7 @@ def rule_gfm_1_3_13(
                     and modelRoleType.definition != modelRoleType.definitionNotStripped
             ):
                 yield Validation.warning(
-                    codes='EDINET.EC5700W.GFM.1.3.13',
+                    codes="EDINET.EC5700W.GFM.1.3.13",
                     msg=_("Remove any leading or trailing XML whitespace and newline characters from "
                           "the `link:definition` of your extended link role. Definition: %(definition)s"),
                     definition=modelRoleTypes[0].definitionNotStripped,
@@ -888,7 +888,7 @@ def rule_gfm_1_3_16(
     for modelArcRoleTypes in val.modelXbrl.arcroleTypes.values():
         if len(modelArcRoleTypes) > 1:
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.3.16',
+                codes="EDINET.EC5700W.GFM.1.3.16",
                 msg=_("Remove the duplicate link:arcroleType element. Duplicate arcroleURI: %(arcroleURI)s"),
                 arcroleURI=modelArcRoleTypes[0].arcroleURI,
                 modelObject=modelArcRoleTypes
@@ -912,7 +912,7 @@ def rule_gfm_1_3_17(
         modelArcRoleType = modelArcRoleTypes[0]
         if not modelArcRoleType.definition:
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.3.17',
+                codes="EDINET.EC5700W.GFM.1.3.17",
                 msg=_("Add a link:definition to the link:arcroleType element. ArcroleURI: %(arcroleURI)s"),
                 arcroleURI=modelArcRoleType.arcroleURI,
                 modelObject=modelArcRoleType
@@ -941,7 +941,7 @@ def rule_gfm_1_3_18(
             for concept in concepts:
                 if not isExtensionUri(concept.document.uri, val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
                     yield Validation.warning(
-                        codes='EDINET.EC5700W.GFM.1.3.18',
+                        codes="EDINET.EC5700W.GFM.1.3.18",
                         msg=_("Your extension taxonomy contains an element, %(concept)s, which has the same name as an element "
                               "in the base taxonomy, %(standardConcept)s.  Please ensure that this extension is appropriate and "
                               "if so, please change the extension concept."),
@@ -974,7 +974,7 @@ def rule_gfm_1_3_19(
             improperlyFormattedIds.add(concept)
     if len(improperlyFormattedIds) > 0:
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.3.19',
+            codes="EDINET.EC5700W.GFM.1.3.19",
             msg=_("The id attribute of the element defined in the submitter-specific taxonomy should be set in the following format: {namespace prefix}_{element name}"),
             modelObject=improperlyFormattedIds
         )
@@ -1002,7 +1002,7 @@ def rule_gfm_1_3_20(
                 nonNillableElements.add(concept)
     if len(nonNillableElements) > 0:
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.3.20',
+            codes="EDINET.EC5700W.GFM.1.3.20",
             msg=_("Set the nillable attribute value to 'true'."),
             modelObject=nonNillableElements
         )
@@ -1027,7 +1027,7 @@ def rule_gfm_1_3_21(
     ]
     if len(tupleConcepts) > 0:
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.3.21',
+            codes="EDINET.EC5700W.GFM.1.3.21",
             msg=_("Remove the tuple definition."),
             modelObject=tupleConcepts
         )
@@ -1053,7 +1053,7 @@ def rule_gfm_1_3_22(
 
     if len(typedDomainConcepts) > 0:
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.3.22',
+            codes="EDINET.EC5700W.GFM.1.3.22",
             msg=_("Do not set the xbrldt:typedDomainRef attribute on elements defined in submitter-specific taxonomies."),
             modelObject=typedDomainConcepts
         )
@@ -1081,7 +1081,7 @@ def rule_gfm_1_3_23(
             instantAbstractElements.add(concept)
     if len(instantAbstractElements) > 0:
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.3.23',
+            codes="EDINET.EC5700W.GFM.1.3.23",
             msg=_("Set the periodType attribute to 'duration'."),
             modelObject=instantAbstractElements
         )
@@ -1108,7 +1108,7 @@ def rule_gfm_1_3_25(
         assert concept.qname is not None, "concept.qname is None"
         if concept.qname.localName.endswith("Axis") != (concept.substitutionGroupQname == XbrlConst.qnXbrldtDimensionItem):
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.3.25',
+                codes="EDINET.EC5700W.GFM.1.3.25",
                 msg=_("Modify the element name, '%(conceptName)s', so that it does not end with 'Axis', or modify the substitutionGroup to 'xbrldt:dimensionItem'."),
                 conceptName=concept.qname.localName,
                 modelObject=concept,
@@ -1136,7 +1136,7 @@ def rule_gfm_1_3_26(
         assert concept.qname is not None, "concept.qname is None"
         if concept.qname.localName.endswith("Table") != (concept.substitutionGroupQname == XbrlConst.qnXbrldtHypercubeItem):
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.3.26',
+                codes="EDINET.EC5700W.GFM.1.3.26",
                 msg=_("The substitution group 'xbrldt:hypercubeItem' is only allowed with an element name that ends with 'Table'."
                       "Please change %(conceptName)s or change the substitutionGroup."),
                 conceptName=concept.qname.localName,
@@ -1162,7 +1162,7 @@ def rule_gfm_1_3_28(
         assert concept.qname is not None, "concept.qname is None"
         if concept.qname.localName.endswith("LineItems") and not concept.isAbstract:
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.3.28',
+                codes="EDINET.EC5700W.GFM.1.3.28",
                 msg=_("If the element name of an element extended by a submitter-specific taxonomy ends with 'LineItems', "
                       "set the abstract attribute to 'true'. For the element, '%(conceptName)s', the abstract attribute is 'false'."),
                 conceptName=concept.qname.localName,
@@ -1192,7 +1192,7 @@ def rule_gfm_1_3_29(
         isConceptDomain = concept.type.isDomainItemType if concept.type is not None else False
         if ((concept.qname.localName.endswith("Domain") or concept.qname.localName.endswith("Member")) != isConceptDomain):
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.3.29',
+                codes="EDINET.EC5700W.GFM.1.3.29",
                 msg=_("The type 'us-types:domainItemType' is only allowed with an element name that ends with 'Domain' or 'Member'. "
                       "Please change %(conceptName)s or change the type."),
                 conceptName=concept.qname.localName,
@@ -1222,7 +1222,7 @@ def rule_gfm_1_3_30(
             instantDomainElements.add(concept)
     if len(instantDomainElements) > 0:
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.3.30',
+            codes="EDINET.EC5700W.GFM.1.3.30",
             msg=_("Set the periodType attribute to 'duration'."),
             modelObject=instantDomainElements
         )
@@ -1249,7 +1249,7 @@ def rule_gfm_1_3_31(
             nonAbstractDomainElements.add(concept)
     if len(nonAbstractDomainElements) > 0:
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.3.31',
+            codes="EDINET.EC5700W.GFM.1.3.31",
             msg=_("Set the abstract attribute to 'true'."),
             modelObject=nonAbstractDomainElements
         )
@@ -1275,12 +1275,12 @@ def rule_gfm_1_4_4(
         if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl):
             continue
         rootElt = modelDocument.xmlRootElement
-        ns = {'xlink': 'http://www.w3.org/1999/xlink'}
+        ns = {"xlink": "http://www.w3.org/1999/xlink"}
         for elt in rootElt.xpath('//*[@xlink:type="extended" or @xlink:type="resource"]', namespaces=ns):
             xlinkRole = elt.get(XbrlConst.qnXlinkRole.clarkNotation)
             if not xlinkRole:
                 yield Validation.warning(
-                    codes='EDINET.EC5700W.GFM.1.4.4',
+                    codes="EDINET.EC5700W.GFM.1.4.4",
                     msg=_("If the type attribute is 'extended' or 'resource', set the xlink:role attribute to the extended link role."
                             "%(element)s is missing an xlink:role"),
                             modelObject=elt, element=elt.qname
@@ -1314,7 +1314,7 @@ def rule_gfm_1_4_6(
             hrefUri, hrefId = UrlUtil.splitDecodeFragment(hrefAttr)  # type: ignore[arg-type]
             if hrefUri not in val.disclosureSystem.standardTaxonomiesDict:
                 yield Validation.warning(
-                    codes='EDINET.EC5700W.GFM.1.4.6',
+                    codes="EDINET.EC5700W.GFM.1.4.6",
                     msg=_("Please correct the value of the link:arcroleRef attribute to one specified in the XBRL 2.1 specification or the EDINET taxonomy."
                           " link:arcroleRef: %(xlinkHref)s, arcrole: %(refURI)s,"),
                     modelObject=elt,
@@ -1341,13 +1341,13 @@ def rule_gfm_1_4_8(
         if pluginData.isStandardTaxonomyUrl(modelDocument.uri, val.modelXbrl):
             continue
         rootElt = modelDocument.xmlRootElement
-        ns = {'xlink': 'http://www.w3.org/1999/xlink'}
+        ns = {"xlink": "http://www.w3.org/1999/xlink"}
         for elt in rootElt.xpath('//*[@xlink:type="arc"][@priority]', namespaces=ns):
             priority = elt.get("priority")
             with contextlib.suppress(ValueError, TypeError):
                 if int(priority) >= 10:
                     yield Validation.warning(
-                        codes='EDINET.EC5700W.GFM.1.4.8',
+                        codes="EDINET.EC5700W.GFM.1.4.8",
                         msg=_("Correct the priority attribute value so that it is less than 10. Arc element: %(arcName)s, priority: %(priority)s"),
                         arcName=elt.qname,
                         modelObject=elt,
@@ -1386,7 +1386,7 @@ def rule_gfm_1_5_1(
         if not labelExists:
             assert concept.qname is not None, "concept.qname is None"
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.5.1',
+                codes="EDINET.EC5700W.GFM.1.5.1",
                 msg=_("The used concept of '%(concept)s' is missing a standard label in Japanese"),
                 concept=concept.qname.localName,
                 modelObject=concept
@@ -1427,7 +1427,7 @@ def rule_gfm_1_5_2(
         if len(warningLabels) > 0:
             assert concept.qname is not None, "concept.qname is None"
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.5.2',
+                codes="EDINET.EC5700W.GFM.1.5.2",
                 msg=_("The used concept of '%(concept)s' has more than one label for the given role/lang pairs: %(pairs)s."),
                 concept=concept.qname.localName,
                 pairs=warningLabels,
@@ -1470,7 +1470,7 @@ def rule_gfm_1_5_3(
         if len(warningRoles) > 0:
             assert concept.qname is not None, "concept.qname is None"
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.5.3',
+                codes="EDINET.EC5700W.GFM.1.5.3",
                 msg=_("The used concept of '%(concept)s' is missing a label in Japanese in the following roles: %(roles)s."),
                 concept=concept.qname.localName,
                 roles=warningRoles,
@@ -1506,7 +1506,7 @@ def rule_gfm_1_5_5(
                     label.role == XbrlConst.documentationLabel):
                 assert concept.qname is not None, "concept.qname is None"
                 yield Validation.warning(
-                    codes='EDINET.EC5700W.GFM.1.5.5',
+                    codes="EDINET.EC5700W.GFM.1.5.5",
                     msg=_("The standard concept of '%(concept)s' must not have a documentation label defined."),
                     concept=concept.qname.localName,
                     modelObject=label
@@ -1538,7 +1538,7 @@ def rule_gfm_1_5_6(
                     label.viewText() is not None and
                     len(label.viewText()) >= 511):
                 yield Validation.warning(
-                    codes='EDINET.EC5700W.GFM.1.5.6',
+                    codes="EDINET.EC5700W.GFM.1.5.6",
                     msg=_("The concept of '%(concept)s' has a label classified as '%(role)s' that is greater than or equal to 511 characters: %(label)s"),
                     concept=concept.qname,
                     role=label.role,
@@ -1569,9 +1569,9 @@ def rule_gfm_1_5_7(
         for rel in labelRels:
             label = rel.toModelObject
             if label is not None and label.role != XbrlConst.documentationLabel and label.textValue is not None:
-                if '<' in label.textValue:
+                if "<" in label.textValue:
                     yield Validation.warning(
-                        codes='EDINET.EC5700W.GFM.1.5.7',
+                        codes="EDINET.EC5700W.GFM.1.5.7",
                         msg=_("The concept of '%(concept)s' has a label classified as '%(role)s that contains the '<' character: %(label)s"),
                         concept=concept.qname,
                         role=label.role,
@@ -1580,7 +1580,7 @@ def rule_gfm_1_5_7(
                     )
                 elif DISALLOWED_LABEL_WHITE_SPACE_CHARACTERS.search(label.textValue):
                     yield Validation.warning(
-                        codes='EDINET.EC5700W.GFM.1.5.7',
+                        codes="EDINET.EC5700W.GFM.1.5.7",
                         msg=_("The concept of '%(concept)s' has a label classified as '%(role)s' that contains consecutive white space characters: %(label)s"),
                         concept=concept.qname,
                         role=label.role,
@@ -1611,7 +1611,7 @@ def rule_gfm_1_5_8(
             label = rel.toModelObject
             if label is not None and label.textValue is not None and label.textValue != label.textValue.strip():
                 yield Validation.warning(
-                    codes='EDINET.EC5700W.GFM.1.5.8',
+                    codes="EDINET.EC5700W.GFM.1.5.8",
                     msg=_("The concept of '%(concept)s' has a label that contains disallowed white space either at the begining or the end: '%(label)s'"),
                     concept=concept.qname,
                     label=label.textValue,
@@ -1645,7 +1645,7 @@ def rule_gfm_1_5_10(
                     not pluginData.isStandardTaxonomyUrl(label.modelDocument.uri, val.modelXbrl) and
                     label.role in NUMERIC_LABEL_ROLES):
                 yield Validation.warning(
-                    codes='EDINET.EC5700W.GFM.1.5.10',
+                    codes="EDINET.EC5700W.GFM.1.5.10",
                     msg=_("The non-numeric concept of '%(concept)s' has a label with a numeric role of '%(labelrole)s'"),
                     concept=concept.qname,
                     labelrole=label.role,
@@ -1672,7 +1672,7 @@ def rule_gfm_1_6_1(
     for rel in presentationRelationshipSet.modelRelationships:
         if not rel.arcElement.get("order"):
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.6.1',
+                codes="EDINET.EC5700W.GFM.1.6.1",
                 msg=_("The presentation relationship is missing the order attribute"),
                 modelObject=rel
             )
@@ -1705,7 +1705,7 @@ def rule_gfm_1_6_2(
         for key, orderRels in relsByOrder.items():
             if len(orderRels) > 1:
                 yield Validation.warning(
-                    codes='EDINET.EC5700W.GFM.1.6.2',
+                    codes="EDINET.EC5700W.GFM.1.6.2",
                     msg=_("The presentation relationships have the same order attribute: '%(order)s'"),
                     order=key[0],
                     modelObject=orderRels
@@ -1739,7 +1739,7 @@ def rule_gfm_1_6_5(
         for key, fromRels in relsByFrom.items():
             if len(fromRels) > 1:
                 yield Validation.warning(
-                    codes='EDINET.EC5700W.GFM.1.6.5',
+                    codes="EDINET.EC5700W.GFM.1.6.5",
                     msg=_("The presentation relationships must have distinct values of the preferredLabel attribute "
                           "when they have the same source and target elements"),
                     modelObject=fromRels
@@ -1765,7 +1765,7 @@ def rule_gfm_1_7_1(
     for rel in calculationRelationshipSet.modelRelationships:
         if not rel.arcElement.get("order"):
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.7.1',
+                codes="EDINET.EC5700W.GFM.1.7.1",
                 msg=_("The calculation relationship is missing the order attribute"),
                 modelObject=rel
             )
@@ -1790,7 +1790,7 @@ def rule_gfm_1_7_2(
     for rel in calculationRelationshipSet.modelRelationships:
         if rel.weight not in [1, -1]:
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.7.2',
+                codes="EDINET.EC5700W.GFM.1.7.2",
                 msg=_("The calculation relationship must have a weight of 1 or -1, actual weight: '%(weight)s'"),
                 weight=rel.weight,
                 modelObject=rel
@@ -1818,7 +1818,7 @@ def rule_gfm_1_7_3(
         toConcept = rel.toModelObject
         if fromConcept is not None and toConcept is not None and fromConcept.periodType != toConcept.periodType:
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.7.3',
+                codes="EDINET.EC5700W.GFM.1.7.3",
                 msg=_("The concepts participating in a calculation relationship must have the same period types. "
                       "The concept of '%(concept1)s' has a period type of '%(concept1PeriodType)s' and the concept "
                       "of '%(concept2)s' has a period type of '%(concept2PeriodType)s'"),
@@ -1867,11 +1867,11 @@ def rule_gfm_1_7_5(
                         conceptsMissingRels.append(concept)
             if len(conceptsMissingRels) > 0:
                 yield Validation.warning(
-                    codes='EDINET.EC5700W.GFM.1.7.5',
+                    codes="EDINET.EC5700W.GFM.1.7.5",
                     msg=_("The concepts participating in a calculation relationship must also participate in a presentation "
                           "relationship within the same extended link role. The concept(s) of '%(concepts)s' "
                           "do not appear in a presentation relationship within the extended link role of '%(elr)s'."),
-                    concepts=' and '.join([concept.qname.localName for concept in conceptsMissingRels]),
+                    concepts=" and ".join([concept.qname.localName for concept in conceptsMissingRels]),
                     elr=rel.linkrole,
                     modelObject=rel
                 )
@@ -1904,7 +1904,7 @@ def rule_gfm_1_7_6(
         for key, orderRels in relsByOrder.items():
             if len(orderRels) > 1:
                 yield Validation.warning(
-                    codes='EDINET.EC5700W.GFM.1.7.6',
+                    codes="EDINET.EC5700W.GFM.1.7.6",
                     msg=_("The calculation relationships have the same order attribute: '%(order)s'"),
                     order=key[0],
                     modelObject=orderRels
@@ -1930,7 +1930,7 @@ def rule_gfm_1_8_1(
     for rel in definitionRelationshipSet.modelRelationships:
         if not rel.arcElement.get("order"):
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.8.1',
+                codes="EDINET.EC5700W.GFM.1.8.1",
                 msg=_("The definition relationship is missing the order attribute"),
                 modelObject=rel
             )
@@ -1959,7 +1959,7 @@ def rule_gfm_1_8_3(
         toConcept = rel.toModelObject
         if toConcept is not None and toConcept.typeQname != domainItemTypeQname:
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.8.3',
+                codes="EDINET.EC5700W.GFM.1.8.3",
                 msg=_("The definition relationship target concept of '%(concept)s' has a type of '%(type)s' instead of 'nonnum:domainItemType'."),
                 concept=toConcept.qname,
                 type=toConcept.typeQname,
@@ -1989,7 +1989,7 @@ def rule_gfm_1_8_5(
     for linkrole, rels in relsByLinkrole.items():
         if len(rels) > 1:
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.8.5',
+                codes="EDINET.EC5700W.GFM.1.8.5",
                 msg=_("The extended link role of '%(elr)s' has more than one effective arc with the role of 'http://xbrl.org/int/dim/arcrole/all'"),
                 elr=linkrole,
                 modelObject=rels
@@ -2040,7 +2040,7 @@ def rule_gfm_1_8_9(
                         assert fromConcept is not None, "fromConcept is None"
                         assert toConcept is not None, "toConcept is None"
                         yield Validation.warning(
-                            codes='EDINET.EC5700W.GFM.1.8.9',
+                            codes="EDINET.EC5700W.GFM.1.8.9",
                             msg=_("Add the arc related to the xbrldt:targetRole attribute or remove the attribute. "
                                   "Arcrole %(arcroleURI)s from %(fromConcept)s to %(toConcept)s."),
                             modelObject=hypercubeRel,
@@ -2060,7 +2060,7 @@ def rule_gfm_1_8_9(
                         if domTargetRequired and len(dimDomRels) == 0:
                             assert hypercube is not None, "hypercube is None"
                             yield Validation.warning(
-                                codes='EDINET.EC5700W.GFM.1.8.9',
+                                codes="EDINET.EC5700W.GFM.1.8.9",
                                 msg=_("Add the arc related to the xbrldt:targetRole attribute or remove the attribute. "
                                       "Arcrole %(arcroleURI)s from %(fromConcept)s to %(toConcept)s."),
                                 modelObject=hypercubeDimRel,
@@ -2079,7 +2079,7 @@ def rule_gfm_1_8_9(
                                         assert fromMbr is not None, "fromMbr is None"
                                         assert toMbr is not None, "toMbr is None"
                                         yield Validation.warning(
-                                            codes='EDINET.EC5700W.GFM.1.8.9',
+                                            codes="EDINET.EC5700W.GFM.1.8.9",
                                             msg=_("Add the arc related to the xbrldt:targetRole attribute or remove the attribute. "
                                                       "Arcrole %(arcroleURI)s from %(fromConcept)s to %(toConcept)s."),
                                             modelObject=rel,
@@ -2116,7 +2116,7 @@ def rule_gfm_1_8_10(
         for key, orderRels in relsByOrder.items():
             if len(orderRels) > 1:
                 yield Validation.warning(
-                    codes='EDINET.EC5700W.GFM.1.8.10',
+                    codes="EDINET.EC5700W.GFM.1.8.10",
                     msg=_("The definition relationships have the same order attribute: '%(order)s'"),
                     order=key[0],
                     modelObject=orderRels
@@ -2144,7 +2144,7 @@ def rule_gfm_1_8_11(
             continue
         if not rel.isUsable:
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.8.11',
+                codes="EDINET.EC5700W.GFM.1.8.11",
                 msg=_("The definition relationship can not have the xbrldt:usable attribute set to False"),
                 modelObject=rel
             )
@@ -2171,7 +2171,7 @@ def rule_gfm_1_9_1(
             continue
         if isExtensionUri(modelConcept.document.uri, val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.9.1',
+                codes="EDINET.EC5700W.GFM.1.9.1",
                 msg=_("References should not be defined for extension concepts: %(conceptName)s"),
                 conceptName=modelConcept.qname,
                 modelObject=modelConcept
@@ -2200,9 +2200,9 @@ def rule_gfm_1_10_3(
             if parent is None or elt.nsmap == parent.nsmap:
                 continue
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.10.3',
-                msg=_('The Inline XBRL document must contain all necessary namespace declarations on the root html '
-                      'element. Found namespace declaration on descendant element %(elementName)s.'),
+                codes="EDINET.EC5700W.GFM.1.10.3",
+                msg=_("The Inline XBRL document must contain all necessary namespace declarations on the root html "
+                      "element. Found namespace declaration on descendant element %(elementName)s."),
                 elementName=elt.tag,
                 modelObject=elt
             )
@@ -2242,7 +2242,7 @@ def rule_charsets(
 
         if xmlDeclaredEncoding is None:
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.10.4',
+                codes="EDINET.EC5700W.GFM.1.10.4",
                 msg=_("The document encoding must be declared in an XML document declaration"),
                 modelObject=modelDocument
             )
@@ -2259,15 +2259,15 @@ def rule_charsets(
                 metaCharsetDeclared = True
                 if xmlDeclaredEncoding is not None and metaCharset.lower() != xmlDeclaredEncoding.lower():
                     yield Validation.warning(
-                        codes='EDINET.EC5700W.GFM.1.10.4',
+                        codes="EDINET.EC5700W.GFM.1.10.4",
                         msg=_("The XML declaration encoding '%(xmlEncoding)s' does not match the HTML meta charset '%(metaCharset)s'"),
                         xmlEncoding=xmlDeclaredEncoding,
                         metaCharset=metaCharset,
                         modelObject=metaElt
                     )
-                if metaCharset.lower() != 'utf-8':
+                if metaCharset.lower() != "utf-8":
                     yield Validation.error(
-                        codes='EDINET.EC1010E',
+                        codes="EDINET.EC1010E",
                         msg=_("The charset specification in the content attribute of the HTML <meta> tag is not UTF-8. "
                             "File name: '%(path)s'. "
                             "Please set the character code of the file to UTF-8."),
@@ -2277,7 +2277,7 @@ def rule_charsets(
 
         if not metaCharsetDeclared:
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.10.4',
+                codes="EDINET.EC5700W.GFM.1.10.4",
                 msg=_("The document encoding must be declared in an HTML meta element charset"),
                 modelObject=modelDocument
             )
@@ -2309,7 +2309,7 @@ def rule_gfm_1_10_12(
         else:
             msg = _("Inline document set may not use multiple target documents. Found targets: %(targets)s")
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.1.10.12',
+            codes="EDINET.EC5700W.GFM.1.10.12",
             msg=msg,
             targets=",".join(target for target in targets if target is not None),
             modelObject=val.modelXbrl,
@@ -2333,7 +2333,7 @@ def rule_gfm_1_10_14(
     usedFootnoteIDs = set()
     for ixdsHtmlRootElt in val.modelXbrl.ixdsHtmlElements:
         for elt in ixdsHtmlRootElt.iterdescendants(XbrlConst.qnIXbrlFootnote.clarkNotation, XbrlConst.qnIXbrl11Footnote.clarkNotation):
-            if isinstance(elt, ModelInlineFootnote) and elt.value != '':
+            if isinstance(elt, ModelInlineFootnote) and elt.value != "":
                 footnotes.add(elt)
     for rel in val.modelXbrl.relationshipSet("XBRL-footnotes").modelRelationships:
         if rel.fromModelObject is not None and rel.toModelObject is not None:
@@ -2341,7 +2341,7 @@ def rule_gfm_1_10_14(
     for footnote in footnotes:
         if footnote.footnoteID not in usedFootnoteIDs:
             yield Validation.warning(
-                codes='EDINET.EC5700W.GFM.1.10.14',
+                codes="EDINET.EC5700W.GFM.1.10.14",
                 msg=_("A non-empty footnote is not referenced by an element"),
                 modelObject=footnote
             )
@@ -2381,7 +2381,7 @@ def rule_gfm_2_3_5(
                 continue
             if not LC3_NAME_PATTERN.fullmatch(name):
                 yield Validation.warning(
-                    codes='EDINET.EC5700W.GFM.2.3.5',
+                    codes="EDINET.EC5700W.GFM.2.3.5",
                     msg=_("Element names should be set using capitalized words "
                           "(LC3 conversion rules) that correspond to standard labels."),
                     modelObject=concept
@@ -2403,7 +2403,7 @@ def rule_gfm_2_5_1(
     """
     for elt in pluginData.getStandardTaxonomyExtensionLinks(LinkbaseType.PRESENTATION, val.modelXbrl):
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.2.5.1',
+            codes="EDINET.EC5700W.GFM.2.5.1",
             msg=_("A presentation linkbase from the standard taxonomy file of '%(uri)s' is not allowed."),
             uri=elt.attr(XbrlConst.qnXlinkHref.clarkNotation),
             modelObject=elt
@@ -2425,7 +2425,7 @@ def rule_gfm_2_6_1(
     """
     for elt in pluginData.getStandardTaxonomyExtensionLinks(LinkbaseType.CALCULATION, val.modelXbrl):
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.2.6.1',
+            codes="EDINET.EC5700W.GFM.2.6.1",
             msg=_("A calculation linkbase from the standard taxonomy file of '%(uri)s' is not allowed."),
             uri=elt.attr(XbrlConst.qnXlinkHref.clarkNotation),
             modelObject=elt
@@ -2447,7 +2447,7 @@ def rule_gfm_2_8_1(
     """
     for elt in pluginData.getStandardTaxonomyExtensionLinks(LinkbaseType.REFERENCE, val.modelXbrl):
         yield Validation.warning(
-            codes='EDINET.EC5700W.GFM.2.8.1',
+            codes="EDINET.EC5700W.GFM.2.8.1",
             msg=_("A reference linkbase from the standard taxonomy file of '%(uri)s' is not allowed."),
             uri=elt.attr(XbrlConst.qnXlinkHref.clarkNotation),
             modelObject=elt

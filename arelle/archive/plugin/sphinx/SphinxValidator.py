@@ -1,4 +1,4 @@
-'''
+"""
 sphinxValidator validates Sphinx language expressions in the context of an XBRL DTS and instance.
 
 See COPYRIGHT.md for copyright information.
@@ -7,7 +7,7 @@ Sphinx is a Rules Language for XBRL described by a Sphinx 2 Primer
 (c) Copyright 2012 CoreFiling, Oxford UK.
 Sphinx copyright applies to the Sphinx language, not to this software.
 Workiva, Inc. conveys neither rights nor license for the Sphinx language.
-'''
+"""
 
 from arelle.ModelValue import QName
 from .SphinxParser import (astBinaryOperation, astSourceFile, astNamespaceDeclaration, astRuleBasePrecondition,
@@ -30,7 +30,7 @@ def validate(logMessage, sphinxContext):
             modelXbrl.modelFormulaEqualityDefinitions = {}
 
         import logging
-        initialErrorCount = modelXbrl.logCount.get(logging._checkLevel('ERROR'), 0)
+        initialErrorCount = modelXbrl.logCount.get(logging._checkLevel("ERROR"), 0)
 
         # must also have default dimensions loaded
         from arelle import ValidateXbrlDimensions
@@ -87,7 +87,7 @@ def validate(logMessage, sphinxContext):
                             severity=node.severity)
                 if isinstance(node, astFormulaRule) and not hasFormulaOp(node):
                     logMessage("ERROR", "sphinxCompiler:formulaSyntax",
-                        _("Formula %(name)s missing \":=\" operation"),
+                        _('Formula %(name)s missing ":=" operation'),
                         sourceFileLine=node.sourceFileLine,
                         name=node.name)
             elif isinstance(node, astHyperspaceExpression) and hasDTS:
@@ -149,7 +149,7 @@ def validate(logMessage, sphinxContext):
 
     if hasDTS:
         # if no errors in checking sphinx
-        if initialErrorCount == modelXbrl.logCount.get(logging._checkLevel('ERROR'), 0):
+        if initialErrorCount == modelXbrl.logCount.get(logging._checkLevel("ERROR"), 0):
             from .SphinxEvaluator import evaluateRuleBase
             evaluateRuleBase(sphinxContext)
 

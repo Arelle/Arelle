@@ -85,7 +85,7 @@ class Session:
         """
         if not self._cntlr or not self._cntlr.logHandler:
             return []
-        return getattr(self._cntlr.logHandler, 'messages', [])
+        return getattr(self._cntlr.logHandler, "messages", [])
 
     def get_logs(self, log_format: Literal["json", "text", "xml"], clear_logs: bool = False) -> str:
         """
@@ -98,13 +98,13 @@ class Session:
         """
         if self._cntlr:
             handler = self._cntlr.logHandler
-            if log_format == 'json' and hasattr(handler, 'getJson'):
+            if log_format == "json" and hasattr(handler, "getJson"):
                 return str(handler.getJson(clearLogBuffer=clear_logs))
-            if log_format == 'text' and hasattr(handler, 'getText'):
+            if log_format == "text" and hasattr(handler, "getText"):
                 return str(handler.getText(clearLogBuffer=clear_logs))
-            if log_format == 'xml' and hasattr(handler, 'getXml'):
+            if log_format == "xml" and hasattr(handler, "getXml"):
                 return str(handler.getXml(clearLogBuffer=clear_logs, includeDeclaration=False))
-            raise ValueError('Unsupported log format for {}: {}'.format(type(handler).__name__, log_format))
+            raise ValueError("Unsupported log format for {}: {}".format(type(handler).__name__, log_format))
         return ""
 
     def get_models(self) -> list[ModelXbrl]:
@@ -166,7 +166,7 @@ class Session:
                 assert responseZipStream is None, "Response streaming is not supported with webserver"
                 if not self._cntlr.logger:
                     self._cntlr.startLogging(
-                        logFileName='logToBuffer',
+                        logFileName="logToBuffer",
                         logFilters=logFilters,
                         logHandler=logHandler,
                         logTextMaxLength=options.logTextMaxLength,
@@ -186,7 +186,7 @@ class Session:
                         logLevel=(options.logLevel or "DEBUG"),
                         logFilters=logFilters,
                         logHandler=logHandler,
-                        logToBuffer=options.logFile == 'logToBuffer',
+                        logToBuffer=options.logFile == "logToBuffer",
                         logTextMaxLength=options.logTextMaxLength,  # e.g., used by EDGAR/render to require buffered logging
                         logRefObjectProperties=logRefObjectProperties,
                         logXmlMaxAttributeLength=options.logXmlMaxAttributeLength,

@@ -1,11 +1,11 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
 
 BigInstance is an example of a plug-in to both GUI menu and command line/web service
 that provides an alternative approach to big instance documents without building a DOM, to save
 memory footprint.  SAX is used to parse the big instance.  ModelObjects are specialized by features
 for efficiency and to avoid dependency on an underlying DOM.
-'''
+"""
 
 import xml.sax, io, sys
 from collections import defaultdict
@@ -36,9 +36,9 @@ def initModelObject(obj, saxhandler, qname, attrs):
     obj.modelDocument = saxhandler.modelDocument
     obj._sourceline = saxhandler.saxParser.getLineNumber()
     obj._parent = saxhandler.qnameStack[0] if saxhandler.qnameStack else None
-    obj._attrs = dict((('{{{0}}}{1}'.format(*name) if name[0] else name[1]), value)
+    obj._attrs = dict((("{{{0}}}{1}".format(*name) if name[0] else name[1]), value)
                       for name, value in attrs.items())
-    obj._elementText = ''
+    obj._elementText = ""
 
 class BigInstModelObject(ModelObject):
     def __init__(self, saxhandler, qname, attrs):
@@ -150,8 +150,8 @@ class BigInstFact(ModelFact):
                     self._attrs[attrLocalName] = value
             else:
                 if not self._attrs: self.attrs = {}  # stop using common shared emptyDict
-                self._attrs['{{{0}}}{1}'.format(attrNameURI, attrLocalName)] = value
-        self._elementText = ''
+                self._attrs["{{{0}}}{1}".format(attrNameURI, attrLocalName)] = value
+        self._elementText = ""
         self.modelTupleFacts = sharedEmptyList
         super(ModelFact, self).init(saxhandler.modelDocument)
 
@@ -377,18 +377,18 @@ def bigInstLoader(modelXbrl, file, mappedUri, filepath):
         file.seek(0,io.SEEK_SET) # allow reparsing
         return None
 
-'''
+"""
    Do not use _( ) in pluginInfo itself (it is applied later, after loading
-'''
+"""
 
 __pluginInfo__ = {
-    'name': 'Big Instance Loader',
-    'version': '0.9',
-    'description': "This plug-in loads big XBRL instances without building a DOM in memory.  "
+    "name": "Big Instance Loader",
+    "version": "0.9",
+    "description": "This plug-in loads big XBRL instances without building a DOM in memory.  "
                     "SAX parses XBRL directly into an object model without a DOM.  ",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'ModelDocument.CustomLoader': bigInstLoader,
+    "ModelDocument.CustomLoader": bigInstLoader,
 }

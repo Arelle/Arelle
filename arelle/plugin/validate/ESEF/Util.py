@@ -100,7 +100,7 @@ def resourcesFilePath(modelManager: ModelManager, fileName: str) -> str:
 
 
 def loadAuthorityValidations(modelXbrl: ModelXbrl) -> list[Any] | dict[Any, Any]:
-    _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "authority-validations.json"), 'rt', encoding='utf-8')
+    _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "authority-validations.json"), "rt", encoding="utf-8")
     validations = json.load(_file) # {localName: date, ...}
     _file.close()
     return cast(Union[dict[Any, Any], list[Any]], validations)
@@ -150,12 +150,12 @@ def getEsefNotesStatementConcepts(modelXbrl: ModelXbrl) -> set[str]:
     esef_cor_Nses = []
     for targetNs, models in document_name_spaces.items():
         if esefCorNsPattern.match(targetNs):
-            found_prefix = ''
-            found_namespace = ''
+            found_prefix = ""
+            found_namespace = ""
             for prefix, namespace in models[0].targetXbrlRootElement.nsmap.items():
                 if targetNs == namespace:
                     found_namespace = targetNs
-                    found_prefix = '' if prefix is None else prefix
+                    found_prefix = "" if prefix is None else prefix
                     break
             esef_cor_Nses.append((found_prefix, found_namespace))
     if len(esef_cor_Nses) == 0:

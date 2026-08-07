@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 import decimal
 from collections.abc import Generator
@@ -280,11 +280,11 @@ class ModelObject(etree.ElementBase, ModelObjectBase):
 
     @property
     def stringValue(self) -> str:    # "string value" of node, text of all Element descendants
-        return ''.join(self.textNodes(recurse=True))  # return text of Element descendants
+        return "".join(self.textNodes(recurse=True))  # return text of Element descendants
 
     @property
     def textValue(self) -> str:  # xml axis text() differs from string value, no descendant element text
-        return ''.join(self.textNodes())  # no text nodes returns ''
+        return "".join(self.textNodes())  # no text nodes returns ''
 
     def textNodes(self, recurse:bool = False) ->  Generator[str | Any, None, None]:
         if self.text and getattr(self,"xValid", 0) != VALID_NO_CONTENT: # skip tuple whitespaces
@@ -318,7 +318,7 @@ class ModelObject(etree.ElementBase, ModelObjectBase):
 
     @property
     def elementAttributesStr(self) -> str:
-        return ', '.join(["{0}='{1}'".format(name, value) for name, value in self.items()])
+        return ", ".join(["{0}='{1}'".format(name, value) for name, value in self.items()])
 
     def resolveUri(
         self,

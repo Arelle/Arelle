@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 import datetime, isodate
 from collections.abc import Mapping
@@ -52,7 +52,7 @@ def qname(
     # value can be prefix:localname (and localname omitted)
     # for xpath qnames which do not take default namespace if no prefix, specify noPrefixIsNoNamespace
     if isinstance(value, ModelObjectBase):
-        value = cast('ModelObject', value)
+        value = cast("ModelObject", value)
         if name: # name is prefixed name
             element = value  # may be an attribute
             value = name
@@ -70,11 +70,11 @@ def qname(
         if castException: raise castException
         return None
     namespaceDict: dict[str | None, str] | None
-    if value and value[0] == '{': # clark notation (with optional prefix)
-        namespaceURI,sep,prefixedLocalName = value[1:].rpartition('}')
+    if value and value[0] == "{": # clark notation (with optional prefix)
+        namespaceURI,sep,prefixedLocalName = value[1:].rpartition("}")
         prefix: str | None
 
-        prefix,sep,localName = prefixedLocalName.rpartition(':')
+        prefix,sep,localName = prefixedLocalName.rpartition(":")
         if not sep:
             prefix = None
             if isinstance(name, dict):
@@ -114,7 +114,7 @@ def qname(
     elif element is not None:
         # same as XmlUtil.xmlns but local for efficiency
         namespaceURI = element.nsmap.get(prefix)
-        if not namespaceURI and prefix == 'xml':
+        if not namespaceURI and prefix == "xml":
             namespaceURI = "http://www.w3.org/XML/1998/namespace"
     if not namespaceURI:
         if prefix:
@@ -136,8 +136,8 @@ def qnameNsLocalName(namespaceURI: str | None, localName: str) -> QName:  # does
 
 
 def qnameClarkName(clarkname: str) -> QName:  # does not handle clark names with prefix
-    if clarkname and clarkname[0] == '{': # clark notation (with optional prefix)
-        namespaceURI,sep,localName = clarkname[1:].rpartition('}')
+    if clarkname and clarkname[0] == "{": # clark notation (with optional prefix)
+        namespaceURI,sep,localName = clarkname[1:].rpartition("}")
         return QName(None, namespaceURI or None, localName)
     else:
         return QName(None, None, clarkname)
@@ -165,17 +165,17 @@ def qnameFromNsmap(
 
     # check for href name style first
     if "#" in prefixedName:
-        namespaceURI, _sep, localName = prefixedName.rpartition('#')
+        namespaceURI, _sep, localName = prefixedName.rpartition("#")
         return QName(None, namespaceURI, localName)
     # check for prefixed name style
 
-    prefix,_sep,localName = prefixedName.rpartition(':')
+    prefix,_sep,localName = prefixedName.rpartition(":")
     if not prefix:
         prefix = None # don't want '' but instead None if no prefix
     namespaceURI = nsmap.get(prefix)
     if not namespaceURI:
         if prefix:
-            if prefix == 'xml':
+            if prefix == "xml":
                 namespaceURI = "http://www.w3.org/XML/1998/namespace"
             else:
                 if prefixException:
@@ -189,12 +189,12 @@ def qnameFromNsmap(
 
 
 def _conformsQname(possibleQname: Any) -> bool:
-    return (hasattr(possibleQname, 'namespaceURI') and
-            hasattr(possibleQname, 'localName'))
+    return (hasattr(possibleQname, "namespaceURI") and
+            hasattr(possibleQname, "localName"))
 
 
 def _qnameCompareValue(namespaceURI: str | None, localName: str | None) -> tuple[str, str]:
-    return namespaceURI or '', localName or ''
+    return namespaceURI or "", localName or ""
 
 
 class QName:
@@ -213,20 +213,20 @@ class QName:
     @property
     def clarkNotation(self) -> str:
         if self.namespaceURI:
-            return '{{{0}}}{1}'.format(self.namespaceURI, self.localName)
+            return "{{{0}}}{1}".format(self.namespaceURI, self.localName)
         else:
             return self.localName
 
     @property
     def expandedName(self) -> str:
-        return '{0}#{1}'.format(self.namespaceURI or "", self.localName)
+        return "{0}#{1}".format(self.namespaceURI or "", self.localName)
 
     def __repr__(self) -> str:
         return self.__str__()
 
     def __str__(self) -> str:
         if self.prefix:
-            return '{}:{}'.format(self.prefix, self.localName)
+            return "{}:{}".format(self.prefix, self.localName)
         else:
             return self.localName
 
@@ -237,9 +237,9 @@ class QName:
         # Additionally `QName == otherValue` historically returns False if the other value doesn't have matching attrs.
         # This is bad practice, but returning NotImplemented breaks conformance suites. Requires further investigation.
         return (
-                hasattr(other, 'localName')
+                hasattr(other, "localName")
                 and self.localName == other.localName
-                and hasattr(other, 'namespaceURI')
+                and hasattr(other, "namespaceURI")
                 and self.namespaceURI == other.namespaceURI
         )
 
@@ -290,7 +290,7 @@ DATEUNION = 3
 def tzinfo(tz: str | None) -> datetime.timezone | None:
     if tz is None:
         return None
-    elif tz == 'Z':
+    elif tz == "Z":
         return datetime.timezone(datetime.timedelta(0))
     else:
         return datetime.timezone(datetime.timedelta(hours=int(tz[0:3]), minutes=int(tz[0]+tz[4:6])))
@@ -374,7 +374,7 @@ def dateTime(
         ms = 0
         fracSec = match.group(7)
         if fracSec and fracSec[0] == ".":
-            ms = int(fracSec[1:7].ljust(6,'0'))
+            ms = int(fracSec[1:7].ljust(6,"0"))
         result = DateTime(int(match.group(1)),int(match.group(2)),int(match.group(3)),int(match.group(4)),int(match.group(5)),int(match.group(6)),ms,tzinfo(match.group(8)), dateOnly=False)
     else:
         if type == DATE or type == DATEUNION:
@@ -485,7 +485,7 @@ def dateUnionEqual(
     return dateUnion1 == dateUnion2
 
 def dateunionDate(datetimeValue: datetime.date, subtractOneDay: bool = False) -> datetime.date:
-    isDate = getattr(datetimeValue, 'dateOnly', False) or not hasattr(datetimeValue, 'hour')
+    isDate = getattr(datetimeValue, "dateOnly", False) or not hasattr(datetimeValue, "hour")
     d = datetimeValue
     if subtractOneDay and not isDate:
         dt = cast(datetime.datetime, d)
@@ -618,13 +618,13 @@ class YearMonthDayTimeDuration():
         if self.years: per.append("{}Y".format(self.years))
         if self.months: per.append("{}Y".format(self.months))
         if self.days: per.append("{}Y".format(self.days))
-        if self.hours or self.minutes or self.seconds: per.append('T')
+        if self.hours or self.minutes or self.seconds: per.append("T")
         if self.hours: per.append("{}Y".format(self.hours))
         if self.minutes: per.append("{}Y".format(self.minutes))
         if self.seconds: per.append("{}Y".format(self.seconds))
         if not per:
             return "PT0S"
-        return "P" + ''.join(per)
+        return "P" + "".join(per)
 
 def time(value: str | ModelObject | datetime.time | datetime.datetime | Any | None, castException: type[Exception] | None = None) -> Time | None:
     if value == "MinTime":
@@ -644,7 +644,7 @@ def time(value: str | ModelObject | datetime.time | datetime.datetime | Any | No
             tzinfo=datetime.time.max.tzinfo,
         )
     elif isinstance(value, ModelObjectBase):
-        value = cast('ModelObject', value)
+        value = cast("ModelObject", value)
         value = value.text
     elif isinstance(value, datetime.time):
         return Time(value.hour, value.minute, value.second, value.microsecond, value.tzinfo)
@@ -660,7 +660,7 @@ def time(value: str | ModelObject | datetime.time | datetime.datetime | Any | No
     ms = 0
     fracSec = match.group(4)
     if fracSec and fracSec[0] == ".":
-        ms = int(fracSec[1:7].ljust(6,'0'))
+        ms = int(fracSec[1:7].ljust(6,"0"))
     return Time(int(match.group(1)),int(match.group(2)),int(match.group(3)),ms,tzinfo(match.group(5)))
 
 class Time(datetime.time):
@@ -1006,21 +1006,21 @@ def isoDuration(value: str) -> IsoDuration:
         raise ValueError("Unable to parse duration string {}".format(value))
     groups = match.groupdict()
     for key, val in list(groups.items()):
-        if key not in ('separator', 'sign'):
+        if key not in ("separator", "sign"):
             if val is None:
                 groups[key] = "0n"
             # print groups[key]
-            if key in ('years', 'months'):
-                groups[key] = Decimal(groups[key][:-1].replace(',', '.'))
+            if key in ("years", "months"):
+                groups[key] = Decimal(groups[key][:-1].replace(",", "."))
             else:
                 # these values are passed into a timedelta object,
                 # which works with floats.
-                groups[key] = float(groups[key][:-1].replace(',', '.'))
+                groups[key] = float(groups[key][:-1].replace(",", "."))
     return IsoDuration(years=Decimal(groups["years"]), months=Decimal(groups["months"]),
                        days=float(groups["days"]), hours=float(groups["hours"]),
                        minutes=float(groups["minutes"]), seconds=float(groups["seconds"]),
                        weeks=float(groups["weeks"]),
-                       negate=bool(groups["sign"]=='-'),
+                       negate=bool(groups["sign"]=="-"),
                        sourceValue=value) # preserve source lexical value for str() value
 
 DAYSPERMONTH = Decimal("30.4375") # see: https://www.ibm.com/support/knowledgecenter/SSLVMB_20.0.0/com.ibm.spss.statistics.help/alg_adp_date-time_handling.htm
@@ -1123,7 +1123,7 @@ TypeXValue = Union[
     datetime.datetime,
     datetime.time,
     Decimal,
-    dict[str, 're.Pattern[str]'],
+    dict[str, "re.Pattern[str]"],
     float,
     gDay,
     gMonth,
@@ -1134,8 +1134,8 @@ TypeXValue = Union[
     Fraction,
     list[Optional[QName]],
     None,
-    're.Pattern[str]',
+    "re.Pattern[str]",
     str,
     QName,
-    'XsdPattern',
+    "XsdPattern",
 ]

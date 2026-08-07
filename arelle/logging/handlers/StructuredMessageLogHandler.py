@@ -53,7 +53,7 @@ class StructuredMessageLogHandler(LogToXmlHandler):
             MESSAGE_CODE: getattr(logRecord, MESSAGE_CODE, ""),
             MSG: StructuredMessageLogHandler.get_message(logRecord),
             REFS: getattr(logRecord, REFS, []),
-            ARGS: args.get('args', {})
+            ARGS: args.get("args", {})
         }
 
         self.messages.append(data)

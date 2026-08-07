@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from tkinter import *
 try:
     from tkinter.ttk import *

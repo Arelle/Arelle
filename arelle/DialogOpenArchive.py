@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from tkinter import Toplevel, StringVar, VERTICAL, HORIZONTAL, N, S, E, W, messagebox
 try:
     from tkinter.ttk import Frame, Button, Treeview, Scrollbar
@@ -15,9 +15,9 @@ from arelle.UrlUtil import isHttpUrl
 from arelle.PackageManager import parsePackage
 from arelle.PythonUtil import attrdict
 
-'''
+"""
 caller checks accepted, if True, caller retrieves url
-'''
+"""
 
 ARCHIVE = 1
 ENTRY_POINTS = 2
@@ -148,17 +148,17 @@ class DialogOpenArchive(Toplevel):
         if openType == ENTRY_POINTS:
             try:
                 metadataFiles = filesource.taxonomyPackageMetadataFiles
-                ''' take first for now
+                """ take first for now
                 if len(metadataFiles) != 1:
                     raise IOError(_("Taxonomy package contained more than one metadata file: {0}.")
                                   .format(', '.join(metadataFiles)))
-                '''
+                """
                 metadataFile = metadataFiles[0]
                 metadata = filesource.basefile + os.sep + metadataFile
                 self.metadataFilePrefix = os.sep.join(os.path.split(metadataFile)[:-1])
                 if self.metadataFilePrefix:
                     self.metadataFilePrefix += "/"  # zip contents have /, never \ file seps
-                self.taxonomyPkgMetaInf = '{}/META-INF/'.format(
+                self.taxonomyPkgMetaInf = "{}/META-INF/".format(
                             os.path.splitext(os.path.basename(filesource.url))[0])
 
 
@@ -249,8 +249,8 @@ class DialogOpenArchive(Toplevel):
 
         self.toolTipText = StringVar()
         if self.hasToolTip:
-            self.treeView.bind("<Motion>", self.motion, '+')
-            self.treeView.bind("<Leave>", self.leave, '+')
+            self.treeView.bind("<Motion>", self.motion, "+")
+            self.treeView.bind("<Leave>", self.leave, "+")
             self.toolTipText = StringVar()
             self.toolTip = ToolTip(self.treeView,
                                    textvariable=self.toolTipText,

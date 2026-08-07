@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 import os
 from collections import OrderedDict
 from lxml import etree
@@ -183,8 +183,8 @@ def layoutTable(view, table = None):
                                                                   StrctNode.defnMdlNode.xlinkLabel,
                                                                   StrctNode.defnMdlNode.modelDocument.basename,
                                                                   StrctNode.defnMdlNode.sourceline)))
-                            if StrctNode.defnMdlNode.get('value'):
-                                modelElt.addprevious(etree.Comment("   @value {0}".format(StrctNode.defnMdlNode.get('value'))))
+                            if StrctNode.defnMdlNode.get("value"):
+                                modelElt.addprevious(etree.Comment("   @value {0}".format(StrctNode.defnMdlNode.get("value"))))
                             for aspect in sorted(StrctNode.aspectsCovered(), key=lambda a: aspectStr(a)):
                                 if StrctNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
                                     aspectValue = StrctNode.aspectValue(aspect)

@@ -1,8 +1,8 @@
-'''
+"""
 Profile Formula Validation is an example of a plug-in to GUI menu that will profile formula execution.
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
 import os
 from arelle.Version import authorLabel, copyrightLabel
 from tkinter import simpledialog, messagebox
@@ -43,7 +43,7 @@ def profileFormulaMenuCommand(cntlr):
 
     excludeCompileTime = messagebox.askyesno(_("arelle - Exclude formula compile statistics"),
                 _("Should formula compiling be excluded from the statistics?\n"
-                  "(Yes will make a separate compiling \"pass\" so that statistics include execution only.)".format(errMsg)),
+                  '(Yes will make a separate compiling "pass" so that statistics include execution only.)'.format(errMsg)),
                 parent=cntlr.parent)
 
     cntlr.config["formulaProfileReportDir"] = os.path.dirname(profileReportFile)
@@ -119,15 +119,15 @@ def backgroundProfileFormula(cntlr, profileReportFile, maxRunTime, excludeCompil
     os.remove(statsFile)
 
 __pluginInfo__ = {
-    'name': 'Profile Formula Validation',
-    'version': '1.0',
-    'description': "This plug-in adds a profiled formula validation. "
+    "name": "Profile Formula Validation",
+    "version": "1.0",
+    "description": "This plug-in adds a profiled formula validation. "
                     "Includes XPath compilation in the profile if it is the first validation of instance; "
                     "to exclude XPath compile statistics, validate first the normal way (e.g., toolbar button) "
                     "and then validate again using this profile formula validation plug-in.  ",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'CntlrWinMain.Menu.Validation': profileFormulaMenuEntender,
+    "CntlrWinMain.Menu.Validation": profileFormulaMenuEntender,
 }

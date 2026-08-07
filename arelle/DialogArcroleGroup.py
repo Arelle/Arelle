@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 import os
 import regex as re
 
@@ -14,9 +14,9 @@ from arelle.UiUtil import gridHdr, gridCell, gridCombobox, label, checkbox
 
 _: TypeGetText
 
-'''
+"""
 caller checks accepted, if True, caller retrieves url
-'''
+"""
 def getArcroleGroup(mainWin, modelXbrl):
     dialog = DialogArcroleGroup(mainWin, modelXbrl)
     return dialog.selectedGroup
@@ -39,12 +39,12 @@ class DialogArcroleGroup(Toplevel):
 
         frame = Frame(self)
 
-        '''
+        """
         dialogFrame = Frame(frame, width=500)
         dialogFrame.columnconfigure(0, weight=1)
         dialogFrame.rowconfigure(0, weight=1)
         dialogFrame.grid(row=0, column=0, columnspan=4, sticky=(N, S, E, W), padx=3, pady=3)
-        '''
+        """
 
         # mainWin.showStatus(_("loading formula options and parameters"))
 
@@ -152,7 +152,7 @@ class DialogArcroleGroup(Toplevel):
         groupName = self.groupName.value
         if groupName and groupName in self.arcroleGroups:
             del self.arcroleGroups[groupName]
-        self.groupName.valueVar.set('')
+        self.groupName.valueVar.set("")
         self.groupName["values"] = sorted(self.arcroleGroups.keys())
         for checkbox in self.checkboxes:
             checkbox.valueVar.set( False )

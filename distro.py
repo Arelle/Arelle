@@ -35,11 +35,11 @@ includeFiles = [
 packageDirectories = []
 sitePackagesDirectories = site.getsitepackages()
 for sitePackagesDirectory in sitePackagesDirectories:
-    if not sitePackagesDirectory.endswith('site-packages'):
+    if not sitePackagesDirectory.endswith("site-packages"):
         continue
     packageDirectories.extend([os.path.join(sitePackagesDirectory, x) for x in os.listdir(sitePackagesDirectory)])
 
-entryPoints = list(entry_points(group='arelle.plugin'))
+entryPoints = list(entry_points(group="arelle.plugin"))
 for entryPoint in entryPoints:
     pluginUrl = entryPoint.load()()
     pluginDirectory = None
@@ -48,7 +48,7 @@ for entryPoint in entryPoints:
             pluginDirectory = packageDirectory
             break
     assert pluginDirectory, f"Corresponding package could not be found for plugin path: {pluginUrl}"
-    includeFiles.append((pluginDirectory, os.path.join('plugin', os.path.basename(pluginDirectory))))
+    includeFiles.append((pluginDirectory, os.path.join("plugin", os.path.basename(pluginDirectory))))
 
 includeLibs = [
     "dateutil",
@@ -120,7 +120,7 @@ elif sys.platform == MACOS_PLATFORM:
         "iconfile": "arelle/images/arelle.icns",
         "bundle_name": "Arelle",
     }
-    if codesignIdentity := os.environ.get('CODESIGN_IDENTITY'):
+    if codesignIdentity := os.environ.get("CODESIGN_IDENTITY"):
         options["bdist_mac"].update({
             "codesign_identity": codesignIdentity,
             "codesign_deep": True,
@@ -128,16 +128,16 @@ elif sys.platform == MACOS_PLATFORM:
             "codesign_verify": True,
             "codesign_options": "runtime",
         })
-        if platform.machine() == 'x86_64' and sys.version_info >= (3, 14):
+        if platform.machine() == "x86_64" and sys.version_info >= (3, 14):
             # Required for running x86_64 Python 3.14 builds on Apple Silicon via Rosetta.
             options["bdist_mac"]["codesign_entitlements"] = "arelle/config/rosettaEntitlements.plist"
-    if scmTagVersion := os.environ.get('SETUPTOOLS_SCM_PRETEND_VERSION'):
-        semverRegex = r'(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)'
+    if scmTagVersion := os.environ.get("SETUPTOOLS_SCM_PRETEND_VERSION"):
+        semverRegex = r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
         if re.fullmatch(semverRegex, scmTagVersion):
             # Tagged release. Dev versions are ignored.
-            options['bdist_mac']['plist_items'] = [
-                ('CFBundleVersion', scmTagVersion),
-                ('CFBundleShortVersionString', scmTagVersion),
+            options["bdist_mac"]["plist_items"] = [
+                ("CFBundleVersion", scmTagVersion),
+                ("CFBundleShortVersionString", scmTagVersion),
             ]
 elif sys.platform == WINDOWS_PLATFORM:
     guiExecutable = Executable(

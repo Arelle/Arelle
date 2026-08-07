@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from tkinter import *
 try:
     from tkinter.ttk import *
@@ -60,9 +60,9 @@ def viewTests(modelXbrl, tabWin):
     view.viewTestcaseIndexElement(modelDocument, "")
     view.blockSelectEvent = 1
     view.blockViewModelObject = 0
-    view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, '+')
-    view.treeView.bind("<Enter>", view.treeviewEnter, '+')
-    view.treeView.bind("<Leave>", view.treeviewLeave, '+')
+    view.treeView.bind("<<TreeviewSelect>>", view.treeviewSelect, "+")
+    view.treeView.bind("<Enter>", view.treeviewEnter, "+")
+    view.treeView.bind("<Leave>", view.treeviewLeave, "+")
 
 class ViewTests(ViewWinTree.ViewTree):
     def __init__(self, modelXbrl, tabWin):

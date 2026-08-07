@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from collections import defaultdict
 import os, datetime
 from arelle import (ModelObject)

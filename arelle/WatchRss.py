@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 import regex as re
@@ -85,7 +85,7 @@ class WatchRss:
             reloadNow = True
 
             # reload rss feed
-            self.rssModelXbrl.reload('checking RSS items', reloadCache=reloadNow)
+            self.rssModelXbrl.reload("checking RSS items", reloadCache=reloadNow)
             if self.stopRequested: break
             # setup validator
             postLoadActions = []
@@ -105,7 +105,7 @@ class WatchRss:
                 postLoadActions.append(_("matching text"))
             else:
                 matchPattern= None
-            postLoadAction = ', '.join(postLoadActions)
+            postLoadAction = ", ".join(postLoadActions)
 
             # anything to check new filings for
             if (rssWatchOptions.get("validateDisclosureSystemRules") or
@@ -232,7 +232,7 @@ class WatchRss:
                             smtp.sendmail(emailAddress, [emailAddress], emailMsg.as_string())
                             smtp.quit()
                         self.rssModelXbrl.modelManager.showStatus(_("RSS item {0}, {1} completed, status {2}").format(rssItem.companyName, rssItem.formType, rssItem.status), 3500)  # type: ignore[union-attr]
-                        self.rssModelXbrl.modelManager.cntlr.rssWatchUpdateOption(rssItem.pubDate.strftime('%Y-%m-%dT%H:%M:%S'))  # type: ignore[union-attr,call-arg]
+                        self.rssModelXbrl.modelManager.cntlr.rssWatchUpdateOption(rssItem.pubDate.strftime("%Y-%m-%dT%H:%M:%S"))  # type: ignore[union-attr,call-arg]
                     except Exception as err:
                         self.rssModelXbrl.error("arelle.rssError",
                                                 _("RSS item %(company)s, %(form)s, %(date)s, exception: %(error)s"),

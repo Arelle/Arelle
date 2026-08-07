@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from tkinter import simpledialog, Toplevel, font, messagebox, VERTICAL, HORIZONTAL, N, S, E, W
 from tkinter.constants import DISABLED, ACTIVE
 try:
@@ -27,7 +27,7 @@ def backgroundCheckForUpdates(cntlr):
     packageNamesWithNewerFileDates = packageManager.packageNamesWithNewerFileDates()
     if packageNamesWithNewerFileDates:
         cntlr.showStatus(_("Updates are available for these packages: {0}")
-                              .format(', '.join(packageNamesWithNewerFileDates)), clearAfter=5000)
+                              .format(", ".join(packageNamesWithNewerFileDates)), clearAfter=5000)
     else:
         cntlr.showStatus(_("No updates found for packages."), clearAfter=5000)
     time.sleep(0.1) # Mac locks up without this, may be needed for empty ui queue?
@@ -94,7 +94,7 @@ class DialogPackageManager(Toplevel):
         hScrollbar = Scrollbar(packagesFrame, orient=HORIZONTAL)
         self.packagesView = Treeview(packagesFrame, xscrollcommand=hScrollbar.set, yscrollcommand=vScrollbar.set, height=7)
         self.packagesView.grid(row=0, column=0, sticky=(N, S, E, W))
-        self.packagesView.bind('<<TreeviewSelect>>', self.packageSelect)
+        self.packagesView.bind("<<TreeviewSelect>>", self.packageSelect)
         hScrollbar["command"] = self.packagesView.xview
         hScrollbar.grid(row=1, column=0, sticky=(E,W))
         vScrollbar["command"] = self.packagesView.yview
@@ -143,7 +143,7 @@ class DialogPackageManager(Toplevel):
         packageInfoFrame.columnconfigure(1, weight=1)
 
         self.packageNameLabel = Label(packageInfoFrame, wraplength=600, justify="left",
-                                      font=font.Font(family='Helvetica', size=12, weight='bold'))
+                                      font=font.Font(family="Helvetica", size=12, weight="bold"))
         self.packageNameLabel.grid(row=0, column=0, columnspan=6, sticky=W)
         self.packageVersionHdr = Label(packageInfoFrame, text=_("version:"), state=DISABLED)
         self.packageVersionHdr.grid(row=1, column=0, sticky=W)
@@ -292,14 +292,14 @@ class DialogPackageManager(Toplevel):
             self.packageDescrHdr.config(state=ACTIVE)
             self.packageDescrLabel.config(text=packageInfo["description"])
             self.packagePrefixesHdr.config(state=ACTIVE)
-            self.packagePrefixesLabel.config(text=', '.join(packageInfo["remappings"].keys()))
+            self.packagePrefixesLabel.config(text=", ".join(packageInfo["remappings"].keys()))
             self.packageUrlHdr.config(state=ACTIVE)
             self.packageUrlLabel.config(text=packageInfo["URL"])
             self.packageDateHdr.config(state=ACTIVE)
             self.packageDateLabel.config(text=packageInfo["fileDate"] + " " +
                     (_("(an update is available)") if name in self.packageNamesWithNewerFileDates else ""))
             self.publisherHdr.config(state=ACTIVE)
-            _publisher = ''
+            _publisher = ""
             if packageInfo.get("publisher"):
                 _publisher += packageInfo["publisher"]
             if packageInfo.get("publisherCountry"):
@@ -308,7 +308,7 @@ class DialogPackageManager(Toplevel):
                 _publisher += ". " + packageInfo["publisherURL"]
             self.publisherLabel.config(text=_publisher)
             self.publicationDateHdr.config(state=ACTIVE)
-            self.publicationDateLabel.config(text=packageInfo.get("publicationDate",''))
+            self.publicationDateLabel.config(text=packageInfo.get("publicationDate",""))
             self.packageEnableButton.config(state=ACTIVE,
                                            text={"enabled":self.DISABLE,
                                                  "disabled":self.ENABLE}[packageInfo["status"]])
@@ -357,7 +357,7 @@ class DialogPackageManager(Toplevel):
                  return label["Label"]
             return ""
         try:
-            with open(self.webCache.getfilename(STANDARD_PACKAGES_URL, reload=True), 'r', errors='replace') as fh:
+            with open(self.webCache.getfilename(STANDARD_PACKAGES_URL, reload=True), "r", errors="replace") as fh:
                 regPkgs = json.load(fh) # always reload
             for pkgTxmy in regPkgs.get("taxonomies", []):
                 _name = langLabel(pkgTxmy["Name"])
@@ -435,7 +435,7 @@ class DialogPackageManager(Toplevel):
         packagesList = self.packagesConfig["packages"]
         j = -1
         for i, packageInfo in enumerate(packagesList):
-            if packageInfo['name'] == name and packageInfo['version'] == version:
+            if packageInfo["name"] == name and packageInfo["version"] == version:
                 j = i
                 break
         if 0 <= j < len(packagesList):
@@ -454,12 +454,12 @@ class DialogPackageManager(Toplevel):
     def packageEnable(self):
         if 0 <= self.selectedPackageIndex < len(self.packagesConfig["packages"]):
             packageInfo = self.packagesConfig["packages"][self.selectedPackageIndex]
-            if self.packageEnableButton['text'] == self.ENABLE:
+            if self.packageEnableButton["text"] == self.ENABLE:
                 packageInfo["status"] = "enabled"
-                self.packageEnableButton['text'] = self.DISABLE
-            elif self.packageEnableButton['text'] == self.DISABLE:
+                self.packageEnableButton["text"] = self.DISABLE
+            elif self.packageEnableButton["text"] == self.DISABLE:
                 packageInfo["status"] = "disabled"
-                self.packageEnableButton['text'] = self.ENABLE
+                self.packageEnableButton["text"] = self.ENABLE
             self.packagesConfigChanged = True
             self._packageManager.rebuildRemappings(self.cntlr)
             self.loadTreeViews()
@@ -520,10 +520,10 @@ class DialogPackageManager(Toplevel):
             packageInfo = self.packagesConfig["packages"][iPkg]
             if doEnable:
                 packageInfo["status"] = "enabled"
-                self.packageEnableButton['text'] = self.DISABLE
+                self.packageEnableButton["text"] = self.DISABLE
             else:
                 packageInfo["status"] = "disabled"
-                self.packageEnableButton['text'] = self.ENABLE
+                self.packageEnableButton["text"] = self.ENABLE
         self.packagesConfigChanged = True
         self._packageManager.rebuildRemappings(self.cntlr)
         self.loadTreeViews()

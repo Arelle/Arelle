@@ -1,9 +1,9 @@
-'''
+"""
 This module is an example to convert Html Tables into Xlsx (Excel) tables
 Preconfigured here to use SEC Edgar Rendering R files as input
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
 import os, sys
 import regex as re
 from lxml import etree, html
@@ -44,7 +44,7 @@ def saveTableToExelle(rFilesDir):
             etree.LxmlError) as err:
         print("FilingSummary.xml: directory {0} error: {1}".format(rFilesDir, err))
 
-    wb = Workbook(encoding='utf-8')
+    wb = Workbook(encoding="utf-8")
     # remove predefined sheets
     for sheetName in wb.get_sheet_names():
         ws = wb.get_sheet_by_name(sheetName)

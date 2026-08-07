@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any, TYPE_CHECKING
@@ -63,7 +63,7 @@ def equalityHash(
         except AttributeError:
             dts = elt.modelXbrl
             from arelle.ModelXbrl import ModelXbrl
-            assert isinstance(dts, ModelXbrl), 'dts is not an instance of ModelXbrl'
+            assert isinstance(dts, ModelXbrl), "dts is not an instance of ModelXbrl"
             if not hasattr(elt,"xValid"):
                 xmlValidate(dts, elt)
             hashableValue = elt.sValue if equalMode == S_EQUAL else elt.xValue
@@ -139,9 +139,9 @@ def attributeDict(
         xmlValidate(modelXbrl, elt)
     attrs = {}
     # TBD: replace with validated attributes
-    for modelAttribute in getattr(elt, 'xAttributes', {}).values():
+    for modelAttribute in getattr(elt, "xAttributes", {}).values():
         attrTag = modelAttribute.attrTag
-        ns, sep, localName = attrTag.partition('}')
+        ns, sep, localName = attrTag.partition("}")
         attrNsURI = ns[1:] if sep else None
         if ns2ns1Tbl and attrNsURI in ns2ns1Tbl:
             attrNsURI = ns2ns1Tbl[attrNsURI]
@@ -210,11 +210,11 @@ def typedValue(
 ) -> Any:  # This can by any type
     try:
         if attrQname: # PSVI attribute value
-            modelAttribute = getattr(element, 'xAttributes')[attrQname.clarkNotation]
+            modelAttribute = getattr(element, "xAttributes")[attrQname.clarkNotation]
             if modelAttribute.xValid >= VALID:
                 return modelAttribute.xValue
         else: # PSVI element value (of text)
-            if getattr(element, 'xValid') >= VALID:
+            if getattr(element, "xValid") >= VALID:
                 return element.xValue
     except (AttributeError, KeyError):
         if dts:

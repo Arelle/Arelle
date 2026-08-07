@@ -78,7 +78,7 @@ def validateOIM(modelXbrl: ModelXbrl) -> None:
         dimContainers = set(t for c in contextsInUse for t in containers if c.dimValues(t))
         if len(dimContainers) > 1:
             modelXbrl.error("xbrlxe:inconsistentDimensionsContainer",
-                            _("All hypercubes within the DTS of a report MUST be defined for use on the same container (either \"segment\" or \"scenario\")"),
+                            _('All hypercubes within the DTS of a report MUST be defined for use on the same container (either "segment" or "scenario")'),
                             modelObject=modelXbrl)
         contextsWithNonDimContent = set()
         contextsWithComplexTypedDimensions = set()

@@ -37,8 +37,8 @@ _: TypeGetText
 # Per "Framework Design of EDINET Taxonomy", ELR definitions contain a 6-digit
 # can be used to categorize the ELR.
 FINANCIAL_STATEMENT_ELR_PREFIXES = (
-    '3', # Codes starting with 3 indicate "Japanese GAAP Financial Statement"
-    '5', # Codes starting with 5 indicate "IFRS Financial Statement"
+    "3", # Codes starting with 3 indicate "Japanese GAAP Financial Statement"
+    "5", # Codes starting with 5 indicate "IFRS Financial Statement"
 )
 
 
@@ -58,14 +58,14 @@ def rule_EC8011W(
     for contextId, context in val.modelXbrl.contexts.items():
         if not CONTEXT_ID_PATTERN.fullmatch(contextId):
             yield Validation.warning(
-                codes='EDINET.EC8011W',
+                codes="EDINET.EC8011W",
                 msg=_("The context ID does not conform to the naming rules. "
                       "Context ID: '%(contextId)s'. "
                       "Please correct the relevant context ID in accordance with the naming rules. "
-                      "* No action is required for warnings caused by setting \"FutureDate\" "
+                      '* No action is required for warnings caused by setting "FutureDate" '
                       "for first portion of context ID. "
                       "* No action is required for warnings caused by tagging for disclosure beyond "
-                      "the period specified in the naming convention for \"total greenhouse gas emissions.\""),
+                      'the period specified in the naming convention for "total greenhouse gas emissions."'),
                 contextId=contextId,
                 modelObject=context,
             )
@@ -92,7 +92,7 @@ def rule_EC8012W(
     relSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.CALCULATION.getArcroles()))
     if relSet is None or len(relSet.modelRelationships) == 0:
         yield Validation.warning(
-            codes='EDINET.EC8012W',
+            codes="EDINET.EC8012W",
             msg=_("If a main financial statement element is present, a calculation linkbase "
                   "file must be present. "
                   "If you wish to tag the financial statements, please submit a "
@@ -127,7 +127,7 @@ def rule_EC8013W(
     for roleUri, roleTypes in val.modelXbrl.roleTypes.items():
         for roleType in roleTypes:
             definition = roleType.definition
-            roleTypeCode = definition.split(' ')[0] if definition else None
+            roleTypeCode = definition.split(" ")[0] if definition else None
             if roleTypeCode is None:
                 continue
             if any(roleTypeCode.startswith(prefix) for prefix in FINANCIAL_STATEMENT_ELR_PREFIXES):
@@ -151,12 +151,12 @@ def rule_EC8013W(
             invalidContextIdMap[fact.contextID].append(fact)
     for contextId, facts in invalidContextIdMap.items():
         yield Validation.warning(
-            codes='EDINET.EC8013W',
+            codes="EDINET.EC8013W",
             msg=_("The context ID (id=%(contextId)s) for the element related to the extended link role "
                   "in Financial Statement is not per convention. Please set the context ID of the element "
                   "related to the extended link role of financial statements according to the rules. For "
-                  "the financial statements, please refer to \"3-4-2 Setting the Context\" in the "
-                  "\"Validation Guidelines\"."),
+                  'the financial statements, please refer to "3-4-2 Setting the Context" in the '
+                  '"Validation Guidelines".'),
             contextId=contextId,
             modelObject=facts,
         )
@@ -187,12 +187,12 @@ def rule_EC8014W(
             for contextID in modelXbrl.contexts
     ):
         yield Validation.warning(
-            codes='EDINET.EC8014W',
+            codes="EDINET.EC8014W",
             msg=_("There is no context ID in the inline XBRL file that represents an individual. "
                   "Please set a context ID that indicates individual financial "
                   "statements in the inline XBRL file. "
                   "If you are not including individual financial statements, "
-                  "please check the \"WhetherConsolidatedFinancialStatementsArePreparedDEI\" "
+                  'please check the "WhetherConsolidatedFinancialStatementsArePreparedDEI" '
                   "value of the DEI information."),
         )
 
@@ -224,12 +224,12 @@ def rule_EC8015W(
     ]
     if len(individualContexts) > 0:
         yield Validation.warning(
-            codes='EDINET.EC8015W',
+            codes="EDINET.EC8015W",
             msg=_("There is a context ID in the inline XBRL file that represents an individual. "
                   "If you do not want to enter information related to individual financial statements, "
                   "delete the context ID that indicates individual. "
                   "If you want to enter individual financial statements, "
-                  "check the \"WhetherConsolidatedFinancialStatementsArePreparedDEI\" status in the DEI "
+                  'check the "WhetherConsolidatedFinancialStatementsArePreparedDEI" status in the DEI '
                   "information. "
                   "* If there is a change from non-consolidated to consolidated, even if the data content "
                   "is normal, it may be recognized as an exception and a warning may be displayed."),
@@ -265,14 +265,14 @@ def rule_contextDeiRequirements(
                     if pluginData.getDeiValue(contextDeiRequirement.elementExists) is None:
                         continue
 
-                if contextDeiRequirement.element == 'startDate':
+                if contextDeiRequirement.element == "startDate":
                     contextValue = context.startDatetime
                     code = "EDINET.EC8019W"
-                elif contextDeiRequirement.element == 'endDate':
+                elif contextDeiRequirement.element == "endDate":
                     contextValue = context.endDatetime
                     code = "EDINET.EC8020W"
                 else:
-                    assert contextDeiRequirement.element == 'instant'
+                    assert contextDeiRequirement.element == "instant"
                     contextValue = context.instantDatetime
                     code = "EDINET.EC8018W"
 
@@ -281,7 +281,7 @@ def rule_contextDeiRequirements(
                     continue
                 deiValue = cast(datetime.datetime, deiValue)
 
-                if contextDeiRequirement.element in ('instant', 'endDate'):
+                if contextDeiRequirement.element in ("instant", "endDate"):
                     # Instant and end dates are parsed as the beginning of the day after the date specified by the value
                     # DEI values need to be adjusted by 1 day to match this.
                     deiValue = cast(datetime.datetime, deiValue) + datetime.timedelta(1)
@@ -292,7 +292,7 @@ def rule_contextDeiRequirements(
                     yield Validation.warning(
                         codes=code,
                         msg=_("The context %(element)s element does not match the information in DEI "
-                              "\"%(elementMatch)s\". "
+                              '"%(elementMatch)s". '
                               "Context ID: '%(contextId)s'. "
                               "DEI value: '%(deiValue)s'. "
                               "Context value: '%(contextValue)s'. "
@@ -327,22 +327,22 @@ def rule_EC8021W(
     If "EndDateOfQuarterlyOrSemiAnnualPeriodOfNextFiscalYearDEI" is not present, but "CurrentPeriodEndDateDEI"
     is present, then its value must not be more than one year earlier than "FilingDateCoverPage".
     """
-    localName = 'EndDateOfQuarterlyOrSemiAnnualPeriodOfNextFiscalYearDEI'
+    localName = "EndDateOfQuarterlyOrSemiAnnualPeriodOfNextFiscalYearDEI"
     targetDate = pluginData.getDeiValue(localName)
     if not isinstance(targetDate, datetime.datetime):
-        localName = 'CurrentPeriodEndDateDEI'
+        localName = "CurrentPeriodEndDateDEI"
         targetDate = pluginData.getDeiValue(localName)
     if not isinstance(targetDate, datetime.datetime):
         return
     compareDate = cast(datetime.datetime, targetDate + relativedelta(years=1))
     for modelXbrl in pluginData.loadedModelXbrls:
-        for fact in modelXbrl.factsByLocalName.get('FilingDateCoverPage', set()):
+        for fact in modelXbrl.factsByLocalName.get("FilingDateCoverPage", set()):
             if not isValidNonNilFact(fact):
                 continue
             submissionDate = cast(datetime.datetime, fact.xValue)
             if compareDate < submissionDate:
                 yield Validation.warning(
-                    codes='EDINET.EC8021W',
+                    codes="EDINET.EC8021W",
                     msg=_("The DEI '%(localName)s' information is set to a date that is "
                           "more than one year earlier than 'FilingDateCoverPage'. "
                           "Please set the '%(localName)s' value to a value that is less "
@@ -372,7 +372,7 @@ def rule_EC8032E(
     in the DEI information (or the "fund code" in the DEI information in the case of the Cabinet
     Office Ordinance on Specified Securities Disclosure).
     """
-    localNames = ('EDINETCodeDEI', 'FundCodeDEI')
+    localNames = ("EDINETCodeDEI", "FundCodeDEI")
     codes = set()
     for localName in localNames:
         code = pluginData.getDeiValue(localName)
@@ -388,7 +388,7 @@ def rule_EC8032E(
             identifier = identifier[:6]
             if identifier not in codes:
                 yield Validation.error(
-                    codes='EDINET.EC8032E',
+                    codes="EDINET.EC8032E",
                     msg=_("The context identifier must match the 'EDINETCodeDEI' information in the DEI. "
                           "Please set the identifier (first six digits) of the relevant context ID so "
                           "that it matches the EDINET code of the person submitting the disclosure "
@@ -416,7 +416,7 @@ def rule_EC8033W(
     priorYearContexts = [
         context
         for contextId, context in val.modelXbrl.contexts.items()
-        if contextId.startswith('Prior1Year')
+        if contextId.startswith("Prior1Year")
            and context.endDatetime is not None
            and context.isStartEndPeriod
     ]
@@ -430,7 +430,7 @@ def rule_EC8033W(
     currentYearContexts = [
         context
         for contextId, context in val.modelXbrl.contexts.items()
-        if contextId.startswith('CurrentYear')
+        if contextId.startswith("CurrentYear")
            and context.startDatetime is not None
            and context.isStartEndPeriod
     ]
@@ -443,7 +443,7 @@ def rule_EC8033W(
         return
     if latestPriorYearContext.endDatetime > earliestCurrentYearContext.startDatetime:  # type: ignore[operator]
         yield Validation.warning(
-            codes='EDINET.EC8033W',
+            codes="EDINET.EC8033W",
             msg=_("The startDate element of the current year context (id=%(currentYearContextId)s) is "
                   "set to a date that is earlier than the endDate element of the prior year context "
                   "(id=%(priorYearContextId)s). Please check the corresponding context ID "
@@ -480,12 +480,12 @@ def rule_EC8054W(
         )
         if member != pluginData.nonConsolidatedMemberQn:
             yield Validation.warning(
-                codes='EDINET.EC8054W',
-                msg=_("For the context ID (%(contextId)s), \"NonConsolidatedMember\" "
+                codes="EDINET.EC8054W",
+                msg=_('For the context ID (%(contextId)s), "NonConsolidatedMember" '
                       "is not set in the scenario element. Please correct the relevant "
                       "context ID and scenario element. For naming rules for context IDs, "
-                      "refer to \"5-4-1 Naming Rules for Context IDs\" in the \"Guidelines "
-                      "for Creating Report Instances.\""),
+                      'refer to "5-4-1 Naming Rules for Context IDs" in the "Guidelines '
+                      'for Creating Report Instances."'),
                 contextId=context.id,
                 modelObject=context,
             )
@@ -519,14 +519,14 @@ def rule_EC8060E(
         (FormType.FORM_5_2, DocumentType.SEMI_ANNUAL_REPORT),
     }
     level = Level.ERROR
-    code = 'EDINET.EC8060E'
+    code = "EDINET.EC8060E"
     if (pluginData.getFormType(val.modelXbrl), pluginData.getDocumentType(val.modelXbrl)) in warningScenarios:
         level = Level.WARNING
-        code = 'EDINET.EC8060W'
+        code = "EDINET.EC8060W"
     allContexts = chain(val.modelXbrl.contexts.values(), val.modelXbrl.ixdsUnmappedContexts.values())
     for context in allContexts:
         for qname, dimensionValue in context.qnameDims.items():
-            if dimensionValue.contextElement != 'scenario':
+            if dimensionValue.contextElement != "scenario":
                 continue
             if dimensionValue.xValid < VALID:
                 continue

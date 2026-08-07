@@ -1,9 +1,9 @@
-'''
+"""
 Save DTS is an example of a plug-in to both GUI menu and command line/web service
 that will save the files of a DTS into a zip file.
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
 
 import threading
 from arelle.Version import authorLabel, copyrightLabel
@@ -24,7 +24,7 @@ def validateSchemaWithLxml(modelXbrl, cntlr=None):
     importedNamespaces = set()
     importedFilepaths = []
 
-    '''
+    """
     for mdlSchemaDoc in entryDocument.referencesDocument.keys():
         if (mdlSchemaDoc.type == ModelDocument.Type.SCHEMA and
             mdlSchemaDoc.targetNamespace not in importedNamespaces):
@@ -33,7 +33,7 @@ def validateSchemaWithLxml(modelXbrl, cntlr=None):
                 mdlSchemaDoc.targetNamespace, len(importedFilepaths)))
             importedNamespaces.add(mdlSchemaDoc.targetNamespace)
             importedFilepaths.append(mdlSchemaDoc.filepath)
-    '''
+    """
 
     def importReferences(referencingDocument):
         for mdlSchemaDoc in referencingDocument.referencesDocument.keys():
@@ -63,7 +63,7 @@ def validateSchemaWithLxml(modelXbrl, cntlr=None):
                             importedFilepaths.append(entry)
                         ns = None
     schemaXml = '<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">\n{0}</xsd:schema>\n'.format(
-                   '\n'.join(imports))
+                   "\n".join(imports))
     # trace schema files referenced
     with open("c:\\temp\\test.xml", "w") as fh:
         fh.write(schemaXml)
@@ -133,24 +133,24 @@ def validateSchemaWithLxmlCommandLineXbrlRun(cntlr, options, modelXbrl, *args, *
         validateSchemaWithLxml(cntlr.modelManager.modelXbrl)
 
 
-'''
+"""
    Do not use _( ) in pluginInfo itself (it is applied later, after loading
-'''
+"""
 
 __pluginInfo__ = {
-    'name': 'Validate Schema with Lxml',
-    'version': '0.9',
-    'description': "This plug-in provides schema validation using lxml.  As of 2012-05 "
+    "name": "Validate Schema with Lxml",
+    "version": "0.9",
+    "description": "This plug-in provides schema validation using lxml.  As of 2012-05 "
                     " lxml does not properly schema validate XBRL schemas, which is why"
                     " it is provided in a plug-in instead of the main build.  "
                     "For the GUI, this feature is inserted to the tools->validation menu 2nd position.  "
                     "This is an experimental feature, not suitable for XBRL production use until lxml"
                     " schema validation becomes reliable for XBRL schemas.",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'CntlrWinMain.Menu.Validation': validateSchemaWithLxmlMenuEntender,
-    'CntlrCmdLine.Options': validateSchemaWithLxmlCommandLineOptionExtender,
-    'CntlrCmdLine.Xbrl.Run': validateSchemaWithLxmlCommandLineXbrlRun,
+    "CntlrWinMain.Menu.Validation": validateSchemaWithLxmlMenuEntender,
+    "CntlrCmdLine.Options": validateSchemaWithLxmlCommandLineOptionExtender,
+    "CntlrCmdLine.Xbrl.Run": validateSchemaWithLxmlCommandLineXbrlRun,
 }

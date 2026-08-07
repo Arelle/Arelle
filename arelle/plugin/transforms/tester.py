@@ -88,7 +88,7 @@ class TransformTester:
             setXmlns(self.modelXbrl.modelDocument, trPrefix, trNS)
             self.modelXbrl.modelManager.showStatus(_("Executing call"))
             elt = self.modelXbrl.modelDocument.xmlRootElement
-            if ':' in trName:
+            if ":" in trName:
                 prefixedFnName = trName
             else:
                 prefixedFnName = "{}:{}".format(trPrefix, trName)
@@ -260,15 +260,15 @@ def transformationTesterMenuExtender(cntlr, menu, *args, **kwargs):
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
-    'name': 'Transformation tester',
-    'version': '1.0',
-    'description': '''Transformation Tester''',
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "Transformation tester",
+    "version": "1.0",
+    "description": """Transformation Tester""",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'CntlrCmdLine.Options': cmdLineOptionExtender,
-    'CntlrCmdLine.Utility.Run': cmdLineRun,
-    'CntlrWinMain.Menu.Tools': transformationTesterMenuExtender
+    "CntlrCmdLine.Options": cmdLineOptionExtender,
+    "CntlrCmdLine.Utility.Run": cmdLineRun,
+    "CntlrWinMain.Menu.Tools": transformationTesterMenuExtender
 
 }

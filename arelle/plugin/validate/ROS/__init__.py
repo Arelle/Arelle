@@ -44,16 +44,16 @@ def validateXbrlFinally(*args: Any, **kwargs: Any) -> None:
 
 
 __pluginInfo__ = {
-    'name': PLUGIN_NAME,
-    'version': '1.0',
-    'description': '''ROS (Ireland) Validation.''',
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
-    'import': ('inlineXbrlDocumentSet', ), # import dependent modules
+    "name": PLUGIN_NAME,
+    "version": "1.0",
+    "description": """ROS (Ireland) Validation.""",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
+    "import": ("inlineXbrlDocumentSet", ), # import dependent modules
     # classes of mount points (required)
-    'DisclosureSystem.Types': disclosureSystemTypes,
-    'DisclosureSystem.ConfigURL': disclosureSystemConfigURL,
-    'Validate.XBRL.Start': validateXbrlStart,
-    'Validate.XBRL.Finally': validateXbrlFinally,
+    "DisclosureSystem.Types": disclosureSystemTypes,
+    "DisclosureSystem.ConfigURL": disclosureSystemConfigURL,
+    "Validate.XBRL.Start": validateXbrlStart,
+    "Validate.XBRL.Finally": validateXbrlFinally,
 }

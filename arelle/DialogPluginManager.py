@@ -1,9 +1,9 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
 
 based on pull request 4
 
-'''
+"""
 from __future__ import annotations
 
 from tkinter import Event, Toplevel, font, messagebox, VERTICAL, HORIZONTAL, N, S, E, W
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from arelle.plugin_system._plugin_manager import PluginManager as PluginManagerClass
 
 EMPTYLIST: list[Any] = []
-GROUPSEP = '\x01d'
+GROUPSEP = "\x01d"
 
 def dialogPluginManager(mainWin: CntlrWinMain) -> None:
     # check for updates in background
@@ -96,7 +96,7 @@ class DialogPluginManager(Toplevel):
         hScrollbar = Scrollbar(modulesFrame, orient=HORIZONTAL)
         self.modulesView = Treeview(modulesFrame, xscrollcommand=hScrollbar.set, yscrollcommand=vScrollbar.set, height=7)
         self.modulesView.grid(row=0, column=0, sticky=(N, S, E, W))
-        self.modulesView.bind('<<TreeviewSelect>>', self.moduleSelect)
+        self.modulesView.bind("<<TreeviewSelect>>", self.moduleSelect)
         hScrollbar["command"] = self.modulesView.xview
         hScrollbar.grid(row=1, column=0, sticky=(E,W))
         vScrollbar["command"] = self.modulesView.yview
@@ -149,7 +149,7 @@ class DialogPluginManager(Toplevel):
         moduleInfoFrame.columnconfigure(1, weight=1)
 
         self.moduleNameLabel = Label(moduleInfoFrame, wraplength=600, justify="left",
-                                     font=font.Font(family='Helvetica', size=12, weight='bold'))
+                                     font=font.Font(family="Helvetica", size=12, weight="bold"))
         self.moduleNameLabel.grid(row=0, column=0, columnspan=4, sticky=W)
         self.moduleAuthorHdr = Label(moduleInfoFrame, text=_("author:"), state=DISABLED)
         self.moduleAuthorHdr.grid(row=1, column=0, sticky=W)
@@ -270,7 +270,7 @@ class DialogPluginManager(Toplevel):
         for i, classItem in enumerate(sorted(self.pluginConfig.get("classes", {}).items())):
             className, moduleList = classItem
             node = self.classesView.insert("", "end", className, text=className)
-            self.classesView.set(node, "modules", ', '.join(moduleList))
+            self.classesView.set(node, "modules", ", ".join(moduleList))
 
         self.moduleSelect()  # clear out prior selection
 
@@ -341,7 +341,7 @@ class DialogPluginManager(Toplevel):
             self.moduleDescrHdr.config(state=ACTIVE)
             self.moduleDescrLabel.config(text=moduleInfo.get("description"))
             self.moduleClassesHdr.config(state=ACTIVE)
-            self.moduleClassesLabel.config(text=', '.join(moduleInfo["classMethods"]))
+            self.moduleClassesLabel.config(text=", ".join(moduleInfo["classMethods"]))
             self.moduleVersionHdr.config(state=ACTIVE)
             self.moduleVersionLabel.config(text=moduleInfo.get("version"))
             self.moduleUrlHdr.config(state=ACTIVE)
@@ -546,20 +546,20 @@ class DialogPluginManager(Toplevel):
                 return
 
             def _moduleEnable(moduleInfo: dict[str, Any]) -> None:
-                if self.moduleEnableButton['text'] == self.ENABLE:
+                if self.moduleEnableButton["text"] == self.ENABLE:
                     moduleInfo["status"] = "enabled"
-                elif self.moduleEnableButton['text'] == self.DISABLE:
+                elif self.moduleEnableButton["text"] == self.DISABLE:
                     moduleInfo["status"] = "disabled"
                 self.checkClassMethodsChanged(moduleInfo)
                 for importModuleInfo in moduleInfo.get("imports", EMPTYLIST):
                     _moduleEnable(importModuleInfo) # set status on nested moduleInfo
-                    if importModuleInfo['name'] in self.pluginConfig["modules"]: # set status on top level moduleInfo
-                        _moduleEnable(self.pluginConfig["modules"][importModuleInfo['name']])
+                    if importModuleInfo["name"] in self.pluginConfig["modules"]: # set status on top level moduleInfo
+                        _moduleEnable(self.pluginConfig["modules"][importModuleInfo["name"]])
             _moduleEnable(moduleInfo)
-            if self.moduleEnableButton['text'] == self.ENABLE:
-                self.moduleEnableButton['text'] = self.DISABLE
-            elif self.moduleEnableButton['text'] == self.DISABLE:
-                self.moduleEnableButton['text'] = self.ENABLE
+            if self.moduleEnableButton["text"] == self.ENABLE:
+                self.moduleEnableButton["text"] = self.DISABLE
+            elif self.moduleEnableButton["text"] == self.DISABLE:
+                self.moduleEnableButton["text"] = self.ENABLE
             self.pluginConfigChanged = True
             self.loadTreeViews()
 
@@ -605,8 +605,8 @@ class DialogPluginManager(Toplevel):
                         _enableDisableAll(importModuleInfo)
                 _enableDisableAll(moduleInfo)
                 if doEnable:
-                    self.moduleEnableButton['text'] = self.DISABLE
+                    self.moduleEnableButton["text"] = self.DISABLE
                 else:
-                    self.moduleEnableButton['text'] = self.ENABLE
+                    self.moduleEnableButton["text"] = self.ENABLE
         self.pluginConfigChanged = True
         self.loadTreeViews()

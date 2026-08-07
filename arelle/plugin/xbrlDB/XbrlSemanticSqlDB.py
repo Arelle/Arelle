@@ -103,7 +103,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         if missingTables and missingTables != {"sequences"}:
             raise XPDBException("sqlDB:MissingTables",
                                 _("The following tables are missing: %(missingTableNames)s"),
-                                missingTableNames=', '.join(t for t in sorted(missingTables)))
+                                missingTableNames=", ".join(t for t in sorted(missingTables)))
 
     def insertXbrl(self, entrypoint, rssItem):
         try:
@@ -132,7 +132,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
 
             # at this point we determine what's in the database and provide new tables
             # requires locking most of the table structure
-            self.lockTables(('entity', 'filing', 'report', 'document', 'referenced_documents'),
+            self.lockTables(("entity", "filing", "report", "document", "referenced_documents"),
                             isSessionTransaction=True) # lock for whole transaction
 
             # find pre-existing documents in server database
@@ -248,22 +248,22 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             return None
         self.showStatus("insert entity")
         LEI = None
-        entity_comparator = ('legal_entity_number', 'file_number') if LEI else ('file_number',)
-        table = self.getTable('entity', 'entity_id',
-                              ('legal_entity_number',
-                               'file_number',
-                               'reference_number', # CIK
-                               'tax_number',
-                               'standard_industry_code',
-                               'name',
-                               'legal_state',
-                               'phone',
-                               'phys_addr1', 'phys_addr2', 'phys_city', 'phys_state', 'phys_zip', 'phys_country',
-                               'mail_addr1', 'mail_addr2', 'mail_city', 'mail_state', 'mail_zip', 'mail_country',
-                               'fiscal_year_end',
-                               'filer_category',
-                               'public_float',
-                               'trading_symbol'),
+        entity_comparator = ("legal_entity_number", "file_number") if LEI else ("file_number",)
+        table = self.getTable("entity", "entity_id",
+                              ("legal_entity_number",
+                               "file_number",
+                               "reference_number", # CIK
+                               "tax_number",
+                               "standard_industry_code",
+                               "name",
+                               "legal_state",
+                               "phone",
+                               "phys_addr1", "phys_addr2", "phys_city", "phys_state", "phys_zip", "phys_country",
+                               "mail_addr1", "mail_addr2", "mail_city", "mail_state", "mail_zip", "mail_country",
+                               "fiscal_year_end",
+                               "filer_category",
+                               "public_float",
+                               "trading_symbol"),
                               entity_comparator, # cannot compare None = None if LEI is absent, always False
                               ((LEI,
                                 rssItemGet("fileNumber") or entityInfo.get("file-number")  or str(int(time.time())),
@@ -302,23 +302,23 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 self.entityId = id
                 self.entityPreviouslyInDB = existenceStatus
                 break
-        if any ('former-conformed-name' in key for key in entityInfo.keys()):
-            self.getTable('former_entity', None,
-                          ('entity_id', 'former_name', 'date_changed'),
-                          ('entity_id', 'former_name', 'date_changed'),
+        if any ("former-conformed-name" in key for key in entityInfo.keys()):
+            self.getTable("former_entity", None,
+                          ("entity_id", "former_name", "date_changed"),
+                          ("entity_id", "former_name", "date_changed"),
                           ((self.entityId,
-                            entityInfo.get(keyPrefix + '.former-conformed-name'),
-                            entityInfo.get(keyPrefix + '.date-changed'))
-                           for key in entityInfo.keys() if 'former-conformed-name' in key
-                           for keyPrefix in (key.partition('.')[0],)),
+                            entityInfo.get(keyPrefix + ".former-conformed-name"),
+                            entityInfo.get(keyPrefix + ".date-changed"))
+                           for key in entityInfo.keys() if "former-conformed-name" in key
+                           for keyPrefix in (key.partition(".")[0],)),
                           checkIfExisting=True)
         self.showStatus("insert filing")
-        table = self.getTable('filing', 'filing_id',
-                              ('filing_number', 'form_type', 'entity_id', 'reference_number',
-                               'accepted_timestamp', 'is_most_current', 'filing_date',
-                               'creation_software',
-                               'authority_html_url', 'entry_url', ),
-                              ('filing_number',),
+        table = self.getTable("filing", "filing_id",
+                              ("filing_number", "form_type", "entity_id", "reference_number",
+                               "accepted_timestamp", "is_most_current", "filing_date",
+                               "creation_software",
+                               "authority_html_url", "entry_url", ),
+                              ("filing_number",),
                               ((rssItemGet("accessionNumber") or entityInfo.get("accession-number") or str(int(time.time())),  # NOT NULL
                                 rssItemGet("formType") or entityInfo.get("form-type"),
                                 self.entityId,
@@ -337,9 +337,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             self.filingPreviouslyInDB = existenceStatus
             break
         self.showStatus("insert report")
-        table = self.getTable('report', 'report_id',
-                              ('filing_id', ),
-                              ('filing_id',),
+        table = self.getTable("report", "report_id",
+                              ("filing_id", ),
+                              ("filing_id",),
                               ((self.filingId,
                                 ),),
                               checkIfExisting=True,
@@ -367,7 +367,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         if docUris:
             results = self.execute("SELECT document_id, document_url FROM {} WHERE document_url IN ({})"
                                    .format(self.dbTableName("document"),
-                                           ', '.join(docUris)))
+                                           ", ".join(docUris)))
             self.existingDocumentIds = dict((self.urlDocs[self.pyStrFromDbStr(docUrl)],docId)
                                             for docId, docUrl in results)
 
@@ -419,8 +419,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
 
         # add aspects referenced by logging entries
         for logEntry in self.loggingEntries:
-            for ref in logEntry['refs']:
-                modelObject = self.modelXbrl.modelObject(ref.get('objectId',''))
+            for ref in logEntry["refs"]:
+                modelObject = self.modelXbrl.modelObject(ref.get("objectId",""))
                 if isinstance(modelObject, ModelConcept) and modelObject.modelDocument.inDTS:
                     aspectsUsed.add(modelObject)
 
@@ -454,9 +454,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
 
     def insertDocuments(self):
         self.showStatus("insert documents")
-        table = self.getTable('document', 'document_id',
-                              ('document_url', 'document_type', 'namespace'),
-                              ('document_url',),
+        table = self.getTable("document", "document_id",
+                              ("document_url", "document_type", "namespace"),
+                              ("document_url",),
                               set((ensureUrl(docUrl),
                                    Type.typeName[mdlDoc.type],
                                    mdlDoc.targetNamespace)
@@ -480,10 +480,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                        and refDoc in self.documentIds:
                         referencedDocuments.add( (self.documentIds[mdlDoc], self.documentIds[refDoc] ))
 
-        table = self.getTable('referenced_documents',
+        table = self.getTable("referenced_documents",
                               None, # no id column in this table
-                              ('object_id','document_id'),
-                              ('object_id','document_id'),
+                              ("object_id","document_id"),
+                              ("object_id","document_id"),
                               referencedDocuments,
                               checkIfExisting=True)
 
@@ -507,7 +507,7 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                        and refDoc in self.documentIds:
                         if refDoc.type == Type.SCHEMA:
                             nsAuthority = authority(refDoc.targetNamespace, includeScheme=False)
-                            nsPath = refDoc.targetNamespace.split('/')
+                            nsPath = refDoc.targetNamespace.split("/")
                             if len(nsPath) > 2:
                                 if ((nsAuthority in ("fasb.org", "xbrl.us") and nsPath[-2] == "us-gaap") or
                                     (nsAuthority == "xbrl.ifrs.org" and nsPath[-1] in ("ifrs", "ifrs-full", "ifrs-smes"))):
@@ -550,9 +550,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         self.typeQnameId = {}
         if existingDocumentUsedTypes:
             typeQnameIds = []
-            table = self.getTable('data_type', 'data_type_id',
-                                  ('document_id', 'qname',),
-                                  ('document_id', 'qname',),
+            table = self.getTable("data_type", "data_type_id",
+                                  ("document_id", "qname",),
+                                  ("document_id", "qname",),
                                   tuple((self.documentIds[modelType.modelDocument],
                                          modelType.qname.clarkNotation)
                                         for modelType in existingDocumentUsedTypes
@@ -562,10 +562,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             for typeId, docId, qn in table:
                 self.typeQnameId[qname(qn)] = typeId
 
-        table = self.getTable('data_type', 'data_type_id',
-                              ('document_id', 'xml_id', 'xml_child_seq',
-                               'qname', 'name', 'base_type', 'derived_from_type_id'),
-                              ('document_id', 'qname',),
+        table = self.getTable("data_type", "data_type_id",
+                              ("document_id", "xml_id", "xml_child_seq",
+                               "qname", "name", "base_type", "derived_from_type_id"),
+                              ("document_id", "qname",),
                               tuple((self.documentIds[modelType.modelDocument],
                                      modelType.id,
                                      elementChildSequence(modelType),
@@ -591,8 +591,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                                self.typeQnameId[typeDerivedFrom.qname]) )
         # update derivedFrom's of newly added types
         if updatesToDerivedFrom:
-            self.updateTable('data_type',
-                             ('data_type_id', 'derived_from_type_id'),
+            self.updateTable("data_type",
+                             ("data_type_id", "derived_from_type_id"),
                              updatesToDerivedFrom)
 
         existingDocumentUsedTypes.clear() # dereference
@@ -602,9 +602,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
 
         # get existing element IDs
         if existingDocumentUsedAspects:
-            table = self.getTable('aspect', 'aspect_id',
-                                  ('document_id', 'qname',),
-                                  ('document_id', 'qname',),
+            table = self.getTable("aspect", "aspect_id",
+                                  ("document_id", "qname",),
+                                  ("document_id", "qname",),
                                   tuple((self.documentIds[concept.modelDocument],
                                          concept.qname.clarkNotation)
                                         for concept in existingDocumentUsedAspects
@@ -635,12 +635,12 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                  concept.isNumeric,
                                  concept.isMonetary,
                                  concept.isTextBlock))
-        table = self.getTable('aspect', 'aspect_id',
-                              ('document_id', 'xml_id', 'xml_child_seq',
-                               'qname', 'name', 'datatype_id', 'base_type', 'substitution_group_aspect_id',
-                               'balance', 'period_type', 'abstract', 'nillable',
-                               'is_numeric', 'is_monetary', 'is_text_block'),
-                              ('document_id', 'qname'),
+        table = self.getTable("aspect", "aspect_id",
+                              ("document_id", "xml_id", "xml_child_seq",
+                               "qname", "name", "datatype_id", "base_type", "substitution_group_aspect_id",
+                               "balance", "period_type", "abstract", "nillable",
+                               "is_numeric", "is_monetary", "is_text_block"),
+                              ("document_id", "qname"),
                               aspects
                              )
         for aspectId, docId, qn in table:
@@ -653,8 +653,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                                  self.aspectQnameId.get(concept.substitutionGroupQname)) )
         # update derivedFrom's of newly added types
         if updatesToSubstitutionGroup:
-            self.updateTable('aspect',
-                             ('aspect_id', 'substitution_group_aspect_id'),
+            self.updateTable("aspect",
+                             ("aspect_id", "substitution_group_aspect_id"),
                              updatesToSubstitutionGroup)
 
         filingDocumentAspects.clear() # dereference
@@ -668,9 +668,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                 for arcroleTypes in self.modelXbrl.arcroleTypes.values()
                                 for arcroleType in arcroleTypes
                                 if arcroleType.modelDocument in self.existingDocumentIds)
-        table = self.getTable('arcrole_type', 'arcrole_type_id',
-                              ('document_id', 'arcrole_uri'),
-                              ('document_id', 'arcrole_uri'),
+        table = self.getTable("arcrole_type", "arcrole_type_id",
+                              ("document_id", "arcrole_uri"),
+                              ("document_id", "arcrole_uri"),
                               tuple((arcroleTypeIDs[0], # doc Id
                                      arcroleTypeIDs[1] # uri Id
                                      )
@@ -688,9 +688,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                  for arcroleTypes in self.modelXbrl.arcroleTypes.values()
                                  for arcroleType in arcroleTypes
                                  if arcroleType.modelDocument not in self.existingDocumentIds)
-        table = self.getTable('arcrole_type', 'arcrole_type_id',
-                              ('document_id', 'xml_id', 'xml_child_seq', 'arcrole_uri', 'cycles_allowed', 'definition'),
-                              ('document_id', 'arcrole_uri'),
+        table = self.getTable("arcrole_type", "arcrole_type_id",
+                              ("document_id", "xml_id", "xml_child_seq", "arcrole_uri", "cycles_allowed", "definition"),
+                              ("document_id", "arcrole_uri"),
                               tuple((arcroleTypeIDs[0], # doc Id
                                      arcroleType.id,
                                      elementChildSequence(arcroleType),
@@ -702,10 +702,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         for arcroleId, docId, uri in table:
             self.arcroleTypeIds[(docId, uri)] = arcroleId
 
-        table = self.getTable('used_on',
+        table = self.getTable("used_on",
                               None, # no record id in this table
-                              ('object_id', 'aspect_id'),
-                              ('object_id', 'aspect_id'),
+                              ("object_id", "aspect_id"),
+                              ("object_id", "aspect_id"),
                               tuple((self.arcroleTypeIds[(arcroleTypeIDs[0], arcroleType.arcroleURI)],
                                      self.aspectQnameId[usedOnQn])
                                     for arcroleTypeIDs, arcroleType in arcroleTypesByIds.items()
@@ -721,9 +721,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                               for roleTypes in self.modelXbrl.roleTypes.values()
                               for roleType in roleTypes
                               if roleType.modelDocument in self.existingDocumentIds)
-        table = self.getTable('role_type', 'role_type_id',
-                              ('document_id', 'role_uri'),
-                              ('document_id', 'role_uri'),
+        table = self.getTable("role_type", "role_type_id",
+                              ("document_id", "role_uri"),
+                              ("document_id", "role_uri"),
                               tuple((roleTypeIDs[0], # doc Id
                                      roleTypeIDs[1] # uri Id
                                      )
@@ -741,9 +741,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                               for roleTypes in self.modelXbrl.roleTypes.values()
                               for roleType in roleTypes
                               if roleType.modelDocument not in self.existingDocumentIds)
-        table = self.getTable('role_type', 'role_type_id',
-                              ('document_id', 'xml_id', 'xml_child_seq', 'role_uri', 'definition'),
-                              ('document_id', 'role_uri'),
+        table = self.getTable("role_type", "role_type_id",
+                              ("document_id", "xml_id", "xml_child_seq", "role_uri", "definition"),
+                              ("document_id", "role_uri"),
                               tuple((roleTypeIDs[0], # doc Id
                                      roleType.id,
                                      elementChildSequence(roleType),
@@ -754,10 +754,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             self.roleTypeIds[(docId, uri)] = roleId
 
 
-        table = self.getTable('used_on',
+        table = self.getTable("used_on",
                               None, # no record id in this table
-                              ('object_id', 'aspect_id'),
-                              ('object_id', 'aspect_id'),
+                              ("object_id", "aspect_id"),
+                              ("object_id", "aspect_id"),
                               tuple((self.roleTypeIds[(roleTypeIDs[0], roleType.roleURI)],
                                      self.aspectQnameId[usedOnQn])
                                     for roleTypeIDs, roleType in roleTypesByIds.items()
@@ -781,9 +781,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                for rel in self.modelXbrl.relationshipSet(arcrole).modelRelationships
                                for resource in (rel.fromModelObject, rel.toModelObject)
                                if isinstance(resource, ModelResource))
-        table = self.getTable('resource', 'resource_id',
-                              ('document_id', 'xml_id', 'xml_child_seq', 'qname', 'role', 'value', 'xml_lang'),
-                              ('document_id', 'xml_child_seq'),
+        table = self.getTable("resource", "resource_id",
+                              ("document_id", "xml_id", "xml_child_seq", "qname", "role", "value", "xml_lang"),
+                              ("document_id", "xml_child_seq"),
                               tuple((self.documentIds[resource.modelDocument],
                                      resource.id,
                                      elementChildSequence(resource),
@@ -814,9 +814,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
 
     def insertRelationships(self):
         self.showStatus("insert relationship sets")
-        table = self.getTable('relationship_set', 'relationship_set_id',
-                              ('document_id', 'link_role', 'arc_role', 'link_qname', 'arc_qname'),
-                              ('document_id', 'link_role', 'arc_role', 'link_qname', 'arc_qname'),
+        table = self.getTable("relationship_set", "relationship_set_id",
+                              ("document_id", "link_role", "arc_role", "link_qname", "arc_qname"),
+                              ("document_id", "link_role", "arc_role", "link_qname", "arc_qname"),
                               tuple((self.documentIds[self.modelXbrl.modelDocument if self.arcroleInInstance[arcrole]
                                                       else self.taxonomyRelSetsOwner],
                                      ELR,
@@ -861,12 +861,12 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
             else:
                 return None
 
-        table = self.getTable('relationship', 'relationship_id',
-                              ('document_id', 'xml_id', 'xml_child_seq',
-                               'relationship_set_id', 'reln_order',
-                               'from_id', 'to_id', 'calculation_weight',
-                               'tree_sequence', 'tree_depth', 'preferred_label_role'),
-                              ('relationship_set_id', 'document_id', 'xml_child_seq'),
+        table = self.getTable("relationship", "relationship_id",
+                              ("document_id", "xml_id", "xml_child_seq",
+                               "relationship_set_id", "reln_order",
+                               "from_id", "to_id", "calculation_weight",
+                               "tree_sequence", "tree_depth", "preferred_label_role"),
+                              ("relationship_set_id", "document_id", "xml_child_seq"),
                               tuple((self.documentIds[rel.modelDocument],
                                      rel.id,
                                      elementChildSequence(rel.arcElement),
@@ -882,9 +882,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                     if isinstance(rel.fromModelObject, ModelObject) and isinstance(rel.toModelObject, ModelObject)))
         self.relationshipId = dict(((docId,xml_child_seq), relationshipId)
                                    for relationshipId, relSetId, docId, xml_child_seq in table)
-        table = self.getTable('root', None,
-                              ('relationship_set_id', 'relationship_id'),
-                              ('relationship_set_id', 'relationship_id'),
+        table = self.getTable("root", None,
+                              ("relationship_set_id", "relationship_id"),
+                              ("relationship_set_id", "relationship_id"),
                               tuple((relSetId,
                                      self.relationshipId[self.documentIds[rel.modelDocument],
                                                          elementChildSequence(rel.arcElement)])
@@ -935,9 +935,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                          close=False, fetch=False)
         self.showStatus("insert data points")
         # units
-        table = self.getTable('unit', 'unit_id',
-                              ('report_id', 'xml_id', 'xml_child_seq', 'measures_hash'),
-                              ('report_id', 'measures_hash'),
+        table = self.getTable("unit", "unit_id",
+                              ("report_id", "xml_id", "xml_child_seq", "measures_hash"),
+                              ("report_id", "measures_hash"),
                               tuple((reportId,
                                      unit.id,
                                      elementChildSequence(unit),
@@ -947,19 +947,19 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         self.unitId = dict(((_reportId, measuresHash), id)
                            for id, _reportId, measuresHash in table)
         # measures
-        table = self.getTable('unit_measure',
+        table = self.getTable("unit_measure",
                               None,
-                              ('unit_id', 'qname', 'is_multiplicand'),
-                              ('unit_id', 'qname', 'is_multiplicand'),
+                              ("unit_id", "qname", "is_multiplicand"),
+                              ("unit_id", "qname", "is_multiplicand"),
                               tuple((self.unitId[(reportId,unit.md5hash)],
                                      measure.clarkNotation,
                                      i == 0)
                                     for unit in self.modelXbrl.units.values()
                                     for i in range(2)
                                     for measure in unit.measures[i]))
-        table = self.getTable('entity_identifier', 'entity_identifier_id',
-                              ('report_id', 'scheme', 'identifier'),
-                              ('report_id', 'scheme', 'identifier'),
+        table = self.getTable("entity_identifier", "entity_identifier_id",
+                              ("report_id", "scheme", "identifier"),
+                              ("report_id", "scheme", "identifier"),
                               set((reportId,
                                    cntx.entityIdentifier[0],
                                    cntx.entityIdentifier[1])
@@ -967,9 +967,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                               checkIfExisting=True) # entities shared across multiple instance/inline docs
         self.entityIdentifierId = dict(((_reportId, entScheme, entIdent), id)
                                        for id, _reportId, entScheme, entIdent in table)
-        table = self.getTable('period', 'period_id',
-                              ('report_id', 'start_date', 'end_date', 'is_instant', 'is_forever'),
-                              ('report_id', 'start_date', 'end_date', 'is_instant', 'is_forever'),
+        table = self.getTable("period", "period_id",
+                              ("report_id", "start_date", "end_date", "is_instant", "is_forever"),
+                              ("report_id", "start_date", "end_date", "is_instant", "is_forever"),
                               set((reportId,
                                    cntx.startDatetime if cntx.isStartEndPeriod else None,
                                    cntx.endDatetime if (cntx.isStartEndPeriod or cntx.isInstantPeriod) else None,
@@ -998,9 +998,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         self.execute("DELETE FROM {0} WHERE report_id = {1}"
                      .format(self.dbTableName("aspect_value_selection_set"), reportId),
                      close=False, fetch=False)
-        table = self.getTable('aspect_value_selection_set', 'aspect_value_selection_id',
-                              ('report_id', ),
-                              ('report_id', ),
+        table = self.getTable("aspect_value_selection_set", "aspect_value_selection_id",
+                              ("report_id", ),
+                              ("report_id", ),
                               tuple((reportId,)
                                     for aspectValueSelection in aspectValueSelections)
                               )
@@ -1015,10 +1015,10 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                              for cntx, _cntxDimsSet in cntxAspectValueSelectionSet.items()
                                              if _cntxDimsSet)
 
-        table = self.getTable('aspect_value_selection',
+        table = self.getTable("aspect_value_selection",
                               None,
-                              ('aspect_value_selection_id', 'aspect_id', 'aspect_value_id', 'is_typed_value', 'typed_value'),
-                              ('aspect_value_selection_id', ),
+                              ("aspect_value_selection_id", "aspect_id", "aspect_value_id", "is_typed_value", "typed_value"),
+                              ("aspect_value_selection_id", ),
                               tuple((aspectValueSetId, dimId, dimMbrId, isTyped, typedValue)
                                     for aspectValueSelection, aspectValueSetId in aspectValueSelectionSets.items()
                                     for dimId, dimMbrId, isTyped, typedValue in aspectValueSelection)
@@ -1054,13 +1054,13 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                                   roundValue(fact.value, fact.precision, fact.decimals) if fact.isNumeric and not fact.isNil else None,
                                   fact.value
                                   ))
-            table = self.getTable('data_point', 'datapoint_id',
-                                  ('report_id', 'document_id', 'xml_id', 'xml_child_seq', 'source_line',
-                                   'parent_datapoint_id',  # tuple
-                                   'aspect_id',
-                                   'context_xml_id', 'entity_identifier_id', 'period_id', 'aspect_value_selection_id', 'unit_id',
-                                   'is_nil', 'precision_value', 'decimals_value', 'effective_value', 'value'),
-                                  ('document_id', 'xml_child_seq'),
+            table = self.getTable("data_point", "datapoint_id",
+                                  ("report_id", "document_id", "xml_id", "xml_child_seq", "source_line",
+                                   "parent_datapoint_id",  # tuple
+                                   "aspect_id",
+                                   "context_xml_id", "entity_identifier_id", "period_id", "aspect_value_selection_id", "unit_id",
+                                   "is_nil", "precision_value", "decimals_value", "effective_value", "value"),
+                                  ("document_id", "xml_child_seq"),
                                   facts)
             xmlIdDataPointId = dict(((docId, xml_child_seq), datapointId)
                                     for datapointId, docId, xml_child_seq in table)
@@ -1092,9 +1092,9 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
                 except KeyError:
                     # print ("missing table data points role or data point")
                     pass
-            table = self.getTable('table_data_points', None,
-                                  ('report_id', 'object_id', 'table_code', 'datapoint_id'),
-                                  ('report_id', 'object_id', 'datapoint_id'),
+            table = self.getTable("table_data_points", None,
+                                  ("report_id", "object_id", "table_code", "datapoint_id"),
+                                  ("report_id", "object_id", "datapoint_id"),
                                   tableDataPoints)
 
     def insertValidationResults(self):
@@ -1118,8 +1118,8 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
         messageRefs = defaultdict(set) # direct link to objects
         for i, logEntry in enumerate(self.loggingEntries):
             sequenceInReport = i+1
-            for ref in logEntry['refs']:
-                modelObject = self.modelXbrl.modelObject(ref.get('objectId',''))
+            for ref in logEntry["refs"]:
+                modelObject = self.modelXbrl.modelObject(ref.get("objectId",""))
                 # for now just find a concept
                 objectId = None
                 if isinstance(modelObject, ModelFact):
@@ -1142,20 +1142,20 @@ class XbrlSqlDatabaseConnection(SqlDbConnection):
 
             messages.append((reportId,
                              sequenceInReport,
-                             logEntry['code'],
-                             logEntry['level'],
-                             logEntry['message']['text']))
+                             logEntry["code"],
+                             logEntry["level"],
+                             logEntry["message"]["text"]))
         if messages:
             self.showStatus("insert validation messages")
-            table = self.getTable('message', 'message_id',
-                                  ('report_id', 'sequence_in_report', 'message_code', 'message_level', 'value'),
-                                  ('report_id', 'sequence_in_report'),
+            table = self.getTable("message", "message_id",
+                                  ("report_id", "sequence_in_report", "message_code", "message_level", "value"),
+                                  ("report_id", "sequence_in_report"),
                                   messages)
             messageIds = dict((sequenceInReport, messageId)
                               for messageId, _reportId, sequenceInReport in table)
-            table = self.getTable('message_reference', None,
-                                  ('message_id', 'object_id'),
-                                  ('message_id', 'object_id'),
+            table = self.getTable("message_reference", None,
+                                  ("message_id", "object_id"),
+                                  ("message_id", "object_id"),
                                   tuple((messageId,
                                          objectId)
                                         for sequenceInReport, objectIds in messageRefs.items()

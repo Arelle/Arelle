@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 from collections import defaultdict
@@ -44,11 +44,11 @@ class UtrEntry: # use slotted class for execution efficiency
     def qname(self) -> QName | None:
         if not self.nsUnit:
             return None
-        prefix = self.nsUnit.split('/')[-1]
+        prefix = self.nsUnit.split("/")[-1]
         return QName(prefix=prefix, namespaceURI=self.nsUnit, localName=self.unitId)  # type: ignore[arg-type]
 
     def __repr__(self) -> str:
-        return "utrEntry({})".format(', '.join("{}={}".format(n, getattr(self,n))
+        return "utrEntry({})".format(", ".join("{}={}".format(n, getattr(self,n))
                                                for n in self.__slots__))
 
 def loadUtr(modelXbrl: ModelXbrl, statusFilters: list[str] | None = None) -> None:
@@ -65,7 +65,7 @@ def loadUtr(modelXbrl: ModelXbrl, statusFilters: list[str] | None = None) -> Non
         if modelManager.disclosureSystem.utrStatusFilters:
             statusFilters = modelManager.disclosureSystem.utrStatusFilters.split()
         else:
-            statusFilters = ['REC']
+            statusFilters = ["REC"]
     utrItemTypeEntries: defaultdict[str | None, dict[str | None, UtrEntry]] = defaultdict(dict)
     modelManager.disclosureSystem.utrItemTypeEntries = utrItemTypeEntries  # type: ignore[attr-defined]
     # print('UTR LOADED FROM '+utrUrl);
@@ -234,7 +234,7 @@ class ValidateUtr:
     def utrSymbol(self, multMeasures: list[QName] | None, divMeasures: list[QName] | None) -> str:
         if not divMeasures:
             if not multMeasures:
-                return ''
+                return ""
             elif len(multMeasures) == 1:
                 m = multMeasures[0]
                 for utrItemTypeEntry in self.utrItemTypeEntries.values():

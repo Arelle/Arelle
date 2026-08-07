@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from arelle import ViewFile, XbrlConst
 from collections import defaultdict
 
@@ -59,7 +59,7 @@ class ViewConcepts(ViewFile.View):
             headings.append("Typed Domain Ref")
         headings.append("Facets")
         headings.append("Doc\u00ADu\u00ADmen\u00ADta\u00ADtion")
-        self.setColWidths([COL_WIDTHS.get(hdg.replace('\u00AD',''), 8) for hdg in headings])
+        self.setColWidths([COL_WIDTHS.get(hdg.replace("\u00AD",""), 8) for hdg in headings])
         self.addRow(headings, asHeader=True)
         srtLbls = sorted(lbls)
         for label in srtLbls:
@@ -80,7 +80,7 @@ class ViewConcepts(ViewFile.View):
                     if hasDifferentNillables:
                         cols.append(concept.nillable)
                     if hasTypedDomainRef:
-                        cols.append(concept.typedDomainRef or '')
+                        cols.append(concept.typedDomainRef or "")
                     if concept.type is not None and concept.type.facets:
                         # facets if any, sorted and separated by ;
                         cols.append(" ".join("{0}={1}".format(

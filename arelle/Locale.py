@@ -45,11 +45,11 @@ defaultLocaleCodes = {
     "tr": "TR", "uk": "UA", "ur": "PK", "vi": "VN", "zh": "CN"}
 
 
-BCP47_LANGUAGE_REGION_SEPARATOR = '-'
-POSIX_LANGUAGE_REGION_SEPARATOR = '_'
-POSIX_LOCALE_ENCODING_SEPARATOR = '.'
-POSIX_LOCALE_DEFAULT_ENCODING = 'utf-8'
-POSIX_PSEUDO_LOCALES = frozenset({'C', 'POSIX'})
+BCP47_LANGUAGE_REGION_SEPARATOR = "-"
+POSIX_LANGUAGE_REGION_SEPARATOR = "_"
+POSIX_LOCALE_ENCODING_SEPARATOR = "."
+POSIX_LOCALE_DEFAULT_ENCODING = "utf-8"
+POSIX_PSEUDO_LOCALES = frozenset({"C", "POSIX"})
 
 BCP47_LANGUAGE_TAG_RE = re.compile(r"^[a-zA-Z]{2,8}(-[a-zA-Z0-9]{1,8})*$")
 POSIX_LOCALENAME_RE = re.compile(r"^[a-zA-Z]{2,3}(_[a-zA-Z]{2})?(\.[a-zA-Z0-9-]+)?(@[a-zA-Z0-9]+)?$")
@@ -82,7 +82,7 @@ class _LocaleCode(NamedTuple):
         input is untrusted or its format is not guaranteed.
         """
         # Strip @modifier (script indicator like @latin, or currency like @euro).
-        posixLocale = posixLocale.partition('@')[0]
+        posixLocale = posixLocale.partition("@")[0]
         lang_region, _, encoding = posixLocale.partition(POSIX_LOCALE_ENCODING_SEPARATOR)
         lang, _, region = lang_region.partition(POSIX_LANGUAGE_REGION_SEPARATOR)
         return cls(lang=lang, region=region or None, encoding=encoding or None)
@@ -186,11 +186,11 @@ def getUserLocale(posixLocale: str | None = None) -> tuple[LocaleDict, str | Non
     :param posixLocale: The locale code to use to retrieve conventions. Defaults to system default.
     :return: Tuple of (locale conventions dict, optional error message for the user)
     """
-    localeStr = posixLocale or ''
+    localeStr = posixLocale or ""
     if (conv := _probeLocale(localeStr)) is not None:
         return conv, None
     # Locale not available — fall back to C and report it
-    return cast(LocaleDict, _probeLocale('C') or locale.localeconv()), \
+    return cast(LocaleDict, _probeLocale("C") or locale.localeconv()), \
         _('Locale code "{}" is not available on this system.').format(posixLocale)
 
 
@@ -432,7 +432,7 @@ def _getSystem_LocaleCodes() -> frozenset[_LocaleCode]:
             for loc in locales.splitlines()
             # Skip C/POSIX pseudo-locales; @modifier variants (e.g. sr_RS@latin,
             # de_AT@euro) are handled by from_posix stripping the modifier.
-            if loc and loc not in POSIX_PSEUDO_LOCALES and not loc.startswith('C.')
+            if loc and loc not in POSIX_PSEUDO_LOCALES and not loc.startswith("C.")
         )
     return frozenset()
 
@@ -587,7 +587,7 @@ def setApplicationLocale() -> None:
     (e.g., `arelleCmdLine`, `arelleGUI`.)
     :return:
     """
-    locale.setlocale(locale.LC_ALL, 'C')
+    locale.setlocale(locale.LC_ALL, "C")
 
 
 _disableRTL: bool = False  # disable for implementations where tkinter supports rtl
@@ -607,30 +607,30 @@ def rtlString(source: str, lang: str | None) -> str:
         for c in source:
             bidi = unicodedata.bidirectional(c)
             if rtl:
-                if bidi == 'L':
+                if bidi == "L":
                     if words:
-                        line.insert(lineInsertion, ''.join(words))
+                        line.insert(lineInsertion, "".join(words))
                         words = []
                     rtl = False
-                elif bidi in ('R', 'NSM', 'AN'):
+                elif bidi in ("R", "NSM", "AN"):
                     pass
                 else:
                     if words:
-                        line.insert(lineInsertion, ''.join(words))
+                        line.insert(lineInsertion, "".join(words))
                         words = []
                     line.insert(lineInsertion, c)
                     continue
             else:
-                if bidi == 'R' or bidi == 'AN':
+                if bidi == "R" or bidi == "AN":
                     if words:
-                        line.append(''.join(words))
+                        line.append("".join(words))
                         words = []
                     rtl = True
             words.append(c)
         if words:
             if rtl:
-                line.insert(0, ''.join(words))
-        return ''.join(line)
+                line.insert(0, "".join(words))
+        return "".join(line)
     else:
         return source
 
@@ -652,25 +652,25 @@ def _grouping_intervals(grouping: list[int]) -> Generator[int, None, None]:
 
 # perform the grouping from right to left
 def _group(conv: LocaleDict, s: str, monetary: bool = False) -> tuple[str, int]:
-    thousands_sep = conv[monetary and 'mon_thousands_sep' or 'thousands_sep']
-    grouping = conv[monetary and 'mon_grouping' or 'grouping']
+    thousands_sep = conv[monetary and "mon_thousands_sep" or "thousands_sep"]
+    grouping = conv[monetary and "mon_grouping" or "grouping"]
     if not grouping:
         return (s, 0)
     result = ""
     seps = 0
-    if s[-1] == ' ':
+    if s[-1] == " ":
         stripped = s.rstrip()
         right_spaces = s[len(stripped):]
         s = stripped
     else:
-        right_spaces = ''
-    left_spaces = ''
+        right_spaces = ""
+    left_spaces = ""
     groups = []
     for interval in _grouping_intervals(grouping):
         if not s or s[-1] not in "0123456789":
             # only non-digit characters remain (sign, spaces)
             left_spaces = s
-            s = ''
+            s = ""
             break
         groups.append(s[-interval:])
         s = s[:-interval]
@@ -686,18 +686,18 @@ def _group(conv: LocaleDict, s: str, monetary: bool = False) -> tuple[str, int]:
 # Strip a given amount of excess padding from the given string
 def _strip_padding(s: str, amount: int) -> str:
     lpos = 0
-    while amount and s[lpos] == ' ':
+    while amount and s[lpos] == " ":
         lpos += 1
         amount -= 1
     rpos = len(s) - 1
-    while amount and s[rpos] == ' ':
+    while amount and s[rpos] == " ":
         rpos -= 1
         amount -= 1
     return s[lpos:rpos+1]
 
 
-_percent_re = re.compile(r'%(?:\((?P<key>.*?)\))?'
-                         r'(?P<modifiers>[-#0-9 +*.hlL]*?)[eEfFgGdiouxXcrs%]')
+_percent_re = re.compile(r"%(?:\((?P<key>.*?)\))?"
+                         r"(?P<modifiers>[-#0-9 +*.hlL]*?)[eEfFgGdiouxXcrs%]")
 
 
 def format(
@@ -743,16 +743,16 @@ def _format(
         else:
             formatted = percent % value
     # floats and decimal ints need special action!
-    if formattype in 'eEfFgG':
+    if formattype in "eEfFgG":
         seps = 0
-        parts = formatted.split('.')
+        parts = formatted.split(".")
         if grouping:
             parts[0], seps = _group(conv, parts[0], monetary=monetary)
-        decimal_point = conv[monetary and 'mon_decimal_point' or 'decimal_point']
+        decimal_point = conv[monetary and "mon_decimal_point" or "decimal_point"]
         formatted = decimal_point.join(parts)
         if seps:
             formatted = _strip_padding(formatted, seps)
-    elif formattype in 'diu':
+    elif formattype in "diu":
         seps = 0
         if grouping:
             formatted, seps = _group(conv, formatted, monetary=monetary)
@@ -771,13 +771,13 @@ def format_string(
     but takes the current locale into account.
     Grouping is applied if the third parameter is true."""
     percents = list(_percent_re.finditer(f))
-    new_f = _percent_re.sub('%s', f)
+    new_f = _percent_re.sub("%s", f)
 
     if isinstance(val, Mapping):
         new_val = []
         for perc in percents:
-            if perc.group()[-1]=='%':
-                new_val.append('%')
+            if perc.group()[-1]=="%":
+                new_val.append("%")
             else:
                 new_val.append(format(conv, perc.group(), val, grouping))
     else:
@@ -786,10 +786,10 @@ def format_string(
         new_val = []
         i = 0
         for perc in percents:
-            if perc.group()[-1]=='%':
-                new_val.append('%')
+            if perc.group()[-1]=="%":
+                new_val.append("%")
             else:
-                starcount = perc.group('modifiers').count('*')
+                starcount = perc.group("modifiers").count("*")
                 new_val.append(_format(conv,
                                        perc.group(),
                                        val[i],
@@ -813,44 +813,44 @@ def currency(
     in the current locale."""
 
     # check for illegal values
-    digits = conv[international and 'int_frac_digits' or 'frac_digits']
+    digits = conv[international and "int_frac_digits" or "frac_digits"]
     if digits == 127:
         raise ValueError("Currency formatting is not possible using "
                          "the 'C' locale.")
 
-    s = format(conv, '%%.%if' % digits, abs(val), grouping, monetary=True)
+    s = format(conv, "%%.%if" % digits, abs(val), grouping, monetary=True)
     # '<' and '>' are markers if the sign must be inserted between symbol and value
-    s = '<' + s + '>'
+    s = "<" + s + ">"
 
     if symbol:
-        smb = conv[international and 'int_curr_symbol' or 'currency_symbol']
-        precedes = conv[val<0 and 'n_cs_precedes' or 'p_cs_precedes']
-        separated = conv[val<0 and 'n_sep_by_space' or 'p_sep_by_space']
+        smb = conv[international and "int_curr_symbol" or "currency_symbol"]
+        precedes = conv[val<0 and "n_cs_precedes" or "p_cs_precedes"]
+        separated = conv[val<0 and "n_sep_by_space" or "p_sep_by_space"]
 
         if precedes:
-            s = smb + (separated and ' ' or '') + s
+            s = smb + (separated and " " or "") + s
         else:
-            s = s + (separated and ' ' or '') + smb
+            s = s + (separated and " " or "") + smb
 
-    sign_pos = conv[val<0 and 'n_sign_posn' or 'p_sign_posn']
-    sign = conv[val<0 and 'negative_sign' or 'positive_sign']
+    sign_pos = conv[val<0 and "n_sign_posn" or "p_sign_posn"]
+    sign = conv[val<0 and "negative_sign" or "positive_sign"]
 
     if sign_pos == 0:
-        s = '(' + s + ')'
+        s = "(" + s + ")"
     elif sign_pos == 1:
         s = sign + s
     elif sign_pos == 2:
         s = s + sign
     elif sign_pos == 3:
-        s = s.replace('<', sign)
+        s = s.replace("<", sign)
     elif sign_pos == 4:
-        s = s.replace('>', sign)
+        s = s.replace(">", sign)
     else:
         # the default if nothing specified;
         # this should be the most fitting sign position
         s = sign + s
 
-    return s.replace('<', '').replace('>', '')
+    return s.replace("<", "").replace(">", "")
 
 
 def ftostr(conv: LocaleDict, val: Any) -> str:
@@ -861,13 +861,13 @@ def ftostr(conv: LocaleDict, val: Any) -> str:
 def atof(conv: LocaleDict, string: str, func: Callable[[str], Any] = float) -> Any:  # return type depends on func param, it is used to return float, int, and str
     "Parses a string as a float according to the locale settings."
     #First, get rid of the grouping
-    ts = conv['thousands_sep']
+    ts = conv["thousands_sep"]
     if ts:
-        string = string.replace(ts, '')
+        string = string.replace(ts, "")
     #next, replace the decimal point with a dot
-    dd = conv['decimal_point']
+    dd = conv["decimal_point"]
     if dd:
-        string = string.replace(dd, '.')
+        string = string.replace(dd, ".")
     #finally, parse the string
     return func(string)
 
@@ -879,11 +879,11 @@ def atoi(conv: LocaleDict, str: str) -> int:
 
 def format_picture(conv: LocaleDict, value: Any, picture: str) -> str:
     monetary = False
-    decimal_point = conv['decimal_point']
-    thousands_sep = conv[monetary and 'mon_thousands_sep' or 'thousands_sep']
-    percent = '%'
-    per_mille = '\u2030'
-    minus_sign = '-'
+    decimal_point = conv["decimal_point"]
+    thousands_sep = conv[monetary and "mon_thousands_sep" or "thousands_sep"]
+    percent = "%"
+    per_mille = "\u2030"
+    minus_sign = "-"
     #grouping = conv[monetary and 'mon_grouping' or 'grouping']
 
     if isinstance(value, float):
@@ -893,57 +893,57 @@ def format_picture(conv: LocaleDict, value: Any, picture: str) -> str:
     elif isinstance(value, Fraction):
         value = Decimal(float(value))
     elif not isinstance(value, Decimal):
-        raise ValueError(_('Picture requires a number convertible to decimal or float').format(picture))
+        raise ValueError(_("Picture requires a number convertible to decimal or float").format(picture))
 
     if value.is_nan():
-        return 'NaN'
+        return "NaN"
 
     isNegative = value.is_signed()
 
-    pic, sep, negPic = picture.partition(';')
-    if negPic and ';' in negPic:
-        raise ValueError(_('Picture contains multiple picture separators {0}').format(picture))
+    pic, sep, negPic = picture.partition(";")
+    if negPic and ";" in negPic:
+        raise ValueError(_("Picture contains multiple picture separators {0}").format(picture))
     if isNegative and negPic:
         pic = negPic
 
     if len([c for c in pic if c in (percent, per_mille) ]) > 1:
-        raise ValueError(_('Picture contains multiple percent or per_mille characters {0}').format(picture))
+        raise ValueError(_("Picture contains multiple percent or per_mille characters {0}").format(picture))
     if percent in pic:
         value *= 100
     elif per_mille in pic:
         value *= 1000
 
     intPart, sep, fractPart = pic.partition(decimal_point)
-    prefix = ''
+    prefix = ""
     numPlaces = 0
     intPlaces = 0
     grouping = 0
     fractPlaces = 0
-    suffix = ''
+    suffix = ""
     if fractPart:
         if decimal_point in fractPart:
-            raise ValueError(_('Sub-picture contains decimal point separators {0}').format(pic))
+            raise ValueError(_("Sub-picture contains decimal point separators {0}").format(pic))
 
         for c in fractPart:
             if c.isdecimal():
                 numPlaces += 1
                 fractPlaces += 1
                 if suffix:
-                    raise ValueError(_('Sub-picture passive character {0} between active characters {1}').format(c, fractPart))
+                    raise ValueError(_("Sub-picture passive character {0} between active characters {1}").format(c, fractPart))
             else:
                 suffix += c
 
     intPosition = 0
     for c in reversed(intPart):
-        if c.isdecimal() or c == '#' or c == thousands_sep:
+        if c.isdecimal() or c == "#" or c == thousands_sep:
             if prefix:
-                raise ValueError(_('Sub-picture passive character {0} between active characters {1}').format(c, intPart))
+                raise ValueError(_("Sub-picture passive character {0} between active characters {1}").format(c, intPart))
         if c.isdecimal():
             numPlaces += 1
             intPlaces += 1
             intPosition += 1
-            prefix = ''
-        elif c == '#':
+            prefix = ""
+        elif c == "#":
             numPlaces += 1
             intPosition += 1
         elif c == thousands_sep:
@@ -953,7 +953,7 @@ def format_picture(conv: LocaleDict, value: Any, picture: str) -> str:
             prefix = c + prefix
 
     if not numPlaces and prefix != minus_sign:
-            raise ValueError(_('Sub-picture must contain at least one digit position or sign character {0}').format(pic))
+            raise ValueError(_("Sub-picture must contain at least one digit position or sign character {0}").format(pic))
     if intPlaces == 0 and fractPlaces == 0:
         intPlaces = 1
 
@@ -970,7 +970,7 @@ def format_decimal(
     value: Decimal,
     intPlaces: int = 1,
     fractPlaces: int = 2,
-    curr: str = '',
+    curr: str = "",
     sep: str | None = None,
     grouping: int | None = None,
     dp: str | None = None,
@@ -1005,43 +1005,43 @@ def format_decimal(
     """
     if conv is not None:
         if dp is None:
-            dp = conv['decimal_point'] or '.'
+            dp = conv["decimal_point"] or "."
         if sep is None:
-            sep = conv['thousands_sep'] or ','
+            sep = conv["thousands_sep"] or ","
         if pos is None and trailpos is None:
-            possign = conv['positive_sign']
-            pospos = conv['p_sign_posn']
-            if pospos in('0', 0):
-                pos = '('; trailpos = ')'
-            elif pospos in ('1', 1, '3', 3):
-                pos = possign; trailpos = ''
-            elif pospos in ('2', 2, '4', 4):
-                pos = ''; trailpos = possign
+            possign = conv["positive_sign"]
+            pospos = conv["p_sign_posn"]
+            if pospos in("0", 0):
+                pos = "("; trailpos = ")"
+            elif pospos in ("1", 1, "3", 3):
+                pos = possign; trailpos = ""
+            elif pospos in ("2", 2, "4", 4):
+                pos = ""; trailpos = possign
             else:
-                pos = ''; trailpos = ''
+                pos = ""; trailpos = ""
         if neg is None and trailneg is None:
-            negsign = conv['negative_sign']
-            negpos = conv['n_sign_posn']
-            if negpos in ('0', 0):
-                neg = '('; trailneg = ')'
-            elif negpos in ('1', 1, '3', 3):
-                neg = negsign; trailneg = ''
-            elif negpos in ('2', 2, '4', 4):
-                neg = ''; trailneg = negsign
+            negsign = conv["negative_sign"]
+            negpos = conv["n_sign_posn"]
+            if negpos in ("0", 0):
+                neg = "("; trailneg = ")"
+            elif negpos in ("1", 1, "3", 3):
+                neg = negsign; trailneg = ""
+            elif negpos in ("2", 2, "4", 4):
+                neg = ""; trailneg = negsign
             elif negpos == 127:
-                neg = '-'; trailneg = ''
+                neg = "-"; trailneg = ""
             else:
-                neg = ''; trailneg = ''
+                neg = ""; trailneg = ""
         if grouping is None:
-            groups = conv['grouping']
+            groups = conv["grouping"]
             grouping = groups[0] if groups else 3
     else:
         if dp is None:
-            dp = '.'
+            dp = "."
         if sep is None:
-            sep = ','
+            sep = ","
         if neg is None and trailneg is None:
-            neg = '-'; trailneg = ''
+            neg = "-"; trailneg = ""
         if grouping is None:
             grouping = 3
     q = Decimal(10) ** -fractPlaces      # 2 places --> '0.01'
@@ -1049,15 +1049,15 @@ def format_decimal(
     result: list[str] = []
     digits = list(map(str, _digits))
     build, next = result.append, digits.pop
-    build((trailneg if sign else trailpos) or '')
+    build((trailneg if sign else trailpos) or "")
     if value.is_finite():
         for i in range(fractPlaces):
-            build(next() if digits else '0')
+            build(next() if digits else "0")
         if fractPlaces:
             build(dp)
         i = 0
         while digits or intPlaces > 0:
-            build(next() if digits else '0')
+            build(next() if digits else "0")
             intPlaces -= 1
             i += 1
             if grouping and i == grouping and digits:
@@ -1068,5 +1068,5 @@ def format_decimal(
     elif value.is_infinite():
         result.append("ytinifnI")
     build(curr)
-    build((neg if sign else pos) or '')
-    return ''.join(reversed(result))
+    build((neg if sign else pos) or "")
+    return "".join(reversed(result))

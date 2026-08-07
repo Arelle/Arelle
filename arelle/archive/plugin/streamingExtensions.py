@@ -1,4 +1,4 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
 
 StreamingExtensions is a plug-in to both GUI menu and command line/web service
@@ -7,7 +7,7 @@ memory footprint.  lxml iterparse is used to parse the big instance.  ModelObjec
 for efficiency and to avoid dependency on an underlying DOM.
 
 (Note that this module is based on iterparse, the module under the installation/plugs is much faster.)
-'''
+"""
 
 import io, sys, os, time
 from decimal import Decimal, InvalidOperation
@@ -311,25 +311,25 @@ def streamingOptionsExtender(parser):
 
 def streamingExtensionsSetup(self, options, **kwargs):
     global _streamingExtensionsCheck, _streamingExtensionsValidate
-    _streamingExtensionsCheck = getattr(options, 'check_streaming', False)
+    _streamingExtensionsCheck = getattr(options, "check_streaming", False)
     _streamingExtensionsValidate = options.validate
     if options.validate:
         options.validate = False # prevent cmdLine calling validation
 
-'''
+"""
    Do not use _( ) in pluginInfo itself (it is applied later, after loading
-'''
+"""
 
 __pluginInfo__ = {
-    'name': 'Streaming Extensions Loader',
-    'version': '0.9',
-    'description': "This plug-in loads big XBRL instances without building a DOM in memory.  "
+    "name": "Streaming Extensions Loader",
+    "version": "0.9",
+    "description": "This plug-in loads big XBRL instances without building a DOM in memory.  "
                     "lxml iterparse parses XBRL directly into an object model without a DOM.  ",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'CntlrCmdLine.Options': streamingOptionsExtender,
-    'CntlrCmdLine.Utility.Run': streamingExtensionsSetup,
-    'ModelDocument.PullLoader': streamingExtensionsLoader,
+    "CntlrCmdLine.Options": streamingOptionsExtender,
+    "CntlrCmdLine.Utility.Run": streamingExtensionsSetup,
+    "ModelDocument.PullLoader": streamingExtensionsLoader,
 }

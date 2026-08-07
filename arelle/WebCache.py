@@ -489,14 +489,14 @@ class WebCache:
 
         scheme, sep, path = url.partition("://")
         filepath = [cacheDir, scheme]
-        pathparts = path.split('/')
+        pathparts = path.split("/")
         user: str | None
         user, sep, server = pathparts[0].partition("@")
         if not sep:
             server = user
             user = None
 
-        host, sep, port = server.partition(':')
+        host, sep, port = server.partition(":")
         filepath.append(self.encodeForFilename(host))
         if port:
             filepath.append("^port" + port)
@@ -518,7 +518,7 @@ class WebCache:
         if cacheDir is None:
             cacheDir = self.cacheDir
         urlparts = cacheFilepath[len(cacheDir)+1:].split(os.sep)
-        urlparts[0] += ':/'  # add separator between http and file parts, less one '/'
+        urlparts[0] += ":/"  # add separator between http and file parts, less one '/'
         if len(urlparts) > 2:
             if urlparts[2].startswith("^port"):
                 urlparts[1] += ":" + urlparts[2][5:]  # the port number
@@ -1003,13 +1003,13 @@ class WebCache:
         ) -> tuple[str | None, dict[str, str], bytes]:
         # return filename, headers (in dict), initial file bytes (to detect logon requests)
         headers = {}
-        initialBytes = b''
+        initialBytes = b""
         fp = self.opener.open(url, data, timeout=self.timeout)
         tfp: Any
         try:
             headers = fp.info()
             if filename:
-                tfp = open(filename, 'wb')
+                tfp = open(filename, "wb")
             elif filestream:
                 tfp = filestream
             else:

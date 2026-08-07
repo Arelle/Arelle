@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 import os
@@ -979,7 +979,7 @@ def isStandardArcElement(element: ModelObject) -> bool:
 
 def isStandardArcInExtLinkElement(element: ModelObject) -> bool:
     return (
-        isStandardArcElement(element) and isStandardResourceOrExtLinkElement(cast('ModelObject', element.getparent()))
+        isStandardArcElement(element) and isStandardResourceOrExtLinkElement(cast("ModelObject", element.getparent()))
     ) or element.qname == qnIXbrl11Relationship
 
 

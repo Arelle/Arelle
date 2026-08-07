@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 import Cntlr, ModelManager, FileSource, time
 from optparse import OptionParser
 import cProfile
@@ -29,4 +29,4 @@ class CntlrProfiler(Cntlr.Cntlr):
         pass
 
 if __name__ == "__main__":
-    cProfile.run('main()')
+    cProfile.run("main()")

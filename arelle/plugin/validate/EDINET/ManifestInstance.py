@@ -64,9 +64,9 @@ def _identifyFilingFormat(cntlr: Cntlr, reportFolderType: ReportFolderType | Non
     if reportFolderType is None or reportFolderType == ReportFolderType.AUDIT_DOC:
         return None
     filenameValues = _getFilenameValues(reportFolderType, preferredFilename)
-    documentType = DocumentType.parse(filenameValues.get('report'))
-    formType = FormType.lookup(filenameValues.get('form'))
-    ordinance = Ordinance.parse(filenameValues.get('ordinance'))
+    documentType = DocumentType.parse(filenameValues.get("report"))
+    formType = FormType.lookup(filenameValues.get("form"))
+    ordinance = Ordinance.parse(filenameValues.get("ordinance"))
     if documentType == DocumentType.SECURITIES_REGISTRATION_STATEMENT_DEEMED:
         documentType = DocumentType.ANNUAL_SECURITIES_REPORT
 
@@ -103,7 +103,7 @@ def _identifyFilingFormat(cntlr: Cntlr, reportFolderType: ReportFolderType | Non
         filingFormat.ordinance.value,
         filingFormat.documentType.value,
         filingFormat.formType.value,
-        ', '.join(taxonomy.value for taxonomy in filingFormat.taxonomies)
+        ", ".join(taxonomy.value for taxonomy in filingFormat.taxonomies)
     ), messageCode="info")
     return filingFormat
 
@@ -144,7 +144,7 @@ def _parseManifestDoc(cntlr: Cntlr, xmlRootElement: _Element, path: Path) -> lis
     titlesByLang = {}
     base = path.parent
     tocElts = list(xmlRootElement.iterchildren(tag=Constants.qnEdinetManifestTocComposition.clarkNotation))
-    assert len(tocElts) == 1, _('There should be exactly one tocComposition element in the manifest.')
+    assert len(tocElts) == 1, _("There should be exactly one tocComposition element in the manifest.")
     for titleElt in tocElts[0].iterchildren(tag=Constants.qnEdinetManifestTitle.clarkNotation):
         lang = titleElt.attrib.get(XbrlConst.qnXmlLang.clarkNotation, "")
         titlesByLang[lang] = titleElt.text.strip() if titleElt.text else ""
@@ -153,7 +153,7 @@ def _parseManifestDoc(cntlr: Cntlr, xmlRootElement: _Element, path: Path) -> lis
     for tocItem in tocItems:
         tocItemsByRef[tocItem.ref].append(tocItem)
     listElts = list(xmlRootElement.iterchildren(tag=Constants.qnEdinetManifestList.clarkNotation))
-    assert len(listElts) == 1, _('There should be exactly one list element in the manifest.')
+    assert len(listElts) == 1, _("There should be exactly one list element in the manifest.")
     for instanceElt in listElts[0].iterchildren(tag=Constants.qnEdinetManifestInstance.clarkNotation):
         instanceId = str(instanceElt.attrib.get("id", ""))
         instanceType = str(instanceElt.attrib.get("type", ""))
@@ -199,7 +199,7 @@ def parseManifests(filesource: FileSource) -> list[ManifestInstance]:
             )
         else:
             for _archiveFile in (filesource.dir or ()):
-                if not Path(_archiveFile).stem.startswith('manifest'):
+                if not Path(_archiveFile).stem.startswith("manifest"):
                     continue
                 try:
                     with filesource.fs.open(_archiveFile) as manifestDoc:
@@ -209,7 +209,7 @@ def parseManifests(filesource: FileSource) -> list[ManifestInstance]:
                     _invalidManifestError(cntlr, str(_archiveFile), str(err))
                 except Exception as err:
                     _invalidManifestError(cntlr, str(_archiveFile))
-                    cntlr.addToLog(_("[Exception] Failed to parse manifest \"{0}\": \n{1} \n{2}").format(
+                    cntlr.addToLog(_('[Exception] Failed to parse manifest "{0}": \n{1} \n{2}').format(
                         str(_archiveFile),
                         err,
                         traceback.format_exc()
@@ -218,17 +218,17 @@ def parseManifests(filesource: FileSource) -> list[ManifestInstance]:
         for file in dirpath.rglob("*"):
             if not file.is_file():
                 continue
-            if not file.stem.startswith('manifest'):
+            if not file.stem.startswith("manifest"):
                 continue
             try:
-                with open(file, 'rb') as manifestDoc:
+                with open(file, "rb") as manifestDoc:
                     xmlRootElement = etree.fromstring(manifestDoc.read())
                     instances.extend(_parseManifestDoc(cntlr, xmlRootElement, file))
             except AssertionError as err:
                 _invalidManifestError(cntlr, str(file), str(err))
             except Exception as err:
                 _invalidManifestError(cntlr, str(file))
-                cntlr.addToLog(_("[Exception] Failed to parse manifest \"{0}\": \n{1} \n{2}").format(
+                cntlr.addToLog(_('[Exception] Failed to parse manifest "{0}": \n{1} \n{2}').format(
                     str(file),
                     err,
                     traceback.format_exc()

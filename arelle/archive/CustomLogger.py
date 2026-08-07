@@ -1,8 +1,8 @@
-'''
+"""
 This module is an example Arelle controller in non-interactive mode
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import print_function
 from arelle import Cntlr
 from arelle.ValidateXbrlCalcs import ValidateCalcsMode

@@ -8,9 +8,9 @@ from tests.integration_tests.validation.conformance_suite_config import (
 config = ConformanceSuiteConfig(
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
-            Path('xbrl-xsdtests_v2026-07-17-1656.zip'),
-            entry_point=Path('index.xml'),
-            public_download_url='https://github.com/Arelle/xbrl-xsdtests/releases/download/v2026.07.17-1656/xbrl-xsdtests_v2026-07-17-1656.zip',
+            Path("xbrl-xsdtests_v2026-07-17-1656.zip"),
+            entry_point=Path("index.xml"),
+            public_download_url="https://github.com/Arelle/xbrl-xsdtests/releases/download/v2026.07.17-1656/xbrl-xsdtests_v2026-07-17-1656.zip",
             source=AssetSource.S3_PUBLIC,
         ),
     ],
@@ -23,8 +23,8 @@ config = ConformanceSuiteConfig(
             "xmlSchema:valueError": 1
         },
     }.items()},
-    info_url='https://github.com/Arelle/xbrl-xsdtests',
+    info_url="https://github.com/Arelle/xbrl-xsdtests",
     name=PurePath(__file__).stem,
-    test_case_result_options='match-all',
+    test_case_result_options="match-all",
     shards=3,  # Fits on single macos GHA runner's 3 cores
 )

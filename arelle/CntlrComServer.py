@@ -1,4 +1,4 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
 
 This module is Arelle's COM server controller
@@ -7,7 +7,7 @@ This module is Arelle's COM server controller
 It is provided for future referenced but not used in the production code.
 It cannot be used in cx_freeze or py2app installer-built deployment, but must be used as source code.
 Future source-code plugins may possibly use this mechanism.)
-'''
+"""
 from arelle import PythonUtil # define 2.1 or 3.2 string types
 import gettext, time, datetime, os, shlex, sys, traceback
 from optparse import OptionParser
@@ -21,7 +21,7 @@ useDispatcher = None
 def main():
     gettext.install("arelle") # needed for options messages
     import win32com.server.register
-    if '--debug' in sys.argv:
+    if "--debug" in sys.argv:
         global debugging, useDispatcher
         debugging = 1
         from win32com.server.dispatcher import DefaultDebugDispatcher
@@ -29,7 +29,7 @@ def main():
     win32com.server.register.UseCommandLine(CntlrComServer, debug=debugging)
 
 class CntlrComServer(Cntlr.Cntlr):
-    _public_methods_ = [ 'Load' ]
+    _public_methods_ = [ "Load" ]
     _public_attrs_ = [ ]
     _readonly_attrs_ = [ ]
     _reg_progid_ = "Arelle.XbrlServer"

@@ -177,7 +177,7 @@ class DES:
         for i in str: block.append(ord(i))
         #print block
         block = des_ecb_encrypt(block, self.KeySched, 0)
-        res = b''
+        res = b""
         for i in block: res = res + (chr(i))
         return res
 
@@ -186,7 +186,7 @@ class DES:
         block = []
         for i in str: block.append(i)
         block = des_ecb_encrypt(block, self.KeySched, 1)
-        res = b''
+        res = b""
         for i in block: res = res + bytes((i,))
         return res
 

@@ -111,20 +111,20 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
             self.create(os.path.join("sql", "public", "xbrlPublicPostgresDB.ddl"))
 
             # load fixed tables
-            self.getTable('enumeration_arcrole_cycles_allowed', 'enumeration_arcrole_cycles_allowed_id',
-                          ('description',), ('description',),
-                          (('any',), ('undirected',), ('none',)))
-            self.getTable('enumeration_element_balance', 'enumeration_element_balance_id',
-                          ('description',), ('description',),
-                          (('credit',), ('debit',)))
-            self.getTable('enumeration_element_period_type', 'enumeration_element_period_type_id',
-                          ('description',), ('description',),
-                          (('instant',), ('duration',), ('forever',)))
+            self.getTable("enumeration_arcrole_cycles_allowed", "enumeration_arcrole_cycles_allowed_id",
+                          ("description",), ("description",),
+                          (("any",), ("undirected",), ("none",)))
+            self.getTable("enumeration_element_balance", "enumeration_element_balance_id",
+                          ("description",), ("description",),
+                          (("credit",), ("debit",)))
+            self.getTable("enumeration_element_period_type", "enumeration_element_period_type_id",
+                          ("description",), ("description",),
+                          (("instant",), ("duration",), ("forever",)))
             missingTables = XBRLDBTABLES - self.tablesInDB()
         if missingTables:
             raise XPDBException("xpgDB:MissingTables",
                                 _("The following tables are missing, suggest reinitializing database schema: %(missingTableNames)s"),
-                                missingTableNames=', '.join(t for t in sorted(missingTables)))
+                                missingTableNames=", ".join(t for t in sorted(missingTables)))
 
     def insertXbrl(self, rssItem):
         try:
@@ -167,10 +167,10 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
             _time = time.time()
             now = datetime.datetime.fromtimestamp(_time)
             today = datetime.date(now.year, now.month, now.day)
-            table = self.getTable('accession', 'accession_id',
-                                  ('filing_date','entity_id','creation_software',
-                                   'entry_url', 'filing_accession_number'),
-                                  ('filing_accession_number',),
+            table = self.getTable("accession", "accession_id",
+                                  ("filing_date","entity_id","creation_software",
+                                   "entry_url", "filing_accession_number"),
+                                  ("filing_accession_number",),
                                   ((today,  # NOT NULL
                                     0,  # NOT NULL
                                     self.modelXbrl.modelDocument.creationSoftwareComment,
@@ -180,11 +180,11 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                                   checkIfExisting=True,
                                   returnExistenceStatus=True)
         else:
-            table = self.getTable('accession', 'accession_id',
-                                  ('accepted_timestamp', 'is_most_current', 'filing_date','entity_id',
-                                   'entity_name', 'creation_software', 'standard_industrial_classification',
-                                   'sec_html_url', 'entry_url', 'filing_accession_number'),
-                                  ('filing_accession_number',),
+            table = self.getTable("accession", "accession_id",
+                                  ("accepted_timestamp", "is_most_current", "filing_date","entity_id",
+                                   "entity_name", "creation_software", "standard_industrial_classification",
+                                   "sec_html_url", "entry_url", "filing_accession_number"),
+                                  ("filing_accession_number",),
                                   ((rssItem.acceptanceDatetime,
                                     True,
                                     rssItem.filingDate or datetime.datetime.min,  # NOT NULL
@@ -194,7 +194,7 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                                     rssItem.assignedSic or -1,  # NOT NULL
                                     rssItem.htmlUrl,
                                     rssItem.url,
-                                    rssItem.accessionNumber or 'UNKNOWN'  # NOT NULL
+                                    rssItem.accessionNumber or "UNKNOWN"  # NOT NULL
                                     ),),
                                   checkIfExisting=True,
                                   returnExistenceStatus=True)
@@ -210,9 +210,9 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                 self.modelXbrl.roleTypes.keys() |
                 XbrlConst.standardRoles)
         self.showStatus("insert uris")
-        table = self.getTable('uri', 'uri_id',
-                              ('uri',),
-                              ('uri',), # indexed match cols
+        table = self.getTable("uri", "uri_id",
+                              ("uri",),
+                              ("uri",), # indexed match cols
                               tuple((uri,)
                                     for uri in uris),
                               checkIfExisting=True)
@@ -228,9 +228,9 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                       for measures in unit.measures
                       for measure in measures))
         self.showStatus("insert qnames")
-        table = self.getTable('qname', 'qname_id',
-                              ('namespace', 'local_name'),
-                              ('namespace', 'local_name'), # indexed match cols
+        table = self.getTable("qname", "qname_id",
+                              ("namespace", "local_name"),
+                              ("namespace", "local_name"), # indexed match cols
                               tuple((qn.namespaceURI, qn.localName)
                                     for qn in qnames),
                               checkIfExisting=True)
@@ -245,9 +245,9 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
         else:
             # use all namespace URIs
             namespaceUris = self.modelXbrl.namespaceDocs.keys()
-        table = self.getTable('namespace', 'namespace_id',
-                              ('uri', 'is_base', 'taxonomy_version_id', 'prefix'),
-                              ('uri',), # indexed matchcol
+        table = self.getTable("namespace", "namespace_id",
+                              ("uri", "is_base", "taxonomy_version_id", "prefix"),
+                              ("uri",), # indexed matchcol
                               tuple((uri, True, 0, self.disclosureSystem.standardPrefixes.get(uri,None))
                                     for uri in namespaceUris),
                               checkIfExisting=True)
@@ -262,7 +262,7 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                 docUris.add(self.dbStr(modelDocument.uri))
         if docUris:
             results = self.execute("SELECT document_id, document_uri FROM document WHERE document_uri IN (" +
-                                   ', '.join(docUris) + ");")
+                                   ", ".join(docUris) + ");")
             self.existingDocumentIds = dict((docUri,docId) for docId, docUri in results)
 
     def identifyConceptsUsed(self):
@@ -299,9 +299,9 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
 
     def insertDocuments(self):
         self.showStatus("insert documents")
-        table = self.getTable('document', 'document_id',
-                              ('document_uri',),
-                              ('document_uri',),
+        table = self.getTable("document", "document_id",
+                              ("document_uri",),
+                              ("document_uri",),
                               set((docUri,)
                                   for docUri in self.modelXbrl.urlDocs.keys()
                                   if docUri not in self.existingDocumentIds),
@@ -309,9 +309,9 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
         self.documentIds = dict((uri, id)
                                 for id, uri in table)
         self.documentIds.update(self.existingDocumentIds)
-        table = self.getTable('accession_document_association', 'accession_document_association_id',
-                              ('accession_id','document_id'),
-                              ('document_id',),
+        table = self.getTable("accession_document_association", "accession_document_association_id",
+                              ("accession_id","document_id"),
+                              ("document_id",),
                               tuple((self.accessionId, docId)
                                     for docId in self.documentIds.values()),
                               checkIfExisting=True)
@@ -324,17 +324,17 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                                  for arcroleTypes in self.modelXbrl.arcroleTypes.values()
                                  for arcroleType in arcroleTypes
                                  if arcroleType.modelDocument.uri not in self.existingDocumentIds)
-        table = self.getTable('custom_arcrole_type', 'custom_arcrole_type_id',
-                              ('document_id', 'uri_id', 'definition', 'cycles_allowed'),
-                              ('document_id', 'uri_id'),
+        table = self.getTable("custom_arcrole_type", "custom_arcrole_type_id",
+                              ("document_id", "uri_id", "definition", "cycles_allowed"),
+                              ("document_id", "uri_id"),
                               tuple((arcroleTypeIDs[0], # doc Id
                                      arcroleTypeIDs[1], # uri Id
                                      arcroleType.definition,
-                                     {'any':1, 'undirected':2, 'none':3}[arcroleType.cyclesAllowed])
+                                     {"any":1, "undirected":2, "none":3}[arcroleType.cyclesAllowed])
                                     for arcroleTypeIDs, arcroleType in arcroleTypesByIds.items()))
-        table = self.getTable('custom_arcrole_used_on', 'custom_arcrole_used_on_id',
-                              ('custom_arcrole_type_id', 'qname_id'),
-                              ('custom_arcrole_type_id', 'qname_id'),
+        table = self.getTable("custom_arcrole_used_on", "custom_arcrole_used_on_id",
+                              ("custom_arcrole_type_id", "qname_id"),
+                              ("custom_arcrole_type_id", "qname_id"),
                               tuple((id, self.qnameId[usedOn])
                                     for id, docid, uriid in table
                                     for usedOn in arcroleTypesByIds[(docid,uriid)].usedOns))
@@ -347,16 +347,16 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                               for roleTypes in self.modelXbrl.roleTypes.values()
                               for roleType in roleTypes
                               if roleType.modelDocument.uri not in self.existingDocumentIds)
-        table = self.getTable('custom_role_type', 'custom_role_type_id',
-                              ('document_id', 'uri_id', 'definition'),
-                              ('document_id', 'uri_id'),
+        table = self.getTable("custom_role_type", "custom_role_type_id",
+                              ("document_id", "uri_id", "definition"),
+                              ("document_id", "uri_id"),
                               tuple((roleTypeIDs[0], # doc Id
                                      roleTypeIDs[1], # uri Id
                                      roleType.definition)
                                     for roleTypeIDs, roleType in roleTypesByIds.items()))
-        table = self.getTable('custom_role_used_on', 'custom_role_used_on_id',
-                              ('custom_role_type_id', 'qname_id'),
-                              ('custom_role_type_id', 'qname_id'),
+        table = self.getTable("custom_role_used_on", "custom_role_used_on_id",
+                              ("custom_role_type_id", "qname_id"),
+                              ("custom_role_type_id", "qname_id"),
                               tuple((id, self.qnameId[usedOn])
                                     for id, docid, uriid in table
                                     for usedOn in roleTypesByIds[(docid,uriid)].usedOns))
@@ -372,19 +372,19 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
             elif concept in self.conceptsUsed:
                 existingDocumentUsedConcepts.add(concept)
 
-        table = self.getTable('element', 'element_id',
-                              ('qname_id', 'datatype_qname_id', 'xbrl_base_datatype_qname_id', 'balance_id',
-                               'period_type_id', 'substitution_group_qname_id', 'abstract', 'nillable',
-                               'document_id', 'is_numeric', 'is_monetary'),
-                              ('qname_id',),
+        table = self.getTable("element", "element_id",
+                              ("qname_id", "datatype_qname_id", "xbrl_base_datatype_qname_id", "balance_id",
+                               "period_type_id", "substitution_group_qname_id", "abstract", "nillable",
+                               "document_id", "is_numeric", "is_monetary"),
+                              ("qname_id",),
                               tuple((self.qnameId[concept.qname],
                                      self.qnameId.get(concept.typeQname), # may be None
                                      self.qnameId.get(concept.baseXbrliTypeQname
                                                       if not isinstance(concept.baseXbrliTypeQname, list)
                                                       else concept.baseXbrliTypeQname[0]
                                                       ), # may be None or may be a list for a union
-                                     {'debit':1, 'credit':2, None:None}[concept.balance],
-                                     {'instant':1, 'duration':2, 'forever':3, None:0}[concept.periodType],
+                                     {"debit":1, "credit":2, None:None}[concept.balance],
+                                     {"instant":1, "duration":2, "forever":3, None:0}[concept.periodType],
                                      self.qnameId.get(concept.substitutionGroupQname), # may be None
                                      concept.isAbstract,
                                      concept.isNillable,
@@ -403,7 +403,7 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
             for concept in existingDocumentUsedConcepts:
                 conceptQnameIds.append(str(self.qnameId[concept.qname]))
             results = self.execute("SELECT element_id, qname_id FROM element WHERE qname_id IN (" +
-                                   ', '.join(conceptQnameIds) + ");")
+                                   ", ".join(conceptQnameIds) + ");")
             for elementId, qnameId in results:
                 self.elementId[qnameId] = elementId
         existingDocumentUsedConcepts.clear() # dereference
@@ -433,9 +433,9 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                               resource.objectIndex)
                              for resource in uniqueResources.values())
         uniqueResources.clear() # dereference before getTable
-        table = self.getTable('resource', 'resource_id',
-                              ('role_uri_id', 'qname_id', 'document_id', 'document_line_number', 'document_column_number'),
-                              ('document_id', 'document_line_number', 'document_column_number'),
+        table = self.getTable("resource", "resource_id",
+                              ("role_uri_id", "qname_id", "document_id", "document_line_number", "document_column_number"),
+                              ("document_id", "document_line_number", "document_column_number"),
                               resourceData,
                               checkIfExisting=True)
         self.resourceId = dict(((docId, line, offset), id)
@@ -449,9 +449,9 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                                for rel in self.modelXbrl.relationshipSet(arcrole).modelRelationships
                                for resource in (rel.fromModelObject, rel.toModelObject)
                                if isinstance(resource, ModelResource))
-        table = self.getTable('label_resource', 'resource_id',
-                              ('resource_id', 'label', 'xml_lang'),
-                              ('resource_id',),
+        table = self.getTable("label_resource", "resource_id",
+                              ("resource_id", "label", "xml_lang"),
+                              ("resource_id",),
                               tuple((resourceId,
                                      resource.stringValue,
                                      resource.xmlLang)
@@ -461,11 +461,11 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
 
     def insertNetworks(self):
         self.showStatus("insert networks")
-        table = self.getTable('network', 'network_id',
-                              ('accession_id', 'extended_link_qname_id', 'extended_link_role_uri_id',
-                               'arc_qname_id', 'arcrole_uri_id', 'description'),
-                              ('accession_id', 'extended_link_qname_id', 'extended_link_role_uri_id',
-                               'arc_qname_id', 'arcrole_uri_id'),
+        table = self.getTable("network", "network_id",
+                              ("accession_id", "extended_link_qname_id", "extended_link_role_uri_id",
+                               "arc_qname_id", "arcrole_uri_id", "description"),
+                              ("accession_id", "extended_link_qname_id", "extended_link_role_uri_id",
+                               "arc_qname_id", "arcrole_uri_id"),
                               tuple((self.accessionId,
                                      self.qnameId[linkqname],
                                      self.uriId[ELR],
@@ -523,11 +523,11 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                          for rel, sequence, depth, networkId in dbRels
                          if isinstance(rel.fromModelObject, ModelConcept) and isinstance(rel.toModelObject, ModelConcept))
         del dbRels[:]   # dererefence
-        table = self.getTable('relationship', 'relationship_id',
-                              ('network_id', 'from_element_id', 'to_element_id', 'reln_order',
-                               'from_resource_id', 'to_resource_id', 'calculation_weight',
-                               'tree_sequence', 'tree_depth', 'preferred_label_role_uri_id'),
-                              ('network_id', 'tree_sequence'),
+        table = self.getTable("relationship", "relationship_id",
+                              ("network_id", "from_element_id", "to_element_id", "reln_order",
+                               "from_resource_id", "to_resource_id", "calculation_weight",
+                               "tree_sequence", "tree_depth", "preferred_label_role_uri_id"),
+                              ("network_id", "tree_sequence"),
                               relsData)
 
     def insertFacts(self):
@@ -547,18 +547,18 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                          close=False, fetch=False)
         self.showStatus("insert facts")
         # units
-        table = self.getTable('unit', 'unit_id',
-                              ('accession_id', 'unit_xml_id'),
-                              ('accession_id', 'unit_xml_id'),
+        table = self.getTable("unit", "unit_id",
+                              ("accession_id", "unit_xml_id"),
+                              ("accession_id", "unit_xml_id"),
                               tuple((accsId,
                                      unitId)
                                     for unitId in self.modelXbrl.units.keys()))
         self.unitId = dict(((_accsId, xmlId), id)
                            for id, _accsId, xmlId in table)
         # measures
-        table = self.getTable('unit_measure', 'unit_measure_id',
-                              ('unit_id', 'qname_id', 'location_id'),
-                              ('qname_id', 'location_id'),
+        table = self.getTable("unit_measure", "unit_measure_id",
+                              ("unit_id", "qname_id", "location_id"),
+                              ("qname_id", "location_id"),
                               tuple((self.unitId[(accsId,unit.id)],
                                      self.qnameId[measure],
                                      1 if (not unit.measures[1]) else (i + 1))
@@ -570,9 +570,9 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
         #                      ('description',),
         #                      (('measure',), ('numerator',), ('denominator',)))
         # context
-        table = self.getTable('context', 'context_id',
-                              ('accession_id', 'period_start', 'period_end', 'period_instant', 'specifies_dimensions', 'context_xml_id', 'entity_scheme', 'entity_identifier'),
-                              ('accession_id', 'context_xml_id'),
+        table = self.getTable("context", "context_id",
+                              ("accession_id", "period_start", "period_end", "period_instant", "specifies_dimensions", "context_xml_id", "entity_scheme", "entity_identifier"),
+                              ("accession_id", "context_xml_id"),
                               tuple((accsId,
                                      cntx.startDatetime if cntx.isStartEndPeriod else None,
                                      cntx.endDatetime if cntx.isStartEndPeriod else None,
@@ -604,17 +604,17 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                                    True, # is default
                                    True, # ambiguous and irrelevant for the XDT model
                                    None))
-        table = self.getTable('context_dimension', 'context_dimension_id',
-                              ('context_id', 'dimension_qname_id', 'member_qname_id', 'typed_qname_id', 'is_default', 'is_segment', 'typed_text_content'),
-                              ('context_id', 'dimension_qname_id', 'member_qname_id'), # shouldn't typed_qname_id be here?  not good idea because it's not indexed in XBRL-US DDL
+        table = self.getTable("context_dimension", "context_dimension_id",
+                              ("context_id", "dimension_qname_id", "member_qname_id", "typed_qname_id", "is_default", "is_segment", "typed_text_content"),
+                              ("context_id", "dimension_qname_id", "member_qname_id"), # shouldn't typed_qname_id be here?  not good idea because it's not indexed in XBRL-US DDL
                               values)
         # facts
         def insertFactSet(modelFacts, tupleFactId):
-            table = self.getTable('fact', 'fact_id',
-                                  ('accession_id', 'tuple_fact_id', 'context_id', 'unit_id', 'element_id', 'effective_value', 'fact_value',
-                                   'xml_id', 'precision_value', 'decimals_value',
-                                   'is_precision_infinity', 'is_decimals_infinity', ),
-                                  ('accession_id', 'xml_id'),
+            table = self.getTable("fact", "fact_id",
+                                  ("accession_id", "tuple_fact_id", "context_id", "unit_id", "element_id", "effective_value", "fact_value",
+                                   "xml_id", "precision_value", "decimals_value",
+                                   "is_precision_infinity", "is_decimals_infinity", ),
+                                  ("accession_id", "xml_id"),
                                   tuple((accsId,
                                          tupleFactId,
                                          self.cntxId.get((accsId,fact.contextID)),
@@ -623,10 +623,10 @@ class XbrlPostgresDatabaseConnection(SqlDbConnection):
                                          roundValue(fact.value, fact.precision, fact.decimals) if fact.isNumeric and not fact.isNil else None,
                                          fact.value,
                                          elementFragmentIdentifier(fact),
-                                         fact.xAttributes['precision'].xValue if ('precision' in fact.xAttributes and isinstance(fact.xAttributes['precision'].xValue,int)) else None,
-                                         fact.xAttributes['decimals'].xValue if ('decimals' in fact.xAttributes and isinstance(fact.xAttributes['decimals'].xValue,int)) else None,
-                                         'precision' in fact.xAttributes and fact.xAttributes['precision'].xValue == 'INF',
-                                         'decimals' in fact.xAttributes and fact.xAttributes['decimals'].xValue == 'INF',
+                                         fact.xAttributes["precision"].xValue if ("precision" in fact.xAttributes and isinstance(fact.xAttributes["precision"].xValue,int)) else None,
+                                         fact.xAttributes["decimals"].xValue if ("decimals" in fact.xAttributes and isinstance(fact.xAttributes["decimals"].xValue,int)) else None,
+                                         "precision" in fact.xAttributes and fact.xAttributes["precision"].xValue == "INF",
+                                         "decimals" in fact.xAttributes and fact.xAttributes["decimals"].xValue == "INF",
                                          )
                                         for fact in modelFacts))
             factId = dict((xmlId, id)

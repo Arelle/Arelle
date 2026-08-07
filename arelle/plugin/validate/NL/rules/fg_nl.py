@@ -33,7 +33,7 @@ INSTANCE_ELEMENT_ORDER = {
     qnLinkArcroleRef.clarkNotation: 3,
     qnXbrliContext.clarkNotation: 4,
     qnXbrliUnit.clarkNotation: 5,
-    'fact': 6,
+    "fact": 6,
 }
 
 
@@ -79,14 +79,14 @@ def rule_fg_nl_03(
 
     for (namespace, prefix), elements in warningsMap.items():
         yield Validation.warning(
-            codes='NL.FG-NL-03',
-            msg=_('An instance document is referencing a taxonomy namespace '
-                  '(%(namespace)s) with a non-standard prefix (%(nonStandardPrefix)s) '
-                  'instead of a standard prefix (%(standardPrefix)s)'),
+            codes="NL.FG-NL-03",
+            msg=_("An instance document is referencing a taxonomy namespace "
+                  "(%(namespace)s) with a non-standard prefix (%(nonStandardPrefix)s) "
+                  "instead of a standard prefix (%(standardPrefix)s)"),
             modelObject=elements,
             namespace=namespace,
             nonStandardPrefix=prefix,
-            standardPrefix=', '.join(standardNamespaceMap[namespace]),
+            standardPrefix=", ".join(standardNamespaceMap[namespace]),
         )
 
 
@@ -122,7 +122,7 @@ def rule_fg_nl_04(
             if not isinstance(elt, ModelObject):
                 continue
             if isinstance(elt, ModelFact):
-                eltName = 'fact'
+                eltName = "fact"
             else:
                 eltName = elt.elementQname.clarkNotation
             if eltName not in INSTANCE_ELEMENT_ORDER:
@@ -141,7 +141,7 @@ def rule_fg_nl_04(
     for names, elts in errors.items():
         beforeName, afterName = names
         yield Validation.warning(
-            codes='NL.FG-NL-04',
+            codes="NL.FG-NL-04",
             msg=_('"%(beforeName)s" elements should not appear after "%(afterName)s" elements.'),
             modelObject=elts,
             beforeName=qname(beforeName),
@@ -206,9 +206,9 @@ def rule_fg_nl_05(
         unusedPrefixes = prefixes - usedPrefixes
         if len(unusedPrefixes) > 0:
             yield Validation.warning(
-                codes='NL.FG-NL-05',
-                msg=_('Unused namespaces found in an instance document: %(unusedPrefixes)s'),
-                unusedPrefixes=', '.join([f'{p}: {ns}' for p, ns in root.nsmap.items() if p in unusedPrefixes]),
+                codes="NL.FG-NL-05",
+                msg=_("Unused namespaces found in an instance document: %(unusedPrefixes)s"),
+                unusedPrefixes=", ".join([f"{p}: {ns}" for p, ns in root.nsmap.items() if p in unusedPrefixes]),
                 modelObject=root,
             )
 
@@ -229,7 +229,7 @@ def rule_fg_nl_09(
     facts = [f for f in val.modelXbrl.facts if f.id is not None]
     if len(facts) > 0:
         yield Validation.warning(
-            codes='NL.FG-NL-09',
+            codes="NL.FG-NL-09",
             msg=_('A fact SHOULD NOT contain an "id" attribute'),
             modelObject=facts,
         )
@@ -260,7 +260,7 @@ def rule_fg_nl_11(
             for measure in measures:
                 if (measure.namespaceURI, measure.localName) not in validUtrUnits:
                     yield Validation.warning(
-                        codes='NL.FG-NL-11',
+                        codes="NL.FG-NL-11",
                         msg=_('Standard units SHOULD be used. "%(modelUnit)s" is not a standard unit.'),
                         modelObject=unit,
                         modelUnit=measure,

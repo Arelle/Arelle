@@ -23,7 +23,7 @@ arelle_offline = args.offline
 working_directory = Path(args.working_directory)
 test_directory = Path(args.test_directory)
 arelle_log_file = prepare_logfile(test_directory, this_file)
-report_zip_path = test_directory / 'TC2_invalid.zip'
+report_zip_path = test_directory / "TC2_invalid.zip"
 target_path = report_zip_path
 print(f"Downloading report: {report_zip_path}")
 download_from_public_s3(
@@ -48,26 +48,26 @@ print(f"Validating report: {target_path}")
 # include start
 options = RuntimeOptions(
     entrypointFile=str(report_zip_path),
-    disclosureSystemName='esef-2024',
-    internetConnectivity='offline',
+    disclosureSystemName="esef-2024",
+    internetConnectivity="offline",
     logFile=str(arelle_log_file),
     logFormat="[%(messageCode)s] %(message)s - %(file)s",
     packages=package_paths,
     parameters="authority=SE",
-    plugins='validate/ESEF',
+    plugins="validate/ESEF",
     validate=True,
 )
 with Session() as session:
     assert not hasattr(options, "saveTargetInstance"), "validate/ESEF plugin dependency inlineXbrlDocumentSet CLI args should not be loaded yet."
     session.run(options)
-    log_xml = session.get_logs('xml')
+    log_xml = session.get_logs("xml")
     assert hasattr(options, "saveTargetInstance"), "validate/ESEF plugin dependency inlineXbrlDocumentSet CLI args were not loaded."
 # include end
 
 print("Checking log XML for errors...")
 errors += validate_log_xml(log_xml, expected_results={
-    'error': {
-        regex.compile(r'^\[ESEF.2.2.1.precisionAttributeUsed] .*'): 1
+    "error": {
+        regex.compile(r"^\[ESEF.2.2.1.precisionAttributeUsed] .*"): 1
     },
 })
 
@@ -75,6 +75,6 @@ assert_result(errors)
 
 print("Cleaning up")
 try:
-    os.unlink(working_directory / 'python_api_validate_esef' / 'TC2_invalid.zip')
+    os.unlink(working_directory / "python_api_validate_esef" / "TC2_invalid.zip")
 except PermissionError as exc:
     print(f"Failed to cleanup test files: {exc}")

@@ -26,72 +26,72 @@ test_directory = Path(args.test_directory)
 
 
 instance_files = [
-    test_directory / 'a.xml',
-    test_directory / 'b.xml',
+    test_directory / "a.xml",
+    test_directory / "b.xml",
 ]
 
 test_cases: list[tuple[str, str, list[str], dict[regex.Pattern[str], int]]] = [
     # Entry point only set in options file
     (
-        'options_only',
+        "options_only",
         json.dumps({
-            'validate': True,
-            'entrypointFile': str(instance_files[0]),
+            "validate": True,
+            "entrypointFile": str(instance_files[0]),
         }),
         [],
         {
-            regex.compile(r'\[IOerror] .*a\.xml'): 1,
+            regex.compile(r"\[IOerror] .*a\.xml"): 1,
         },
     ),
     # Entry point only set via command line arg
     (
-        'cli_only',
+        "cli_only",
         json.dumps({
-            'validate': True
+            "validate": True
         }),
         [
             "--file", str(instance_files[0]),
         ],
         {
-            regex.compile(r'\[IOerror] .*a\.xml'): 1,
+            regex.compile(r"\[IOerror] .*a\.xml"): 1,
         },
     ),
     # Entry point set via both options file and command line arg (command line arg takes precedence)
     (
-        'both',
+        "both",
         json.dumps({
-            'validate': True,
-            'entrypointFile': str(instance_files[0]),
+            "validate": True,
+            "entrypointFile": str(instance_files[0]),
         }),
         [
             "--file", str(instance_files[1]),
         ],
         {
-            regex.compile(r'\[IOerror] .*a\.xml'): 0,
-            regex.compile(r'\[IOerror] .*b\.xml'): 1,
+            regex.compile(r"\[IOerror] .*a\.xml"): 0,
+            regex.compile(r"\[IOerror] .*b\.xml"): 1,
         },
     ),
     # Use option provided by plugin
     (
-        'plugin_option',
+        "plugin_option",
         json.dumps({
-            'validate': True,
-            'inlineTarget': 'value',
-            'plugins': 'inlineXbrlDocumentSet',
-            'entrypointFile': str(instance_files[0])
+            "validate": True,
+            "inlineTarget": "value",
+            "plugins": "inlineXbrlDocumentSet",
+            "entrypointFile": str(instance_files[0])
         }),
         [],
         {
-            regex.compile(r'\[IOerror] .*a\.xml'): 2,
+            regex.compile(r"\[IOerror] .*a\.xml"): 2,
         },
     ),
     # Invalid option name
     (
-        'invalid_option',
+        "invalid_option",
         json.dumps({
-            'validate': True,
-            'inlineTarget': 'value',
-            'entrypointFile': str(instance_files[0])
+            "validate": True,
+            "inlineTarget": "value",
+            "entrypointFile": str(instance_files[0])
         }),
         [],
         {
@@ -100,33 +100,33 @@ test_cases: list[tuple[str, str, list[str], dict[regex.Pattern[str], int]]] = [
     ),
     # Invalid JSON
     (
-        'invalid_json',
+        "invalid_json",
         '{ "validate": True }',
         [],
         {
-            regex.compile(r'Unable to parse options JSON file: Expecting value: line 1 column 15'): 1,
+            regex.compile(r"Unable to parse options JSON file: Expecting value: line 1 column 15"): 1,
         },
     ),
     # Duplicate optionsFile arg
     (
-        'duplicate_arg',
+        "duplicate_arg",
         json.dumps({
-            'validate': True,
+            "validate": True,
         }),
         [
             "--optionsFile", "another_options_file.json",
         ],
         {
-            regex.compile(r'Multiple \'optionsFile\' values found during argument preparsing.'): 1,
+            regex.compile(r"Multiple \'optionsFile\' values found during argument preparsing."): 1,
         },
     ),
     # Missing options file
     (
-        'missing',
-        '',
+        "missing",
+        "",
         [],
         {
-            regex.compile(r'Options file path does not exist: '): 1,
+            regex.compile(r"Options file path does not exist: "): 1,
         },
     ),
 ]
@@ -134,11 +134,11 @@ options_files = []
 
 for name, options_json, additional_args, expected_results in test_cases:
     print(f"Running testcase: {name}")
-    options_file = str(test_directory / f'{name}.json')
-    if name != 'missing':
-        with open(test_directory / f'{name}.json', 'w') as f:
+    options_file = str(test_directory / f"{name}.json")
+    if name != "missing":
+        with open(test_directory / f"{name}.json", "w") as f:
             f.write(options_json)
-    log_file = prepare_logfile(test_directory, this_file, name=name, ext='txt')
+    log_file = prepare_logfile(test_directory, this_file, name=name, ext="txt")
     try:
         run_arelle(
             arelle_command,
@@ -150,7 +150,7 @@ for name, options_json, additional_args, expected_results in test_cases:
             logFile=log_file,
         )
     except Exception as e:
-        with open(log_file, 'a') as f:
+        with open(log_file, "a") as f:
             f.write(str(e))
     errors += validate_log_text(log_file, expected_results=expected_results)
     assert_result(errors)

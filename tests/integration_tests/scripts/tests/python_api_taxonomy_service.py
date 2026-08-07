@@ -23,11 +23,11 @@ args = parse_args(
 arelle_offline = args.offline
 working_directory = Path(args.working_directory)
 test_directory = Path(args.test_directory)
-cache_directory = test_directory / 'cache'
-arelle_log_file = prepare_logfile(test_directory, this_file, ext='json')
-entry_point_url = 'https://eCollection.ferc.gov/taxonomy/form60/2024-04-01/form/form60/form-60_2024-04-01.xsd'
-remove_file = cache_directory / 'http' / 'www.xbrl.org' / '2005' / 'xbrldt-2005.xsd'
-cache_zip_path = test_directory / 'cache.zip'
+cache_directory = test_directory / "cache"
+arelle_log_file = prepare_logfile(test_directory, this_file, ext="json")
+entry_point_url = "https://eCollection.ferc.gov/taxonomy/form60/2024-04-01/form/form60/form-60_2024-04-01.xsd"
+remove_file = cache_directory / "http" / "www.xbrl.org" / "2005" / "xbrldt-2005.xsd"
+cache_zip_path = test_directory / "cache.zip"
 
 print(f"Downloading cache with missing labels file: {cache_zip_path}")
 download_from_public_s3(
@@ -41,11 +41,11 @@ with zipfile.ZipFile(cache_zip_path, "r") as zip_ref:
 print(f"Loading model: {entry_point_url}")
 options = RuntimeOptions(
     cacheDirectory=str(cache_directory),
-    disclosureSystemName='FERC',
+    disclosureSystemName="FERC",
     entrypointFile=entry_point_url,
-    internetConnectivity='offline',
-    logFile='logToStructuredMessage',
-    logLevel='DEBUG',
+    internetConnectivity="offline",
+    logFile="logToStructuredMessage",
+    logLevel="DEBUG",
     logRefObjectProperties=True,
     plugins=FERC.__file__,
     utrValidate=True,
@@ -56,16 +56,16 @@ with Session() as session:
     assert session._cntlr is not None
     assert isinstance(session._cntlr.logHandler, StructuredMessageLogHandler)
     log_messages = session._cntlr.logHandler.messages
-    with open(arelle_log_file, 'w') as f:
+    with open(arelle_log_file, "w") as f:
         json.dump(log_messages, f, ensure_ascii=False, indent=4)
 
 print("Validating structured logs have errors for missing labels...")
-message_code_groups = itertools.groupby(log_messages, key=lambda m: m['messageCode'])
+message_code_groups = itertools.groupby(log_messages, key=lambda m: m["messageCode"])
 expected_code_counts = {
-    'info': 1,
-    'IOerror': 1,
-    'xbrl.5.2.4.2.1:preferredLabelMissing': 1910,
-    'info:profileActivity': 1
+    "info": 1,
+    "IOerror": 1,
+    "xbrl.5.2.4.2.1:preferredLabelMissing": 1910,
+    "info:profileActivity": 1
 }
 for code, messages in message_code_groups:
     count = len(list(messages))
@@ -74,7 +74,7 @@ for code, messages in message_code_groups:
 
 print("Cleaning up")
 try:
-    rmtree(working_directory / 'python_api_taxonomy_service' / 'cache')
+    rmtree(working_directory / "python_api_taxonomy_service" / "cache")
     cache_zip_path.unlink()
 except PermissionError as exc:
     print(f"Failed to cleanup test files: {exc}")

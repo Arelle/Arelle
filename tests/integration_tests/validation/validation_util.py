@@ -25,8 +25,8 @@ if TYPE_CHECKING:
     from _pytest.mark import ParameterSet
 
 
-CONFORMANCE_SUITE_EXPECTED_RESOURCES_DIRECTORY = Path('tests/resources/conformance_suites_expected')
-CONFORMANCE_SUITE_TIMING_RESOURCES_DIRECTORY = Path('tests/resources/conformance_suites_timing')
+CONFORMANCE_SUITE_EXPECTED_RESOURCES_DIRECTORY = Path("tests/resources/conformance_suites_expected")
+CONFORMANCE_SUITE_TIMING_RESOURCES_DIRECTORY = Path("tests/resources/conformance_suites_timing")
 
 
 @dataclass(frozen=True)
@@ -84,7 +84,7 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
         testcase_runtime = approximate_relative_timing.get(testcase_path, 1)
         avg_variation_runtime = testcase_runtime/(len(variation_ids))  # compatibility for testcase-level timing
         for variation_id in variation_ids:
-            variation_path = f'{testcase_path}:{variation_id}'
+            variation_path = f"{testcase_path}:{variation_id}"
             variation_runtime = approximate_relative_timing.get(variation_path, avg_variation_runtime)
             disclosure_system = config.disclosure_system
             for prefix, candidate_disclosure_system in config.disclosure_system_by_prefix:
@@ -157,9 +157,9 @@ def _verify_shards(
     shard_paths_set = set(shard_paths_map)
     discovered_paths_set = set(discovered_paths_map) - empty_testcase_paths  # We know empty testcases won't be in shards
     assert not shard_paths_set - discovered_paths_set,\
-        f'Testcases found in shards but not in discovered set: {shard_paths_set - discovered_paths_set}'
+        f"Testcases found in shards but not in discovered set: {shard_paths_set - discovered_paths_set}"
     assert not discovered_paths_set - shard_paths_set,\
-        f'Testcases found in discovered set but not in shards: {discovered_paths_set - shard_paths_set}'
+        f"Testcases found in discovered set but not in shards: {discovered_paths_set - shard_paths_set}"
     for path, vids in shard_paths_map.items():
         assert set(vids) == set(discovered_paths_map[path])
         assert sorted(vids) == sorted(discovered_paths_map[path])
@@ -199,12 +199,12 @@ def _collect_zip_test_case_variation_ids(zip_file: zipfile.ZipFile, test_case_pa
         variation_ids: set[str] = set()
         with zip_file.open(test_case_path) as f:
             tree = etree.parse(f)
-        for variation in tree.findall('{*}variation'):
+        for variation in tree.findall("{*}variation"):
             variation_id = _get_variation_id(variation, test_case_path)
             assert variation_id, \
-                f'Test case contains variation with no ID: {test_case_path}'
+                f"Test case contains variation with no ID: {test_case_path}"
             assert variation_id not in variation_ids, \
-                f'Test case contains multiple variations with the same ID: {test_case_path}, {variation_ids}'
+                f"Test case contains multiple variations with the same ID: {test_case_path}, {variation_ids}"
             variation_ids.add(variation_id)
         testcase_variation_map[test_case_path] = sorted(variation_ids)
     return testcase_variation_map
@@ -217,9 +217,9 @@ def _collect_dir_test_cases(file_path_prefix: str, file_path: str, path_strs: li
         _collect_dir_test_cases(file_path_prefix, test_case_index, path_strs)
 
 
-read_me_first_uris_xpath = etree.XPath("./conf:data/conf:taxonomyPackage[@readMeFirst='true']/text()", namespaces={'conf': 'http://xbrl.org/2008/conformance'})
+read_me_first_uris_xpath = etree.XPath("./conf:data/conf:taxonomyPackage[@readMeFirst='true']/text()", namespaces={"conf": "http://xbrl.org/2008/conformance"})
 def _get_variation_id(variation: etree._Element, path: str) -> str:
-    variation_id = variation.get('id')
+    variation_id = variation.get("id")
     assert isinstance(variation_id, str)
     for overrides in CONFORMANCE_SUITE_ID_OVERRIDES:
         if overrides.pathContainsString in path:
@@ -235,37 +235,37 @@ def _collect_dir_test_case_variation_ids(file_path_prefix: str, test_case_paths:
         variation_ids: set[str] = set()
         full_path = os.path.join(file_path_prefix, test_case_path)
         tree = etree.parse(full_path)
-        for variation in tree.findall('{*}variation'):
+        for variation in tree.findall("{*}variation"):
             variation_id = _get_variation_id(variation, full_path)
             assert variation_id, \
-                f'Test case contains variation with no ID: {test_case_path}'
+                f"Test case contains variation with no ID: {test_case_path}"
             assert variation_id not in variation_ids, \
-                f'Test case contains multiple variations with the same ID: {test_case_path}, {variation_ids}'
+                f"Test case contains multiple variations with the same ID: {test_case_path}, {variation_ids}"
             variation_ids.add(variation_id)
         testcase_variation_map[test_case_path] = sorted(variation_ids)
     return testcase_variation_map
 
 
 def _collect_test_case_paths(file_path: str, tree: etree._ElementTree, path_strs: list[str]) -> Generator[str, None, None]:
-    testcases_elements = _get_elems_by_local_name(tree, 'testcases')
+    testcases_elements = _get_elems_by_local_name(tree, "testcases")
     if not testcases_elements:
-        assert len(_get_elems_by_local_name(tree, 'testcase')) == 1, f'unexpected file is neither a single testcase nor index of test cases {file_path}'
+        assert len(_get_elems_by_local_name(tree, "testcase")) == 1, f"unexpected file is neither a single testcase nor index of test cases {file_path}"
         path_strs.append(file_path)
         return
     for testcases_element in testcases_elements:
-        test_root = testcases_element.get('root', '')
+        test_root = testcases_element.get("root", "")
         # replace backslashes with forward slashes, e.g. in
         # 616-definition-syntax/616-14-RXP-definition-link-validations\616-14-RXP-definition-link-validations-testcase.xml
-        testcase_elements = testcases_element.findall('{*}testcase')
+        testcase_elements = testcases_element.findall("{*}testcase")
         for elem in testcase_elements:
-            testcase_path = str(PurePosixPath(file_path).parent / test_root / cast(str, elem.get('uri')).replace('\\', '/'))
+            testcase_path = str(PurePosixPath(file_path).parent / test_root / cast(str, elem.get("uri")).replace("\\", "/"))
             yield testcase_path
 
 
 def _get_elems_by_local_name(tree: etree._ElementTree, local_name: str) -> list[etree._Element]:
     tag = tree.getroot().tag
     assert isinstance(tag, str)
-    return [tree.getroot()] if tag.split('}')[-1] == local_name else tree.findall(f'{{*}}{local_name}')
+    return [tree.getroot()] if tag.split("}")[-1] == local_name else tree.findall(f"{{*}}{local_name}")
 
 
 def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: str, disclosure_system: str | None,
@@ -276,41 +276,41 @@ def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: st
     use_shards = shard is not None
     optional_plugins = set()
     if build_cache:
-        optional_plugins.add('CacheBuilder')
+        optional_plugins.add("CacheBuilder")
     plugins = config.plugins | additional_plugins | optional_plugins
     args = [
-        '--file', filename,
-        '--keepOpen',
-        '--testcaseResultOptions', config.test_case_result_options,
-        '--validate',
+        "--file", filename,
+        "--keepOpen",
+        "--testcaseResultOptions", config.test_case_result_options,
+        "--validate",
     ]
     if config.base_taxonomy_validation:
-        args.extend(['--baseTaxonomyValidation', config.base_taxonomy_validation])
+        args.extend(["--baseTaxonomyValidation", config.base_taxonomy_validation])
     if disclosure_system:
-        args.extend(['--disclosureSystem', disclosure_system])
+        args.extend(["--disclosureSystem", disclosure_system])
     if config.package_paths:
-        args.extend(['--packages', '|'.join(sorted(p.as_posix() for p in config.package_paths))])
+        args.extend(["--packages", "|".join(sorted(p.as_posix() for p in config.package_paths))])
     if plugins:
-        args.extend(['--plugins', '|'.join(sorted(plugins))])
-    shard_str = f'-s{shard}' if use_shards else ''
+        args.extend(["--plugins", "|".join(sorted(plugins))])
+    shard_str = f"-s{shard}" if use_shards else ""
     if build_cache:
-        args.extend(['--cache-builder-path', f'conf-{config.name}{shard_str}-cache.zip'])
+        args.extend(["--cache-builder-path", f"conf-{config.name}{shard_str}-cache.zip"])
     if config.capture_warnings:
-        args.append('--testcaseResultsCaptureWarnings')
+        args.append("--testcaseResultsCaptureWarnings")
     if log_to_file:
         args.extend([
-            '--csvTestReport', f'conf-{config.name}{shard_str}-report.csv',
-            '--logFile', f'conf-{config.name}{shard_str}-log.txt',
+            "--csvTestReport", f"conf-{config.name}{shard_str}-report.csv",
+            "--logFile", f"conf-{config.name}{shard_str}-log.txt",
         ])
     if offline or config.runs_without_network:
-        args.extend(['--internetConnectivity', 'offline'])
+        args.extend(["--internetConnectivity", "offline"])
     for pattern in testcase_filters:
-        args.extend(['--testcaseFilter', pattern])
+        args.extend(["--testcaseFilter", pattern])
     for testcase_id, errorCounts in expected_additional_testcase_errors.items():
         errors = []
         for error, count in errorCounts.items():
             errors.extend([error] * count)
-        args.extend(['--testcaseExpectedErrors', f'{testcase_id}|{",".join(errors)}'])
+        args.extend(["--testcaseExpectedErrors", f'{testcase_id}|{",".join(errors)}'])
     kws = dict(
         expected_failure_ids=expected_failure_ids,
         required_locale_by_ids=config.required_locale_by_ids,
@@ -329,9 +329,9 @@ def get_conformance_suite_test_results(
         testcase_filters: list[str] | None = None,
 ) -> list[ParameterSet]:
     assert len(shards) == 0 or config.shards != 1, \
-        'Conformance suite configuration must specify shards if --shard is passed'
+        "Conformance suite configuration must specify shards if --shard is passed"
     if shards:
-        assert not testcase_filters, 'Testcase filters are not supported with shards.'
+        assert not testcase_filters, "Testcase filters are not supported with shards."
         return get_conformance_suite_test_results_with_shards(
             config=config, shards=shards, build_cache=build_cache, log_to_file=log_to_file, offline=offline, series=series
         )
@@ -355,14 +355,14 @@ def get_conformance_suite_test_results_with_shards(
     unrecognized_additional_error_ids = {
         pattern
         for pattern in {
-            _id.rsplit(':', 1)[0]
+            _id.rsplit(":", 1)[0]
             for _id in config.expected_additional_testcase_errors.keys()
         }
         if not any(fnmatch.fnmatch(test_path, pattern) for test_path in all_test_paths)
     }
-    assert not unrecognized_additional_error_ids, f'Unrecognized expected additional error IDs: {unrecognized_additional_error_ids}'
-    unrecognized_expected_failure_ids = {_id.rsplit(':', 1)[0] for _id in config.expected_failure_ids} - all_test_paths
-    assert not unrecognized_expected_failure_ids, f'Unrecognized expected failure IDs: {unrecognized_expected_failure_ids}'
+    assert not unrecognized_additional_error_ids, f"Unrecognized expected additional error IDs: {unrecognized_additional_error_ids}"
+    unrecognized_expected_failure_ids = {_id.rsplit(":", 1)[0] for _id in config.expected_failure_ids} - all_test_paths
+    assert not unrecognized_expected_failure_ids, f"Unrecognized expected failure IDs: {unrecognized_expected_failure_ids}"
 
     for shard_id in shards:
         shard = test_shards[shard_id]
@@ -371,12 +371,12 @@ def get_conformance_suite_test_results_with_shards(
         additional_plugins = shard.plugins
         expected_failure_ids = set()
         for expected_failure_id in config.expected_failure_ids:
-            test_path, test_id = expected_failure_id.rsplit(':', 1)
+            test_path, test_id = expected_failure_id.rsplit(":", 1)
             if test_id in test_paths.get(test_path, []):
                 expected_failure_ids.add(expected_failure_id)
 
         shard_testcase_filters = sorted([
-            f'*{os.path.sep}{path}:{vid}'
+            f"*{os.path.sep}{path}:{vid}"
             for path, vids in test_paths.items()
             for vid in vids
         ])
@@ -399,7 +399,7 @@ def get_conformance_suite_test_results_with_shards(
             parallel_results = pool.map(get_test_data_mp_wrapper, tasks)
             results = [x for l in parallel_results for x in l]
     assert len(results) == len(all_testcase_filters),\
-        f'Expected {len(all_testcase_filters)} results based on testcase filters, received {len(results)}'
+        f"Expected {len(all_testcase_filters)} results based on testcase filters, received {len(results)}"
     return results
 
 
@@ -425,7 +425,7 @@ def get_conformance_suite_test_results_without_shards(
 
 
 def load_timing_file(name: str) -> dict[str, float]:
-    path = CONFORMANCE_SUITE_TIMING_RESOURCES_DIRECTORY / Path(name).with_suffix('.json')
+    path = CONFORMANCE_SUITE_TIMING_RESOURCES_DIRECTORY / Path(name).with_suffix(".json")
     if not path.exists():
         return {}
     with open(path) as file:
@@ -450,11 +450,11 @@ def save_actual_results_file(config: ConformanceSuiteConfig, results: list[Param
     rows = []
     for result in results:
         testcase_id = result.id
-        actual_codes = result.values[0].get('actual')  # type: ignore[union-attr]
+        actual_codes = result.values[0].get("actual")  # type: ignore[union-attr]
         for code in actual_codes:
             rows.append((testcase_id, code))
-    output_filepath = Path(f'conf-{config.name}-actual.csv')
-    with open(output_filepath, 'w') as file:
+    output_filepath = Path(f"conf-{config.name}-actual.csv")
+    with open(output_filepath, "w") as file:
         writer = csv.writer(file)
         writer.writerows(sorted(rows))
     return output_filepath
@@ -467,9 +467,9 @@ def save_diff_html_file(expected_results_path: Path, actual_results_path: Path, 
         actual_rows = [row for row in file]
     html = difflib.HtmlDiff().make_file(
         expected_rows, actual_rows,
-        fromdesc='Expected', todesc='Actual', context=True, numlines=6
+        fromdesc="Expected", todesc="Actual", context=True, numlines=6
     )
-    with open(output_path, 'w') as file:
+    with open(output_path, "w") as file:
         file.write(html)
 
 
@@ -479,12 +479,12 @@ def save_timing_file(config: ConformanceSuiteConfig, results: list[ParameterSet]
         testcase_id = result.id
         assert isinstance(testcase_id, str)
         values = cast(dict[str, Any], result.values[0])
-        status = values.get('status')
-        assert status, f'Test result has no status: {testcase_id}'
-        if status == 'skip':
+        status = values.get("status")
+        assert status, f"Test result has no status: {testcase_id}"
+        if status == "skip":
             continue
         assert testcase_id and testcase_id not in durations
-        duration = values.get('duration')
+        duration = values.get("duration")
         if duration:
             durations[testcase_id] = duration
     if durations:
@@ -495,7 +495,7 @@ def save_timing_file(config: ConformanceSuiteConfig, results: list[ParameterSet]
             testcase_id: duration/duration_mean
             for testcase_id, duration in sorted(durations.items())
         }
-        durations['<mean>'] = duration_mean
-        durations['<stdev>'] = duration_stdev
-    with open(f'conf-{config.name}-timing.json', 'w') as file:
+        durations["<mean>"] = duration_mean
+        durations["<stdev>"] = duration_stdev
+    with open(f"conf-{config.name}-timing.json", "w") as file:
         json.dump(durations, file, indent=4)

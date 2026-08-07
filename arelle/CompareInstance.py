@@ -74,7 +74,7 @@ def _compareInstance(originalInstance: ModelXbrl, expectedInstance: ModelXbrl, t
             expectedFacts = targetInstance.factsByQname.get(missingFact.qname)
             if expectedFacts and len(expectedFacts) == 1:
                 targetInstance.error("compareInstance:expectedFactMissing",
-                                            _("Output missing expected fact %(fact)s, extracted value \"%(value1)s\", expected value  \"%(value2)s\""),
+                                            _('Output missing expected fact %(fact)s, extracted value "%(value1)s", expected value  "%(value2)s"'),
                                             modelXbrl=missingFact, fact=missingFact.qname, value1=missingFact.xValue, value2=next(iter(expectedFacts)).xValue)
             else:
                 targetInstance.error("compareInstance:expectedFactMissing",

@@ -348,7 +348,7 @@ class ViewFactsGrid(ViewWinGrid.ViewGrid):
     def viewModelObject(self, modelObject: Any) -> None:
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
-            '''
+            """
             try:
                 if isinstance(modelObject, ModelObject.ModelRelationship):
                     conceptId = modelObject.toModelObject.objectId()
@@ -363,5 +363,5 @@ class ViewFactsGrid(ViewWinGrid.ViewGrid):
                     self.treeView.selection_set(node)
             except KeyError:
                     self.treeView.selection_set(())
-            '''
+            """
             self.blockViewModelObject -= 1

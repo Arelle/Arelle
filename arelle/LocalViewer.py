@@ -1,9 +1,9 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
 
 Provides infrastructure for local viewers of GUI applications such as inline XBRL viewers
 
-'''
+"""
 from __future__ import annotations
 
 import logging
@@ -20,9 +20,9 @@ _: TypeGetText
 
 
 class LocalViewer:
-    noCacheHeaders: dict[str, str] = {'Cache-Control': 'no-cache, no-store, must-revalidate',
-                      'Pragma': 'no-cache',
-                      'Expires': '0'}
+    noCacheHeaders: dict[str, str] = {"Cache-Control": "no-cache, no-store, must-revalidate",
+                      "Pragma": "no-cache",
+                      "Expires": "0"}
 
     def __init__(self, title: str, staticReportsRoot: str) -> None:
         self.title = title
@@ -46,11 +46,11 @@ class LocalViewer:
                 # start server
                 localserver = Bottle()
 
-                localserver.route('/<file:path>', 'GET', self.get)
-                localserver.route('<relpath:path>', 'GET', self.get)
+                localserver.route("/<file:path>", "GET", self.get)
+                localserver.route("<relpath:path>", "GET", self.get)
                 # start local server on the port on a separate thread
                 threading.Thread(target=localserver.run,
-                                 kwargs=dict(server='cheroot', host='localhost', port=self.port, quiet=True),
+                                 kwargs=dict(server="cheroot", host="localhost", port=self.port, quiet=True),
                                  daemon=True).start()
                 time.sleep(2) # allow other thread to run and start up
 

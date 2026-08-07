@@ -135,7 +135,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
     if val.authority and val.authority.startswith("UKFRC"):
         if modelXbrl.fileSource and modelXbrl.fileSource.taxonomyPackage and modelXbrl.fileSource.taxonomyPackage["publisherCountry"] != "GB":
             modelXbrl.error("UKFRC.1.2.publisherCountrySetting",
-                        _("The \"Publisher Country\" element of the report package metadata for a UKSEF report MUST be set to \"GB\" but was \"%(publisherCountry)s\"."),
+                        _('The "Publisher Country" element of the report package metadata for a UKSEF report MUST be set to "GB" but was "%(publisherCountry)s".'),
                         modelObject=modelXbrl, publisherCountry=modelXbrl.fileSource.taxonomyPackage["publisherCountry"] )
 
     reportXmlLang = None
@@ -349,7 +349,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             eligibleForTransformHiddenFacts = []
             requiredToDisplayFacts = []
             firstIxdsDoc = True
-            contentOtherThanXHTMLGuidance = 'ESEF.2.5.1' if val.consolidated else 'ESEF.4.1.3'  # Different reference for iXBRL and stand-alone XHTML
+            contentOtherThanXHTMLGuidance = "ESEF.2.5.1" if val.consolidated else "ESEF.4.1.3"  # Different reference for iXBRL and stand-alone XHTML
             imageValidationParameters = ImageValidationParameters(
                 checkMinExternalResourceSize=True,
                 consolidated = val.consolidated,
@@ -484,8 +484,8 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             modelXbrl.warning("ESEF.1.3.3.emptyTextBlock",
                                     _("The text block element SHOULD not be empty: %(qname)s."),
                                     modelObject=elt, qname=elt.qname)
-                        elif any(character in elt.stringValue for character in ['&lt;', '&amp;', '&', '<']):
-                            if not (hasattr(elt, 'attrib')) or ('escape' not in elt.attrib or elt.attrib.get('escape').lower() != 'true'):
+                        elif any(character in elt.stringValue for character in ["&lt;", "&amp;", "&", "<"]):
+                            if not (hasattr(elt, "attrib")) or ("escape" not in elt.attrib or elt.attrib.get("escape").lower() != "true"):
                                 modelXbrl.error("ESEF.2.2.6.escapedHTMLUsedInBlockTagWithSpecialCharacters" if esefDisclosureSystemYear < 2023 else "ESEF.2.2.7.escapedHTMLUsedInBlockTagWithSpecialCharacters",
                                         _("A text block containing '&' or '<' character MUST have an 'escape' attribute: %(qname)s."),
                                         modelObject=elt, qname=elt.qname)
@@ -580,7 +580,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                                                       modelXbrl, val, ixElt, imageValidationParameters)
                             elif isinstance(declaration, tinycss2.ast.ParseError):
                                 modelXbrl.warning("ix.CssParsingError",
-                                                  _("The style attribute contains erroneous CSS declaration \"%(styleContent)s\": %(parseError)s"),
+                                                  _('The style attribute contains erroneous CSS declaration "%(styleContent)s": %(parseError)s'),
                                                   modelObject=ixElt, parseError=declaration.message,
                                                   styleContent=styleValue)
                     if styleIxHiddenPattern is not None:
@@ -589,7 +589,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             hiddenFactRef = hiddenFactRefMatch.group(2)
                             if hiddenFactRef not in hiddenEltIds:
                                 modelXbrl.error("ESEF.2.4.1.esefIxHiddenStyleNotLinkingFactInHiddenSection",
-                                    _("\"%(styleIxHiddenProperty)s\" style identifies id attribute of a fact that is not in ix:hidden section: %(factId)s"),
+                                    _('"%(styleIxHiddenProperty)s" style identifies id attribute of a fact that is not in ix:hidden section: %(factId)s'),
                                     modelObject=ixElt, styleIxHiddenProperty=styleIxHiddenProperty, factId=hiddenFactRef)
                             else:
                                 presentedHiddenEltIds[hiddenFactRef].append(ixElt)
@@ -600,7 +600,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     requiredToDisplayFacts.append(ixElt)
             if requiredToDisplayFacts:
                 modelXbrl.error("ESEF.2.4.1.factInHiddenSectionNotInReport",
-                    _("The ix:hidden section contains %(countUnreferenced)s fact(s) whose @id is not applied on any \"%(styleIxHiddenProperty)s\" style: %(elements)s"),
+                    _('The ix:hidden section contains %(countUnreferenced)s fact(s) whose @id is not applied on any "%(styleIxHiddenProperty)s" style: %(elements)s'),
                     modelObject=requiredToDisplayFacts,
                     countUnreferenced=len(requiredToDisplayFacts),
                     styleIxHiddenProperty=styleIxHiddenProperty,
@@ -638,7 +638,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         for (contextScheme, contextIdentifier), contextElts in contextsByEntityIdentifier.items():
             if contextScheme != requiredScheme:
                 modelXbrl.warning("ESEF.2.1.1.nonLEIContextScheme" if requiredScheme == iso17442 else "UK.ESEF.2.1.1.contextScheme",
-                    _("The scheme attribute of the xbrli:identifier element should have \"%(requiredScheme)s\" as its content: %(contextScheme)s"),
+                    _('The scheme attribute of the xbrli:identifier element should have "%(requiredScheme)s" as its content: %(contextScheme)s'),
                     modelObject=contextElts, contextScheme=contextScheme, requiredScheme=requiredScheme)
             elif contextScheme == iso17442:
                 leiValidity = LeiUtil.checkLei(contextIdentifier)
@@ -798,7 +798,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         if orphanedFootnotes:
             modelXbrl.warning("ESEF.2.3.1.unusedFootnote",
                 _("Every nonempty link:footnote element SHOULD be linked to at least one fact. Unused footnote ids: %(ids)s"),
-                modelObject=orphanedFootnotes, ids=', '.join([f'"{footnote.id}"' for footnote in orphanedFootnotes]))
+                modelObject=orphanedFootnotes, ids=", ".join([f'"{footnote.id}"' for footnote in orphanedFootnotes]))
 
         ftLangNotUsedByTextFacts = set()
         ftLangNotUsedByTextLangs = set()
@@ -1120,14 +1120,14 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
         extensionTaxonomyDirectoryPrefix = val.authParam["reportPackageExtensionTaxonomyDirectoryPrefix"]
         if extensionTaxonomyDirectoryPrefix is not None and val.modelXbrl.fileSource.dir is not None:
             for filepath in val.modelXbrl.fileSource.dir:
-                filepath_parts = filepath.split('/')
-                if filepath_parts[1] in ['META-INF', 'reports']:
+                filepath_parts = filepath.split("/")
+                if filepath_parts[1] in ["META-INF", "reports"]:
                     continue
                 if not filepath_parts[1].startswith(extensionTaxonomyDirectoryPrefix):
                     modelXbrl.error(
-                        'arelle.ESEF.reportPackageExtensionTaxonomyDirectoryPrefix',
-                        _('The XBRL linkbase files must live within the report package under a directory that starts '
-                          'with `{}`').format(extensionTaxonomyDirectoryPrefix),
+                        "arelle.ESEF.reportPackageExtensionTaxonomyDirectoryPrefix",
+                        _("The XBRL linkbase files must live within the report package under a directory that starts "
+                          "with `{}`").format(extensionTaxonomyDirectoryPrefix),
                         modelObject=val.modelXbrl
                     )
                     break
@@ -1165,9 +1165,9 @@ def validateCssUrlContent(
             if css_rule.lower_name == "url":
                 if len(css_rule.arguments):
                     css_rule_url = css_rule.arguments[0].value  # url or base64
-                    evaluatedMsg = _('On line {line}').format(line=1) #css_element.source_line)
+                    evaluatedMsg = _("On line {line}").format(line=1) #css_element.source_line)
                     validateImageAndLog(normalizedUri, css_rule_url, modelXbrl, val, elt, evaluatedMsg, params, prelude)
         elif isinstance(css_rule, tinycss2.ast.URLToken):
             value = css_rule.value
-            evaluatedMsg = _('On line {line}').format(line=1) #css_element.source_line)
+            evaluatedMsg = _("On line {line}").format(line=1) #css_element.source_line)
             validateImageAndLog(normalizedUri, value, modelXbrl, val, elt, evaluatedMsg, params, prelude)

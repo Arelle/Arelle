@@ -12,21 +12,21 @@ from ..github import LINUX, MACOS, WINDOWS
 
 ALL_OPERATING_SYSTEMS = [LINUX, MACOS, WINDOWS]
 ALL_PYTHON_VERSIONS = (
-    '3.10',
-    '3.11',
-    '3.12',
-    '3.13',
-    '3.14.4',
+    "3.10",
+    "3.11",
+    "3.12",
+    "3.13",
+    "3.14.4",
 )
-LATEST_PYTHON_VERSION = '3.14.4'
+LATEST_PYTHON_VERSION = "3.14.4"
 PRIMARY_OPERATING_SYSTEM = LINUX
 FUNCTION_REGISTRY_TESTS = frozenset({
-    'xbrl_formula_1_0_function_registry',
-    'xbrl_transformation_registry_3',
-    'xbrl_transformation_registry_4',
-    'xbrl_transformation_registry_5',
+    "xbrl_formula_1_0_function_registry",
+    "xbrl_transformation_registry_3",
+    "xbrl_transformation_registry_4",
+    "xbrl_transformation_registry_5",
 })
-TESTS_PATH = './tests/integration_tests/scripts/tests'
+TESTS_PATH = "./tests/integration_tests/scripts/tests"
 
 
 class Entry(TypedDict, total=False):
@@ -38,11 +38,11 @@ class Entry(TypedDict, total=False):
 
 def generate_config_entry(name: str, os: str, private: bool, python_version: str) -> Entry:
     e: Entry = {
-        'environment': 'integration-tests' if private else 'none',
-        'name': name,
-        'os': os,
-        'private': private,
-        'python_version': python_version,
+        "environment": "integration-tests" if private else "none",
+        "name": name,
+        "os": os,
+        "private": private,
+        "python_version": python_version,
     }
     return e
 
@@ -52,7 +52,7 @@ def get_all_scripts() -> list[Path]:
     Returns absolute paths of runnable scripts based on the operating system.
     :return: Tuple of runnable scripts.
     """
-    return [x for x in Path(TESTS_PATH).glob('**/*.py')]
+    return [x for x in Path(TESTS_PATH).glob("**/*.py")]
 
 def get_frozen_build_scripts() -> list[Path]:
     """
@@ -89,7 +89,7 @@ def main() -> None:
 
     for (system, version, private), paths in groups.items():
         output.append(generate_config_entry(
-            name=','.join(p.stem for p in paths),
+            name=",".join(p.stem for p in paths),
             os=system,
             private=private,
             python_version=version
@@ -99,5 +99,5 @@ def main() -> None:
     print()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

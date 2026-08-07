@@ -1,4 +1,4 @@
-'''
+"""
 Rss Save OIM is a plug-in to the RSS GUI menu that will load an RSS filing's
 instances and save them as OIM files.
 
@@ -19,7 +19,7 @@ This plug-in imports the following plug-ins:
   saveLoadableOIM to save the xBRL-JSON instances
   inlineXbrlDocumentSet for multi-doc or multi-IXDS filings
   EDGAR/validate for isolation of multi-IXDS filings into primary and supplemental modelXbrl objects
-'''
+"""
 
 import os
 from arelle import ModelXbrl
@@ -83,13 +83,13 @@ def saveFilingOimMenuCommand(viewRssFeed):
 
 
 __pluginInfo__ = {
-    'name': 'Load RSS item and save OIM file',
-    'version': '1.0',
-    'description': "This plug-in saves an RSS-identified XBRL filing in OIM JSON files, for each instance of the filing.",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
-    'import': ('saveLoadableOIM', 'inlineXbrlDocumentSet', 'EDGAR/validate'), # import dependent modules
+    "name": "Load RSS item and save OIM file",
+    "version": "1.0",
+    "description": "This plug-in saves an RSS-identified XBRL filing in OIM JSON files, for each instance of the filing.",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
+    "import": ("saveLoadableOIM", "inlineXbrlDocumentSet", "EDGAR/validate"), # import dependent modules
     # classes of mount points (required)
-    'RssFeed.Menu.Filing': rssFeedFilingMenuExtender
+    "RssFeed.Menu.Filing": rssFeedFilingMenuExtender
 }

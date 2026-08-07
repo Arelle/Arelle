@@ -53,7 +53,7 @@ def rule_tr01(
                 facts_in_error.append(fact)
         if len(facts_in_error) > 0:
             yield Validation.error(
-                codes='DBA.TR01',
+                codes="DBA.TR01",
                 msg=_("Facts tagged with gsd-namespaced concepts must have a context with the same entity and period as IdentificationNumberCvrOfReportingEntity"),
                 modelObject=facts_in_error
             )
@@ -76,9 +76,9 @@ def rule_tr02(
     cvr_facts = val.modelXbrl.factsByQname.get(pluginData.identificationNumberCvrOfReportingEntityQn, set())
     if len(cvr_facts) > 0:
         cvr_fact = next(iter(cvr_facts))
-        if cvr_fact.context.entityIdentifier[0] != 'http://www.dcca.dk/cvr':  # type: ignore[union-attr]
+        if cvr_fact.context.entityIdentifier[0] != "http://www.dcca.dk/cvr":  # type: ignore[union-attr]
             yield Validation.error(
-                codes='DBA.TR02',
+                codes="DBA.TR02",
                 msg=_("IdentificationNumberCvrOfReportingEntity must have the absolute URI 'http://www.dcca.dk/cvr' as context entity identifier scheme"),
                 modelObject=cvr_fact
             )
@@ -103,7 +103,7 @@ def rule_tr03(
         cvr_fact = next(iter(cvr_facts))
         if cvr_fact.xValid >= VALID and cvr_fact.xValue != cvr_fact.context.entityIdentifier[1]:  # type: ignore[union-attr]
             yield Validation.error(
-                codes='DBA.TR03',
+                codes="DBA.TR03",
                 msg=_("IdentificationNumberCvrOfReportingEntity must have the CVR number({}) specified in "
                       "IdentificationNumberCvrOfReportingEntity as the context entity identifier({}).").format(
                     cvr_fact.xValue,
@@ -136,7 +136,7 @@ def rule_tr05(
             start_date_fact = next(iter(filtered_start_date_facts))
             if start_date_fact.xValid >= VALID and start_date_fact.xValue != cvr_fact.context.startDatetime:  # type: ignore[union-attr]
                 yield Validation.error(
-                    codes='DBA.TR05',
+                    codes="DBA.TR05",
                     msg=_("ReportingPeriodStartDate must specify the same date({}) as period startDate({}) in the context "
                           "of IdentificationNumberCvrOfReportingEntity").format(
                         start_date_fact.xValue,
@@ -170,7 +170,7 @@ def rule_tr06(
                 isinstance(end_date_fact.xValue, ModelValue.DateTime) and
                 end_date_fact.xValue.date() != cvr_fact.context.endDate):  # type: ignore[union-attr]
             yield Validation.error(
-                codes='DBA.TR06',
+                codes="DBA.TR06",
                 msg=_("ReportingPeriodEndDate must specify the same date({}) as period endDate({}) in the context of "
                       "IdentificationNumberCvrOfReportingEntity").format(
                     end_date_fact.xValue.date(),
@@ -196,8 +196,8 @@ def rule_tr09(
     entity_identifier_values = {context.entityIdentifier for context in val.modelXbrl.contexts.values()}
     if len(entity_identifier_values) > 1:
         yield Validation.error(
-            'DBA.TR09',
-            _('All contexts must have the same identifier scheme and value')
+            "DBA.TR09",
+            _("All contexts must have the same identifier scheme and value")
         )
 
 
@@ -221,8 +221,8 @@ def rule_tr12(
                 for elt in ixdsHtmlRootElt.iter(etree.Element):
                     if containsScriptMarkers(elt) is not None:
                         yield Validation.error(
-                            codes='DBA.TR12',
-                            msg=_('InlineXBRL documents may not contain executable code.'),
+                            codes="DBA.TR12",
+                            msg=_("InlineXBRL documents may not contain executable code."),
                             modelObject=elt,
                         )
 
@@ -247,7 +247,7 @@ def rule_tr11(
     modelDocument = modelXbrl.modelDocument
     if modelDocument is not None and modelDocument.type in (ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET):
         for ixdsHtmlRootElt in modelXbrl.ixdsHtmlElements:
-            for elt in ixdsHtmlRootElt.iter(f'{_xhtmlNs}img'):
+            for elt in ixdsHtmlRootElt.iter(f"{_xhtmlNs}img"):
                 imagesToCheck.add(elt.get("src","").strip())
     if len(imagesToCheck) > 0:
         yield from errorOnForbiddenImage(
@@ -273,9 +273,9 @@ def rule_tr15(
     leiFacts = val.modelXbrl.factsByQname.get(pluginData.legalEntityIdentifierOfReportingEntityQn, set())
     if len(leiFacts) > 0:
         leiFact = next(iter(leiFacts))
-        if leiFact is not None and leiFact.context is not None and leiFact.context.entityIdentifier[0] == 'http://standards.iso.org/iso/17442' and leiFact.xValid >= VALID and leiFact.context.entityIdentifier[1] != leiFact.xValue:
+        if leiFact is not None and leiFact.context is not None and leiFact.context.entityIdentifier[0] == "http://standards.iso.org/iso/17442" and leiFact.xValid >= VALID and leiFact.context.entityIdentifier[1] != leiFact.xValue:
                  yield Validation.error(
-                    codes='DBA.TR15',
+                    codes="DBA.TR15",
                     msg=_("If the context identifier scheme is http://standards.iso.org/iso/17442, all context identifiers must be equal to the value of the field gsd:LegalEntityIdentifierOfReportingEntity."),
                     modelObject=leiFact
                 )
@@ -297,11 +297,11 @@ def rule_tr16(
     modelXbrl = val.modelXbrl
     for doc in modelXbrl.urlDocs.values():
         if doc.type == ModelDocumentType.INLINEXBRL:
-            lang = doc.xmlRootElement.get('{http://www.w3.org/XML/1998/namespace}lang')
+            lang = doc.xmlRootElement.get("{http://www.w3.org/XML/1998/namespace}lang")
             if not lang:
                 yield Validation.error(
-                    codes='DBA.TR16',
-                    msg=_('Inline XBRL must contain xml:lang in the root of the InlineXBRL document'),
+                    codes="DBA.TR16",
+                    msg=_("Inline XBRL must contain xml:lang in the root of the InlineXBRL document"),
                     modelObject=doc,
                 )
 
@@ -335,14 +335,14 @@ def rule_tr17(
                         xmlBases.append(elt)
     if len(htmlBases) > 0:
         yield Validation.error(
-            codes='DBA.TR17',
-            msg=_('The HTML <base> element MUST NOT be used in the Inline XBRL document.'),
+            codes="DBA.TR17",
+            msg=_("The HTML <base> element MUST NOT be used in the Inline XBRL document."),
             modelObject=htmlBases,
         )
     if len(xmlBases) > 0:
             yield Validation.error(
-                codes='DBA.TR17',
-                msg=_('The xml:base attribute MUST NOT be used in the Inline XBRL document'),
+                codes="DBA.TR17",
+                msg=_("The xml:base attribute MUST NOT be used in the Inline XBRL document"),
                 modelObject=xmlBases,
             )
 
@@ -373,8 +373,8 @@ def rule_tr19(
         duplicate_fact_values = {fact.xValue for fact in duplicate_facts_group}
         if len(duplicate_fact_values) > 1:
             yield Validation.error(
-                'DBA.TR19',
-                _('Duplicate facts must not have different values. The values reported for these facts are: {}').format(
+                "DBA.TR19",
+                _("Duplicate facts must not have different values. The values reported for these facts are: {}").format(
                     duplicate_fact_values
                 ),
                 modelObject=duplicate_facts_group

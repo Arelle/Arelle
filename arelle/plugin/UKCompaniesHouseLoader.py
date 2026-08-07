@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-'''
+"""
 UKCompaniesHouseLoader is a plug-in to both GUI menu and command line/web service
 that loads a Companies House zip XBRL instances file.
 
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from lxml import html
 import datetime, os
 from arelle import FileSource
@@ -92,20 +92,20 @@ def companiesHouseLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
     # find <table> with <a>Download in it
     for instanceFile in modelXbrl.fileSource.dir:
         rssObject.rssItems.append(
-            CompaniesHouseItem(modelXbrl, instanceFile, mappedUri + '/' + instanceFile))
+            CompaniesHouseItem(modelXbrl, instanceFile, mappedUri + "/" + instanceFile))
     return rssObject
 
 
 
 __pluginInfo__ = {
-    'name': 'UK Companies House Loader',
-    'version': '0.9',
-    'description': "This plug-in loads UK Companies House XBRL documents.  ",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "UK Companies House Loader",
+    "version": "0.9",
+    "description": "This plug-in loads UK Companies House XBRL documents.  ",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
     # take out for now: 'CntlrCmdLine.Options': streamingOptionsExtender,
-    'ModelDocument.PullLoader': companiesHouseLoader,
-    'RssItem.Xbrl.Loaded': companiesHouseInstanceLoaded,
+    "ModelDocument.PullLoader": companiesHouseLoader,
+    "RssItem.Xbrl.Loaded": companiesHouseInstanceLoaded,
 }

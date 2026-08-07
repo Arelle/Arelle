@@ -91,9 +91,9 @@ def _getLatestArelleRelease(cntlr: CntlrWinMain) -> ArelleRelease:
 
 def _getArelleReleaseDownloadUrl(assets: list[dict[str, Any]]) -> str | None:
     if sys.platform == "darwin":
-        if getSystemInfo().get('arch') == 'arm64':
-            return _getArelleReleaseDownloadUrlByFileExtension(assets, ".dmg", nameIncludes='-arm64')
-        return _getArelleReleaseDownloadUrlByFileExtension(assets, ".dmg", nameIncludes='-x64')
+        if getSystemInfo().get("arch") == "arm64":
+            return _getArelleReleaseDownloadUrlByFileExtension(assets, ".dmg", nameIncludes="-arm64")
+        return _getArelleReleaseDownloadUrlByFileExtension(assets, ".dmg", nameIncludes="-x64")
     elif sys.platform == "win32":
         return _getArelleReleaseDownloadUrlByFileExtension(assets, ".exe")
     else:

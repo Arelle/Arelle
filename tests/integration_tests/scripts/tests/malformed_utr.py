@@ -21,9 +21,9 @@ arelle_offline = args.offline
 working_directory = Path(args.working_directory)
 test_directory = Path(args.test_directory)
 
-suite_zip_path = test_directory / 'suite.zip'
-suite_directory = test_directory / 'suite'
-instance_path = suite_directory / 'conf/utr-structure/tests/01-simple/simpleValid.xml'
+suite_zip_path = test_directory / "suite.zip"
+suite_directory = test_directory / "suite"
+instance_path = suite_directory / "conf/utr-structure/tests/01-simple/simpleValid.xml"
 print(f"Downloading suite: {suite_zip_path}")
 download_from_public_s3(
     suite_zip_path,
@@ -36,27 +36,27 @@ with zipfile.ZipFile(suite_zip_path, "r") as zip_ref:
     zip_ref.extractall(suite_directory)
 
 test_cases: dict[str, dict[regex.Pattern[str], int]] = {
-    '01-unit-id-and-status-not-unique.xml': {
-        regex.compile(r'^\[arelleUtrLoader:entryDuplication'): 1,
+    "01-unit-id-and-status-not-unique.xml": {
+        regex.compile(r"^\[arelleUtrLoader:entryDuplication"): 1,
     },
-    '02-simple-unit-item-type-missing.xml': {
-        regex.compile(r'^\[arelleUtrLoader:simpleDefMissingField'): 1,
+    "02-simple-unit-item-type-missing.xml": {
+        regex.compile(r"^\[arelleUtrLoader:simpleDefMissingField"): 1,
     },
-    '03-complex-unit-with-symbol.xml': {
-        regex.compile(r'^\[arelleUtrLoader:complexDefSymbol'): 1,
+    "03-complex-unit-with-symbol.xml": {
+        regex.compile(r"^\[arelleUtrLoader:complexDefSymbol"): 1,
     },
-    '04-numerator-item-type-namespace-but-no-numerator-item-type.xml': {
-        regex.compile(r'^\[arelleUtrLoader:complexDefMissingField'): 1,
+    "04-numerator-item-type-namespace-but-no-numerator-item-type.xml": {
+        regex.compile(r"^\[arelleUtrLoader:complexDefMissingField"): 1,
     },
-    '05-simple-unit-with-numerator-item-type.xml': {
-        regex.compile(r'^\[arelleUtrLoader:complexDefMissingField'): 1,
+    "05-simple-unit-with-numerator-item-type.xml": {
+        regex.compile(r"^\[arelleUtrLoader:complexDefMissingField"): 1,
     },
-    '06-denominator-item-type-namespace-but-no-denominator-item-type.xml': {
-        regex.compile(r'^\[arelleUtrLoader:complexDefMissingField'): 1,
+    "06-denominator-item-type-namespace-but-no-denominator-item-type.xml": {
+        regex.compile(r"^\[arelleUtrLoader:complexDefMissingField"): 1,
     },
-    '07-simple-unit-with-denominator-item-type.xml': {
-        regex.compile(r'^\[arelleUtrLoader:complexDefMissingField'): 1,
-        regex.compile(r'^\[utre:error-NumericFactUtrInvalid'): 1,
+    "07-simple-unit-with-denominator-item-type.xml": {
+        regex.compile(r"^\[arelleUtrLoader:complexDefMissingField"): 1,
+        regex.compile(r"^\[utre:error-NumericFactUtrInvalid"): 1,
     },
 }
 
@@ -66,9 +66,9 @@ for utr_file, expected_errors in test_cases.items():
     run_arelle(
         arelle_command,
         additional_args=[
-            "--file", str(suite_directory / 'conf/utr-structure/tests/01-simple/simpleValid.xml'),
-            '--utrUrl', str(suite_directory / 'conf/utr-structure/malformed-utrs' / utr_file),
-            '--utr',
+            "--file", str(suite_directory / "conf/utr-structure/tests/01-simple/simpleValid.xml"),
+            "--utrUrl", str(suite_directory / "conf/utr-structure/malformed-utrs" / utr_file),
+            "--utr",
             "--validate",
         ],
         offline=arelle_offline,
@@ -80,5 +80,5 @@ for utr_file, expected_errors in test_cases.items():
 assert_result(errors)
 
 print("Cleaning up")
-rmtree(working_directory / 'malformed_utr' / 'suite')
-os.unlink(working_directory / 'malformed_utr' / 'suite.zip')
+rmtree(working_directory / "malformed_utr" / "suite")
+os.unlink(working_directory / "malformed_utr" / "suite.zip")

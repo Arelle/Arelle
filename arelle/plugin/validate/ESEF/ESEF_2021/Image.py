@@ -28,7 +28,7 @@ def checkImageContents(
     data: bytes,
     consolidated: bool,
 ) -> None:
-    guidance = 'ESEF.2.5.1' if consolidated else 'ESEF.4.1.3'
+    guidance = "ESEF.2.5.1" if consolidated else "ESEF.4.1.3"
     if "svg" in imgType:
         try:
             checkSVGContent(modelXbrl, imgElt, data, guidance)

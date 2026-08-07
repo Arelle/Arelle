@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from arelle.ModelInstanceObject import ModelContext
 
 class ContextHashKey:
-    __slots__ = ('context', 'dimensionalAspectModel', 'hash')
+    __slots__ = ("context", "dimensionalAspectModel", "hash")
     context: ModelContext
     dimensionalAspectModel: bool
     hash: int

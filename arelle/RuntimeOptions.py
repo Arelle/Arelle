@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 from dataclasses import InitVar, dataclass
@@ -183,9 +183,9 @@ class RuntimeOptions:
         :return: Nothing
         """
         if self.formulaVarSetTimeout is not None and self.formulaVarSetTimeout <= 0:
-            raise RuntimeOptionsException('formulaVarSetTimeout must be a positive number')
+            raise RuntimeOptionsException("formulaVarSetTimeout must be a positive number")
         if self.formulaReportTimeout is not None and self.formulaReportTimeout <= 0:
-            raise RuntimeOptionsException('formulaReportTimeout must be a positive number')
+            raise RuntimeOptionsException("formulaReportTimeout must be a positive number")
         if pluginOptions:
             existingBaseOptions = sorted(
                 optionName
@@ -193,7 +193,7 @@ class RuntimeOptions:
                 if hasattr(self, optionName)
             )
             if existingBaseOptions:
-                raise RuntimeOptionsException('Provided plugin options already exist as base options {}'.format(existingBaseOptions))
+                raise RuntimeOptionsException("Provided plugin options already exist as base options {}".format(existingBaseOptions))
             for optionName, optionValue in pluginOptions.items():
                 setattr(self, optionName, optionValue)
         if self.webserver and not hasWebServer():
@@ -205,4 +205,4 @@ class RuntimeOptions:
                 self.dimFile, self.anchFile, self.formulaeFile, self.viewArcrole, self.viewFile,
                 self.roleTypesFile, self.arcroleTypesFile, self.renderedTableLinkbaseFile
         )):
-            raise RuntimeOptionsException('Incorrect arguments with webserver')
+            raise RuntimeOptionsException("Incorrect arguments with webserver")

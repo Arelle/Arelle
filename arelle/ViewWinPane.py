@@ -1,7 +1,7 @@
-'''
+"""
 @author: Acsone S. A.
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 from tkinter import Menu, StringVar

@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from arelle import ViewFile
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ViewUtil import sortCountExpected
@@ -38,7 +38,7 @@ class ViewTests(ViewFile.View):
             self.xlsxDocNames = []
             self.xlsxTestcase = ""
             if self.cols:
-                if isinstance(self.cols,str): self.cols = self.cols.replace(',',' ').split()
+                if isinstance(self.cols,str): self.cols = self.cols.replace(","," ").split()
                 unrecognizedCols = []
                 for col in self.cols:
                     if col not in COL_WIDTHS:
@@ -46,7 +46,7 @@ class ViewTests(ViewFile.View):
                 if unrecognizedCols:
                     self.modelXbrl.error("arelle:unrecognizedTestReportColumn",
                                          _("Unrecognized columns: %(cols)s"),
-                                         modelXbrl=self.modelXbrl, cols=','.join(unrecognizedCols))
+                                         modelXbrl=self.modelXbrl, cols=",".join(unrecognizedCols))
                 if "Period" in self.cols:
                     i = self.cols.index("Period")
                     self.cols[i:i+1] = ["Start", "End/Instant"]

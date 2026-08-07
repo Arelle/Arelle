@@ -1,4 +1,4 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
 (Does not apply to the XBRL US Database schema and description.)
 
@@ -12,7 +12,7 @@ mail-address.{street1,street2,city,state,zip},
 former-name-{1..}.{former-conformed-name,date-changed}
 
 filer-category, public-float, trading-symbol, fiscal-year-focus, fiscal-period-focus
-'''
+"""
 import os, datetime
 import regex as re
 from lxml import html, etree
@@ -28,23 +28,23 @@ def loadEntityInformation(dts, entrypoint, rssItem):
     if disclosureSystem.validationType == "EFM":
         reloadCache = False
         if rssItem is not None:
-            accession = rssItem.url.split('/')[-2]
-            fileUrl = os.path.dirname(rssItem.url) + '/' + accession[0:10] + '-' + accession[10:12] + '-' + accession[12:] + ".hdr.sgml"
+            accession = rssItem.url.split("/")[-2]
+            fileUrl = os.path.dirname(rssItem.url) + "/" + accession[0:10] + "-" + accession[10:12] + "-" + accession[12:] + ".hdr.sgml"
             reloadCache = getattr(rssItem.modelXbrl, "reloadCache", False)
         elif (dts.uri.startswith("http://www.sec.gov/Archives/edgar/data") or
               dts.uri.startswith("https://www.sec.gov/Archives/edgar/data")) and dts.uri.endswith(".xml"):
-            accession = dts.uri.split('/')[-2]
+            accession = dts.uri.split("/")[-2]
             dirPart = os.path.dirname(dts.uri)
             if accession.endswith("-xbrl.zip"):  # might be an instance document inside a xbrl.zip file
-                accession = dts.uri.split('/')[-3]
+                accession = dts.uri.split("/")[-3]
                 dirPart = os.path.dirname(dirPart)
-            fileUrl = dirPart + '/' + accession[0:10] + '-' + accession[10:12] + '-' + accession[12:] + ".hdr.sgml"
+            fileUrl = dirPart + "/" + accession[0:10] + "-" + accession[10:12] + "-" + accession[12:] + ".hdr.sgml"
         else:
-            fileUrl = ''
+            fileUrl = ""
         if fileUrl:
             # try to load and use it
             normalizedUrl = dts.modelManager.cntlr.webCache.normalizeUrl(fileUrl)
-            hdrSgml = ''
+            hdrSgml = ""
             try:
                 filePath = dts.modelManager.cntlr.webCache.getfilename(normalizedUrl, reload=reloadCache)
                 if filePath:
@@ -55,19 +55,19 @@ def loadEntityInformation(dts, entrypoint, rssItem):
                 dts.info("xpDB:headerSgmlDocumentLoadingError",
                                     _("Loading XBRL DB: header SGML document %(file)s loading error: %(error)s"),
                                     modelObject=dts, file=normalizedUrl, error=err)
-                hdrSgml = ''
-            record = ''
+                hdrSgml = ""
+            record = ""
             formerCompanyNumber = 0
             for match in re.finditer(r"[<]([^>]+)[>]([^<\n\r]*)", hdrSgml, re.MULTILINE):
                 tag = match.group(1).lower()
                 v = match.group(2).replace("&lt;","<").replace("&gt;",">").replace("&amp;","&")
-                if tag in ('business-address','mail-address'):
-                    record = tag + '.'
-                elif tag == 'former-company':
+                if tag in ("business-address","mail-address"):
+                    record = tag + "."
+                elif tag == "former-company":
                     formerCompanyNumber += 1
                     record = "{}-{}.".format(tag, formerCompanyNumber)
-                elif tag.startswith('/'):
-                    record = ''
+                elif tag.startswith("/"):
+                    record = ""
                 elif v:
                     if tag.endswith("-datetime"):
                         try:
@@ -81,7 +81,7 @@ def loadEntityInformation(dts, entrypoint, rssItem):
                             pass
                     elif tag.endswith("-year-end") and len(v) == 4:
                         v = "{0}-{1}".format(v[0:2],v[2:4])
-                    elif tag in ('assigned-sic',):
+                    elif tag in ("assigned-sic",):
                         try:
                             v = int(v)
                         except ValueError:
@@ -92,12 +92,12 @@ def loadEntityInformation(dts, entrypoint, rssItem):
             if rssItem is None:
                 # try to sgml txt file
                 normalizedUrl = normalizedUrl.replace(".hdr.sgml", ".txt")
-                httpDir = normalizedUrl.rpartition('/')[0]
-                txtSgml = ''
+                httpDir = normalizedUrl.rpartition("/")[0]
+                txtSgml = ""
                 try:
                     filePath = dts.modelManager.cntlr.webCache.getfilename(normalizedUrl, reload=reloadCache)
                     if filePath:
-                        with open(filePath, encoding='utf-8') as fh:
+                        with open(filePath, encoding="utf-8") as fh:
                             txtSgml = fh.read()
                         # remove from cache, very large file
                         os.remove(filePath)
@@ -105,23 +105,23 @@ def loadEntityInformation(dts, entrypoint, rssItem):
                     dts.info("xpDB:txtSgmlDocumentLoadingError",
                                         _("Loading XBRL DB: txt SGML document %(file)s loading error: %(error)s"),
                                         modelObject=dts, file=normalizedUrl, error=err)
-                    txtSgml = ''
+                    txtSgml = ""
                 documentType = documentSequence = None
                 itemsFound = 0
                 for match in re.finditer(r"[<]([^>]+)[>]([^<\n\r]*)", txtSgml, re.MULTILINE):
                     tag = match.group(1).lower()
                     v = match.group(2).replace("&lt;","<").replace("&gt;",">").replace("&amp;","&")
-                    if tag == 'sequence':
+                    if tag == "sequence":
                         documentSequence = v
-                    elif tag == 'type':
+                    elif tag == "type":
                         documentType = v
-                    elif tag == 'filename':
-                        if documentType.endswith('.INS') and 'instance-url' not in entityInformation:
-                            entityInformation['instance-url'] = httpDir + '/' + v
+                    elif tag == "filename":
+                        if documentType.endswith(".INS") and "instance-url" not in entityInformation:
+                            entityInformation["instance-url"] = httpDir + "/" + v
                             documentType = documentSequence = None
                             itemsFound += 1
-                        if documentSequence == '1':
-                            entityInformation['primary-document-url'] = httpDir + '/' + v
+                        if documentSequence == "1":
+                            entityInformation["primary-document-url"] = httpDir + "/" + v
                             documentType = documentSequence = None
                             itemsFound += 1
                         if itemsFound >= 2:

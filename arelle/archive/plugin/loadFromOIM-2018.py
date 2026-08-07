@@ -108,7 +108,7 @@ def xlUnicodeChar(match):
 def xlValue(cell): # excel values may have encoded unicode, such as _0000D_
     v = cell.value
     if isinstance(v, str):
-        return xlUnicodePattern.sub(xlUnicodeChar, v).replace('\r\n','\n').replace('\r','\n')
+        return xlUnicodePattern.sub(xlUnicodeChar, v).replace("\r\n","\n").replace("\r","\n")
     return v
 
 class OIMException(Exception):
@@ -118,13 +118,13 @@ class OIMException(Exception):
         self.msgArgs = kwargs
         self.args = ( self.__repr__(), )
     def __repr__(self):
-        return _('[{0}] exception {1}').format(self.code, self.message % self.msgArgs)
+        return _("[{0}] exception {1}").format(self.code, self.message % self.msgArgs)
 
 class NotOIMException(Exception):
     def __init__(self, **kwargs):
         self.args = ( self.__repr__(), )
     def __repr__(self):
-        return _('[NotOIM] not an OIM document')
+        return _("[NotOIM] not an OIM document")
 
 def csvCellValue(cellValue):
     if cellValue == "#nil":
@@ -216,7 +216,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                             _valueKeyDict[value] = key
                 return _dict
             if oimObject is None:
-                _file, encoding = modelXbrl.fileSource.file(oimFile, encoding='utf-8')
+                _file, encoding = modelXbrl.fileSource.file(oimFile, encoding="utf-8")
                 with _file as f:
                     oimObject = json.load(f, object_pairs_hook=loadDict)
             isJSON = True # would raise exception before here if not json
@@ -247,12 +247,12 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                 facts = oimObject["facts"]
                 footnotes = oimObject["facts"].values() # shares this object
                 # add IDs if needed for footnotes
-                ''' TBD, facts is now a dict
+                """ TBD, facts is now a dict
                 for fact in facts:
                     if isinstance(fact, dict) and fact.get("footnotes") and "id" not in fact:
                         anonymousFactId += 1
                         fact["id"] = "_f_{:02}".format(anonymousFactId)
-                '''
+                """
 
         # pre-PWD names
         global oimConcept, oimEntity, oimPeriod, oimUnit, oimLanguage
@@ -266,8 +266,8 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
         if isCSV:
             errPrefix = "xbrlce"
             currentAction = "compiling metadata"
-            csvOpenMode = 'w'
-            csvOpenNewline = ''
+            csvOpenMode = "w"
+            csvOpenNewline = ""
 
 
             # process CSV metadata
@@ -330,7 +330,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                         tableProperties[propertyName] = propertyValue
                 filepath = os.path.join(_dir, tableUrl)
                 tupleIds = set()
-                _file, encoding = modelXbrl.fileSource.file(oimFile, encoding='utf-8-sig')
+                _file, encoding = modelXbrl.fileSource.file(oimFile, encoding="utf-8-sig")
                 with _file as f:
                     csvReader = csv.reader(f)
                     for i, row in enumerate(csvReader):
@@ -350,7 +350,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                             for _colName in _colNames:
                                                 specificColProperties[_colName][_property] = value
                                         else:
-                                            specificColProperties['*'][_property] = value
+                                            specificColProperties["*"][_property] = value
                             for iCol in footnoteCols:
                                 cellValue = row[iCol]
                                 if cellValue == "": # no fact produced for this cell
@@ -512,7 +512,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                     topLevelProperties[col] = value
                         else:
                             if tableRangeName not in tableMetadata: # first encounter of tableRangeName, check if it's a range
-                                table, _sep, namedRange = tableRangeName.partition('!')
+                                table, _sep, namedRange = tableRangeName.partition("!")
                                 if table not in sheetNames:
                                     missingTables.add(table)
                                 elif namedRange:
@@ -551,7 +551,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                     tableLevelProperties = {}
                     tableLevelProperties = dict((col, xlValue(row[iCol]))
                                                 for row in tableRows
-                                                if row[metaHdr["column name"]].value in (None, '')
+                                                if row[metaHdr["column name"]].value in (None, "")
                                                 for col, iCol in metaHdr.items()
                                                 if col not in ("table", "column name", "datatype", "column type", "column property", "applies to") and row[iCol].value is not None)
                     colDefs = [] # column definitions
@@ -592,7 +592,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                         elif propertyName != "deleteInheritedProperties":
                             tableProperties[propertyName] = propertyValue
                     tupleIds = set()
-                    tableName, _sep, namedRange = tableRangeName.partition('!')
+                    tableName, _sep, namedRange = tableRangeName.partition("!")
                     rangeRows = []
                     if tableName in oimWb:
                         ws = oimWb[tableName]
@@ -619,7 +619,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                         for _colName in _colNames:
                                             specificColProperties[_colName][_property] = value
                                     else:
-                                        specificColProperties['*'][_property] = value
+                                        specificColProperties["*"][_property] = value
                             for iCol in footnoteCols:
                                 cellValue = xlValue(row[iCol])
                                 if cellValue is None or cellValue == "": # no fact produced for this cell
@@ -782,7 +782,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
             _return = modelXbrl.modelDocument
 
         # add linkbase, role and arcrole refs
-        ''' deprecated
+        """ deprecated
         for refType in ("linkbase", "role", "arcrole"):
             for dtsRef in dtsReferences:
                 if dtsRef.get("type") == refType and dtsRef.get("href"):
@@ -799,7 +799,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                             _uriAttrValue = _defElt.get(_uriAttrName)
                             if _uriAttrValue:
                                 elt.set(_uriAttrName, _uriAttrValue)
-        '''
+        """
         firstCntxUnitFactElt = None
 
         cntxTbl = {}
@@ -878,7 +878,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                 if cntxKey in cntxTbl:
                     _cntx = cntxTbl[cntxKey]
                 else:
-                    cntxId = 'c-{:02}'.format(len(cntxTbl) + 1)
+                    cntxId = "c-{:02}".format(len(cntxTbl) + 1)
                     qnameDims = {}
                     for dimName, dimVal in dimensions.items():
                         if ":" in dimName and not dimName.startswith(oimPrefix):
@@ -897,7 +897,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                 dimVal = dimVal["value"]
                             else:
                                 dimVal = str(dimVal) # may be int or boolean
-                            if isinstance(dimVal,str) and ":" in dimVal and dimVal.partition(':')[0] in prefixes:
+                            if isinstance(dimVal,str) and ":" in dimVal and dimVal.partition(":")[0] in prefixes:
                                 mem = qname(dimVal, prefixes) # explicit dim
                             elif dimConcept.isTypedDimension:
                                 # a modelObject xml element is needed for all of the instance functions to manage the typed dim
@@ -911,9 +911,9 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                             entityAsQn.localName,
                                             "forever" if period == "forever" else concept.periodType,
                                             None if concept.periodType == "instant" or period == "forever"
-                                                else dateTime(period.rpartition('/')[0], type=DATETIME),
+                                                else dateTime(period.rpartition("/")[0], type=DATETIME),
                                             None if period == "forever"
-                                                else dateTime(period.rpartition('/')[2], type=DATETIME),
+                                                else dateTime(period.rpartition("/")[2], type=DATETIME),
                                             None, # no dimensional validity checking (like formula does)
                                             qnameDims, [], [],
                                             id=cntxId)
@@ -933,13 +933,13 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                             _("Unit string representation is lexically invalid, %(unit)s"),
                                             modelObject=modelXbrl, unit=unitKey)
                         else:
-                            _mul, _sep, _div = unitKey.partition('/')
-                            if _mul.startswith('('):
+                            _mul, _sep, _div = unitKey.partition("/")
+                            if _mul.startswith("("):
                                 _mul = _mul[1:-1]
-                            _muls = [u for u in _mul.split('*') if u]
-                            if _div.startswith('('):
+                            _muls = [u for u in _mul.split("*") if u]
+                            if _div.startswith("("):
                                 _div = _div[1:-1]
-                            _divs = [u for u in _div.split('*') if u]
+                            _divs = [u for u in _div.split("*") if u]
                             if _muls != sorted(_muls) or _divs != sorted(_divs):
                                 error("{}:invalidUnitString".format(errPrefix),
                                                 _("Unit string representation measures are not in alphabetical order, %(unit)s"),
@@ -953,7 +953,7 @@ def loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri, oimObject=
                                                                                           _("Unit prefix is not declared: %(unit)s"),
                                                                                           unit=u))
                                           for u in _divs]
-                                unitId = 'u-{:02}'.format(len(unitTbl) + 1)
+                                unitId = "u-{:02}".format(len(unitTbl) + 1)
                                 for _measures in mulQns, divQns:
                                     for _measure in _measures:
                                         addQnameValue(modelXbrl.modelDocument, _measure)
@@ -1197,8 +1197,8 @@ def isOimLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs):
     _ext = os.path.splitext(filepath)[1]
     if _ext in (".csv", ".json", ".xlsx", ".xls"):
         lastFilePathIsOIM = True
-    elif isHttpUrl(normalizedUri) and '?' in _ext: # query parameters and not .json, may be JSON anyway
-        with io.open(filepath, 'rt', encoding='utf-8') as f:
+    elif isHttpUrl(normalizedUri) and "?" in _ext: # query parameters and not .json, may be JSON anyway
+        with io.open(filepath, "rt", encoding="utf-8") as f:
             _fileStart = f.read(4096)
         if _fileStart and re.match(r"\s*\{\s*\"documentType\":\s*\"http:\\+/\\+/www.xbrl.org\\+/WGWD\\+/YYYY-MM-DD\\+/xbrl-json\"", _fileStart):
             lastFilePathIsOIM = True
@@ -1266,17 +1266,17 @@ def oimJsonSaveXml(cntlr, oimJsonObject, jsonFileName, xbrlFileName):
     doc.modelXbrl.close()
 
 __pluginInfo__ = {
-    'name': 'Load From OIM 2018',
-    'version': '0.9',
-    'description': "This plug-in loads XBRL instance data from OIM (JSON, CSV or Excel) and saves the resulting XBRL Instance.",
-    'license': 'Apache-2',
-    'author': authorLabel,
-    'copyright': copyrightLabel,
+    "name": "Load From OIM 2018",
+    "version": "0.9",
+    "description": "This plug-in loads XBRL instance data from OIM (JSON, CSV or Excel) and saves the resulting XBRL Instance.",
+    "license": "Apache-2",
+    "author": authorLabel,
+    "copyright": copyrightLabel,
     # classes of mount points (required)
-    'ModelDocument.IsPullLoadable': isOimLoadable,
-    'ModelDocument.PullLoader': oimLoader,
-    'CntlrWinMain.Xbrl.Loaded': guiXbrlLoaded,
-    'CntlrCmdLine.Options': excelLoaderOptionExtender,
-    'CntlrCmdLine.Xbrl.Loaded': cmdLineXbrlLoaded,
-    'OimJson.SaveXml': oimJsonSaveXml
+    "ModelDocument.IsPullLoadable": isOimLoadable,
+    "ModelDocument.PullLoader": oimLoader,
+    "CntlrWinMain.Xbrl.Loaded": guiXbrlLoaded,
+    "CntlrCmdLine.Options": excelLoaderOptionExtender,
+    "CntlrCmdLine.Xbrl.Loaded": cmdLineXbrlLoaded,
+    "OimJson.SaveXml": oimJsonSaveXml
 }

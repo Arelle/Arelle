@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 
@@ -12,17 +12,17 @@ def attrValue(attr: str) -> str:
     beforeEquals = True
     for c in valuePart:
         if value:
-            if c == endSep or c.isspace() or c in (';'):
+            if c == endSep or c.isspace() or c in (";"):
                 break
             value.append(c)
         elif beforeEquals:
-            if c == '=':
+            if c == "=":
                 beforeEquals = False
         else:
             if c in ('"', "'"):
                 endSep = c
-            elif c == ';':
+            elif c == ";":
                 break
             elif not c.isspace():
                 value.append(c)
-    return ''.join(value)
+    return "".join(value)

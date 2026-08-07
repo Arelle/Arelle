@@ -134,7 +134,7 @@ def rule_EC1057E(
             continue
         if not any(pluginData.hasValidNonNilFact(val.modelXbrl, qn) for qn in filingDateQns):
             yield Validation.error(
-                codes='EDINET.EC1057E',
+                codes="EDINET.EC1057E",
                 msg=_("There is no submission date ('【提出日】') on the cover page. "
                       "File name: '%(file)s'. "
                       "Please add '【提出日】' to the relevant file."),
@@ -155,10 +155,10 @@ def rule_EC5000E(
     """
     EDINET.EC5000E: The encoding of the file must be UTF-8.
     """
-    invalidEncodings = checkDocumentEncoding(val, ['utf-8', 'utf-8-sig'], STANDARD_TAXONOMY_URL_PREFIXES)
+    invalidEncodings = checkDocumentEncoding(val, ["utf-8", "utf-8-sig"], STANDARD_TAXONOMY_URL_PREFIXES)
     for modelDocument in invalidEncodings:
         yield Validation.error(
-            codes='EDINET.EC5000E',
+            codes="EDINET.EC5000E",
             msg=_("The encoding is not UTF-8. "
                   "File name: '%(path)s'. "
                   "Please change the encoding of the relevant file to UTF-8."),
@@ -201,7 +201,7 @@ def rule_EC5002E(
             errorFacts.append(fact)
     for fact in errorFacts:
         yield Validation.error(
-            codes='EDINET.EC5002E',
+            codes="EDINET.EC5002E",
             msg=_("A unit other than number of shares (xbrli:shares) has been set for "
                   "the Number of Shares (xbrli:sharesItemType) item '%(qname)s'. "
                   "Please check the units and enter the correct information."),
@@ -235,7 +235,7 @@ def rule_calculations(
         assert contextId is not None
         linkrole = _validation.args.get("linkrole")
         assert linkrole is not None
-        isSemiAnnualContext = 'Interim' in contextId
+        isSemiAnnualContext = "Interim" in contextId
         isSemiAnnualLinkRole = "SemiAnnual" in linkrole
         if isSemiAnnualLinkRole != isSemiAnnualContext:
             # Period of context and linkrole do not match.
@@ -248,8 +248,8 @@ def rule_calculations(
             # Consolidated status of context and linkrole do not match.
             continue
         yield Validation.warning(
-            codes='EDINET.EC5611W',
-            msg=_("The value \"%(reportedSum)s\" of the total subject \"%(concept)s\" does not match the calculated value \"%(computedSum)s\" (number of items: %(count)s) of the calculation link. "
+            codes="EDINET.EC5611W",
+            msg=_('The value "%(reportedSum)s" of the total subject "%(concept)s" does not match the calculated value "%(computedSum)s" (number of items: %(count)s) of the calculation link. '
                   "Please correct the settings of the relevant elements and calculation links "
                   "<roleUri=%(linkrole)s> <contextID=%(contextID)s> <unit=%(unitID)s>."),
             count=len(_validation.args.get("modelObject", [])) - 1,
@@ -275,7 +275,7 @@ def rule_EC5602R(
     errors = []
 
     def _normalizeValue(value: str) -> str:
-        value = regex.sub(r'\s+', ' ', value).strip()
+        value = regex.sub(r"\s+", " ", value).strip()
         return jaconv.h2z(value, kana=True, ascii=True, digit=True)
 
     def _collectMismatchedValues(deiQName: QName, coverPageQnames: list[QName]) -> None:
@@ -293,62 +293,62 @@ def rule_EC5602R(
                     errors.append((deiFact, coverPageFact))
 
     _collectMismatchedValues(
-        pluginData.qname('jpdei_cor', 'FilerNameInJapaneseDEI'),
+        pluginData.qname("jpdei_cor", "FilerNameInJapaneseDEI"),
         [
             #【発行者名】
-            pluginData.qname('jpsps-esr_cor', 'IssuerNameCoverPage'),
-            pluginData.qname('jpsps-sbr_cor', 'IssuerNameCoverPage'),
-            pluginData.qname('jpsps_cor', 'IssuerNameCoverPage'),
+            pluginData.qname("jpsps-esr_cor", "IssuerNameCoverPage"),
+            pluginData.qname("jpsps-sbr_cor", "IssuerNameCoverPage"),
+            pluginData.qname("jpsps_cor", "IssuerNameCoverPage"),
             #【会社名】
-            pluginData.qname('jpcrp-esr_cor', 'CompanyNameCoverPage'),
-            pluginData.qname('jpcrp-sbr_cor', 'CompanyNameCoverPage'),
-            pluginData.qname('jpcrp_cor', 'CompanyNameCoverPage'),
-            pluginData.qname('jpctl_cor', 'CompanyNameCoverPage'),
+            pluginData.qname("jpcrp-esr_cor", "CompanyNameCoverPage"),
+            pluginData.qname("jpcrp-sbr_cor", "CompanyNameCoverPage"),
+            pluginData.qname("jpcrp_cor", "CompanyNameCoverPage"),
+            pluginData.qname("jpctl_cor", "CompanyNameCoverPage"),
             #【氏名又は名称】
-            pluginData.qname('jplvh_cor', 'NameCoverPage'),
+            pluginData.qname("jplvh_cor", "NameCoverPage"),
             #【届出者の名称】
-            pluginData.qname('jptoi_cor', 'FullNameOrNameOfFilerOfNotificationCoverPage'),
+            pluginData.qname("jptoi_cor", "FullNameOrNameOfFilerOfNotificationCoverPage"),
             #【届出者の氏名又は名称】
-            pluginData.qname('jptoo-ton_cor', 'FullNameOrNameOfFilerOfNotificationCoverPage'),
-            pluginData.qname('jptoo-wto_cor', 'FullNameOrNameOfFilerOfNotificationCoverPage'),
+            pluginData.qname("jptoo-ton_cor", "FullNameOrNameOfFilerOfNotificationCoverPage"),
+            pluginData.qname("jptoo-wto_cor", "FullNameOrNameOfFilerOfNotificationCoverPage"),
             #【報告者の名称】
-            pluginData.qname('jptoi_cor', 'NameOfFilerCoverPage'),
-            pluginData.qname('jptoo-pst_cor', 'NameOfFilerCoverPage'),
+            pluginData.qname("jptoi_cor", "NameOfFilerCoverPage"),
+            pluginData.qname("jptoo-pst_cor", "NameOfFilerCoverPage"),
             #【報告者の氏名又は名称】
-            pluginData.qname('jptoo-toa_cor', 'FullNameOrNameOfFilerCoverPage'),
-            pluginData.qname('jptoo-tor_cor', 'FullNameOrNameOfFilerCoverPage'),
+            pluginData.qname("jptoo-toa_cor", "FullNameOrNameOfFilerCoverPage"),
+            pluginData.qname("jptoo-tor_cor", "FullNameOrNameOfFilerCoverPage"),
         ]
     )
 
     _collectMismatchedValues(
-        pluginData.qname('jpdei_cor', 'FilerNameInEnglishDEI'),
+        pluginData.qname("jpdei_cor", "FilerNameInEnglishDEI"),
         [
             #【英訳名】
-            pluginData.qname('jpcrp-esr_cor', 'CompanyNameInEnglishCoverPage'),
-            pluginData.qname('jpcrp-sbr_cor', 'CompanyNameInEnglishCoverPage'),
-            pluginData.qname('jpcrp_cor', 'CompanyNameInEnglishCoverPage'),
-            pluginData.qname('jpctl_cor', 'CompanyNameInEnglishCoverPage'),
+            pluginData.qname("jpcrp-esr_cor", "CompanyNameInEnglishCoverPage"),
+            pluginData.qname("jpcrp-sbr_cor", "CompanyNameInEnglishCoverPage"),
+            pluginData.qname("jpcrp_cor", "CompanyNameInEnglishCoverPage"),
+            pluginData.qname("jpctl_cor", "CompanyNameInEnglishCoverPage"),
         ]
     )
 
     _collectMismatchedValues(
-        pluginData.qname('jpdei_cor', 'FundNameInJapaneseDEI'),
+        pluginData.qname("jpdei_cor", "FundNameInJapaneseDEI"),
         [
             #【ファンド名】
-            pluginData.qname('jpsps-esr_cor', 'FundNameCoverPage'),
-            pluginData.qname('jpsps_cor', 'FundNameCoverPage'),
+            pluginData.qname("jpsps-esr_cor", "FundNameCoverPage"),
+            pluginData.qname("jpsps_cor", "FundNameCoverPage"),
             #【届出の対象とした募集（売出）内国投資信託受益証券に係るファンドの名称】
-            pluginData.qname('jpsps_cor', 'NameOfFundRelatedToDomesticInvestmentTrustBeneficiaryCertificateToRegisterForOfferingOrDistributionCoverPageTextBlock'),
+            pluginData.qname("jpsps_cor", "NameOfFundRelatedToDomesticInvestmentTrustBeneficiaryCertificateToRegisterForOfferingOrDistributionCoverPageTextBlock"),
             #【届出の対象とした募集（売出）内国投資証券に係る投資法人の名称】
-            pluginData.qname('jpsps_cor', 'NameOfInvestmentCorporationRelatedToDomesticInvestmentSecuritiesToRegisterForOfferingOrDistributionCoverPage'),
+            pluginData.qname("jpsps_cor", "NameOfInvestmentCorporationRelatedToDomesticInvestmentSecuritiesToRegisterForOfferingOrDistributionCoverPage"),
         ]
     )
 
     for deiFact, coverPageFact in errors:
         yield Validation.warning(
-            codes='EDINET.EC5602R',
-            msg=_("The DEI information \"%(deiQname)s\" (%(deiValue)s) does not match "
-                  "\"%(coverPageQname)s\" (%(coverPageValue)s) . "
+            codes="EDINET.EC5602R",
+            msg=_('The DEI information "%(deiQname)s" (%(deiValue)s) does not match '
+                  '"%(coverPageQname)s" (%(coverPageValue)s) . '
                   "Please check the content of the corresponding DEI (the element "
                   "displayed in the message) and the value in the submitted document, "
                   "and correct it so that they match."),
@@ -381,10 +381,10 @@ def rule_EC5613E(
     ]
     if len(errorFacts) > 0:
         yield Validation.error(
-            codes='EDINET.EC5613E',
-            msg=_("Please set the DEI \"Accounting Standard\" value to one "
+            codes="EDINET.EC5613E",
+            msg=_('Please set the DEI "Accounting Standard" value to one '
                   "of the following: %(values)s."),
-            values=', '.join(f'"{s.value}"' for s in AccountingStandard),
+            values=", ".join(f'"{s.value}"' for s in AccountingStandard),
             modelObject=errorFacts,
         )
 
@@ -414,7 +414,7 @@ def rule_EC5614E(
                     not pluginData.hasValidNonNilFact(val.modelXbrl, qname)
             ):
                 yield Validation.error(
-                    codes='EDINET.EC5614E',
+                    codes="EDINET.EC5614E",
                     msg=_("The value of '%(localName)s' in the DEI does not exist. "
                           "File name: '%(file)s'. "
                           "Please add the cover item %(localName)s to the relevant file."),
@@ -444,8 +444,8 @@ def rule_EC5623W(
     ]
     if len(errorFacts) > 0:
         yield Validation.warning(
-            codes='EDINET.EC5623W',
-            msg=_("Please set the DEI \"Accounting Standard\" value to \"IFRS\"."),
+            codes="EDINET.EC5623W",
+            msg=_('Please set the DEI "Accounting Standard" value to "IFRS".'),
             modelObject=errorFacts,
         )
 
@@ -483,7 +483,7 @@ def rule_namespace_prefixes(
                 continue # Valid namespace URI
             if pathInfo.reportFolderType == ReportFolderType.AUDIT_DOC:
                 yield Validation.warning(
-                    codes='EDINET.EC8004W',
+                    codes="EDINET.EC8004W",
                     msg=_("The namespace prefix used in the namespace declaration of the "
                           "audit report schema file does not conform to the rules. "
                           "File name: '%(file)s'. "
@@ -493,7 +493,7 @@ def rule_namespace_prefixes(
                 )
             else:
                 yield Validation.warning(
-                    codes='EDINET.EC8003W',
+                    codes="EDINET.EC8003W",
                     msg=_("The namespace prefix used in the namespace declaration of the "
                           "report schema file does not conform to the rules. "
                           "File name: '%(file)s'. "
@@ -533,7 +533,7 @@ def rule_namespace_uris(
             continue # Valid namespace URI
         if pathInfo.reportFolderType == ReportFolderType.AUDIT_DOC:
             yield Validation.warning(
-                codes='EDINET.EC8001W',
+                codes="EDINET.EC8001W",
                 msg=_("The namespace URI used in the namespace declaration of the "
                       "audit report schema file does not conform to the rules. "
                       "File name: '%(file)s'. "
@@ -543,7 +543,7 @@ def rule_namespace_uris(
             )
         else:
             yield Validation.warning(
-                codes='EDINET.EC8000W',
+                codes="EDINET.EC8000W",
                 msg=_("The namespace URI used in the namespace declaration of the "
                       "report schema file does not conform to the rules. "
                       "File name: '%(file)s'. "
@@ -577,7 +577,7 @@ def rule_roles(
                 continue
             if not REPORT_ELR_ID_PATTERN.fullmatch(str(roleType.id)):
                 yield Validation.warning(
-                    codes='EDINET.EC8006W',
+                    codes="EDINET.EC8006W",
                     msg=_("The ID of the report's extended link role does not conform to the rules. "
                           "File name: '%(file)s'. "
                           "ID: '%(id)s'."),
@@ -586,7 +586,7 @@ def rule_roles(
                 )
             if not REPORT_ELR_URI_PATTERN.fullmatch(roleType.roleURI):  # type: ignore[arg-type]
                 yield Validation.warning(
-                    codes='EDINET.EC8007W',
+                    codes="EDINET.EC8007W",
                     msg=_("The URI of the report's extended link role does not conform to the rules. "
                           "File name: '%(file)s'. "
                           "URI: '%(uri)s'."),
@@ -616,7 +616,7 @@ def rule_EC8024E(
     for duplicateFactSet in duplicateFactSets:
         fact = duplicateFactSet.facts[0]
         yield Validation.error(
-            codes='EDINET.EC8024E',
+            codes="EDINET.EC8024E",
             msg=_("Instance values of the same element, context, and unit may not "
                   "have different values or different decimals attributes. <element=%(concept)s> "
                   "<contextID=%(context)s> <unit=%(unit)s>. Correct the element with the relevant "
@@ -669,7 +669,7 @@ def rule_EC8027W(
                 for rel in relSetFrom[rootConcept]
             ]
             yield Validation.warning(
-                codes='EDINET.EC8027W',
+                codes="EDINET.EC8027W",
                 msg=_("For presentation links and definition links, there must be only one root element. "
                       "File name: %(filename)s <Extended link role = %(roleUri)s> "
                       "Please correct the extended link role of the relevant file. Please set only one "
@@ -711,7 +711,7 @@ def rule_EC8028W(
         for (lang, role, priority), group in groups.items():
             if len(group) > 1:
                 yield Validation.warning(
-                    codes='EDINET.EC8028W',
+                    codes="EDINET.EC8028W",
                     msg=_("The priority attribute must not be duplicated for the same "
                           "element and label role in the same submitter taxonomy. "
                           "File name: '%(path)s'. Concept: '%(concept)s'. "
@@ -766,7 +766,7 @@ def rule_EC8029W(
     unusedConcepts = referencedConcepts - usedConcepts
     for concept in unusedConcepts:
         yield Validation.warning(
-            codes='EDINET.EC8029W',
+            codes="EDINET.EC8029W",
             msg=_("The non-abstract element present in the presentation link or definition "
                   "link is not set in an inline XBRL file. "
                   "Element: '%(concept)s'. "
@@ -796,12 +796,12 @@ def rule_EC8030W(
     for concept in usedConcepts:
         if concept.qname.namespaceURI == pluginData.namespaces.jpdei:  # type: ignore[union-attr]
             continue
-        if concept.qname.localName.endswith('DEI'):  # type: ignore[union-attr]
+        if concept.qname.localName.endswith("DEI"):  # type: ignore[union-attr]
             # Example: jpsps_cor:SecuritiesRegistrationStatementAmendmentFlagDeemedRegistrationStatementDEI
             continue
         if not relSet.contains(concept):
             yield Validation.warning(
-                codes='EDINET.EC8030W',
+                codes="EDINET.EC8030W",
                 msg=_("An element (other than DEI) set in the inline XBRL file is not set in the "
                       "presentation linkbase. "
                       "Element: '%(concept)s'. "
@@ -830,7 +830,7 @@ def rule_EC8031W(
     Context beginning with "FilingDate": The submission date on the cover page of the attached inline XBRL (original submission date)
     "Report submission date" in the file name: The submission date of the correction report, etc.
     """
-    isAmendment = pluginData.getDeiValue('ReportAmendmentFlagDEI')
+    isAmendment = pluginData.getDeiValue("ReportAmendmentFlagDEI")
     if isAmendment:
         # Amendment/corrections report are not subject to this validation, but documentation does note:
         #   However, when reporting corrections, please set the following:
@@ -857,10 +857,10 @@ def rule_EC8031W(
             if not matches:
                 continue
             groups = matches.groupdict()
-            year = groups['submission_year']
-            month = groups['submission_month']
-            day = groups['submission_day']
-            actualDate = f'{year:04}-{month:02}-{day:02}'
+            year = groups["submission_year"]
+            month = groups["submission_month"]
+            day = groups["submission_day"]
+            actualDate = f"{year:04}-{month:02}-{day:02}"
             actualDates[actualDate].add(path)
     expectedDates = defaultdict(set)
     for modelXbrl in pluginData.loadedModelXbrls:
@@ -889,7 +889,7 @@ def rule_EC8031W(
     for path in paths:
         for context in contexts:
             yield Validation.warning(
-                codes='EDINET.EC8031W',
+                codes="EDINET.EC8031W",
                 msg=_("The value of the instant element in context '%(context)s' "
                       "must match the report submission date set in the file name. "
                       "File name: '%(file)s'. "
@@ -922,15 +922,15 @@ def rule_EC8034W(
                 continue
             if not isExtensionUri(modelLabel.modelDocument.uri, val.modelXbrl, STANDARD_TAXONOMY_URL_PREFIXES):
                 continue
-            if modelLabel.xmlLang != 'en':
+            if modelLabel.xmlLang != "en":
                 continue
             label = modelLabel.textValue.strip()  # Does not trim full-width spaces
             if any(
-                unicodedata.east_asian_width(char) in ('F', 'W')
+                unicodedata.east_asian_width(char) in ("F", "W")
                 for char in label
             ):
                 yield Validation.warning(
-                    codes='EDINET.EC8034W',
+                    codes="EDINET.EC8034W",
                     msg=_("The English label must be set using half-width alphanumeric characters "
                           "and half-width symbols. "
                           "File name: '%(file)s'. "
@@ -961,15 +961,15 @@ def rule_EC8036W(
     """
     if not pluginData.hasDocumentType({DocumentType.ANNUAL_SECURITIES_REPORT, DocumentType.SEMI_ANNUAL_REPORT}):
         return
-    statementsPrepared = pluginData.getDeiValue('WhetherConsolidatedFinancialStatementsArePreparedDEI')
+    statementsPrepared = pluginData.getDeiValue("WhetherConsolidatedFinancialStatementsArePreparedDEI")
     if statementsPrepared != True:
         return
-    roleUris = ('http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_BusinessResultsOfGroup',)
+    roleUris = ("http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_BusinessResultsOfGroup",)
     for modelXbrl in pluginData.loadedModelXbrls:
         if hasPresentationalConceptsWithFacts(modelXbrl, roleUris):
             return
     yield Validation.warning(
-        codes='EDINET.EC8036W',
+        codes="EDINET.EC8036W",
         msg=_('The consolidated business indicators, etc. have not been tagged in detail. '
               'Please provide detailed tagging of the consolidated business indicators, etc. '
               'If you do not provide consolidated business indicators, please confirm that '
@@ -995,15 +995,15 @@ def rule_EC8037W(
     """
     if not pluginData.hasDocumentType({DocumentType.ANNUAL_SECURITIES_REPORT, DocumentType.SEMI_ANNUAL_REPORT}):
         return
-    statementsPrepared = pluginData.getDeiValue('WhetherConsolidatedFinancialStatementsArePreparedDEI')
+    statementsPrepared = pluginData.getDeiValue("WhetherConsolidatedFinancialStatementsArePreparedDEI")
     if statementsPrepared != False:
         return
-    roleUris = ('http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_BusinessResultsOfReportingCompany',)
+    roleUris = ("http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_BusinessResultsOfReportingCompany",)
     for modelXbrl in pluginData.loadedModelXbrls:
         if hasPresentationalConceptsWithFacts(modelXbrl, roleUris):
             return
     yield Validation.warning(
-        codes='EDINET.EC8037W',
+        codes="EDINET.EC8037W",
         msg=_('The consolidated business indicators, etc. have not been tagged in detail. '
               'Please provide detailed tagging of the consolidated business indicators, etc. '
               'If you do not provide consolidated business indicators, please confirm that '
@@ -1030,17 +1030,17 @@ def rule_EC8038W(
         return
 
     roleUris = (
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_MajorShareholders-01',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_MajorShareholders-02',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_MajorShareholders-01',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_MajorShareholders-02',
+        "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_MajorShareholders-01",
+        "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_MajorShareholders-02",
+        "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_MajorShareholders-01",
+        "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_MajorShareholders-02",
     )
     for modelXbrl in pluginData.loadedModelXbrls:
         if hasPresentationalConceptsWithFacts(modelXbrl, roleUris):
             return
 
     yield Validation.warning(
-        codes='EDINET.EC8038W',
+        codes="EDINET.EC8038W",
         msg=_("The details of the major shareholders' status have not been tagged. "
               "Please provide detailed tagging of the status of major shareholders."),
     )
@@ -1067,19 +1067,19 @@ def rule_EC8039W(
 
     if pluginData.isConsolidated() != True:
         return
-    accountingStandard = pluginData.getDeiValue('AccountingStandardsDEI')
+    accountingStandard = pluginData.getDeiValue("AccountingStandardsDEI")
     if accountingStandard != AccountingStandard.JAPAN_GAAP.value:
         return
 
     roleUris = (
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_ConsolidatedBalanceSheet',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_ConsolidatedBalanceSheet',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedBalanceSheet',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualConsolidatedBalanceSheet',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedBalanceSheet',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_Type1SemiAnnualConsolidatedBalanceSheet',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_QuarterlyConsolidatedBalanceSheet',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_QuarterlyConsolidatedBalanceSheet',
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_ConsolidatedBalanceSheet",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_ConsolidatedBalanceSheet",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedBalanceSheet",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualConsolidatedBalanceSheet",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedBalanceSheet",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_Type1SemiAnnualConsolidatedBalanceSheet",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_QuarterlyConsolidatedBalanceSheet",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_QuarterlyConsolidatedBalanceSheet",
     )
 
     for modelXbrl in pluginData.loadedModelXbrls:
@@ -1087,7 +1087,7 @@ def rule_EC8039W(
             return
 
     yield Validation.warning(
-        codes='EDINET.EC8039W',
+        codes="EDINET.EC8039W",
         msg=_("The consolidated balance sheet details have not been tagged. "
               "Please provide detailed tagging of the consolidated balance sheet. "
               "If you do not provide a consolidated balance sheet, please confirm that "
@@ -1116,19 +1116,19 @@ def rule_EC8040W(
 
     if pluginData.isConsolidated() != False:
         return
-    accountingStandard = pluginData.getDeiValue('AccountingStandardsDEI')
+    accountingStandard = pluginData.getDeiValue("AccountingStandardsDEI")
     if accountingStandard != AccountingStandard.JAPAN_GAAP.value:
         return
 
     roleUris = (
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_BalanceSheet',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_BalanceSheet',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualBalanceSheet',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualBalanceSheet',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualBalanceSheet',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_Type1SemiAnnualBalanceSheet',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_QuarterlyBalanceSheet',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_QuarterlyBalanceSheet',
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_BalanceSheet",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_BalanceSheet",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualBalanceSheet",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualBalanceSheet",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualBalanceSheet",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_Type1SemiAnnualBalanceSheet",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_QuarterlyBalanceSheet",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_QuarterlyBalanceSheet",
     )
 
     for modelXbrl in pluginData.loadedModelXbrls:
@@ -1136,7 +1136,7 @@ def rule_EC8040W(
             return
 
     yield Validation.warning(
-        codes='EDINET.EC8040W',
+        codes="EDINET.EC8040W",
         msg=_("Balance sheet details not tagged. Please tag the balance sheet in detail."),
     )
 
@@ -1162,21 +1162,21 @@ def rule_EC8041W(
 
     if pluginData.isConsolidated() != True:
         return
-    accountingStandard = pluginData.getDeiValue('AccountingStandardsDEI')
+    accountingStandard = pluginData.getDeiValue("AccountingStandardsDEI")
     if accountingStandard != AccountingStandard.JAPAN_GAAP.value:
         return
 
     roleUris = (
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_ConsolidatedStatementOfIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_ConsolidatedStatementOfIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualConsolidatedStatementOfIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedStatementOfIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_Type1SemiAnnualConsolidatedStatementOfIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_YearToQuarterEndConsolidatedStatementOfIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_YearToQuarterEndConsolidatedStatementOfIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_QuarterPeriodConsolidatedStatementOfIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_QuarterPeriodConsolidatedStatementOfIncome',
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_ConsolidatedStatementOfIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_ConsolidatedStatementOfIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualConsolidatedStatementOfIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedStatementOfIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_Type1SemiAnnualConsolidatedStatementOfIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_YearToQuarterEndConsolidatedStatementOfIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_YearToQuarterEndConsolidatedStatementOfIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_QuarterPeriodConsolidatedStatementOfIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_QuarterPeriodConsolidatedStatementOfIncome",
     )
 
     for modelXbrl in pluginData.loadedModelXbrls:
@@ -1184,7 +1184,7 @@ def rule_EC8041W(
             return
 
     yield Validation.warning(
-        codes='EDINET.EC8041W',
+        codes="EDINET.EC8041W",
         msg=_("The consolidated income statement has not been tagged in detail. "
               "Please provide detailed tagging for the consolidated income statement. "
               "If you do not provide a consolidated income statement, please confirm that "
@@ -1213,21 +1213,21 @@ def rule_EC8042W(
 
     if pluginData.isConsolidated() != False:
         return
-    accountingStandard = pluginData.getDeiValue('AccountingStandardsDEI')
+    accountingStandard = pluginData.getDeiValue("AccountingStandardsDEI")
     if accountingStandard != AccountingStandard.JAPAN_GAAP.value:
         return
 
     roleUris = (
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualStatementOfIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_Type1SemiAnnualStatementOfIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_YearToQuarterEndStatementOfIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_YearToQuarterEndStatementOfIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_QuarterPeriodStatementOfIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_QuarterPeriodStatementOfIncome',
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualStatementOfIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_Type1SemiAnnualStatementOfIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_YearToQuarterEndStatementOfIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_YearToQuarterEndStatementOfIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_QuarterPeriodStatementOfIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_QuarterPeriodStatementOfIncome",
     )
 
     for modelXbrl in pluginData.loadedModelXbrls:
@@ -1235,7 +1235,7 @@ def rule_EC8042W(
             return
 
     yield Validation.warning(
-        codes='EDINET.EC8042W',
+        codes="EDINET.EC8042W",
         msg=_("The income statement details are not tagged. "
               "Please provide detailed tagging of your income statement."),
     )
@@ -1262,15 +1262,15 @@ def rule_EC8043W(
 
     if pluginData.isConsolidated() != False:
         return
-    accountingStandard = pluginData.getDeiValue('AccountingStandardsDEI')
+    accountingStandard = pluginData.getDeiValue("AccountingStandardsDEI")
     if accountingStandard != AccountingStandard.JAPAN_GAAP.value:
         return
 
     roleUris = (
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfIncomeAndRetainedEarnings',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfIncomeAndRetainedEarnings',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfIncomeAndRetainedEarnings',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfIncomeAndRetainedEarnings',
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfIncomeAndRetainedEarnings",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfIncomeAndRetainedEarnings",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfIncomeAndRetainedEarnings",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfIncomeAndRetainedEarnings",
     )
 
     for modelXbrl in pluginData.loadedModelXbrls:
@@ -1278,7 +1278,7 @@ def rule_EC8043W(
             return
 
     yield Validation.warning(
-        codes='EDINET.EC8043W',
+        codes="EDINET.EC8043W",
         msg=_("The profit and loss statement has not been tagged in detail. "
               "Please provide detailed tagging of the profit and loss and retained earnings statement."),
     )
@@ -1305,19 +1305,19 @@ def rule_EC8044W(
 
     if pluginData.isConsolidated() != True:
         return
-    accountingStandard = pluginData.getDeiValue('AccountingStandardsDEI')
+    accountingStandard = pluginData.getDeiValue("AccountingStandardsDEI")
     if accountingStandard != AccountingStandard.JAPAN_GAAP.value:
         return
 
     roleUris = (
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_ConsolidatedStatementOfChangesInEquity',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_ConsolidatedStatementOfChangesInEquity',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_ConsolidatedStatementOfChangesInNetAssets',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_ConsolidatedStatementOfChangesInNetAssets',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfChangesInEquity',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualConsolidatedStatementOfChangesInEquity',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfChangesInNetAssets',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualConsolidatedStatementOfChangesInNetAssets',
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_ConsolidatedStatementOfChangesInEquity",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_ConsolidatedStatementOfChangesInEquity",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_ConsolidatedStatementOfChangesInNetAssets",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_ConsolidatedStatementOfChangesInNetAssets",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfChangesInEquity",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualConsolidatedStatementOfChangesInEquity",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfChangesInNetAssets",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualConsolidatedStatementOfChangesInNetAssets",
     )
 
     for modelXbrl in pluginData.loadedModelXbrls:
@@ -1325,7 +1325,7 @@ def rule_EC8044W(
             return
 
     yield Validation.warning(
-        codes='EDINET.EC8044W',
+        codes="EDINET.EC8044W",
         msg=_("The consolidated statement of changes in equity has not been detailed. "
               "Please tag the details of the consolidated statement of changes in equity. "
               "If you do not include a consolidated statement of changes in equity, please confirm that "
@@ -1354,19 +1354,19 @@ def rule_EC8045W(
 
     if pluginData.isConsolidated() != False:
         return
-    accountingStandard = pluginData.getDeiValue('AccountingStandardsDEI')
+    accountingStandard = pluginData.getDeiValue("AccountingStandardsDEI")
     if accountingStandard != AccountingStandard.JAPAN_GAAP.value:
         return
 
     roleUris = (
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfChangesInEquity',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfChangesInEquity',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfChangesInNetAssets',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfChangesInNetAssets',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfChangesInEquity',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfChangesInEquity',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfChangesInNetAssets',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfChangesInNetAssets',
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfChangesInEquity",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfChangesInEquity",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfChangesInNetAssets",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfChangesInNetAssets",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfChangesInEquity",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfChangesInEquity",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfChangesInNetAssets",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfChangesInNetAssets",
     )
 
     for modelXbrl in pluginData.loadedModelXbrls:
@@ -1374,7 +1374,7 @@ def rule_EC8045W(
             return
 
     yield Validation.warning(
-        codes='EDINET.EC8045W',
+        codes="EDINET.EC8045W",
         msg=_("The statement of changes in equity has not been tagged in detail. "
               "Please provide detailed tagging for the Statement of Changes in Equity."),
     )
@@ -1398,17 +1398,17 @@ def rule_EC8046W(
     if not pluginData.hasDocumentType({DocumentType.ANNUAL_SECURITIES_REPORT, DocumentType.SEMI_ANNUAL_REPORT}):
         return
 
-    industryCodeConsolidated = pluginData.getDeiValue('IndustryCodeWhenConsolidatedFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI')
-    industryCodeNonConsolidated = pluginData.getDeiValue('IndustryCodeWhenFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI')
+    industryCodeConsolidated = pluginData.getDeiValue("IndustryCodeWhenConsolidatedFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI")
+    industryCodeNonConsolidated = pluginData.getDeiValue("IndustryCodeWhenFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI")
 
-    if industryCodeConsolidated != 'INV' and industryCodeNonConsolidated != 'INV':
+    if industryCodeConsolidated != "INV" and industryCodeNonConsolidated != "INV":
         return
 
     roleUris = (
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfUnitholdersEquity',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfUnitholdersEquity',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfUnitholdersEquity',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfUnitholdersEquity',
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfUnitholdersEquity",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfUnitholdersEquity",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfUnitholdersEquity",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfUnitholdersEquity",
     )
 
     for modelXbrl in pluginData.loadedModelXbrls:
@@ -1416,7 +1416,7 @@ def rule_EC8046W(
             return
 
     yield Validation.warning(
-        codes='EDINET.EC8046W',
+        codes="EDINET.EC8046W",
         msg=_("The statement of changes in unitholders' equity has not been tagged in detail. "
               "Please provide detailed tagging for the Statement of Changes in Unitholders' Equity."),
     )
@@ -1440,17 +1440,17 @@ def rule_EC8047W(
     if not pluginData.hasDocumentType({DocumentType.ANNUAL_SECURITIES_REPORT, DocumentType.SEMI_ANNUAL_REPORT}):
         return
 
-    industryCodeConsolidated = pluginData.getDeiValue('IndustryCodeWhenConsolidatedFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI')
-    industryCodeNonConsolidated = pluginData.getDeiValue('IndustryCodeWhenFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI')
+    industryCodeConsolidated = pluginData.getDeiValue("IndustryCodeWhenConsolidatedFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI")
+    industryCodeNonConsolidated = pluginData.getDeiValue("IndustryCodeWhenFinancialStatementsArePreparedInAccordanceWithIndustrySpecificRegulationsDEI")
 
-    if industryCodeConsolidated != 'LIQ' and industryCodeNonConsolidated != 'LIQ':
+    if industryCodeConsolidated != "LIQ" and industryCodeNonConsolidated != "LIQ":
         return
 
     roleUris = (
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfMembersEquity',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfMembersEquity',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfMembersEquity',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfMembersEquity',
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfMembersEquity",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfMembersEquity",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfMembersEquity",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfMembersEquity",
     )
 
     for modelXbrl in pluginData.loadedModelXbrls:
@@ -1458,7 +1458,7 @@ def rule_EC8047W(
             return
 
     yield Validation.warning(
-        codes='EDINET.EC8047W',
+        codes="EDINET.EC8047W",
         msg=_("The statement of changes in employee capital etc. has not been tagged in detail. "
               "Please provide detailed tagging for the Statement of Changes in Employee Capital, etc."),
     )
@@ -1486,26 +1486,26 @@ def rule_EC8048W(
         return
 
     roleUris = (
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_ConsolidatedStatementOfCashFlows-direct',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_ConsolidatedStatementOfCashFlows-direct',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfCashFlows-direct',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualConsolidatedStatementOfCashFlows-direct',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedStatementOfCashFlows-direct',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_Type1SemiAnnualConsolidatedStatementOfCashFlows-direct',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_QuarterlyConsolidatedStatementOfCashFlows-direct',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_QuarterlyConsolidatedStatementOfCashFlows-direct',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_ConsolidatedStatementOfCashFlows-indirect',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_ConsolidatedStatementOfCashFlows-indirect',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfCashFlows-indirect',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualConsolidatedStatementOfCashFlows-indirect',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedStatementOfCashFlows-indirect',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_Type1SemiAnnualConsolidatedStatementOfCashFlows-indirect',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_QuarterlyConsolidatedStatementOfCashFlows-indirect',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_QuarterlyConsolidatedStatementOfCashFlows-indirect',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_ConsolidatedStatementOfCashFlowsIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_std_ConsolidatedStatementOfCashFlowsIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfCashFlowsIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedQuarterlyConsolidatedStatementOfCashFlowsIFRS',
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_ConsolidatedStatementOfCashFlows-direct",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_ConsolidatedStatementOfCashFlows-direct",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfCashFlows-direct",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualConsolidatedStatementOfCashFlows-direct",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedStatementOfCashFlows-direct",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_Type1SemiAnnualConsolidatedStatementOfCashFlows-direct",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_QuarterlyConsolidatedStatementOfCashFlows-direct",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_QuarterlyConsolidatedStatementOfCashFlows-direct",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_ConsolidatedStatementOfCashFlows-indirect",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_ConsolidatedStatementOfCashFlows-indirect",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfCashFlows-indirect",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualConsolidatedStatementOfCashFlows-indirect",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedStatementOfCashFlows-indirect",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_Type1SemiAnnualConsolidatedStatementOfCashFlows-indirect",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_QuarterlyConsolidatedStatementOfCashFlows-indirect",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_QuarterlyConsolidatedStatementOfCashFlows-indirect",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_ConsolidatedStatementOfCashFlowsIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_std_ConsolidatedStatementOfCashFlowsIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfCashFlowsIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedQuarterlyConsolidatedStatementOfCashFlowsIFRS",
     )
 
     for modelXbrl in pluginData.loadedModelXbrls:
@@ -1513,7 +1513,7 @@ def rule_EC8048W(
             return
 
     yield Validation.warning(
-        codes='EDINET.EC8048W',
+        codes="EDINET.EC8048W",
         msg=_("The consolidated cash flow statement is not detailed. "
               "Please tag the details of the consolidated cash flow statement. "
               "If you do not provide a consolidated cash flow statement, please make sure that "
@@ -1543,25 +1543,25 @@ def rule_EC8049W(
         return
 
     roleUris = (
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfCashFlows-direct',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfCashFlows-direct',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfCashFlows-direct',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfCashFlows-direct',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualStatementOfCashFlows-direct',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_Type1SemiAnnualStatementOfCashFlows-direct',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_QuarterlyStatementOfCashFlows-direct',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_QuarterlyStatementOfCashFlows-direct',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfCashFlows-indirect',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfCashFlows-indirect',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfCashFlows-indirect',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfCashFlows-indirect',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualStatementOfCashFlows-indirect',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_Type1SemiAnnualStatementOfCashFlows-indirect',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_QuarterlyStatementOfCashFlows-indirect',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_QuarterlyStatementOfCashFlows-indirect',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_StatementOfCashFlowsIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfCashFlowsIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedQuarterlyStatementOfCashFlowsIFRS',
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfCashFlows-direct",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfCashFlows-direct",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfCashFlows-direct",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfCashFlows-direct",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualStatementOfCashFlows-direct",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_Type1SemiAnnualStatementOfCashFlows-direct",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_QuarterlyStatementOfCashFlows-direct",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_QuarterlyStatementOfCashFlows-direct",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_StatementOfCashFlows-indirect",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_StatementOfCashFlows-indirect",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfCashFlows-indirect",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_SemiAnnualStatementOfCashFlows-indirect",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualStatementOfCashFlows-indirect",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_Type1SemiAnnualStatementOfCashFlows-indirect",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_QuarterlyStatementOfCashFlows-indirect",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_std_QuarterlyStatementOfCashFlows-indirect",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_StatementOfCashFlowsIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfCashFlowsIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedQuarterlyStatementOfCashFlowsIFRS",
     )
 
     for modelXbrl in pluginData.loadedModelXbrls:
@@ -1569,7 +1569,7 @@ def rule_EC8049W(
             return
 
     yield Validation.warning(
-        codes='EDINET.EC8049W',
+        codes="EDINET.EC8049W",
         msg=_("The cash flow statement is not tagged in detail. "
               "Please provide detailed tagging for the cash flow statement. "
               "If you do not provide a cash flow statement, please provide the DEI information with "
@@ -1595,129 +1595,129 @@ def rule_EC8050W(
     if not pluginData.hasDocumentType({DocumentType.ANNUAL_SECURITIES_REPORT, DocumentType.SEMI_ANNUAL_REPORT, }):
         return
 
-    accountingStandard = pluginData.getDeiValue('AccountingStandardsDEI')
+    accountingStandard = pluginData.getDeiValue("AccountingStandardsDEI")
     if accountingStandard == AccountingStandard.JAPAN_GAAP.value:
         roleUris: tuple[str, ...] = (
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcType1SemiAnnualFinancialStatements-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcType1SemiAnnualFinancialStatements-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcType1SemiAnnualFinancialStatements-03',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcType1SemiAnnualConsolidatedFinancialStatements-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcType1SemiAnnualConsolidatedFinancialStatements-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcType1SemiAnnualConsolidatedFinancialStatements-03',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-03',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-04',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-05',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-06',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-07',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-08',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-09',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-03',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-04',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-05',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-06',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-07',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-08',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-09',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcQuarterlyFinancialStatements-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcQuarterlyFinancialStatements-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcQuarterlyFinancialStatements-03',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcQuarterlyConsolidatedFinancialStatements-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcQuarterlyConsolidatedFinancialStatements-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcQuarterlyConsolidatedFinancialStatements-03',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-03',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-04',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-05',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-06',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-07',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-08',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-09',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-03',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-04',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-05',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-06',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-07',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-08',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-09',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcType1SemiAnnualFinancialStatements-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcType1SemiAnnualFinancialStatements-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcType1SemiAnnualFinancialStatements-03',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcType1SemiAnnualConsolidatedFinancialStatements-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcType1SemiAnnualConsolidatedFinancialStatements-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcType1SemiAnnualConsolidatedFinancialStatements-03',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-03',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-04',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-05',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-06',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-07',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-08',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-09',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-03',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-04',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-05',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-06',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-07',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-08',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-09',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcQuarterlyFinancialStatements-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcQuarterlyFinancialStatements-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcQuarterlyFinancialStatements-03',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcQuarterlyConsolidatedFinancialStatements-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcQuarterlyConsolidatedFinancialStatements-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcQuarterlyConsolidatedFinancialStatements-03',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-03',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-04',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-05',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-06',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-07',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-08',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-09',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-03',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-04',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-05',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-06',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-07',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-08',
-            'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-09',
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcType1SemiAnnualFinancialStatements-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcType1SemiAnnualFinancialStatements-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcType1SemiAnnualFinancialStatements-03",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcType1SemiAnnualConsolidatedFinancialStatements-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcType1SemiAnnualConsolidatedFinancialStatements-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcType1SemiAnnualConsolidatedFinancialStatements-03",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-03",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-04",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-05",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-06",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-07",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-08",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualFinancialStatements-09",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-03",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-04",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-05",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-06",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-07",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-08",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-09",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcQuarterlyFinancialStatements-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcQuarterlyFinancialStatements-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcQuarterlyFinancialStatements-03",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcQuarterlyConsolidatedFinancialStatements-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcQuarterlyConsolidatedFinancialStatements-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcQuarterlyConsolidatedFinancialStatements-03",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-03",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-04",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-05",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-06",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-07",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-08",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcFinancialStatements-09",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-03",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-04",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-05",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-06",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-07",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-08",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_NotesSegmentInformationEtcConsolidatedFinancialStatements-09",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcType1SemiAnnualFinancialStatements-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcType1SemiAnnualFinancialStatements-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcType1SemiAnnualFinancialStatements-03",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcType1SemiAnnualConsolidatedFinancialStatements-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcType1SemiAnnualConsolidatedFinancialStatements-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcType1SemiAnnualConsolidatedFinancialStatements-03",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-03",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-04",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-05",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-06",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-07",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-08",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualFinancialStatements-09",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-03",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-04",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-05",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-06",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-07",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-08",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcSemiAnnualConsolidatedFinancialStatements-09",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcQuarterlyFinancialStatements-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcQuarterlyFinancialStatements-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcQuarterlyFinancialStatements-03",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcQuarterlyConsolidatedFinancialStatements-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcQuarterlyConsolidatedFinancialStatements-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcQuarterlyConsolidatedFinancialStatements-03",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-03",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-04",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-05",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-06",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-07",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-08",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcFinancialStatements-09",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-03",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-04",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-05",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-06",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-07",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-08",
+            "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_NotesSegmentInformationEtcConsolidatedFinancialStatements-09",
         )
     elif accountingStandard == AccountingStandard.IFRS.value:
         roleUris = (
-            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_std_NotesSegmentInformationConsolidatedFinancialStatementsIFRS-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_std_NotesSegmentInformationConsolidatedFinancialStatementsIFRS-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_std_NotesSegmentInformationConsolidatedFinancialStatementsIFRS-03',
-            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationFinancialStatementsIFRS-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationFinancialStatementsIFRS-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationFinancialStatementsIFRS-03',
-            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationConsolidatedFinancialStatementsIFRS-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationConsolidatedFinancialStatementsIFRS-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationConsolidatedFinancialStatementsIFRS-03',
-            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedSemiAnnualFinancialStatementsIFRS-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedSemiAnnualFinancialStatementsIFRS-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedSemiAnnualFinancialStatementsIFRS-03',
-            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedSemiAnnualConsolidatedFinancialStatementsIFRS-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedSemiAnnualConsolidatedFinancialStatementsIFRS-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedSemiAnnualConsolidatedFinancialStatementsIFRS-03',
-            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedQuarterlyFinancialStatementsIFRS-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedQuarterlyFinancialStatementsIFRS-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedQuarterlyFinancialStatementsIFRS-03',
-            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedQuarterlyConsolidatedFinancialStatementsIFRS-01',
-            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedQuarterlyConsolidatedFinancialStatementsIFRS-02',
-            'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedQuarterlyConsolidatedFinancialStatementsIFRS-03',
+            "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_std_NotesSegmentInformationConsolidatedFinancialStatementsIFRS-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_std_NotesSegmentInformationConsolidatedFinancialStatementsIFRS-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_std_NotesSegmentInformationConsolidatedFinancialStatementsIFRS-03",
+            "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationFinancialStatementsIFRS-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationFinancialStatementsIFRS-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationFinancialStatementsIFRS-03",
+            "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationConsolidatedFinancialStatementsIFRS-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationConsolidatedFinancialStatementsIFRS-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationConsolidatedFinancialStatementsIFRS-03",
+            "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedSemiAnnualFinancialStatementsIFRS-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedSemiAnnualFinancialStatementsIFRS-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedSemiAnnualFinancialStatementsIFRS-03",
+            "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedSemiAnnualConsolidatedFinancialStatementsIFRS-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedSemiAnnualConsolidatedFinancialStatementsIFRS-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedSemiAnnualConsolidatedFinancialStatementsIFRS-03",
+            "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedQuarterlyFinancialStatementsIFRS-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedQuarterlyFinancialStatementsIFRS-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedQuarterlyFinancialStatementsIFRS-03",
+            "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedQuarterlyConsolidatedFinancialStatementsIFRS-01",
+            "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedQuarterlyConsolidatedFinancialStatementsIFRS-02",
+            "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_NotesSegmentInformationCondensedQuarterlyConsolidatedFinancialStatementsIFRS-03",
         )
     else:
         return
@@ -1748,7 +1748,7 @@ def rule_EC8050W(
                 return
 
     yield Validation.warning(
-        codes='EDINET.EC8050W',
+        codes="EDINET.EC8050W",
         msg=_("Segment information is not tagged in detail. "
               "Please provide detailed tagging of segment information."),
     )
@@ -1771,9 +1771,9 @@ def rule_EC8055W(
     """
     deiLocalName = "WhetherConsolidatedFinancialStatementsArePreparedDEI"
     consolidated = pluginData.getDeiValue(deiLocalName)
-    requiredFactLocalName = 'RegulationsInAccordanceWithWhichFinancialStatementsHaveBeenPreparedFinancialInformation'
+    requiredFactLocalName = "RegulationsInAccordanceWithWhichFinancialStatementsHaveBeenPreparedFinancialInformation"
     if consolidated == True:
-        requiredFactLocalName = 'RegulationsInAccordanceWithWhichConsolidatedFinancialStatementsHaveBeenPreparedFinancialInformation'
+        requiredFactLocalName = "RegulationsInAccordanceWithWhichConsolidatedFinancialStatementsHaveBeenPreparedFinancialInformation"
 
     for modelXbrl in pluginData.loadedModelXbrls:
         for fact in modelXbrl.factsByLocalName.get(requiredFactLocalName, set()):
@@ -1799,7 +1799,7 @@ def rule_EC8055W(
         return
 
     yield Validation.warning(
-        codes='EDINET.EC8055W',
+        codes="EDINET.EC8055W",
         msg=_('There is an inconsistency between the DEI "%(deiLocalName)s" information and the '
               'tagging at the beginning of the accounting status. Please confirm that the '
               'value of "Consolidated Financial Statements" in the DEI information and the '
@@ -1830,15 +1830,15 @@ def rule_EC8061W(
     if pluginData.isConsolidated() != True:
         return
 
-    accountingStandard = pluginData.getDeiValue('AccountingStandardsDEI')
+    accountingStandard = pluginData.getDeiValue("AccountingStandardsDEI")
     if accountingStandard != AccountingStandard.IFRS.value:
         return
 
     roleUris = (
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_ConsolidatedStatementOfFinancialPositionIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_std_ConsolidatedStatementOfFinancialPositionIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfFinancialPositionIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedQuarterlyConsolidatedStatementOfFinancialPositionIFRS',
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_ConsolidatedStatementOfFinancialPositionIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_std_ConsolidatedStatementOfFinancialPositionIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfFinancialPositionIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedQuarterlyConsolidatedStatementOfFinancialPositionIFRS",
     )
 
     for modelXbrl in pluginData.loadedModelXbrls:
@@ -1846,7 +1846,7 @@ def rule_EC8061W(
             return
 
     yield Validation.warning(
-        codes='EDINET.EC8061W',
+        codes="EDINET.EC8061W",
         msg=_("The consolidated statement of financial position has not been tagged in detail. "
               "Please provide a detailed tag for the consolidated statement of financial position. "
               "If you do not provide a consolidated statement of financial position, please confirm that "
@@ -1875,14 +1875,14 @@ def rule_EC8063W(
 
     if pluginData.isConsolidated() != False:
         return
-    accountingStandard = pluginData.getDeiValue('AccountingStandardsDEI')
+    accountingStandard = pluginData.getDeiValue("AccountingStandardsDEI")
     if accountingStandard != AccountingStandard.IFRS.value:
         return
 
     roleUris = (
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_StatementOfFinancialPositionIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfFinancialPositionIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedQuarterlyStatementOfFinancialPositionIFRS',
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_StatementOfFinancialPositionIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfFinancialPositionIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedQuarterlyStatementOfFinancialPositionIFRS",
     )
 
     for modelXbrl in pluginData.loadedModelXbrls:
@@ -1890,7 +1890,7 @@ def rule_EC8063W(
             return
 
     yield Validation.warning(
-        codes='EDINET.EC8063W',
+        codes="EDINET.EC8063W",
         msg=_("The statement of financial position has not been tagged in detail. "
               "Please provide detailed tagging of the statement of financial position."),
     )
@@ -1917,15 +1917,15 @@ def rule_EC8065W(
 
     if pluginData.isConsolidated() != True:
         return
-    accountingStandard = pluginData.getDeiValue('AccountingStandardsDEI')
+    accountingStandard = pluginData.getDeiValue("AccountingStandardsDEI")
     if accountingStandard != AccountingStandard.IFRS.value:
         return
 
     roleUris = (
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_ConsolidatedStatementOfComprehensiveIncomeSingleStatementIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfComprehensiveIncomeSingleStatementIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedYearToQuarterEndConsolidatedStatementOfComprehensiveIncomeSingleStatementIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedQuarterPeriodConsolidatedStatementOfComprehensiveIncomeSingleStatementIFRS',
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_ConsolidatedStatementOfComprehensiveIncomeSingleStatementIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfComprehensiveIncomeSingleStatementIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedYearToQuarterEndConsolidatedStatementOfComprehensiveIncomeSingleStatementIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedQuarterPeriodConsolidatedStatementOfComprehensiveIncomeSingleStatementIFRS",
     )
 
     for modelXbrl in pluginData.loadedModelXbrls:
@@ -1933,7 +1933,7 @@ def rule_EC8065W(
             return
 
     yield Validation.warning(
-        codes='EDINET.EC8065W',
+        codes="EDINET.EC8065W",
         msg=_("The consolidated statement of comprehensive income has not been tagged in detail. "
               "Please provide detailed tagging for the consolidated statement of comprehensive income. "
               "If you do not provide a consolidated statement of comprehensive income, please confirm that "
@@ -1962,15 +1962,15 @@ def rule_EC8066W(
 
     if pluginData.isConsolidated() != False:
         return
-    accountingStandard = pluginData.getDeiValue('AccountingStandardsDEI')
+    accountingStandard = pluginData.getDeiValue("AccountingStandardsDEI")
     if accountingStandard != AccountingStandard.IFRS.value:
         return
 
     roleUris = (
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_StatementOfComprehensiveIncomeSingleStatementIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfComprehensiveIncomeSingleStatementIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedYearToQuarterEndStatementOfComprehensiveIncomeSingleStatementIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedQuarterPeriodStatementOfComprehensiveIncomeSingleStatementIFRS',
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_StatementOfComprehensiveIncomeSingleStatementIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfComprehensiveIncomeSingleStatementIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedYearToQuarterEndStatementOfComprehensiveIncomeSingleStatementIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedQuarterPeriodStatementOfComprehensiveIncomeSingleStatementIFRS",
     )
 
     for modelXbrl in pluginData.loadedModelXbrls:
@@ -1978,7 +1978,7 @@ def rule_EC8066W(
             return
 
     yield Validation.warning(
-        codes='EDINET.EC8066W',
+        codes="EDINET.EC8066W",
         msg=_("The statement of comprehensive income has not been tagged in detail. "
               "Please provide detailed tagging for the statement of comprehensive income."),
     )
@@ -2005,14 +2005,14 @@ def rule_EC8067W(
 
     if pluginData.isConsolidated() != True:
         return
-    accountingStandard = pluginData.getDeiValue('AccountingStandardsDEI')
+    accountingStandard = pluginData.getDeiValue("AccountingStandardsDEI")
     if accountingStandard != AccountingStandard.IFRS.value:
         return
 
     roleUris = (
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedQuarterlyConsolidatedStatementOfChangesInEquityIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfChangesInEquityIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_std_ConsolidatedStatementOfChangesInEquityIFRS',
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedQuarterlyConsolidatedStatementOfChangesInEquityIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfChangesInEquityIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_std_ConsolidatedStatementOfChangesInEquityIFRS",
     )
 
     for modelXbrl in pluginData.loadedModelXbrls:
@@ -2020,7 +2020,7 @@ def rule_EC8067W(
             return
 
     yield Validation.warning(
-        codes='EDINET.EC8067W',
+        codes="EDINET.EC8067W",
         msg=_("The consolidated statement of changes in equity has not been tagged in detail. "
               "Please tag the details of the consolidated statement of changes in equity. "
               "If you do not include a consolidated statement of changes in equity, please confirm that "
@@ -2049,14 +2049,14 @@ def rule_EC8068W(
 
     if pluginData.isConsolidated() != False:
         return
-    accountingStandard = pluginData.getDeiValue('AccountingStandardsDEI')
+    accountingStandard = pluginData.getDeiValue("AccountingStandardsDEI")
     if accountingStandard != AccountingStandard.IFRS.value:
         return
 
     roleUris = (
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_StatementOfChangesInEquityIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfChangesInEquityIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedQuarterlyStatementOfChangesInEquityIFRS',
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_StatementOfChangesInEquityIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfChangesInEquityIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedQuarterlyStatementOfChangesInEquityIFRS",
     )
 
     for modelXbrl in pluginData.loadedModelXbrls:
@@ -2064,7 +2064,7 @@ def rule_EC8068W(
             return
 
     yield Validation.warning(
-        codes='EDINET.EC8068W',
+        codes="EDINET.EC8068W",
         msg=_("The statement of changes in equity is not tagged in detail. "
               "Please provide detailed tagging of the statement of changes in equity."),
     )
@@ -2089,20 +2089,20 @@ def rule_EC8069W(
     If a role indicating a disclosure of securities information and if IssuedSharesTotalNumberOfSharesEtcTextBlock is tagged and non-nil then the one or more of the above three elements must also be tagged and non-nil.
     """
     roleUris = (
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo24SecuritiesRegistrationStatement',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo27SecuritiesRegistrationStatement',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo3AnnualSecuritiesReport',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo32AnnualSecuritiesReport',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo4AnnualSecuritiesReport',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43QuarterlySecuritiesReport',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43SemiAnnualSecuritiesReport',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo24SecuritiesRegistrationStatement',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo27SecuritiesRegistrationStatement',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo3AnnualSecuritiesReport',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo32AnnualSecuritiesReport',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo4AnnualSecuritiesReport',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43QuarterlySecuritiesReport',
-        'http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43SemiAnnualSecuritiesReport'
+        "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo24SecuritiesRegistrationStatement",
+        "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo27SecuritiesRegistrationStatement",
+        "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo3AnnualSecuritiesReport",
+        "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo32AnnualSecuritiesReport",
+        "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo4AnnualSecuritiesReport",
+        "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43QuarterlySecuritiesReport",
+        "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_std_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43SemiAnnualSecuritiesReport",
+        "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo24SecuritiesRegistrationStatement",
+        "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo27SecuritiesRegistrationStatement",
+        "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo3AnnualSecuritiesReport",
+        "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo32AnnualSecuritiesReport",
+        "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo4AnnualSecuritiesReport",
+        "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43QuarterlySecuritiesReport",
+        "http://disclosure.edinet-fsa.go.jp/role/jpcrp/rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43SemiAnnualSecuritiesReport"
     )
     if not hasPresentationalConceptsWithFacts(val.modelXbrl, roleUris):
         return
@@ -2116,7 +2116,7 @@ def rule_EC8069W(
         return
     totalStockShares = val.modelXbrl.factsByQname.get(pluginData.issuedSharesTotalNumberOfSharesEtcQn, set())
     yield Validation.error(
-        codes='EDINET.EC8069W',
+        codes="EDINET.EC8069W",
         msg=_("If tagging IssuedSharesTotalNumberOfSharesEtcTextBlock, also tag using at least one of the following three elements: \n"
               "'Overview of corporate governance system (company with auditors) [Text Block]' (CorporateGovernanceCompanyWithCorporateAuditorsTextBlock) \n"
               "'Overview of corporate governance system (company with audit and supervisory committee) [Text Block]' (CorporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlock)\n"
@@ -2194,7 +2194,7 @@ def rule_EC8069W_2(
     foundGroupTwoFact = any(pluginData.hasValidNonNilFact(val.modelXbrl, c) for c in groupTwoConcepts)
     if not foundGroupOneFact or not foundGroupTwoFact:
         yield Validation.warning(
-            codes='EDINET.EC8069W',
+            codes="EDINET.EC8069W",
             msg=_("No executive details have been tagged. "
                   "Please provide detailed tagging such as compensation for each executive category.\n"),
         )
@@ -2249,7 +2249,7 @@ def rule_EC8070W(
     }
     if matchingFact(facts, pluginData.directorsAndOtherOfficersAxisQn, directorsAndOtherOfficersMembers) is None:
         yield Validation.warning(
-            codes='EDINET.EC8070W',
+            codes="EDINET.EC8070W",
             msg=_("No executive details have been tagged.\n"
                   "Please tag the officers in detail."),
         )
@@ -2284,7 +2284,7 @@ def rule_EC8073E(
             illegalChars = findProhibitedCharacters(labelRel.toModelObject.textValue, illegalCharactersPattern)
             if any(illegalChars):
                 yield Validation.error(
-                    codes='EDINET.EC8073E',
+                    codes="EDINET.EC8073E",
                     msg=_("The concept: %(concept)s has a %(role)s label which contains characters that are not "
                           "allowed. Label: %(label)s, disallowed characters: %(characters)s"),
                     concept=rel.toModelObject.qname.localName,
@@ -2318,7 +2318,7 @@ def rule_EC8073W_EC8074W(
     # \u00D8-\u00F6 : Latin-1 Letters (Part 2)
     # \u00F8-\u00FF : Latin-1 Letters (Part 3)
     # Note: U+00D7 is '×' and U+00F7 is '÷', which are symbols.
-    illegalEnglishCharactersPattern = regex.compile(r'[^\u0020-\u007E\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF]')
+    illegalEnglishCharactersPattern = regex.compile(r"[^\u0020-\u007E\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF]")
     illegalJapaneseCharactersPattern = pluginData.getIllegalCharactersPattern(val.modelXbrl)
 
     defRelSet = val.modelXbrl.relationshipSet(tuple(LinkbaseType.DEFINITION.getArcroles()))
@@ -2338,7 +2338,7 @@ def rule_EC8073W_EC8074W(
                 if illegalChars:
                     assert concept.qname is not None, "concept.qname is None"
                     yield Validation.warning(
-                        codes='EDINET.EC8073W',
+                        codes="EDINET.EC8073W",
                         msg=_("The concept: %(concept)s has a %(role)s label which contains characters that are not "
                               "allowed. Label: %(label)s, disallowed characters: %(characters)s"),
                         concept=concept.qname.localName,
@@ -2348,12 +2348,12 @@ def rule_EC8073W_EC8074W(
                     )
 
             # Check English labels
-            elif label.xmlLang == 'en':
+            elif label.xmlLang == "en":
                 illegalChars = findProhibitedCharacters(label.textValue, illegalEnglishCharactersPattern)
                 if illegalChars:
                     assert concept.qname is not None, "concept.qname is None"
                     yield Validation.warning(
-                        codes='EDINET.EC8074W',
+                        codes="EDINET.EC8074W",
                         msg=_("The concept: %(concept)s has a %(role)s label which contains characters that are not "
                               "allowed. Label: %(label)s, disallowed characters: %(characters)s"),
                         concept=concept.qname.localName,
@@ -2380,7 +2380,7 @@ def rule_EC8075W(
     if pluginData.isCorporateForm(val.modelXbrl):
         if not pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.ratioOfFemaleDirectorsAndOtherOfficersQn):
             yield Validation.warning(
-                codes='EDINET.EC8075W',
+                codes="EDINET.EC8075W",
                 msg=_("The percentage of female executives has not been tagged in detail."),
             )
 
@@ -2402,7 +2402,7 @@ def rule_EC8076W(
     if pluginData.isStockForm(val.modelXbrl) and pluginData.isCorporateReport(val.modelXbrl):
         if not pluginData.hasValidNonNilFact(val.modelXbrl, pluginData.issuedSharesTotalNumberOfSharesEtcQn):
             yield Validation.warning(
-                codes='EDINET.EC8076W',
+                codes="EDINET.EC8076W",
                 msg=_('"Issued Shares, Total Number of Shares, etc. [Text Block]" (IssuedSharesTotalNumberOfSharesEtcTextBlock) is not tagged.'),
             )
 
@@ -2427,65 +2427,65 @@ def rule_EC8077W(
     formUris = tuple(
         f"http://disclosure.edinet-fsa.go.jp/role/jpcrp/{name}"
         for name in (
-            'rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43SemiAnnualSecuritiesReport',
-            'rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo5SemiannualSecuritiesReport',
-            'rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo52SemiannualSecuritiesReport',
-            'rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo93SemiAnnualSecuritiesReport',
-            'rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo10SemiannualSecuritiesReport',
+            "rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo43SemiAnnualSecuritiesReport",
+            "rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo5SemiannualSecuritiesReport",
+            "rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo52SemiannualSecuritiesReport",
+            "rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo93SemiAnnualSecuritiesReport",
+            "rol_CabinetOfficeOrdinanceOnDisclosureOfCorporateInformationEtcFormNo10SemiannualSecuritiesReport",
         )
     )
     for modelXbrl in pluginData.loadedModelXbrls:
         if hasPresentationalConceptsWithFacts(modelXbrl, formUris):
-            prepared = pluginData.getDeiValue('WhetherConsolidatedFinancialStatementsArePreparedDEI')
+            prepared = pluginData.getDeiValue("WhetherConsolidatedFinancialStatementsArePreparedDEI")
     if prepared is None:
         return
     preparedUris = (
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedBalanceSheet',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedBalanceSheet',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedStatementOfIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfComprehensiveIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedStatementOfComprehensiveIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfChangesInEquity',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfChangesInNetAssets',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfCashFlows-direct',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedStatementOfCashFlows-direct',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfCashFlows-indirect',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedStatementOfCashFlows-indirect',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfFinancialPositionIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfComprehensiveIncomeSingleStatementIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfProfitOrLossIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfComprehensiveIncomeIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfChangesInEquityIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfCashFlowsIFRS',
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedBalanceSheet",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedBalanceSheet",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedStatementOfIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfComprehensiveIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedStatementOfComprehensiveIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfChangesInEquity",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfChangesInNetAssets",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfCashFlows-direct",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedStatementOfCashFlows-direct",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualConsolidatedStatementOfCashFlows-indirect",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualConsolidatedStatementOfCashFlows-indirect",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfFinancialPositionIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfComprehensiveIncomeSingleStatementIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfProfitOrLossIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfComprehensiveIncomeIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfChangesInEquityIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualConsolidatedStatementOfCashFlowsIFRS",
     )
     notPreparedUris = (
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualBalanceSheet',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualBalanceSheet',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfIncomeAndRetainedEarnings',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualStatementOfIncome',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfChangesInEquity',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfChangesInNetAssets',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfMembersEquity',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfUnitholdersEquity',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfCashFlows-direct',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualStatementOfCashFlows-direct',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfCashFlows-indirect',
-        'http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualStatementOfCashFlows-indirect',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfFinancialPositionIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfComprehensiveIncomeSingleStatementIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfProfitOrLossIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfComprehensiveIncomeIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfChangesInEquityIFRS',
-        'http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfCashFlowsIFRS',
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualBalanceSheet",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualBalanceSheet",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfIncomeAndRetainedEarnings",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualStatementOfIncome",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfChangesInEquity",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfChangesInNetAssets",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfMembersEquity",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfUnitholdersEquity",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfCashFlows-direct",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualStatementOfCashFlows-direct",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_SemiAnnualStatementOfCashFlows-indirect",
+        "http://disclosure.edinet-fsa.go.jp/role/jppfs/rol_Type1SemiAnnualStatementOfCashFlows-indirect",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfFinancialPositionIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfComprehensiveIncomeSingleStatementIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfProfitOrLossIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfComprehensiveIncomeIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfChangesInEquityIFRS",
+        "http://disclosure.edinet-fsa.go.jp/role/jpigp/rol_CondensedSemiAnnualStatementOfCashFlowsIFRS",
     )
     urisToCheck = preparedUris if prepared is True else notPreparedUris
     for modelXbrl in pluginData.loadedModelXbrls:
         if hasPresentationalConceptsWithFacts(modelXbrl, urisToCheck):
             return
     yield Validation.warning(
-        codes='EDINET.EC8077W',
+        codes="EDINET.EC8077W",
         msg=_('The headline accounting information does not include separate tagging of first or second interim (consolidated) financial statements to align with the '
               '“Consolidated or Unconsolidated” information in the DEI. '
               'Please check that the value of "Whether Consolidated" in the DEI information and the separate tagging of first or second type interim (consolidated) '

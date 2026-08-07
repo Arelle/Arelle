@@ -6,16 +6,16 @@ from tests.integration_tests.validation.conformance_suite_config import Conforma
 config = ConformanceSuiteConfig(
     assets=[
         ConformanceSuiteAssetConfig.local_conformance_suite(
-            Path('nl_nt18'),
-            entry_point=Path('index.xml'),
+            Path("nl_nt18"),
+            entry_point=Path("index.xml"),
         ),
-        *NL_PACKAGES['NT18'],
+        *NL_PACKAGES["NT18"],
     ],
-    base_taxonomy_validation='none',
-    disclosure_system='NT18',
-    info_url='https://sbr-nl.nl/sites/default/files/bestanden/taxonomie/SBR%20Filing%20Rules%20NT18%20-%2020230301_.pdf',
+    base_taxonomy_validation="none",
+    disclosure_system="NT18",
+    info_url="https://sbr-nl.nl/sites/default/files/bestanden/taxonomie/SBR%20Filing%20Rules%20NT18%20-%2020230301_.pdf",
     name=PurePath(__file__).stem,
-    plugins=frozenset({'validate/NL'}),
+    plugins=frozenset({"validate/NL"}),
     shards=4,
-    test_case_result_options='match-any',
+    test_case_result_options="match-any",
 )

@@ -99,7 +99,7 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
             if isinstance(objectId, XbrlObject):
                 xbrlObj = objectId
             elif isinstance(objectId, str) and objectId.startswith("_"):
-                xbrlObj = cast('XbrlObject', self.xbrlObjects[int(objectId.rpartition("_")[2])])
+                xbrlObj = cast("XbrlObject", self.xbrlObjects[int(objectId.rpartition("_")[2])])
             if xbrlObj is not None:
                 for view in self.views:
                     view.viewModelObject(xbrlObj)

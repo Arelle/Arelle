@@ -13,13 +13,13 @@ from ..github import LINUX, MACOS, OS_CORES, WINDOWS
 
 
 ALL_PYTHON_VERSIONS = (
-    '3.10',
-    '3.11',
-    '3.12',
-    '3.13',
-    '3.14.4',
+    "3.10",
+    "3.11",
+    "3.12",
+    "3.13",
+    "3.14.4",
 )
-LATEST_PYTHON_VERSION = '3.14.4'
+LATEST_PYTHON_VERSION = "3.14.4"
 
 
 class Entry(TypedDict, total=False):
@@ -33,14 +33,14 @@ class Entry(TypedDict, total=False):
 
 def generate_config_entry(name: str, short_name: str, os: str, private: bool, python_version: str, shard: str | None) -> Entry:
     e: Entry = {
-        'environment': 'integration-tests' if private else 'none',
-        'name': name,
-        'short_name': short_name,
-        'os': os,
-        'python_version': python_version,
+        "environment": "integration-tests" if private else "none",
+        "name": name,
+        "short_name": short_name,
+        "os": os,
+        "python_version": python_version,
     }
     if shard is not None:
-        e['shard'] = shard
+        e["shard"] = shard
     return e
 
 
@@ -65,7 +65,7 @@ def generate_config_entries(config: ConformanceSuiteConfig, os: str, python_vers
                 os=os,
                 private=config.has_private_asset,
                 python_version=python_version,
-                shard=f'{start}-{end}',
+                shard=f"{start}-{end}",
             )
 
 
@@ -79,8 +79,8 @@ def main() -> None:
             private |= config.has_private_asset
     for os in [LINUX, MACOS, WINDOWS]:
         output.append(generate_config_entry(
-            name=','.join(sorted(config_names_seen)),
-            short_name='fast suites',
+            name=",".join(sorted(config_names_seen)),
+            short_name="fast suites",
             os=os,
             private=private,
             python_version=LATEST_PYTHON_VERSION,
@@ -106,5 +106,5 @@ def main() -> None:
     print()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

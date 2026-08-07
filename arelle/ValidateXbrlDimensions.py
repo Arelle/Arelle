@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from __future__ import annotations
 
 import os
@@ -403,7 +403,7 @@ def isFactDimensionallyValid(
     hasElrHc = False
     for ELR, hcRels in priItemElrHcRels(val, f.concept).items():  # type: ignore[arg-type]
         hasElrHc = True
-        '''
+        """
         if otherFacts: # find relevant facts with compatible primary items and same dims
             relevantPriItems = set.intersection(*[priItemsOfElrHc(val, rel.fromModelObject, ELR, ELR)
                                                   for rel in hcRels])
@@ -414,7 +414,7 @@ def isFactDimensionallyValid(
                                                       for dimQname in f.context.dimAspects(val.modelXbrl.qnameDimensionDefaults.keys())])
         else:
             relevantFactsByDims = None
-        '''
+        """
         if checkFactElrHcs(val, f, ELR, hcRels, setPrototypeContextElements):  # type: ignore[arg-type]
             return True # meets hypercubes in this ELR
 
@@ -631,7 +631,7 @@ def enumerationMemberUsable(val: ValidateXbrl, enumConcept: ModelConcept | None,
         return False
     else:
         return memConcept in usableEnumerationMembers(val, enumConcept)
-''' removed to cache all members usability for domain
+""" removed to cache all members usability for domain
 def dimensionMemberState(val, dimConcept, memConcept, domELR):
     try:
         dimensionMemberStates = val.dimensionMemberStates
@@ -665,9 +665,9 @@ def memberStateInDomain(val, memConcept, rels, ELR, toConceptELRs=None):
                              memberStateInDomain(val, memConcept, domMbrRels, toELR, toConceptELRs))
             toELRs.discard(toELR)
     return foundState
-'''
+"""
 
-''' removed because no valid way to check one isolated dimension for validity without full set of others
+""" removed because no valid way to check one isolated dimension for validity without full set of others
 # check a single dimension value for primary item (not the complete set of dimension values)
 # returnn the contextElement of the hypercube where valid
 def checkPriItemDimValueValidity(val, priItemConcept, dimConcept, memConcept, srcCntxEltName=None):
@@ -716,4 +716,4 @@ def checkPriItemDimValueElrHcs(val, priItemConcept, matchDim, matchMem, srcCntxE
             if not hcIsClosed:
                 hcCntxElt = cntxElt
     return hcCntxElt
-'''
+"""

@@ -45,7 +45,7 @@ def parseEntrypointFileInput(cntlr: Cntlr, entrypointFile: str | None, sourceZip
                               messageCode="FileNameFormatError",
                               level=logging.ERROR)
             else: # try as file names separated by '|'
-                for f in (_f or '').split('|'):
+                for f in (_f or "").split("|"):
                     if not sourceZipStream and not isHttpUrl(f) and not os.path.isabs(f):
                         f = os.path.normpath(os.path.join(os.getcwd(), f)) # make absolute normed path
                     _entryPoints.append({"file":f})
@@ -119,7 +119,7 @@ def filesourceEntrypointFiles(filesource: FileSource.FileSource, entrypointFiles
                 # Looks like the type of values in the taxonomyPackage dict depends on the key
                 entryPoints = cast(
                     dict[str, list[tuple[str | None, str, str]]],
-                    filesource.taxonomyPackage.get('entryPoints', {})
+                    filesource.taxonomyPackage.get("entryPoints", {})
                 )
                 for packageEntry in entryPoints.values():
                     for _resolvedUrl, remappedUrl, _closest in packageEntry:

@@ -1,6 +1,6 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
 from arelle import XbrlConst, XmlUtil
 from arelle.formula import XPathContext
 from arelle.ModelFormulaObject import (ModelTypedDimension, ModelParameter)
@@ -65,7 +65,7 @@ def init(modelXbrl):
 
             modelTable.priorAspectAxisDisposition = {}
             # check ordinate aspects against aspectModel
-            oppositeAspectModel = ({'dimensional','non-dimensional'} - {modelTable.aspectModel}).pop()
+            oppositeAspectModel = ({"dimensional","non-dimensional"} - {modelTable.aspectModel}).pop()
             uncoverableAspects = ()
             aspectsCovered = set()
             for tblBrkdnRel in modelXbrl.relationshipSet((XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD)).fromModelObject(modelTable):
@@ -106,7 +106,7 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblBrkdnRel, tblAxisDisp
         for aspect in definitionNode.aspectsCovered():
             aspectsCovered.add(aspect)
             if (aspect in uncoverableAspects or
-                (isinstance(aspect, QName) and modelTable.aspectModel == 'non-dimensional')):
+                (isinstance(aspect, QName) and modelTable.aspectModel == "non-dimensional")):
                 modelXbrl.error("xbrlte:axisAspectModelMismatch",
                     _("%(definitionNode)s %(xlinkLabel)s, aspect model %(aspectModel)s, aspect %(aspect)s not allowed"),
                     modelObject=modelTable, definitionNode=definitionNode.localName, xlinkLabel=definitionNode.xlinkLabel, aspectModel=modelTable.aspectModel,
@@ -174,7 +174,7 @@ def checkBreakdownDefinitionNode(modelXbrl, modelTable, tblBrkdnRel, tblAxisDisp
                                       if aspect != Aspect.DIMENSIONS))
     if isinstance(definitionNode, DefnMdlDimensionRelationshipNode):
         hasCoveredAspect = True
-        if modelTable.aspectModel == 'non-dimensional':
+        if modelTable.aspectModel == "non-dimensional":
             modelXbrl.error("xbrlte:axisAspectModelMismatch",
                 _("DimensionRelationship axis %(xlinkLabel)s can't be used in non-dimensional aspect model"),
                 modelObject=(modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel)
@@ -254,4 +254,4 @@ def checkBreakdownLeafNodeAspects(modelXbrl, modelTable, tblBrkdnRel, parentAspe
                     modelXbrl.error("xbrlte:missingAspectValue",
                         _("%(definitionNode)s %(xlinkLabel)s does not define an aspect for %(aspect)s"),
                         modelObject=(modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel, definitionNode=definitionNode.localName,
-                        aspect=', '.join(aspectStr(aspect) for aspect in missingAspects))
+                        aspect=", ".join(aspectStr(aspect) for aspect in missingAspects))
