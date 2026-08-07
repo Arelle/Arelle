@@ -321,7 +321,6 @@ module = [
     'arelle.CntlrProfiler',
     'arelle.CntlrQuickBooks',
     'arelle.DialogAbout',
-    'arelle.DialogArcroleGroup',
     'arelle.DialogFind',
     'arelle.DialogLanguage',
     'arelle.DialogNewFactItem',

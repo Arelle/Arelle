@@ -1,52 +1,53 @@
-'''
+"""
 See COPYRIGHT.md for copyright information.
-'''
+"""
+from __future__ import annotations
+
 import os
+from typing import TYPE_CHECKING, Any
+
 import regex as re
 
-from tkinter import Toplevel, N, S, E, W, PhotoImage
+from tkinter import Toplevel, N, S, E, W, PhotoImage, Event
 from tkinter.ttk import Frame, Button
 
 from arelle import ViewUtil
 from arelle.typing import TypeGetText
 from arelle.CntlrWinTooltip import ToolTip
-from arelle.UiUtil import gridHdr, gridCell, gridCombobox, label, checkbox
+from arelle.UiUtil import gridCombobox, label, checkbox
+
+if TYPE_CHECKING:
+    from arelle.CntlrWinMain import CntlrWinMain
+    from arelle.ModelXbrl import ModelXbrl
 
 _: TypeGetText
 
-'''
+
+"""
 caller checks accepted, if True, caller retrieves url
-'''
-def getArcroleGroup(mainWin, modelXbrl):
+"""
+def getArcroleGroup(mainWin: CntlrWinMain, modelXbrl: ModelXbrl) -> tuple[str, list[str | None]] | None:
     dialog = DialogArcroleGroup(mainWin, modelXbrl)
     return dialog.selectedGroup
 
 
 class DialogArcroleGroup(Toplevel):
-    def __init__(self, mainWin, modelXbrl):
+    def __init__(self, mainWin: CntlrWinMain, modelXbrl: ModelXbrl) -> None:
         parent = mainWin.parent
         super(DialogArcroleGroup, self).__init__(parent)
         self.mainWin = mainWin
         self.parent = parent
         self.modelXbrl = modelXbrl
         parentGeometry = re.match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
+        assert parentGeometry is not None
         dialogX = int(parentGeometry.group(3))
         dialogY = int(parentGeometry.group(4))
-        self.selectedGroup = None
+        self.selectedGroup: tuple[str, list[str | None]] | None = None
 
         self.transient(self.parent)
         self.title(_("Select Arcrole Group"))
 
         frame = Frame(self)
-
-        '''
-        dialogFrame = Frame(frame, width=500)
-        dialogFrame.columnconfigure(0, weight=1)
-        dialogFrame.rowconfigure(0, weight=1)
-        dialogFrame.grid(row=0, column=0, columnspan=4, sticky=(N, S, E, W), padx=3, pady=3)
-        '''
-
-        # mainWin.showStatus(_("loading formula options and parameters"))
 
         # load grid
         groupLabel = label(frame, 1, 0, _("Group:"))
@@ -58,7 +59,7 @@ class DialogArcroleGroup(Toplevel):
             arcroleGroup = []
             arcroleGroupSelected = None
         self.groupName = gridCombobox(frame, 2, 0,
-                                      value=arcroleGroupSelected,
+                                      value=arcroleGroupSelected,  # type: ignore[arg-type]
                                       values=sorted(self.arcroleGroups.keys()),
                                       comboboxselected=self.comboBoxSelected)
         groupToolTipMessage = _("Select an existing arcrole group, or enter a name for a new arcrole group.  "
@@ -79,8 +80,8 @@ class DialogArcroleGroup(Toplevel):
         arcrolesLabel = label(frame, 1, 1, _("Arcroles:"))
         ToolTip(arcrolesLabel, text=_("Shows all the arcroles that are present in this DTS. "),
                 wraplength=240)
-        self.options = {}
-        self.checkboxes = []
+        self.options: dict[str, bool] = {}
+        self.checkboxes: list[checkbox] = []
         y = 1
         for name, arcrole in ViewUtil.baseSetArcroles(self.modelXbrl):
             if arcrole.startswith("http://"):
@@ -93,7 +94,7 @@ class DialogArcroleGroup(Toplevel):
                 )
                 y += 1
 
-        mainWin.showStatus(None)
+        mainWin.showStatus(None)  # type: ignore[arg-type]
 
         self.options[ViewUtil.ARCROLE_GROUP_DETECT_STR] = ViewUtil.ARCROLE_GROUP_DETECT_STR in arcroleGroup
         self.autoOpen = checkbox(frame, 1, y, _("detect"), ViewUtil.ARCROLE_GROUP_DETECT_STR)
@@ -117,16 +118,13 @@ class DialogArcroleGroup(Toplevel):
         frame.columnconfigure(3, weight=3)
         window = self.winfo_toplevel()
         window.columnconfigure(0, weight=1)
-        self.geometry("+{0}+{1}".format(dialogX+50,dialogY+100))
-
-        #self.bind("<Return>", self.ok)
-        #self.bind("<Escape>", self.close)
+        self.geometry("+{0}+{1}".format(dialogX + 50,dialogY + 100))
 
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.grab_set()
         self.wait_window(self)
 
-    def ok(self, event=None):
+    def ok(self, event: Event | None = None) -> None:
         groupName = self.groupName.value
         arcrolesSelected = [checkbox.attr for checkbox in self.checkboxes if checkbox.value]
         if groupName:
@@ -135,25 +133,25 @@ class DialogArcroleGroup(Toplevel):
                 self.arcroleGroups[groupName] = arcrolesSelected
                 self.mainWin.config["arcroleGroups"] = self.arcroleGroups
                 self.mainWin.saveConfig()
-            self.selectedGroup = (groupName, arcrolesSelected)
+            self.selectedGroup = groupName, arcrolesSelected
         self.close()
 
-    def close(self, event=None):
+    def close(self, event: Event | None = None) -> None:
         self.parent.focus_set()
         self.destroy()
 
-    def comboBoxSelected(self, *args):
+    def comboBoxSelected(self, *args: Any) -> None:
         arcroles = self.arcroleGroups.get(self.groupName.value, [])
         for checkbox in self.checkboxes:
-            checkbox.valueVar.set( checkbox.attr in arcroles )
+            checkbox.valueVar.set(checkbox.attr in arcroles)  # type: ignore[arg-type]
             checkbox.isChanged = False
 
-    def clearGroupName(self):
+    def clearGroupName(self) -> None:
         groupName = self.groupName.value
         if groupName and groupName in self.arcroleGroups:
             del self.arcroleGroups[groupName]
-        self.groupName.valueVar.set('')
+        self.groupName.valueVar.set("")
         self.groupName["values"] = sorted(self.arcroleGroups.keys())
         for checkbox in self.checkboxes:
-            checkbox.valueVar.set( False )
+            checkbox.valueVar.set(False)  # type: ignore[arg-type]
             checkbox.isChanged = False
