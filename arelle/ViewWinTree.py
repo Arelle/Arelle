@@ -332,9 +332,9 @@ class ViewTree:
     def newArcroleGroupView(self, tabWin: Notebook) -> None:
         from arelle.DialogArcroleGroup import getArcroleGroup
         from arelle import ViewWinRelationshipSet
-        arcroleGroup = getArcroleGroup(self.modelXbrl.modelManager.cntlr, self.modelXbrl)  # type: ignore[no-untyped-call]
+        arcroleGroup = getArcroleGroup(self.modelXbrl.modelManager.cntlr, self.modelXbrl)  # type: ignore[arg-type]
         if arcroleGroup:
-            ViewWinRelationshipSet.viewRelationshipSet(self.modelXbrl, tabWin, arcroleGroup, lang=self.lang)
+            ViewWinRelationshipSet.viewRelationshipSet(self.modelXbrl, tabWin, arcroleGroup, lang=self.lang)  # type: ignore[arg-type]
 
     def setLang(self, lang: str) -> None:
         self.lang = lang
