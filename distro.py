@@ -6,6 +6,7 @@ import platform
 import site
 import sys
 from importlib.metadata import entry_points
+from importlib.util import find_spec
 
 import regex as re
 from cx_Freeze import Executable, setup
@@ -55,6 +56,7 @@ includeLibs = [
     "dateutil.relativedelta",
     "email",
     "email.header",
+    "email._header_value_parser",
     "graphviz",
     "gzip",
     "isodate",
@@ -92,12 +94,24 @@ if os.path.exists("arelle/plugin/EDGAR") or os.path.exists("arelle/plugin/xule")
     includeLibs.append("aniso8601")
 
 if os.path.exists("arelle/plugin/EDGAR"):
+    includeLibs.append("aiohttp")
     includeLibs.append("holidays")
     includeLibs.append("holidays.countries")
     includeLibs.append("holidays.financial")
     includeLibs.append("matplotlib")
     includeLibs.append("matplotlib.pyplot")
+    includeLibs.append("pminit")
+    includeLibs.append("pythonmonkey")
     includeLibs.append("pytz")
+
+    pythonMonkeySpec = find_spec("pythonmonkey")
+    if pythonMonkeySpec is None or not pythonMonkeySpec.submodule_search_locations:
+        raise ValueError("PythonMonkey dependency not found")
+    pythonMonkeyDirectory = pythonMonkeySpec.submodule_search_locations[0]
+    includeFiles.append((
+        os.path.join(pythonMonkeyDirectory, "builtin_modules"),
+        os.path.join("lib", "pythonmonkey", "builtin_modules"),
+    ))
 
 if sys.platform == LINUX_PLATFORM:
     guiExecutable = Executable(
