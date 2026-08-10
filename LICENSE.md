@@ -56,6 +56,9 @@ Pillow: Copyright © 2010-2022 by Alex Clark and contributors
 PyParsing: Copyright © 2003-2022 Paul McGuire.
 [License](https://github.com/pyparsing/pyparsing/blob/master/LICENSE)
 
+PythonMonkey: Copyright (c) 2023-2024 Distributive Corp.
+[License](https://github.com/Distributive-Network/PythonMonkey/blob/main/LICENSE)
+
 rdflib: Copyright (c) 2002-2021, RDFLib Team. All rights reserved.
 [License](https://opensource.org/licenses/BSD-3-Clause)
 

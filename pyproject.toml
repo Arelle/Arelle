@@ -61,6 +61,7 @@ EFM = [
     'holidays>=0,<1',
     'matplotlib>=3,<4',
     'pytz',
+    'pythonmonkey>=1,<2',
 ]
 ESEF = [
     'tinycss2>=1,<2',
