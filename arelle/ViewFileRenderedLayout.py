@@ -1,20 +1,40 @@
 """
 See COPYRIGHT.md for copyright information.
 """
-import os
+from __future__ import annotations
+
 from datetime import timedelta
-from collections import OrderedDict
 from copy import deepcopy
+from typing import TYPE_CHECKING, Any
+
 from lxml import etree
+
 from arelle import ViewFile
 from arelle.FunctionXs import xsString
 from arelle.ModelObject import ModelObject
-from arelle.Aspect import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
+from arelle.Aspect import Aspect, aspectStr
 from arelle.rendering.RenderingLayout import layoutTable
 from arelle import XbrlConst
 from arelle.XmlUtil import elementFragmentIdentifier, addQnameValue
 
-def viewRenderedLayout(modelXbrl, outfile, lang=None, viewTblELR=None, sourceView=None, diffToFile=False, cssExtras=""):
+if TYPE_CHECKING:
+    from arelle.FileSource import FileNamedStringIO
+    from arelle.ModelRenderingObject import LytMdlTableModel
+    from arelle.ModelXbrl import ModelXbrl
+    from arelle.typing import TypeGetText
+
+    _: TypeGetText
+
+
+def viewRenderedLayout(
+    modelXbrl: ModelXbrl,
+    outfile: str | FileNamedStringIO | None,
+    lang: str | None = None,
+    viewTblELR: str | None = None,
+    sourceView: Any = None,
+    diffToFile: bool = False,
+    cssExtras: str = "",
+) -> None:
     modelXbrl.modelManager.showStatus(_("saving rendering"))
     view = ViewRenderedLayout(modelXbrl, outfile, lang, cssExtras)
 
@@ -22,22 +42,31 @@ def viewRenderedLayout(modelXbrl, outfile, lang=None, viewTblELR=None, sourceVie
         if sourceView.lytMdlTblMdl:
             lytMdlTblMdl = sourceView.lytMdlTblMdl
         else:
-            lytMdlTblMdl = layoutTable(sourceView)
+            lytMdlTblMdl = layoutTable(sourceView)  # type: ignore[no-untyped-call]
     else:
-        layoutTable(view)
+        layoutTable(view)  # type: ignore[no-untyped-call]
         lytMdlTblMdl = view.lytMdlTblMdl
     if view.tblElt is not None: # may be None if there is no table
         view.view(lytMdlTblMdl)
     if diffToFile and outfile:
         from arelle.ValidateInfoset import validateRenderingInfoset
-        validateRenderingInfoset(modelXbrl, outfile, view.xmlDoc)
+        validateRenderingInfoset(modelXbrl, outfile, view.xmlDoc)  # type: ignore[arg-type]
         view.close(noWrite=True)
     else:
         view.close()
     modelXbrl.modelManager.showStatus(_("rendering saved to {0}").format(outfile), clearAfter=5000)
 
+
 class ViewRenderedLayout(ViewFile.View):
-    def __init__(self, modelXbrl, outfile, lang, cssExtras):
+    lytMdlTblMdl: LytMdlTableModel
+
+    def __init__(
+        self,
+        modelXbrl: ModelXbrl,
+        outfile: str | FileNamedStringIO | None,
+        lang: str | None,
+        cssExtras: str,
+    ) -> None:
         # find table model namespace based on table namespace
         self.tableModelNamespace = XbrlConst.tableModel
         for xsdNs in modelXbrl.namespaceDocs.keys():
@@ -50,23 +79,25 @@ class ViewRenderedLayout(ViewFile.View):
                                                style="rendering",
                                                cssExtras=cssExtras)
         class nonTkBooleanVar():
-            def __init__(self, value=True):
+            def __init__(self, value: bool = True) -> None:
                 self.value = value
-            def set(self, value):
+            def set(self, value: bool) -> None:
                 self.value = value
-            def get(self):
+            def get(self) -> bool:
                 return self.value
         # context menu boolean vars (non-tkinter boolean
         self.ignoreDimValidity = nonTkBooleanVar(value=True)
 
 
-    def tableModelQName(self, localName):
+    def tableModelQName(self, localName: str) -> str:
         return "{" + self.tableModelNamespace + "}" + localName
 
-    def viewReloadDueToMenuAction(self, *args):
-        self.view()
+    def viewReloadDueToMenuAction(self, *args: Any) -> None:
+        self.view()  # type: ignore[call-arg]
 
-    def view(self, lytMdlTblMdl):
+    def view(self, lytMdlTblMdl: LytMdlTableModel) -> None:
+        assert self.tblElt is not None
+        assert self.modelXbrl is not None
 
         self.tblElt.append(etree.Comment("Entry point file: {0}".format(lytMdlTblMdl.entryPointUrl)))
 
@@ -93,7 +124,7 @@ class ViewRenderedLayout(ViewFile.View):
                             for lytMdlCell in lytMdlHeader.lytMdlCells:
                                 if lytMdlCell.isOpenAspectEntrySurrogate:
                                     continue # strip all open aspect entry surrogates from layout model file
-                                attrib = {}
+                                attrib: dict[str, str] = {}
                                 if lytMdlCell.span > 1:
                                     attrib["span"] = str(lytMdlCell.span)
                                 if lytMdlCell.rollup:
@@ -106,11 +137,11 @@ class ViewRenderedLayout(ViewFile.View):
                                         cellElt.append(etree.Comment(f"Label role: {role}, lang {lang}"))
                                     labelElt = etree.SubElement(cellElt, self.tableModelQName("label")).text = label
                                 for lytMdlConstraint in lytMdlCell.lytMdlConstraints:
-                                    attrib = None
+                                    constraintAttrib: dict[str, str] | None = None
                                     if lytMdlConstraint.tag:
-                                        attrib = {"tag": lytMdlConstraint.tag}
-                                    constraintElt = etree.SubElement(cellElt, self.tableModelQName("constraint"), attrib)
-                                    etree.SubElement(constraintElt, self.tableModelQName("aspect")).text=aspectStr(lytMdlConstraint.aspect)
+                                        constraintAttrib = {"tag": lytMdlConstraint.tag}
+                                    constraintElt = etree.SubElement(cellElt, self.tableModelQName("constraint"), constraintAttrib)
+                                    etree.SubElement(constraintElt, self.tableModelQName("aspect")).text=aspectStr(lytMdlConstraint.aspect)  # type: ignore[arg-type]
                                     valueElt = etree.SubElement(constraintElt, self.tableModelQName("value"))
                                     aspect = lytMdlConstraint.aspect
                                     aspectValue = lytMdlConstraint.value
@@ -154,19 +185,19 @@ class ViewRenderedLayout(ViewFile.View):
                                             valueElt.append(deepcopy(aspectValue))
                                         elif not (aspectValue is None and aspect in self.modelXbrl.qnameConcepts and self.modelXbrl.qnameConcepts[aspect].isExplicitDimension):
                                             # don't put None for value of explicit dimension which id defaulted
-                                            valueElt.text = xsString(None, None, addQnameValue(self.xmlDoc, aspectValue))
+                                            valueElt.text = xsString(None, None, addQnameValue(self.xmlDoc, aspectValue))  # type: ignore[arg-type]
                 for lytMdlZCell in lytMdlTable.lytMdlBodyChildren:
                     zCellsElt = etree.SubElement(tableElt, self.tableModelQName("cells"), attrib={"axis": "z"})
-                    for lytMdlYCell in lytMdlZCell.lytMdlBodyChildren:
+                    for lytMdlYCell in lytMdlZCell.lytMdlBodyChildren:  # type: ignore[union-attr]
                         yCellsElt = etree.SubElement(zCellsElt, self.tableModelQName("cells"), attrib={"axis": "y"})
-                        for lytMdlXCell in lytMdlYCell.lytMdlBodyChildren:
-                            if not any(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlXCell.lytMdlBodyChildren):
+                        for lytMdlXCell in lytMdlYCell.lytMdlBodyChildren:  # type: ignore[union-attr]
+                            if not any(lytMdlCell.isOpenAspectEntrySurrogate for lytMdlCell in lytMdlXCell.lytMdlBodyChildren):  # type: ignore[union-attr]
                                 xCellsElt = etree.SubElement(yCellsElt, self.tableModelQName("cells"), attrib={"axis": "x"})
-                                for lytMdlCell in lytMdlXCell.lytMdlBodyChildren:
+                                for lytMdlCell in lytMdlXCell.lytMdlBodyChildren:  # type: ignore[union-attr,assignment]
                                     if lytMdlCell.isOpenAspectEntrySurrogate:
                                         continue
                                     cellElt = etree.SubElement(xCellsElt, self.tableModelQName("cell"))
-                                    for f, v, justify in lytMdlCell.facts:
+                                    for f, v, justify in lytMdlCell.facts:  # type: ignore[attr-defined]
                                         cellElt.append(etree.Comment(
                                             f"{f.qname}: context {f.contextID}, value {v[:32]}, file {f.modelDocument.basename}, line {f.sourceline}"))
                                         if v is not None:

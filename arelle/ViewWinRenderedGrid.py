@@ -103,7 +103,7 @@ def viewRenderedGrid(modelXbrl: ModelXbrl, tabWin: Notebook, lang: str | None = 
               modelXbrl.modelManager.formulaOptions.parameterValues["saveTableStructuralModel"][1],  # type: ignore[index]
               lang=lang, sourceView=view)
     if "saveTableLayoutModel" in modelXbrl.modelManager.formulaOptions.parameterValues:
-        ViewFileRenderedLayout.viewRenderedLayout(modelXbrl,  # type: ignore[no-untyped-call]
+        ViewFileRenderedLayout.viewRenderedLayout(modelXbrl,
               modelXbrl.modelManager.formulaOptions.parameterValues["saveTableLayoutModel"][1],  # type: ignore[index]
               lang=lang, sourceView=view)
     if "saveHtmlTable" in modelXbrl.modelManager.formulaOptions.parameterValues:
