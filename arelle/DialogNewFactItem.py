@@ -1,23 +1,34 @@
 """
 See COPYRIGHT.md for copyright information.
 """
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from tkinter import Toplevel, N, S, E, W, messagebox
-try:
-    from tkinter.ttk import Frame, Button
-except ImportError:
-    from ttk import Frame, Button
+from tkinter.ttk import Frame, Button
 import regex as re
+
 from arelle.ModelInstanceObject import NewFactItemOptions
 from arelle.ModelValue import dateTime
-from arelle import XmlUtil
 from arelle.UiUtil import gridCell, gridCombobox, label
 from arelle.CntlrWinTooltip import ToolTip
+from arelle.typing import TypeGetText
+
+if TYPE_CHECKING:
+    from tkinter import Event
+
+    from arelle.Cntlr import Cntlr
+
+_: TypeGetText
+
 
 """
 caller checks accepted, if True, caller retrieves url
 """
-def getNewFactItemOptions(mainWin, newInstanceOptions=None):
-    if newInstanceOptions is None: newInstanceOptions = NewFactItemOptions()
+def getNewFactItemOptions(mainWin: Cntlr, newInstanceOptions: NewFactItemOptions | None = None) -> bool:
+    if newInstanceOptions is None:
+        newInstanceOptions = NewFactItemOptions()
     # use prior prevOptionValues for those keys not in existing newInstanceOptions
     for prevOptionKey, prevOptionValue in mainWin.config.get("newFactItemOptions",{}).items():
         if not getattr(newInstanceOptions, prevOptionKey, None):
@@ -29,6 +40,7 @@ def getNewFactItemOptions(mainWin, newInstanceOptions=None):
         mainWin.saveConfig()
         return True
     return False
+
 
 monetaryUnits = ("AED", "AFN", "ALL", "AMD", "ANG", "AON", "ARP", "ATS", "AUD", "AWF", "AZM",
                  "AZN", "BAK", "BBD", "BDT", "BEF", "BGL", "BHD", "BIF", "BMD", "BND", "BOB",
@@ -50,14 +62,16 @@ monetaryUnits = ("AED", "AFN", "ALL", "AMD", "ANG", "AON", "ARP", "ATS", "AUD", 
 
 decimalsPattern = re.compile(r"^(INF|-?[0-9]+)$")
 
+
 class DialogNewFactItemOptions(Toplevel):
-    def __init__(self, mainWin, options):
+    def __init__(self, mainWin: Cntlr, options: NewFactItemOptions) -> None:
         self.mainWin = mainWin
-        parent = mainWin.parent
+        parent = mainWin.parent  # type: ignore[attr-defined]
         super(DialogNewFactItemOptions, self).__init__(parent)
         self.parent = parent
-        self.options = options
+        self.options: NewFactItemOptions | None = options
         parentGeometry = re.match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
+        assert parentGeometry is not None
         dialogX = int(parentGeometry.group(3))
         dialogY = int(parentGeometry.group(4))
         self.accepted = False
@@ -68,25 +82,25 @@ class DialogNewFactItemOptions(Toplevel):
         frame = Frame(self)
 
         label(frame, 1, 1, "Entity scheme:")
-        self.cellEntityIdentScheme = gridCell(frame, 2, 1, getattr(options,"entityIdentScheme",""), width=50)
+        self.cellEntityIdentScheme = gridCell(frame, 2, 1, getattr(options, "entityIdentScheme", ""), width=50)
         ToolTip(self.cellEntityIdentScheme, text=_("Enter the scheme for the context entity identifier"), wraplength=240)
         label(frame, 1, 2, "Entity identifier:")
-        self.cellEntityIdentValue = gridCell(frame, 2, 2, getattr(options,"entityIdentValue",""))
+        self.cellEntityIdentValue = gridCell(frame, 2, 2, getattr(options, "entityIdentValue", ""))
         ToolTip(self.cellEntityIdentValue, text=_("Enter the entity identifier value (e.g., stock ticker)"), wraplength=240)
         label(frame, 1, 3, "Start date:")
-        self.cellStartDate = gridCell(frame, 2, 3, getattr(options,"startDate",""))
+        self.cellStartDate = gridCell(frame, 2, 3, getattr(options, "startDate", ""))
         ToolTip(self.cellStartDate, text=_("Enter the start date for the report period (e.g., 2010-01-01)"), wraplength=240)
         label(frame, 1, 4, "End date:")
-        self.cellEndDate = gridCell(frame, 2, 4, getattr(options,"endDate",""))
+        self.cellEndDate = gridCell(frame, 2, 4, getattr(options, "endDate", ""))
         ToolTip(self.cellEndDate, text=_("Enter the end date for the report period (e.g., 2010-12-31)"), wraplength=240)
         label(frame, 1, 5, "Monetary unit:")
-        self.cellMonetaryUnit = gridCombobox(frame, 2, 5, getattr(options,"monetaryUnit",""), values=monetaryUnits)
+        self.cellMonetaryUnit = gridCombobox(frame, 2, 5, getattr(options, "monetaryUnit", ""), values=monetaryUnits)
         ToolTip(self.cellMonetaryUnit, text=_("Select a monetary unit (e.g., EUR)"), wraplength=240)
         label(frame, 1, 6, "Monetary decimals:")
-        self.cellMonetaryDecimals = gridCell(frame, 2, 6, getattr(options,"monetaryDecimals","2"))
+        self.cellMonetaryDecimals = gridCell(frame, 2, 6, getattr(options, "monetaryDecimals", "2"))
         ToolTip(self.cellMonetaryDecimals, text=_("Enter decimals for monetary items"), wraplength=240)
         label(frame, 1, 7, "Non-monetary decimals:")
-        self.cellNonMonetaryDecimals = gridCell(frame, 2, 7, getattr(options,"nonMonetaryDecimals","0"))
+        self.cellNonMonetaryDecimals = gridCell(frame, 2, 7, getattr(options, "nonMonetaryDecimals", "0"))
         ToolTip(self.cellNonMonetaryDecimals, text=_("Enter decimals for non-monetary items (e.g., stock shares)"), wraplength=240)
 
         cancelButton = Button(frame, text=_("Cancel"), width=8, command=self.close)
@@ -96,20 +110,17 @@ class DialogNewFactItemOptions(Toplevel):
         cancelButton.grid(row=8, column=1, columnspan=3, sticky=E, pady=3, padx=3)
         okButton.grid(row=8, column=1, columnspan=3, sticky=E, pady=3, padx=86)
 
-        frame.grid(row=0, column=0, sticky=(N,S,E,W))
+        frame.grid(row=0, column=0, sticky=(N, S, E, W))
         frame.columnconfigure(2, weight=1)
         window = self.winfo_toplevel()
         window.columnconfigure(0, weight=1)
-        self.geometry("+{0}+{1}".format(dialogX+50,dialogY+100))
-
-        #self.bind("<Return>", self.ok)
-        #self.bind("<Escape>", self.close)
+        self.geometry("+{0}+{1}".format(dialogX + 50, dialogY + 100))
 
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.grab_set()
         self.wait_window(self)
 
-    def checkEntries(self):
+    def checkEntries(self) -> bool:
         errors = []
         if not self.cellEntityIdentScheme.value:
             errors.append(_("Entity scheme invalid"))
@@ -131,8 +142,9 @@ class DialogNewFactItemOptions(Toplevel):
             return False
         return True
 
-    def setOptions(self):
+    def setOptions(self) -> None:
         # set formula options
+        assert self.options is not None
         self.options.entityIdentScheme = self.cellEntityIdentScheme.value
         self.options.entityIdentValue = self.cellEntityIdentValue.value
         # need datetime.datetime base class for pickling, not ModelValue class (unpicklable)
@@ -142,13 +154,13 @@ class DialogNewFactItemOptions(Toplevel):
         self.options.monetaryDecimals = self.cellMonetaryDecimals.value
         self.options.nonMonetaryDecimals = self.cellNonMonetaryDecimals.value
 
-    def ok(self, event=None):
+    def ok(self, event: Event | None = None) -> None:
         if not self.checkEntries():
             return
         self.setOptions()
         self.accepted = True
         self.close()
 
-    def close(self, event=None):
+    def close(self, event: Event | None = None) -> None:
         self.parent.focus_set()
         self.destroy()
