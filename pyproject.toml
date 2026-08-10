@@ -329,7 +329,6 @@ module = [
     'arelle.DialogAbout',
     'arelle.DialogFind',
     'arelle.DialogLanguage',
-    'arelle.DialogNewFactItem',
     'arelle.DialogOpenArchive',
     'arelle.DialogURL',
     'arelle.DialogUserPassword',
