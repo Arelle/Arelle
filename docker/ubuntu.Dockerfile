@@ -29,6 +29,7 @@ RUN apt-get update -y && \
         libxmlsec1-dev \
         llvm \
         make \
+        npm \
         tk-dev \
         unixodbc-dev \
         uuid-dev \

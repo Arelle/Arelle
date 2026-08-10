@@ -6,6 +6,13 @@ WORKDIR /usr/src/app
 
 ## Requirements are installed here to ensure they will be cached.
 ARG EXTRA_PIP=""
+## Plugin requirements includes PythonMonkey which requires npm to install node modules.
+RUN case "$EXTRA_PIP" in \
+      *requirements-plugins.txt*) \
+        apt-get update \
+        && apt-get install -y --no-install-recommends npm \
+        && rm -rf /var/lib/apt/lists/* ;; \
+    esac
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 COPY requirements.txt .
