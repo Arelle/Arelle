@@ -338,7 +338,6 @@ module = [
     'arelle.rendering.RenderingResolution',
     'arelle.Version',
     'arelle.ViewFileConcepts',
-    'arelle.ViewFileRenderedLayout',
     'arelle.ViewFileRssFeed',
     'arelle.ViewFileTests',
     'arelle.ViewWinTests',

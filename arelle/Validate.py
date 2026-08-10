@@ -678,7 +678,7 @@ class Validate:
             if not any(alternativeValidation(modelXbrl, resultTableUri)
                         for alternativeValidation in modelXbrl.modelManager.cntlr.plugins.hooks("Validate.TableInfoset")):
                 try:
-                    ViewFileRenderedLayout.viewRenderedLayout(modelXbrl, resultTableUri, diffToFile=True)  # type: ignore[no-untyped-call]  # false to save infoset files
+                    ViewFileRenderedLayout.viewRenderedLayout(modelXbrl, resultTableUri, diffToFile=True)  # false to save infoset files
                 except Exception as err:
                     modelXbrl.error("exception:" + type(err).__name__,
                         _("Testcase table linkbase validation exception: %(error)s, instance: %(instance)s"),
