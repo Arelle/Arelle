@@ -548,7 +548,7 @@ def quickbooksGLrequest(qbReport: str | None = None, file: str | None = None) ->
         errors.append(_("ToDate '{0}' missing or not valid").format(toDate))
     if errors:
         return errorReport(errors, media)
-    ticket = qbRequest(qbReport, fromDate, toDate, file)
+    ticket = qbRequest(qbReport, fromDate, toDate, file)  # type: ignore[arg-type]
     result = htmlBody(tableRows([_("Request queued for QuickBooks...")], header=_("Quickbooks Request")), script="""
 <script type="text/javascript">
 <!--

@@ -326,7 +326,6 @@ exclude = '''(?x)(
 module = [
     'arelle.CntlrComServer',
     'arelle.CntlrProfiler',
-    'arelle.CntlrQuickBooks',
     'arelle.DialogAbout',
     'arelle.DialogFind',
     'arelle.DialogLanguage',
