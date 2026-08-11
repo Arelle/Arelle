@@ -1,8 +1,8 @@
-ruff==0.16.1
+ruff==0.16.2
 
 mypy==2.3.0
 
-types-boto3[s3]==1.43.62
+types-boto3[s3]==1.43.67
 types-lxml==2026.2.16
 types-openpyxl==3.1.5.20260807
 types-PyMySQL==1.2.0.20260807
