@@ -51,9 +51,6 @@ updates:
       python-dependencies:
         patterns:
           - "*"
-        update-types:
-          - minor
-          - patch
     ignore:
       - dependency-name: cx_Freeze
       - dependency-name: freeze-core
