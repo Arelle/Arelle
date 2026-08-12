@@ -47,7 +47,6 @@ from tkinter import (
     Tk,
     W,
     Event,
-    font as tkFont,
     )
 
 try:
@@ -140,16 +139,6 @@ class CntlrWinMain(Cntlr.Cntlr):
         localeSetupMessage = self.modelManager.setLocale() # set locale before GUI for menu strings, pass any msg to logger after log pane starts up
         self.labelLang: str = overrideLang if overrideLang else self.modelManager.defaultLang
         self.data: dict[str, Any] = {}
-
-        if self.isMac: # mac Python fonts bigger than other apps (terminal, text edit, Word), and to windows Arelle
-            _defaultFont = tkFont.nametofont("TkDefaultFont") # label, status bar, treegrid
-            _defaultFont.configure(size=11)
-            _textFont = tkFont.nametofont("TkTextFont") # entry widget and combobox entry field
-            _textFont.configure(size=11)
-            #parent.option_add("*Font", _defaultFont) # would be needed if not using defaulted font
-            toolbarButtonPadding = 1
-        else:
-            toolbarButtonPadding = 4
 
         tkinter.CallWrapper = TkinterCallWrapper  # type: ignore[misc,assignment]
 
@@ -411,6 +400,7 @@ class CntlrWinMain(Cntlr.Cntlr):
                 try:
                     image = PhotoImage(file=image)  # type: ignore[assignment]
                     self.toolbar_images.append(image)  # type: ignore[arg-type]
+                    toolbarButtonPadding = 1 if self.isMac else 4
                     tbControl = Button(toolbar, image=image, command=command, style="Toolbutton", padding=toolbarButtonPadding)  # type: ignore[assignment]
                     tbControl.grid(row=0, column=menubarColumn)
                 except TclError as err:
