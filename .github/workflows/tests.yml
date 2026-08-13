@@ -23,7 +23,7 @@ jobs:
           - '3.11'
           - '3.12'
           - '3.13'
-          - '3.14.4'
+          - '3.14.7'
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7.0.1
