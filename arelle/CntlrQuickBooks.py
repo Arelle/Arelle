@@ -21,7 +21,6 @@ if TYPE_CHECKING:
 
     _: TypeGetText
 
-clientVersion: str | None = None
 userName: str | None = None
 sessions: dict[str, list[dict[str, str]]] = {}  # use when interactive session started by Quickbooks side (not used now)
 qbRequests: list[dict[str, str]] = []  # used by rest API or GUI requests for QB data
@@ -102,12 +101,10 @@ def server(_cntlr: Cntlr, soapFile: BinaryIO, requestUrlParts: SplitResult) -> s
     else:
         for request in soapBody.iterchildren():
             requestName = request.tag.partition("}")[2]  # type: ignore[arg-type,union-attr]
+            print("request {0}".format(requestName))  # type: ignore[str-bytes-safe]
             response: str | list[str] | None = None
             if request.tag == "{http://developer.intuit.com/}serverVersion":
                 response = "Arelle 1.0"
-            elif request.tag == "{http://developer.intuit.com/}clientVersion":
-                global clientVersion
-                strVersionElt = request.find("{http://developer.intuit.com/}strVersion").text  # type: ignore[union-attr]
             elif request.tag == "{http://developer.intuit.com/}authenticate":
                 ticket = str(uuid.uuid1())
                 global qbRequests
