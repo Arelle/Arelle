@@ -5,23 +5,35 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+import datetime
+import io
+import uuid
+from typing import TYPE_CHECKING, BinaryIO
+from urllib.parse import SplitResult
+
 from lxml import etree
-import uuid, io, datetime
+
 from arelle import XmlUtil
 
-clientVersion = None
-userName = None
-sessions = {}  # use when interactive session started by Quickbooks side (not used now)
-qbRequests = []  # used by rest API or GUI requests for QB data
-qbRequestStatus = {}
-xbrlInstances = {}
-cntlr = None
+if TYPE_CHECKING:
+    from arelle.Cntlr import Cntlr
+    from arelle.typing import TypeGetText
+
+    _: TypeGetText
+
+userName: str | None = None
+sessions: dict[str, list[dict[str, str]]] = {}  # use when interactive session started by Quickbooks side (not used now)
+qbRequests: list[dict[str, str]] = []  # used by rest API or GUI requests for QB data
+qbRequestStatus: dict[str | None, str | None] = {}
+xbrlInstances: dict[str, str] = {}
+cntlr: Cntlr | None = None
 
 # report in url path request and type of query to QB
-supportedQbReports = {"trialBalance":"GeneralSummary",
-                      "generalLedger":"GeneralDetail",
-                      "journal":"GeneralDetail"
-                     }
+supportedQbReports = {
+    "trialBalance": "GeneralSummary",
+    "generalLedger": "GeneralDetail",
+    "journal": "GeneralDetail",
+}
 # some reports don't provide the needed columns, request explicitly
 includeQbColumns = {"trialBalance": "",
                     "generalLedger": """
@@ -37,66 +49,63 @@ includeQbColumns = {"trialBalance": "",
 """,
                  "journal": ""
                  }
-glEntriesType = {"trialBalance":"trialbalance",
-                 "generalLedger":"balance",
-                 "journal":"journal"
-                }
+glEntriesType = {
+    "trialBalance": "trialbalance",
+    "generalLedger": "balance",
+    "journal": "journal",
+}
 
-qbTxnTypeToGL = {# QB code is case insensitive comparision (lowercase, some QBs do not have expected camel case)
-                 "bill":"voucher", # bills from vendors
-                 "billpayment":"check", # credits from vendors
-                 "billpaymentcheck":"check", # payments to vendors from bank account
-                 "billpmt-check":"check",  # QB 2009
-                 "billpaymentcreditcard":"payment-other",  # payments to vendor from credit card account
-                 "buildassembly":"other",
-                 "charge":"other",
-                 "check":"check", # checks written on bank account
-                 "credit":"credit-memo",
-                 "creditcardcharge":"payment-other", # credit card account charge
-                 "creditcardcredit":"other", # credit card account credit
-                 "creditmemo":"credit-memo", # credit memo to customer
-                 "deposit":"check", # GL calls it check whether sent or received
-                 "discount":"credit-memo",
-                 "estimate":"other",
-                 "generaljournal":"manual-adjustment",
-                 "inventoryadjustment":"other",
-                 "invoice":"invoice",
-                 "itemreceipt":"receipt",
-                 "journalentry":"manual-adjustment",
-                 "liabilitycheck": "check",
-                 "payment": "check",
-                 "paycheck": "check",
-                 "purchaseorder":"order-vendor",
-                 "receivepayment":"payment-other",
-                 "salesorder":"order-customer",
-                 "salesreceipt":"other",
-                 "salestaxpaymentcheck":"check",
-                 "statementcharge":"other",
-                 "transfer":"payment-other",
-                 "vendorcredit":"credit-memo",
-                 }
+qbTxnTypeToGL = {  # QB code is case insensitive comparision (lowercase, some QBs do not have expected camel case)
+    "bill": "voucher",  # bills from vendors
+    "billpayment": "check",  # credits from vendors
+    "billpaymentcheck": "check",  # payments to vendors from bank account
+    "billpmt-check": "check",  # QB 2009
+    "billpaymentcreditcard": "payment-other",  # payments to vendor from credit card account
+    "buildassembly": "other",
+    "charge": "other",
+    "check": "check",  # checks written on bank account
+    "credit": "credit-memo",
+    "creditcardcharge": "payment-other",  # credit card account charge
+    "creditcardcredit": "other",  # credit card account credit
+    "creditmemo": "credit-memo",  # credit memo to customer
+    "deposit": "check",  # GL calls it check whether sent or received
+    "discount": "credit-memo",
+    "estimate": "other",
+    "generaljournal": "manual-adjustment",
+    "inventoryadjustment": "other",
+    "invoice": "invoice",
+    "itemreceipt": "receipt",
+    "journalentry": "manual-adjustment",
+    "liabilitycheck": "check",
+    "payment": "check",
+    "paycheck": "check",
+    "purchaseorder": "order-vendor",
+    "receivepayment": "payment-other",
+    "salesorder": "order-customer",
+    "salesreceipt": "other",
+    "salestaxpaymentcheck": "check",
+    "statementcharge": "other",
+    "transfer": "payment-other",
+    "vendorcredit": "credit-memo",
+}
 
-def server(_cntlr, soapFile, requestUrlParts) -> str:
+
+def server(_cntlr: Cntlr, soapFile: BinaryIO, requestUrlParts: SplitResult) -> str:
     global cntlr
-    if cntlr is None: cntlr = _cntlr
+    if cntlr is None:
+        cntlr = _cntlr
     soapDocument = etree.parse(soapFile)
     soapBody = soapDocument.find("{http://schemas.xmlsoap.org/soap/envelope/}Body")
     if soapBody is None:
         return ""
     else:
         for request in soapBody.iterchildren():
-            requestName = request.tag.partition("}")[2]
-            print ("request {0}".format(requestName))
-            response = None
+            requestName = request.tag.partition("}")[2]  # type: ignore[arg-type,union-attr]
+            print("request {0}".format(requestName))  # type: ignore[str-bytes-safe]
+            response: str | list[str] | None = None
             if request.tag == "{http://developer.intuit.com/}serverVersion":
                 response = "Arelle 1.0"
-            elif request.tag == "{http://developer.intuit.com/}clientVersion":
-                global clientVersion
-                clientVersion = request.find("{http://developer.intuit.com/}strVersion").text
             elif request.tag == "{http://developer.intuit.com/}authenticate":
-                #global userName  # not needed for now
-                #userName = request.find("{http://developer.intuit.com/}strUserName").text
-                #password is ignored
                 ticket = str(uuid.uuid1())
                 global qbRequests
                 if qbRequests: # start a non-interactive session
@@ -109,7 +118,7 @@ def server(_cntlr, soapFile, requestUrlParts) -> str:
                     #sessions[ticket] = [{"request":"StartInteractiveMode"}]
                     response = [ticket, "none"]  # response to not start interactive mode
             elif request.tag == "{http://developer.intuit.com/}sendRequestXML":
-                ticket = request.find("{http://developer.intuit.com/}ticket").text
+                ticket = request.find("{http://developer.intuit.com/}ticket").text  # type: ignore[assignment,union-attr]
                 _qbRequests = sessions.get(ticket)
                 if _qbRequests:
                     _qbRequest = _qbRequests[0]
@@ -118,7 +127,7 @@ def server(_cntlr, soapFile, requestUrlParts) -> str:
                         response = ""
                     elif action in supportedQbReports:
                         # add company info to request dict
-                        _qbRequest["strHCPResponse"] = request.find("{http://developer.intuit.com/}strHCPResponse").text
+                        _qbRequest["strHCPResponse"] = request.find("{http://developer.intuit.com/}strHCPResponse").text  # type: ignore[assignment,union-attr]
                         response = ("""<?xml version="1.0"?>
 <?qbxml version="8.0"?>
 <QBXML>
@@ -136,23 +145,23 @@ def server(_cntlr, soapFile, requestUrlParts) -> str:
                     _qbRequest["fromDate"],
                     _qbRequest["toDate"],
                     includeQbColumns[action],
-                    ).replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
+                    ).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
             elif request.tag == "{http://developer.intuit.com/}connectionError":
-                ticket = request.find("{http://developer.intuit.com/}ticket").text
-                hresult = request.find("{http://developer.intuit.com/}hresult").text
+                ticket = request.find("{http://developer.intuit.com/}ticket").text  # type: ignore[assignment,union-attr]
+                hresult = request.find("{http://developer.intuit.com/}hresult").text  # type: ignore[union-attr]
                 if hresult and hresult.startswith("0x"):
                     hresult = hresult[2:] # remove 0x if present
-                message = request.find("{http://developer.intuit.com/}message").text
-                print ("connection error message: [{0}] {1}".format(hresult, message))
+                message = request.find("{http://developer.intuit.com/}message").text  # type: ignore[union-attr]
+                print("connection error message: [{0}] {1}".format(hresult, message))
                 _qbRequests = sessions.get(ticket)
                 if _qbRequests:
                     qbRequestTicket = _qbRequests[0]["ticket"]
                     qbRequestStatus[qbRequestTicket] = "ConnectionErrorMessage: [{0}] {1}".format(hresult, message)
                 response = "done"
             elif request.tag == "{http://developer.intuit.com/}receiveResponseXML":
-                ticket = request.find("{http://developer.intuit.com/}ticket").text
-                responseXml = (request.find("{http://developer.intuit.com/}response").text or "").replace("&lt;","<").replace("&gt;",">")
+                ticket = request.find("{http://developer.intuit.com/}ticket").text  # type: ignore[assignment,union-attr]
+                responseXml = (request.find("{http://developer.intuit.com/}response").text or "").replace("&lt;", "<").replace("&gt;", ">")  # type: ignore[union-attr]
                 _qbRequests = sessions.get(ticket)
                 if _qbRequests:
                     if responseXml:
@@ -162,7 +171,7 @@ def server(_cntlr, soapFile, requestUrlParts) -> str:
                     response = str(100 / len(_qbRequests))
                     sessions[ticket] = _qbRequests[1:]
             elif request.tag == "{http://developer.intuit.com/}getLastError":
-                ticket = request.find("{http://developer.intuit.com/}ticket").text
+                ticket = request.find("{http://developer.intuit.com/}ticket").text  # type: ignore[assignment,union-attr]
                 _qbRequests = sessions.get(ticket)
                 if _qbRequests:
                     _qbRequest = _qbRequests[0]
@@ -174,14 +183,14 @@ def server(_cntlr, soapFile, requestUrlParts) -> str:
                 else:
                     response = "NoOp"
             elif request.tag == "{http://developer.intuit.com/}getInteractiveURL":
-                ticket = request.find("{http://developer.intuit.com/}wcTicket").text
+                ticket = request.find("{http://developer.intuit.com/}wcTicket").text  # type: ignore[assignment,union-attr]
                 response = "{0}://{1}/quickbooks/server.html?ticket={2}".format(
                             requestUrlParts.scheme,
                             requestUrlParts.netloc,
                             ticket)
                 sessions[ticket] = [{"request":"WaitForInput"}]
             elif request.tag == "{http://developer.intuit.com/}isInteractiveDone":
-                ticket = request.find("{http://developer.intuit.com/}wcTicket").text
+                ticket = request.find("{http://developer.intuit.com/}wcTicket").text  # type: ignore[assignment,union-attr]
                 _qbRequests = sessions.get(ticket)
                 if _qbRequests:
                     _qbRequest = _qbRequests[0]
@@ -193,26 +202,29 @@ def server(_cntlr, soapFile, requestUrlParts) -> str:
                 else:
                     response = "Not done"
             elif request.tag == "{http://developer.intuit.com/}interactiveRejected":
-                ticket = request.find("{http://developer.intuit.com/}wcTicket").text
+                ticket = request.find("{http://developer.intuit.com/}wcTicket").text  # type: ignore[assignment,union-attr]
                 response = "Interactive session timed out or canceled"
                 sessions.pop(ticket, None)
             elif request.tag == "{http://developer.intuit.com/}closeConnection":
                 response = "OK"
 
-            soapResponse = qbResponse(requestName, response)
+            soapResponse = qbResponse(requestName, response)  # type: ignore[arg-type]
             return soapResponse
+    return ""
 
-def qbRequest(qbReport: str | None, fromDate: str | None, toDate: str | None, file: str | None) -> str:
+
+def qbRequest(qbReport: str, fromDate: str, toDate: str, file: str) -> str:
     ticket = str(uuid.uuid1())
-    qbRequests.append({"ticket":ticket,
-                       "request":qbReport,
-                       "fromDate":fromDate,
-                       "toDate":toDate,
-                       "xbrlFile":file})
+    qbRequests.append({"ticket": ticket,
+                       "request": qbReport,
+                       "fromDate": fromDate,
+                       "toDate": toDate,
+                       "xbrlFile": file})
     qbRequestStatus[ticket] = _("Waiting for QuickBooks")
     return ticket
 
-def qbResponse(responseName, content=None):
+
+def qbResponse(responseName: str, content: str | list[str] | None = None) -> str:
     if not content:
         result = ""
     elif isinstance(content, list):
@@ -231,12 +243,14 @@ def qbResponse(responseName, content=None):
             '</soap:Body>'
             '</soap:Envelope>'.format(responseName, result))
 
-def docEltText(doc, tag, defaultValue=""):
+
+def docEltText(doc: etree._ElementTree, tag: str, defaultValue: str = "") -> str | None:
     for elt in doc.iter(tag):
         return elt.text
     return defaultValue
 
-def processQbResponse(qbRequest, responseXml):
+
+def processQbResponse(qbRequest: dict[str, str], responseXml: str) -> None:
     from arelle import ModelXbrl, XbrlConst
     from arelle.ModelValue import qname
     ticket = qbRequest["ticket"]
@@ -266,7 +280,7 @@ def processQbResponse(qbRequest, responseXml):
         if colTypeElt is not None:
             colID = colDescElt.get("colID")
             colType = colTypeElt.text
-            if colType == "Amount": # check if there's a credit or debit colTitle
+            if colType == "Amount":  # check if there's a credit or debit colTitle
                 for colTitleElt in colDescElt.iter("ColTitle"):
                     title = colTitleElt.get("value")
                     if title in ("Credit", "Debit"):
@@ -278,7 +292,7 @@ def processQbResponse(qbRequest, responseXml):
     # open new result instance document
 
     # load GL palette file (no instance)
-    instance = cntlr.modelManager.load("http://www.xbrl.org/taxonomy/int/gl/2006-10-25/plt/case-c-b-m-u-t/gl-plt-2006-10-25.xsd")
+    instance = cntlr.modelManager.load("http://www.xbrl.org/taxonomy/int/gl/2006-10-25/plt/case-c-b-m-u-t/gl-plt-2006-10-25.xsd")  # type: ignore[union-attr]
     if xbrlFile is None:
         xbrlFile = "sampleInstance.xbrl"
         saveInstance = False
@@ -286,19 +300,19 @@ def processQbResponse(qbRequest, responseXml):
         saveInstance = True
     instance.createInstance(xbrlFile) # creates an instance as this modelXbrl's entrypoing
     newCntx = instance.createContext("http://www.xbrl.org/xbrlgl/sample", "SAMPLE",
-                  "instant", None, datetime.date.today() + datetime.timedelta(1), # today midnight
-                  None, {}, [], [], afterSibling=ModelXbrl.AUTO_LOCATE_ELEMENT)
+                  "instant", None, datetime.date.today() + datetime.timedelta(1),  # type: ignore[arg-type]
+                  None, {}, [], [], afterSibling=ModelXbrl.AUTO_LOCATE_ELEMENT)  # type: ignore[arg-type]
 
     monetaryUnit = qname(XbrlConst.iso4217, "iso4217:USD")
-    newUnit = instance.createUnit([monetaryUnit],[], afterSibling=ModelXbrl.AUTO_LOCATE_ELEMENT)
+    newUnit = instance.createUnit([monetaryUnit],[], afterSibling=ModelXbrl.AUTO_LOCATE_ELEMENT)  # type: ignore[arg-type]
 
-    nonNumAttr = [("contextRef", newCntx.id)]
+    nonNumAttr: tuple[tuple[str, str]] = (("contextRef", newCntx.id),)  # type: ignore[assignment]
     monetaryAttr = [("contextRef", newCntx.id), ("unitRef", newUnit.id), ("decimals", "2")]
 
     isoLanguage = qname("{http://www.xbrl.org/2005/iso639}iso639:en")
 
     # root of GL is accounting entries tuple
-    xbrlElt = instance.modelDocument.xmlRootElement
+    xbrlElt = instance.modelDocument.xmlRootElement  # type: ignore[union-attr]
 
     """The container for XBRL GL, accountingEntries, is not the root of an XBRL GL file - the root,
     as with all XBRL files, is xbrl. This means that a single XBRL GL file can store one or more
@@ -486,7 +500,7 @@ def processQbResponse(qbRequest, responseXml):
         how popular accounting systems store amounts - some combination of a signed amount (e.g., 5, -10),
         a separate sign (entered into signOfAmount) and a separate place to indicate the number is
         associated with a debit or credit (debitCreditCode)."""
-        instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:amount"), parent=entryDetail, attributes=monetaryAttr,
+        instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:amount"), parent=entryDetail, attributes=monetaryAttr,  # type: ignore[arg-type]
                             text=amt)
         """Depending on the originating system, this field may contain whether the amount is
         associated with a debit or credit. Interpreting the number correctly for import requires
@@ -517,7 +531,7 @@ def processQbResponse(qbRequest, responseXml):
 
         if qbReport != "trialBalance":
             if qbTxnType: # not exactly same enumerations as expected by QB
-                cleanedQbTxnType = qbTxnType.replace(" ","").lower()
+                cleanedQbTxnType = qbTxnType.replace(" ", "").lower()
                 glDocType = qbTxnTypeToGL.get(cleanedQbTxnType) # try table lookup
                 if glDocType is None: # not in table
                     if cleanedQbTxnType.endswith("check"): # didn't convert, probably should be a check
@@ -542,5 +556,5 @@ def processQbResponse(qbRequest, responseXml):
         instance.saveInstance()
     qbRequestStatus[ticket] = _("Done")
     # TBD resolve errors
-    instance.errors = []  # TBD fix this
+    instance.errors = []  # type: ignore[misc] # TBD fix this
     xbrlInstances[ticket] = instance.uuid
