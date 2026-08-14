@@ -28,6 +28,7 @@ from urllib.error import ContentTooShortError, HTTPError, URLError
 from urllib.parse import quote, unquote, urlparse, urlsplit, urlunsplit
 
 import regex as re
+from typing_extensions import Self
 
 try:
     import ssl
@@ -75,7 +76,7 @@ class ProxyTuple(NamedTuple):
     password: str | None = None
 
     @classmethod
-    def coerce(cls, value: Any) -> ProxyTuple | None:
+    def coerce(cls, value: list[str | None] | Self | None) -> ProxyTuple | None:
         if value is None:
             return None
         if isinstance(value, cls):

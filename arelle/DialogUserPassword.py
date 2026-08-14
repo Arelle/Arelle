@@ -1,81 +1,124 @@
 """
 See COPYRIGHT.md for copyright information.
 """
-from tkinter import Toplevel, StringVar, N, S, E, W, EW, DISABLED, NORMAL, messagebox
-try:
-    from tkinter.ttk import Frame, Button, Label, Entry
-except ImportError:
-    from ttk import Frame, Button, Label, Entry
+from __future__ import annotations
+
+import sys
+import threading
+import regex as re
+from tkinter import DISABLED, EW, NORMAL, E, Event, N, S, StringVar, Toplevel, W, messagebox
+from tkinter.ttk import Frame, Label, Entry, Button
+from typing import TYPE_CHECKING, Any
+
 from arelle.CntlrWinTooltip import ToolTip
+from arelle.typing import TypeGetText
 from arelle.UiUtil import checkbox, gridCombobox
 from arelle.WebCache import ProxyTuple
-import sys
-import regex as re
+
+if TYPE_CHECKING:
+    from tkinter import Tk
+
+_: TypeGetText
+
 
 """
 caller checks accepted, if True, caller retrieves url
 """
-def askUserPassword(parent, host, realm, untilDoneEvent, result):
+def askUserPassword(
+    parent: Tk | Toplevel,
+    host: str,
+    realm: str,
+    untilDoneEvent: threading.Event,
+    result: list[tuple[str, str] | None],
+) -> None:
     dialog = DialogUserPassword(parent, _("Authentication Request"), host=host, realm=realm)
     if dialog.accepted:
-        result.append( (dialog.user, dialog.password) )
+        result.append((dialog.user, dialog.password))
     else:
-        result.append( None )
+        result.append(None)
     untilDoneEvent.set()
 
-def askProxy(parent, priorProxySettings):
+
+def askProxy(parent: Tk | Toplevel, priorProxySettings: list[str | None] | ProxyTuple | None) -> ProxyTuple | None:
     proxy = ProxyTuple.coerce(priorProxySettings) or ProxyTuple(useOsProxy=True)
     dialog = DialogUserPassword(parent, _("Proxy Server"), urlAddr=proxy.urlAddr, urlPort=proxy.urlPort, useOsProxy=proxy.useOsProxy, user=proxy.user, password=proxy.password, showHost=False, showUrl=True, showUser=True, showRealm=False)
     if dialog.accepted:
         return ProxyTuple(dialog.useOsProxyCb.value, dialog.urlAddr, dialog.urlPort, dialog.user, dialog.password)
     return None
 
-def askSmtp(parent, priorSmtpSettings):
-    if isinstance(priorSmtpSettings,(tuple,list)) and len(priorSmtpSettings) == 4:
+
+def askSmtp(
+    parent: Tk | Toplevel,
+    priorSmtpSettings: tuple[str | None, ...] | list[str | None] | None,
+) -> tuple[str, str, str, str] | None:
+    if isinstance(priorSmtpSettings, (tuple, list)) and len(priorSmtpSettings) == 4:
         urlAddr, urlPort, user, password = priorSmtpSettings
     else:
         urlAddr = urlPort = user = password = None
     dialog = DialogUserPassword(parent, _("Outgoing E-mail Server (SMTP)"), urlAddr=urlAddr, urlPort=urlPort, user=user, password=password, showHost=False, showUrl=True, showUser=True, showRealm=False)
     if dialog.accepted:
-        return (dialog.urlAddr, dialog.urlPort, dialog.user, dialog.password)
+        return dialog.urlAddr, dialog.urlPort, dialog.user, dialog.password
     return None
 
-def askParams(parent, title, prompt1, prompt2):
+
+def askParams(
+    parent: Tk | Toplevel,
+    title: str,
+    prompt1: str,
+    prompt2: str,
+) -> tuple[str, str] | None:
     dialog = DialogUserPassword(parent, title, showHost=False, showRealm=False,
                                 userLabel=prompt1, passwordLabel=prompt2, hidePassword=False)
     if dialog.accepted:
-        return (dialog.user, dialog.password)
+        return dialog.user, dialog.password
+    return None
 
-DBTypes = ("postgres", "mssqlSemantic", "mysqlSemantic", "orclSemantic",
+
+DBTypes: tuple[str, ...] = ("postgres", "mssqlSemantic", "mysqlSemantic", "orclSemantic",
            "pgSemantic", "sqliteSemantic", "pgOpenDB", "sqliteDpmDB", "rexster", "rdfDB", "json")
-DBDescriptions = ("XBRL-US Postgres SQL",
-                  "Semantic MSSQL SQL",
-                  "Semantic MySQL SQL",
-                  "Semantic Oracle SQL",
-                  "Semantic Postgres SQL",
-                  "Semantic SQLite SQL",
-                  "Open Postgres SQL",
-                  "DPM SQLite SQL",
-                  "Rexter (Titan Cassandra)",
-                  "RDF (Turtle, NanoSparqlServer)",
-                  "JSON (JSON, MongoDB)")
+DBDescriptions: tuple[str, ...] = (
+    "XBRL-US Postgres SQL",
+    "Semantic MSSQL SQL",
+    "Semantic MySQL SQL",
+    "Semantic Oracle SQL",
+    "Semantic Postgres SQL",
+    "Semantic SQLite SQL",
+    "Open Postgres SQL",
+    "DPM SQLite SQL",
+    "Rexter (Titan Cassandra)",
+    "RDF (Turtle, NanoSparqlServer)",
+    "JSON (JSON, MongoDB)",
+)
 
-def askDatabase(parent, priorDatabaseSettings):
-    if isinstance(priorDatabaseSettings,(tuple,list)) and len(priorDatabaseSettings) == 7:
+
+def askDatabase(
+    parent: Tk | Toplevel,
+    priorDatabaseSettings: tuple[str | None, ...] | list[str | None] | None,
+) -> tuple[str, str, str, str, str, str, str | None] | None:
+    if isinstance(priorDatabaseSettings, (tuple, list)) and len(priorDatabaseSettings) == 7:
         urlAddr, urlPort, user, password, database, timeout, dbType = priorDatabaseSettings
     else:
         urlAddr = urlPort = user = password = database = timeout = dbType = None
     dialog = DialogUserPassword(parent, _("XBRL Database Server"), urlAddr=urlAddr, urlPort=urlPort, user=user, password=password, database=database, timeout=timeout, dbType=dbType, showHost=False, showUrl=True, showUser=True, showRealm=False, showDatabase=True)
     if dialog.accepted:
-        return (dialog.urlAddr, dialog.urlPort, dialog.user, dialog.password, dialog.database, dialog.timeout, dialog.dbType)
+        return dialog.urlAddr, dialog.urlPort, dialog.user, dialog.password, dialog.database, dialog.timeout, dialog.dbType
     return None
 
-def askInternetLogon(parent, url, quotedUrl, dialogCaption, dialogText, untilDoneEvent, result):
+
+def askInternetLogon(
+    parent: Tk | Toplevel,
+    url: str,
+    quotedUrl: str,
+    dialogCaption: str,
+    dialogText: str,
+    untilDoneEvent: threading.Event,
+    result: list[str],
+) -> None:
     # received Html suggests url may require web page logon (due to receivedHtml)
     r = messagebox.askyesnocancel(dialogCaption, dialogText)
     if r is None:
         result.append("cancel")
-    elif r == False:
+    elif r is False:
         result.append("no")
     else:
         import webbrowser
@@ -88,37 +131,58 @@ def askInternetLogon(parent, url, quotedUrl, dialogCaption, dialogText, untilDon
             result.append("cancel")
     untilDoneEvent.set()
 
+
 class DialogUserPassword(Toplevel):
-    def __init__(self, parent, title, host=None, realm=None, useOsProxy=None, urlAddr=None, urlPort=None,
-                 user=None, password=None, database=None, timeout=None, dbType=None,
-                 showUrl=False, showUser=False, showHost=True, showRealm=True, showDatabase=False,
-                 userLabel=None, passwordLabel=None, hidePassword=True):
+    def __init__(
+        self,
+        parent: Tk | Toplevel,
+        title: str,
+        host: str | None = None,
+        realm: str | None = None,
+        useOsProxy: bool | None = None,
+        urlAddr: str | None = None,
+        urlPort: str | None = None,
+        user: str | None = None,
+        password: str | None = None,
+        database: str | None = None,
+        timeout: str | None = None,
+        dbType: str | None = None,
+        showUrl: bool = False,
+        showUser: bool = False,
+        showHost: bool = True,
+        showRealm: bool = True,
+        showDatabase: bool = False,
+        userLabel: str | None = None,
+        passwordLabel: str | None = None,
+        hidePassword: bool = True,
+    ) -> None:
         super(DialogUserPassword, self).__init__(parent)
         self.parent = parent
         parentGeometry = re.match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
+        assert parentGeometry is not None
         dialogX = int(parentGeometry.group(3))
         dialogY = int(parentGeometry.group(4))
-        self.accepted = False
+        self.accepted: bool = False
         self.transient(self.parent)
         self.title(title)
-        self.urlAddrVar = StringVar()
+        self.urlAddrVar: StringVar = StringVar()
         self.urlAddrVar.set(urlAddr if urlAddr else "")
-        self.urlPortVar = StringVar()
+        self.urlPortVar: StringVar = StringVar()
         self.urlPortVar.set(urlPort if urlPort else "")
-        self.userVar = StringVar()
+        self.userVar: StringVar = StringVar()
         self.userVar.set(user if user else "")
-        self.passwordVar = StringVar()
+        self.passwordVar: StringVar = StringVar()
         self.passwordVar.set(password if password else "")
-        self.databaseVar = StringVar()
+        self.databaseVar: StringVar = StringVar()
         self.databaseVar.set(database if database else "")
-        self.timeoutVar = StringVar()
+        self.timeoutVar: StringVar = StringVar()
         self.timeoutVar.set(timeout if timeout else "")
 
         frame = Frame(self)
         y = 0
         if showHost:
             hostLabel = Label(frame, text=_("Host:"), underline=0)
-            hostDisplay = Label(frame, text=host, width=30)
+            hostDisplay = Label(frame, text=host, width=30)  # type: ignore[arg-type]
             if host and len(host) > 30:
                 ToolTip(hostDisplay, text=host, wraplength=240)
             hostLabel.grid(row=y, column=0, sticky=W, pady=3, padx=3)
@@ -126,30 +190,30 @@ class DialogUserPassword(Toplevel):
             y += 1
         if showRealm:
             realmLabel = Label(frame, text=_("Realm:"), underline=0)
-            realmDisplay = Label(frame, text=realm, width=25)
+            realmDisplay = Label(frame, text=realm, width=25)  # type: ignore[arg-type]
             if realm and len(realm) > 30:
                 ToolTip(realmDisplay, text=realm, wraplength=240)
             realmLabel.grid(row=y, column=0, sticky=W, pady=3, padx=3)
             realmDisplay.grid(row=y, column=1, columnspan=4, sticky=EW, pady=3, padx=3)
             y += 1
-        self.enabledWidgets = []
+        self.enabledWidgets: list[Entry] = []
         if useOsProxy is not None:
             if sys.platform.startswith("win"):
                 hostProxy = _("Microsoft Windows Internet Settings")
             elif sys.platform in ("darwin", "macos"):
                 hostProxy = _("Mac OS X System Configuration")
-            else: # linux/unix
+            else:  # linux/unix
                 hostProxy = _("environment variables")
             useOsProxyCb = checkbox(frame, 0, y, text=_("Use proxy server of {0}").format(hostProxy))
             useOsProxyCb.grid(columnspan=5)
-            useOsProxyCb.valueVar.set(useOsProxy)
+            useOsProxyCb.valueVar.set("1" if useOsProxy else "0")
             ToolTip(useOsProxyCb, text=_("Check to use {0} \n"
                                          "Uncheck to specify: \n"
                                          "   No proxy if URL address is left blank, \n"
                                          "   Proxy via URL address if it is not blank, \n"
                                          "       with user and password (if provided)"
                                          ).format(hostProxy), wraplength=360)
-            self.useOsProxyCb = useOsProxyCb
+            self.useOsProxyCb: checkbox = useOsProxyCb
             useOsProxyCb.valueVar.trace_add("write", self.setEnabledState)
 
             y += 1
@@ -170,17 +234,17 @@ class DialogUserPassword(Toplevel):
             self.enabledWidgets.append(urlAddrEntry)
             self.enabledWidgets.append(urlPortEntry)
             y += 1
-        userLabel = Label(frame, text=userLabel or _("User:"), underline=0)
+        userLabel = Label(frame, text=userLabel or _("User:"), underline=0)  # type: ignore[assignment]
         userEntry = Entry(frame, textvariable=self.userVar, width=25)
-        userLabel.grid(row=y, column=0, sticky=W, pady=3, padx=3)
+        userLabel.grid(row=y, column=0, sticky=W, pady=3, padx=3)  # type: ignore[union-attr]
         userEntry.grid(row=y, column=1, columnspan=4, sticky=EW, pady=3, padx=3)
         self.enabledWidgets.append(userEntry)
         y += 1
         if not showUrl:
             userEntry.focus_set()
-        passwordLabel = Label(frame, text=passwordLabel or _("Password:"), underline=0)
-        passwordEntry = Entry(frame, textvariable=self.passwordVar, width=25, show=("*" if hidePassword else None))
-        passwordLabel.grid(row=y, column=0, sticky=W, pady=3, padx=3)
+        passwordLabel = Label(frame, text=passwordLabel or _("Password:"), underline=0)  # type: ignore[assignment]
+        passwordEntry = Entry(frame, textvariable=self.passwordVar, width=25, show="*" if hidePassword else None)  # type: ignore[arg-type]
+        passwordLabel.grid(row=y, column=0, sticky=W, pady=3, padx=3)  # type: ignore[union-attr]
         passwordEntry.grid(row=y, column=1, columnspan=4, sticky=EW, pady=3, padx=3)
         self.enabledWidgets.append(passwordEntry)
         y += 1
@@ -201,7 +265,7 @@ class DialogUserPassword(Toplevel):
             y += 1
             dbTypeLabel = Label(frame, text=_("DB type:"), underline=0)
             dbTypeLabel.grid(row=y, column=0, sticky=W, pady=3, padx=3)
-            self.cbDbType = gridCombobox(frame, 1, y, values=DBDescriptions,
+            self.cbDbType: gridCombobox = gridCombobox(frame, 1, y, values=DBDescriptions,
                                          selectindex=DBTypes.index(dbType) if dbType in DBTypes else None)
             self.cbDbType.grid(columnspan=4, pady=3, padx=3)
             y += 1
@@ -214,11 +278,11 @@ class DialogUserPassword(Toplevel):
         if useOsProxy is not None:
             self.setEnabledState()
 
-        frame.grid(row=0, column=0, sticky=(N,S,E,W))
+        frame.grid(row=0, column=0, sticky=(N, S, E, W))
         frame.columnconfigure(1, weight=1)
         window = self.winfo_toplevel()
         window.columnconfigure(0, weight=1)
-        self.geometry("+{0}+{1}".format(dialogX+50,dialogY+100))
+        self.geometry("+{0}+{1}".format(dialogX + 50, dialogY + 100))
 
         self.bind("<Return>", self.ok)
         self.bind("<Escape>", self.close)
@@ -227,8 +291,8 @@ class DialogUserPassword(Toplevel):
         self.grab_set()
         self.wait_window(self)
 
-    def checkEntries(self):
-        errors = []
+    def checkEntries(self) -> bool:
+        errors: list[str] = []
         if self.urlPort and not self.urlPort.isdigit():
             errors.append(_("Port number invalid"))
         if self.timeout and not self.timeout.isdigit():
@@ -241,26 +305,26 @@ class DialogUserPassword(Toplevel):
             return False
         return True
 
-    def ok(self, event=None):
+    def ok(self, event: Event | None = None) -> None:
         if hasattr(self, "useOsProxyCb"):
-            self.useOsProxy = self.useOsProxyCb.value
-        self.urlAddr = self.urlAddrVar.get().removeprefix("https://").removeprefix("http://")
-        self.urlPort = self.urlPortVar.get()
-        self.user = self.userVar.get()
-        self.password = self.passwordVar.get()
-        self.database = self.databaseVar.get()
-        self.timeout = self.timeoutVar.get()
-        self.dbType = DBTypes[DBDescriptions.index(self.cbDbType.value)] if hasattr(self,"cbDbType") and self.cbDbType.value in DBDescriptions else None
+            self.useOsProxy: bool = self.useOsProxyCb.value
+        self.urlAddr: str = self.urlAddrVar.get().removeprefix("https://").removeprefix("http://")
+        self.urlPort: str = self.urlPortVar.get()
+        self.user: str = self.userVar.get()
+        self.password: str = self.passwordVar.get()
+        self.database: str = self.databaseVar.get()
+        self.timeout: str = self.timeoutVar.get()
+        self.dbType: str | None = DBTypes[DBDescriptions.index(self.cbDbType.value)] if hasattr(self, "cbDbType") and self.cbDbType.value in DBDescriptions else None
         if not self.checkEntries():
             return
         self.accepted = True
         self.close()
 
-    def close(self, event=None):
+    def close(self, event: Event | None = None) -> None:
         self.parent.focus_set()
         self.destroy()
 
-    def setEnabledState(self, *args):
+    def setEnabledState(self, *args: Any) -> None:
         if hasattr(self, "useOsProxyCb"):
             state = DISABLED if self.useOsProxyCb.value else NORMAL
             for widget in self.enabledWidgets:
