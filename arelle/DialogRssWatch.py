@@ -207,7 +207,7 @@ class DialogRssWatch(Toplevel):
 
     def setupSmtp(self) -> None:
         from arelle.DialogUserPassword import askSmtp
-        smtpSettings = askSmtp(self, self.options.get("smtpEmailSettings", ()))  # type: ignore[no-untyped-call]
+        smtpSettings = askSmtp(self, self.options.get("smtpEmailSettings", ()))
         if smtpSettings:
             self.options["smtpEmailSettings"] = smtpSettings
 
