@@ -254,6 +254,15 @@ def rule_contextDeiRequirements(
     See section 3-4-2 in the Validation Guidelines.
     """
     for modelXbrl in pluginData.loadedModelXbrls:
+        contextPrefixExists: dict[str, bool] = {}
+
+        def hasContextPrefix(prefix: str) -> bool:
+            if prefix not in contextPrefixExists:
+                contextPrefixExists[prefix] = any(
+                    cid.startswith(prefix) for cid in modelXbrl.contexts
+                )
+            return contextPrefixExists[prefix]
+
         for contextId, context in modelXbrl.contexts.items():
             for contextDeiRequirement in CONTEXT_REQUIREMENTS:
                 if not contextId.startswith(contextDeiRequirement.contextId):
@@ -263,6 +272,12 @@ def rule_contextDeiRequirements(
                         continue
                 if contextDeiRequirement.elementExists is not None:
                     if pluginData.getDeiValue(contextDeiRequirement.elementExists) is None:
+                        continue
+                if contextDeiRequirement.contextIdDoesNotExist is not None:
+                    if hasContextPrefix(contextDeiRequirement.contextIdDoesNotExist):
+                        continue
+                if contextDeiRequirement.contextIdExists is not None:
+                    if not hasContextPrefix(contextDeiRequirement.contextIdExists):
                         continue
 
                 if contextDeiRequirement.element == "startDate":
