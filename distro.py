@@ -1,6 +1,7 @@
 """
 See COPYRIGHT.md for copyright information.
 """
+
 import os
 import platform
 import site
@@ -135,16 +136,15 @@ elif sys.platform == MACOS_PLATFORM:
         "bundle_name": "Arelle",
     }
     if codesignIdentity := os.environ.get("CODESIGN_IDENTITY"):
+        entitlementsFile = "rosettaEntitlements.plist" if platform.machine() == "x86_64" else "macosEntitlements.plist"
         options["bdist_mac"].update({
             "codesign_identity": codesignIdentity,
             "codesign_deep": True,
             "codesign_timestamp": True,
             "codesign_verify": True,
             "codesign_options": "runtime",
+            "codesign_entitlements": f"arelle/config/{entitlementsFile}",
         })
-        if platform.machine() == "x86_64" and sys.version_info >= (3, 14):
-            # Required for running x86_64 Python 3.14 builds on Apple Silicon via Rosetta.
-            options["bdist_mac"]["codesign_entitlements"] = "arelle/config/rosettaEntitlements.plist"
     if scmTagVersion := os.environ.get("SETUPTOOLS_SCM_PRETEND_VERSION"):
         semverRegex = r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
         if re.fullmatch(semverRegex, scmTagVersion):

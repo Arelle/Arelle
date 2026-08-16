@@ -5,8 +5,5 @@
     <!-- SpiderMonkey (pythonmonkey) needs MAP_JIT to initialize under Hardened Runtime. -->
     <key>com.apple.security.cs.allow-jit</key>
     <true/>
-    <!-- Required for x86_64 Python 3.14+ builds running on Apple Silicon via Rosetta. -->
-    <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
-    <true/>
 </dict>
 </plist>
