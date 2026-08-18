@@ -345,6 +345,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             styleIxHiddenPattern = None
         if modelDocument.type in (ModelDocument.Type.INLINEXBRL, ModelDocument.Type.INLINEXBRLDOCUMENTSET, ModelDocument.Type.UnknownXML):
             hiddenEltIds = {}
+            hiddenEltIdsAllTargets = set()
             presentedHiddenEltIds = defaultdict(list)
             eligibleForTransformHiddenFacts = []
             requiredToDisplayFacts = []
@@ -527,6 +528,8 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                 for ixHiddenElt in ixdsHtmlRootElt.iterdescendants(tag=ixNStag + "hidden"):
                     for tag in (ixNStag + "nonNumeric", ixNStag+"nonFraction"):
                         for ixElt in ixHiddenElt.iterdescendants(tag=tag):
+                            if ixElt.id:
+                                hiddenEltIdsAllTargets.add(ixElt.id)
                             if ixElt.get("target") != ixdsTarget:
                                 continue
                             if (getattr(ixElt, "xValid", 0) >= VALID  # may not be validated
@@ -587,11 +590,11 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         hiddenFactRefMatch = styleIxHiddenPattern.match(styleValue)
                         if hiddenFactRefMatch:
                             hiddenFactRef = hiddenFactRefMatch.group(2)
-                            if hiddenFactRef not in hiddenEltIds:
+                            if hiddenFactRef not in hiddenEltIdsAllTargets:
                                 modelXbrl.error("ESEF.2.4.1.esefIxHiddenStyleNotLinkingFactInHiddenSection",
                                     _('"%(styleIxHiddenProperty)s" style identifies id attribute of a fact that is not in ix:hidden section: %(factId)s'),
                                     modelObject=ixElt, styleIxHiddenProperty=styleIxHiddenProperty, factId=hiddenFactRef)
-                            else:
+                            elif hiddenFactRef in hiddenEltIds:
                                 presentedHiddenEltIds[hiddenFactRef].append(ixElt)
             for hiddenEltId, ixElt in hiddenEltIds.items():
                 if (hiddenEltId not in presentedHiddenEltIds and
@@ -605,7 +608,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                     countUnreferenced=len(requiredToDisplayFacts),
                     styleIxHiddenProperty=styleIxHiddenProperty,
                     elements=", ".join(sorted(set(str(f.qname) for f in requiredToDisplayFacts))))
-            del eligibleForTransformHiddenFacts, hiddenEltIds, presentedHiddenEltIds, requiredToDisplayFacts
+            del eligibleForTransformHiddenFacts, hiddenEltIds, hiddenEltIdsAllTargets, presentedHiddenEltIds, requiredToDisplayFacts
         elif modelDocument.type == ModelDocument.Type.INSTANCE:
             for uncast_elt in modelDocument.xmlRootElement.iter():
                 elt = cast(Any, uncast_elt)
