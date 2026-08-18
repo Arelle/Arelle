@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="bir51_fs_hkfrs_consolidated" description="BIR51 FS — Full HKFRS, Consolidated Accounts">
+  <variation id="bir51_fs_hkfrs_consolidated" name="bir51_fs_hkfrs_consolidated">
+    <description>A valid financial statements iXBRL data file for a BIR51 (corporation) filing where accounts are prepared at consolidated level (AccountsPreparedAtConsolidatedLevel = true in the TC file). Revenue and ProfitLossBeforeTax are not mandatory in this path. TotalEquity remains mandatory. The FS file is trimmed to entity-level statement of financial position and other relevant entity-level information.</description>
+    <data>
+      <instance readMeFirst="true">bir51_fs_hkfrs_consolidated.html</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+</testcase>

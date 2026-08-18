@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="bir52_tc_corporate_partner" description="BIR52 TC — Non-Individual (Corporate) Partner">
+  <variation id="bir52_tc_corporate_partner" name="bir52_tc_corporate_partner">
+    <description>A valid BIR52 tax computation for a partnership that includes a non-individual partner (e.g. a corporate entity). The corporate partner is identified by a Business Registration Number (8-digit BRN format) and PersonalAssessment = false.</description>
+    <data>
+      <instance readMeFirst="true">bir52_tc_corporate_partner.html</instance>
+      <instance readMeFirst="true">bir52_fs_hkfrs_baseline.html</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+</testcase>

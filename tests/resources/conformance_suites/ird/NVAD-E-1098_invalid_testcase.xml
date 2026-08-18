@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="NVAD-E-1098 — invalid variation">
+  <variation id="NVAD-E-1098_invalid" name="NVAD-E-1098_invalid">
+    <description>ProfitsEarnedByAFamilyOwnedSpecialPurposeEntityFromTransactionsSpecified is set to 1000 while FamilyOwnedSpecialPurposeEntityInWhichAnEligibleFamilyOwnedInvestmentHoldingVehicleHasBeneficialInterest remains false, triggering NVAD-E-1098.</description>
+    <data>
+      <instance readMeFirst="true">NVAD-E-1098_invalid.html</instance>
+    </data>
+    <result expected="invalid">
+      <error>IRD.NVAD-E-1098</error>
+    </result>
+  </variation>
+</testcase>

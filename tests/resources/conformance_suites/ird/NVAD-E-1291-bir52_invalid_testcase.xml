@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="NVAD-E-1291-bir52 — invalid variation">
+  <variation id="NVAD-E-1291-bir52_invalid" name="NVAD-E-1291-bir52_invalid">
+    <description>ird_fs:Revenue is removed from a BIR52 financial statements file (BIR52 always requires Revenue). FS ProfitLossBeforeTax is left so NVAD-E-1292 and NVAD-E-1390 stay quiet.</description>
+    <data>
+      <instance readMeFirst="true">bir52_tc_baseline_partnership.html</instance>
+      <instance readMeFirst="true">NVAD-E-1291-bir52_invalid.html</instance>
+    </data>
+    <result expected="invalid">
+      <error>IRD.NVAD-E-1291</error>
+    </result>
+  </variation>
+</testcase>

@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="NVAD-E-0180 — invalid variation">
+  <variation id="NVAD-E-0180_invalid" name="NVAD-E-0180_invalid">
+    <description>HKSIC code set to 'ABCDEF' (non-numeric); the validator requires exactly 6 decimal digits, triggering NVAD-E-0180.</description>
+    <data>
+      <instance readMeFirst="true">NVAD-E-0180_invalid.html</instance>
+    </data>
+    <result expected="invalid">
+      <error>IRD.NVAD-E-0180</error>
+    </result>
+  </variation>
+</testcase>

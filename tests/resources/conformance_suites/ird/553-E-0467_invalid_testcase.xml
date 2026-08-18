@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="553-E-0467 — invalid variation">
+  <variation id="553-E-0467_invalid" name="553-E-0467_invalid">
+    <description>schemaRef href replaced with an invalid URL 'http://example.com/nonexistent.xsd', triggering 553-E-0467.</description>
+    <data>
+      <instance readMeFirst="true">553-E-0467_invalid.html</instance>
+    </data>
+    <result expected="invalid">
+      <error>IRD.553-E-0467</error>
+    </result>
+  </variation>
+</testcase>

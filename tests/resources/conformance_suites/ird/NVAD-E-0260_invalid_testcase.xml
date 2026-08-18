@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="NVAD-E-0260 — invalid variation">
+  <variation id="NVAD-E-0260_invalid" name="NVAD-E-0260_invalid">
+    <description>CurrencyUsed remains HKD but ConversionRate is set to 1.5 (must be exactly 1 when currency is HKD), triggering NVAD-E-0260.</description>
+    <data>
+      <instance readMeFirst="true">NVAD-E-0260_invalid.html</instance>
+    </data>
+    <result expected="invalid">
+      <error>IRD.NVAD-E-0260</error>
+    </result>
+  </variation>
+</testcase>

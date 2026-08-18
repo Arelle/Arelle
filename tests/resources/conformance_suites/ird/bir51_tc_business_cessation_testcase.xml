@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="bir51_tc_business_cessation" description="BIR51 TC — Business Cessation">
+  <variation id="bir51_tc_business_cessation" name="bir51_tc_business_cessation">
+    <description>A valid BIR51 tax computation for a corporation that ceased business during the basis period. All BIR51-specific cessation elements are present: BusinessCessation = true with cessation date, BusinessCessationTransferred and transferee details, and AssetsOfBusinessTransferredToAssociatedPerson.</description>
+    <data>
+      <instance readMeFirst="true">bir51_tc_business_cessation.html</instance>
+      <instance readMeFirst="true">bir51_fs_hkfrs_baseline.html</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+</testcase>

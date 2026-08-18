@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="bir51_tc_permanent_establishment" description="BIR51 TC — Permanent Establishment (Non-HK Resident)">
+  <variation id="bir51_tc_permanent_establishment" name="bir51_tc_permanent_establishment">
+    <description>A valid BIR51 tax computation for a non-Hong Kong resident with a permanent establishment in Hong Kong. PermanentEstablishmentHongKongNonHongKongResidentPerson = true and TransactionsWithOtherPartsNonHongKongResidentPerson is tagged.</description>
+    <data>
+      <instance readMeFirst="true">bir51_tc_permanent_establishment.html</instance>
+      <instance readMeFirst="true">bir51_fs_hkfrs_baseline.html</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+</testcase>

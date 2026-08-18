@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="bir51_combined_baseline" description="BIR51 Combined — Baseline (TC + FS, Non-Consolidated, HKD)">
+  <variation id="bir51_combined_baseline" name="bir51_combined_baseline">
+    <description>A complete BIR51 filing comprising a paired tax computation data file and financial statements data file. Both files are in HKD. ProfitLossBeforeTax must be identical in both files (NVAD-E-1390). Monetary facts in the FS file must use HKD units consistent with the functional currency declared in the TC file (NVAD-E-1430).</description>
+    <data>
+      <instance readMeFirst="true">bir51_tc_baseline.html</instance>
+      <instance readMeFirst="true">bir51_fs_hkfrs_baseline.html</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+</testcase>

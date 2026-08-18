@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="bir51_fs_hkfrs_baseline" description="BIR51 FS — Full HKFRS, Non-Consolidated (Baseline)">
+  <variation id="bir51_fs_hkfrs_baseline" name="bir51_fs_hkfrs_baseline">
+    <description>A minimal valid financial statements iXBRL data file for a BIR51 (corporation) filing using the IRD FS Taxonomy (full HKFRSs). Covers the four minimum tagging requirements: P&amp;L / statement of comprehensive income, statement of financial position, notes — related party transactions, notes — PPE. Mandatory FS items present: Revenue, ProfitLossBeforeTax, TotalEquity. Balance sheet balances: TotalAssets = TotalEquityAndLiabilities.</description>
+    <data>
+      <instance readMeFirst="true">bir51_fs_hkfrs_baseline.html</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+</testcase>

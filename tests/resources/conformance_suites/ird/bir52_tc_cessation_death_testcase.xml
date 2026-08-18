@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="bir52_tc_cessation_death" description="BIR52 TC — Business Cessation (Death of Proprietor)">
+  <variation id="bir52_tc_cessation_death" name="bir52_tc_cessation_death">
+    <description>A valid BIR52 tax computation for a sole proprietorship that ceased business due to the death of the proprietor. BusinessCessationDeathOfProprietor = true and BusinessCessationProprietorDeathDate is tagged.</description>
+    <data>
+      <instance readMeFirst="true">bir52_tc_cessation_death.html</instance>
+      <instance readMeFirst="true">bir52_fs_hkfrs_baseline.html</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+</testcase>

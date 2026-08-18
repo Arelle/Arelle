@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="NVAD-E-1240-hkid — invalid variation">
+  <variation id="NVAD-E-1240-hkid_invalid" name="NVAD-E-1240-hkid_invalid">
+    <description>BIR52ProprietorPartnerHKIDOrBRNumber is set to 'A123456X' (HKID-shaped but trailing X is not a valid check digit — must be 0-9 or A) in partner context tc__ctx_p1, triggering NVAD-E-1240.</description>
+    <data>
+      <instance readMeFirst="true">NVAD-E-1240-hkid_invalid.html</instance>
+    </data>
+    <result expected="invalid">
+      <error>IRD.NVAD-E-1240</error>
+    </result>
+  </variation>
+</testcase>

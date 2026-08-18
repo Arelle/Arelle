@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="NVAD-E-1270-negative — invalid variation">
+  <variation id="NVAD-E-1270-negative_invalid" name="NVAD-E-1270-negative_invalid">
+    <description>BIR52ProprietorPartnerProfitLossSharingRatio is set to -10 (negative, i.e. -10%) in partner context tc__ctx_p1. Partner 2 is set to 110% so the sum stays 100% and NVAD-E-1280 does not fire. Only the negative-ratio check triggers NVAD-E-1270.</description>
+    <data>
+      <instance readMeFirst="true">NVAD-E-1270-negative_invalid.html</instance>
+    </data>
+    <result expected="invalid">
+      <error>IRD.NVAD-E-1270</error>
+    </result>
+  </variation>
+</testcase>

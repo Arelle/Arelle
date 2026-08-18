@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="NVAD-E-0982 — invalid variation">
+  <variation id="NVAD-E-0982_invalid" name="NVAD-E-0982_invalid">
+    <description>PractisingCertificateNumber is tagged with a valid 6-character value while HongKongPracticeUnit remains untagged, triggering NVAD-E-0982.</description>
+    <data>
+      <instance readMeFirst="true">NVAD-E-0982_invalid.html</instance>
+    </data>
+    <result expected="invalid">
+      <error>IRD.NVAD-E-0982</error>
+    </result>
+  </variation>
+</testcase>

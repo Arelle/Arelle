@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="bir51_tc_insurance_rbc" description="BIR51 TC — Insurance Corporation, RBC Regime">
+  <variation id="bir51_tc_insurance_rbc" name="bir51_tc_insurance_rbc">
+    <description>A valid BIR51 tax computation for an insurance corporation commencing implementation of the risk-based capital (RBC) regime. InsuranceCorporationCommencing...RBC = true, with exactly one of the two one-off RBC adjustment amounts non-zero (the other must be zero — NVAD-E-1095), and ElectToTreat...By5EqualAmounts tagged.</description>
+    <data>
+      <instance readMeFirst="true">bir51_tc_insurance_rbc.html</instance>
+      <instance readMeFirst="true">bir51_fs_hkfrs_baseline.html</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+</testcase>

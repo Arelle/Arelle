@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="NVAD-E-0070 — invalid variation">
+  <variation id="NVAD-E-0070_invalid" name="NVAD-E-0070_invalid">
+    <description>PrivateCompany (a BIR51-exclusive element) is tagged in an otherwise-BIR52 (partnership) filing, triggering NVAD-E-0070.</description>
+    <data>
+      <instance readMeFirst="true">NVAD-E-0070_invalid.html</instance>
+    </data>
+    <result expected="invalid">
+      <error>IRD.NVAD-E-0070</error>
+    </result>
+  </variation>
+</testcase>

@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="bir52_tc_all_flags" description="BIR52 TC — All Flags (Kitchen Sink)">
+  <variation id="bir52_tc_all_flags" name="bir52_tc_all_flags">
+    <description>A valid BIR52 tax computation with nearly every optional boolean flag set to true, including two partners. BIR51-exclusive elements are not tagged. All mandatory TC items are present.</description>
+    <data>
+      <instance readMeFirst="true">bir52_tc_all_flags.html</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+</testcase>

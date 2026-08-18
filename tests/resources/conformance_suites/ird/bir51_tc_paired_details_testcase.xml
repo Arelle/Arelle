@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="bir51_tc_paired_details" description="BIR51 TC — Paired Detail + Value Elements">
+  <variation id="bir51_tc_paired_details" name="bir51_tc_paired_details">
+    <description>A valid BIR51 tax computation that exercises all paired detail/value validation rules by including non-zero values for each income/expense category that requires a corresponding details text element. Covers service income, management fee income, interest, legal fees, management fee expense, contractor/subcontractor charges, bad debt provision, commission, charitable donations, building refurbishment, environmental protection assets, and share-based payments.</description>
+    <data>
+      <instance readMeFirst="true">bir51_tc_paired_details.html</instance>
+      <instance readMeFirst="true">bir51_fs_hkfrs_baseline.html</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+</testcase>

@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="NVAD-E-1370 — invalid variation">
+  <variation id="NVAD-E-1370_invalid" name="NVAD-E-1370_invalid">
+    <description>GrossIncome (a TC monetary fact) tagged with a EUR unit while CurrencyUsed remains HKD, so the fact's unit matches neither HKD nor the declared functional currency, triggering NVAD-E-1370.</description>
+    <data>
+      <instance readMeFirst="true">NVAD-E-1370_invalid.html</instance>
+    </data>
+    <result expected="invalid">
+      <error>IRD.NVAD-E-1370</error>
+    </result>
+  </variation>
+</testcase>

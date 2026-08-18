@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="NVAD-E-0100-yoa-floor — invalid variation">
+  <variation id="NVAD-E-0100-yoa-floor_invalid" name="NVAD-E-0100-yoa-floor_invalid">
+    <description>YearOfAssessment set to '2021/22' (below the hard floor of 2022/23). Basis-period facts and contexts retargeted to 01/04/2021–31/03/2022 so only NVAD-E-0100 fires.</description>
+    <data>
+      <instance readMeFirst="true">NVAD-E-0100-yoa-floor_invalid.html</instance>
+    </data>
+    <result expected="invalid">
+      <error>IRD.NVAD-E-0100</error>
+    </result>
+  </variation>
+</testcase>

@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="NVAD-E-1430 — invalid variation">
+  <variation id="NVAD-E-1430_invalid" name="NVAD-E-1430_invalid">
+    <description>Revenue (an FS monetary fact) tagged with a EUR unit while the paired TC file's CurrencyUsed remains HKD, triggering NVAD-E-1430.</description>
+    <data>
+      <instance readMeFirst="true">bir51_tc_baseline.html</instance>
+      <instance readMeFirst="true">NVAD-E-1430_invalid.html</instance>
+    </data>
+    <result expected="invalid">
+      <error>IRD.NVAD-E-1430</error>
+    </result>
+  </variation>
+</testcase>

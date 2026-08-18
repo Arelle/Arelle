@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="bir52_tc_personal_assessment" description="BIR52 TC — Partner Electing Personal Assessment">
+  <variation id="bir52_tc_personal_assessment" name="bir52_tc_personal_assessment">
+    <description>A valid BIR52 tax computation (two-partner partnership) where one individual partner elects personal assessment. BIR52ProprietorPartnerPersonalAssessment = true for an individual partner (identified by HKID). The second partner does not elect personal assessment.</description>
+    <data>
+      <instance readMeFirst="true">bir52_tc_personal_assessment.html</instance>
+      <instance readMeFirst="true">bir52_fs_hkfrs_baseline.html</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+</testcase>

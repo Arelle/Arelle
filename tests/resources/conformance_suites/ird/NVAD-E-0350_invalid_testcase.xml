@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="NVAD-E-0350 — invalid variation">
+  <variation id="NVAD-E-0350_invalid" name="NVAD-E-0350_invalid">
+    <description>ApprovedCharitableDonationsDetails is tagged while ApprovedCharitableDonationsTaxAdjustment remains untagged, triggering NVAD-E-0350. NVAD-E-0050 also fires because ApprovedCharitableDonationsTaxAdjustment is a mandatory TC item.</description>
+    <data>
+      <instance readMeFirst="true">NVAD-E-0350_invalid.html</instance>
+    </data>
+    <result expected="invalid">
+      <error>IRD.NVAD-E-0350</error>
+      <error>IRD.NVAD-E-0050</error>
+    </result>
+  </variation>
+</testcase>

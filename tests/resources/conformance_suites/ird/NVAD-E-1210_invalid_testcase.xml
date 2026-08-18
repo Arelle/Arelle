@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="NVAD-E-1210 — invalid variation">
+  <variation id="NVAD-E-1210_invalid" name="NVAD-E-1210_invalid">
+    <description>BIR52ProprietorPartnerMPF is removed from partner context tc__ctx_p1 while the other five mandatory per-partner elements remain, triggering NVAD-E-1210.</description>
+    <data>
+      <instance readMeFirst="true">NVAD-E-1210_invalid.html</instance>
+    </data>
+    <result expected="invalid">
+      <error>IRD.NVAD-E-1210</error>
+    </result>
+  </variation>
+</testcase>
