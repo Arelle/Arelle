@@ -71,7 +71,6 @@ def rule_ukfrc1(
     found_hrefs: list[str] = []
     is_valid_target = False
     for ixds_html_root_elt in ixds_html_elements:
-        found_hrefs_per_target = []
         ix_ns_tag = getattr(ixds_html_root_elt.modelDocument, "ixNStag", "")
         for references_elt in ixds_html_root_elt.iterdescendants(tag=f"{ix_ns_tag}references"):
             if references_elt.get("target") != TARGET_UKFRS:
@@ -81,31 +80,29 @@ def rule_ukfrc1(
             for schema_ref in references_elt.iterdescendants(tag=_LINK_SCHEMA_REF):
                 href = schema_ref.get(_XLINK_HREF, "").strip()
                 if _UKSEF_ENTRY_POINT_PATTERN.match(href):
-                    found_hrefs_per_target.append(href)
-
-            if found_hrefs_per_target:
-                if len(found_hrefs_per_target) > 1:
-                    yield Validation.error(
-                        codes="xbrl.efr.esef.uk.multipleEntryPoints",
-                        msg=_(
-                            "UKSEF reports MUST have a single schemaRef in a \"UKFRS\" per targeted ix:references element. "
-                            "Multiple matching schemaRefs were found in the report."
-                        ),
-                    )
-                found_hrefs.extend(found_hrefs_per_target)
+                    found_hrefs.append(href)
 
     if not is_valid_target:
         yield Validation.error(
-            codes="xbrl.efr.esef.uk.incorrectTarget",
+            codes="ESEF.UKFRC1.incorrectTarget",
             msg=_(
                 "UKSEF reports MUST have a \"UKFRS\" targeted ix:references element. "
                 "No matching ix:references element was found in the report."
             ),
         )
 
+    if len(found_hrefs) > 1:
+        yield Validation.error(
+            codes="ESEF.UKFRC1.multipleEntryPoints",
+            msg=_(
+                "UKSEF reports MUST have a single schemaRef in a \"UKFRS\" targeted ix:references element. "
+                "Multiple matching schemaRefs were found in the report."
+            ),
+        )
+
     if not found_hrefs:
         yield Validation.error(
-            codes="xbrl.efr.esef.uk.unsupportedEntryPoint",
+            codes="ESEF.UKFRC1.unsupportedEntryPoint",
             msg=_(
                 "UKSEF reports MUST have a schemaRef in a \"UKFRS\" targeted ix:references element "
                 "pointing to one of the FRC UKSEF entry-points for FRS-102 or IFRS from the 2023, "
@@ -184,7 +181,7 @@ def rule_ukfrc2(
 
     if esef_years and max(esef_years) < _MIN_ESEF_YEAR:
         yield Validation.error(
-            codes="xbrl.efr.esef.uk.incorrectEsefTaxonomyVersionUsed",
+            codes="ESEF.UKFRC2.incorrectEsefTaxonomyVersionUsed",
             msg=_(
                 "UKSEF 2025 reports MUST only be used in conjunction with ESEF 2022 or later. "
                 "The extension taxonomy references ESEF taxonomy version %(year)s."
