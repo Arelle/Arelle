@@ -321,9 +321,37 @@ arelleCmdLine --plugins saveOIMFacts --internetConnectivity online \
    `../HtmlElementPointer.py`. Round-trips 8381/8381, 1434/1434 and 67801/67801
    elements across the three documents, 5.9-14.1 us/element. Anchoring is better
    than 4. predicted: 98% / 84% / 64% resolve to an id rather than counting from
-   the root. Corpus generated (0.73 MB, complete for both HTML5 documents plus a
-   deterministic sample of the filing, carrying raw and post-normalization
-   sha256) -- it still needs a home in both repos to be asserted from JavaScript.
+   the root.
+
+   **Corpus landed 2026-08-21**, and it caught two live disagreements before it
+   was even committed -- so 4.1's "rather than two implementations that are
+   merely believed to match" was not a hypothetical worry.
+
+   * `tests/resources/html-element-pointer/` in this repo is canonical and holds
+     the generator; `iXBRLViewerPlugin/viewer/src/js/xbrlModel/tagging/corpus/`
+     is a byte-identical 24 KB mirror. Mirrored, not fetched: `node-tests.yml`
+     checks out the viewer alone, so a fixture reachable only through a sibling
+     checkout would never run in its CI. Both suites pin the expectations'
+     SHA-256 in a `CORPUS_SHA256` literal, so regenerating one side without the
+     other fails rather than drifting.
+   * Three small fixtures, not the demonstration documents: `tiny.xhtml`,
+     `tiny-html5.html` (new -- no XBRL, no ids on figures, omitted `<tbody>`,
+     two numbers in one `<p>`), and `adversarial.html`. The heavy documents stay
+     a local confidence run.
+   * The two disagreements it found, both silent, both now fixed. **An accented
+     id**: Python's `\w` is Unicode-aware and JavaScript's is not, so the same
+     pattern text made `id="résultat-net"` a usable anchor here and not there
+     (`9e59194ec`). **The first of a duplicated id**: `isUsableAnchor`'s
+     `catch { getElementById(id) === el }` answers *true* for it, inverting the
+     guard -- and jsdom implements no `CSS`, so `CSS.escape` threw and the
+     viewer's entire jest suite ran that branch while browsers ran the other
+     (`c9090548` in the viewer). Its existing test asserted on the *second*
+     duplicate, which both branches reject, so 16/16 passed throughout.
+   * Note for whoever extends it: `<noscript>` is deliberately absent from the
+     fixtures. Normalization is `Html5Normalize`'s job and is tested separately;
+     jsdom's scripting flag differs from a browser's, so a noscript fixture
+     would compare two things at once. Keep the corpus on pointer generation.
+
 4. Build the target token stream and word index; reuse the alignment core.
 5. Emit with the locator type matching the parse mode (5.) and the collection
    encoding for multi-fragment values (6.).
