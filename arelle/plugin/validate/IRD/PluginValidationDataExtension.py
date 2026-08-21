@@ -30,6 +30,8 @@ class PluginValidationDataExtension(PluginData):
 
     # Taxonomy entry point URIs (553-E rules)
     validTcEntryPoints: frozenset[str]
+    validFsEntryPoints: frozenset[str]
+    validFsPeEntryPoints: frozenset[str]
 
     assessmentYear: int
 
@@ -119,6 +121,20 @@ class PluginValidationDataExtension(PluginData):
     bir52PartnerHkidOrBrnQn: QName
     bir52PartnerDateEnteredQn: QName
     bir52PartnerDateLeftQn: QName
+
+    # Combined FS (nvad_combined_fs)
+    accountsPreparedAtConsolidatedLevelQn: QName
+    fsAssetsQn: QName
+    fsEquityAndLiabilitiesQn: QName
+    fsEquityQn: QName
+    fsPeAssetsQn: QName
+    fsPeEquityAndLiabilitiesQn: QName
+    fsPeEquityQn: QName
+    fsPeProfitLossBeforeTaxQn: QName
+    fsPeRevenueQn: QName
+    fsProfitLossBeforeTaxQn: QName
+    fsRevenueQn: QName
+    tcProfitLossBeforeTaxQn: QName
 
     # HKSIC code (nvad_structural, NVAD-E-0170/0180/0190)
     hksicCodeQn: QName
