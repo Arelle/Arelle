@@ -29,6 +29,7 @@ from .rules import (
     nvad_form_type,
     nvad_identifiers,
     nvad_income_paired,
+    nvad_special_flags,
     nvad_structural,
 )
 
@@ -53,6 +54,7 @@ validationPlugin = ValidationPluginExtension(
         nvad_form_type,
         nvad_identifiers,
         nvad_income_paired,
+        nvad_special_flags,
         nvad_structural,
     ],
 )
