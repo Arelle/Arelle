@@ -115,6 +115,18 @@ class PluginValidationDataExtension(PluginData):
     practisingCertificateNumberQn: QName
     transactionsWithOtherPartsQn: QName
 
+    # Business lifecycle (nvad_lifecycle)
+    businessCessationDateQn: QName
+    businessCessationDeathOfProprietorQn: QName
+    businessCessationProprietorDeathDateQn: QName
+    businessCessationQn: QName
+    businessCessationTransfereeBusinessNatureQn: QName
+    businessCessationTransfereeQn: QName
+    businessCessationTransferredAssetsAssociatedQn: QName
+    businessCessationTransferredQn: QName
+    businessCommencementDateQn: QName
+    businessCommencementQn: QName
+
     # BIR51 corporate flags (nvad_bir51_corporate)
     privateCompanyQn: QName
     shareholderChangeQn: QName
