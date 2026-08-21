@@ -75,6 +75,11 @@ PDF_PAGE, PDF_MCID = "xbrl:pdfPage", "xbrl:pdfMcid"
 PDF_BBOX, PDF_IMAGE_HASH = "xbrl:pdfBBox", "xbrl:pdfImageHash"
 PDF_CONTENT_LOCATOR = "xbrl:pdfContentLocatorType"
 PDF_IMAGE_LOCATOR = "xbrl:pdfImageLocatorType"
+XBRLX_NS = "https://arelle.org/2026/oim-taxonomy/experimental"
+HTML_ELEMENT_POINTER = "xbrlx:htmlElementPointer"
+HTML_TEXT_OFFSET = "xbrlx:htmlTextOffset"
+HTML_TEXT_QUOTE = "xbrlx:htmlTextQuote"
+HTML5_POINTER_LOCATOR = "xbrlx:htmlPointerLocatorType"
 
 _WORD = re.compile(r"\w+|[^\w\s]")
 def _toks(s: Optional[str]) -> List[str]:
@@ -424,6 +429,91 @@ def _build_pdf_text_stream(pdfPath: str):
         for w in _toks(text):
             tokens.append(w); src.append((pg, mc))
     return tokens, src, cache
+
+
+# --------------------------------------------------------------------------
+# HTML5 target: document-order token stream + per-token (element, char range)
+# --------------------------------------------------------------------------
+class Html5Target:
+    """The token stream of an HTML5 rendering, addressable back to the document.
+
+    The PDF stream carries ``(page, mcid)`` per token; this carries
+    ``(element, charStart, charEnd)``. Both feed the same patience alignment, so
+    a fact's html token range converts into a locator the same way on either
+    surface -- container plus an offset within that container's text.
+
+    Offsets are into the OWNER element's ``textContent`` -- the concatenation of
+    its descendant text in document order, which is what ``el.textContent`` gives
+    a JavaScript consumer and ``"".join(el.itertext())`` gives lxml. Comments
+    contribute nothing, matching the DOM. Text is neither stripped nor
+    whitespace-collapsed, following the same rule as multi-fragment values: an
+    invented separator would corrupt adjacent runs that differ only in styling.
+
+    The owner is the text node's IMMEDIATE parent, the deepest element containing
+    it. That keeps the container small, so an offset stays valid under edits
+    elsewhere in the paragraph, and it is the element the pointer generator will
+    address.
+    """
+    def __init__(self, root, tokens, src, ownerText):
+        self.root = root
+        self.tokens = tokens          # visible word tokens, document order
+        self.src = src                # parallel: (element, charStart, charEnd)
+        self.ownerText = ownerText    # id(element) -> its textContent
+
+
+def _html5TextRuns(root):
+    """(element, text, offsetWithinElementTextContent) for every text node.
+
+    Returns the runs and a ``id(element) -> textContent`` map. Recursion mirrors
+    how textContent is defined: an element's own ``text``, then for each child
+    its whole subtree text followed by that child's ``tail``.
+    """
+    runs: List[Tuple[Any, str, int]] = []
+    ownerText: Dict[int, str] = {}
+
+    def walk(el) -> str:
+        if _skip_tag(el.tag):
+            ownerText[id(el)] = ""
+            return ""
+        parts: List[str] = []
+        pos = 0
+        if el.text:
+            runs.append((el, el.text, pos))
+            parts.append(el.text)
+            pos += len(el.text)
+        for child in el:
+            if isinstance(child.tag, str):
+                sub = walk(child)
+                parts.append(sub)
+                pos += len(sub)
+            # a comment contributes no textContent, but its tail belongs to el
+            if child.tail:
+                runs.append((el, child.tail, pos))
+                parts.append(child.tail)
+                pos += len(child.tail)
+        text = "".join(parts)
+        ownerText[id(el)] = text
+        return text
+
+    walk(root)
+    return runs, ownerText
+
+
+def _build_html5_target(htmlPath: str) -> Html5Target:
+    """Tokenise an HTML5 rendering, keeping each token addressable.
+
+    ``mediaType`` is fixed at text/html here: this builds the *target* of an
+    alignment, which is by definition the HTML5 presentation document.
+    """
+    root = _parse_source_tree(htmlPath, "text/html")
+    runs, ownerText = _html5TextRuns(root)
+    tokens: List[str] = []
+    src: List[Tuple[Any, int, int]] = []
+    for el, text, base in runs:
+        for m in _WORD.finditer(text):
+            tokens.append(m.group(0).lower())
+            src.append((el, base + m.start(), base + m.end()))
+    return Html5Target(root, tokens, src, ownerText)
 
 
 # --------------------------------------------------------------------------
@@ -1469,14 +1559,157 @@ def _rewrite(factsDoc, perFV, pmsByFV, imgLocByFactId, pdfBasename,
     return stats
 
 
+def _fact_html5_runs(ids, hm, h2t, tsrc):
+    """A fact's html token range -> [(element, charStart, charEnd)] in the target.
+
+    Consecutive tokens landing in the same element are merged into one run, so a
+    value reading "136.2 billion" inside one <span> is a single fragment rather
+    than two. A value split ACROSS elements by styling stays several runs, which
+    is what the ordered-array encoding exists for.
+    """
+    runs: List[List[Any]] = []
+    wanted = mapped = 0
+    for hid in ids:
+        rng = hm.idRange.get(hid)
+        if not rng or rng[1] is None:
+            continue
+        for hi in range(rng[0], rng[1]):
+            wanted += 1
+            ti = h2t.get(hi)
+            if ti is None:
+                continue
+            mapped += 1
+            el, a, b = tsrc[ti]
+            if runs and runs[-1][0] is el and a >= runs[-1][1]:
+                runs[-1][2] = max(runs[-1][2], b)      # extend the current run
+            else:
+                runs.append([el, a, b])
+    # Every token of the value must have landed, or the locator would address a
+    # FRAGMENT of the fact -- "2025" where the value is "June 30, 2025". That
+    # resolves to real text and reads as a success, which is the failure mode
+    # this whole surface has to avoid. Partial alignment is not a located fact.
+    if not wanted or mapped != wanted:
+        return []
+    return [(el, a, b) for el, a, b in runs]
+
+
+def _rewriteHtml5(factsDoc, perFV, runsByFV, tgt, idIndex, targetBasename):
+    """Emit xbrlx pointer locators for facts located in the HTML5 target.
+
+    One valueSource per fact value, holding ordered arrays: fragment i has
+    pointer[i], offset[i], quote[i]. Facts not located keep their original html
+    source untouched, exactly as the PDF path leaves them.
+    """
+    import HtmlElementPointer as hep
+    di = factsDoc.setdefault("documentInfo", {})
+    xm = factsDoc.setdefault("xbrlModel", {})
+    di.setdefault("namespaces", {})["xbrlx"] = XBRLX_NS
+    origMappings = di.get("sourceMappings") or []
+    prefix = (origMappings[0]["sourceName"].split(":", 1)[0] if origMappings else "report")
+    htmlSrc = origMappings[0]["sourceName"] if origMappings else None
+    tSrc, tMap = f"{prefix}:html5Source", f"{prefix}:html5Map"
+    di["sourceMappings"] = list(origMappings) + [{"sourceName": tSrc, "url": targetBasename}]
+    xm["factSources"] = list(xm.get("factSources") or []) + [{"name": tSrc, "factMapName": tMap}]
+    xm["factMaps"] = list(xm.get("factMaps") or []) + [
+        {"name": tMap, "factLocatorType": HTML5_POINTER_LOCATOR}]
+
+    stats = {"total": 0, "located": 0, "fragments": 0, "multiFragment": 0,
+             "unverified": 0, "unmapped": 0}
+    for fact in xm.get("facts", []):
+        for fv in fact.get("factValues", []):
+            if not perFV.get(id(fv)):
+                continue
+            stats["total"] += 1
+            runs = runsByFV.get(id(fv)) or []
+            pointers, offsets, quotes = [], [], []
+            for el, a, b in runs:
+                pointer, verified, _why = hep.verifiedPointer(el, tgt.root, idIndex)
+                if not verified:
+                    stats["unverified"] += 1
+                    pointers = []
+                    break
+                pointers.append(pointer)
+                offsets.append(str(a))
+                quotes.append(tgt.ownerText[id(el)][a:b])
+            if not pointers:
+                stats["unmapped"] += 1
+                if htmlSrc is not None:
+                    fv["reportSource"] = htmlSrc
+                continue
+            fv["reportSource"] = tSrc
+            fv["valueSources"] = [{"properties": [
+                {"property": HTML_ELEMENT_POINTER, "value": pointers},
+                {"property": HTML_TEXT_OFFSET, "value": offsets},
+                {"property": HTML_TEXT_QUOTE, "value": quotes},
+            ]}]
+            stats["located"] += 1
+            stats["fragments"] += len(pointers)
+            if len(pointers) > 1:
+                stats["multiFragment"] += 1
+    return stats
+
+
+def alignToHtml5(htmlPath: str, factsPath: str, targetPath: str,
+                 outFactsPath: Optional[str] = None):
+    """Locate a tagged inline document's facts inside a separate HTML5 rendering.
+
+    The same shape as ``align``: tokenise both sides, align the streams, then
+    turn each fact's token range into a locator. Only the target surface differs
+    -- ``(element, charStart, charEnd)`` here where the PDF path has
+    ``(page, mcid)``.
+    """
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    import HtmlElementPointer as hep
+    with open(factsPath, encoding="utf-8") as fh:
+        factsDoc = json.load(fh)
+    perFV, allIds = _collect_fact_html_ids(factsDoc)
+    print(f"[facts] {len(perFV)} factValues, {len(allIds)} html ids", flush=True)
+    hm = _build_html_model(htmlPath, allIds, "application/xhtml+xml")
+    tgt = _build_html5_target(targetPath)
+    print(f"[html]  source tokens={len(hm.tokens)}  target tokens={len(tgt.tokens)}", flush=True)
+    h2t = _patience_align(hm.tokens, tgt.tokens)
+    print(f"[align] {len(h2t)}/{len(hm.tokens)} tokens "
+          f"({100 * len(h2t) // max(len(hm.tokens), 1)}%)", flush=True)
+    runsByFV = {}
+    for fact in factsDoc.get("xbrlModel", {}).get("facts", []):
+        for fv in fact.get("factValues", []):
+            ids = perFV.get(id(fv))
+            if ids:
+                runsByFV[id(fv)] = _fact_html5_runs(ids, hm, h2t, tgt.src)
+    idIndex = hep.buildIdIndex(tgt.root)
+    stats = _rewriteHtml5(factsDoc, perFV, runsByFV, tgt, idIndex,
+                          os.path.basename(targetPath))
+    pct = 100 * stats["located"] // max(stats["total"], 1)
+    print("[summary] fact locators in the HTML5 target"
+          f"\n    total facts ................. {stats['total']}"
+          f"\n    located ..................... {stats['located']}  ({pct}%)"
+          f"\n      fragments emitted ......... {stats['fragments']}"
+          f"  (values spanning >1 element: {stats['multiFragment']})"
+          f"\n      pointer failed to verify .. {stats['unverified']}"
+          f"\n    unlocated ................... {stats['unmapped']}"
+          "  (kept the original html source)", flush=True)
+    outFactsPath = outFactsPath or (os.path.splitext(targetPath)[0] + "-html5-facts.json")
+    with open(outFactsPath, "w", encoding="utf-8") as fh:
+        json.dump(factsDoc, fh, indent=1)
+    print(f"done: {outFactsPath}")
+    return stats
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description="Locate inline-XBRL facts in an existing tagged PDF.")
     ap.add_argument("--html", required=True, help="inline XBRL .xhtml/.html source")
     ap.add_argument("--facts", required=True, help="OIM-Taxonomy html-locator facts JSON (saveOIMFacts)")
-    ap.add_argument("--pdf", required=True, help="existing tagged PDF to locate facts within")
+    ap.add_argument("--pdf", default=None, help="existing tagged PDF to locate facts within")
+    ap.add_argument("--html5", default=None,
+                    help="existing HTML5 rendering to locate facts within (alternative to --pdf)")
     ap.add_argument("--out-facts", default=None, help="output rewritten facts JSON path")
     args = ap.parse_args(argv)
-    align(args.html, args.facts, args.pdf, args.out_facts)
+    if bool(args.pdf) == bool(args.html5):
+        ap.error("give exactly one target: --pdf or --html5")
+    if args.pdf:
+        align(args.html, args.facts, args.pdf, args.out_facts)
+    else:
+        alignToHtml5(args.html, args.facts, args.html5, args.out_facts)
     return 0
 
 
