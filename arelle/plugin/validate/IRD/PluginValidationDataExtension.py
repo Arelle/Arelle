@@ -95,6 +95,16 @@ class PluginValidationDataExtension(PluginData):
     shareBasedPaymentEquitySettledGroupNoRechargeQn: QName
     shareBasedPaymentEquitySettledGroupRechargeQn: QName
 
+    # Environmental (nvad_environmental)
+    buildingRefurbDetailsQn: QName
+    buildingRefurbTaxAdjQn: QName
+    efVehiclesDetailsQn: QName
+    efVehiclesTaxAdjQn: QName
+    epInstallationDetailsQn: QName
+    epInstallationTaxAdjQn: QName
+    epMachineryDetailsQn: QName
+    epMachineryTaxAdjQn: QName
+
     # BIR51 corporate flags (nvad_bir51_corporate)
     privateCompanyQn: QName
     shareholderChangeQn: QName
