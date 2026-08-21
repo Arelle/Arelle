@@ -22,6 +22,7 @@ from tests.integration_tests.validation.conformance_suite_configurations.esef_xh
 from tests.integration_tests.validation.conformance_suite_configurations.esef_xhtml_2024 import config as esef_xhtml_2024
 from tests.integration_tests.validation.conformance_suite_configurations.esef_xhtml_2025 import config as esef_xhtml_2025
 from tests.integration_tests.validation.conformance_suite_configurations.hmrc_current import config as hmrc_current
+from tests.integration_tests.validation.conformance_suite_configurations.ird import config as ird
 from tests.integration_tests.validation.conformance_suite_configurations.kvk_nt16 import config as kvk_nt16
 from tests.integration_tests.validation.conformance_suite_configurations.kvk_nt17 import config as kvk_nt17
 from tests.integration_tests.validation.conformance_suite_configurations.kvk_nt18 import config as kvk_nt18
@@ -78,6 +79,7 @@ ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
     esef_xhtml_2024,
     esef_xhtml_2025,
     hmrc_current,
+    ird,
     kvk_nt16,
     kvk_nt17,
     kvk_nt18,
