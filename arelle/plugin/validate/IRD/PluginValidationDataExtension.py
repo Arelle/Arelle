@@ -8,11 +8,12 @@ from dataclasses import dataclass
 from functools import lru_cache
 
 from arelle.ModelDocumentType import ModelDocumentType
+from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
 from arelle.utils.PluginData import PluginData
-from arelle.utils.validate.Facts import hasValidNonNilFactByQname
+from arelle.utils.validate.Facts import isValidNonNilFact, hasValidNonNilFactByQname
 
 LINKBASE_NS = "http://www.xbrl.org/2003/linkbase"
 XLINK_HREF = "{http://www.w3.org/1999/xlink}href"
@@ -21,6 +22,11 @@ SCHEMA_REF_TAG = f"{{{LINKBASE_NS}}}schemaRef"
 
 @dataclass
 class PluginValidationDataExtension(PluginData):
+
+    # Namespace constants
+    tcNamespace: str
+    fsNamespace: str
+    fspeNamespace: str
 
     # Taxonomy entry point URIs (553-E rules)
     validTcEntryPoints: frozenset[str]
@@ -49,6 +55,11 @@ class PluginValidationDataExtension(PluginData):
     reasonsForChangeOfAccountingDateQn: QName
     accountingPeriodStartDateQn: QName
     accountingPeriodEndDateQn: QName
+
+    # Currency / conversion (nvad_currency)
+    currencyUsedQn: QName
+    conversionRateQn: QName
+    assessableProfitsQn: QName
 
     # HKSIC code (nvad_structural, NVAD-E-0170/0180/0190)
     hksicCodeQn: QName
@@ -128,3 +139,30 @@ class PluginValidationDataExtension(PluginData):
             for ref in refs
             if (href := (ref.get(XLINK_HREF, "") or ""))
         ]
+
+    @lru_cache(1)
+    def _monetaryFactsByNamespace(
+        self,
+        modelXbrl: ModelXbrl,
+    ) -> dict[str, set[ModelFact]]:
+        """Scan once and group monetary facts by concept namespace."""
+        grouped: dict[str, set[ModelFact]] = {}
+        for fact in modelXbrl.facts:
+            if not isValidNonNilFact(fact):
+                continue
+            concept = fact.concept
+            if concept is None:
+                continue
+            namespace = fact.qname.namespaceURI
+            if namespace is None or not concept.isMonetary:
+                continue
+            grouped.setdefault(namespace, set()).add(fact)
+        return grouped
+
+    def getMonetaryFacts(
+        self,
+        modelXbrl: ModelXbrl,
+        namespace: str,
+    ) -> set[ModelFact]:
+        """Return all non-nil facts in *namespace* that are monetary"""
+        return self._monetaryFactsByNamespace(modelXbrl).get(namespace, set())
