@@ -61,6 +61,14 @@ class PluginValidationDataExtension(PluginData):
     conversionRateQn: QName
     assessableProfitsQn: QName
 
+    # Income paired (nvad_income_paired)
+    serviceFeeIncomeQn: QName
+    serviceFeeReceivedDetailsQn: QName
+    managementFeeIncomeQn: QName
+    managementFeeReceivedDetailsQn: QName
+    offshoreProfitsExcludedQn: QName
+    reasonsForOffshoreClaimQn: QName
+
     # HKSIC code (nvad_structural, NVAD-E-0170/0180/0190)
     hksicCodeQn: QName
     hksicCodeRegex: re.Pattern[str]     # r'^\d{6}$'
