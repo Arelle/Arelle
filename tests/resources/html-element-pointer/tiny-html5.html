@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<!--
+  An HTML5 rendering of the same report as tiny.xhtml, carrying NO XBRL and no
+  ids on any figure.  This is the shape the aligner exists for: the facts are
+  tagged in tiny.xhtml and must be placed onto this document by text alignment,
+  then addressed by pointer + text offset.
+
+  Deliberate properties, each exercising something the design turns on:
+
+    * HTML5, not XHTML -- no XML declaration, unclosed void elements (<meta>,
+      <img>, <br>).  lxml.etree cannot parse this at all.
+    * The table omits <tbody>, which HTML5 tree construction synthesizes and
+      libxml2 does not.  Every pointer below the table therefore differs
+      between the two parsers -- the divergence that makes the conformant
+      parse non-optional.
+    * Two ids only, both navigation anchors, matching how real reports behave
+      (42 ids in 8,383 elements on the Microsoft report).  They exercise the
+      hybrid "anchor/2/1" form; everything else counts from the root.
+    * The second paragraph holds two figures in ONE element, so an element
+      pointer alone cannot say which number is the fact.  That is the case the
+      text offset exists for, and it is 27% of numbers on the real document.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tiny Fund - Annual Shareholder Report</title>
+</head>
+<body>
+<header id="top">
+<h1>Tiny Fund</h1>
+<p>Annual Shareholder Report</p>
+</header>
+<section id="financial-highlights">
+<h2>Financial highlights</h2>
+<p>Net assets at period end were 1,234,567 dollars.</p>
+<p>Total annual expenses were 12.34 dollars per $10,000 invested and the management fee was 0.75%.</p>
+<table>
+<tr><th>Year</th><th>Account value</th></tr>
+<tr><td>Year 1</td><td>10,500</td></tr>
+<tr><td>Year 2</td><td>11,200</td></tr>
+<tr><td>Year 3</td><td>12,800</td></tr>
+</table>
+<p>Growth of a hypothetical $10,000 investment:<br>
+<img src="tiny-chart.png" alt="Growth of a hypothetical $10,000 investment" width="300" height="120">
+</p>
+</section>
+</body>
+</html>

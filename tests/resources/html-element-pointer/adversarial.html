@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--
+  Cases the real documents in this corpus do not contain, each one a way a
+  pointer can go silently wrong.  Two of them are live regressions:
+
+    * an accented id.  An NCName in XML, but JavaScript's \w is ASCII, so the
+      reference implementation rejects it.  A Python port using the same
+      pattern text accepts it -- and emits a shorthand id where the tagger
+      emits a child sequence.  Both resolve, so nothing reports an error.
+    * an id repeated three times.  isUsableAnchor must refuse it, because
+      getElementById silently returns the first.  A guard that asks "is
+      getElementById(id) === el?" answers YES for the first duplicate and
+      anchors to it -- the guard inverted.  The FIRST duplicate is the
+      discriminating one; the second and third are rejected by any
+      implementation, so a fixture that only tests those proves nothing.
+
+  The rest: an id starting with a digit (not an NCName), an empty id
+  attribute, comments interleaved with element children (they must not shift
+  an index), a table with no tbody in the markup (HTML5 synthesizes one), and
+  stray text inside a table (HTML5 foster-parents it out, libxml2 leaves it).
+-->
+<html lang="fr"><head><title>adversarial</title></head>
+<body>
+<!-- a comment as the first child of body: counts for nothing -->
+<div id="résultat-net">accented id: NCName in XML, not in JS \w</div>
+<div id="dup">first</div>
+<div id="dup">second</div>
+<div id="3bad">id starting with a digit is not an NCName</div>
+<div id="ok.mix-1_A">punctuation an NCName allows</div>
+<div id="">empty id attribute</div>
+<section id="anchor">
+  <!-- comment among element children -->
+  <p>one</p>
+  <!-- another -->
+  <p>two <b>bold</b></p>
+</section>
+<table><tr><td>no tbody in the markup</td></tr></table>
+<table><caption>foster</caption>stray text<tr><td>cell</td></tr></table>
+<p id="dup">third dup, in a different element type</p>
+</body></html>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Tiny XBRL &#8594; PDF locator test</title>
+  <style>
+    body { font-family: Georgia, serif; margin: 48px; color: #111; }
+    h1 { font-size: 20px; }
+    .chart-block { margin-top: 24px; position: relative; }
+    /* the ix-tagged data series behind the chart is visually hidden */
+    .visually-hidden { position: absolute; clip: rect(0px, 0px, 0px, 0px);
+                       overflow: hidden; width: 1px; height: 1px; }
+  </style>
+</head>
+<body>
+  <h1>Tiny Fund — Annual Shareholder Report</h1>
+
+  <!-- visible facts: become xbrl:pdfContentLocatorType (page + mcid) -->
+  <p>Net assets at period end were
+     <span id="f-netassets">1,234,567</span> dollars, total annual expenses were
+     <span id="f-expenses">12.34</span> dollars per $10,000 invested, and the
+     management fee was <span id="f-fee">0.75</span>%.</p>
+
+  <!-- a fact present in the HTML but NOT rendered (display:none): it cannot be
+       located in the PDF and keeps its html locator (fallback path) -->
+  <p style="display:none">Supplemental (not shown in the PDF):
+     <span id="f-note">boilerplate commentary xyzzy</span>.</p>
+
+  <!-- chart image + clip:rect(0,0,0,0) hidden data table:
+       the AcctVal series facts become xbrl:pdfImageLocatorType (page + bbox) -->
+  <div class="chart-block">
+    <img src="tiny-chart.png" alt="Growth of a hypothetical $10,000 investment"
+         width="300" height="120"/>
+    <table style="position: absolute; clip: rect(0px, 0px, 0px, 0px); overflow: hidden; width: 1px; height: 1px;">
+      <tr><td>Year 1</td><td id="f-acct-1">10,500</td></tr>
+      <tr><td>Year 2</td><td id="f-acct-2">11,200</td></tr>
+      <tr><td>Year 3</td><td id="f-acct-3">12,800</td></tr>
+    </table>
+  </div>
+</body>
+</html>
