@@ -33,6 +33,20 @@
                 {
                     "xbrlModelName": "xbrla:accountingModule"
                 }
+        ],
+        "labels": [
+            {
+                "forObject": "xbrlm:base",
+                "labelType": "xbrl:label",
+                "language": "en",
+                "value": "XBRL Model"
+            },
+            {
+                "forObject": "xbrlm:base",
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "value": "The base module, that collates the core XBRL data models. This module imports the XML Schema data types and the other core XBRL taxonomy modules that in aggregate define the objects comprising the XBRL data model."
+            }
         ]   
     }
 }

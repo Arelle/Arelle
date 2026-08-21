@@ -1620,6 +1620,24 @@
                 "language" : "en",
                 "labelType" : "xbrl:documentation",
                 "value" : "noLangString is a derivation of string and is used to denote values that should not have an associated language. This is typically used for values that are unique identifiers, rather than human-readable strings."
+            },
+            {
+                "forObject" : "xbrl:rootSource",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The root source identifies a single point for network roots and group tree object roots to be anchored by a relationship object. This allows multiple network roots to be defined and ordered in a network hierarchy. The root source QName need not be visible by tools and is defined using the same QName across all network objects and group tree objects. The QName xbrl:rootSource is used to define the root source."
+            },
+            {
+                "forObject" : "xbrl:rootSource",
+                "language" : "en",
+                "labelType" : "xbrl:label",
+                "value" : "Root Source QName"
+            },
+            {
+                "forObject" : "xbrl:nil",
+                "language" : "en",
+                "labelType" : "xbrl:documentation",
+                "value" : "The nil property indicates a fact is nil and the reason why it is nil. The nil property defines a fact object value is not disclosed, and the reason why. This can be due to the fact being immaterial, confidential, unknown, or not yet available. A fact with a property of nil does not imply it is zero, however for calculation relationships it is excluded from the calculation. The nil property can only be used with concepts that have a nillable property that is not false."
             }
         ],
         "namespacePrefixes": [
@@ -1866,6 +1884,24 @@
                 ]
             },
             {
+                "name": "xbrl:pdfBBox",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:factValueSourceObject",
+                    "xbrl:factValueAnchorObject"
+                ]
+            },
+            {
+                "name": "xbrl:pdfImageHash",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:factValueSourceObject",
+                    "xbrl:factValueAnchorObject"
+                ]
+            },
+            {
                 "name": "xbrl:tabularPath",
                 "dataType": "xs:string",
                 "definitional": false,
@@ -1915,7 +1951,21 @@
                     "xbrl:pdfPage",
                     "xbrl:pdfMcid",
                     "xbrl:pdfElementId",
-                    "xbrl:pdfEscape"
+                    "xbrl:pdfEscape",
+                    "xbrl:pdfBBox"
+                ]
+            },
+            {
+                "name": "xbrl:pdfImageLocatorType",
+                "sourceMediaType": "application/pdf",
+                "requiredProperties": [
+                    "xbrl:pdfPage",
+                    "xbrl:pdfBBox"
+                ],
+                "allowedProperties": [
+                    "xbrl:pdfPage",
+                    "xbrl:pdfBBox",
+                    "xbrl:pdfImageHash"
                 ]
             },
             {

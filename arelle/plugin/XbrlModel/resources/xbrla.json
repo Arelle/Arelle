@@ -353,6 +353,18 @@
       {
         "labelType": "xbrl:label",
         "language": "en",
+        "forObject": "xbrla:balance",
+        "value": "Balance property"
+      },
+      {
+        "labelType": "xbrl:documentation",
+        "language": "en",
+        "forObject": "xbrla:balance",
+        "value": "Defines the balance property that can be used to identify the balance of a concept. The balance property indicates if the concept is a debit or credit balance."
+      },
+      {
+        "labelType": "xbrl:label",
+        "language": "en",
         "forObject": "xbrla:intervalConvention",
         "value": "Interval based on start or end time"
       },

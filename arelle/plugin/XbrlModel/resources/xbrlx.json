@@ -1,0 +1,140 @@
+{
+    "$schema": "oim-taxonomy-schema.json",
+    "documentInfo": {
+        "documentType": "https://xbrl.org/2026/module",
+        "namespaces": {
+            "xbrl": "https://xbrl.org/2026",
+            "xbrlr": "https://xbrl.org/2026/report",
+            "xbrlm": "https://xbrl.org/2026/model",
+            "xbrlx": "https://arelle.org/2026/oim-taxonomy/experimental",
+            "xs": "http://www.w3.org/2001/XMLSchema"
+            },
+        "documentNamespacePrefix": "xbrlx",
+        "description": "PROVISIONAL. Locator types and addressing properties that are implemented in this tool ahead of the OIM taxonomy specification, so that proposals can be demonstrated on real documents before the specification settles them. Nothing in this module is normative, and every object here is expected either to move into the xbrl: namespace on acceptance -- a mechanical prefix rename -- or to be withdrawn. It is a separate module rather than an addition to core.json for two reasons: objects must be declared in their own module's namespace (oimte:objectNamespaceMismatch), and xbrl: is a reserved prefix; and core.json is overwritten wholesale whenever the specification resources are re-synced, which would silently revert anything provisional placed there."
+        },
+    "xbrlModel": {
+        "name": "xbrlx:experimentalModule",
+        "importedTaxonomies": [
+            {
+                "xbrlModelName": "xbrlm:base"
+            }
+        ],
+        "propertyTypes": [
+            {
+                "name": "xbrlx:htmlElementPointer",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:factValueSourceObject",
+                    "xbrl:factValueAnchorObject"
+                ]
+            },
+            {
+                "name": "xbrlx:htmlTextQuote",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:factValueSourceObject",
+                    "xbrl:factValueAnchorObject"
+                ]
+            },
+            {
+                "name": "xbrlx:htmlTextOffset",
+                "dataType": "xs:string",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:factValueSourceObject",
+                    "xbrl:factValueAnchorObject"
+                ]
+            }
+        ],
+        "factLocatorTypes": [
+            {
+                "name": "xbrlx:xhtmlPointerLocatorType",
+                "sourceMediaType": "application/xhtml+xml",
+                "requiredProperties": [
+                    "xbrlx:htmlElementPointer"
+                ],
+                "allowedProperties": [
+                    "xbrlx:htmlElementPointer",
+                    "xbrlx:htmlTextQuote",
+                    "xbrlx:htmlTextOffset"
+                ]
+            },
+            {
+                "name": "xbrlx:htmlPointerLocatorType",
+                "sourceMediaType": "text/html",
+                "requiredProperties": [
+                    "xbrlx:htmlElementPointer"
+                ],
+                "allowedProperties": [
+                    "xbrlx:htmlElementPointer",
+                    "xbrlx:htmlTextQuote",
+                    "xbrlx:htmlTextOffset"
+                ]
+            }
+        ],
+        "labels": [
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "forObject": "xbrlx:htmlElementPointer",
+                "value": "HTML Element Pointer"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "forObject": "xbrlx:htmlElementPointer",
+                "value": "An XPointer element() scheme child sequence identifying an element in the source document, written without the element(...) wrapper: \"f1\" names the element whose id is f1, \"/1/14\" is the 14th element child of the root element, and \"currentAssets/2/1\" starts from the element with id currentAssets and walks down. Integers are 1-based and count element children only. This addresses an element without requiring the document to carry an id on it, so a document that is signed, checksummed, owned by someone else, or otherwise not modifiable can still be tagged. A pointer that is a bare NCName is equivalent to xbrl:htmlElementId with the same value."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "forObject": "xbrlx:htmlTextQuote",
+                "value": "HTML Text Quote"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "forObject": "xbrlx:htmlTextQuote",
+                "value": "Exact text within the element the pointer locates, optionally with surrounding context, refining the location to part of an element. The element() scheme addresses whole elements only, which suffices for Inline XBRL where each value sits in its own ix: element but not for an untagged document where a value is a substring of a larger text node. Survives structural change to the document, unlike a character offset."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "forObject": "xbrlx:htmlTextOffset",
+                "value": "HTML Text Offset"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "forObject": "xbrlx:htmlTextOffset",
+                "value": "Character offset and length within the text of the element the pointer locates, as \"offset length\". More precise than a text quote when the same text appears more than once in the element, but brittle to any change in the document's text."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "forObject": "xbrlx:xhtmlPointerLocatorType",
+                "value": "XHTML Pointer Locator"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "forObject": "xbrlx:xhtmlPointerLocatorType",
+                "value": "Locates content in a document parsed as XML, where the pointer's child sequence counts element children of the XML infoset. This is the locator type for Inline XBRL 1.1 and ESEF documents, which must be well-formed XML and schema-valid against the XHTML-derived schema. The parse mode is part of the locator type rather than inferred, because the same bytes parsed as text/html can yield a different tree: HTML tree construction inserts a tbody that XHTML's content model leaves optional, which shifts every pointer beneath a table by one level."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "forObject": "xbrlx:htmlPointerLocatorType",
+                "value": "HTML Pointer Locator"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "forObject": "xbrlx:htmlPointerLocatorType",
+                "value": "Locates content in a document parsed as HTML, where the pointer's child sequence counts element children of the HTML5 tree-construction result rather than of the source markup. Resolving these pointers requires an HTML5-conformant parser: libxml2's HTML parser predates HTML5 and implements neither tbody insertion nor foster parenting, so it disagrees with a browser DOM on documents that exercise either."
+            }
+        ]
+    }
+}

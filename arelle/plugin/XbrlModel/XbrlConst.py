@@ -24,6 +24,10 @@ oimTaxonomyDocTypes = (
 xbrl = "https://xbrl.org/2026"
 xbrla = "http://xbrl.org/accounting"
 xbrlr = "https://xbrl.org/2026/report"
+# Provisional terms implemented ahead of the specification (see resources/xbrlx.json).
+# Deliberately not an xbrl.org URI: these are not sanctioned by the standards body,
+# and naming them under one would misrepresent their status.
+xbrlx = "https://arelle.org/2026/oim-taxonomy/experimental"
 
 reservedPrefixNamespaces = {
     "xbrl": xbrl,
@@ -39,7 +43,8 @@ reservedPrefixNamespaces = {
     "lei": "http://standards.iso.org/iso/17442",
     "utr": "https://xbrl.org/2025/utr",
     "ref": "https://xbrl.org/2025/ref",
-    "xbrltt": "https://xbrl.org/2026/transform-types"
+    "xbrltt": "https://xbrl.org/2026/transform-types",
+    "xbrlx": xbrlx
     }
 
 builtInPrefixTaxonomies = { # these are in resources subdirectory
@@ -57,7 +62,8 @@ builtInPrefixTaxonomies = { # these are in resources subdirectory
     "lei": "http://standards.iso.org/iso/17442",
     "utr": "utr.json",
     "ref": "ref.json",
-    "xbrltt": "transform-types.json"
+    "xbrltt": "transform-types.json",
+    "xbrlx": "xbrlx.json"
 }
 
 qnStdLabel = qname(xbrl, "xbrl:label")

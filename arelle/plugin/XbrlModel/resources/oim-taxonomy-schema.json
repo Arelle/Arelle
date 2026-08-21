@@ -1,5 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
+    "$comment": "This schema uses 'xbrlType' as a custom annotation keyword to provide model-specific type names (e.g., QName, SQName) that are more precise than the JSON type. Validators ignore this keyword; it is consumed only by editor tooling.",
     "title": "XBRL Taxonomy Model",
     "type": "object",
     "properties": {
@@ -16,34 +17,41 @@
                         "https://xbrl.org/2026/referenceBundle",
                         "https://xbrl.org/2026/compiled",
                         "https://xbrl.org/2026/module"
-                    ]
+                    ],
+                    "description": "A URI representing the type of model document: compiled, module, labelBundle, or referenceBundle. This is a document-level construct, not part of the XBRL model."
                 },
                 "namespaces": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string",
                         "format": "uri"
-                    }
+                    },
+                    "description": "A prefix map object that resolves QName prefixes to namespace URIs. Required for interpreting QName, SQName, and prefixedContent values in the model."
                 },
                 "documentNamespacePrefix": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "An NCName identifying the namespace prefix of the document. Required for XBRL modules (documentType 'module') and label bundles. Must not be defined for compiled models."
                 },
                 "importMapping": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
-                    }
+                    },
+                    "description": "A mapping from XBRL model object QNames to URL locations of the model documents, used for import resolution. Must not be defined for compiled models or built-in models."
                 },
                 "sourceMappings": {
                     "type": "array",
+                    "description": "Set of fact source mapping objects that map fact source object QNames to their source document URL locations. Required when the model contains fact value source or fact value anchor objects referencing external source files.",
                     "items": {
                         "type": "object",
                         "properties": {
                             "sourceName": {
-                                "$ref": "#/definitions/QName"
+                                "$ref": "#/definitions/QName",
+                                "description": "The QName of the fact source object this entry maps to a source document. Each sourceName QName MUST appear at most once in the array."
                             },
                             "url": {
-                                "type": "string"
+                                "type": "string",
+                                "description": "A URL string identifying the location of the source document referenced by the factSource."
                             }
                         },
                         "required": [
@@ -56,7 +64,8 @@
                     "minItems": 1
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "A string providing a human-readable description of the XBRL module."
                 }
             },
             "required": [
@@ -69,16 +78,21 @@
             "type": "object",
             "properties": {
                 "name": {
-                    "$ref": "#/definitions/QName"
+                    "$ref": "#/definitions/xbrlModelQName",
+                    "xbrlType": "QName",
+                    "description": "The QName that uniquely identifies the XBRL model object."
                 },
                 "frameworkName": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "The name of the XBRL framework that the model conforms to."
                 },
                 "version": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "The version of the XBRL model."
                 },
                 "modelType": {
-                    "$ref": "#/definitions/modelTypeQName"
+                    "$ref": "#/definitions/modelTypeQName",
+                    "description": "A QName referencing a model type object that defines the allowed object types and properties for this model."
                 },
                 "duplicateFactsInModel": {
                     "type": "string",
@@ -92,6 +106,7 @@
                 },
                 "importedTaxonomies": {
                     "type": "array",
+                    "description": "Set of import taxonomy objects defining external models to be imported into this XBRL model. Each import specifies a model QName and optional selection/filtering criteria.",
                     "items": {
                         "type": "object",
                         "properties": {
@@ -100,6 +115,7 @@
                             },
                             "selections": {
                                 "type": "array",
+                                "description": "Specifies a set of structured select objects that define the objects to be included in the import. Each select statement specifies the objects to be selected from the XBRL Model. The select statements can include object names, types, and properties.",
                                 "items": {
                                     "$ref": "#/definitions/selectorObject"
                                 },
@@ -108,6 +124,7 @@
                             },
                             "importObjects": {
                                 "type": "array",
+                                "description": "A set of object model object QNames that are imported from the xbrlModelName location property. Only the objects defined in the importObjects set and any referenced objects will be added to the XBRL Model. If the reference object is imported the object QNames defined in the forObjects property are not imported as a dependent objects",
                                 "items": {
                                     "$ref": "#/definitions/QName"
                                 },
@@ -119,15 +136,17 @@
                                 "items": {
                                     "$ref": "#/definitions/QName"
                                 },
+                                "description": "A set of object type QNames that are imported from the xbrlModelName location property. Examples include xbrl:conceptObject and xbrl:memberObject. All objects of the specified object types from the xbrlModelName and any referenced objects will be imported. This property can only reference object types that are a child of xbrl:xbrlModelObject. The importObjectTypes cannot include xbrl:importTaxonomyObject, xbrl:finalTaxonomyObject, xbrl:groupTreeObject, and xbrl:xbrlModelObject. If the label object is imported the object QName defined in the forObject property is not imported as a dependent object. If the group content object is imported the object QName defined in the forObject property is not imported as a dependent object. If the reference object is imported the object QNames defined in the forObjects property are not imported as a dependent objects.",
                                 "uniqueItems": true,
                                 "minItems": 1
                             },
                             "excludeLabels": {
-                                "type": "boolean"
+                                "type": "boolean",
+                                "description": "If set to true, any labels attached to the objects comprising the XBRL Model deriving from the xbrlModelName property will be excluded from the XBRL Model. The default value is false."
                             },
                             "excludeGroupContents": {
                                 "type": "boolean",
-                                "description": "If set to true, all groupContent objects from the imported model are excluded from the compiled XBRL Model. Default is false."
+                                "description": "If set to true, all group content objects defined in the imported model will be excluded from the XBRL Model. This does NOT exclude the reference objects themselves, only their grouping. The default value is false."
                             },
                             "bundleManifest": {
                                 "type": "object",
@@ -210,6 +229,7 @@
                 },
                 "propertyTypes": {
                     "type": "array",
+                    "description": "Set of property type objects that define the model-defined properties that can be associated with model objects.",
                     "items": {
                         "type": "object",
                         "properties": {
@@ -248,6 +268,7 @@
                 },
                 "headings": {
                     "type": "array",
+                    "description": "Set of heading objects that define structural headings used for organising and presenting taxonomy objects.",
                     "items": {
                         "type": "object",
                         "properties": {
@@ -261,8 +282,7 @@
                                 },
                                 "minItems": 1,
                                 "description": "Additional properties associated with the heading.",
-                                "uniqueItems": true,
-                                "minItems": 1
+                                "uniqueItems": true
 
                             }
                         },
@@ -276,14 +296,18 @@
                 },
                 "members": {
                     "type": "array",
+                    "description": "Set of member objects that define the allowable values (members) for explicit dimensions in the taxonomy.",
                     "items": {
                         "type": "object",
                         "properties": {
                             "name": {
-                                "$ref": "#/definitions/QName"
+                                "$ref": "#/definitions/QName",
+                                "description":"QName that uniquely identifies the member object within the XBRL model."
                             },
                             "extends": {
-                                "$ref": "#/definitions/QName"
+                                "$ref": "#/definitions/QName",
+                                "xbrlType": "memberQName",
+                                "description":"Names the member object to be extended. The extends property adds additional domainClasses and properties to the member object by extension."
                             },
                             "isExtensible": {
                                 "type": "boolean",
@@ -295,7 +319,7 @@
                                     "$ref": "#/definitions/domainClassQName"
                                 },
                                 "uniqueItems": true,
-                                "description": "Ordered set of QNames that reference domain class objects that are associated with the member. This allows the member to be used in multiple dimensions that reference different domain classes.",
+                                "description": "A set of QNames that reference domain class objects that define the member. This allows the member to be used in multiple dimensions that reference different domain classes. If the member is defined in a domain relationship with a domain class root that is not included in the domainClasses property of the member, an error is raised",
                                 "minItems": 1
                             },
                             "properties": {
@@ -305,8 +329,7 @@
                                 },
                                 "minItems": 1,
                                 "description": "Additional properties associated with the member.",
-                                "uniqueItems": true,
-                                "minItems": 1
+                                "uniqueItems": true
                             }
                         },
                         "oneOf": [
@@ -334,14 +357,18 @@
                 },
                 "concepts": {
                     "type": "array",
+                    "description": "Set of concept objects that define the concepts (data points) in the taxonomy. Each concept has a datatype, period type, and nillability.",
                     "items": {
                         "type": "object",
                         "properties": {
                             "name": {
-                                "$ref": "#/definitions/QName"
+                                "$ref": "#/definitions/conceptQName",
+                                "description": "QName that uniquely identifies the concept within the XBRL model.",
+                                "xbrlType": "QName"
                             },
                             "dataType": {
-                                "$ref": "#/definitions/dataTypeQName"
+                                "$ref": "#/definitions/dataTypeQName",
+                                "description": "QName referencing a dataType or collectionType object that defines the datatype of the concept's fact values."
                             },
                             "periodType": {
                                 "type": "string",
@@ -349,13 +376,16 @@
                                     "instant",
                                     "duration",
                                     "none"
-                                ]
+                                ],
+                                "description": "The period type for the concept, indicating whether the concept represents an instant value, a duration value, or has no period semantics."
                             },
                             "nillable": {
-                                "type": "boolean"
+                                "type": "boolean",
+                                "description": "Indicates whether the concept can have a nil value. If true, facts for this concept may omit a fact value and instead provide a nil reason. Defaults to false."
                             },
                             "enumerationDomain": {
-                                "$ref": "#/definitions/domainNetworkQName"
+                                "$ref": "#/definitions/domainNetworkQName",
+                                "description": "QName referencing a domain network object that constrains the allowed values for this concept to members in that domain."
                             },
                             "properties": {
                                 "type": "array",
@@ -363,9 +393,8 @@
                                     "$ref": "#/definitions/propertyObject"
                                 },
                                 "minItems": 1,
-                                "description": "Additional properties associated with the concept.",
-                                "uniqueItems": true,
-                                "minItems": 1
+                                "description": "Additional model-defined properties associated with the concept, such as balance direction (debit/credit).",
+                                "uniqueItems": true
                             }
                         },
                         "required": [
@@ -380,6 +409,7 @@
                 },
                 "cubes": {
                     "type": "array",
+                    "description": "Set of cube objects that define multidimensional cubes constraining which facts are valid. Each cube specifies dimensions, members, and optional period constraints.",
                     "items": {
                         "type": "object",
                         "properties": {
@@ -391,7 +421,7 @@
                             },
                             "cubeDimensions": {
                                 "type": "array",
-                                "description": "Ordered set of cubeDimension objects used on the cube.",
+                                "description": "A set of cube dimension objects that identify the dimensions and associated domains used on the cube.",
                                 "items": {
                                     "type": "object",
                                     "properties": {
@@ -418,7 +448,7 @@
                                         },
                                         "periodConstraints": {
                                             "type": "array",
-                                            "description": "Ordered set of periodConstraint objects (only for xbrl:period core dimension).",
+                                            "description": "Defines an ordered set of period constraint objects to restrict fact values in a cube to fact values with a specified period (only for xbrl:period core dimension).",
                                             "items": {
                                                 "type": "object",
                                                 "properties": {
@@ -477,7 +507,7 @@
                             },
                             "cubeNetworks": {
                                 "type": "array",
-                                "description": "Ordered set of network object QNames related to the cube.",
+                                "description": "Set of network object QNames related to the cube.",
                                 "items": {
                                     "$ref": "#/definitions/networkQName"
                                 },
@@ -486,7 +516,7 @@
                             },
                             "excludeCubes": {
                                 "type": "array",
-                                "description": "Ordered set of cube object QNames to be excluded from the cube.",
+                                "description": "Set of cube object QNames to be excluded from the cube.",
                                 "items": {
                                     "$ref": "#/definitions/cubeQName"
                                 },
@@ -495,7 +525,7 @@
                             },
                             "requiredCubes": {
                                 "type": "array",
-                                "description": "Ordered set of cube object QNames that indicate facts in the cube that are required to be present. This allows layouts using the cube to indicate cells or groups of cells that must be present in the cube.",
+                                "description": "Set of cube object QNames that indicate facts in the cube that are required to be present. This allows layouts using the cube to indicate cells or groups of cells that must be present in the cube.",
                                 "items": {
                                     "$ref": "#/definitions/cubeQName"
                                 },
@@ -519,8 +549,7 @@
                                 },
                                 "minItems": 1,
                                 "description": "Additional properties associated with the cube.",
-                                "uniqueItems": true,
-                                "minItems": 1
+                                "uniqueItems": true
                             },
                             "extends": {
                                 "$ref": "#/definitions/QName"
@@ -572,20 +601,24 @@
                 },
                 "dimensions": {
                     "type": "array",
+                    "description": "Set of dimension objects that define taxonomy-defined dimensions. Each dimension is associated with a domain class that determines its allowable values.",
                     "items": {
                         "type": "object",
                         "properties": {
                             "name": {
-                                "$ref": "#/definitions/QName"
+                                "$ref": "#/definitions/QName",
+                                "description": "The QName of the dimension object."
                             },
                             "domainClass": {
-                                "$ref": "#/definitions/domainClassQName"
+                                "$ref": "#/definitions/domainClassQName",
+                                "description": "A reference to a domain class object."
                             },
                             "cubeTypes": {
                                 "type": "array",
                                 "items": {
                                     "$ref": "#/definitions/cubeTypeQName"
                                 },
+                                "description": "A non-empty set of references to a cube type object that the dimension can only apply to. Can reference built-in cube types or taxonomy defined cube types. For example xbrla:eventCube, xbrla:referenceCube. If not defined the dimension can be applied to any cube type.",
                                 "uniqueItems": true,
                                 "minItems": 1
                             },
@@ -595,7 +628,7 @@
                                     "$ref": "#/definitions/propertyObject"
                                 },
                                 "minItems": 1,
-                                "description": "Additional properties associated with the dimension.",
+                                "description": "A set of property objects that specifies model-defined properties associated with the dimension object.",
                                 "uniqueItems": true
                             }
                         },
@@ -610,6 +643,7 @@
                 },
                 "domainNetworks": {
                     "type": "array",
+                    "description": "Set of domain network objects that define hierarchical networks of members for explicit dimensions.",
                     "items": {
                         "type": "object",
                         "properties": {
@@ -617,7 +651,8 @@
                                 "$ref": "#/definitions/QName"
                             },
                             "root": {
-                                "$ref": "#/definitions/SQName"
+                                "$ref": "#/definitions/domainClassQName",
+                                "description": "A reference to a domain class object that uniquely identifies the root of the domain network object."
                             },
                             "relationships": {
                                 "type": "array",
@@ -625,13 +660,16 @@
                                     "type": "object",
                                     "properties": {
                                         "source": {
-                                            "$ref": "#/definitions/SQName"
+                                            "$ref": "#/definitions/SQName",
+                                            "description": "SQName identifying the source member in the domain network relationship."
                                         },
                                         "target": {
-                                            "$ref": "#/definitions/SQName"
+                                            "$ref": "#/definitions/SQName",
+                                            "description": "SQName identifying the target member in the domain network relationship."
                                         },
                                         "order": {
-                                            "type": "number"
+                                            "type": "number",
+                                            "description": "The order attribute orders the relationships relative to their level in a hierarchy. The order property can be used on any relationship type. If no order attribute is provided the order of their appearance in the set is used as the default. If no order attribute is provided the default order value is zero. This value is used to sort relationships relative to objects that do have an order attribute."
                                         },
                                         "properties": {
                                             "type": "array",
@@ -650,7 +688,8 @@
                                 }
                             },
                             "extends": {
-                                "$ref": "#/definitions/QName"
+                                "$ref": "#/definitions/QName",
+                                "description": "Names the domain network object that the defined domain network relationships are appended to. The items in the domain network with this property are appended to the end of the relationships defined in the target domain network object. This property cannot be used with the name property or the root property. The QName MUST resolve to an existing domain network object."
                             },
                             "isExtensible": {
                                 "type": "boolean",
@@ -662,9 +701,8 @@
                                     "$ref": "#/definitions/propertyObject"
                                 },
                                 "minItems": 1,
-                                "description": "Additional properties associated with the relationship.",
-                                "uniqueItems": true,
-                                "minItems": 1
+                                "description": "A set of property objects that specifies model-defined properties associated with the domain network object.",
+                                "uniqueItems": true
                             }
                         },
                         "oneOf": [
@@ -703,17 +741,21 @@
                 },
                 "domainClasses": {
                     "type": "array",
+                    "description": "A domain class defines a category that member objects belong to and links a dimension to that category. A dimension can be associated with different domain network objects in different cubes, but all such domain network objects must have the same domain class as the dimension. Member objects can belong to one or more domain classes. A member object's domain classes restrict the domain network objects that a member can be associated with.",
                     "items": {
                         "type": "object",
                         "properties": {
                             "name": {
-                                "$ref": "#/definitions/QName"
+                                "$ref": "#/definitions/QName",
+                                "description":"QName that uniquely identifies the domain class within the XBRL model."
                             },
                             "baseDomainClass": {
-                                "$ref": "#/definitions/domainClassQName"
+                                "$ref": "#/definitions/domainClassQName",
+                                "description": "The QName of a domain class object that is the base domain class for the defined domain class. The model-defined properties of the base domain class are inherited by this domain class."
                             },
                             "allowedDomainItem": {
-                                "$ref": "#/definitions/QName"
+                                "$ref": "#/definitions/QName",
+                                "description": "An object type QName or datatype object that can be used by dimensions associated with this domain class object. The object type QName is either xbrl:entityObject, xbrl:unitObject, xbrl:memberObject, xbrl:conceptObject or a datatype object QName. In the case of an object type QName, the objects defined in a domain network object with this domain class object as a root must be of this object type QName. In the case of a datatype object QName, this constrains the domain class values to this datatype object"
                             },
                             "properties": {
                                 "type": "array",
@@ -721,9 +763,8 @@
                                     "$ref": "#/definitions/propertyObject"
                                 },
                                 "minItems": 1,
-                                "description": "Additional properties associated with the label.",
-                                "uniqueItems": true,
-                                "minItems": 1
+                                "description": "A set of property objects that specifies model-defined properties associated with the domain class object.",
+                                "uniqueItems": true
                             }
                         },
                         "required": [
@@ -737,14 +778,17 @@
                 },
                 "networks": {
                     "type": "array",
+                    "description": "Set of network objects that define networks of relationships between model objects. Networks are identified by a relationship type and contain ordered relationships.",
                     "items": {
                         "type": "object",
                         "properties": {
                             "name": {
-                                "$ref": "#/definitions/QName"
+                                "$ref": "#/definitions/QName",
+                                "description": "QName that uniquely identifies the network within the XBRL model."
                             },
                             "relationshipTypeName": {
-                                "$ref": "#/definitions/relationshipTypeQName"
+                                "$ref": "#/definitions/relationshipTypeQName",
+                                "description": "QName referencing a relationship type object that defines the type of relationships in this network (e.g., xbrl:parent-child, xbrl:summation-item)."
                             },
                             "relationships": {
                                 "type": "array",
@@ -752,13 +796,16 @@
                                     "type": "object",
                                     "properties": {
                                         "source": {
-                                            "$ref": "#/definitions/SQName"
+                                            "$ref": "#/definitions/SQName",
+                                            "description": "Identifies the source model object QName or SQName reference of the relationship type."
                                         },
                                         "target": {
-                                            "$ref": "#/definitions/SQName"
+                                            "$ref": "#/definitions/SQName",
+                                            "description": "Identifies the target model object QName or SQName reference of the relationship type."
                                         },
                                         "order": {
-                                            "type": "number"
+                                            "type": "number",
+                                            "description": "The order attribute orders the relationships relative to their level in a hierarchy. The order property can be used on any relationship type. If no order attribute is provided the order of their appearance in the set is used as the default. If no order attribute is provided the default order value is zero. This value is used to sort relationships relative to objects that do have an order attribute."
                                         },
                                         "properties": {
                                             "type": "array",
@@ -766,7 +813,7 @@
                                                 "$ref": "#/definitions/propertyObject"
                                             },
                                             "minItems": 1,
-                                            "description": "Additional properties associated with the label.",
+                                            "description": "Additional properties associated with the relationship.",
                                             "uniqueItems": true
                                         }
                                     },
@@ -776,15 +823,17 @@
                                     ],
                                     "additionalProperties": false
                                 },
+                                "description": "The relationship object is a property of either a network or a domain. The relationship object links two objects together with a meaningful relationship. The relationship infers what the relationship between the two objects represents. These relationshipTypes can be defined in the taxonomy or use standard relationship types defined in the XBRL specification.",
                                 "uniqueItems": true,
                                 "minItems": 1
                             },
                             "extends": {
-                                "$ref": "#/definitions/QName"
+                                "$ref": "#/definitions/QName",
+                                "description": "Names the network object that the defined network relationships are appended to. The items in the network with this property are appended to the end of the relationships or roots defined in the target network object. This property cannot be used in conjunction with the relationshipTypeName and name property. The ability to extend a network can be used to add relationship objects, roots and properties to an existing network. The QName MUST resolve to an existing network object."
                             },
                             "isExtensible": {
                                 "type": "boolean",
-                                "description": "Indicates whether the network can be extended by an importing taxonomy. Defaults to true (extensible). Set to false to prevent any importing taxonomy from augmenting this network."
+                                "description": "If set to false, the network is non-extensible and no importing model may augment it using extends. If set to true or omitted, the network may be extended. The default value is true."
                             },
                             "properties": {
                                 "type": "array",
@@ -792,7 +841,7 @@
                                     "$ref": "#/definitions/propertyObject"
                                 },
                                 "minItems": 1,
-                                "description": "Additional properties associated with the label."
+                                "description": "A set of property objects that specifies model-defined properties associated with the network object."
                             }
                         },
                         "oneOf": [
@@ -831,6 +880,7 @@
                 },
                 "entities": {
                     "type": "array",
+                    "description": "Set of entity objects that define legal or reporting entities using scheme-qualified identifiers (SQNames).",
                     "items": {
                         "type": "object",
                         "properties": {
@@ -842,8 +892,7 @@
                                 "items": {
                                     "$ref": "#/definitions/propertyObject"
                                 },
-                                "minItems": 1,
-                                "description": "Additional properties associated with the label.",
+                                "description": "Additional properties associated with the entity.",
                                 "uniqueItems": true,
                                 "minItems": 1
                             }
@@ -862,11 +911,12 @@
                         "$ref": "#/definitions/propertyObject"
                     },
                     "minItems": 1,
-                    "description": "Additional properties associated with the label.",
+                    "description": "Model-defined properties associated with the XBRL model.",
                     "uniqueItems": true
                 },
                 "units": {
                     "type": "array",
+                    "description": "Set of unit objects that define units of measure. Each unit specifies a datatype and optional composite unit representations.",
                     "items": {
                         "type": "object",
                         "properties": {
@@ -883,7 +933,7 @@
                                     "pattern": "^([A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*)(\\*[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*)*$|^([A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*|\\([A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*(\\*[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*)+\\))/([A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*|\\([A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*(\\*[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*)+\\))$",
                                     "description": "A unit string representation as defined in OIM Common §3.4. Must consist only of QNames (prefix:localname), '*' (multiplication), '/' (division), and '()' (grouping parentheses). No whitespace is permitted. Valid forms: a single QName (e.g. 'iso4217:EUR'), QNames joined by '*' (e.g. 'utr:m*utr:m'), or a numerator group '/' denominator group where each group is either a single QName or a parenthesised '*'-separated list of two or more QNames (e.g. 'utr:kg/(utr:m*utr:m)')."
                                 },
-                                "description": "Ordered set of unit string representations equivalent to the defined unit, as defined in OIM Common §3.4.",
+                                "description": "A set of unit string representations that are equivalent to the defined unit. Multiple unit string representations can be defined for a defined unit. For example cubic feet could be represented as two composite unit representations of utr:ft*utr:ft*utr:ft and utr:ft*utr:sqft.",
                                 "uniqueItems": true,
                                 "minItems": 1
                             }
@@ -899,15 +949,18 @@
                 },
                 "groups": {
                     "type": "array",
+                    "description": "Set of group objects that define logical groupings of networks, cubes, and table templates. Groups typically correspond to statements or schedules in a financial disclosure.",
                     "items": {
                         "type": "object",
                         "properties": {
                             "name": {
-                                "$ref": "#/definitions/QName"
+                                "$ref": "#/definitions/groupQName",
+                                "xbrlType": "QName"
                             },
                             "groupURI": {
                                 "type": "string",
-                                "format": "uri"
+                                "format": "uri",
+                                "description": "URI identifying the group, typically corresponding to a statement or schedule role URI in the reporting taxonomy."
                             },
                             "properties": {
                                 "type": "array",
@@ -915,7 +968,7 @@
                                     "$ref": "#/definitions/propertyObject"
                                 },
                                 "minItems": 1,
-                                "description": "Additional properties associated with the label."
+                                "description": "Additional properties associated with the group."
                             }
                         },
                         "required": [
@@ -928,14 +981,17 @@
                 },
                 "groupContents": {
                     "type": "array",
+                    "description": "Set of group content objects that link groups to their constituent networks, cubes, domain networks, and table templates.",
                     "items": {
                         "type": "object",
                         "properties": {
                             "groupName": {
-                                "$ref": "#/definitions/groupQName"
+                                "$ref": "#/definitions/groupQName",
+                                "description": "QName of the group that this content entry belongs to."
                             },
                             "forObject": {
-                                "$ref": "#/definitions/QName"
+                                "$ref": "#/definitions/QName",
+                                "description": "QName of the network, cube, domain network, or table template that is included in the group."
                             },
                             "order": {
                                 "type": "number",
@@ -961,7 +1017,7 @@
                         },
                         "relationships": {
                             "type": "array",
-                            "description": "Ordered set of relationships organizing groups hierarchically. Source can be a xbrlModel or group object, target must be a group object.",
+                            "description": "Set of relationships organizing groups hierarchically. Source can be xbrl:rootSource or a group object, the target must be a group object.",
                             "items": {
                                 "type": "object",
                                 "properties": {
@@ -995,6 +1051,7 @@
                 },
                 "relationshipTypes": {
                     "type": "array",
+                    "description": "Set of relationship type objects that define custom relationship types beyond the standard parent-child, summation-item, and domain-member types.",
                     "items": {
                         "type": "object",
                         "properties": {
@@ -1060,6 +1117,7 @@
                                     "additionalProperties": false
                                 },
                                 "description": "An array of constraint objects, each with a 'constraint' property containing a constraint expression string."
+
                             }
                         },
                         "required": [
@@ -1072,11 +1130,13 @@
                 },
                 "labels": {
                     "type": "array",
+                    "description": "Set of label objects that associate human-readable labels with model objects. Labels are distinguished by type (e.g., standard, documentation, terseLabel) and language.",
                     "items": {
                         "type": "object",
                         "properties": {
                             "forObject": {
-                                "$ref": "#/definitions/SQName"
+                                "$ref": "#/definitions/QName",
+                                "description": "Defines the QName of the object that this label is associated with."
                             },
                             "labelType": {
                                 "$ref": "#/definitions/labelTypeQName"
@@ -1084,7 +1144,7 @@
                             "language": {
                                 "type": "string",
                                 "pattern": "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$",
-                                "description": "[oimte:badlanguage] Language code (BCP 47)."
+                                "description": "Defines the language of the label using a valid BCP 47 language code."
                             },
                             "value": {
                                 "type": "string",
@@ -1104,6 +1164,7 @@
                 },
                 "references": {
                     "type": "array",
+                    "description": "Set of reference objects that associate references (e.g., authoritative citations) with model objects. References are distinguished by type and language.",
                     "items": {
                         "type": "object",
                         "properties": {
@@ -1141,8 +1202,7 @@
                                 },
                                 "minItems": 1,
                                 "description": "Additional properties associated with the reference.",
-                                "uniqueItems": true,
-                                "minItems": 1
+                                "uniqueItems": true
                             }
                         },
                         "oneOf": [
@@ -1199,6 +1259,7 @@
                 },
                 "facts": {
                     "type": "array",
+                    "description": "Set of fact objects that define data points in the taxonomy model. Each fact specifies a concept, dimensions, and either a fact value or a fact value source.",
                     "items": {
                         "type": "object",
                         "properties": {
@@ -1207,6 +1268,7 @@
                             },
                             "factValues": {
                                 "type": "array",
+                                "description": "The fact value object defines the value of a fact object. A fact can have multiple fact values. Each fact value is defined using the value property. The value property can be a literal value or a set of value sources that define how to extract the value from an embedding document.",
                                 "items": {
                                     "type": "object",
                                     "properties": {
@@ -1236,7 +1298,8 @@
                                                     "type": "string",
                                                     "pattern": "INF"
                                                 }
-                                            ]
+                                            ],
+                                            "description": "An integer providing the value of the decimals property, or absent if the value is infinitely precise or not applicable (for nil or non-numeric facts)"
                                         },
                                         "language": {
                                             "type": "string",
@@ -1249,6 +1312,7 @@
                                         },
                                         "transformation": {
                                             "$ref": "#/definitions/QName",
+                                            "xbrlType": "transformationQName",
                                             "description": "QName of a transformation to apply to extracted source text (e.g. locale date conversion). Applied to all valueSources entries unless overridden."
                                         },
                                         "scale": {
@@ -1315,21 +1379,25 @@
                                         "$ref": "#/definitions/conceptQName"
                                     },
                                     "xbrl:entity": {
-                                        "$ref": "#/definitions/SQName"
+                                        "$ref": "#/definitions/SQName",
+                                        "description": "SQName of the entity identifier for this fact."
                                     },
                                     "xbrl:unit": {
                                         "oneOf": [
                                             {
                                                 "type": "string",
-                                                "pattern": ".*(\\*|/).*"
+                                                "pattern": ".*(\\*|/).*",
+                                                "description": "String representation of the unit such as xbrlr:length * xbrlr:length."
                                             },
                                             {
-                                                "$ref": "#/definitions/unitQName"
+                                                "$ref": "#/definitions/unitQName",
+                                                "description": "The unit QName of the unit."
                                             }
                                         ]
                                     },
                                     "xbrl:period": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "description": "The xbrl:period is a time interval as defined in ISO 8601. The time interval MAY be zero-length (i.e. start and end at the same instant), denoting an instant in time."
                                     }
                                 },
                                 "patternProperties": {
@@ -1346,6 +1414,7 @@
                                             }
                                         ]
                                     }
+                                   
                                 },
                                 "additionalProperties": false,
                                 "required": [
@@ -1378,7 +1447,7 @@
                                     "$ref": "#/definitions/propertyObject"
                                 },
                                 "minItems": 1,
-                                "description": "Additional properties associated with the label.",
+                                "description": "Additional properties associated with the fact.",
                                 "uniqueItems": true
                             },
                             "extends": {
@@ -1425,20 +1494,26 @@
                 },
                 "factSources": {
                     "type": "array",
+                    "description": "Set of fact source objects that bind fact maps to specific data sources (e.g., CSV files) for generating fact objects.",
                     "items": {
                         "type": "object",
                         "properties": {
                             "name": {
-                                "$ref": "#/definitions/QName"
+                                "$ref": "#/definitions/QName",
+                                "description": "QName of the fact source object."
                             },
                             "factMapName": {
-                                "$ref": "#/definitions/QName"
+                                "$ref": "#/definitions/QName",
+                                "xbrlType": "factMapQName",
+                                "description": "QName that references a fact map object."
                             },
                             "cubeName": {
-                                "$ref": "#/definitions/cubeQName"
+                                "$ref": "#/definitions/cubeQName",
+                                "description": "The cubeName is a QName that references a cube object. When provided, only facts that fall within the dimensional space of the cube are included in the result; facts with no dimensional membership in the cube are excluded. Constraints defined on the cube are applied to the generated facts. When omitted, facts are generated for the entire model without cube filtering. Multiple fact source objects can reference the same factMapName with different cubeName values, allowing the same template to define fact objects from the same data file, based on a different referenced cube. Multiple fact source objects can also reference the same cube, allowing facts from different data files to define different facts that are included in a single cube. The cube definition can be used to control how facts are validated based on the native format."
                             },
                             "namespaceMaps": {
                                 "type": "array",
+                                "description": "The namespaceMap object defines a redirection from one namespace to another namespace. This maps the namespaces of a data source to the namespaces defined in the taxonomy model.",
                                 "items": {
                                     "type": "object",
                                     "properties": {
@@ -1536,6 +1611,7 @@
                 },
                 "factMaps": {
                     "type": "array",
+                    "description": "Set of fact map objects that define how source data is mapped to fact properties. Fact maps specify dimension mappings, value mappings, and nil reason mappings.",
                     "items": {
                         "type": "object",
                         "properties": {
@@ -1543,10 +1619,14 @@
                                 "$ref": "#/definitions/QName"
                             },
                             "templateName": {
-                                "$ref": "#/definitions/QName"
+                                "$ref": "#/definitions/QName",
+                                "xbrlType": "templateQName",
+                                "description": "The templateName is a QName that references a template object, such as a table template."
                             },
                             "factLocatorType": {
-                                "$ref": "#/definitions/QName"
+                                "$ref": "#/definitions/QName",
+                                "xbrlType": "factLocatorTypeQName",
+                                "description": "A QName identifying the fact locator type object that provides the default locatorType for all fact value objects that reference this fact map via a fact source object. When present on the factMap entry, it overrides the need to specify locatorType on each individual factValue."
                             }
                         },
                         "required": [
@@ -1559,6 +1639,7 @@
                 },
                 "tableTemplates": {
                     "type": "array",
+                    "description": "Set of table template objects that define tabular structures for mapping CSV data to XBRL facts. Table templates specify headers, axes, and default dimension values.",
                     "items": {
                         "type": "object",
                         "properties": {
@@ -1566,7 +1647,8 @@
                                 "$ref": "#/definitions/QName"
                             },
                             "rowIdColumn": {
-                                "type": "string"
+                                "type": "string",
+                                "description": "An identifier specifying the name of the row ID column. "
                             },
                             "columns": {
                                 "type": "array",
@@ -1574,7 +1656,8 @@
                                     "type": "object",
                                     "properties": {
                                         "columnName": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "description": "The name of the column."
                                         },
                                         "factDimensions": {
                                             "type": "object",
@@ -1598,7 +1681,8 @@
                                                         },
                                                         {
                                                             "type": "string",
-                                                            "pattern": "^\\$.*"
+                                                            "pattern": "^\\$.*",
+                                                            "description": "A variable starting with a $ to represent the value of a column in the table template representing an entity. The variable name must match the columnName of a column in the table template."
                                                         }
                                                     ]
                                                 },
@@ -1613,7 +1697,8 @@
                                                         },
                                                         {
                                                             "type": "string",
-                                                            "pattern": "^\\$.*"
+                                                            "pattern": "^\\$.*",
+                                                            "description": "A variable starting with a $ to represent the value of a column in the table template representing a unit. The variable name must match the columnName of a column in the table template."
                                                         }
                                                     ]
                                                 },
@@ -1656,10 +1741,13 @@
                                                     "type": "string",
                                                     "pattern": "INF"
                                                 }
-                                            ]
+                                            ],
+                                            "description": "An integer providing the value of the decimals property, or absent if the value is infinitely precise or not applicable (for nil or non-numeric facts)"
                                         },
                                         "transformation": {
-                                            "$ref": "#/definitions/QName"
+                                            "$ref": "#/definitions/QName",
+                                            "xbrlType": "transformationQName",
+                                            "description": "QName of a transformation to apply to extracted source text (e.g. locale date conversion)."
                                         },
                                         "order": {
                                             "type": "number",
@@ -1671,6 +1759,7 @@
                                     ],
                                     "additionalProperties": false
                                 },
+                                "description": "The column object defines a column in a table template. Each column object specifies the name of the column, the decimals if numeric, the fact dimensions associated with the column and any transform to be performed on the data in the column.",
                                 "minItems": 1
                             },
                             "factDimensions": {
@@ -1684,7 +1773,8 @@
                                             },
                                             {
                                                 "type": "string",
-                                                "pattern": "^\\$.*"
+                                                "pattern": "^\\$.*",
+                                                "description": "A variable starting with a $ to represent the value of a column in the table template representing a concept. The variable name must match the columnName of a column in the table template."
                                             }
                                         ]
                                     },
@@ -1695,7 +1785,8 @@
                                             },
                                             {
                                                 "type": "string",
-                                                "pattern": "^\\$.*"
+                                                "pattern": "^\\$.*",
+                                                "description": "A variable starting with a $ to represent the value of a column in the table template representing an entity. The variable name must match the columnName of a column in the table template."
                                             }
                                         ]
                                     },
@@ -1710,7 +1801,8 @@
                                             },
                                             {
                                                 "type": "string",
-                                                "pattern": "^\\$.*"
+                                                "pattern": "^\\$.*",
+                                                "description": "A variable starting with a $ to represent the value of a column in the table template representing a unit. The variable name must match the columnName of a column in the table template."
                                             }
                                         ]
                                     },
@@ -1764,6 +1856,7 @@
                 },
                 "JSONTemplateMaps": {
                     "type": "array",
+                    "description": "Set of JSON template map objects that define mappings from JSON data formats to XBRL fact objects.",
                     "items": {
                         "type": "object",
                         "properties": {
@@ -1843,6 +1936,7 @@
                 },
                 "XMLTemplateMaps": {
                     "type": "array",
+                    "description": "Set of XML template map objects that define mappings from XML data formats to XBRL fact objects.",
                     "items": {
                         "type": "object",
                         "properties": {
@@ -1922,6 +2016,7 @@
                 },
                 "footnotes": {
                     "type": "array",
+                    "description": "Set of footnote objects that provide explanatory annotations linked to facts or relationships.",
                     "items": {
                         "type": "object",
                         "properties": {
@@ -1963,6 +2058,7 @@
                 },
                 "labelTypes": {
                     "type": "array",
+                    "description": "Set of label type objects that define the types of labels used in the taxonomy, including the content format and the object types to which labels can be applied.",
                     "items": {
                         "type": "object",
                         "properties": {
@@ -2000,7 +2096,7 @@
                                 "items": {
                                     "$ref": "#/definitions/QName"
                                 },
-                                "description": "Ordered set of object types that can use the labelType.",
+                                "description": "A set of object type QNames defining the object type that labels of this type can be applied to. If omitted, the label object may be used with any referenceable object types.",
                                 "uniqueItems": true,
                                 "minItems": 1
                             }
@@ -2016,6 +2112,7 @@
                 },
                 "referenceTypes": {
                     "type": "array",
+                    "description": "Set of reference type objects that define the types of references used in the taxonomy, including required and ordered properties.",
                     "items": {
                         "type": "object",
                         "properties": {
@@ -2032,7 +2129,7 @@
                                 "items": {
                                     "$ref": "#/definitions/QName"
                                 },
-                                "description": "Ordered set of object types that can use the referenceType.",
+                                "description": "Defines a set of object type QNames representing the referenceable object types that may use the referenceType.",
                                 "uniqueItems": true,
                                 "minItems": 1
                             },
@@ -2041,14 +2138,14 @@
                                 "items": {
                                     "$ref": "#/definitions/QName"
                                 },
-                                "description": "Ordered set of property QNames that can be used with the reference."
+                                "description": "Defines an ordered set of property type object QNames that can be used with the reference. This order determines the order in which properties in the reference are displayed or appear. Properties defined on the reference but not in the ordered properties set appear at the end in alphabetical order of the local name of the property."
                             },
                             "requiredProperties": {
                                 "type": "array",
                                 "items": {
                                     "$ref": "#/definitions/QName"
                                 },
-                                "description": "Ordered set of property QNames that must be included within a defined reference type.",
+                                "description": "Defines a set of property type object QNames that must be included within a defined reference type.",
                                 "minItems": 1
                             }
                         },
@@ -2071,6 +2168,7 @@
                 },
                 "modelTypes": {
                     "type": "array",
+                    "description": "Set of model type objects that define custom object types and their allowed properties for use in the taxonomy model.",
                     "items": {
                         "type": "object",
                         "properties": {
@@ -2115,6 +2213,7 @@
                 },
                 "cubeTypes": {
                     "type": "array",
+                    "description": "Set of cube type objects that define custom cube types with specific dimension constraints and allowed dimension configurations.",
                     "items": {
                         "type": "object",
                         "properties": {
@@ -2305,6 +2404,7 @@
                 },
                 "dataTypes": {
                     "type": "array",
+                    "description": "Set of datatype objects that define custom datatypes for use in concepts and dimensions, specifying base types and validation rules.",
                     "items": {
                         "type": "object",
                         "properties": {
@@ -2403,7 +2503,7 @@
                             },
                             "allowedObjects": {
                                 "type": "array",
-                                "description": "Ordered set of QNames of objects that can use this datatype.",
+                                "description": "Set of object type QNames where the datatype can be used as the value of the dataType property. If this property is omitted, the datatype can be used with any object that has a dataType property. The allowed objects are limited to xbrl:conceptObject, xbrl:domainClassObject, xbrl:cubeDimension, xbrl:unitObject, xbrl:transformObject, xbrl:collectionTypeObject, xbrl:propertyTypeObject, xbrl:dimensionConstraintObject, xbrl:impliedObject, or xbrl:cubeNetworkConstraintObject.",
                                 "items": {
                                     "$ref": "#/definitions/QName"
                                 },
@@ -2412,7 +2512,7 @@
                             },
                             "checksumAlgorithm": {
                                 "$ref": "#/definitions/QName",
-                                "description": "Optional QName that MUST resolve to a xbrl:memberObject identifying a checksum algorithm used to validate string values or the local-name portion of QName-based values (e.g. xbrl:iso7064-Mod-97-10 for ISO 17442 LEI validation)."
+                                "description": "A QName that resolves to a member object identifying a checksum algorithm to apply when validating values of this type. When this property is present on a datatype referenced by an implied Objects dataType property, the algorithm is applied to the local-name portion of any QName that resolves to that implied object."
                             }
                         },
                         "required": [
@@ -2486,7 +2586,7 @@
                                 },
                                 "uniqueItems": true,
                                 "minItems": 1,
-                                "description": "Ordered set of preferred prefixes, most preferred first."
+                                "description": "An ordered set of preferred prefix xs:NCName for the namespace. The first item is the preferred prefix."
                             }
                         },
                         "required": [
@@ -2539,6 +2639,7 @@
                 },
                 "transforms": {
                     "type": "array",
+                    "description": "Set of transform objects that define data transformations for converting values between datatypes during fact mapping.",
                     "items": {
                         "type": "object",
                         "properties": {
@@ -2564,6 +2665,7 @@
                 },
                 "layouts": {
                     "type": "array",
+                    "description": "Set of layout objects that define visual presentation layouts for displaying taxonomy data in structured formats.",
                     "items": {
                         "type": "object",
                         "name": {
@@ -2640,12 +2742,15 @@
     },
     "definitions": {
         "propertyObject": {
+            "description": "The property object instantiates a model-defined property. The property value is constrained by the datatype of the property type object, which may be a scalar type or a collection type object. The property type object may also restrict the object types that a property can be used with.",
             "type": "object",
             "properties": {
                 "property": {
                     "$ref": "#/definitions/propertyTypeQName"
                 },
-                "value": {}
+                "value": {
+                    "description": "The value of the property. The expected type depends on the property's dataType — may be a string, number, boolean, array, or object."
+                }
             },
             "required": [
                 "property",
@@ -2778,6 +2883,7 @@
             ]
         },
         "axisObject": {
+            "description": "The axis object defines the dimensions associated with an axis, the labels that are used on the axis, and links the order of items on the axis to networks defined in the model.",
             "type": "object",
             "properties": {
                 "axisHeaders": {
@@ -2882,6 +2988,7 @@
             "additionalProperties": false
         },
         "axisHeaderObject": {
+            "description": "The axis header object defines the dimensions and labels for a specific header on an axis. An axisHeader object specifies a dimension, its members, and how they should be displayed.",
             "type": "object",
             "properties": {
                 "dimensionName": {
@@ -3228,84 +3335,104 @@
         },
         "QName": {
             "type": "string",
+            "xbrlType": "QName",
             "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z_][A-Za-z0-9_.-]*$",
             "description": "QName that uniquely identifies the object."
         },
         "dataTypeQName": {
             "$ref": "#/definitions/QName",
+            "xbrlType": "dataTypeQName",
             "description": "QName that references a dataType object or collectionType object. Must reference either a built-in XML Schema datatype (xs:*), a custom dataType defined in the xbrlModel, or a collectionType object defined in the xbrlModel."
         },
         "conceptQName": {
             "$ref": "#/definitions/QName",
+            "xbrlType": "conceptQName",
             "description": "QName that references a concept object defined in the xbrlModel."
         },
         "dimensionQName": {
             "$ref": "#/definitions/QName",
+            "xbrlType": "dimensionQName",
             "description": "QName that references a dimension object. May reference built-in dimensions (xbrl:concept, xbrl:period, xbrl:entity, xbrl:unit, xbrl:language, xbrl:noteId) or taxonomy-defined dimensions."
         },
         "domainNetworkQName": {
             "$ref": "#/definitions/QName",
+            "xbrlType": "domainNetworkQName",
             "description": "QName that references a domain network object defined in the xbrlModel."
         },
         "domainClassQName": {
             "$ref": "#/definitions/QName",
+            "xbrlType": "domainClassQName",
             "description": "QName that references a domainClass object defined in the xbrlModel."
         },
         "cubeQName": {
             "$ref": "#/definitions/QName",
+            "xbrlType": "cubeQName",
             "description": "QName that references a cube object defined in the xbrlModel."
         },
         "cubeTypeQName": {
             "$ref": "#/definitions/QName",
+            "xbrlType": "cubeTypeQName",
             "description": "QName that references a cubeType object defined in the xbrlModel."
         },
         "modelTypeQName": {
             "$ref": "#/definitions/QName",
+            "xbrlType": "modelTypeQName",
             "description": "QName that references a modelType object defined in the xbrlModel."
         },
         "networkQName": {
             "$ref": "#/definitions/QName",
+            "xbrlType": "networkQName",
             "description": "QName that references a network object defined in the xbrlModel."
         },
         "relationshipTypeQName": {
             "$ref": "#/definitions/QName",
+            "xbrlType": "relationshipTypeQName",
             "description": "QName that references a relationshipType object defined in the xbrlModel."
         },
         "labelTypeQName": {
             "$ref": "#/definitions/QName",
+            "xbrlType": "labelTypeQName",
             "description": "QName that references a labelType object defined in the xbrlModel."
         },
         "referenceTypeQName": {
             "$ref": "#/definitions/QName",
+            "xbrlType": "referenceTypeQName",
             "description": "QName that references a referenceType object defined in the xbrlModel."
         },
         "propertyTypeQName": {
             "$ref": "#/definitions/QName",
+            "xbrlType": "propertyTypeQName",
             "description": "QName that references a propertyType object defined in the xbrlModel."
         },
         "groupQName": {
             "$ref": "#/definitions/QName",
+            "xbrlType": "groupQName",
             "description": "QName that references a group object defined in the xbrlModel."
         },
         "xbrlModelQName": {
             "$ref": "#/definitions/QName",
+            "xbrlType": "xbrlModelQName",
             "description": "QName that references a xbrlModel object."
         },
         "unitQName": {
             "$ref": "#/definitions/QName",
+            "xbrlType": "unitQName",
             "description": "QName that references a unit object defined in the xbrlModel."
         },
         "footnoteTypeQName": {
             "$ref": "#/definitions/QName",
+            "xbrlType": "footnoteTypeQName",
             "description": "QName that references a footnoteType object defined in the xbrlModel."
         },
         "relationshipConstraint": {
             "type": "string",
+            "xbrlType": "relationshipConstraint",
             "pattern": "^relationship\\.(source|target|property|properties)(?:\\.[A-Za-z_][A-Za-z0-9_]*(?::[A-Za-z_][A-Za-z0-9_]*)?)*\\s*(==|!=|>=|<=|>|<)\\s*[^=<>!()]+(?:\\s*(AND|OR|NOT)\\s*relationship\\.(source|target|property|properties)(?:\\.[A-Za-z_][A-Za-z0-9_]*(?::[A-Za-z_][A-Za-z0-9_]*)?)*\\s*(==|!=|>=|<=|>|<)\\s*[^=<>!()]+)*$",
             "description": "A constraint expression string as defined in the specification (oim-taxonomy.md), expressing boolean logic over properties of the source, target, and relationship."
         },
         "SQName": {
             "type": "string",
+            "xbrlType": "SQName",
             "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*:[A-Za-z0-9_.-]+$",
             "description": "QName that uniquely identifies the object."
         },
@@ -3383,7 +3510,8 @@
                         "where"
                     ]
                 }
-            ]
+            ],
+            "description": "Specifies a set of structured select objects that define the objects to be included in the import. Each select statement specifies the objects to be selected from the XBRL Model. The select statements can include object names, types, and properties."
         },
         "dateResolutionObject": {
             "type": "object",
