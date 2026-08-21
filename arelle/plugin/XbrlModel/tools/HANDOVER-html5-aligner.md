@@ -214,9 +214,20 @@ unlocated ........... 275
 - **`phrase=0`.** The phrase-locate stage placed nothing, though 275 facts
   reached it unmapped, where on L'Oréal it recovered the sub-MCID cases.
 - **`pdfBBox` outnumbers `pdfMcid` 1161 to 364** on a properly Acrobat-tagged PDF
-  whose MCIDs extract cleanly. The row-granular path appears to prefer a
-  rectangle even where a marked-content id was available; an MCID is the stabler
-  address.
+  whose MCIDs extract cleanly. An MCID is the stabler address, so the ratio is
+  worth understanding.
+
+**Provenance of these two, stated plainly.** They are read off the tool's own
+summary line by the tagger session, which ran `alignFactsToPdf.py` once against
+this corpus and did not open its internals. An earlier draft of this note said
+"the row-granular path appears to prefer a rectangle even where a marked-content
+id was available" — that was an inference from the counts, not something observed
+in the code, and it is withdrawn here so it is not mistaken for a diagnosis. The
+counts are reliable; any mechanism behind them is not yet established.
+
+Nothing else about the row-granular strategy is known to this session, so there
+is no lost-to-compaction context to recover on that point — there was none to
+begin with.
 
 84% here against 100% on L'Oréal and 98% on the SEC N-CSRs.
 
