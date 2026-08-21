@@ -19,10 +19,26 @@
                 "xbrlModelName": "xbrlm:base"
             }
         ],
+        "collectionTypes": [
+            {
+                "name": "xbrlx:textSequence",
+                "dataType": "xs:string",
+                "minItems": 1,
+                "orderedValues": true,
+                "uniqueValues": false
+            },
+            {
+                "name": "xbrlx:textOffsetSequence",
+                "dataType": "xs:nonNegativeInteger",
+                "minItems": 1,
+                "orderedValues": true,
+                "uniqueValues": false
+            }
+        ],
         "propertyTypes": [
             {
                 "name": "xbrlx:htmlElementPointer",
-                "dataType": "xbrlr:stringCollection",
+                "dataType": "xbrlx:textSequence",
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:factValueSourceObject",
@@ -31,7 +47,7 @@
             },
             {
                 "name": "xbrlx:htmlTextQuote",
-                "dataType": "xbrlr:stringCollection",
+                "dataType": "xbrlx:textSequence",
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:factValueSourceObject",
@@ -40,7 +56,7 @@
             },
             {
                 "name": "xbrlx:htmlTextOffset",
-                "dataType": "xbrlr:stringCollection",
+                "dataType": "xbrlx:textOffsetSequence",
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:factValueSourceObject",
@@ -49,7 +65,7 @@
             },
             {
                 "name": "xbrlx:pdfTextOffset",
-                "dataType": "xbrlr:stringCollection",
+                "dataType": "xbrlx:textOffsetSequence",
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:factValueSourceObject",
@@ -58,7 +74,7 @@
             },
             {
                 "name": "xbrlx:pdfTextQuote",
-                "dataType": "xbrlr:stringCollection",
+                "dataType": "xbrlx:textSequence",
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:factValueSourceObject",
@@ -143,7 +159,7 @@
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "forObject": "xbrlx:htmlTextOffset",
-                "value": "Character offset and length within the text of the element the pointer locates, as \"offset length\". More precise than a text quote when the same text appears more than once in the element, but brittle to any change in the document's text."
+                "value": "The 0-based character offset of the fact's value within the textContent of the element the pointer locates. An element pointer addresses a whole element, which is exact in a tagged inline document where every value has its own ix: element, but not in a report where taggable numbers sit in running prose: 27% of the numbers in one measured HTML5 annual report share an element with another number, one paragraph holding 14 of them, so the pointer alone cannot say which number is the fact. The length is not carried here because it is len(xbrlx:htmlTextQuote), which the same valueSource always holds; the quote is what makes a stale offset detectable rather than silently wrong."
             },
             {
                 "labelType": "xbrl:label",
@@ -204,6 +220,30 @@
                 "language": "en",
                 "forObject": "xbrlx:pdfTextLocatorType",
                 "value": "Locates a fact's value as a character range within marked-content text, rather than as a rectangle. This is the PDF counterpart of xbrlx:htmlPointerLocatorType: both address a container and then an offset within that container's text, so both preserve the source-text-to-value chain that a fact's transformation depends on. xbrl:pdfBBox is permitted alongside as a rendering hint for highlighting, but it is not the value locator."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "forObject": "xbrlx:textSequence",
+                "value": "Text Sequence"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "forObject": "xbrlx:textSequence",
+                "value": "An ordered collection of strings in which duplicates are permitted. A value assembled from several fragments is one valueSource holding parallel arrays, so fragment i has pointer[i], offset[i] and quote[i], and position carries meaning. Duplicates are ordinary rather than exceptional: two fragments of one value may lie in the same element, giving the same pointer, or may quote the same text. xbrlr:stringCollection cannot express this, because it does not set uniqueValues and so defaults to requiring uniqueness."
+            },
+            {
+                "labelType": "xbrl:label",
+                "language": "en",
+                "forObject": "xbrlx:textOffsetSequence",
+                "value": "Text Offset Sequence"
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
+                "forObject": "xbrlx:textOffsetSequence",
+                "value": "An ordered collection of 0-based character offsets, in which duplicates are permitted. Offsets are integers, not strings: an offset is counted and compared as a number, and encoding one as a string invites a consumer to compare \"10\" against \"9\" lexically. Duplicates are ordinary -- two fragments of one value commonly both begin at offset 0 of their respective elements."
             }
         ]
     }

@@ -1629,7 +1629,11 @@ def _rewriteHtml5(factsDoc, perFV, runsByFV, tgt, idIndex, targetBasename):
                     pointers = []
                     break
                 pointers.append(pointer)
-                offsets.append(str(a))
+                # an integer, not str(a): xbrlx:htmlTextOffset is declared
+                # xbrlx:textOffsetSequence over xs:nonNegativeInteger, because an
+                # offset is counted and compared as a number. Encoded as a string
+                # it invites a consumer to compare "10" against "9" lexically.
+                offsets.append(a)
                 quotes.append(tgt.ownerText[id(el)][a:b])
             if not pointers:
                 stats["unmapped"] += 1
