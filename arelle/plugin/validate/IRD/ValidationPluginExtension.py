@@ -228,6 +228,7 @@ class ValidationPluginExtension(ValidationPlugin):
             bir51ExclusiveQns=bir51Exclusive,
 
             # identifiers & basis period
+            companyNameQn=tcQn("CompanyName"),
             basisPeriodStartDateQn=tcQn("BasisPeriodStartDate"),
             basisPeriodEndDateQn=tcQn("BasisPeriodEndDate"),
 
