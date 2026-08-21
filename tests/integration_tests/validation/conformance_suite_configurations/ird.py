@@ -13,6 +13,7 @@ config = ConformanceSuiteConfig(
         ),
     ],
     base_taxonomy_validation="none",
+    disclosure_system="ird-2025-draft",
     expected_failure_ids=frozenset({
         # Not implemented
         "553-E-0467-unknown-entrypoint_invalid_testcase.xml:553-E-0467-unknown-entrypoint_invalid",
@@ -21,12 +22,6 @@ config = ConformanceSuiteConfig(
         "553-E-0470_invalid_testcase.xml:553-E-0470_invalid",
         "553-E-0498_invalid_testcase.xml:553-E-0498_invalid",
         "553-E-0535_invalid_testcase.xml:553-E-0535_invalid",
-        "NVAD-E-0010_invalid_testcase.xml:NVAD-E-0010_invalid",
-        "NVAD-E-0020_invalid_testcase.xml:NVAD-E-0020_invalid",
-        "NVAD-E-0021_invalid_testcase.xml:NVAD-E-0021_invalid",
-        "NVAD-E-0030_invalid_testcase.xml:NVAD-E-0030_invalid",
-        "NVAD-E-0050-bir52_invalid_testcase.xml:NVAD-E-0050-bir52_invalid",
-        "NVAD-E-0050_invalid_testcase.xml:NVAD-E-0050_invalid",
         "NVAD-E-0060-fullname_invalid_testcase.xml:NVAD-E-0060-fullname_invalid",
         "NVAD-E-0060_invalid_testcase.xml:NVAD-E-0060_invalid",
         "NVAD-E-0070_invalid_testcase.xml:NVAD-E-0070_invalid",
@@ -45,10 +40,6 @@ config = ConformanceSuiteConfig(
         "NVAD-E-0130_invalid_testcase.xml:NVAD-E-0130_invalid",
         "NVAD-E-0140_invalid_testcase.xml:NVAD-E-0140_invalid",
         "NVAD-E-0150_invalid_testcase.xml:NVAD-E-0150_invalid",
-        "NVAD-E-0170_invalid_testcase.xml:NVAD-E-0170_invalid",
-        "NVAD-E-0180-length_invalid_testcase.xml:NVAD-E-0180-length_invalid",
-        "NVAD-E-0180_invalid_testcase.xml:NVAD-E-0180_invalid",
-        "NVAD-E-0190_invalid_testcase.xml:NVAD-E-0190_invalid",
         "NVAD-E-0240_invalid_testcase.xml:NVAD-E-0240_invalid",
         "NVAD-E-0260_invalid_testcase.xml:NVAD-E-0260_invalid",
         "NVAD-E-0270_invalid_testcase.xml:NVAD-E-0270_invalid",
@@ -139,5 +130,5 @@ config = ConformanceSuiteConfig(
     }),
     info_url="https://www.ird.gov.hk/eng/tax/bus_ixbrl.htm",
     name=PurePath(__file__).stem,
-    plugins=frozenset({"inlineXbrlDocumentSet"}),
+    plugins=frozenset({"validate/IRD", "inlineXbrlDocumentSet"}),
 )
