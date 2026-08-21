@@ -32,6 +32,8 @@ class PluginValidationDataExtension(PluginData):
     validTcEntryPoints: frozenset[str]
     validFsEntryPoints: frozenset[str]
     validFsPeEntryPoints: frozenset[str]
+    latestVersionDate: str
+    releasedVersionDates: frozenset[str]
 
     assessmentYear: int
 

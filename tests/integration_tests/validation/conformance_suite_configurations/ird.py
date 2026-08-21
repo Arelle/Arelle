@@ -15,6 +15,20 @@ config = ConformanceSuiteConfig(
     base_taxonomy_validation="none",
     disclosure_system="ird-2025-draft",
     expected_additional_testcase_errors={f"*{s}": val for s, val in {
+        # Invalid schema reference points to non-existent file, causing
+        # "Instance fact missing schema definition" for 103 facts
+        "553-E-0468_invalid_testcase.xml:553-E-0468_invalid": {
+            "IOerror": 1,  # Note that this will fire as FileNotLoadable when running in online mode
+            "ix11.12.1.2:missingReferences": 103,
+        },
+        "553-E-0470_invalid_testcase.xml:553-E-0470_invalid": {
+            "IOerror": 1,
+            "ix11.12.1.2:missingReferences": 103,
+        },
+        "553-E-0498_invalid_testcase.xml:553-E-0498_invalid": {
+            "IOerror": 1,
+            "ix11.12.1.2:missingReferences": 103,
+        },
         "NVAD-E-0420_invalid_testcase.xml:NVAD-E-0420_invalid": {
             # 2 total missing mandatory facts, conformance suites expects 1
             "IRD.NVAD-E-0050": 1,
@@ -27,15 +41,6 @@ config = ConformanceSuiteConfig(
             "ix11.10.1.2:nonFractionNegative": 1,
         },
     }.items()},
-    expected_failure_ids=frozenset({
-        # Not implemented
-        "553-E-0467-unknown-entrypoint_invalid_testcase.xml:553-E-0467-unknown-entrypoint_invalid",
-        "553-E-0467_invalid_testcase.xml:553-E-0467_invalid",
-        "553-E-0468_invalid_testcase.xml:553-E-0468_invalid",
-        "553-E-0470_invalid_testcase.xml:553-E-0470_invalid",
-        "553-E-0498_invalid_testcase.xml:553-E-0498_invalid",
-        "553-E-0535_invalid_testcase.xml:553-E-0535_invalid",
-    }),
     info_url="https://www.ird.gov.hk/eng/tax/bus_ixbrl.htm",
     name=PurePath(__file__).stem,
     plugins=frozenset({"validate/IRD", "inlineXbrlDocumentSet"}),
