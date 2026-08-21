@@ -229,6 +229,8 @@ class ValidationPluginExtension(ValidationPlugin):
 
             # identifiers & basis period
             companyNameQn=tcQn("CompanyName"),
+            irdFileNumberQn=tcQn("IRDFileNumber"),
+            yearOfAssessmentQn=tcQn("YearOfAssessment"),
             basisPeriodStartDateQn=tcQn("BasisPeriodStartDate"),
             basisPeriodEndDateQn=tcQn("BasisPeriodEndDate"),
 
@@ -236,4 +238,10 @@ class ValidationPluginExtension(ValidationPlugin):
             hksicCodeQn=tcQn("HongKongStandardIndustrialClassificationCode"),
             hksicCodeRegex=re.compile(r"^\d{6}$"),
             validHksicCodes=validHksic,
+
+            # regexes
+            irdFileNumberRegex=re.compile(r"^\d{2}/\d{8}$"),
+            yearOfAssessmentRegex=re.compile(r"^20(\d{2})/(\d{2})$"),
+
+            assessmentYear=2025,
         )
