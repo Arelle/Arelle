@@ -124,6 +124,16 @@ def hasNonNillFact(
     return False
 
 
+def hasFalseValueFactByQname(
+        modelXbrl: ModelXbrl,
+        qname: QName,
+) -> bool:
+    """
+    Returns True if any fact with the given concept QName is tagged with a False value.
+    """
+    return any(f.xValue is False for f in iterValidNonNilFactsByQname(modelXbrl, qname))
+
+
 def hasTrueValueFactByQname(
         modelXbrl: ModelXbrl,
         qname: QName,
