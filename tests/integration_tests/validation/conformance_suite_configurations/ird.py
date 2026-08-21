@@ -23,6 +23,9 @@ config = ConformanceSuiteConfig(
             # 4 total missing mandatory facts, conformance suites expects 1
             "IRD.NVAD-E-0050": 3,
         },
+        "NVAD-E-1270-negative_invalid_testcase.xml:NVAD-E-1270-negative_invalid": {
+            "ix11.10.1.2:nonFractionNegative": 1,
+        },
     }.items()},
     expected_failure_ids=frozenset({
         # Not implemented
@@ -57,19 +60,6 @@ config = ConformanceSuiteConfig(
         "NVAD-E-1070_invalid_testcase.xml:NVAD-E-1070_invalid",
         "NVAD-E-1080_invalid_testcase.xml:NVAD-E-1080_invalid",
         "NVAD-E-1081_invalid_testcase.xml:NVAD-E-1081_invalid",
-        "NVAD-E-1151_invalid_testcase.xml:NVAD-E-1151_invalid",
-        "NVAD-E-1152_invalid_testcase.xml:NVAD-E-1152_invalid",
-        "NVAD-E-1210_invalid_testcase.xml:NVAD-E-1210_invalid",
-        "NVAD-E-1220_invalid_testcase.xml:NVAD-E-1220_invalid",
-        "NVAD-E-1230_invalid_testcase.xml:NVAD-E-1230_invalid",
-        "NVAD-E-1240-hkid_invalid_testcase.xml:NVAD-E-1240-hkid_invalid",
-        "NVAD-E-1240_invalid_testcase.xml:NVAD-E-1240_invalid",
-        "NVAD-E-1250_invalid_testcase.xml:NVAD-E-1250_invalid",
-        "NVAD-E-1251_invalid_testcase.xml:NVAD-E-1251_invalid",
-        "NVAD-E-1260_invalid_testcase.xml:NVAD-E-1260_invalid",
-        "NVAD-E-1270-negative_invalid_testcase.xml:NVAD-E-1270-negative_invalid",
-        "NVAD-E-1270_invalid_testcase.xml:NVAD-E-1270_invalid",
-        "NVAD-E-1280_invalid_testcase.xml:NVAD-E-1280_invalid",
         "NVAD-E-1290_invalid_testcase.xml:NVAD-E-1290_invalid",
         "NVAD-E-1291-bir52_invalid_testcase.xml:NVAD-E-1291-bir52_invalid",
         "NVAD-E-1291_invalid_testcase.xml:NVAD-E-1291_invalid",

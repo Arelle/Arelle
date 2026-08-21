@@ -204,6 +204,16 @@ class ValidationPluginExtension(ValidationPlugin):
             tcQn("MandatoryContributionsMadeForProprietorOrPartners"),
         ])
 
+        # Per-partner mandatory elements (NVAD-E-1210)
+        mandatoryPartner = frozenset([
+            tcQn("BIR52ProprietorPartnerFullName"),
+            tcQn("BIR52ProprietorPartnerPrecedentPartner"),
+            tcQn("BIR52ProprietorPartnerPersonalAssessment"),
+            tcQn("BIR52ProprietorPartnerProfitLossSharingRatio"),
+            tcQn("BIR52ProprietorPartnerAllocationOfAssessableProfitsAdjustedLoss"),
+            tcQn("BIR52ProprietorPartnerMPF"),
+        ])
+
         # hksic_codes.json sourced from "The IRD iXBRL Data Preparation Tools" Mac version source.
         # Download latest version from https://www.ird.gov.hk/eng/tax/bus_ixbrl_materials.htm
         # Locate file at "IRD iXBRL Data Preparation Tools.app/Contents/Resources/resources/HSID.json"
@@ -296,6 +306,20 @@ class ValidationPluginExtension(ValidationPlugin):
             familyOwnedSpeQn=tcQn("FamilyOwnedSpecialPurposeEntityInWhichAnEligibleFamilyOwnedInvestmentHoldingVehicleHasBeneficialInterest"),
             profitsEarnedByFamilyOwnedSpeQn=tcQn("ProfitsEarnedByAFamilyOwnedSpecialPurposeEntityFromTransactionsSpecified"),
 
+            # BIR52 partners
+            bir52ProprietorPartnerEmolumentsQn=tcQn("BIR52ProprietorPartnerEmoluments"),
+            bir52ProprietorPartnerEmolumentsAdjQn=tcQn("BIR52ProprietorPartnerEmolumentsAdjustment"),
+            partnersDimensionQn=tcQn("PartnersDimension"),
+            mandatoryPartnerQns=mandatoryPartner,
+            bir52PartnerFullNameQn=tcQn("BIR52ProprietorPartnerFullName"),
+            bir52PartnerPrecedentPartnerQn=tcQn("BIR52ProprietorPartnerPrecedentPartner"),
+            bir52PartnerPersonalAssessmentQn=tcQn("BIR52ProprietorPartnerPersonalAssessment"),
+            bir52PartnerProfitLossSharingRatioQn=tcQn("BIR52ProprietorPartnerProfitLossSharingRatio"),
+            bir52PartnerAllocationOfAssessableProfitsQn=tcQn("BIR52ProprietorPartnerAllocationOfAssessableProfitsAdjustedLoss"),
+            bir52PartnerHkidOrBrnQn=tcQn("BIR52ProprietorPartnerHKIDOrBRNumber"),
+            bir52PartnerDateEnteredQn=tcQn("BIR52ProprietorPartnerDateEntered"),
+            bir52PartnerDateLeftQn=tcQn("BIR52ProprietorPartnerDateLeft"),
+
             # HKSIC
             hksicCodeQn=tcQn("HongKongStandardIndustrialClassificationCode"),
             hksicCodeRegex=re.compile(r"^\d{6}$"),
@@ -304,6 +328,10 @@ class ValidationPluginExtension(ValidationPlugin):
             # regexes
             irdFileNumberRegex=re.compile(r"^\d{2}/\d{8}$"),
             yearOfAssessmentRegex=re.compile(r"^20(\d{2})/(\d{2})$"),
+            # HKID: 1–2 uppercase letters + 6 digits + check digit (digit or 'A')
+            hkidRegex=re.compile(r"^[A-Z]{1,2}\d{6}[\dA]$"),
+            # BRN: exactly 8 digits
+            brnRegex=re.compile(r"^\d{8}$"),
 
             assessmentYear=2025,
         )

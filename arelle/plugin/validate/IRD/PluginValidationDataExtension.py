@@ -105,6 +105,21 @@ class PluginValidationDataExtension(PluginData):
     familyOwnedSpeQn: QName
     profitsEarnedByFamilyOwnedSpeQn: QName
 
+    # BIR52 partners (nvad_bir52_partners)
+    bir52ProprietorPartnerEmolumentsQn: QName
+    bir52ProprietorPartnerEmolumentsAdjQn: QName
+    partnersDimensionQn: QName
+    # Six elements required in every partner context (NVAD-E-1210)
+    mandatoryPartnerQns: frozenset[QName]
+    bir52PartnerFullNameQn: QName
+    bir52PartnerPrecedentPartnerQn: QName
+    bir52PartnerPersonalAssessmentQn: QName
+    bir52PartnerProfitLossSharingRatioQn: QName
+    bir52PartnerAllocationOfAssessableProfitsQn: QName
+    bir52PartnerHkidOrBrnQn: QName
+    bir52PartnerDateEnteredQn: QName
+    bir52PartnerDateLeftQn: QName
+
     # HKSIC code (nvad_structural, NVAD-E-0170/0180/0190)
     hksicCodeQn: QName
     hksicCodeRegex: re.Pattern[str]     # r'^\d{6}$'
@@ -113,6 +128,8 @@ class PluginValidationDataExtension(PluginData):
     # Compiled regexes
     irdFileNumberRegex: re.Pattern[str]     # r'^\d{2}/\d{8}$'
     yearOfAssessmentRegex: re.Pattern[str]  # r'^20(\d{2})/(\d{2})$'
+    hkidRegex: re.Pattern[str]
+    brnRegex: re.Pattern[str]
 
     # Identity hash for caching.
     def __hash__(self) -> int:
@@ -183,6 +200,43 @@ class PluginValidationDataExtension(PluginData):
             for ref in refs
             if (href := (ref.get(XLINK_HREF, "") or ""))
         ]
+
+    @lru_cache(1)
+    def factsByPartnerContext(
+        self,
+        modelXbrl: ModelXbrl,
+    ) -> dict[str, set[ModelFact]]:
+        """Group non-nil facts by their BIR52 partner typed-dimension member.
+
+        Returns a ``dict`` whose keys are the string value of each partner
+        typed-dimension member (e.g. ``"1"``, ``"2"``…) and whose values are
+        the set of non-nil facts filed in that partner's context.
+
+        Facts that do not carry the partner dimension are excluded.
+        """
+        partnerDimQn = self.partnersDimensionQn
+        groups: dict[str, set[ModelFact]] = {}
+
+        for fact in modelXbrl.facts:
+            if not isValidNonNilFact(fact):
+                continue
+            ctx = fact.context
+            if ctx is None:
+                continue
+            dimValue = ctx.qnameDims.get(partnerDimQn)
+            if dimValue is None:
+                continue
+            # For a typed dimension the member is an lxml element whose
+            # text content is the partner identifier.
+            typedMember = getattr(dimValue, "typedMember", None)
+            if typedMember is None:
+                continue
+            memberKey: str = (typedMember.text or "").strip()
+            if not memberKey:
+                continue
+            groups.setdefault(memberKey, set()).add(fact)
+
+        return groups
 
     @lru_cache(1)
     def _monetaryFactsByNamespace(
