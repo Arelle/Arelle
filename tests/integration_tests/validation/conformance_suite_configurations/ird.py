@@ -19,6 +19,10 @@ config = ConformanceSuiteConfig(
             # 2 total missing mandatory facts, conformance suites expects 1
             "IRD.NVAD-E-0050": 1,
         },
+        "NVAD-E-0450_invalid_testcase.xml:NVAD-E-0450_invalid": {
+            # 4 total missing mandatory facts, conformance suites expects 1
+            "IRD.NVAD-E-0050": 3,
+        },
     }.items()},
     expected_failure_ids=frozenset({
         # Not implemented
@@ -28,11 +32,6 @@ config = ConformanceSuiteConfig(
         "553-E-0470_invalid_testcase.xml:553-E-0470_invalid",
         "553-E-0498_invalid_testcase.xml:553-E-0498_invalid",
         "553-E-0535_invalid_testcase.xml:553-E-0535_invalid",
-        "NVAD-E-0450_invalid_testcase.xml:NVAD-E-0450_invalid",
-        "NVAD-E-0460_invalid_testcase.xml:NVAD-E-0460_invalid",
-        "NVAD-E-0470_invalid_testcase.xml:NVAD-E-0470_invalid",
-        "NVAD-E-0480_invalid_testcase.xml:NVAD-E-0480_invalid",
-        "NVAD-E-0490_invalid_testcase.xml:NVAD-E-0490_invalid",
         "NVAD-E-0740_invalid_testcase.xml:NVAD-E-0740_invalid",
         "NVAD-E-0750_invalid_testcase.xml:NVAD-E-0750_invalid",
         "NVAD-E-0760_invalid_testcase.xml:NVAD-E-0760_invalid",

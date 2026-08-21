@@ -279,6 +279,13 @@ class ValidationPluginExtension(ValidationPlugin):
             provisionSpecificBadDebtQn=tcQn("ProvisionSpecificBadDebt"),
             badDebtProvisionDetailsQn=tcQn("BadDebtProvisionDetails"),
 
+            # BIR51 SBP
+            shareBasedPaymentDetailsQn=tcQn("ShareBasedPaymentDetails"),
+            shareBasedPaymentCashSettledQn=tcQn("ShareBasedPaymentCashSettled"),
+            shareBasedPaymentEquitySettledCompanyQn=tcQn("ShareBasedPaymentEquitySettledCompany"),
+            shareBasedPaymentEquitySettledGroupNoRechargeQn=tcQn("ShareBasedPaymentEquitySettledGroupCoNoRecharge"),
+            shareBasedPaymentEquitySettledGroupRechargeQn=tcQn("ShareBasedPaymentEquitySettledGroupCoRecharge"),
+
             # HKSIC
             hksicCodeQn=tcQn("HongKongStandardIndustrialClassificationCode"),
             hksicCodeRegex=re.compile(r"^\d{6}$"),

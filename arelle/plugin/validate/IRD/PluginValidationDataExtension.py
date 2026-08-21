@@ -88,6 +88,13 @@ class PluginValidationDataExtension(PluginData):
     provisionSpecificBadDebtQn: QName
     badDebtProvisionDetailsQn: QName
 
+    # BIR51 share-based payments (nvad_bir51_sbp)
+    shareBasedPaymentDetailsQn: QName
+    shareBasedPaymentCashSettledQn: QName
+    shareBasedPaymentEquitySettledCompanyQn: QName
+    shareBasedPaymentEquitySettledGroupNoRechargeQn: QName
+    shareBasedPaymentEquitySettledGroupRechargeQn: QName
+
     # HKSIC code (nvad_structural, NVAD-E-0170/0180/0190)
     hksicCodeQn: QName
     hksicCodeRegex: re.Pattern[str]     # r'^\d{6}$'
