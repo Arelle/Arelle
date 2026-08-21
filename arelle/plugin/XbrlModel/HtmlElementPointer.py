@@ -23,8 +23,15 @@ import re
 from typing import Any, Dict, List, Optional, Tuple
 
 # An id usable as an anchor must be an NCName, so it is expressible as a
-# shorthand pointer. Matches the reference implementation's pattern exactly.
-_NCNAME = re.compile(r"^[A-Za-z_][\w.\-]*$")
+# shorthand pointer. Matches the reference implementation's pattern exactly --
+# which means ASCII: JavaScript's \w is [A-Za-z0-9_] in a non-unicode regex,
+# while Python's is Unicode-aware, so the same pattern text would accept
+# id="resultat-net" spelled with an accent here and reject it there. The two
+# implementations would then emit DIFFERENT pointers for that element -- both
+# resolving correctly, so nothing would fail, which is precisely the silent
+# disagreement this port exists to prevent. re.ASCII, not a rewritten pattern,
+# so the text stays diffable against the JavaScript.
+_NCNAME = re.compile(r"^[A-Za-z_][\w.\-]*$", re.ASCII)
 
 
 def buildIdIndex(root) -> Dict[str, List[Any]]:
