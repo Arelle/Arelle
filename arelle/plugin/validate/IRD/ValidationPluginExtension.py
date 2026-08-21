@@ -260,6 +260,16 @@ class ValidationPluginExtension(ValidationPlugin):
             offshoreProfitsExcludedQn=tcQn("OffshoreProfitsExcluded"),
             reasonsForOffshoreClaimQn=tcQn("ReasonsForTheOffshoreClaim"),
 
+            # expense deductions
+            commissionQn=tcQn("Commission"),
+            commissionPaymentsDetailsQn=tcQn("CommissionPaymentsDetails"),
+            approvedCharitableDonationsTaxAdjQn=tcQn("ApprovedCharitableDonationsTaxAdjustment"),
+            approvedCharitableDonationsDetailsQn=tcQn("ApprovedCharitableDonationsDetails"),
+            interestExpensesQn=tcQn("InterestExpenses"),
+            interestPaidOrPayableDetailsQn=tcQn("InterestPaidOrPayableDetails"),
+            legalAndProfessionalFeeQn=tcQn("LegalAndProfessionalFee"),
+            legalAndProfessionalFeeDetailsQn=tcQn("LegalAndOtherProfessionalFeePaymentsDetails"),
+
             # HKSIC
             hksicCodeQn=tcQn("HongKongStandardIndustrialClassificationCode"),
             hksicCodeRegex=re.compile(r"^\d{6}$"),
