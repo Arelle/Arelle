@@ -270,6 +270,15 @@ class ValidationPluginExtension(ValidationPlugin):
             legalAndProfessionalFeeQn=tcQn("LegalAndProfessionalFee"),
             legalAndProfessionalFeeDetailsQn=tcQn("LegalAndOtherProfessionalFeePaymentsDetails"),
 
+            # expense misc
+            managementFeeQn=tcQn("ManagementFee"),
+            managementFeePaymentsDetailsQn=tcQn("ManagementFeePaymentsDetails"),
+            contractorChargesQn=tcQn("ContractorCharges"),
+            subContractorChargesQn=tcQn("SubContractorCharges"),
+            contractorAndSubcontractorChargesDetailsQn=tcQn("ContractorAndSubcontractorChargesDetails"),
+            provisionSpecificBadDebtQn=tcQn("ProvisionSpecificBadDebt"),
+            badDebtProvisionDetailsQn=tcQn("BadDebtProvisionDetails"),
+
             # HKSIC
             hksicCodeQn=tcQn("HongKongStandardIndustrialClassificationCode"),
             hksicCodeRegex=re.compile(r"^\d{6}$"),

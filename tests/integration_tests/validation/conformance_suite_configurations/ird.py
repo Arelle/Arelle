@@ -14,6 +14,12 @@ config = ConformanceSuiteConfig(
     ],
     base_taxonomy_validation="none",
     disclosure_system="ird-2025-draft",
+    expected_additional_testcase_errors={f"*{s}": val for s, val in {
+        "NVAD-E-0420_invalid_testcase.xml:NVAD-E-0420_invalid": {
+            # 2 total missing mandatory facts, conformance suites expects 1
+            "IRD.NVAD-E-0050": 1,
+        },
+    }.items()},
     expected_failure_ids=frozenset({
         # Not implemented
         "553-E-0467-unknown-entrypoint_invalid_testcase.xml:553-E-0467-unknown-entrypoint_invalid",
@@ -22,13 +28,6 @@ config = ConformanceSuiteConfig(
         "553-E-0470_invalid_testcase.xml:553-E-0470_invalid",
         "553-E-0498_invalid_testcase.xml:553-E-0498_invalid",
         "553-E-0535_invalid_testcase.xml:553-E-0535_invalid",
-        "NVAD-E-0400_invalid_testcase.xml:NVAD-E-0400_invalid",
-        "NVAD-E-0410_invalid_testcase.xml:NVAD-E-0410_invalid",
-        "NVAD-E-0420_invalid_testcase.xml:NVAD-E-0420_invalid",
-        "NVAD-E-0430-subcontractor_invalid_testcase.xml:NVAD-E-0430-subcontractor_invalid",
-        "NVAD-E-0430_invalid_testcase.xml:NVAD-E-0430_invalid",
-        "NVAD-E-0440_invalid_testcase.xml:NVAD-E-0440_invalid",
-        "NVAD-E-0441_invalid_testcase.xml:NVAD-E-0441_invalid",
         "NVAD-E-0450_invalid_testcase.xml:NVAD-E-0450_invalid",
         "NVAD-E-0460_invalid_testcase.xml:NVAD-E-0460_invalid",
         "NVAD-E-0470_invalid_testcase.xml:NVAD-E-0470_invalid",
