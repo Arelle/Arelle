@@ -281,6 +281,16 @@ GUI runs use the defaults (chrome engine, reflow on). For a different engine
 - **XHTML, not HTML5.** Inline XBRL must render in XML mode. A `.xhtml` file
   extension (local) or `Content-Type: application/xhtml+xml` (HTTP) forces
   Chrome's XML parser; HTML5 mode mis-parses `ix:` elements and nested markup.
+- **HTML5 *source* documents are a different question.** The note above is about
+  *rendering* inline XBRL, which must stay in XML mode. Locating facts in a plain
+  HTML5 presentation document is the opposite direction, and there the HTML5
+  tree-construction algorithm is mandatory: it synthesizes `<tbody>`,
+  foster-parents stray table content and implies `<head>`, so child indices and
+  ancestry differ from an XML parse. Arelle uses lexbor (`selectolax`) and copies
+  its tree into lxml directly — serialising and re-parsing is only ~91%
+  structurally faithful, and both failure modes (quirks mode, adoption agency)
+  are silent. There is deliberately no fallback to `lxml.html`: a plausible value
+  from the wrong element is worse than no answer.
 - **Carrier for the generator.** Chrome does not carry the HTML `id` onto PDF
   structure, and `<a>` link annotations cannot nest (they collapse to the
   outermost, ~13 % on deeply-nested filings). The generator therefore injects
@@ -354,6 +364,8 @@ GUI runs use the defaults (chrome engine, reflow on). For a different engine
 |---|---|
 | [`tools/inlineXbrlToPdf.py`](tools/inlineXbrlToPdf.py) | generate a tagged PDF (Chrome/WeasyPrint), token carrier, reflow |
 | [`tools/alignFactsToPdf.py`](tools/alignFactsToPdf.py) | match facts to an existing PDF (row-granular signature match → token patience-align → phrase-locate → image pairing) |
+| [`Html5Normalize.py`](Html5Normalize.py) | pre-parse normalization of HTML5 bytes so Arelle's tree matches the browser's (`<noscript>` content) |
+| [`HtmlElementPointer.py`](HtmlElementPointer.py) | XPointer `element()` child sequences — generate, resolve, verify (port of the viewer's `elementPointer.js`) |
 | [`PdfTextExtractor.py`](PdfTextExtractor.py) | tagged-PDF text by mcid / struct-id / form field (page-scoped) |
 | [`PdfToolsCli.py`](PdfToolsCli.py) | command-line options + dispatch (wired from `__init__.py`) |
 | [`FactValueResolver.py`](FactValueResolver.py) | resolves html / pdf locators to source text during validation |

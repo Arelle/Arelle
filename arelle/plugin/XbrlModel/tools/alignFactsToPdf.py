@@ -44,6 +44,18 @@ Usage
 ``--facts`` is the OIM-Taxonomy facts file from ``saveOIMFacts`` (html
 ``valueSources``). The PDF must be tagged (marked content) for the text path;
 the image path additionally needs the filing's image files next to the HTML.
+
+An HTML5 second target
+----------------------
+The PDF is one *second rendering* of a report whose facts live in a tagged
+inline document. A plain HTML5 presentation of the same report is another, and
+the groundwork for it is here: ``_parse_source_tree`` binds the parse to the
+source's media type, because a positional locator counts element children of a
+tree and the HTML5 algorithm builds a different tree from an XML parse. Nothing
+in this tool emits HTML5 locators yet -- the only call site passes
+``application/xhtml+xml`` -- so the behaviour above is unchanged. See
+``HANDOVER-html5-aligner.md`` for the remaining work, and
+``../HtmlElementPointer.py`` for the pointer the HTML5 path will emit.
 """
 from __future__ import annotations
 
@@ -100,9 +112,112 @@ class HtmlModel:
         self.chartTokenPos = chartTokenPos      # id(img element) -> visible-token position
 
 
-def _build_html_model(htmlPath: str, factIds: Set[str]) -> HtmlModel:
+def _lexborToLxml(node, etree):
+    """Copy a lexbor node tree into lxml elements directly, without serialising.
+
+    Preferred over serialise-and-reparse because the round-trip is not faithful:
+    re-parsing a serialised HTML5 tree reproduces it structurally in only ~91% of
+    the html5lib-tests corpus, against ~99.7% for this walk, and both failure
+    modes are silent -- the re-parsed tree is well-formed, merely different.
+
+      * Quirks mode. A legacy or absent doctype is normalised to `<!DOCTYPE html>`
+        on serialisation, so a tree built under quirks rules is re-parsed under
+        standards rules. `<p><table>` nests differently between the two.
+      * Adoption agency. Misnested formatting elements are not idempotent under
+        serialise-and-reparse: `<b>1<i>2<p>3</b>4` yields `p` one level shallower
+        after a round-trip.
+
+    Text is carried across as lxml text/tail so downstream token collection is
+    unaffected. Comments are dropped: they are not elements, so they do not
+    affect the child indices a positional locator counts.
+    """
+    el = etree.Element(node.tag)
+    for k, v in (node.attributes or {}).items():
+        try:
+            el.set(k, v if v is not None else "")
+        except ValueError:
+            pass            # attribute name illegal in XML; the element still stands
+    last = None
+    child = node.child
+    while child is not None:
+        tag = child.tag
+        if tag == "-text":
+            text = child.text_content or ""
+            if last is None:
+                el.text = (el.text or "") + text
+            else:
+                last.tail = (last.tail or "") + text
+        elif not tag.startswith("-"):
+            sub = _lexborToLxml(child, etree)
+            el.append(sub)
+            last = sub
+        child = child.next
+    return el
+
+
+def _parse_source_tree(htmlPath: str, mediaType: str):
+    """Parse a source document to an lxml element tree, per its media type.
+
+    The media type is a required argument, deliberately: there is no default and
+    nothing is sniffed from the file. A caller that passed the wrong one, or that
+    relied on a default, would get a real but differently-shaped tree and silently
+    wrong pointers -- and prefixed names like ix:header make a misrouted inline
+    document the realistic way that happens.
+
+    The parse mode follows the source's role rather than being guessed per
+    document: legacy inline XBRL is XHTML and keeps the XML infoset, while a
+    plain HTML5 presentation source must use the HTML5 tree-construction
+    algorithm. The two disagree on both child indices and ancestry -- HTML5
+    synthesizes <tbody> where the markup omits it, foster-parents stray content
+    out of tables, and implies <head> -- so a positional locator is only
+    meaningful against the conformant parse. Whether a given document is
+    affected cannot be known without checking (one measured pair: 18.4%
+    agreement on one report, 100% on another), so the conformant parser is used
+    unconditionally for text/html.
+
+    lexbor materialises those insertions and relocations, and _lexborToLxml
+    copies its tree into lxml elements directly, so every caller downstream is
+    unchanged and works on one tree type. The direct copy is used rather than
+    serialising and re-parsing because that round-trip is silently unfaithful for
+    quirks-mode and misnested-formatting documents; see _lexborToLxml.
+    """
     from lxml import etree
-    root = etree.parse(htmlPath).getroot()
+    if (mediaType or "").lower() != "text/html":
+        return etree.parse(htmlPath).getroot()
+    try:
+        from selectolax.lexbor import LexborHTMLParser
+    except ImportError as e:
+        # Deliberately no lxml.html fallback: libxml2 returns a real but
+        # differently-shaped tree, so a pointer built against it resolves to the
+        # wrong element with no error. A plausible value from the wrong place is
+        # worse than no answer.
+        raise RuntimeError(
+            f"HTML5 source {htmlPath!r} needs the lexbor parser: pip install selectolax. "
+            "Refusing to fall back to lxml.html, whose tree differs from the HTML5 "
+            "algorithm and would silently yield pointers to the wrong elements.") from e
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from Html5Normalize import normalizeNoscript
+    with open(htmlPath, "rb") as fh:
+        raw = normalizeNoscript(fh.read())
+    tree = LexborHTMLParser(raw)
+    sys.setrecursionlimit(200000)
+    try:
+        return _lexborToLxml(tree.root, etree)
+    except ValueError:
+        # A tag or attribute name legal in HTML5 but illegal in XML -- Word and
+        # Office HTML export emit <o:p>, <v:shape>, <st1:*>. lxml.Element rejects
+        # those, while the serialiser tolerates them, so fall back rather than
+        # fail. The fallback is less faithful (see _lexborToLxml) but it is the
+        # only option that yields a tree at all for such a document.
+        import lxml.html
+        print(f"[html5] {os.path.basename(htmlPath)}: XML-illegal element name; "
+              "falling back to serialise-and-reparse, which differs from the HTML5 "
+              "tree for quirks-mode and misnested-formatting documents", flush=True)
+        return lxml.html.fromstring(tree.html)
+
+
+def _build_html_model(htmlPath: str, factIds: Set[str], mediaType: str) -> HtmlModel:
+    root = _parse_source_tree(htmlPath, mediaType)
     tokens: List[str] = []
     idRange: Dict[str, List[Optional[int]]] = {}
     clipHiddenFactIds: Set[str] = set()
@@ -579,7 +694,7 @@ def align(htmlPath: str, factsPath: str, pdfPath: str,
     perFV, allIds = _collect_fact_html_ids(factsDoc)
     print(f"[facts] {len(perFV)} factValues, {len(allIds)} html ids", flush=True)
 
-    hm = _build_html_model(htmlPath, allIds)
+    hm = _build_html_model(htmlPath, allIds, "application/xhtml+xml")
     print(f"[html] visible tokens={len(hm.tokens)}  clip-hidden facts={len(hm.clipHiddenFactIds)}"
           f"  charts paired={len(set(id(v) for v in hm.chartByFactId.values()))}", flush=True)
 
@@ -724,14 +839,22 @@ def align(htmlPath: str, factsPath: str, pdfPath: str,
                    and not any(i in rowPlacement for i in perFV[id(fv)])]
     if unmappedFVs:
         wordIdx, mcidWords = _build_mcid_word_index(mcidCache)
+        eligible = 0
         for fv in unmappedFVs:
             ids = perFV[id(fv)]
             r = hm.idRange.get(ids[0])
             expected = _nearest_page(r[0]) if (r and r[1] is not None) else None
-            hit = _phrase_locate(valueTextByFV.get(id(fv), ""), wordIdx, mcidWords, expected)
+            text = valueTextByFV.get(id(fv), "")
+            if len(_phrase_toks(text)) >= 3:
+                eligible += 1
+            hit = _phrase_locate(text, wordIdx, mcidWords, expected)
             if hit:
                 phraseByFV[id(fv)] = hit
-        print(f"[phrase] unmapped after row+token={len(unmappedFVs)}  located by phrase={len(phraseByFV)}", flush=True)
+        # Report the eligible denominator alongside the hit count: a numeric value
+        # tokenises to fewer than three words and can never match a phrase, so on a
+        # numeric residue phrase=0 is the correct result rather than a failure.
+        print(f"[phrase] unmapped after row+token={len(unmappedFVs)}  "
+              f"eligible (>=3 words)={eligible}  located by phrase={len(phraseByFV)}", flush=True)
 
     stats = _rewrite(factsDoc, perFV, pmsByFV, imgLocByFactId,
                      os.path.basename(pdfPath),

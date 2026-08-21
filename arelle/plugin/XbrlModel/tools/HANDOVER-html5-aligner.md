@@ -78,19 +78,46 @@ value from the wrong place is worse than no answer. Fail with a clear message.
 
 You do **not** need a parallel model builder. The divergences are insertions and
 relocations; once lexbor has materialised them, nothing is left to disagree
-about. Parsing with lexbor, serialising, and re-parsing with lxml reproduces the
-lexbor tree exactly — verified on the Microsoft document, 8383/8383 elements:
+about. So `_build_html_model` takes one extra branch and everything downstream is
+untouched -- no regression risk to the row logic.
+
+> **Corrected 2026-08-21, after implementation.** This section originally
+> prescribed parsing with lexbor, *serialising*, and re-parsing with lxml, on the
+> evidence that it reproduced the lexbor tree exactly on the Microsoft document
+> (8383/8383 elements). That measurement was right about that document and wrong
+> as general guidance. Across the 1,600-case html5lib-tests corpus the round-trip
+> is structurally faithful in only **1457/1600 (91.06%)**, against **1595/1600
+> (99.69%)** for a direct node walk. Both failure modes are silent -- the
+> re-parsed tree is well-formed, merely different:
+>
+> - **Quirks mode.** A legacy or absent doctype is normalised to `<!DOCTYPE html>`
+>   on serialisation, so a tree built under quirks rules is re-parsed under
+>   standards rules. `<p><table>` nests differently between the two.
+> - **Adoption agency.** Misnested formatting elements are not idempotent under
+>   the round-trip: `<b>1<i>2<p>3</b>4` yields `p` one level shallower.
+>
+> Note also that "8383/8383 elements" is element-*count* parity, which is weaker
+> than structural: on the corpus, count parity reads 92.69% where structural
+> parity reads 91.06%. Assert tag + depth + document order, not counts.
+
+What is implemented instead, in `_parse_source_tree` / `_lexborToLxml`:
 
 ```python
 if mediaType == "text/html":
-    root = lxml.html.fromstring(LexborHTMLParser(src).html)   # HTML5 tree
+    raw  = normalizeNoscript(open(path, "rb").read())    # see 3.3
+    root = _lexborToLxml(LexborHTMLParser(raw).root, etree)
 else:
-    root = etree.parse(path).getroot()                        # XML infoset
+    root = etree.parse(path).getroot()                   # XML infoset
 ```
 
-So `_build_html_model` takes one extra branch and everything downstream is
-untouched — no regression risk to the row logic. Costs one serialise-and-reparse
-pass.
+The direct walk copies tag, attributes and text into lxml elements. It cannot
+represent a name that is legal in HTML5 but illegal in XML (`o:p`, `v:shape`,
+`ix:header`), and falls back to serialise-and-reparse for those, with a warning
+naming which parse was used. Composite: **1600/1600** on the corpus.
+
+**Do not fall back to `lxml.html` when `selectolax` is unavailable** -- a fallback
+returns a real but wrong element, and a plausible value from the wrong place is
+worse than no answer. Fail with a clear message.
 
 ### 3.2 A trap that cost the tagger session an hour
 
@@ -102,6 +129,21 @@ like a catastrophic parser disagreement when nothing is wrong. Filter them:
 ```python
 [c for c in node.iter(include_text=False) if not c.tag.startswith('-')]
 ```
+
+### 3.3 `<noscript>` must be blanked pre-parse
+
+lexbor's scripting flag is off and `selectolax` exposes no way to set it. A
+browser parses `<noscript>` content as RAWTEXT; lexbor parses it as elements,
+which escape into `<body>` and shift every sibling index after them. Both
+demonstration documents are affected -- `msft-ar25-html5.html` leaks a Webtrends
+tracking pixel (`div`, `img`) and `loreal-ar25-html5.html` a Google Tag Manager
+`iframe`, both near the top of `<body>`, the worst position.
+
+Use `Html5Normalize.normalizeNoscript`. Do **not** write the obvious regex: with
+scripting on, noscript content is RAWTEXT, so a `<noscript>` literal inside a
+comment or a `<script>` makes a lazy `.*?` span to a later real close tag and
+delete every element between. Verified to destroy the entire body of a test
+document.
 
 ## 4. The pointer to emit
 
@@ -260,11 +302,43 @@ arelleCmdLine --plugins saveOIMFacts --internetConnectivity online \
 
 ## 9. Suggested order
 
-1. Diagnose `phrase=0` and the `pdfBBox`/`pdfMcid` ratio — both are PDF-side and
-   may change what the HTML5 target should do.
-2. Add the lexbor parse branch to `_build_html_model` (§3.1).
-3. Port the pointer generator, with a shared corpus asserting agreement with the
-   JS reference (§4.1).
+**Status 2026-08-21: steps 1-3 are done.** What they found:
+
+1. ~~Diagnose `phrase=0` and the `pdfBBox`/`pdfMcid` ratio~~ -- **done, and
+   neither is a bug.** `phrase=0`: 264 of the 275 residue facts tokenise below
+   `_phrase_locate`'s 3-word minimum (numbers cannot be phrases in any medium),
+   and the other 11 are date phrases occurring in *zero* MCIDs -- prior-year
+   comparatives the PDF does not render. 1161:364 is the PDF's marked-content
+   granularity: of 1034 row placements, 843 (81%) have no MCID whose whole text
+   keys to the cell value (merged cells such as one MCID reading `'7,404 72'`),
+   169 unique, 22 collisions. Only those 22 are recoverable. Consequence for this
+   port: **do not carry the bbox/mcid hybrid across** -- it works around
+   granularity we do not control, and element-addressed pointers give per-cell
+   granularity by construction.
+2. ~~Add the lexbor parse branch~~ -- **done**, `_parse_source_tree` /
+   `_lexborToLxml`, see the correction in 3.1. Media type is a required argument.
+3. ~~Port the pointer generator, with a shared corpus~~ -- **done**,
+   `../HtmlElementPointer.py`. Round-trips 8381/8381, 1434/1434 and 67801/67801
+   elements across the three documents, 5.9-14.1 us/element. Anchoring is better
+   than 4. predicted: 98% / 84% / 64% resolve to an id rather than counting from
+   the root. Corpus generated (0.73 MB, complete for both HTML5 documents plus a
+   deterministic sample of the filing, carrying raw and post-normalization
+   sha256) -- it still needs a home in both repos to be asserted from JavaScript.
 4. Build the target token stream and word index; reuse the alignment core.
-5. Emit with the locator type matching the parse mode (§5) and the collection
-   encoding for multi-fragment values (§6).
+5. Emit with the locator type matching the parse mode (5.) and the collection
+   encoding for multi-fragment values (6.).
+
+**Decision taken for step 5:** emit *corroborated* pointers --
+`xbrlx:htmlTextQuote` and `xbrlx:htmlTextOffset` alongside the required
+`xbrlx:htmlElementPointer` -- rather than a bare positional path. This is a
+correctness requirement, not the robustness improvement 6. framed it as: in a
+legacy inline document every fact has its own `ix:` element, so element
+addressing is exact by construction, but in an HTML5 report the taggable numbers
+sit in running prose. **27%** of the numbers in `msft-ar25-html5.html` share an
+element with another number (worst `<p>`: 14 of them), and 14% in loreal, so an
+element pointer alone cannot say *which* number is the fact.
+
+Consequently the three `xbrlx` properties are now `xbrlr:stringCollection`, not
+`xs:string`: 6. requires a multi-fragment value to be one `valueSource` holding
+an ordered array, which `xs:string` cannot express. Fragment *i* has
+pointer[i], quote[i], offset[i].
