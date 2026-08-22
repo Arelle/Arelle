@@ -228,9 +228,22 @@ class PdfTextExtractor:
             return out
         stack: list = []
         activeFont: Optional[Dict[str, Any]] = None
+        fontStack: list = []                       # activeFont saved by q, restored by Q
         for i in instructions:
             op = i.operator
-            if op == Operator("BDC"):
+            if op == Operator("q"):
+                # The font is part of the graphics state, so q/Q save and restore
+                # it. A producer that sets a font, pushes, switches font inside the
+                # pushed state and pops leaves the ORIGINAL font active -- without
+                # this stack the walker keeps the inner font and decodes every later
+                # show operand through the wrong ToUnicode CMap, which yields
+                # plausible letters rather than visible garbage (a figure set in a
+                # clipped q...Q block comes out as 'fWlu(fas' instead of '281,724').
+                fontStack.append(activeFont)
+            elif op == Operator("Q"):
+                if fontStack:
+                    activeFont = fontStack.pop()
+            elif op == Operator("BDC"):
                 mcid = None
                 if len(i.operands) >= 2:
                     po = i.operands[1]
