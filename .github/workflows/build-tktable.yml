@@ -1,267 +1,165 @@
-name: Build TkTable
+name: Build Previews
+
 on:
   workflow_dispatch:
     inputs:
-      tktable_tag:
-        default: 'tktable-2-12-1'
-        description: 'TkTable git tag to build (e.g. tktable-2-12-1)'
+      label:
+        description: 'Public label for the preview builds (e.g. 25.2-edgar, xt-1234)'
         required: true
         type: string
-      tcltk_8_tag:
-        default: 'core-8-6-18'
-        description: 'Tcl/Tk 8 git tag (e.g. core-8-6-18)'
-        required: true
+      edgar_ref:
+        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
+        required: false
         type: string
-      tcltk_9_tag:
-        default: 'core-9-0-3'
-        description: 'Tcl/Tk 9 git tag (e.g. core-9-0-3)'
-        required: true
+      xule_ref:
+        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
+        required: false
         type: string
+
+run-name: Build Previews ${{ inputs.label }}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.label }}
+  cancel-in-progress: true
 
 permissions: {}
 
 jobs:
+  build-linux:
+    name: Build Linux
+    uses: ./.github/workflows/build-linux.yml
+    with:
+      edgar_ref: ${{ inputs.edgar_ref }}
+      xule_ref: ${{ inputs.xule_ref }}
+
   build-macos-arm64:
-    runs-on: macos-26
-    steps:
-      - uses: actions/checkout@v7.0.1
-        with:
-          repository: bohagan1/TkTable
-          ref: ${{ inputs.tktable_tag }}
-          path: TkTable
-      - name: Install Tcl/Tk
-        run: brew install tcl-tk@8 tcl-tk@9
-      - name: Build for Tcl 8
-        run: |
-          cd TkTable
-          TCL_DIR=$(brew --prefix tcl-tk@8)/lib
-          ./configure --with-tcl=$TCL_DIR --with-tk=$TCL_DIR
-          make
-      - name: Collect Tcl 8 artifacts
-        run: |
-          mkdir -p output
-          cp TkTable/*.dylib output/
-          cp TkTable/pkgIndex.tcl output/
-          cp TkTable/library/tkTable.tcl output/
-      - name: Build for Tcl 9
-        run: |
-          cd TkTable
-          make clean
-          TCL_DIR=$(brew --prefix tcl-tk@9)/lib
-          ./configure --with-tcl=$TCL_DIR --with-tk=$TCL_DIR
-          make
-      - name: Collect Tcl 9 artifacts
-        run: |
-          cp TkTable/*.dylib output/
-      - uses: actions/upload-artifact@v7.0.1
-        with:
-          name: tktable-macos-arm64
-          path: output/
+    name: Build macOS arm64
+    uses: ./.github/workflows/build-macos.yml
+    with:
+      edgar_ref: ${{ inputs.edgar_ref }}
+      xule_ref: ${{ inputs.xule_ref }}
+    secrets: inherit
 
-  build-macos-x86_64:
-    runs-on: macos-26-intel
-    steps:
-      - uses: actions/checkout@v7.0.1
-        with:
-          repository: bohagan1/TkTable
-          ref: ${{ inputs.tktable_tag }}
-          path: TkTable
-      - name: Install Tcl/Tk
-        run: brew install tcl-tk@8 tcl-tk@9
-      - name: Build for Tcl 8
-        run: |
-          cd TkTable
-          TCL_DIR=$(brew --prefix tcl-tk@8)/lib
-          ./configure --with-tcl=$TCL_DIR --with-tk=$TCL_DIR
-          make
-      - name: Collect Tcl 8 artifacts
-        run: |
-          mkdir -p output
-          cp TkTable/*.dylib output/
-          cp TkTable/pkgIndex.tcl output/
-          cp TkTable/library/tkTable.tcl output/
-      - name: Build for Tcl 9
-        run: |
-          cd TkTable
-          make clean
-          TCL_DIR=$(brew --prefix tcl-tk@9)/lib
-          ./configure --with-tcl=$TCL_DIR --with-tk=$TCL_DIR
-          make
-      - name: Collect Tcl 9 artifacts
-        run: |
-          cp TkTable/*.dylib output/
-      - uses: actions/upload-artifact@v7.0.1
-        with:
-          name: tktable-macos-x86_64
-          path: output/
+  build-macos-x64:
+    name: Build macOS x64
+    uses: ./.github/workflows/build-macos.yml
+    with:
+      edgar_ref: ${{ inputs.edgar_ref }}
+      xule_ref: ${{ inputs.xule_ref }}
+      macos_version: 15-intel
+      python_architecture: x64
+    secrets: inherit
 
-  build-linux-x86_64:
+  build-windows:
+    name: Build Windows
+    uses: ./.github/workflows/build-windows.yml
+    with:
+      edgar_ref: ${{ inputs.edgar_ref }}
+      xule_ref: ${{ inputs.xule_ref }}
+
+  publish:
+    name: Publish
+    needs:
+      - build-linux
+      - build-macos-arm64
+      - build-macos-x64
+      - build-windows
+    if: github.repository == 'Arelle/Arelle'
+    environment: release
+    permissions:
+      id-token: write
     runs-on: ubuntu-24.04
+    env:
+      UBUNTU_PREVIEW_NAME: arelle-ubuntu-${{ inputs.label }}-preview.tgz
+      MACOS_ARM64_PREVIEW_NAME: arelle-macos-arm64-${{ inputs.label }}-preview.dmg
+      MACOS_X64_PREVIEW_NAME: arelle-macos-x64-${{ inputs.label }}-preview.dmg
+      WINDOWS_INSTALLER_PREVIEW_NAME: arelle-win-${{ inputs.label }}-preview.exe
+      WINDOWS_ZIP_PREVIEW_NAME: arelle-win-${{ inputs.label }}-preview.zip
     steps:
-      - uses: actions/checkout@v7.0.1
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v8.0.1
         with:
-          repository: bohagan1/TkTable
-          ref: ${{ inputs.tktable_tag }}
-          path: TkTable
-      - name: Checkout Tcl 8
-        uses: actions/checkout@v7.0.1
+          name: ${{ needs.build-linux.outputs.uploaded_artifact_name }}
+      - name: Download macOS arm64 artifact
+        uses: actions/download-artifact@v8.0.1
         with:
-          repository: tcltk/tcl
-          ref: ${{ inputs.tcltk_8_tag }}
-          path: tcl8-src
-      - name: Checkout Tcl 9
-        uses: actions/checkout@v7.0.1
+          name: ${{ needs.build-macos-arm64.outputs.uploaded_artifact_name }}
+      - name: Download macOS x64 artifact
+        uses: actions/download-artifact@v8.0.1
         with:
-          repository: tcltk/tcl
-          ref: ${{ inputs.tcltk_9_tag }}
-          path: tcl9-src
-      - name: Checkout Tk 8
-        uses: actions/checkout@v7.0.1
+          name: ${{ needs.build-macos-x64.outputs.uploaded_artifact_name }}
+      - name: Download Windows installer artifact
+        uses: actions/download-artifact@v8.0.1
         with:
-          repository: tcltk/tk
-          ref: ${{ inputs.tcltk_8_tag }}
-          path: tk8-src
-      - name: Checkout Tk 9
-        uses: actions/checkout@v7.0.1
+          name: ${{ needs.build-windows.outputs.exe_uploaded_artifact_name }}
+      - name: Download Windows zip artifact
+        uses: actions/download-artifact@v8.0.1
         with:
-          repository: tcltk/tk
-          ref: ${{ inputs.tcltk_9_tag }}
-          path: tk9-src
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y build-essential zip zlib1g-dev libx11-dev libxext-dev libxft-dev libxss-dev
-      - name: Build Tcl 8
-        run: |
-          cd tcl8-src/unix
-          ./configure --prefix=$PWD/../../tcl8-install
-          make
-          make install
-      - name: Build Tcl 9
-        run: |
-          cd tcl9-src/unix
-          ./configure --prefix=$PWD/../../tcl9-install
-          make
-          make install
-      - name: Build TkTable for Tcl 8
-        run: |
-          cd tk8-src/unix
-          ./configure --prefix=$PWD/../../tcl8-install --with-tcl=$PWD/../../tcl8-install/lib
-          make
-          make install
-      - name: Build Tk 9
-        run: |
-          cd tk9-src/unix
-          ./configure --prefix=$PWD/../../tcl9-install --with-tcl=$PWD/../../tcl9-install/lib
-          make
-          make install
-      - name: Build for Tcl 8
-        run: |
-          cd TkTable
-          ./configure --with-tcl=$PWD/../tcl8-install/lib --with-tk=$PWD/../tcl8-install/lib
-          make
-      - name: Collect Tcl 8 artifacts
-        run: |
-          mkdir -p output
-          cp TkTable/*.so output/
-          cp TkTable/pkgIndex.tcl output/
-          cp TkTable/library/tkTable.tcl output/
-      - name: Build TkTable for Tcl 9
-        run: |
-          cd TkTable
-          make clean
-          ./configure --with-tcl=$PWD/../tcl9-install/lib --with-tk=$PWD/../tcl9-install/lib
-          make
-      - name: Collect Tcl 9 artifacts
-        run: |
-          cp TkTable/*.so output/
-      - uses: actions/upload-artifact@v7.0.1
-        with:
-          name: tktable-linux-x86_64
-          path: output/
+          name: ${{ needs.build-windows.outputs.zip_uploaded_artifact_name }}
 
-  build-windows-x86_64:
-    runs-on: windows-2025
-    steps:
-      - uses: actions/checkout@v7.0.1
+      - name: Rename artifacts to preview object names
+        run: |
+          mv "${{ needs.build-linux.outputs.artifact_versioned_name }}" "$UBUNTU_PREVIEW_NAME"
+          mv "${{ needs.build-macos-arm64.outputs.artifact_versioned_name }}" "$MACOS_ARM64_PREVIEW_NAME"
+          mv "${{ needs.build-macos-x64.outputs.artifact_versioned_name }}" "$MACOS_X64_PREVIEW_NAME"
+          mv "${{ needs.build-windows.outputs.exe_artifact_versioned_name }}" "$WINDOWS_INSTALLER_PREVIEW_NAME"
+          mv "${{ needs.build-windows.outputs.zip_artifact_versioned_name }}" "$WINDOWS_ZIP_PREVIEW_NAME"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.2.3
         with:
-          repository: bohagan1/TkTable
-          ref: ${{ inputs.tktable_tag }}
-          path: TkTable
-      - name: Checkout Tcl 8
-        uses: actions/checkout@v7.0.1
+          role-to-assume: arn:aws:iam::494047596077:role/GitHubActionsArelleS3Upload
+          aws-region: us-west-1
+      - name: Upload previews to AWS S3
+        run: |
+          aws s3 cp --acl public-read "$UBUNTU_PREVIEW_NAME" "s3://arelle-us/$UBUNTU_PREVIEW_NAME"
+          aws s3 cp --acl public-read "$MACOS_ARM64_PREVIEW_NAME" "s3://arelle-us/$MACOS_ARM64_PREVIEW_NAME"
+          aws s3 cp --acl public-read "$MACOS_X64_PREVIEW_NAME" "s3://arelle-us/$MACOS_X64_PREVIEW_NAME"
+          aws s3 cp --acl public-read "$WINDOWS_INSTALLER_PREVIEW_NAME" "s3://arelle-us/$WINDOWS_INSTALLER_PREVIEW_NAME"
+          aws s3 cp --acl public-read "$WINDOWS_ZIP_PREVIEW_NAME" "s3://arelle-us/$WINDOWS_ZIP_PREVIEW_NAME"
+      - name: Configure Ali Cloud credentials
+        uses: yizhoumo/setup-ossutil@v2.0.0
         with:
-          repository: tcltk/tcl
-          ref: ${{ inputs.tcltk_8_tag }}
-          path: tcl8-src
-      - name: Checkout Tcl 9
-        uses: actions/checkout@v7.0.1
-        with:
-          repository: tcltk/tcl
-          ref: ${{ inputs.tcltk_9_tag }}
-          path: tcl9-src
-      - name: Checkout Tk 8
-        uses: actions/checkout@v7.0.1
-        with:
-          repository: tcltk/tk
-          ref: ${{ inputs.tcltk_8_tag }}
-          path: tk8-src
-      - name: Checkout Tk 9
-        uses: actions/checkout@v7.0.1
-        with:
-          repository: tcltk/tk
-          ref: ${{ inputs.tcltk_9_tag }}
-          path: tk9-src
-      - uses: ilammy/msvc-dev-cmd@v1.13.0
-        with:
-          arch: x64
-      - name: Build Tcl 8
-        shell: cmd
+          endpoint: oss-cn-shenzhen.aliyuncs.com
+          access-key-id: ${{ secrets.OSS_ACCESS_KEY_ID }}
+          access-key-secret: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+      - name: Upload previews to Ali Cloud
         run: |
-          cd tcl8-src\win
-          nmake /f makefile.vc release INSTALLDIR=%CD%\..\..\tcl8-install
-          nmake /f makefile.vc install INSTALLDIR=%CD%\..\..\tcl8-install
-      - name: Build Tk 8
-        shell: cmd
+          ossutil cp -f "$UBUNTU_PREVIEW_NAME" "oss://arelle-cn/$UBUNTU_PREVIEW_NAME"
+          ossutil cp -f "$MACOS_ARM64_PREVIEW_NAME" "oss://arelle-cn/$MACOS_ARM64_PREVIEW_NAME"
+          ossutil cp -f "$MACOS_X64_PREVIEW_NAME" "oss://arelle-cn/$MACOS_X64_PREVIEW_NAME"
+          ossutil cp -f "$WINDOWS_INSTALLER_PREVIEW_NAME" "oss://arelle-cn/$WINDOWS_INSTALLER_PREVIEW_NAME"
+          ossutil cp -f "$WINDOWS_ZIP_PREVIEW_NAME" "oss://arelle-cn/$WINDOWS_ZIP_PREVIEW_NAME"
+
+      - name: Write tester URL summary
+        env:
+          ARELLE_REF: ${{ github.ref_name }}
+          EDGAR_REF: ${{ inputs.edgar_ref }}
+          XULE_REF: ${{ inputs.xule_ref }}
         run: |
-          cd tk8-src\win
-          nmake /f makefile.vc release INSTALLDIR=%CD%\..\..\tcl8-install TCLDIR=%CD%\..\..\tcl8-src
-          nmake /f makefile.vc install INSTALLDIR=%CD%\..\..\tcl8-install TCLDIR=%CD%\..\..\tcl8-src
-      - name: Build Tcl 9
-        shell: cmd
-        run: |
-          cd tcl9-src\win
-          nmake /f makefile.vc release INSTALLDIR=%CD%\..\..\tcl9-install
-          nmake /f makefile.vc install INSTALLDIR=%CD%\..\..\tcl9-install
-      - name: Build Tk 9
-        shell: cmd
-        run: |
-          cd tk9-src\win
-          nmake /f makefile.vc release INSTALLDIR=%CD%\..\..\tcl9-install TCLDIR=%CD%\..\..\tcl9-src
-          nmake /f makefile.vc install INSTALLDIR=%CD%\..\..\tcl9-install TCLDIR=%CD%\..\..\tcl9-src
-      - name: Build TkTable for Tcl 8
-        shell: cmd
-        run: |
-          cd TkTable\win
-          nmake /f makefile.vc INSTALLDIR=%CD%\..\..\tcl8-install TCLDIR=%CD%\..\..\tcl8-src TKDIR=%CD%\..\..\tk8-src
-          nmake /f makefile.vc install INSTALLDIR=%CD%\..\..\tcl8-install TCLDIR=%CD%\..\..\tcl8-src TKDIR=%CD%\..\..\tk8-src
-      - name: Collect Tcl 8 artifacts
-        run: |
-          mkdir output -ErrorAction SilentlyContinue
-          $tktableDir = Get-ChildItem -Path "tcl8-install\lib" -Directory -Filter "Tktable*" | Select-Object -First 1
-          Copy-Item "$($tktableDir.FullName)\*.dll" output\
-          Copy-Item "$($tktableDir.FullName)\pkgIndex.tcl" output\
-          Copy-Item "$($tktableDir.FullName)\tkTable.tcl" output\
-      - name: Build TkTable for Tcl 9
-        shell: cmd
-        run: |
-          cd TkTable\win
-          nmake /f makefile.vc clean
-          nmake /f makefile.vc INSTALLDIR=%CD%\..\..\tcl9-install TCLDIR=%CD%\..\..\tcl9-src TKDIR=%CD%\..\..\tk9-src
-          nmake /f makefile.vc install INSTALLDIR=%CD%\..\..\tcl9-install TCLDIR=%CD%\..\..\tcl9-src TKDIR=%CD%\..\..\tk9-src
-      - name: Collect Tcl 9 artifacts
-        run: |
-          $tktableDir = Get-ChildItem -Path "tcl9-install\lib" -Directory -Filter "Tktable*" | Select-Object -First 1
-          Copy-Item "$($tktableDir.FullName)\*.dll" output\
-      - uses: actions/upload-artifact@v7.0.1
-        with:
-          name: tktable-win-x86_64
-          path: output/
+          {
+            echo "Windows Installer:"
+            echo "USA: https://arelle-us.s3-us-west-1.amazonaws.com/$WINDOWS_INSTALLER_PREVIEW_NAME"
+            echo "Europe: https://arelle-eu.s3.eu-central-1.amazonaws.com/$WINDOWS_INSTALLER_PREVIEW_NAME"
+            echo "China: https://arelle-cn.oss-cn-shenzhen.aliyuncs.com/$WINDOWS_INSTALLER_PREVIEW_NAME"
+            echo
+            echo "Windows Zip:"
+            echo "USA: https://arelle-us.s3-us-west-1.amazonaws.com/$WINDOWS_ZIP_PREVIEW_NAME"
+            echo "Europe: https://arelle-eu.s3.eu-central-1.amazonaws.com/$WINDOWS_ZIP_PREVIEW_NAME"
+            echo "China: https://arelle-cn.oss-cn-shenzhen.aliyuncs.com/$WINDOWS_ZIP_PREVIEW_NAME"
+            echo
+            echo "macOS arm64:"
+            echo "USA: https://arelle-us.s3-us-west-1.amazonaws.com/$MACOS_ARM64_PREVIEW_NAME"
+            echo "Europe: https://arelle-eu.s3.eu-central-1.amazonaws.com/$MACOS_ARM64_PREVIEW_NAME"
+            echo "China: https://arelle-cn.oss-cn-shenzhen.aliyuncs.com/$MACOS_ARM64_PREVIEW_NAME"
+            echo
+            echo "macOS x64:"
+            echo "USA: https://arelle-us.s3-us-west-1.amazonaws.com/$MACOS_X64_PREVIEW_NAME"
+            echo "Europe: https://arelle-eu.s3.eu-central-1.amazonaws.com/$MACOS_X64_PREVIEW_NAME"
+            echo "China: https://arelle-cn.oss-cn-shenzhen.aliyuncs.com/$MACOS_X64_PREVIEW_NAME"
+            echo
+            echo "Ubuntu:"
+            echo "USA: https://arelle-us.s3-us-west-1.amazonaws.com/$UBUNTU_PREVIEW_NAME"
+            echo "Europe: https://arelle-eu.s3.eu-central-1.amazonaws.com/$UBUNTU_PREVIEW_NAME"
+            echo "China: https://arelle-cn.oss-cn-shenzhen.aliyuncs.com/$UBUNTU_PREVIEW_NAME"
+          } >> "$GITHUB_STEP_SUMMARY"
