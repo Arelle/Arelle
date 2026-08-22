@@ -309,12 +309,17 @@ arelleCmdLine --plugins saveOIMFacts --internetConnectivity online \
    `_phrase_locate`'s 3-word minimum (numbers cannot be phrases in any medium),
    and the other 11 are date phrases occurring in *zero* MCIDs -- prior-year
    comparatives the PDF does not render. 1161:364 is the PDF's marked-content
-   granularity: of 1034 row placements, 843 (81%) have no MCID whose whole text
-   keys to the cell value (merged cells such as one MCID reading `'7,404 72'`),
-   169 unique, 22 collisions. Only those 22 are recoverable. Consequence for this
+   granularity, not a preference for rectangles. **Re-measured after commit
+   40afce203**, which fixed a q/Q graphics-state bug that was corrupting MCID
+   text: of 1034 row placements, 719 (69%) have no MCID whose whole text keys to
+   the cell value (merged cells such as one MCID reading `'7,404 72'`), 235
+   emit pdfMcid, 53 collide, 27 are absent. The pre-fix reading of this split --
+   843/81%, and later 517 coarse against 296 decoder-gap -- was taken through
+   corrupted text and **understated** coarse granularity, because the two causes
+   overlapped almost totally. So 772 of 1034 (75%) is what text-offset addressing
+   dissolves, and 719 of that is a floor no decoding moves. Consequence for this
    port: **do not carry the bbox/mcid hybrid across** -- it works around
-   granularity we do not control, and element-addressed pointers give per-cell
-   granularity by construction.
+   granularity we do not control, and container + offset dissolves it.
 2. ~~Add the lexbor parse branch~~ -- **done**, `_parse_source_tree` /
    `_lexborToLxml`, see the correction in 3.1. Media type is a required argument.
 3. ~~Port the pointer generator, with a shared corpus~~ -- **done**,
