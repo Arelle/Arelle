@@ -149,29 +149,87 @@ def run_arelle(
     assert result.returncode == 0, result.stderr.decode().strip()
 
 
+def _probe_error_kind(exc: OSError) -> str:
+    if isinstance(exc, ConnectionRefusedError):
+        return "refused"
+    if isinstance(exc, TimeoutError):
+        return "connect-timeout"
+    return f"{type(exc).__name__}:{getattr(exc, 'errno', None)}"
+
+
+def _diagnose_unready_webserver(
+    port: int,
+    proc: subprocess.Popen[bytes],
+) -> str:
+    lines = [f"webserver pid={proc.pid} poll={proc.poll()} port={port}"]
+    if sys.platform != "darwin":
+        return "\n".join(lines)
+    for args in (
+        ["lsof", "-nP", f"-iTCP:{port}"],
+        ["sample", str(proc.pid), "3"],
+    ):
+        lines.append(f"$ {' '.join(args)}")
+        try:
+            result = subprocess.run(
+                args, capture_output=True, timeout=30, check=False
+            )
+        except OSError as exc:
+            lines.append(str(exc))
+            continue
+        output = (result.stdout or result.stderr).decode(
+            errors="replace"
+        ).strip()
+        lines.append(output or f"(exit {result.returncode}, no output)")
+    return "\n".join(lines)
+
+
 def wait_for_localhost_port(
     port: int,
     proc: subprocess.Popen[bytes],
-    timeout: float = 30,
+    timeout: float = 180,
 ) -> None:
     """
     Block until 127.0.0.1 accepts a TCP connection on *port*.
     """
-    deadline = time.monotonic() + timeout
+    counts: dict[str, int] = defaultdict(int)
+    started = time.monotonic()
+    deadline = started + timeout
+    last_heartbeat = -1
+    last_error: OSError | None = None
     while time.monotonic() < deadline:
         if proc.poll() is not None:
             raise RuntimeError(
                 f"Arelle webserver exited with code {proc.returncode} "
-                f"before listening on port {port}."
+                f"before listening on port {port}. probe_counts={dict(counts)}"
+            )
+        elapsed = time.monotonic() - started
+        heartbeat = int(elapsed) // 10
+        if heartbeat != last_heartbeat:
+            last_heartbeat = heartbeat
+            print(
+                f"webserver probe t={elapsed:.1f}s counts={dict(counts)}",
+                file=sys.stderr,
+                flush=True,
             )
         try:
             with socket.create_connection(("127.0.0.1", port), timeout=0.1):
+                print(
+                    f"webserver probe connected after {elapsed:.2f}s "
+                    f"counts={dict(counts)}",
+                    file=sys.stderr,
+                    flush=True,
+                )
                 return
-        except OSError:
+        except OSError as exc:
+            last_error = exc
+            counts[_probe_error_kind(exc)] += 1
             time.sleep(0.1)
+    diagnosis = _diagnose_unready_webserver(port, proc)
+    print(diagnosis, file=sys.stderr, flush=True)
     raise TimeoutError(
         f"Arelle webserver did not accept connections on port {port} "
-        f"within {timeout} seconds."
+        f"within {timeout} seconds. probe_counts={dict(counts)} "
+        f"last_error={last_error!r}\n{diagnosis}"
     )
 
 

@@ -8,4 +8,7 @@ def test_script(script_results: dict[str, Any]) -> None:
     It is critical that this file is not imported or referenced by other modules to ensure that it is not evaluated
     before pytest can evaluate conformance suite results via the pytest_configure hook.
     """
-    assert script_results.get("returncode") == 0, script_results.get("stderr")
+    assert script_results.get("returncode") == 0, (
+        f"--- stdout ---\n{script_results.get('stdout')}\n"
+        f"--- stderr ---\n{script_results.get('stderr')}"
+    )

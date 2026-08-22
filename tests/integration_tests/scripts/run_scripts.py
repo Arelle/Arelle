@@ -93,11 +93,13 @@ def run_script_options(options: Namespace) -> list[ParameterSet]:
         print(f'Running integration test script "{script.stem}": {args}')
         result = subprocess.run(args, capture_output=True)
         returncode = result.returncode
-        stderr = result.stderr.decode().strip()
+        stdout = result.stdout.decode(errors="replace").strip()
+        stderr = result.stderr.decode(errors="replace").strip()
         param = pytest.param(
             {
                 "returncode": returncode,
-                "stderr": stderr
+                "stdout": stdout,
+                "stderr": stderr,
             },
             id=script.stem,
             marks=[],
@@ -123,8 +125,13 @@ def run() -> None:
             if returncode == 0:
                 print(f"{result.id} passed")
             else:
+                stdout = values.get("stdout")
                 stderr = values.get("stderr")
-                print(f'"{result.id}" failed with code {returncode}:\n{stderr}\n', file=sys.stderr)
+                print(
+                    f'"{result.id}" failed with code {returncode}:\n'
+                    f"--- stdout ---\n{stdout}\n--- stderr ---\n{stderr}\n",
+                    file=sys.stderr,
+                )
 
 
 if __name__ == "__main__":
