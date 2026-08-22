@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import os
 import shlex
+import socket
 import subprocess
 import sys
 import time
@@ -148,6 +149,30 @@ def run_arelle(
     assert result.returncode == 0, result.stderr.decode().strip()
 
 
+def wait_for_localhost_port(
+    port: int,
+    proc: subprocess.Popen[bytes],
+    timeout: float = 120,
+) -> None:
+    """Block until localhost accepts a TCP connection on *port*."""
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if proc.poll() is not None:
+            raise RuntimeError(
+                f"Arelle webserver exited with code {proc.returncode} "
+                f"before listening on port {port}."
+            )
+        try:
+            with socket.create_connection(("localhost", port), timeout=0.1):
+                return
+        except OSError:
+            time.sleep(0.1)
+    raise TimeoutError(
+        f"Arelle webserver did not accept connections on port {port} "
+        f"within {timeout} seconds."
+    )
+
+
 @contextmanager
 def run_arelle_webserver(
     arelle_command: str,
@@ -162,8 +187,8 @@ def run_arelle_webserver(
     try:
         print(f"Starting web server on port {port}...")
         proc = subprocess.Popen(args)
-        print("Waiting 2 seconds for web server to be ready...")
-        time.sleep(2)  # TODO: capture process output and wait for "Listening" message
+        print(f"Waiting for web server on port {port}...")
+        wait_for_localhost_port(port, proc)
         print("Web server ready.")
         yield proc
     finally:
