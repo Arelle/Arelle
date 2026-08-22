@@ -7,11 +7,11 @@ import subprocess
 import sys
 import time
 from collections import defaultdict
-from collections.abc import Iterable
+from collections.abc import Generator, Iterable
 from contextlib import contextmanager
 from os import linesep
 from pathlib import Path
-from typing import cast, Any, Generator
+from typing import Any, cast
 
 import regex
 from lxml import etree
