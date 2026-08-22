@@ -90,11 +90,18 @@ def run_script_options(options: Namespace) -> list[ParameterSet]:
         if options.working_directory is not None:
             args.extend(["--working-directory", options.working_directory])
 
-        print(f'Running integration test script "{script.stem}": {args}')
+        print(f'Running integration test script "{script.stem}": {args}', flush=True)
         result = subprocess.run(args, capture_output=True)
         returncode = result.returncode
         stdout = result.stdout.decode(errors="replace").strip()
         stderr = result.stderr.decode(errors="replace").strip()
+        print(f'--- {script.stem} stdout ---', flush=True)
+        if stdout:
+            print(stdout, flush=True)
+        print(f'--- {script.stem} stderr ---', flush=True)
+        if stderr:
+            print(stderr, flush=True)
+        print(f'--- {script.stem} exit {returncode} ---', flush=True)
         param = pytest.param(
             {
                 "returncode": returncode,
