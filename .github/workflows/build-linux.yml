@@ -104,7 +104,7 @@ jobs:
       - name: Define artifact names
         id: define-artifact-names
         run: |
-          [[ $(echo dist/*.tgz) =~ -([0-9]+\.[0-9]+\.[0-9]+)\.tgz$ ]] && echo "artifact_versioned_name=arelle-ubuntu-${BASH_REMATCH[1]}.tgz" >> $GITHUB_OUTPUT
+          echo "artifact_versioned_name=$(basename dist/*.tgz)" >> $GITHUB_OUTPUT
           echo "BUILD_ARTIFACT_PATH=$(echo dist/*.tgz)" >> $GITHUB_ENV
           echo "uploaded_artifact_name=ubuntu distribution" >> $GITHUB_OUTPUT
       - name: Capture build env
