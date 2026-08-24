@@ -6,6 +6,22 @@ from tests.integration_tests.validation.conformance_suite_config import (
 )
 
 
+def _preprocessing_func(config: ConformanceSuiteConfig) -> None:
+    with open(
+            config.entry_point_root /
+            "tests/FRC/FRC_09/index.xml",
+            "r+"
+    ) as f:
+        content = f.read()
+        # Test case references TC2_valid.zip, but actual file in suite has .xbri extension.
+        content = content.replace("TC2_valid.zip", "TC2_valid.xbri")
+        # Test case references TC3_valid.zip, but actual file in suite has .xbri extension.
+        content = content.replace("TC3_valid.zip", "TC3_valid.xbri")
+        f.seek(0)
+        f.write(content)
+        f.truncate()
+
+
 ZIP_PATH = Path("uksef-conformance-suite-v2.0.zip")
 EXTRACTED_PATH = Path(ZIP_PATH.stem)
 EXTRACTED_ZIP_PATH = EXTRACTED_PATH / "uksef-conformance-suite-v2.0" / "uksef-conformance-suite-v2.0.zip"
@@ -44,17 +60,8 @@ config = ConformanceSuiteConfig(
             # Testcase does not specify count (1 is default), so 19 additional occurrences
             "xmlSchema:elementUnexpected": 19,
         },
-        # Test case references TC2_valid.zip, but actual file in suite has .xbri extension.
-        "FRC_09/index.xml:TC2_valid": {
-            "FileSourceError": 1,
-            "tpe:invalidArchiveFormat": 1
-        },
-        # Test case references TC3_valid.zip, but actual file in suite has .xbri extension.
-        "FRC_09/index.xml:TC3_valid": {
-            "FileSourceError": 1,
-            "tpe:invalidArchiveFormat": 1
-        },
         # Report package uses CR document type URI instead of rec URI.
+        "FRC_09/index.xml:TC2_valid": {"rpe:unsupportedReportPackageVersion": 1},
         "FRC_09/index.xml:TC4_valid": {"rpe:unsupportedReportPackageVersion": 1},
     }.items()},
     expected_failure_ids=frozenset({f"tests/FRC/{s}" for s in [
@@ -102,5 +109,6 @@ config = ConformanceSuiteConfig(
     name=PurePath(__file__).stem,
     disclosure_system="uksef-only-2025",
     plugins=frozenset({"inlineXbrlDocumentSet", "validate/ESEF"}),
+    preprocessing_func=_preprocessing_func,
     shards=4,
 )
