@@ -1,6 +1,11 @@
 {{ define "shell" }}shell-narrow{{ end }}
 
 {{ define "main" }}
-  <h1 class="type-title">{{ .Title }}</h1>
+  {{ partial "page-header.html" (dict
+    "kicker" .Params.kicker
+    "title" .Title
+    "lede" .Params.lede
+    "action" .Params.action
+  ) }}
   {{ .Content }}
 {{ end }}

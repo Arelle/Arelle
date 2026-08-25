@@ -1,0 +1,72 @@
+.page-header {
+  --page-header-gap: 0.75rem;
+  --page-header-margin-block-end: clamp(2rem, 5vw, 3.5rem);
+  --page-header-lede-measure: 60ch;
+  --page-header-leading: 1.5;
+  --page-header-title-leading: 1.1;
+
+  display: grid;
+  justify-items: start;
+  gap: var(--page-header-gap);
+  margin-block-end: var(--page-header-margin-block-end);
+
+  & > :where(.kicker, .title, .lede, time) {
+    margin: 0;
+  }
+
+  & > .page-header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+    color: var(--muted);
+    line-height: var(--page-header-leading);
+
+    & > a {
+      color: inherit;
+    }
+
+    & > a:focus-visible {
+      outline: var(--focus-ring-width) solid var(--accent);
+      outline-offset: var(--focus-ring-offset);
+    }
+  }
+
+  & > .kicker {
+    color: var(--muted);
+    letter-spacing: var(--tracking-kicker);
+    line-height: var(--page-header-leading);
+    text-transform: uppercase;
+  }
+
+  & > a.kicker:focus-visible {
+    outline: var(--focus-ring-width) solid var(--accent);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  & > .title {
+    line-height: var(--page-header-title-leading);
+
+    & > span {
+      display: block;
+    }
+  }
+
+  & .page-header-title-accent {
+    color: var(--accent);
+  }
+
+  & > time {
+    color: var(--muted);
+  }
+
+  & > .lede {
+    max-width: var(--page-header-lede-measure);
+    color: var(--muted);
+    line-height: var(--page-header-leading);
+  }
+
+  & > .btn {
+    justify-self: start;
+  }
+}

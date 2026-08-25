@@ -73,14 +73,14 @@
         outline: var(--focus-ring-width) solid var(--signal);
         outline-offset: var(--focus-ring-offset);
         transform: translateY(calc(-1 * var(--wordmark-lift))) rotate(0.75deg);
-      }
 
-      &:focus-visible .wordmark-wing-front {
-        transform: rotate(3.6deg);
-      }
+        & .wordmark-wing-front {
+          transform: rotate(3.6deg);
+        }
 
-      &:focus-visible .wordmark-wing-back {
-        transform: rotate(5deg);
+        & .wordmark-wing-back {
+          transform: rotate(5deg);
+        }
       }
     }
 
@@ -143,14 +143,14 @@
       & .wordmark {
         &:hover {
           transform: translateY(calc(-1 * var(--wordmark-lift))) rotate(0.75deg);
-        }
 
-        &:hover .wordmark-wing-front {
-          transform: rotate(3.6deg);
-        }
+          & .wordmark-wing-front {
+            transform: rotate(3.6deg);
+          }
 
-        &:hover .wordmark-wing-back {
-          transform: rotate(5deg);
+          & .wordmark-wing-back {
+            transform: rotate(5deg);
+          }
         }
       }
     }
