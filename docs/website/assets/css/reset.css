@@ -1,0 +1,22 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--page);
+  background-image: var(--page-wash);
+  color: var(--ink);
+}
+
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+}
