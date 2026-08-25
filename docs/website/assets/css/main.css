@@ -22,3 +22,4 @@
 /* components */
 @import "table.css" layer(components);
 @import "page-header.css" layer(components);
+@import "article-prose.css" layer(components);

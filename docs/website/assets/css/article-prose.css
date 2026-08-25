@@ -1,0 +1,120 @@
+.article-prose {
+  --article-prose-flow-space: 1.25rem;
+  --article-prose-list-indent: 1.5rem;
+  --article-prose-block-padding: 1rem;
+  --article-prose-inline-code-padding: 0.125rem 0.25rem;
+  --article-prose-leading: 1.7;
+  --article-prose-heading-leading: 1.25;
+
+  min-width: 0;
+  color: var(--ink);
+  font-size: var(--type-body);
+  line-height: var(--article-prose-leading);
+  overflow-wrap: break-word;
+
+  & > :first-child {
+    margin-block-start: 0;
+  }
+
+  & > :last-child {
+    margin-block-end: 0;
+  }
+
+  & :where(h1, h2, h3, h4, h5, h6) {
+    margin-block: var(--content-section-gap)
+      var(--article-prose-flow-space);
+    color: var(--ink);
+    font-size: var(--type-heading);
+    line-height: var(--article-prose-heading-leading);
+  }
+
+  &
+    :where(
+      p,
+      ul,
+      ol,
+      blockquote,
+      pre:not(.highlight *),
+      .highlight,
+      table:not(.lntable)
+    ) {
+    margin-block: 0 var(--article-prose-flow-space);
+  }
+
+  & :where(ul, ol) {
+    padding-inline-start: var(--article-prose-list-indent);
+  }
+
+  & :where(ul, ol) :where(ul, ol) {
+    margin-block: 0;
+  }
+
+  & a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 0.16em;
+
+    &:focus-visible {
+      outline: var(--focus-ring-width) solid var(--accent);
+      outline-offset: var(--focus-ring-offset);
+    }
+  }
+
+  & blockquote {
+    padding: var(--article-prose-block-padding);
+    border-inline-start: var(--border-width) solid var(--line);
+    background-color: var(--well);
+    color: var(--muted);
+    font-size: var(--type-lede);
+
+    & > :last-child {
+      margin-block-end: 0;
+    }
+  }
+
+  & :not(pre) > code {
+    padding: var(--article-prose-inline-code-padding);
+    background-color: var(--well);
+    color: var(--ink);
+    font-size: var(--type-label);
+  }
+
+  & table:not(.lntable) {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: var(--type-body);
+  }
+
+  & :where(th, td):not(.lntd) {
+    padding: 0.5rem 0.75rem;
+    border: var(--border-width) solid var(--line);
+    text-align: start;
+    vertical-align: top;
+  }
+
+  & th {
+    background-color: var(--well);
+    font-weight: 700;
+  }
+
+  & img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  & .article-image-inline {
+    display: inline-block;
+    margin: 0;
+    vertical-align: middle;
+  }
+
+  & hr {
+    margin-block: var(--content-section-gap);
+    border: 0;
+    border-block-start: var(--border-width) solid var(--line);
+  }
+}
