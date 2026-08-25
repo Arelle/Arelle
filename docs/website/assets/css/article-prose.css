@@ -106,12 +106,6 @@
     height: auto;
   }
 
-  & .article-image-inline {
-    display: inline-block;
-    margin: 0;
-    vertical-align: middle;
-  }
-
   & hr {
     margin-block: var(--content-section-gap);
     border: 0;
