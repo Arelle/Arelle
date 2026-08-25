@@ -12,6 +12,7 @@
   --type-display: clamp(2.6rem, 6vw, 4.5rem);
   --shell-narrow: 42rem;
   --shell-wide: 80rem;
+  --shell-padding-block: clamp(1.25rem, 3vw, 2rem);
   --reflow-capability: 40rem;
   --reflow-split: 48rem;
   --page-gutter: clamp(1rem, 3vw, 2rem);

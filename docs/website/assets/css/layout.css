@@ -1,0 +1,15 @@
+.shell-narrow,
+.shell-wide {
+  width: 100%;
+  padding-block: var(--shell-padding-block);
+  padding-inline: var(--page-gutter);
+  margin-inline: auto;
+}
+
+.shell-narrow {
+  max-width: calc(var(--shell-narrow) + 2 * var(--page-gutter));
+}
+
+.shell-wide {
+  max-width: calc(var(--shell-wide) + 2 * var(--page-gutter));
+}

@@ -17,7 +17,7 @@
     <header>
       <a href="{{ "/" | relURL }}">{{ .Site.Title }}</a>
     </header>
-    <main>
+    <main class="{{ block "shell" . }}shell-wide{{ end }}">
       {{ block "main" . }}{{ end }}
     </main>
   </body>
