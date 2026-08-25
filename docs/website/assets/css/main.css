@@ -15,6 +15,7 @@
 /* component parts */
 @import "surface.css" layer(parts);
 @import "button.css" layer(parts);
+@import "status-label.css" layer(parts);
 
 /* components */
 @import "page-header.css" layer(components);
