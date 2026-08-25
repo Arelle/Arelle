@@ -22,6 +22,11 @@
   --duration-control: 100ms;
   --duration-indicator: 150ms;
   --duration-theme: 200ms;
+  --transition-theme:
+    color var(--duration-theme) ease-out,
+    background-color var(--duration-theme) ease-out,
+    border-color var(--duration-theme) ease-out,
+    box-shadow var(--duration-theme) ease-out;
   --page: light-dark(#f6f4ef, #0d1017);
   --card: light-dark(#ffffff, #141821);
   --well: light-dark(#f8f6f2, #1a1f2a);

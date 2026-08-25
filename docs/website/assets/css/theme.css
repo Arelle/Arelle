@@ -1,0 +1,23 @@
+:root[data-theme-changing] {
+  &,
+  &::before,
+  &::after,
+  & *,
+  & *::before,
+  & *::after {
+    transition: var(--transition-theme);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme-changing] {
+    &,
+    &::before,
+    &::after,
+    & *,
+    & *::before,
+    & *::after {
+      transition: none;
+    }
+  }
+}

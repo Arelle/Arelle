@@ -101,6 +101,10 @@
       cursor: pointer;
       transition: color var(--duration-control) ease-out;
 
+      :root[data-theme-changing] & {
+        transition: var(--transition-theme);
+      }
+
       &:hover {
         color: var(--accent);
       }
@@ -204,6 +208,7 @@
   .site-header {
     & .primary-navigation {
       & .theme-toggle,
+      :root[data-theme-changing] & .theme-toggle,
       & .wordmark,
       & .wordmark .wordmark-wing-front,
       & .wordmark .wordmark-wing-back {
