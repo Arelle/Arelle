@@ -1,0 +1,49 @@
+.catalog-table {
+  --catalog-table-min-width: 46rem;
+  --catalog-table-cell-padding-block: 0.75rem;
+  --catalog-table-cell-padding-inline: 1rem;
+
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  border: var(--border-width) solid var(--line);
+  border-radius: var(--radius-surface);
+  background-color: var(--card);
+}
+
+.catalog-table > table {
+  width: 100%;
+  min-width: var(--catalog-table-min-width);
+  margin: 0;
+  border: 0;
+  border-collapse: collapse;
+  color: var(--ink);
+  font-size: var(--type-ui);
+  line-height: 1.5;
+
+  & > thead > tr > th,
+  & > tbody > tr > td {
+    padding: var(--catalog-table-cell-padding-block)
+      var(--catalog-table-cell-padding-inline);
+    border: 0;
+    border-block-end: var(--border-width) solid var(--line);
+    text-align: start;
+    vertical-align: middle;
+  }
+
+  & > thead > tr > th {
+    background-color: var(--well);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--type-micro);
+    font-weight: 500;
+    letter-spacing: var(--tracking-kicker);
+    line-height: 1.5;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  & > tbody > tr:last-child > td {
+    border-block-end: 0;
+  }
+}

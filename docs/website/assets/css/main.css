@@ -19,4 +19,5 @@
 @import "status-label.css" layer(parts);
 
 /* components */
+@import "table.css" layer(components);
 @import "page-header.css" layer(components);
