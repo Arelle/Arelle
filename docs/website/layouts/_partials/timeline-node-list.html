@@ -1,0 +1,16 @@
+{{- $list := . -}}
+<ol class="timeline-list">
+  {{- range $list.nodes }}
+    <li class="timeline-item">
+      <a href="{{ .href }}"{{ if .current }} aria-current="page"{{ end }}>
+        {{- if $list.markers }}
+          <span class="timeline-marker" aria-hidden="true"></span>
+        {{- end }}
+        <span class="timeline-label">{{ .label }}</span>
+        {{- if isset . "count" }}
+          <span class="timeline-count">({{ .count }})</span>
+        {{- end }}
+      </a>
+    </li>
+  {{- end }}
+</ol>

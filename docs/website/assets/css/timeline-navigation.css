@@ -1,0 +1,165 @@
+.timeline-navigation {
+  --timeline-gap: 1.5rem;
+  --timeline-compact-gap: 0.75rem;
+  --timeline-content-gap: 0.5rem;
+  --timeline-heading-gap: 1.25rem;
+  --timeline-line-width: 2px;
+  --timeline-marker-size: 0.5rem;
+  --timeline-marker-offset: 0.125rem;
+  --timeline-rail-padding-inline-start: 1.5rem;
+  --timeline-line-inset: 0.3125rem;
+  --radius-timeline-marker: 50%;
+
+  position: sticky;
+  top: var(--page-gutter);
+  min-width: 0;
+  align-self: start;
+  color: var(--ink);
+
+  & .timeline-list {
+    display: grid;
+    min-width: 0;
+    gap: var(--timeline-gap);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  & .timeline-rail {
+    min-width: 0;
+
+    & > .timeline-heading {
+      display: block;
+      margin-block-end: var(--timeline-heading-gap);
+    }
+
+    & .timeline-rail-navigation > .timeline-list {
+      position: relative;
+      padding-inline-start: var(--timeline-rail-padding-inline-start);
+
+      &::before {
+        content: "";
+        position: absolute;
+        inset-block: var(--timeline-compact-gap);
+        inset-inline-start: var(--timeline-line-inset);
+        width: var(--timeline-line-width);
+        background-color: var(--line);
+        pointer-events: none;
+      }
+    }
+  }
+
+  & .timeline-disclosure {
+    display: none;
+  }
+
+  & .timeline-item {
+    min-width: 0;
+
+    & > a {
+      display: flex;
+      position: relative;
+      min-width: 0;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: var(--timeline-content-gap);
+      color: var(--ink);
+      font-size: var(--type-ui);
+      font-weight: 500;
+      line-height: 1.5;
+      text-decoration: underline;
+      text-underline-offset: 0.16em;
+
+      &[aria-current="page"] {
+        font-weight: 700;
+      }
+
+      & > .timeline-label {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+
+      & > .timeline-count {
+        color: var(--muted);
+        font-size: var(--type-label);
+        font-weight: 400;
+      }
+
+      & > .timeline-marker {
+        position: absolute;
+        inset-block-start: calc((1.5em - var(--timeline-marker-size)) / 2);
+        inset-inline-start: calc(
+          -1 *
+          var(--timeline-rail-padding-inline-start) +
+          var(--timeline-marker-offset)
+        );
+        width: var(--timeline-marker-size);
+        height: var(--timeline-marker-size);
+        border-radius: var(--radius-timeline-marker);
+        background-color: var(--line);
+        box-shadow: 0 0 0 var(--border-width) var(--page);
+        transition:
+          background-color var(--duration-indicator) ease-out,
+          box-shadow var(--duration-indicator) ease-out,
+          transform var(--duration-indicator) ease-out;
+      }
+
+      &:is(:hover, :focus-visible) > .timeline-marker {
+        background-color: var(--signal);
+        transform: scale(1.25);
+      }
+
+      &[aria-current="page"] > .timeline-marker {
+        background-color: var(--signal);
+        box-shadow:
+          0 0 0 var(--border-width) var(--page),
+          0 0 0 calc(2 * var(--border-width)) var(--signal);
+        transform: scale(1.5);
+      }
+    }
+  }
+
+  & :is(.timeline-item > a, .timeline-disclosure > summary):focus-visible {
+    outline: var(--focus-ring-width) solid var(--signal);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  @media (width <= 48rem) {
+    position: static;
+
+    & .timeline-rail {
+      display: none;
+    }
+
+    & .timeline-disclosure {
+      display: block;
+      padding-block: var(--timeline-compact-gap);
+      border-block: var(--border-width) solid var(--line);
+
+      & > summary {
+        display: list-item;
+        width: fit-content;
+        max-width: 100%;
+        color: var(--ink);
+        cursor: pointer;
+        font-size: var(--type-ui);
+        font-weight: 700;
+        line-height: 1.5;
+      }
+
+      &[open] > summary {
+        margin-block-end: var(--timeline-compact-gap);
+      }
+
+      & .timeline-list {
+        gap: var(--timeline-compact-gap);
+      }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    & .timeline-marker {
+      transition: none;
+    }
+  }
+}

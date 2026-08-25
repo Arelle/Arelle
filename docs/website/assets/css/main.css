@@ -25,3 +25,4 @@
 @import "article-prose.css" layer(components);
 @import "code-frame.css" layer(components);
 @import "figure-media.css" layer(components);
+@import "timeline-navigation.css" layer(components);
