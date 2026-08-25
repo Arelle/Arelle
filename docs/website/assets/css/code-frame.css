@@ -1,0 +1,92 @@
+.code-frame {
+  --code-frame-bar-padding: 0.75rem 1rem;
+  --code-frame-section-padding: 1rem;
+  --code-frame-section-gap: 0.75rem;
+  --code-frame-output-min-width: 16rem;
+
+  display: grid;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: var(--border-width) solid var(--line);
+  border-radius: var(--radius-surface);
+  background-color: var(--well);
+  color: var(--ink);
+
+  & .frame-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    padding: var(--code-frame-bar-padding);
+    border-block-end: var(--border-width) solid var(--line);
+    background-color: var(--card);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--type-micro);
+    font-weight: 500;
+    letter-spacing: var(--tracking-kicker);
+    line-height: 1.5;
+    text-transform: uppercase;
+  }
+
+  & .frame-section {
+    display: grid;
+    min-width: 0;
+    align-content: start;
+    gap: var(--code-frame-section-gap);
+    padding: var(--code-frame-section-padding);
+
+    & + .frame-section {
+      border-block-start: var(--border-width) solid var(--line);
+    }
+  }
+
+  & .frame-heading {
+    margin: 0;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--type-micro);
+    font-weight: 500;
+    letter-spacing: var(--tracking-kicker);
+    line-height: 1.5;
+    text-transform: uppercase;
+  }
+
+  & :where(pre:not(.chroma), .highlight > .chroma) {
+    border: 0;
+    background-color: transparent;
+  }
+
+  & :where(pre, .highlight) {
+    min-width: 0;
+    margin: 0;
+  }
+
+  &.code-frame-source-output {
+    grid-template-columns:
+      minmax(0, 1.4fr)
+      minmax(var(--code-frame-output-min-width), 0.8fr);
+
+    & > .frame-bar {
+      grid-column: 1 / -1;
+    }
+
+    & > .frame-section + .frame-section {
+      border-block-start: 0;
+      border-inline-start: var(--border-width) solid var(--line);
+    }
+  }
+
+  @media (width <= 48rem) {
+    &.code-frame-source-output {
+      grid-template-columns: minmax(0, 1fr);
+
+      & > .frame-section + .frame-section {
+        border-block-start: var(--border-width) solid var(--line);
+        border-inline-start: 0;
+      }
+    }
+  }
+}
