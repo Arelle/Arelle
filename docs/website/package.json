@@ -1,0 +1,11 @@
+{
+  "name": "arelle-website",
+  "private": true,
+  "engines": {
+    "node": ">=26"
+  },
+  "devDependencies": {
+    "@fontsource-variable/dm-sans": "^5.3.0",
+    "@fontsource/dm-mono": "^5.3.0"
+  }
+}

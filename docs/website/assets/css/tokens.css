@@ -1,7 +1,7 @@
 :root {
   color-scheme: light dark;
-  --font-sans: ui-sans-serif, sans-serif;
-  --font-mono: ui-monospace, monospace;
+  --font-sans: "DM Sans", ui-sans-serif, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, monospace;
   --type-micro: 0.75rem;
   --type-label: 0.8125rem;
   --type-ui: 0.875rem;

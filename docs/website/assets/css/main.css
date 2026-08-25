@@ -1,5 +1,6 @@
-@layer tokens, reset;
+@layer tokens, reset, typography;
 
 /* foundation */
 @import "tokens.css" layer(tokens);
 @import "reset.css" layer(reset);
+@import "typography.css" layer(typography);

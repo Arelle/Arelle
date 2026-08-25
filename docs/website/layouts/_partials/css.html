@@ -1,0 +1,12 @@
+{{- $opts := dict "targetPath" "css/site.css" "minify" true -}}
+{{- if hugo.IsDevelopment -}}
+  {{- $opts = dict "targetPath" "css/site.css" "minify" false "sourceMap" "linked" -}}
+{{- end -}}
+{{- $css := resources.Get "css/main.css" | css.Build $opts -}}
+{{- if hugo.IsDevelopment }}
+  <link rel="stylesheet" href="{{ $css.RelPermalink }}">
+{{- else }}
+  {{- with $css | fingerprint }}
+    <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" crossorigin="anonymous">
+  {{- end }}
+{{- end }}
