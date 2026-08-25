@@ -14,6 +14,7 @@
 
 /* component parts */
 @import "surface.css" layer(parts);
+@import "syntax-highlighting.css" layer(parts);
 @import "button.css" layer(parts);
 @import "action-arrow.css" layer(parts);
 @import "status-label.css" layer(parts);
