@@ -1,0 +1,67 @@
+.update-archive-layout {
+  --update-archive-rail-min: 8rem;
+  --update-archive-rail-max: 10rem;
+  --update-archive-column-gap: clamp(2rem, 6vw, 4rem);
+  --update-entry-gap: 0.5rem;
+
+  display: grid;
+  grid-template:
+    "header timeline" auto
+    "year timeline" auto
+    / minmax(0, var(--shell-narrow))
+    minmax(var(--update-archive-rail-min), var(--update-archive-rail-max));
+  justify-content: center;
+  column-gap: var(--update-archive-column-gap);
+
+  & > * {
+    min-width: 0;
+  }
+
+  & > .update-archive-header {
+    grid-area: header;
+  }
+
+  & > .update-year-content {
+    grid-area: year;
+
+    & > h2 {
+      margin: 0 0 1rem;
+    }
+  }
+
+  & > .update-archive-timeline {
+    grid-area: timeline;
+    min-width: 0;
+  }
+
+  & .update-entry {
+    display: grid;
+    gap: var(--update-entry-gap);
+
+    & > * {
+      margin: 0;
+    }
+
+    & > time,
+    & > p {
+      color: var(--muted);
+    }
+
+    & a:focus-visible {
+      outline: var(--focus-ring-width) solid var(--accent);
+      outline-offset: var(--focus-ring-offset);
+    }
+  }
+
+  @media (width <= 48rem) {
+    grid-template:
+      "header"
+      "timeline"
+      "year"
+      / minmax(0, 1fr);
+
+    & > .update-archive-timeline {
+      margin-block-end: var(--content-section-gap);
+    }
+  }
+}

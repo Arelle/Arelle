@@ -1,0 +1,49 @@
+{{ define "shell" }}shell-wide{{ end }}
+
+{{ define "main" }}
+  {{- $archive := site.GetPage "/updates" -}}
+  {{- $years := $archive.Sections.ByTitle.Reverse -}}
+  {{- $isUpdatesIndex := eq .RelPermalink $archive.RelPermalink -}}
+  {{- $selectedYear := cond $isUpdatesIndex (index $years 0) . -}}
+  {{- $timelineNodes := slice -}}
+  {{- range $years -}}
+    {{- $timelineNodes = $timelineNodes | append (dict
+      "label" .Title
+      "href" .RelPermalink
+      "count" (len .RegularPages)
+      "current" (eq .RelPermalink $selectedYear.RelPermalink)
+    ) -}}
+  {{- end -}}
+
+  <div class="update-archive-layout">
+    <div class="update-archive-header">
+      {{ partial "page-header.html" (dict
+        "title" $archive.Title
+        "lede" ($archive.Content | plainify)
+      ) }}
+    </div>
+
+    <section class="update-year-content" aria-labelledby="update-year-heading">
+      <h2 class="type-heading" id="update-year-heading">{{ $selectedYear.Title }}</h2>
+      <div class="surface-stack">
+        {{- range $selectedYear.RegularPages.ByDate.Reverse }}
+          <article class="surface-cell update-entry">
+            <time class="type-ui" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time>
+            <h3 class="type-heading"><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
+            <p>
+              {{- with .Params.summary -}}
+                {{- . | markdownify | plainify -}}
+              {{- else -}}
+                {{- .Summary | plainify | truncate 220 -}}
+              {{- end -}}
+            </p>
+          </article>
+        {{- end }}
+      </div>
+    </section>
+
+    <aside class="update-archive-timeline" aria-label="Update years">
+      {{ partial "timeline-navigation.html" (dict "nodes" $timelineNodes) }}
+    </aside>
+  </div>
+{{ end }}

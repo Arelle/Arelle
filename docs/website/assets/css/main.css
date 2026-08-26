@@ -30,3 +30,4 @@
 
 /* composites */
 @import "post.css" layer(composites);
+@import "archive.css" layer(composites);
