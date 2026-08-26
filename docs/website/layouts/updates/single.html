@@ -1,0 +1,38 @@
+{{ define "shell" }}shell-narrow{{ end }}
+
+{{ define "main" }}
+  {{- $archive := site.GetPage "/updates" -}}
+  {{- $posts := $archive.RegularPagesRecursive.ByDate.Reverse -}}
+  {{- $newer := $posts.Next . -}}
+  {{- $older := $posts.Prev . -}}
+
+  {{ partial "page-header.html" (dict
+    "kicker" "Arelle Updates"
+    "kickerHref" $archive.RelPermalink
+    "title" .Title
+    "date" .Date
+    "lede" .Params.summary
+  ) }}
+
+  <article class="article-prose">
+    {{ .Content }}
+  </article>
+
+  <nav class="update-post-navigation" aria-label="More project updates">
+    <div class="surface-stack">
+      {{- with $older }}
+        <div class="surface-cell">
+          <a href="{{ .RelPermalink }}"><span class="kicker">Previous</span><br>{{ .Title }}</a>
+        </div>
+      {{- end }}
+      {{- with $newer }}
+        <div class="surface-cell">
+          <a href="{{ .RelPermalink }}"><span class="kicker">Next</span><br>{{ .Title }}</a>
+        </div>
+      {{- end }}
+      <div class="surface-cell">
+        <a href="{{ $archive.RelPermalink }}">Archive</a>
+      </div>
+    </div>
+  </nav>
+{{ end }}

@@ -1,4 +1,4 @@
-@layer tokens, reset, typography, theme, layout, chrome, parts, components;
+@layer tokens, reset, typography, theme, layout, chrome, parts, components, composites;
 
 /* foundation */
 @import "tokens.css" layer(tokens);
@@ -27,3 +27,6 @@
 @import "figure-media.css" layer(components);
 @import "timeline-navigation.css" layer(components);
 @import "interface-comparison.css" layer(components);
+
+/* composites */
+@import "post.css" layer(composites);

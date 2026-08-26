@@ -10,6 +10,9 @@ description = "A free and open source platform for validating, exploring, and ex
   [markup.highlight]
     noClasses = false
 
+[permalinks]
+  updates = "/updates/:year/:month/:day/:slug/"
+
 [module]
   [[module.mounts]]
     source = "assets"

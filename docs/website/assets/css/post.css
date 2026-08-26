@@ -1,0 +1,8 @@
+.update-post-navigation {
+  margin-block-start: var(--content-section-gap);
+
+  & a:focus-visible {
+    outline: var(--focus-ring-width) solid var(--accent);
+    outline-offset: var(--focus-ring-offset);
+  }
+}
