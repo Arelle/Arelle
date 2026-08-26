@@ -1,7 +1,12 @@
-@layer tokens, reset, typography, layout;
+@layer tokens, reset, typography, layout, chrome;
 
 /* foundation */
 @import "tokens.css" layer(tokens);
 @import "reset.css" layer(reset);
 @import "typography.css" layer(typography);
 @import "layout.css" layer(layout);
+
+/* shell chrome */
+@import "navigation.css" layer(chrome);
+@import "header.css" layer(chrome);
+@import "footer.css" layer(chrome);

@@ -1,0 +1,22 @@
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <nav class="footer-navigation" aria-label="Community">
+      <ul>
+        <li>
+          <a href="{{ relURL "about/" }}"{{ if eq .RelPermalink (relURL "about/") }} aria-current="page"{{ end }}>About</a>
+        </li>
+        <li>
+          <a href="https://groups.google.com/g/arelle-users">Community</a>
+        </li>
+        <li>
+          <a href="https://arelle.readthedocs.io/en/latest/contributor_guides/contributing.html">Contribute</a>
+        </li>
+        <li>
+          <a href="mailto:support@arelle.org">Contact</a>
+        </li>
+      </ul>
+    </nav>
+    <p class="footer-legal">&copy; {{ now.Format "2006" }} Workiva Inc. · <a href="https://www.workiva.com/legal/workiva-privacy-policy">Privacy Policy</a></p>
+    <p class="footer-trademark">XBRL™ is a trademark of XBRL International, Inc. All rights reserved. The XBRL™ standards are open and freely licensed by way of the XBRL International License Agreement. Our use of these trademarks is permitted by XBRL International in accordance with the XBRL International Trademark Policy.</p>
+  </div>
+</footer>
