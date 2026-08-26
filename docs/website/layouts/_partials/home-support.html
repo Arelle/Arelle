@@ -1,0 +1,58 @@
+{{- $supportGroups := hugo.Data.support.groups -}}
+{{- $specificationGroups := where $supportGroups "category" "specification" -}}
+{{- $filingRuleGroups := where $supportGroups "category" "filing-rule" -}}
+<section class="home-support" aria-labelledby="home-support-title">
+  <header class="home-section-heading">
+    <p class="kicker">Conformance</p>
+    <h2 class="type-heading" id="home-support-title">Specification and filing-rule support</h2>
+    <p class="lede type-lede">Maintained as specifications and filing rules evolve.</p>
+  </header>
+
+  <div class="home-support-cards">
+    <section class="surface-stack home-support-card" aria-labelledby="home-support-specifications-title">
+      <header class="home-support-card-header">
+        <h3 class="type-heading" id="home-support-specifications-title">Specifications &amp; Registries</h3>
+      </header>
+      {{- range $group := $specificationGroups }}
+        <div class="surface-cell home-support-group">
+          <div class="home-support-group-copy">
+            <h4 class="type-ui home-support-group-title">{{ $group.title }}</h4>
+            <p>{{ $group.summary }}</p>
+          </div>
+          <ul class="home-support-items{{ if ge (len $group.items) 5 }} home-support-items-two-column{{ end }}">
+            {{- range $group.items }}
+              <li>
+                <span class="home-support-check" aria-hidden="true">✓</span>
+                <span>{{ . }}</span>
+              </li>
+            {{- end }}
+          </ul>
+        </div>
+      {{- end }}
+    </section>
+
+    {{- with $filingRuleGroups }}
+        <section class="surface-stack home-support-card" aria-labelledby="home-support-rules-title">
+          <header class="home-support-card-header">
+            <h3 class="type-heading" id="home-support-rules-title">Filing Rules &amp; Programs</h3>
+          </header>
+          {{- range $group := . }}
+            <div class="surface-cell home-support-group">
+              <div class="home-support-group-copy">
+                <h4 class="type-ui home-support-group-title">{{ $group.title }}</h4>
+                <p>{{ $group.summary }}</p>
+              </div>
+              <ul class="home-support-items{{ if ge (len $group.items) 5 }} home-support-items-two-column{{ end }}">
+                {{- range $group.items }}
+                  <li>
+                    <span class="home-support-check" aria-hidden="true">✓</span>
+                    <span>{{ . }}</span>
+                  </li>
+                {{- end }}
+              </ul>
+            </div>
+          {{- end }}
+        </section>
+    {{- end }}
+  </div>
+</section>
