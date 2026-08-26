@@ -3,8 +3,19 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="{{ .Params.description | default .Site.Params.description }}">
-    <title>{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }} | {{ .Site.Title }}{{ end }}</title>
+    {{- $title := .Title -}}
+    {{- $description := .Params.description | default .Site.Params.description -}}
+    {{- if eq .Kind "404" -}}
+      {{- $title = "Page not found" -}}
+      {{- $description = "The requested page could not be found." -}}
+    {{- end -}}
+    {{- if .IsHome -}}
+      {{- $title = .Site.Title -}}
+    {{- else -}}
+      {{- $title = printf "%s | %s" $title .Site.Title -}}
+    {{- end -}}
+    <meta name="description" content="{{ $description }}">
+    <title>{{ $title }}</title>
     {{- with resources.Get "images/favicon.ico" }}
       <link rel="icon" type="image/x-icon" href="{{ .RelPermalink }}">
     {{- end }}
