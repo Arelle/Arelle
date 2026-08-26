@@ -32,3 +32,4 @@
 @import "post.css" layer(composites);
 @import "archive.css" layer(composites);
 @import "download.css" layer(composites);
+@import "home.css" layer(composites);

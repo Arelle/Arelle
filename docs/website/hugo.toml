@@ -5,6 +5,7 @@ disableKinds = ["taxonomy", "term"]
 
 [params]
 description = "A free and open source platform for validating, exploring, and extracting XBRL data."
+projectStartYear = 2010
 
 [markup]
   [markup.goldmark.renderHooks.link]

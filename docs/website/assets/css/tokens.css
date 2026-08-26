@@ -25,6 +25,12 @@
   --duration-control: 100ms;
   --duration-indicator: 150ms;
   --duration-theme: 200ms;
+  --duration-home-entrance: 700ms;
+  --delay-home-entrance-1: 0ms;
+  --delay-home-entrance-2: 100ms;
+  --delay-home-entrance-3: 200ms;
+  --delay-home-entrance-4: 300ms;
+  --distance-home-entrance: 0.75rem;
   --transition-theme:
     color var(--duration-theme) ease-out,
     background-color var(--duration-theme) ease-out,
