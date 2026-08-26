@@ -11,6 +11,12 @@
     {{- with resources.Get "images/favicon.svg" }}
       <link rel="icon" type="image/svg+xml" href="{{ .RelPermalink }}">
     {{- end }}
+    {{- $updates := site.GetPage "/updates" -}}
+    {{- if eq .RelPermalink $updates.RelPermalink }}
+      {{- with .OutputFormats.Get "rss" }}
+        <link rel="alternate" type="{{ .MediaType.Type }}" href="{{ .RelPermalink }}" title="{{ $.Title }}">
+      {{- end }}
+    {{- end }}
     {{- $controller := resources.Get "js/main.js" | js.Build (dict "minify" true) -}}
     <script data-theme-controller>{{ $controller.Content | safeJS }}</script>
     {{ partialCached "css.html" . }}

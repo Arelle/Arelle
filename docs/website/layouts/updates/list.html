@@ -5,6 +5,8 @@
   {{- $years := $archive.Sections.ByTitle.Reverse -}}
   {{- $isUpdatesIndex := eq .RelPermalink $archive.RelPermalink -}}
   {{- $selectedYear := cond $isUpdatesIndex (index $years 0) . -}}
+  {{- $rss := $archive.OutputFormats.Get "rss" -}}
+  {{- $rssAction := dict "href" $rss.RelPermalink "label" "RSS" "variant" "ghost" -}}
   {{- $timelineNodes := slice -}}
   {{- range $years -}}
     {{- $timelineNodes = $timelineNodes | append (dict
@@ -20,6 +22,7 @@
       {{ partial "page-header.html" (dict
         "title" $archive.Title
         "lede" ($archive.Content | plainify)
+        "action" $rssAction
       ) }}
     </div>
 
