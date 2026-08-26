@@ -1,0 +1,22 @@
+.action-arrow {
+  --action-arrow-shift: 0.25rem;
+
+  & > .action-arrow-icon {
+    display: inline-block;
+    transition: transform var(--duration-control) ease-out;
+  }
+
+  &:is(:hover, :focus-visible) > .action-arrow-icon {
+    transform: translateX(var(--action-arrow-shift));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .action-arrow > .action-arrow-icon {
+    transition: none;
+  }
+
+  .action-arrow:is(:hover, :focus-visible) > .action-arrow-icon {
+    transform: none;
+  }
+}

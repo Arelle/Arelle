@@ -4,7 +4,9 @@
     <div class="page-header-meta">
       <span class="kicker">{{ .label }}</span>
       <span aria-hidden="true">&middot;</span>
-      <a href="{{ .href }}">{{ .linkLabel }} <span aria-hidden="true">&rarr;</span></a>
+      <a class="action-arrow" href="{{ .href }}">
+        {{ .linkLabel }} <span class="action-arrow-icon" aria-hidden="true">&rarr;</span>
+      </a>
     </div>
   {{- end }}
   {{- with $header.kicker }}
