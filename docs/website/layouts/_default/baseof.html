@@ -4,7 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {{- $title := .Title -}}
-    {{- $description := .Params.description | default .Site.Params.description -}}
+    {{- $description := or .Description (.Summary | plainify | chomp | truncate 160) -}}
+    {{- if not $description -}}
+      {{- $description = .Site.Params.description -}}
+    {{- end -}}
     {{- if eq .Kind "404" -}}
       {{- $title = "Page not found" -}}
       {{- $description = "The requested page could not be found." -}}
@@ -16,6 +19,7 @@
     {{- end -}}
     <meta name="description" content="{{ $description }}">
     <title>{{ $title }}</title>
+    {{ partial "social-preview.html" (dict "URL" .Permalink "Title" $title "Description" $description) }}
     {{- with resources.Get "images/favicon.ico" }}
       <link rel="icon" type="image/x-icon" href="{{ .RelPermalink }}">
     {{- end }}
