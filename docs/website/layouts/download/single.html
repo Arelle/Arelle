@@ -1,0 +1,135 @@
+{{ define "shell" }}shell-wide{{ end }}
+
+{{ define "main" }}
+  {{- $catalog := hugo.Data.downloads -}}
+  {{- $downloadVersion := site.Params.downloadVersion -}}
+  {{- $releaseRepository := site.Params.releaseRepository | default "Arelle/Arelle" -}}
+  {{- $latestReleaseURL := printf "https://github.com/%s/releases/latest" $releaseRepository -}}
+  {{- $releaseNotesURL := $latestReleaseURL -}}
+  {{- $versionLabel := "Latest" -}}
+  {{- if $downloadVersion -}}
+    {{- $releaseNotesURL = printf "https://github.com/%s/releases/tag/%s" $releaseRepository $downloadVersion -}}
+    {{- $versionLabel = printf "v%s" $downloadVersion -}}
+  {{- end -}}
+
+  {{ partial "page-header.html" (dict
+    "meta" (dict
+      "label" $versionLabel
+      "href" $releaseNotesURL
+      "linkLabel" "Release notes"
+    )
+    "title" .Title
+    "lede" .Params.lede
+  ) }}
+
+  <div class="download-page">
+    <section class="download-section" aria-labelledby="desktop-builds-heading">
+      <div class="download-section-heading">
+        <h2 class="type-heading" id="desktop-builds-heading">Desktop builds</h2>
+        <p>All mirrors serve the same current release; choose the one closest to you.</p>
+      </div>
+
+      <div class="catalog-table download-catalog">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Build</th>
+              <th scope="col">Download</th>
+              <th scope="col">Mirrors</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{- range $catalog.desktop }}
+              {{- $mirrorFile := .mirrorFile -}}
+              {{- $githubURL := $latestReleaseURL -}}
+              {{- if $downloadVersion -}}
+                {{- $extension := path.Ext $mirrorFile -}}
+                {{- $assetStem := strings.TrimSuffix $extension $mirrorFile -}}
+                {{- $githubAsset := printf "%s-%s%s" $assetStem $downloadVersion $extension -}}
+                {{- $githubURL = printf "https://github.com/%s/releases/download/%s/%s" $releaseRepository $downloadVersion $githubAsset -}}
+              {{- end -}}
+              <tr>
+                <td>
+                  <div class="download-build">
+                    <div class="download-build-title">
+                      <strong>{{ .name }}</strong>
+                      <span class="badge">{{ .format }}</span>
+                    </div>
+                    <p>{{ .description }}</p>
+                  </div>
+                </td>
+                <td>
+                  <a class="btn btn-secondary" href="{{ $githubURL }}">GitHub release</a>
+                </td>
+                <td>
+                  <ul class="download-mirrors" aria-label="{{ .name }} mirrors">
+                    {{- range $catalog.mirrors }}
+                      <li>
+                        <a class="btn btn-ghost" href="{{ .baseURL }}{{ $mirrorFile }}" title="{{ .title }}">{{ .label }}</a>
+                      </li>
+                    {{- end }}
+                  </ul>
+                </td>
+              </tr>
+            {{- end }}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="download-section" aria-labelledby="python-heading">
+      <div class="download-section-heading">
+        <h2 class="type-heading" id="python-heading">{{ $catalog.python.heading }}</h2>
+        <p>{{ $catalog.python.description }}</p>
+      </div>
+      <div class="surface-panel download-python-path">
+        <code>$ {{ $catalog.python.command }}</code>
+        <a class="btn btn-ghost action-arrow" href="{{ $catalog.python.documentationURL }}">
+          Installation documentation
+          <span class="action-arrow-icon" aria-hidden="true">&rarr;</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="download-section" aria-labelledby="docker-heading">
+      <div class="download-section-heading">
+        <h2 class="type-heading" id="docker-heading">{{ $catalog.docker.heading }}</h2>
+        <p>{{ $catalog.docker.description }}</p>
+      </div>
+      <div class="download-example-grid">
+        {{- range $catalog.docker.examples }}
+          {{ partial "code-frame.html" (dict
+            "title" .label
+            "label" "Docker"
+            "commandPath" .commandPath
+            "outputPath" .outputPath
+          ) }}
+        {{- end }}
+      </div>
+      <p>
+        See the <a href="{{ $catalog.docker.documentationURL }}">Docker documentation</a> for more information.
+      </p>
+    </section>
+
+    <section class="download-section" aria-labelledby="plugins-heading">
+      <div class="download-section-heading">
+        <h2 class="type-heading" id="plugins-heading">Community plugins</h2>
+        <p>
+          These external plugins are bundled in the Arelle desktop builds and the full Docker image.
+          Python package and source installations do not include them; add and configure them separately.
+        </p>
+      </div>
+      <div class="download-card-grid">
+        {{- range $catalog.plugins }}
+          <article class="surface-panel">
+            <h3 class="type-heading">{{ .name }}</h3>
+            <p>{{ .description }}</p>
+            <a class="btn btn-ghost action-arrow" href="{{ .url }}">
+              {{ .linkLabel }} <span class="action-arrow-icon" aria-hidden="true">&rarr;</span>
+            </a>
+          </article>
+        {{- end }}
+      </div>
+    </section>
+  </div>
+{{ end }}
