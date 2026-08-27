@@ -1,0 +1,25 @@
+{{- $css := resources.Get "css/main.css" | css.Build (dict "minify" true) -}}
+<!doctype html>
+<html lang="{{ .Site.Language.Locale | default "en" }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{{ .Params.description | default .Site.Params.description }}">
+    <title>{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }} | {{ .Site.Title }}{{ end }}</title>
+    {{- with resources.Get "images/favicon.ico" }}
+      <link rel="icon" type="image/x-icon" href="{{ .RelPermalink }}">
+    {{- end }}
+    {{- with resources.Get "images/favicon.svg" }}
+      <link rel="icon" type="image/svg+xml" href="{{ .RelPermalink }}">
+    {{- end }}
+    <link rel="stylesheet" href="{{ $css.RelPermalink }}">
+  </head>
+  <body>
+    <header>
+      <a href="{{ "/" | relURL }}">{{ .Site.Title }}</a>
+    </header>
+    <main>
+      {{ block "main" . }}{{ end }}
+    </main>
+  </body>
+</html>

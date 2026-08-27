@@ -1,0 +1,26 @@
+:root {
+  color-scheme: light;
+  font-family: ui-sans-serif, sans-serif;
+  line-height: 1.5;
+  color: #1a1814;
+  background: #f6f4ef;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+a {
+  color: inherit;
+}
+
+main {
+  max-width: 42rem;
+  margin: 4rem auto;
+}

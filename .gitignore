@@ -44,6 +44,9 @@ buildRenameX86.bat
 conf-*
 dist
 docs/_build
+docs/website/.hugo_build.lock
+docs/website/public/
+docs/website/resources/
 docs/source/apidocs
 obj/
 runtime_options.json

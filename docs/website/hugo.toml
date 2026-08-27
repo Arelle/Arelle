@@ -1,0 +1,7 @@
+baseURL = "/"
+locale = "en-US"
+title = "Arelle"
+disableKinds = ["taxonomy", "term"]
+
+[params]
+description = "A free and open source platform for validating, exploring, and extracting XBRL data."
