@@ -40,3 +40,14 @@ python -m http.server --directory public 8000
 ```
 
 Open `http://localhost:8000/demo/ixbrl-viewer/ixbrlviewer.html`.
+
+## Testing Links
+
+After building the site, run [htmltest](https://github.com/wjdp/htmltest) from this
+directory:
+
+```sh
+hugo --minify --baseURL /
+python scripts/generate_viewer_demo.py
+htmltest
+```

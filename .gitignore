@@ -49,6 +49,7 @@ docs/website/demo/package/
 docs/website/node_modules/
 docs/website/public/
 docs/website/resources/
+docs/website/tmp/
 docs/source/apidocs
 obj/
 runtime_options.json

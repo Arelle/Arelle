@@ -1,0 +1,10 @@
+DirectoryPath: public
+
+IgnoreDirs:
+  - demo
+
+# Warn, don't error on third party websites we don't control.
+IgnoreExternalBrokenLinks: true
+IgnoreURLs:
+  # 403 Forbidden for scripts.
+  - https://www.workiva.com/legal/workiva-privacy-policy
