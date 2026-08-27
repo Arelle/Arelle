@@ -141,7 +141,7 @@ def _checkUpdateUrl(cntlr: CntlrWinMain, arelleRelease: ArelleRelease) -> None:
                     """
                     Update {0} is available, current version is {1}.
 
-                    New version of Arelle can be downloaded at https://arelle.org/arelle/pub/.
+                    New version of Arelle can be downloaded at https://arelle.org/download/.
                     """
                 ).format(arelleRelease.version, currentVersion),
             )

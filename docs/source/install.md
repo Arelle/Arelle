@@ -16,7 +16,7 @@ the [SEC EDGAR][edgar], and [XULE][xule].
 Distributions are provided for Windows, macOS, and Linux and can be downloaded from
 the [Arelle website][arelle-download-page] and [GitHub release page][github-latest-release].
 
-[arelle-download-page]: https://arelle.org/arelle/pub/
+[arelle-download-page]: https://arelle.org/download/
 [arelle-ixbrl-viewer]: https://github.com/Arelle/ixbrl-viewer
 [arelle-plugins]: https://github.com/Arelle/Arelle/tree/master/arelle/plugin
 [edgar]: https://github.com/Arelle/EDGAR

@@ -91,9 +91,9 @@ arelleGUI = "arelle.CntlrWinMain:main"
 
 [project.urls]
 "Homepage" = "https://arelle.org/"
-"Downloads" = "https://arelle.org/arelle/pub/"
-"Documentation" = "https://arelle.org/arelle/documentation/"
-"Blog" = "https://arelle.org/arelle/blog/"
+"Downloads" = "https://arelle.org/download/"
+"Documentation" = "https://arelle.readthedocs.io/en/latest/"
+"Blog" = "https://arelle.org/updates/"
 "Source Code" = "https://github.com/Arelle/Arelle/"
 "Bug Reports" = "https://github.com/Arelle/Arelle/issues/"
 "Support" = "https://groups.google.com/g/arelle-users/"

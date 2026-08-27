@@ -238,7 +238,7 @@ def arelleIcon() -> HTTPResponse:
     :returns: ico -- Icon file for browsers
     """
     cntlr = getCntlr()
-    return static_file("arelle.ico", root=cntlr.imagesDir, mimetype="image/vnd.microsoft.icon")
+    return static_file("favicon.ico", root=cntlr.imagesDir, mimetype="image/vnd.microsoft.icon")
 
 def image(imgFile: str) -> HTTPResponse:
     """Request for an image file for URL display (get */images/<imgFile>*).
