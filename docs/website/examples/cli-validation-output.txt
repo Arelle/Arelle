@@ -1,0 +1,1 @@
+[calc11e:inconsistentCalculationUsingRounding] Calculation inconsistent from demo:GrossProfit in link role http://www.xbrl.org/2003/role/link reported sum [513203500, 513204500] computed sum [504203000, 504205000] context FY2025 unit USD - demo-20251231.xbrl 38, 39, 40

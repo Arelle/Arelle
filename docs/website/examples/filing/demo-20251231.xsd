@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  A deliberately small example taxonomy for the arelle.org homepage examples.
+
+  It resolves entirely offline: the only imports are the XBRL 2.1 instance
+  and dimension schemas, which Arelle resolves locally, so the examples need
+  no taxonomy package and no network access.
+-->
+<xs:schema
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:xbrli="http://www.xbrl.org/2003/instance"
+    xmlns:link="http://www.xbrl.org/2003/linkbase"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+    xmlns:demo="https://example.com/demo"
+    targetNamespace="https://example.com/demo"
+    elementFormDefault="qualified">
+
+  <xs:import namespace="http://www.xbrl.org/2003/instance"
+             schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <xs:import namespace="http://xbrl.org/2005/xbrldt"
+             schemaLocation="http://xbrl.org/2005/xbrldt-2005.xsd"/>
+
+  <xs:element name="CoverPageAbstract" id="demo_CoverPageAbstract" type="xbrli:stringItemType"
+              substitutionGroup="xbrli:item" xbrli:periodType="duration" abstract="true" nillable="true"/>
+  <xs:element name="EntityRegistrantName" id="demo_EntityRegistrantName" type="xbrli:stringItemType"
+              substitutionGroup="xbrli:item" xbrli:periodType="duration" nillable="true"/>
+  <xs:element name="DocumentType" id="demo_DocumentType" type="xbrli:stringItemType"
+              substitutionGroup="xbrli:item" xbrli:periodType="duration" nillable="true"/>
+
+  <xs:element name="StatementOfIncomeAbstract" id="demo_StatementOfIncomeAbstract" type="xbrli:stringItemType"
+              substitutionGroup="xbrli:item" xbrli:periodType="duration" abstract="true" nillable="true"/>
+  <xs:element name="StatementOfIncomeTable" id="demo_StatementOfIncomeTable" type="xbrli:stringItemType"
+              substitutionGroup="xbrldt:hypercubeItem" xbrli:periodType="duration" abstract="true" nillable="true"/>
+  <xs:element name="StatementOfIncomeLineItems" id="demo_StatementOfIncomeLineItems" type="xbrli:stringItemType"
+              substitutionGroup="xbrli:item" xbrli:periodType="duration" abstract="true" nillable="true"/>
+  <xs:element name="ProductOrServiceAxis" id="demo_ProductOrServiceAxis" type="xbrli:stringItemType"
+              substitutionGroup="xbrldt:dimensionItem" xbrli:periodType="duration" abstract="true" nillable="true"/>
+  <xs:element name="ProductOrServiceDomain" id="demo_ProductOrServiceDomain" type="xbrli:stringItemType"
+              substitutionGroup="xbrli:item" xbrli:periodType="duration" abstract="true" nillable="true"/>
+  <xs:element name="TotalProductOrServiceMember" id="demo_TotalProductOrServiceMember" type="xbrli:stringItemType"
+              substitutionGroup="xbrli:item" xbrli:periodType="duration" abstract="true" nillable="true"/>
+
+  <xs:element name="Revenue" id="demo_Revenue" type="xbrli:monetaryItemType"
+              substitutionGroup="xbrli:item" xbrli:periodType="duration"
+              xbrli:balance="credit" nillable="true"/>
+  <xs:element name="CostOfSales" id="demo_CostOfSales" type="xbrli:monetaryItemType"
+              substitutionGroup="xbrli:item" xbrli:periodType="duration"
+              xbrli:balance="debit" nillable="true"/>
+  <xs:element name="GrossProfit" id="demo_GrossProfit" type="xbrli:monetaryItemType"
+              substitutionGroup="xbrli:item" xbrli:periodType="duration"
+              xbrli:balance="credit" nillable="true"/>
+  <xs:element name="OperatingExpenses" id="demo_OperatingExpenses" type="xbrli:monetaryItemType"
+              substitutionGroup="xbrli:item" xbrli:periodType="duration"
+              xbrli:balance="debit" nillable="true"/>
+
+  <xs:annotation>
+    <xs:appinfo>
+      <link:roleType roleURI="https://example.com/role/Cover" id="Cover">
+        <link:definition>0000001 - Document - Cover Page</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>
+      <link:roleType roleURI="https://example.com/role/StatementOfIncome" id="StatementOfIncome">
+        <link:definition>0000002 - Statement - Statement of Income</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+
+      <link:linkbase>
+        <link:roleRef roleURI="https://example.com/role/Cover" xlink:type="simple" xlink:href="#Cover"/>
+        <link:roleRef roleURI="https://example.com/role/StatementOfIncome" xlink:type="simple" xlink:href="#StatementOfIncome"/>
+        <link:arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/all" xlink:type="simple" xlink:href="http://xbrl.org/2005/xbrldt-2005.xsd#all"/>
+        <link:arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:type="simple" xlink:href="http://xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"/>
+        <link:arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:type="simple" xlink:href="http://xbrl.org/2005/xbrldt-2005.xsd#dimension-domain"/>
+        <link:arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" xlink:type="simple" xlink:href="http://xbrl.org/2005/xbrldt-2005.xsd#domain-member"/>
+        <link:arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-default" xlink:type="simple" xlink:href="http://xbrl.org/2005/xbrldt-2005.xsd#dimension-default"/>
+
+        <link:labelLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+          <link:loc xlink:type="locator" xlink:href="#demo_CoverPageAbstract" xlink:label="CoverPageAbstract"/>
+          <link:label xlink:type="resource" xlink:label="CoverPageAbstract_lbl" xlink:role="http://www.xbrl.org/2003/role/label" xml:lang="en">Cover Page [Abstract]</link:label>
+          <link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="CoverPageAbstract" xlink:to="CoverPageAbstract_lbl"/>
+
+          <link:loc xlink:type="locator" xlink:href="#demo_EntityRegistrantName" xlink:label="EntityRegistrantName"/>
+          <link:label xlink:type="resource" xlink:label="EntityRegistrantName_lbl" xlink:role="http://www.xbrl.org/2003/role/label" xml:lang="en">Entity Registrant Name</link:label>
+          <link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="EntityRegistrantName" xlink:to="EntityRegistrantName_lbl"/>
+
+          <link:loc xlink:type="locator" xlink:href="#demo_DocumentType" xlink:label="DocumentType"/>
+          <link:label xlink:type="resource" xlink:label="DocumentType_lbl" xlink:role="http://www.xbrl.org/2003/role/label" xml:lang="en">Document Type</link:label>
+          <link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="DocumentType" xlink:to="DocumentType_lbl"/>
+
+          <link:loc xlink:type="locator" xlink:href="#demo_StatementOfIncomeAbstract" xlink:label="StatementOfIncomeAbstract"/>
+          <link:label xlink:type="resource" xlink:label="StatementOfIncomeAbstract_lbl" xlink:role="http://www.xbrl.org/2003/role/label" xml:lang="en">Statement of Income [Abstract]</link:label>
+          <link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="StatementOfIncomeAbstract" xlink:to="StatementOfIncomeAbstract_lbl"/>
+
+          <link:loc xlink:type="locator" xlink:href="#demo_StatementOfIncomeTable" xlink:label="StatementOfIncomeTable"/>
+          <link:label xlink:type="resource" xlink:label="StatementOfIncomeTable_lbl" xlink:role="http://www.xbrl.org/2003/role/label" xml:lang="en">Statement of Income [Table]</link:label>
+          <link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="StatementOfIncomeTable" xlink:to="StatementOfIncomeTable_lbl"/>
+
+          <link:loc xlink:type="locator" xlink:href="#demo_StatementOfIncomeLineItems" xlink:label="StatementOfIncomeLineItems"/>
+          <link:label xlink:type="resource" xlink:label="StatementOfIncomeLineItems_lbl" xlink:role="http://www.xbrl.org/2003/role/label" xml:lang="en">Statement of Income [Line Items]</link:label>
+          <link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="StatementOfIncomeLineItems" xlink:to="StatementOfIncomeLineItems_lbl"/>
+
+          <link:loc xlink:type="locator" xlink:href="#demo_ProductOrServiceAxis" xlink:label="ProductOrServiceAxis"/>
+          <link:label xlink:type="resource" xlink:label="ProductOrServiceAxis_lbl" xlink:role="http://www.xbrl.org/2003/role/label" xml:lang="en">Product and Service [Axis]</link:label>
+          <link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="ProductOrServiceAxis" xlink:to="ProductOrServiceAxis_lbl"/>
+
+          <link:loc xlink:type="locator" xlink:href="#demo_ProductOrServiceDomain" xlink:label="ProductOrServiceDomain"/>
+          <link:label xlink:type="resource" xlink:label="ProductOrServiceDomain_lbl" xlink:role="http://www.xbrl.org/2003/role/label" xml:lang="en">Product and Service [Domain]</link:label>
+          <link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="ProductOrServiceDomain" xlink:to="ProductOrServiceDomain_lbl"/>
+
+          <link:loc xlink:type="locator" xlink:href="#demo_TotalProductOrServiceMember" xlink:label="TotalProductOrServiceMember"/>
+          <link:label xlink:type="resource" xlink:label="TotalProductOrServiceMember_lbl" xlink:role="http://www.xbrl.org/2003/role/label" xml:lang="en">Total Product and Service [Member]</link:label>
+          <link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="TotalProductOrServiceMember" xlink:to="TotalProductOrServiceMember_lbl"/>
+
+          <link:loc xlink:type="locator" xlink:href="#demo_Revenue" xlink:label="Revenue"/>
+          <link:label xlink:type="resource" xlink:label="Revenue_lbl" xlink:role="http://www.xbrl.org/2003/role/label" xml:lang="en">Revenue</link:label>
+          <link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="Revenue" xlink:to="Revenue_lbl"/>
+
+          <link:loc xlink:type="locator" xlink:href="#demo_CostOfSales" xlink:label="CostOfSales"/>
+          <link:label xlink:type="resource" xlink:label="CostOfSales_lbl" xlink:role="http://www.xbrl.org/2003/role/label" xml:lang="en">Cost of Sales</link:label>
+          <link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="CostOfSales" xlink:to="CostOfSales_lbl"/>
+
+          <link:loc xlink:type="locator" xlink:href="#demo_GrossProfit" xlink:label="GrossProfit"/>
+          <link:label xlink:type="resource" xlink:label="GrossProfit_lbl" xlink:role="http://www.xbrl.org/2003/role/label" xml:lang="en">Gross Profit</link:label>
+          <link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="GrossProfit" xlink:to="GrossProfit_lbl"/>
+
+          <link:loc xlink:type="locator" xlink:href="#demo_OperatingExpenses" xlink:label="OperatingExpenses"/>
+          <link:label xlink:type="resource" xlink:label="OperatingExpenses_lbl" xlink:role="http://www.xbrl.org/2003/role/label" xml:lang="en">Operating Expenses</link:label>
+          <link:labelArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/concept-label" xlink:from="OperatingExpenses" xlink:to="OperatingExpenses_lbl"/>
+        </link:labelLink>
+
+        <link:presentationLink xlink:type="extended" xlink:role="https://example.com/role/Cover">
+          <link:loc xlink:type="locator" xlink:href="#demo_CoverPageAbstract" xlink:label="CoverPageAbstract"/>
+          <link:loc xlink:type="locator" xlink:href="#demo_EntityRegistrantName" xlink:label="EntityRegistrantName"/>
+          <link:loc xlink:type="locator" xlink:href="#demo_DocumentType" xlink:label="DocumentType"/>
+
+          <link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+                                xlink:from="CoverPageAbstract" xlink:to="EntityRegistrantName" order="1"/>
+          <link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+                                xlink:from="CoverPageAbstract" xlink:to="DocumentType" order="2"/>
+        </link:presentationLink>
+
+        <link:presentationLink xlink:type="extended" xlink:role="https://example.com/role/StatementOfIncome">
+          <link:loc xlink:type="locator" xlink:href="#demo_StatementOfIncomeAbstract" xlink:label="StatementOfIncomeAbstract"/>
+          <link:loc xlink:type="locator" xlink:href="#demo_StatementOfIncomeTable" xlink:label="StatementOfIncomeTable"/>
+          <link:loc xlink:type="locator" xlink:href="#demo_StatementOfIncomeLineItems" xlink:label="StatementOfIncomeLineItems"/>
+          <link:loc xlink:type="locator" xlink:href="#demo_Revenue" xlink:label="Revenue"/>
+          <link:loc xlink:type="locator" xlink:href="#demo_CostOfSales" xlink:label="CostOfSales"/>
+          <link:loc xlink:type="locator" xlink:href="#demo_GrossProfit" xlink:label="GrossProfit"/>
+          <link:loc xlink:type="locator" xlink:href="#demo_OperatingExpenses" xlink:label="OperatingExpenses"/>
+
+          <link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+                                xlink:from="StatementOfIncomeAbstract" xlink:to="StatementOfIncomeTable" order="1"/>
+          <link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+                                xlink:from="StatementOfIncomeTable" xlink:to="StatementOfIncomeLineItems" order="1"/>
+          <link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+                                xlink:from="StatementOfIncomeLineItems" xlink:to="Revenue" order="1"/>
+          <link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+                                xlink:from="StatementOfIncomeLineItems" xlink:to="CostOfSales" order="2"/>
+          <link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+                                xlink:from="StatementOfIncomeLineItems" xlink:to="GrossProfit" order="3"/>
+          <link:presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child"
+                                xlink:from="StatementOfIncomeLineItems" xlink:to="OperatingExpenses" order="4"/>
+        </link:presentationLink>
+
+        <link:definitionLink xlink:type="extended" xlink:role="https://example.com/role/StatementOfIncome">
+          <link:loc xlink:type="locator" xlink:href="#demo_StatementOfIncomeLineItems" xlink:label="LineItems"/>
+          <link:loc xlink:type="locator" xlink:href="#demo_StatementOfIncomeTable" xlink:label="Table"/>
+          <link:loc xlink:type="locator" xlink:href="#demo_ProductOrServiceAxis" xlink:label="Axis"/>
+          <link:loc xlink:type="locator" xlink:href="#demo_ProductOrServiceDomain" xlink:label="Domain"/>
+          <link:loc xlink:type="locator" xlink:href="#demo_TotalProductOrServiceMember" xlink:label="Member"/>
+
+          <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+                              xlink:from="LineItems" xlink:to="Table" order="1"
+                              xbrldt:contextElement="segment" xbrldt:closed="true"/>
+          <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+                              xlink:from="Table" xlink:to="Axis" order="1"/>
+          <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"
+                              xlink:from="Axis" xlink:to="Domain" order="1"/>
+          <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+                              xlink:from="Domain" xlink:to="Member" order="1"/>
+          <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-default"
+                              xlink:from="Axis" xlink:to="Member" order="1"/>
+        </link:definitionLink>
+
+        <link:calculationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+          <link:loc xlink:type="locator" xlink:href="#demo_GrossProfit" xlink:label="GrossProfit"/>
+          <link:loc xlink:type="locator" xlink:href="#demo_Revenue" xlink:label="Revenue"/>
+          <link:loc xlink:type="locator" xlink:href="#demo_CostOfSales" xlink:label="CostOfSales"/>
+          <link:calculationArc xlink:type="arc"
+                               xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item"
+                               xlink:from="GrossProfit" xlink:to="Revenue"
+                               order="1" weight="1"/>
+          <link:calculationArc xlink:type="arc"
+                               xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item"
+                               xlink:from="GrossProfit" xlink:to="CostOfSales"
+                               order="2" weight="-1"/>
+        </link:calculationLink>
+      </link:linkbase>
+    </xs:appinfo>
+  </xs:annotation>
+</xs:schema>

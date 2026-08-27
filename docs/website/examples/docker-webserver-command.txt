@@ -1,0 +1,2 @@
+docker run --name arelle-webserver -p 127.0.0.1:8080:8080 \
+    arelleproject/arelle:latest /opt/start.sh
