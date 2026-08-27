@@ -7,6 +7,8 @@ disableKinds = ["taxonomy", "term"]
 description = "A free and open source platform for validating, exploring, and extracting XBRL data."
 
 [markup]
+  [markup.goldmark.renderHooks.link]
+    useEmbedded = "always"
   [markup.highlight]
     noClasses = false
 
