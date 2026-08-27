@@ -51,3 +51,16 @@ hugo --minify --baseURL /
 python scripts/generate_viewer_demo.py
 htmltest
 ```
+
+## Lighthouse
+
+Lighthouse audits the generated `public/` directory.
+Lighthouse serves the generated directory locally, but its canonical URL audit
+requires an absolute base URL. Use the static production URL locally.
+
+```sh
+npm ci
+hugo --minify --baseURL https://arelle.org/
+python scripts/generate_viewer_demo.py --base-url https://arelle.org/
+npm run lighthouse
+```
