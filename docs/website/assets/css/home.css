@@ -74,6 +74,31 @@
   }
 }
 
+.home-interface {
+  display: grid;
+  gap: var(--content-section-gap);
+  margin-block: clamp(3rem, 8vw, 5rem) 0;
+}
+
+.home-section-heading {
+  display: grid;
+  max-width: 60ch;
+  gap: 0.75rem;
+
+  & > :where(.kicker, .type-heading, .lede) {
+    margin: 0;
+  }
+
+  & > .type-heading {
+    line-height: 1.25;
+  }
+
+  & > .lede {
+    color: var(--muted);
+    line-height: 1.5;
+  }
+}
+
 @keyframes home-opening-rise {
   from {
     opacity: 0;

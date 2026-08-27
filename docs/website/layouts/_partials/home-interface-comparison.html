@@ -1,0 +1,16 @@
+{{- $interfaces := hugo.Data.interfaces -}}
+<section class="home-interface" aria-labelledby="home-interface-title">
+  <header class="home-section-heading">
+    <p class="kicker">One engine, six interfaces</p>
+    <h2 class="type-heading" id="home-interface-title">Built to fit your workflow</h2>
+    <p class="lede type-lede">
+      A visual app for analysts, a CLI for automation, a Docker container for the cloud, a Python
+      library for developers, an extensible plugin system to add custom capabilities, and a
+      built-in web server for local services.
+    </p>
+  </header>
+  {{ partial "interface-comparison.html" (dict
+    "label" "Arelle interfaces"
+    "interfaces" $interfaces
+  ) }}
+</section>
