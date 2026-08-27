@@ -1,0 +1,53 @@
+name: Build Website
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '.github/actions/build_website/**'
+      - '.github/actions/test_website/**'
+      - '.github/workflows/build-website.yml'
+      - 'docs/website/**'
+      - 'requirements-plugins.txt'
+  workflow_call:
+    inputs:
+      download_version:
+        default: ''
+        description: Release version to render in download links
+        required: false
+        type: string
+    outputs:
+      uploaded_artifact_name:
+        description: The name of the GitHub Actions artifact for the website
+        value: ${{ jobs.build-website.outputs.uploaded_artifact_name }}
+  workflow_dispatch:
+    inputs:
+      download_version:
+        default: ''
+        description: Release version to render in download links
+        required: false
+        type: string
+
+permissions: {}
+
+jobs:
+  build-website:
+    runs-on: ubuntu-24.04
+    outputs:
+      uploaded_artifact_name: website
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7.0.1
+      - name: Build website
+        uses: ./.github/actions/build_website
+        with:
+          download_version: ${{ inputs.download_version }}
+      - name: Test website
+        uses: ./.github/actions/test_website
+      - name: Upload website artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: website
+          if-no-files-found: error
+          path: docs/website/public
