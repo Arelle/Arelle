@@ -24,6 +24,20 @@ updates:
         update-types:
           - minor
           - patch
+  - package-ecosystem: npm
+    cooldown:
+      default-days: 3
+    directories:
+      - /**
+    schedule:
+      interval: weekly
+    groups:
+      npm-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
   - package-ecosystem: nuget
     cooldown:
       default-days: 3
