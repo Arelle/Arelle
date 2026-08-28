@@ -11,6 +11,7 @@ from typing import Any
 import regex as re
 
 from arelle import XbrlConst
+from arelle.ModelObject import ModelObject
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
@@ -34,6 +35,7 @@ _XLINK_HREF = f"{{{XbrlConst.xlink}}}href"
 
 
 @validation(
+    # using FINALLY hook to ensure that the ixdsReferences are fully populated before checking for the UKFRS target
     hook=ValidationHook.FINALLY,
 )
 def rule_ukfrc1(
@@ -70,28 +72,28 @@ def rule_ukfrc1(
                 ),
             )
 
-    modelXbrl = val.modelXbrl
-    if not pluginData.isUkfrsTarget(modelXbrl):
+    if not pluginData.isUkfrsTarget(val.modelXbrl):
         return None
 
-    if targetIxReference := val.ixdsReferences.get(TARGET_UKFRS, []):
-        foundHrefs: list[str] = []
-        for referencesElt in targetIxReference:
+    if targetIxReferences := val.ixdsReferences.get(TARGET_UKFRS, []):
+        uksefSchemaRefs: list[ModelObject] = []
+        for referencesElt in targetIxReferences:
             for schemaRef in referencesElt.iterdescendants(tag=_LINK_SCHEMA_REF):
                 href = schemaRef.get(_XLINK_HREF, "").strip()
                 if _UKSEF_ENTRY_POINT_PATTERN.match(href):
-                    foundHrefs.append(href)
+                    uksefSchemaRefs.append(schemaRef)
 
-        if len(foundHrefs) > 1:
+        if len(uksefSchemaRefs) > 1:
             yield Validation.error(
                 codes="ESEF.UKFRC1.multipleEntryPoints",
                 msg=_(
                     'UKSEF reports MUST have a single schemaRef in a "UKFRS" targeted ix:references element. '
                     'Multiple matching schemaRefs were found in the report.'
                     ),
+                modelObject=uksefSchemaRefs,
                 )
 
-        if not foundHrefs:
+        if not uksefSchemaRefs:
             yield Validation.error(
                 codes="ESEF.UKFRC1.unsupportedEntryPoint",
                 msg=_(
