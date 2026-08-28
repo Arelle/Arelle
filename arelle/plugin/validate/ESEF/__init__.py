@@ -305,11 +305,6 @@ class ESEFPlugin(PluginHooks):
         modelXbrl = val.modelXbrl
         pluginData = ESEFPluginData.get(modelXbrl.modelManager.cntlr, ESEF_PLUGIN_NAME)
         val.authority = pluginData.getEsefAuthority(modelXbrl, parameters)
-        if not esefDisclosureSystemSelected(val.modelXbrl):
-            return None
-        val.extensionImportedUrls = set()
-        val.unconsolidated = any("unconsolidated" in n for n in val.disclosureSystem.names)
-        val.consolidated = not val.unconsolidated
 
         authorityValidations = loadAuthorityValidations(val.modelXbrl)
         # loadAuthorityValidations returns either a list or a dict but in this context, we expect a dict.
@@ -320,6 +315,12 @@ class ESEFPlugin(PluginHooks):
         for name in val.disclosureSystem.names:
             val.authParam.update(authorityValidations.get(name, {}))
         val.authParam.update(authorityValidations.get(val.authority, {}))
+
+        if not esefDisclosureSystemSelected(val.modelXbrl):
+            return None
+        val.extensionImportedUrls = set()
+        val.unconsolidated = any("unconsolidated" in n for n in val.disclosureSystem.names)
+        val.consolidated = not val.unconsolidated
         if parameters:
             overwiteParams = {}
             for key, value in parameters.items():
