@@ -54,7 +54,6 @@ config = ConformanceSuiteConfig(
             "invalidIdentifier": 1,
             "multipleIdentifiers": 1,
             "segmentUsed": 1,
-            "unsupportedEntryPoint": 1,
         },
         "FRC_07/index.xml:TC2_invalid": {
             # By the same logic that FRC_06:TC2 fires multipleIdentifiers, so should FRC_07:TC2

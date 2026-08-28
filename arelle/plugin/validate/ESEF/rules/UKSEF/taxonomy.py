@@ -33,7 +33,7 @@ _XLINK_HREF = f"{{{XbrlConst.xlink}}}href"
 
 
 @validation(
-    hook=ValidationHook.XBRL_FINALLY,
+    hook=ValidationHook.FINALLY,
 )
 def rule_ukfrc1(
         pluginData: PluginValidationDataExtension,
@@ -60,59 +60,48 @@ def rule_ukfrc1(
     if val.authority != AUTHORITY_UKFRC:
         return None
 
-    model_xbrl = val.modelXbrl
-    if pluginData.isUkfrsTarget(model_xbrl):
-        return None
-
-    ixds_html_elements = getattr(model_xbrl, "ixdsHtmlElements", None)
-    if not ixds_html_elements:
-        return None
-
-    found_hrefs: list[str] = []
-    is_valid_target = False
-    for ixds_html_root_elt in ixds_html_elements:
-        ix_ns_tag = getattr(ixds_html_root_elt.modelDocument, "ixNStag", "")
-        for references_elt in ixds_html_root_elt.iterdescendants(tag=f"{ix_ns_tag}references"):
-            if references_elt.get("target") != TARGET_UKFRS:
-                continue
-
-            is_valid_target = True
-            for schema_ref in references_elt.iterdescendants(tag=_LINK_SCHEMA_REF):
-                href = schema_ref.get(_XLINK_HREF, "").strip()
-                if _UKSEF_ENTRY_POINT_PATTERN.match(href):
-                    found_hrefs.append(href)
-
-    if not is_valid_target:
+    if val.ixdsReferences and TARGET_UKFRS not in val.ixdsReferences:
         yield Validation.error(
             codes="ESEF.UKFRC1.incorrectTarget",
             msg=_(
-                "UKSEF reports MUST have a \"UKFRS\" targeted ix:references element. "
-                "No matching ix:references element was found in the report."
-            ),
-        )
+                'UKSEF reports MUST have a "UKFRS" targeted ix:references element. '
+                'No matching ix:references element was found in the report.'
+                ),
+            )
 
-    if len(found_hrefs) > 1:
-        yield Validation.error(
-            codes="ESEF.UKFRC1.multipleEntryPoints",
-            msg=_(
-                "UKSEF reports MUST have a single schemaRef in a \"UKFRS\" targeted ix:references element. "
-                "Multiple matching schemaRefs were found in the report."
-            ),
-        )
+    modelXbrl = val.modelXbrl
+    if not pluginData.isUkfrsTarget(modelXbrl):
+        return None
 
-    if not found_hrefs:
-        yield Validation.error(
-            codes="ESEF.UKFRC1.unsupportedEntryPoint",
-            msg=_(
-                "UKSEF reports MUST have a schemaRef in a \"UKFRS\" targeted ix:references element "
-                "pointing to one of the FRC UKSEF entry-points for FRS-102 or IFRS from the 2023, "
-                "2024, or 2025 Taxonomy Suites (e.g. "
-                "https://xbrl.frc.org.uk/FRS-102/2025-01-01/UKSEF/FRS-102-2025-01-01.xsd or "
-                "https://xbrl.frc.org.uk/IFRS/2025-01-01/UKSEF/IFRS-2025-01-01.xsd). "
-                "No matching schemaRef was found in the report."
-            ),
-        )
+    if targetIxReference := val.ixdsReferences.get(TARGET_UKFRS, []):
+        foundHrefs: list[str] = []
+        for referencesElt in targetIxReference:
+            for schemaRef in referencesElt.iterdescendants(tag=_LINK_SCHEMA_REF):
+                href = schemaRef.get(_XLINK_HREF, "").strip()
+                if _UKSEF_ENTRY_POINT_PATTERN.match(href):
+                    foundHrefs.append(href)
 
+        if len(foundHrefs) > 1:
+            yield Validation.error(
+                codes="ESEF.UKFRC1.multipleEntryPoints",
+                msg=_(
+                    'UKSEF reports MUST have a single schemaRef in a "UKFRS" targeted ix:references element. '
+                    'Multiple matching schemaRefs were found in the report.'
+                    ),
+                )
+
+        if not foundHrefs:
+            yield Validation.error(
+                codes="ESEF.UKFRC1.unsupportedEntryPoint",
+                msg=_(
+                    'UKSEF reports MUST have a schemaRef in a "UKFRS" targeted ix:references element '
+                    'pointing to one of the FRC UKSEF entry-points for FRS-102 or IFRS from the 2023, '
+                    '2024, or 2025 Taxonomy Suites (e.g. '
+                    'https://xbrl.frc.org.uk/FRS-102/2025-01-01/UKSEF/FRS-102-2025-01-01.xsd or '
+                    'https://xbrl.frc.org.uk/IFRS/2025-01-01/UKSEF/IFRS-2025-01-01.xsd). '
+                    'No matching schemaRef was found in the report.'
+                    ),
+                )
     return None
 
 
