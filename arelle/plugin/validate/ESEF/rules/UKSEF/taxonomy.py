@@ -18,6 +18,7 @@ from arelle.utils.validate.Validation import Validation
 from arelle.ValidateXbrl import ValidateXbrl
 from ...Const import AUTHORITY_UKFRC, TARGET_UKFRS
 from ...PluginValidationDataExtension import PluginValidationDataExtension
+from ...Util import isExtensionDoc
 
 _: TypeGetText
 
@@ -124,58 +125,29 @@ def rule_ukfrc2(
     if val.authority != AUTHORITY_UKFRC:
         return None
 
-    model_xbrl = val.modelXbrl
-    ixds_html_elements = getattr(model_xbrl, "ixdsHtmlElements", None)
-    if not ixds_html_elements:
-        return None
-
-    # Collect extension schema hrefs from the default-target ix:references elements.
-    extension_hrefs: list[str] = []
-    for ixds_html_root_elt in ixds_html_elements:
-        ix_ns_tag = getattr(ixds_html_root_elt.modelDocument, "ixNStag", "")
-        for references_elt in ixds_html_root_elt.iterdescendants(tag=f"{ix_ns_tag}references"):
-            if references_elt.get("target") is not None:
-                continue
-
-            for schema_ref in references_elt.iterdescendants(tag=_LINK_SCHEMA_REF):
-                href = schema_ref.get(_XLINK_HREF, "").strip()
-                if href:
-                    extension_hrefs.append(href)
-
-    if not extension_hrefs:
-        return None
-
     # Follow schemaRefs to the extension schema ModelDocuments and gather imported URLs.
-    imported_urls: set[str] = set()
-    url_docs = model_xbrl.urlDocs
-    for href in extension_hrefs:
-        extension_doc = url_docs.get(href)
-        if extension_doc is None:
-            # Try to resolve via referenced document uris (href may differ from normalized uri).
-            for uri, doc in url_docs.items():
-                if uri.endswith(href) or href.endswith(uri):
-                    extension_doc = doc
-                    break
-        if extension_doc is None:
+    importedUrls: set[str] = set()
+    for doc in val.modelXbrl.urlDocs.values():
+        if not isExtensionDoc(val, doc):
             continue
-        for referenced_doc, doc_ref in extension_doc.referencesDocument.items():
-            if "import" in doc_ref.referenceTypes:
-                imported_urls.add(referenced_doc.uri)
+        for referencedDoc, docRef in doc.referencesDocument.items():
+            if "import" in docRef.referenceTypes:
+                importedUrls.add(referencedDoc.uri)
 
-    esef_years: list[int] = []
-    for url in imported_urls:
+    esefYears: list[int] = []
+    for url in importedUrls:
         match = _ESEF_TAXONOMY_URL_PATTERN.match(url)
         if match:
-            esef_years.append(int(match.group(1)))
+            esefYears.append(int(match.group(1)))
 
-    if esef_years and max(esef_years) < _MIN_ESEF_YEAR:
+    if esefYears and max(esefYears) < _MIN_ESEF_YEAR:
         yield Validation.error(
             codes="ESEF.UKFRC2.incorrectEsefTaxonomyVersionUsed",
             msg=_(
                 "UKSEF 2025 reports MUST only be used in conjunction with ESEF 2022 or later. "
                 "The extension taxonomy references ESEF taxonomy version %(year)s."
             ),
-            year=max(esef_years),
+            year=max(esefYears),
         )
 
     return None
