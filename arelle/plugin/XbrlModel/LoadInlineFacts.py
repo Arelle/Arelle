@@ -355,7 +355,11 @@ def _htmlValueSource(imf, fv) -> Optional["XbrlFactValueSource"]:
         return None
     prop = XbrlProperty()
     prop.property = qnHtmlElementId
-    prop.value = elementId
+    # xbrl:htmlElementId is declared xbrlr:stringCollection (resources/core.json), so its value
+    # is a LIST even for one id. A bare string is silently wrong: a consumer that spreads the
+    # collection gets one "id" per character and matches nothing, which is what an unbound
+    # viewer looks like -- the document renders, the facts load, and no fact is located.
+    prop.value = [elementId]
     source = XbrlFactValueSource()
     source.factValue = fv
     source.properties = [prop]

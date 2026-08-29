@@ -84,6 +84,30 @@ def saveableValue(val, mdlPropName, **kwargs):
         return int(val) if val.is_integer() else val
     return str(val)
 
+def unitDimensionString(unitQnTuple, mdlPropName, **kwargs):
+    """The OIM unit string for a parsed xbrl:unit dimension value, or None if there is none.
+
+    Fact validation REPLACES the xbrl:unit dimension's string with the parsed
+    (numeratorQNames, denominatorQNames) tuple it checked (ValidateFacts, parseUnitString), so a
+    model serialized after validation would otherwise emit a Python tuple repr --
+    "((iso4217:USD,), ())" -- in place of "iso4217:USD". Consumers read the unit as a QName
+    string, and a repr is silently not one.
+
+    Inverse of parseUnitString: measures joined by "*", a group of more than one parenthesized,
+    numerator and denominator separated by "/". Each QName goes through saveableValue so its
+    prefix is registered in the emitted documentInfo.namespaces.
+    """
+    numeratorQns, denominatorQns = unitQnTuple
+    def group(qns):
+        measures = "*".join(saveableValue(qn, mdlPropName, **kwargs) for qn in qns)
+        return "({})".format(measures) if len(qns) > 1 else measures
+    numerator = group(numeratorQns)
+    if not numerator:
+        return None  # ((),()) is what parseUnitString returns for a unit it could not resolve
+    denominator = group(denominatorQns)
+    return "{}/{}".format(numerator, denominator) if denominator else numerator
+
+
 def saveableObjects(mdlObj, mdlName, **kwargs):
     """ Recursively convert XbrlModelClass objects into saveable dicts, skipping properties with default values.
         Track visited objects to avoid cycles. Skip empty OrderedSet properties.
@@ -130,9 +154,21 @@ def saveableObjects(mdlObj, mdlName, **kwargs):
                 for objName, objVal in propVal.items():
                     if objName == qnBuiltInCoreObjectsTaxonomy:
                         continue
+                    # Validation caches derived values back into factDimensions under
+                    # underscore-prefixed keys (_periodValue, the parsed form of xbrl:period).
+                    # They are working state, not model content: emitting them puts a key no
+                    # consumer knows beside the real dimension, and a consumer that treats
+                    # unrecognized keys as taxonomy-defined dimensions -- as the ixbrl-viewer
+                    # adapter does -- gives every fact a dimension it does not have.
+                    if isinstance(objName, str) and objName.startswith("_"):
+                        continue
                     keyStr = (saveableValue(objName, mdlPropName, **kwargs)
                               if isinstance(objName, QName) else str(objName))
-                    if isinstance(objVal, XbrlModelClass):
+                    if keyStr == "xbrl:unit" and isinstance(objVal, tuple):
+                        unitStr = unitDimensionString(objVal, mdlPropName, **kwargs)
+                        if unitStr is not None:
+                            saveVal[keyStr] = unitStr
+                    elif isinstance(objVal, XbrlModelClass):
                         saveVal[keyStr] = saveableObjects(objVal, mdlPropName, **kwargs)
                     else:
                         saveVal[keyStr] = saveableValue(objVal, mdlPropName, **kwargs)
@@ -183,10 +219,16 @@ def mergeModulesToCompiled(moduleDicts):
     # modelForm is not a serialized schema property -- the compiled documentType conveys it.
     return merged
 
-def collectSourceMappings(txmyMdl):
+def collectSourceMappings(txmyMdl, sourceUrlRewrite=None):
     """ Re-emit documentInfo.sourceMappings from each module's parsed _sourceMappings
         (SimpleNamespace(sourceName=QName, url=absoluteUrl), built at load time). Must-retain:
         the sourceName -> document-file URL binding a consumer needs to locate fact-value text.
+
+        The url as loaded is absolute, and for an entry point inside an archive it is the
+        archive's own path -- neither of which a consumer of the saved model can fetch.
+        sourceUrlRewrite, when given, is called as rewrite(sourceName, url) and returns the URL
+        to emit (or None to emit the url unchanged); ViewerLaunch uses it to name the document
+        it staged beside the model.
     """
     seen = set()
     out = []
@@ -194,6 +236,8 @@ def collectSourceMappings(txmyMdl):
         for sm in getattr(module, "_sourceMappings", None) or ():
             sn = str(sm.sourceName) if getattr(sm, "sourceName", None) is not None else None
             url = getattr(sm, "url", None)
+            if sourceUrlRewrite is not None:
+                url = sourceUrlRewrite(sn, url) or url
             key = (sn, url)
             if key in seen:
                 continue
@@ -262,7 +306,7 @@ def tailorFactsToFormB(moduleDict, resolvedValues):
                     if anchors:
                         factValue["valueAnchors"] = anchors
 
-def saveFiles(cntlr, txmyMdl, fileName, saveMode="full", **kwargs):
+def saveFiles(cntlr, txmyMdl, fileName, saveMode="full", sourceUrlRewrite=None, **kwargs):
     """ Save a loaded XbrlCompiledModel (taxonomy objects + facts) to json, cbor or Excel.
         FULL mode: the entire model as a single compiled document -- every discovered object
         and all facts, serialized as loaded. The model's modules (txmyMdl.xbrlModels) are merged
@@ -290,7 +334,8 @@ def saveFiles(cntlr, txmyMdl, fileName, saveMode="full", **kwargs):
     for m in moduleObjs:
         for prefix, ns in txmyPrefixes.get(str(m.name), {}).items():
             namespaces.setdefault(prefix, ns)
-    docInfo = buildDocumentInfo(COMPILED_DOCTYPE, namespaces, collectSourceMappings(txmyMdl))
+    docInfo = buildDocumentInfo(COMPILED_DOCTYPE, namespaces,
+                                collectSourceMappings(txmyMdl, sourceUrlRewrite))
     oimModel = {"documentInfo": docInfo, "xbrlModel": mergedModel}
     if fileExt == ".json":
         with io.open(fileName, "w") as fp:

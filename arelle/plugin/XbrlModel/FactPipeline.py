@@ -433,6 +433,31 @@ def _reportTaxonomyUrls(compMdl, factMapName, url) -> list:
     return resolved
 
 
+def reportDocumentUrls(compMdl, mappingUrl) -> list:
+    """The document URL(s) a sourceMapping URL denotes, most specific first.
+
+    A report entry point loaded from an archive binds its sourceMapping to the ARCHIVE, so that
+    the report package's catalog remappings apply and the whole (possibly multi-document) IXDS
+    is discovered. An archive is not a document, though, and a consumer that has to READ the
+    document -- the fact value resolver, or a viewer -- needs what the entry point actually
+    named. ``pocLoadReportAsEntry`` records that as ``_xbrlModelReportEntryUrl``, which is
+    itself an inline-document-set surrogate URL when the report spans several documents.
+
+    Where there is no recorded entry URL -- a model whose sourceMapping names its document
+    directly, which is the ordinary case -- the mapping URL is returned unchanged.
+    """
+    entryUrl = getattr(compMdl, "_xbrlModelReportEntryUrl", None)
+    if not entryUrl:
+        return [mappingUrl] if mappingUrl else []
+    from arelle import PluginManager
+    for separatorMethod in PluginManager.pluginClassMethods("InlineDocumentSet.Url.Separator"):
+        separator = separatorMethod()
+        if separator and separator in entryUrl:
+            # the first segment names the document SET, not a document
+            return [url for url in entryUrl.split(separator)[1:] if url]
+    return [entryUrl]
+
+
 def materializeFactSourceFacts(compMdl: "XbrlCompiledModel", module: "XbrlModule") -> None:
     """Generate facts (and footnotes) from a module's factSources that reference a
     built-in fact map, and register them in the compiled model so the existing
@@ -591,7 +616,7 @@ def pocLoadReportAsEntry(cntlr, modelXbrl, filepath, mappedUri, factMapName):
     from validateXbrlModule) -- as for a factSource loaded from a real module document --
     so the model is an XbrlModel on open and fully populated once validated. Returns the
     ModelDocument."""
-    url = mappedUri or filepath
+    url = entryDocumentUrl = mappedUri or filepath
     # If the entry resolved to a document inside an archive (report package), bind the
     # factSource to the archive (package) itself so _loadInlineModel applies the report
     # package's catalog remappings and discovers the whole (possibly multi-doc) IXDS.
@@ -607,13 +632,19 @@ def pocLoadReportAsEntry(cntlr, modelXbrl, filepath, mappedUri, factMapName):
                 "xbrl": xbrlNs,
                 "xbrlm": xbrlNs + "/model",
                 "xs": "http://www.w3.org/2001/XMLSchema",
+                "ixt-sec": "http://www.sec.gov/inlineXBRL/transformation/2015-08-31",
             },
             "documentNamespacePrefix": "ex",
             "sourceMappings": [{"sourceName": "ex:report", "url": url}],
         },
         "xbrlModel": {
             "name": "ex:legacyReport",
-            "importedTaxonomies": [{"xbrlModelName": "xbrlm:base"}],
+            # xbrlm:base supplies the built-in objects; the SEC transformation registry supplies
+            # the ixt-sec transforms a US legacy report names. Both are shipped resources resolved
+            # by reserved prefix, so neither needs an importMapping. (A factset produced by
+            # saveOIMFacts must declare the ixt-sec import itself -- it does not yet.)
+            "importedTaxonomies": [{"xbrlModelName": "xbrlm:base"},
+                                   {"xbrlModelName": "ixt-sec:TransformsTaxonomyModule"}],
             "factSources": [{"name": "ex:report", "factMapName": factMapName}],
         },
     }
@@ -622,4 +653,8 @@ def pocLoadReportAsEntry(cntlr, modelXbrl, filepath, mappedUri, factMapName):
     # Flag so the GUI view builder validates this model before building views (its DTS +
     # facts materialize at validate time); see xbrlModelViews.
     modelXbrl._xbrlModelReportEntry = True
+    # The sourceMapping is bound to the archive so the whole IXDS is discovered, but a consumer
+    # that wants to RENDER the report needs the document itself. Record which document was the
+    # entry so ViewerLaunch can stage it; for a plain (non-archive) entry the two are the same.
+    modelXbrl._xbrlModelReportEntryUrl = entryDocumentUrl
     return doc

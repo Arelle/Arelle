@@ -1,58 +1,306 @@
 {
   "$schema": "../oim-taxonomy-schema.json",
   "documentInfo": {
-      "documentType": "https://xbrl.org/2026/module",
-        "namespaces": {
-            "xbrl": "https://xbrl.org/2026",
-            "xbrlr":"https://xbrl.org/2026/report",
-            "xs": "http://www.w3.org/2001/XMLSchema",
-            "ixt-sec":"http://www.sec.gov/inlineXBRL/transformation/2015-08-31",
-            "dei":"http://xbrl.sec.gov/dei/2025",
-            "xbrlm":"https://xbrl.org/2026/model"
-            },
-        "documentNamespacePrefix":"ixt-sec"
+    "documentType": "https://xbrl.org/2026/module",
+    "namespaces": {
+      "xbrl": "https://xbrl.org/2026",
+      "xbrlr": "https://xbrl.org/2026/report",
+      "xs": "http://www.w3.org/2001/XMLSchema",
+      "ixt-sec": "http://www.sec.gov/inlineXBRL/transformation/2015-08-31",
+      "dei": "http://xbrl.sec.gov/dei/2025",
+      "xbrlm": "https://xbrl.org/2026/model"
+    },
+    "documentNamespacePrefix": "ixt-sec"
   },
   "xbrlModel": {
-      "name": "ixt-sec:TransformsTaxonomyModule",
-      "frameworkName": "transforms",
-      "version": "2025",
-      "importedTaxonomies": [
-            {
-                "xbrlModelName": "xbrlm:base"
-            }
-        ],
-      "dataTypes": [
-        {
-            "name": "ixt-sec:boolballotboxType",
-            "baseType": "xs:string",
-            "enumeration": ["☐","&#9744;", "☑","&#9745;","☒", "&#9746;"]
-        }
-      ],
-      "labels": [
-            {
-                "forObject": "ixt-sec:boolballotbox",
-                "language": "en",
-                "labelType": "xbrl:documentation",
-                "value": "Transforms boolean ballot box values to boolean true/false. A value of '☑' or '☒' is considered true, while '☐' is considered false."
-            },
-            {
-                "forObject": "ixt-sec:exchnameen",
-                "language": "en",
-                "labelType": "xbrl:documentation",
-                "value": "Transforms exchange full English names to their corresponding short names. The conversion matrix is as follows : The New York Stock Exchange -> NYSE; New York Stock Exchange LLC -> NYSE; NASDAQ Global Select Market -> NASDAQ; The Nasdaq Stock Market LLC -> NASDAQ; BOX Exchange LLC -> BOX;Nasdaq BX, Inc. -> BX; Cboe C2 Exchange, Inc. -> C2; Cboe Exchange, Inc. -> CBOE; Chicago Stock Exchange, Inc. -> CHX; Cboe BYX Exchange, Inc. -> CboeBYX; Cboe BZX Exchange, Inc. -> CboeBZX; Cboe EDGA Exchange, Inc. -> CboeEDGA; Cboe EDGX Exchange, Inc. -> CboeEDGX; Nasdaq GEMX, LLC -> GEMX"
-            }
-      ],
-      "transforms":[
-        {
-            "name": "ixt-sec:boolballotbox",
-            "inputDataType": "ixt-sec:boolballotboxType",
-            "outputDataType": "xs:boolean"
-        },
-        {
-            "name" : "ixt-sec:exchnameen",
-            "inputDataType": "xs:string",
-            "outputDataType": "dei:edgarExchangeCodeItemType"
-        }
-      ]
-}
+    "name": "ixt-sec:TransformsTaxonomyModule",
+    "frameworkName": "transforms",
+    "version": "2025",
+    "importedTaxonomies": [
+      {
+        "xbrlModelName": "xbrlm:base"
+      }
+    ],
+    "dataTypes": [
+      {
+        "name": "ixt-sec:boolballotboxType",
+        "baseType": "xs:string",
+        "enumeration": [
+          "☐",
+          "&#9744;",
+          "☑",
+          "&#9745;",
+          "☒",
+          "&#9746;"
+        ]
+      },
+      {
+        "name": "ixt-sec:countrynameenType",
+        "baseType": "xs:string",
+        "patterns": [
+          "(([Aa]fghanistan)|([ÅåAa]land[\\s ]+[Ii]slands)|([Aa]lbania)|([Aa]lgeria)|([Aa]merican[\\s ]+[Ss]amoa)|([Aa]ndorra)|([Aa]ngola)|([Aa]nguilla)|([Aa]ntarctica)|([Aa]ntigua[\\s ]+[Aa]nd[\\s ]+[Bb]arbuda)|((([Tt]he[\\s ]+)?[Rr]epublic[\\s ]+[Oo]f[\\s ]+)?[Aa]rgentina)|([Aa]rmenia)|([Aa]ruba)|([Aa]ustralia)|([Aa]ustria)|([Aa]zerbaijan)|([Bb]ahamas)|([Bb]ahrain)|([Bb]angladesh)|([Bb]arbados)|([Bb]elarus)|([Bb]elgium)|([Bb]elize)|([Bb]enin)|([Bb]ermuda)|([Bb]hutan)|([Bb]olivia)|([Bb]onaire,[\\s ]+[Ss]int[\\s ]+[Ee]ustatius[\\s ]+[Aa]nd[\\s ]+[Ss]aba)|([Bb]osnia[\\s ]+[Aa]nd[\\s ]+[Hh]erzegovina)|([Bb]otswana)|([Bb]ouvet[\\s ]+[Ii]sland)|((([Tt]he[\\s ]+)?[Ff]ederative[\\s ]+[Rr]epublic[\\s ]+[Oo]f[\\s ]+)?[Bb]ra[sz]il)|([Bb]ritish[\\s ]+[Ii]ndian[\\s ]+[Oo]cean[\\s ]+[Tt]erritory)|([Bb]runei[\\s ]+[Dd]arussalam)|([Bb]ulgaria)|([Bb]urkina[\\s ]+[Ff]aso)|([Bb]urundi)|([Cc]abo[\\s ]+[Vv]erde)|([Cc]ambodia)|([Cc]ameroon)|([Cc]anada)|([Cc]ayman[\\s ]+[Ii]slands)|([Cc]entral[\\s ]+[Aa]frican[\\s ]+[Rr]epublic)|([Cc]had)|([Cc]hile)|((([Tt]he[\\s ]+)?[Pp]eople['’]?s[\\s ]+[Rr]epublic[\\s ]+[Oo]f[\\s ]+)?[Cc]hina)|([Cc]hristmas[\\s ]+[Ii]sland)|([Cc]ocos[\\s ]+(.[Kk]eeling.[\\s ])?[Ii]slands)|((([Tt]he[\\s ]+)?[Rr]epublic[\\s ]+[Oo]f[\\s ]+)?[Cc]olombia)|([Cc]omoros)|([Dd]emocratic[\\s ]+[Rr]epublic[\\s ]+[Oo]f[\\s ]+([Tt]he[\\s ]+)?[Cc]ongo)|([Cc]ongo)|([Cc]ook[\\s ]+[Ii]slands)|([Cc]osta[\\s ]+[Rr]ica)|([Cc][ôo]te[\\s ]+d['’][Ii]voire)|([Cc]roatia)|([Cc]uba)|([Cc]ura[çc]ao)|([Cc]yprus)|([Cc]zechia|[Cc]zech[\\s ]+[Rr]epublic)|((([Tt]he[\\s ]+)?[Kk]ingdom[\\s ]+[Oo]f[\\s ]+)?[Dd]enmark)|([Dd]jibouti)|([Dd]ominica)|([Dd]ominican[\\s ]+[Rr]epublic)|([Ee]cuador)|([Ee]gypt)|([Ee]l[\\s ]+[Ss]alvador)|([Ee]quatorial[\\s ]+[Gg]uinea)|([Ee]ritrea)|([Ee]stonia)|([Ee]swatini)|([Ee]thiopia)|(([Tt]he[\\s ]+)?[Ff]alkland[\\s ]+[Ii]slands([\\s ]+.[Mm]alvinas.)?|([Ii]slas[\\s ]+)?[Mm]alvinas([\\s ]+[Ii]slands)?)|([Ff]aroe[\\s ]+[Ii]slands)|([Ff]iji)|([Ff]inland)|([Ff]rance)|([Ff]rench[\\s ]+[Gg]uiana)|([Ff]rench[\\s ]+[Pp]olynesia)|([Ff]rench[\\s ]+[Ss]outhern[\\s ]+[Tt]erritories)|([Gg]abon)|([Gg]ambia)|([Gg]eorgia)|([Gg]ermany)|([Gg]hana)|([Gg]ibraltar)|([Gg]reece)|([Gg]reenland)|([Gg]renada)|([Gg]uadeloupe)|([Gg]uam)|([Gg]uatemala)|([Gg]uernsey)|([Gg]uinea)|([Gg]uinea-[Bb]issau)|([Gg]uyana)|([Hh]aiti)|([Hh]eard[\\s ]+[Ii]sland[\\s ]+[Aa]nd[\\s ]+[Mm]cDonald[\\s ]+[Ii]slands)|(([Tt]he[\\s ]+)?[Hh]oly[\\s ]+[Ss]ee|[Vv]atican[\\s ]+[Cc]ity)|([Hh]onduras)|([Hh]ong[\\s ]+[Kk]ong)|([Hh]ungary)|([Ii]celand)|([Ii]ndia)|([Ii]ndonesia)|((([Tt]he[\\s ]+)?[Ii]slamic[\\s ]+[Rr]epublic[\\s ]+of[\\s ]+)?[Ii]ran)|([Ii]raq)|([Ii]reland)|([Ii]sle[\\s ]+[Oo]f[\\s ]+[Mm]an)|([Ii]srael)|([Ii]taly)|([Jj]amaica)|([Jj]apan)|([Jj]ersey)|([Jj]ordan)|([Kk]azakhstan)|([Kk]enya)|([Kk]iribati)|(([Nn]orth|[Dd]emocratic[\\s ]+[Pp]eople['’]?s[\\s ]+[Rr]epublic[\\s ]+[Oo]f)[\\s ]+[Kk]orea)|(([Ss]outh|[Rr]epublic[\\s ]+[Oo]f)[\\s ]+[Kk]orea)|([Kk]uwait)|([Kk]yrgyzstan)|([Ll]ao[\\s ]+[Pp]eople['’]?s[\\s ]+[Dd]emocratic[\\s ]+[Rr]epublic)|([Ll]atvia)|([Ll]ebanon)|([Ll]esotho)|([Ll]iberia)|((([Tt]he[\\s ]+)?[Ss]tate[\\s ]+[Oo]f[\\s ]+)?[Ll]ibya)|([Ll]iechtenstein)|([Ll]ithuania)|((([Tt]he[\\s ]+)?([Gg]rand[\\s ]+)?[Dd]uchy[\\s ]+[Oo]f[\\s ]+)?[Ll]uxembourg)|([Mm]aca[ou])|([Mm]adagascar)|([Mm]alawi)|([Mm]alaysia)|([Mm]aldives)|([Mm]ali)|([Mm]alta)|((([Tt]he[\\s ]+)?[Rr]epublic[\\s ]+[Oo]f[\\s ]+([Tt]he[\\s ]+)?)?[Mm]arshall[\\s ]+[Ii]slands)|([Mm]artinique)|([Mm]auritania)|([Mm]auritius)|([Mm]ayotte)|([Mm]exico|[Uu]nited[\\s ]+[Mm]exican[\\s ]+[Ss]tates)|((([Tt]he[\\s ]+)?[Ff]ederated[\\s ]+[Ss]tates[\\s ]+[Oo]f[\\s ]+)?[Mm]icronesia)|((([Tt]he[\\s ]+)?[Rr]epublic[\\s ]+[Oo]f[\\s ]+)?[Mm]oldova)|([Mm]onaco)|([Mm]ongolia)|([Mm]ontenegro)|([Mm]ontserrat)|([Mm]orocco)|([Mm]ozambique)|([Mm]yanmar)|([Nn]amibia)|([Nn]auru)|([Nn]epal)|([Nn]etherlands)|([Nn]ew[\\s ]+[Cc]aledonia)|([Nn]ew[\\s ]+[Zz]ealand)|([Nn]icaragua)|([Nn]iger)|([Nn]igeria)|([Nn]iue)|([Nn]orfolk[\\s ]+[Ii]sland)|((([Tt]he[\\s ]+)?[Rr]epublic[\\s ]+[Oo]f[\\s ]+)?[Nn]orth[\\s ]+[Mm]acedonia)|([Nn]orthern[\\s ]+[Mm]ariana[\\s ]+[Ii]slands)|([Nn]orway)|([Oo]man)|([Pp]akistan)|([Pp]alau)|((([Tt]he[\\s ]+)?[Ss]tate[\\s ]+[Oo]f[\\s ]+)?[Pp]alestine)|([Pp]anama)|([Pp]apua[\\s ]+[Nn]ew[\\s ]+[Gg]uinea)|([Pp]araguay)|([Pp]eru)|([Pp]hilippines)|([Pp]itcairn)|([Pp]oland)|([Pp]ortugal)|([Pp]uerto[\\s ]+[Rr]ico)|([Qq]atar)|([Rr][ée]union)|([Rr]omania)|([Rr]ussian[\\s ]+[Ff]ederation)|([Rr]wanda)|([Ss]aint[\\s ]+[Bb]arth[ée]lemy)|([Ss]aint[\\s ]+[Hh]elena(,[\\s ]+[Aa]scension,?[\\s ]+[Aa]nd[\\s ]+[Tt]ristan([\\s ]+[Dd]a[\\s ]+[Cc]unha)?)?)|([Ss]aint[\\s ]+[Kk]itts[\\s ]+[Aa]nd[\\s ]+[Nn]evis)|([Ss]aint[\\s ]+[Ll]ucia)|([Ss]aint[\\s ]+[Mm]artin)|([Ss]aint[\\s ]+[Pp]ierre[\\s ]+[Aa]nd[\\s ]+[Mm]iquelon)|([Ss]aint[\\s ]+[Vv]incent([\\s ]+[Aa]nd[\\s ]+([Tt]he[\\s ]+)?[Gg]renadines)?)|([Ss]amoa)|([Ss]an[\\s ]+[Mm]arino)|([Ss]ao[\\s ]+[Tt]ome[\\s ]+[Aa]nd[\\s ]+[Pp]rincipe)|([Ss]audi[\\s ]+[Aa]rabia)|([Ss]enegal)|([Ss]erbia)|([Ss]eychelles)|([Ss]ierra[\\s ]+[Ll]eone)|([Ss]ingapore)|([Ss]int[\\s ]+[Mm]aarten)|([Ss]lovakia)|([Ss]lovenia)|([Ss]olomon[\\s ]+[Ii]slands)|([Ss]omalia)|((([Tt]he[\\s ]+)?[Rr]epublic[\\s ]+[Oo]f[\\s ]+)?[Ss]outh[\\s ]+[Aa]frica)|([Ss]outh[\\s ]+[Gg]eorgia[\\s ]+[Aa]nd[\\s ]+([Tt]he[\\s ]+)?[Ss]outh[\\s ]+[Ss]andwich[\\s ]+[Ii]slands)|([Ss]outh[\\s ]+[Ss]udan)|((([Tt]he[\\s ]+)?[Kk]ingdom[\\s ]+[Oo]f[\\s ]+)?[Ss]pain|[Ee]spa[ñn]a)|([Ss]ri[\\s ]+[Ll]anka)|([Ss]udan)|([Ss]uriname)|([Ss]valbard[\\s ]+[Aa]nd[\\s ]+[Jj]an[\\s ]+[Mm]ayen)|([Ss]weden)|([Ss]witzerland)|([Ss]yria(n[\\s ]+[Aa]rab[\\s ]+[Rr]epublic)?)|([Tt]aiwan(,?[\\s ]+[Pp]rovince[\\s ]+[Oo]f[\\s ]+[Cc]hina)?)|([Tt]ajikistan)|((([Tt]he[\\s ]+)?[Uu]nited[\\s ]+[Rr]epublic[\\s ]+[Oo]f[\\s ]+)?[Tt]anzania)|([Tt]hailand)|([Tt]imor-[Ll]este)|([Tt]ogo)|([Tt]okelau)|([Tt]onga)|([Tt]rinidad[\\s ]+[Aa]nd[\\s ]+[Tt]obago)|([Tt]unisia)|([Tt][uü]rk(ey|iye))|([Tt]urkmenistan)|([Tt]urks[\\s ]+[Aa]nd[\\s ]+[Cc]aicos[\\s ]+[Ii]slands)|([Tt]uvalu)|([Uu]ganda)|([Uu]kraine)|(UAE|[Uu]nited[\\s ]+[Aa]rab[\\s ]+[Ee]mirates)|(U[.]?K[.]?|[Bb]ritain|[Gg]reat[\\s ]+[BBb]ritain|[Uu]nited[\\s ]+[Kk]ingdom([\\s ]+[Oo]f[\\s ]+[Gg]reat[\\s ]+[Bb]ritain[\\s ]+[Aa]nd[\\s ]+[Nn]orthern[\\s ]+[Ii]reland)?|[Ee]ngland([\\s ]+[Aa]nd[\\s ]+[Ww]ales)?)|([Uu]nited[\\s ]+[Ss]tates[\\s ]+[Mm]inor[\\s ]+[Oo]utlying[\\s ]+[Ii]slands)|(U[.]?S[.]?A[.]?|[Uu]nited[\\s ]+[Ss]tates([\\s ]+[Oo]f[\\s ]+[Aa]merica)?)|([Uu]ruguay)|([Uu]zbekistan)|([Vv]anuatu)|([Vv]enezuela)|([Vv]iet[\\s ]+[Nn]am)|([Bb]ritish[\\s ]+[Vv]irgin[\\s ]+[Ii]slands)|([Uu][.]?[Ss][.]?[\\s ]+[Vv]irgin[\\s ]+[Ii]slands)|([Ww]allis[\\s ]+[Aa]nd[\\s ]+[Ff]utuna)|([Ww]estern[\\s ]+[Ss]ahara*)|([Yy]emen)|([Zz]ambia)|([Zz]imbabwe))"
+        ]
+      },
+      {
+        "name": "ixt-sec:datequarterendType",
+        "baseType": "xs:string",
+        "patterns": [
+          "((\\w[^0-9]*)?(1|[Ff]irst|2|[Ss]econd|3|[Tt]hird|4|[Ff]ourth|[Ll]ast)[^0-9]*([0-9]{4}))|(([0-9]{4})[^0-9]*(1|[Ff]irst|2|[Ss]econd|3|[Tt]hird|4|[Ff]ourth|[Ll]ast)(.*\\w+)?)"
+        ]
+      },
+      {
+        "name": "ixt-sec:durdayType",
+        "baseType": "xs:string",
+        "patterns": [
+          "[+\\-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)"
+        ]
+      },
+      {
+        "name": "ixt-sec:durhourType",
+        "baseType": "xs:string",
+        "patterns": [
+          "[+\\-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)"
+        ]
+      },
+      {
+        "name": "ixt-sec:durmonthType",
+        "baseType": "xs:string",
+        "patterns": [
+          "[+\\-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)"
+        ]
+      },
+      {
+        "name": "ixt-sec:durweekType",
+        "baseType": "xs:string",
+        "patterns": [
+          "[+\\-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)"
+        ]
+      },
+      {
+        "name": "ixt-sec:durwordsenType",
+        "baseType": "xs:string",
+        "patterns": [
+          "((((([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)[Hh]undred(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)(and[\\s ]+)?(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))?)|(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))|[Zz]ero|[Nn]o|[0-9][0-9]{0,3})([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)[Yy]ears?(,?[\\s ]*(and[\\s ]*)?))?((((([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)[Hh]undred(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)(and[\\s ]+)?(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))?)|(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))|[Zz]ero|[Nn]o|[0-9][0-9]{0,3})([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)[Mm]onths?(,?[\\s ]*(and[\\s ]*)?))?((((([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)[Hh]undred(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)(and[\\s ]+)?(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))?)|(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))|[Zz]ero|[Nn]o|[0-9][0-9]{0,3})([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)[Dd]ays?)?"
+        ]
+      },
+      {
+        "name": "ixt-sec:duryearType",
+        "baseType": "xs:string",
+        "patterns": [
+          "[+\\-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)"
+        ]
+      },
+      {
+        "name": "ixt-sec:edgarprovcountryenType",
+        "baseType": "xs:string",
+        "patterns": [
+          "(([Aa]merican[\\s ]+[Ss]amoa)|([Gg]uam)|([Pp]uerto[\\s ]+[Rr]ico)|([Uu]nited[\\s ]+[Ss]tates[\\s ]+[Mm]inor[\\s ]+[Oo]utlying[\\s ]+[Ii]slands)|([Vv]irgin[\\s ]+[Ii]slands,[\\s ]+U[.]?S[.]?|U([.][\\s ]*)?S[.]?[\\s ]+[Vv]irgin[\\s ]+[Ii]slands)|([Aa]lberta(,?[\\s ]+[Cc]anada)?)|([Bb]ritish[\\s ]+[Cc]olumbia(,?[\\s ]+[Cc]anada)?)|([Mm]anitoba(,?[\\s ]+[Cc]anada)?)|([Nn]ew[\\s ]+[Bb]runswick(,?[\\s ]+[Cc]anada)?)|([Nn]ewfoundland([\\s ]+[Aa]nd[\\s ]+[Ll]abrador)?(,?[\\s ]+[Cc]anada)?)|([Nn]ova[\\s ]+[Ss]cotia(,?[\\s ]+[Cc]anada)?)|([Oo]ntario(,?[\\s ]+[Cc]anada)?)|([Pp]rince[\\s ]+[Ee]dward[\\s ]+[Ii]sland(,?[\\s ]+[Cc]anada)?)|([Qq]u[eé]bec(,?[\\s ]+[Cc]anada)?)|([Ss]askatchewan(,?[\\s ]+[Cc]anada)?)|([Yy]ukon(,?[\\s ]+[Cc]anada)?)|([Aa]fghanistan)|([ÅåAa]land[\\s ]+[Ii]slands)|([Aa]lbania)|([Aa]lgeria)|([Aa]merican[\\s ]+[Ss]amoa)|([Aa]ndorra)|([Aa]ngola)|([Aa]nguilla)|([Aa]ntarctica)|([Aa]ntigua[\\s ]+[Aa]nd[\\s ]+[Bb]arbuda)|((([Tt]he[\\s ]+)?[Rr]epublic[\\s ]+[Oo]f[\\s ]+)?[Aa]rgentina)|([Aa]rmenia)|([Aa]ruba)|([Aa]ustralia)|([Aa]ustria)|([Aa]zerbaijan)|([Bb]ahamas)|([Bb]ahrain)|([Bb]angladesh)|([Bb]arbados)|([Bb]elarus)|([Bb]elgium)|([Bb]elize)|([Bb]enin)|([Bb]ermuda)|([Bb]hutan)|([Bb]olivia)|([Bb]osnia[\\s ]+[Aa]nd[\\s ]+[Hh]erzegovina)|([Bb]otswana)|([Bb]ouvet[\\s ]+[Ii]sland)|((([Tt]he[\\s ]+)?[Ff]ederative[\\s ]+[Rr]epublic[\\s ]+[Oo]f[\\s ]+)?[Bb]ra[sz]il)|([Bb]ritish[\\s ]+[Ii]ndian[\\s ]+[Oo]cean[\\s ]+[Tt]erritory)|([Bb]runei[\\s ]+[Dd]arussalam)|([Bb]ulgaria)|([Bb]urkina[\\s ]+[Ff]aso)|([Bb]urundi)|([Cc]a(bo|pe)[\\s ]+[Vv]erde)|([Cc]ambodia)|([Cc]ameroon)|([Cc]anada)|([Cc]ayman[\\s ]+[Ii]slands)|([Cc]entral[\\s ]+[Aa]frican[\\s ]+[Rr]epublic)|([Cc]had)|([Cc]hile)|((([Tt]he[\\s ]+)?[Pp]eople['’]?s[\\s ]+[Rr]epublic[\\s ]+[Oo]f[\\s ]+)?[Cc]hina)|([Cc]hristmas[\\s ]+[Ii]sland)|([Cc]ocos[\\s ]+(.[Kk]eeling.[\\s ]+)?[Ii]slands)|((([Tt]he[\\s ]+)?[Rr]epublic[\\s ]+[Oo]f[\\s ]+)?[Cc]olombia)|([Cc]omoros)|([Dd]emocratic[\\s ]+[Rr]epublic[\\s ]+[Oo]f[\\s ]+([Tt]he[\\s ]+)?[Cc]ongo)|([Cc]ongo)|([Cc]ook[\\s ]+[Ii]slands)|([Cc]osta[\\s ]+[Rr]ica)|([Cc][ôo]te[\\s ]+d['’][Ii]voire)|([Cc]roatia)|([Cc]uba)|([Cc]yprus)|([Cc]zechia|[Cc]zech[\\s ]+[Rr]epublic)|((([Tt]he[\\s ]+)?[Kk]ingdom[\\s ]+[Oo]f[\\s ]+)?[Dd]enmark)|([Dd]jibouti)|([Dd]ominica)|([Dd]ominican[\\s ]+[Rr]epublic)|([Ee]cuador)|([Ee]gypt)|([Ee]l[\\s ]+[Ss]alvador)|([Ee]quatorial[\\s ]+[Gg]uinea)|([Ee]ritrea)|([Ee]stonia)|([Ee]thiopia)|(([Tt]he[\\s ]+)?[Ff]alkland[\\s ]+[Ii]slands([\\s ]+.[Mm]alvinas.)?|([Ii]slas[\\s ]+)?[Mm]alvinas([\\s ]+[Ii]slands)?)|([Ff]aroe[\\s ]+[Ii]slands)|([Ff]iji)|([Ff]inland)|([Ff]rance)|([Ff]rench[\\s ]+[Gg]uiana)|([Ff]rench[\\s ]+[Pp]olynesia)|([Ff]rench[\\s ]+[Ss]outhern[\\s ]+[Tt]erritories)|([Gg]abon)|([Gg]ambia)|([Gg]eorgia)|([Gg]ermany)|([Gg]hana)|([Gg]ibraltar)|([Gg]reece)|([Gg]reenland)|([Gg]renada)|([Gg]uadeloupe)|([Gg]uatemala)|([Gg]uernsey)|([Gg]uinea)|([Gg]uinea-[Bb]issau)|([Gg]uyana)|([Hh]aiti)|([Hh]eard[\\s ]+[Ii]sland[\\s ]+[Aa]nd[\\s ]+[Mm]cDonald[\\s ]+[Ii]slands)|(([Tt]he[\\s ]+)?[Hh]oly[\\s ]+[Ss]ee|[Vv]atican[\\s ]+[Cc]ity)|([Hh]onduras)|([Hh]ong[\\s ]+[Kk]ong)|([Hh]ungary)|([Ii]celand)|([Ii]ndia)|([Ii]ndonesia)|((([Tt]he[\\s ]+)?[Ii]slamic[\\s ]+[Rr]epublic[\\s ]+of[\\s ]+)?[Ii]ran)|([Ii]raq)|([Ii]reland)|([Ii]sle[\\s ]+[Oo]f[\\s ]+[Mm]an)|([Ii]srael)|([Ii]taly)|([Jj]amaica)|([Jj]apan)|([Jj]ersey)|([Jj]ordan)|([Kk]azakhstan)|([Kk]enya)|([Kk]iribati)|(([Nn]orth|[Dd]emocratic[\\s ]+[Pp]eople['’]?s[\\s ]+[Rr]epublic[\\s ]+[Oo]f)[\\s ]+[Kk]orea)|(([Ss]outh|[Rr]epublic[\\s ]+[Oo]f)[\\s ]+[Kk]orea)|([Kk]uwait)|([Kk]yrgyzstan)|([Ll]ao[\\s ]+[Pp]eople['’]?s[\\s ]+[Dd]emocratic[\\s ]+[Rr]epublic)|([Ll]atvia)|([Ll]ebanon)|([Ll]esotho)|([Ll]iberia)|((([Tt]he[\\s ]+)?[Ss]tate[\\s ]+[Oo]f[\\s ]+)?[Ll]ibya)|([Ll]iechtenstein)|([Ll]ithuania)|((([Tt]he[\\s ]+)?([Gg]rand[\\s ]+)?[Dd]uchy[\\s ]+[Oo]f[\\s ]+)?[Ll]uxembourg)|([Mm]aca[ou])|([Mm]adagascar)|([Mm]alawi)|([Mm]alaysia)|([Mm]aldives)|([Mm]ali)|([Mm]alta)|((([Tt]he[\\s ]+)?[Rr]epublic[\\s ]+[Oo]f[\\s ]+([Tt]he[\\s ]+)?)?[Mm]arshall[\\s ]+[Ii]slands)|([Mm]artinique)|([Mm]auritania)|([Mm]auritius)|([Mm]ayotte)|([Mm]exico|[Uu]nited[\\s ]+[Mm]exican[\\s ]+[Ss]tates)|((([Tt]he[\\s ]+)?[Ff]ederated[\\s ]+[Ss]tates[\\s ]+[Oo]f[\\s ]+)?[Mm]icronesia)|((([Tt]he[\\s ]+)?[Rr]epublic[\\s ]+[Oo]f[\\s ]+)?[Mm]oldova)|([Mm]onaco)|([Mm]ongolia)|([Mm]ontenegro)|([Mm]ontserrat)|([Mm]orocco)|([Mm]ozambique)|([Mm]yanmar)|([Nn]amibia)|([Nn]auru)|([Nn]epal)|([Nn]etherlands[\\s ]+[Aa]ntilles)|([Nn]etherlands)|([Nn]ew[\\s ]+[Cc]aledonia)|([Nn]ew[\\s ]+[Zz]ealand)|([Nn]icaragua)|([Nn]iger)|([Nn]igeria)|([Nn]iue)|([Nn]orfolk[\\s ]+[Ii]sland)|((([Tt]he[\\s ]+)?[Rr]epublic[\\s ]+[Oo]f[\\s ]+)?[Nn]orth[\\s ]+[Mm]acedonia)|([Nn]orthern[\\s ]+[Mm]ariana[\\s ]+[Ii]slands)|([Nn]orway)|([Oo]man)|([Pp]akistan)|([Pp]alau)|((([Tt]he[\\s ]+)?[Ss]tate[\\s ]+[Oo]f[\\s ]+)?[Pp]alestine)|([Pp]anama)|([Pp]apua[\\s ]+[Nn]ew[\\s ]+[Gg]uinea)|([Pp]araguay)|([Pp]eru)|([Pp]hilippines)|([Pp]itcairn)|([Pp]oland)|([Pp]ortugal)|([Qq]atar)|([Rr][ée]union)|([Rr]omania)|([Rr]ussian[\\s ]+[Ff]ederation)|([Rr]wanda)|([Ss]aint[\\s ]+[Bb]arth[ée]lemy)|([Ss]aint[\\s ]+[Hh]elena(,[\\s ]+[Aa]scension,?[\\s ]+[Aa]nd[\\s ]+[Tt]ristan([\\s ]+[Dd]a[\\s ]+[Cc]unha)?)?)|([Ss]aint[\\s ]+[Kk]itts[\\s ]+[Aa]nd[\\s ]+[Nn]evis)|([Ss]aint[\\s ]+[Ll]ucia)|([Ss]aint[\\s ]+[Mm]artin)|([Ss]aint[\\s ]+[Pp]ierre[\\s ]+[Aa]nd[\\s ]+[Mm]iquelon)|([Ss]aint[\\s ]+[Vv]incent([\\s ]+[Aa]nd[\\s ]+([Tt]he[\\s ]+)?[Gg]renadines)?)|([Ss]amoa)|([Ss]an[\\s ]+[Mm]arino)|([Ss]ao[\\s ]+[Tt]ome[\\s ]+[Aa]nd[\\s ]+[Pp]rincipe)|([Ss]audi[\\s ]+[Aa]rabia)|([Ss]enegal)|([Ss]erbia)|([Ss]eychelles)|([Ss]ierra[\\s ]+[Ll]eone)|([Ss]ingapore)|([Ss]lovakia)|([Ss]lovenia)|([Ss]olomon[\\s ]+[Ii]slands)|([Ss]omalia)|((([Tt]he[\\s ]+)?[Rr]epublic[\\s ]+[Oo]f[\\s ]+)?[Ss]outh[\\s ]+[Aa]frica)|([Ss]outh[\\s ]+[Gg]eorgia[\\s ]+[Aa]nd[\\s ]+([Tt]he[\\s ]+)?[Ss]outh[\\s ]+[Ss]andwich[\\s ]+[Ii]slands)|((([Tt]he[\\s ]+)?[Kk]ingdom[\\s ]+[Oo]f[\\s ]+)?[Ss]pain|[Ee]spa[ñn]a)|([Ss]ri[\\s ]+[Ll]anka)|([Ss]udan)|([Ss]uriname)|([Ss]valbard[\\s ]+[Aa]nd[\\s ]+[Jj]an[\\s ]+[Mm]ayen)|([Ss]waziland)|([Ss]weden)|([Ss]witzerland)|([Ss]yria(n[\\s ]+[Aa]rab[\\s ]+[Rr]epublic)?)|([Tt]aiwan(,?[\\s ]+[Pp]rovince[\\s ]+[Oo]f[\\s ]+[Cc]hina)?)|([Tt]ajikistan)|((([Tt]he[\\s ]+)?[Uu]nited[\\s ]+[Rr]epublic[\\s ]+[Oo]f[\\s ]+)?[Tt]anzania)|([Tt]hailand)|([Tt]imor-[Ll]este)|([Tt]ogo)|([Tt]okelau)|([Tt]onga)|([Tt]rinidad[\\s ]+[Aa]nd[\\s ]+[Tt]obago)|([Tt]unisia)|([Tt][uü]rk(ey|iye))|([Tt]urkmenistan)|([Tt]urks[\\s ]+[Aa]nd[\\s ]+[Cc]aicos[\\s ]+[Ii]slands)|([Tt]uvalu)|([Uu]ganda)|([Uu]kraine)|(UAE|[Uu]nited[\\s ]+[Aa]rab[\\s ]+[Ee]mirates)|(U[.]?K[.]?|[Bb]ritain|[Gg]reat[\\s ]+[BBb]ritain|[Uu]nited[\\s ]+[Kk]ingdom([\\s ]+[Oo]f[\\s ]+[Gg]reat[\\s ]+[Bb]ritain[\\s ]+[Aa]nd[\\s ]+[Nn]orthern[\\s ]+[Ii]reland)?|[Ee]ngland([\\s ]+[Aa]nd[\\s ]+[Ww]ales)?)|([Uu]nited[\\s ]+[Ss]tates[\\s ]+[Mm]inor[\\s ]+[Oo]utlying[\\s ]+[Ii]slands)|(U[.]?S[.]?A[.]?|[Uu]nited[\\s ]+[Ss]tates([\\s ]+[Oo]f[\\s ]+[Aa]merica)?)|([Uu]ruguay)|([Uu]zbekistan)|([Vv]anuatu)|([Vv]enezuela)|([Vv]iet[\\s ]+[Nn]am)|([Bb]ritish[\\s ]+[Vv]irgin[\\s ]+[Ii]slands|[Vv]irgin[\\s ]+[Ii]slands,?[\\s ]+[Bb]ritish)|([Ww]allis[\\s ]+[Aa]nd[\\s ]+[Ff]utuna)|([Ww]estern[\\s ]+[Ss]ahara*)|([Yy]emen)|([Zz]ambia)|([Zz]imbabwe)|([Uu]nknown))"
+        ]
+      },
+      {
+        "name": "ixt-sec:entityfilercategoryenType",
+        "baseType": "xs:string",
+        "patterns": [
+          "(([Ll]arge[\\s ]+[Aa]ccelerated[\\s ]+[Ff]iler)|([Aa]ccelerated[\\s ]+[Ff]iler)|([Nn]on[^\\w]+[Aa]ccelerated[\\s ]+[Ff]iler))"
+        ]
+      },
+      {
+        "name": "ixt-sec:exchnameenType",
+        "baseType": "xs:string",
+        "patterns": [
+          "((([Tt]he[\\s ]+)?[Bb][Oo][Xx][\\s ]+[Ee]xchange(,?[\\s ]+[Ll][Ll][Cc])?)|(([Tt]he[\\s ]+)?[Cc]boe[\\s ]+[Bb][Yy][Xx][\\s ]+[Ee]xchange(,?[\\s ]+[Ii]nc[.]?)?)|(([Tt]he[\\s ]+)?[Cc]boe[\\s ]+[Bb][Zz][Xx][\\s ]+[Ee]xchange(,?[\\s ]+[Ii]nc[.]?)?)|(([Tt]he[\\s ]+)?[Cc]boe[\\s ]+[Cc]2[\\s ]+[Ee]xchange(,?[\\s ]+[Ii]nc[.]?)?)|(([Tt]he[\\s ]+)?[Cc]boe[\\s ]+[Ee][Dd][Gg][Aa][\\s ]+[Ee]xchange(,?[\\s ]+[Ii]nc[.]?)?)|(([Tt]he[\\s ]+)?[Cc]boe[\\s ]+[Ee][Dd][Gg][Xx][\\s ]+[Ee]xchange(,?[\\s ]+[Ii]nc[.]?)?)|(([Tt]he[\\s ]+)?[Cc]boe[\\s ]+[Ee]xchange(,?[\\s ]+[Ii]nc[.]?)?)|(([Tt]he[\\s ]+)?[Cc]hicago[\\s ]+[Ss]tock[\\s ]+[Ee]xchange(,?[\\s ]+[Ii]nc[.]?)?)|(([Tt]he[\\s ]+)?[Ii]nvestors[\\s ]+[Ee]xchange(,?[\\s ]+[Ll][Ll][Cc])?)|(([Tt]he[\\s ]+)?[Mm]iami[\\s ]+[Ii]nternational[\\s ]+[Ss]ecurities[\\s ]+[Ee]xchange(,?[\\s ]+[Ll][Ll][Cc])?)|(([Tt]he[\\s ]+)?[Mm]IAX[\\s ]+[Pp]EARL(,?[\\s ]+[Ll][Ll][Cc])?)|(([Tt]he[\\s ]+)?[Nn][Aa][Ss][Dd][Aa][Qq][\\s ]+[Bb][Xx](,?[\\s ]+[Ii]nc[.]?)?)|(([Tt]he[\\s ]+)?[Nn][Aa][Ss][Dd][Aa][Qq][\\s ]+[Gg][Ee][Mm][Xx](,?[\\s ]+[Ll][Ll][Cc])?)|(([Tt]he[\\s ]+)?[Nn][Aa][Ss][Dd][Aa][Qq][\\s ]+[Ii][Ss][Ee](,?[\\s ]+[Ll][Ll][Cc])?)|(([Tt]he[\\s ]+)?[Nn][Aa][Ss][Dd][Aa][Qq][\\s ]+[Mm][Rr][Xx](,?[\\s ]+[Ll][Ll][Cc])?)|([Nn][Aa][Ss][Dd][Aa][Qq][\\s ]+[Pp][Hh][Ll][Xx](,?[\\s ]+[Ll][Ll][Cc])?)|(([Tt]he[\\s ]+)?[Nn][Yy][Ss][Ee]|([Tt]he[\\s ]+)?[Nn]ew[\\s ]+[Yy]ork[\\s ]+[Ss]tock[\\s ]+[Ee]xchange(,?[\\s ]+[Ll][Ll][Cc])?)|(([Tt]he[\\s ]+)?[Nn][Yy][Ss][Ee][\\s ]+[Aa]merican(,?[\\s ]+[Ll][Ll][Cc])?)|(([Tt]he[\\s ]+)?[Nn][Yy][Ss][Ee][\\s ]+[Aa]rca(,?[\\s ]+[Ii]nc[.]?)?)|(([Tt]he[\\s ]+)?[Nn][Yy][Ss][Ee][\\s ]+[Nn]ational(,?[\\s ]+[Ii]nc[.]?)?)|(([Tt]he[\\s ]+)?[Nn][Aa][Ss][Dd][Aa][Qq]([\\s ]+([Ss]tock|[Gg]lobal([\\s ]+[Ss]elect)?)[\\s ]+[Mm]arket(,?[\\s ]+[Ll][Ll][Cc])?)?))"
+        ]
+      },
+      {
+        "name": "ixt-sec:numwordsenType",
+        "baseType": "xs:string",
+        "patterns": [
+          "((((([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)[\\s ]+[Hh]undred([\\s ]+(and[\\s ]+)?(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))?)|(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))[\\s ]+[Qq]uintillion([\\s ]*,)?[\\s ]*)?(((([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)[\\s ]+[Hh]undred([\\s ]+(and[\\s ]+)?(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))?)|(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))[\\s ]+[Qq]uadrillion([\\s ]*,)?[\\s ]*)?(((([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)[\\s ]+[Hh]undred([\\s ]+(and[\\s ]+)?(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))?)|(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))[\\s ]+[Tt]rillion([\\s ]*,)?[\\s ]*)?(((([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)[\\s ]+[Hh]undred([\\s ]+(and[\\s ]+)?(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))?)|(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))[\\s ]+[Bb]illion([\\s ]*,)?[\\s ]*)?(((([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)[\\s ]+[Hh]undred([\\s ]+(and[\\s ]+)?(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))?)|(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))[\\s ]+[Mm]illion([\\s ]*,)?[\\s ]*)?((((([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)[\\s ]+[Hh]undred([\\s ]+(and[\\s ]+)?(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))?)|(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))[\\s ]+[Tt]housand(([\\s ]*,[\\s ]*|[\\s ]+)((([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)[\\s ]+[Hh]undred([\\s ]+(and[\\s ]+)?(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))?)|(and[\\s ]+)?(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?)))?)|(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)[\\s ]+[Hh]undred([\\s ]+(and[\\s ]+)?(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))?)|(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)(([֊־‐‑‒–—―﹘﹣－\\-]|[\\s ]+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))?)|[Zz]ero|[Nn]o(ne)?|[Nn]il"
+        ]
+      },
+      {
+        "name": "ixt-sec:stateprovnameenType",
+        "baseType": "xs:string",
+        "patterns": [
+          "(([Aa]labama)|([Aa]laska)|([Aa]rizona)|([Aa]rkansas)|([Cc]alifornia)|([Cc]olorado)|([Cc]onnecticut)|([Dd]elaware)|([Ff]lorida)|([Gg]eorgia)|([Hh]awaii)|([Ii]daho)|([Ii]llinois)|([Ii]ndiana)|([Ii]owa)|([Kk]ansas)|([Kk]entucky)|([Ll]ouisiana)|([Mm]aine)|([Mm]aryland)|([Mm]assachusetts)|([Mm]ichigan)|([Mm]innesota)|([Mm]ississippi)|([Mm]issouri)|([Mm]ontana)|([Nn]ebraska)|([Nn]evada)|([Nn]ew[\\s ]+[Hh]ampshire)|([Nn]ew[\\s ]+[Jj]ersey)|([Nn]ew[\\s ]+[Mm]exico)|([Nn]ew[\\s ]+[Yy]ork)|([Nn]orth[\\s ]+[Cc]arolina)|([Nn]orth[\\s ]+[Dd]akota)|([Oo]hio)|([Oo]klahoma)|([Oo]regon)|([Pp]ennsylvania)|([Rr]hode[\\s ]+[Ii]sland)|([Ss]outh[\\s ]+[Cc]arolina)|([Ss]outh[\\s ]+[Dd]akota)|([Tt]ennessee)|([Tt]exas)|([Uu]tah)|([Vv]ermont)|([Vv]irginia)|([Ww]ashington)|([Ww]est[\\s ]+[Vv]irginia)|([Ww]isconsin)|([Ww]yoming)|([Dd]istrict[\\s ]+[Oo]f[\\s ]+[Cc]olumbia)|(([Aa]merican[\\s ]+)?[Ss]amoa)|([Gg]uam)|([Nn]orthern[\\s ]+[Mm]ariana[\\s ]+[Ii]slands)|([Pp]uerto[\\s ]+[Rr]ico)|([Uu]nited[\\s ]+[Ss]tates[\\s ]+[Mm]inor[\\s ]+[Oo]utlying[\\s ]+[Ii]slands)|([Vv]irgin[\\s ]+[Ii]slands,[\\s ]+U[.]S[.])|([Aa]lberta)|([Bb]ritish[\\s ]+[Cc]olumbia)|([Mm]anitoba)|([Nn]ew[\\s ]+[Bb]runswick)|([Nn]ewfoundland[\\s ]+[Aa]nd[\\s ]+[Ll]abrador)|([Nn]ova[\\s ]+[Ss]cotia)|([Nn]orthwest[\\s ]+[Tt]erritories)|([Nn]unavut)|([Oo]ntario)|([Pp]rince[\\s ]+[Ee]dward[\\s ]+[Ii]sland)|([Qq]u[eé]bec)|([Ss]askatchewan)|([Yy]ukon))"
+        ]
+      },
+      {
+        "name": "ixt-sec:yesnoballotboxType",
+        "baseType": "xs:string",
+        "patterns": [
+          "([☐-☒])"
+        ]
+      }
+    ],
+    "labels": [
+      {
+        "forObject": "ixt-sec:boolballotbox",
+        "language": "en",
+        "labelType": "xbrl:documentation",
+        "value": "Transforms boolean ballot box values to boolean true/false. A value of '☑' or '☒' is considered true, while '☐' is considered false."
+      },
+      {
+        "forObject": "ixt-sec:countrynameen",
+        "language": "en",
+        "labelType": "xbrl:documentation",
+        "value": "Transforms English country names into ISO 3166 2-character codes. Initial character of each word may be upper or lower case. Transforms English country names (as of the below revision date). Some words optional when in the official name (\"the\" and trailing words not customarily used even though in the ISO name). Some synonyms in the expression (USA, UK or Great Britain, etc)."
+      },
+      {
+        "forObject": "ixt-sec:datequarterend",
+        "language": "en",
+        "labelType": "xbrl:documentation",
+        "value": "Transforms datequarterend. Transforms date in quarter - year expression representing the last day of a calendar quarter (e.g., last day in March, June, September and December)."
+      },
+      {
+        "forObject": "ixt-sec:durday",
+        "language": "en",
+        "labelType": "xbrl:documentation",
+        "value": "Transforms durday. Transforms duration in days Accepts decimal number for days."
+      },
+      {
+        "forObject": "ixt-sec:durhour",
+        "language": "en",
+        "labelType": "xbrl:documentation",
+        "value": "Transforms durday. Transforms duration in hours Accepts decimal number for hours."
+      },
+      {
+        "forObject": "ixt-sec:durmonth",
+        "language": "en",
+        "labelType": "xbrl:documentation",
+        "value": "Transforms durmonth. Transforms duration in months Accepts decimal number for months."
+      },
+      {
+        "forObject": "ixt-sec:durweek",
+        "language": "en",
+        "labelType": "xbrl:documentation",
+        "value": "Transforms durweek. Transforms duration in weeks Accepts decimal number for weeks."
+      },
+      {
+        "forObject": "ixt-sec:durwordsen",
+        "language": "en",
+        "labelType": "xbrl:documentation",
+        "value": "Transforms durations with number words or numbers for years, months, and/or days. Transforms number word durations (English). Duration year/month/day parts are expressed only in short-form notation words or numerals. Years, months and days up to 1999 (nineteen-hundred ninety-nine). Examples: three years four months no days, or three years, 11 months and four days Plural is optional. Comma and \"and\" are optional. Dashes allowed."
+      },
+      {
+        "forObject": "ixt-sec:duryear",
+        "language": "en",
+        "labelType": "xbrl:documentation",
+        "value": "Transforms duryear. Transforms duration in years Accepts decimal number for years."
+      },
+      {
+        "forObject": "ixt-sec:edgarprovcountryen",
+        "language": "en",
+        "labelType": "xbrl:documentation",
+        "value": "Transforms English province or country names into 2-character codes specified in Appendix A of EDGARLink Online XML Technical Specification (https://www.sec.gov/info/edgar/specifications/edgarlinkonlinexml.htm). Initial character of each word may be upper or lower case. Transforms English province or country names (as of Version 27, April 2019 of EDGARLink Online XML Technical Specification). Some words optional when in the official name (\"the\" and trailing words not customarily used even though in the ISO name). Some synonyms in the expression (USA, UK or Great Britain, etc)."
+      },
+      {
+        "forObject": "ixt-sec:entityfilercategoryen",
+        "language": "en",
+        "labelType": "xbrl:documentation",
+        "value": "Transforms EDGAR Entity Filer Category into their enumeration codes. Initial character of each word may be upper or lower case. Transforms EDGAR Entity Filer Category into their enumeration codes (per SEC as of the below revision date)."
+      },
+      {
+        "forObject": "ixt-sec:exchnameen",
+        "language": "en",
+        "labelType": "xbrl:documentation",
+        "value": "Transforms exchange full English names to their corresponding short names. The conversion matrix is as follows : The New York Stock Exchange -> NYSE; New York Stock Exchange LLC -> NYSE; NASDAQ Global Select Market -> NASDAQ; The Nasdaq Stock Market LLC -> NASDAQ; BOX Exchange LLC -> BOX;Nasdaq BX, Inc. -> BX; Cboe C2 Exchange, Inc. -> C2; Cboe Exchange, Inc. -> CBOE; Chicago Stock Exchange, Inc. -> CHX; Cboe BYX Exchange, Inc. -> CboeBYX; Cboe BZX Exchange, Inc. -> CboeBZX; Cboe EDGA Exchange, Inc. -> CboeEDGA; Cboe EDGX Exchange, Inc. -> CboeEDGX; Nasdaq GEMX, LLC -> GEMX"
+      },
+      {
+        "forObject": "ixt-sec:numwordsen",
+        "language": "en",
+        "labelType": "xbrl:documentation",
+        "value": "Transforms number words into integer numbers. Transforms number words (English). Numbers are expressed only in short-form notation (where billion is 1000 x million). Fractions are not supported (neither supporting checkbook style writing such as one hundred one and 01/100, nor word fractions, such as par value two-thirds) The word and is allowed before sub-hundred words, e.g., three thousand and thirty-five. Commas are allowed where 1000 group separators are valid."
+      },
+      {
+        "forObject": "ixt-sec:stateprovnameen",
+        "language": "en",
+        "labelType": "xbrl:documentation",
+        "value": "Transforms English state and province names into ISO 3166 2-character codes. Initial character of each word may be upper or lower case. Transforms English state and province names (as of the below revision date). Some words optional when in the official name (\"the\" and trailing words not customarily used even though in the ISO name)."
+      },
+      {
+        "forObject": "ixt-sec:yesnoballotbox",
+        "language": "en",
+        "labelType": "xbrl:documentation",
+        "value": "Transforms yesnoballotbox characters (empty, checked and x'ed) into Yes/No. Transforms the Unicode empty ballot box character \"☐\" into \"No\", and both checked \"☑\" and x'ed \"☒\" ballot box characters into \"Yes\". (http://www.codetable.net/decimal/9744) ."
+      }
+    ],
+    "transforms": [
+      {
+        "name": "ixt-sec:boolballotbox",
+        "inputDataType": "ixt-sec:boolballotboxType",
+        "outputDataType": "xs:boolean"
+      },
+      {
+        "name": "ixt-sec:countrynameen",
+        "inputDataType": "ixt-sec:countrynameenType",
+        "outputDataType": "xs:token"
+      },
+      {
+        "name": "ixt-sec:datequarterend",
+        "inputDataType": "ixt-sec:datequarterendType",
+        "outputDataType": "xs:date"
+      },
+      {
+        "name": "ixt-sec:durday",
+        "inputDataType": "ixt-sec:durdayType",
+        "outputDataType": "xs:duration"
+      },
+      {
+        "name": "ixt-sec:durhour",
+        "inputDataType": "ixt-sec:durhourType",
+        "outputDataType": "xs:duration"
+      },
+      {
+        "name": "ixt-sec:durmonth",
+        "inputDataType": "ixt-sec:durmonthType",
+        "outputDataType": "xs:duration"
+      },
+      {
+        "name": "ixt-sec:durweek",
+        "inputDataType": "ixt-sec:durweekType",
+        "outputDataType": "xs:duration"
+      },
+      {
+        "name": "ixt-sec:durwordsen",
+        "inputDataType": "ixt-sec:durwordsenType",
+        "outputDataType": "xs:duration"
+      },
+      {
+        "name": "ixt-sec:duryear",
+        "inputDataType": "ixt-sec:duryearType",
+        "outputDataType": "xs:duration"
+      },
+      {
+        "name": "ixt-sec:edgarprovcountryen",
+        "inputDataType": "ixt-sec:edgarprovcountryenType",
+        "outputDataType": "xs:token"
+      },
+      {
+        "name": "ixt-sec:entityfilercategoryen",
+        "inputDataType": "ixt-sec:entityfilercategoryenType",
+        "outputDataType": "xs:token"
+      },
+      {
+        "name": "ixt-sec:exchnameen",
+        "inputDataType": "xs:string",
+        "outputDataType": "dei:edgarExchangeCodeItemType"
+      },
+      {
+        "name": "ixt-sec:numwordsen",
+        "inputDataType": "ixt-sec:numwordsenType",
+        "outputDataType": "xs:integer"
+      },
+      {
+        "name": "ixt-sec:stateprovnameen",
+        "inputDataType": "ixt-sec:stateprovnameenType",
+        "outputDataType": "xs:token"
+      },
+      {
+        "name": "ixt-sec:yesnoballotbox",
+        "inputDataType": "ixt-sec:yesnoballotboxType",
+        "outputDataType": "xs:string"
+      }
+    ]
+  }
 }

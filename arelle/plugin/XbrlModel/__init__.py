@@ -193,6 +193,57 @@ def jsonGet(tbl, key, default=None):
         return tbl.get(key, default)
     return default
 
+def schemaErrorDuplicates(moduleFileObj, segments):
+    """ Names (or index pairs) of the items that repeat in the array at `segments`, or [].
+
+        Items are compared by their canonical JSON form, which is what uniqueItems means. An item
+        is identified by its `name` where it has one -- a named object -- and otherwise by the
+        indices at which it repeats, since an unnamed object has nothing else to call it.
+    """
+    try:
+        obj = moduleFileObj
+        for seg in segments:
+            obj = obj[seg]
+        if not isinstance(obj, list):
+            return []
+        firstIndex = {}
+        duplicates = []
+        for i, item in enumerate(obj):
+            key = json.dumps(item, sort_keys=True)
+            if key in firstIndex:
+                name = item.get("name") if isinstance(item, dict) else None
+                duplicates.append(str(name) if name else "[{}]==[{}]".format(firstIndex[key], i))
+            else:
+                firstIndex[key] = i
+        if len(duplicates) > 20:
+            return duplicates[:20] + ["\u2026 and {} more".format(len(duplicates) - 20)]
+        return duplicates
+    except (KeyError, IndexError, TypeError, ValueError):
+        return []
+
+
+def schemaErrorMessage(errCode, msg, segments, moduleFileObj, limit=400):
+    """ Reduce a JSON-schema validator message to something a log can carry.
+
+        A validator reports a violation by quoting the offending INSTANCE, so a uniqueItems
+        violation on a large array quotes the WHOLE array -- for an inferred SEC taxonomy that is
+        every domain network in the model, tens of thousands of characters in one log message,
+        which buries every other message around it.
+
+        For a duplicate-items violation the quoted array is also the least useful thing to say:
+        the reader needs to know WHICH items collide, which the validator does not report but
+        which is cheap to compute from the instance. Anything else is truncated, keeping the head
+        of the message, where the validator puts the reason.
+    """
+    if errCode == "oimte:duplicateItemsInSet":
+        duplicates = schemaErrorDuplicates(moduleFileObj, segments)
+        if duplicates:
+            return _("duplicated in set: {}").format(", ".join(duplicates))
+    if len(msg) <= limit:
+        return msg
+    return "{}\u2026 [{} more characters elided]".format(msg[:limit], len(msg) - limit)
+
+
 def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kwargs):
     """Load an OIM Taxonomy module from JSON file or dict object, return the modelDocument or raise an exception if invalid.
         If modelXbrl is not None, then load as a XbrlModule into the modelXbrl, otherwise create and return a standalone
@@ -436,8 +487,10 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             try:
                 for err in jsonschemaValidator.iter_errors(moduleFileObj):
                     path = []
+                    segments = []
                     p_last = p_beforeLast = None
                     for p in err.instance_path:
+                        segments.append(p)
                         path.append(f"[{p}]" if isinstance(p,int) else f"/{p}")
                         p_beforeLast = p_last
                         p_last = p
@@ -460,7 +513,9 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                         errCode = "oime:invalidJSONStructure",
                     error(errCode,
                           _("Error: %(error)s, jsonObj: %(path)s"),
-                          sourceFileLine=href, error=msg, path="".join(path))
+                          sourceFileLine=href,
+                          error=schemaErrorMessage(errCode, msg, segments, moduleFileObj),
+                          path="".join(path))
             except jsonschema_rs.ReferencingError as ex:
                 error("jsonschema:schemaError",
                       _("Error in json schema processing: %(error)s"),
@@ -469,8 +524,10 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             try:
                 for err in jsonschemaValidator.iter_errors(moduleFileObj) or ():
                     path = []
+                    segments = []
                     p_last = p_beforeLast = None
                     for p in err.absolute_path:
+                        segments.append(p)
                         path.append(f"[{p}]" if isinstance(p,int) else f"/{p}")
                         p_beforeLast = p_last
                         p_last = p
@@ -493,7 +550,9 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                         errCode = "oime:invalidJSONStructure",
                     error(errCode,
                           _("Error: %(error)s, jsonObj: %(path)s"),
-                          sourceFileLine=href, error=msg, path="".join(path))
+                          sourceFileLine=href,
+                          error=schemaErrorMessage(errCode, msg, segments, moduleFileObj),
+                          path="".join(path))
             except (jsonschema.exceptions.SchemaError, jsonschema.exceptions._RefResolutionError, jsonschema.exceptions.UndefinedTypeCheck) as ex:
                 msg = str(ex)
                 if "PointerToNowhere" in msg:
@@ -508,8 +567,10 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                 # only provides first schema error in source object
                 # see: https://github.com/horejsek/python-fastjsonschema/issues/36
                 path = []
+                segments = []
                 p_last = p_beforeLast = None
                 for p in ex.path:
+                    segments.append(p)
                     path.append(f"[{p}]" if isinstance(p,int) else f"/{p}")
                     p_beforeLast = p_last
                     p_last = p
@@ -532,7 +593,9 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
                     errCode = "oimte:invalidJSONStructure",
                 error(errCode,
                       _("Error: %(error)s, jsonObj: %(path)s"),
-                      sourceFileLine=href, error=msg, path="".join(path))
+                      sourceFileLine=href,
+                          error=schemaErrorMessage(errCode, msg, segments, moduleFileObj),
+                          path="".join(path))
         modelXbrl.profileActivity(f"Json schema validation {moduleFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
         cntlr.showStatus(_("Loading model objects from: {0}").format(moduleFileBasename))
         documentInfo = jsonGet(moduleFileObj, "documentInfo", {})
@@ -1008,6 +1071,22 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             for impTxJsonObj in importedTaxonomiesJson:
                 impTxModelName = impTxJsonObj.get("xbrlModelName")
                 impModuleName = qname(impTxModelName, prefixNamespaces)
+                # A module naming ITSELF in importedTaxonomies is not a cycle to skip. Either it
+                # imports itself (meaningless), or -- the case seen in practice -- two distinct
+                # modules share one name, e.g. a facts module named after a report document whose
+                # extension schema has the same stem (SEC names msft-20250630.htm and
+                # msft-20250630.xsd alike). The cycle guard below would silently drop the edge and
+                # with it the whole import closure, leaving a model with no concepts, no cubes and
+                # not even the built-in base -- a wrong answer indistinguishable from a report that
+                # really imports nothing. Report it instead of skipping it.
+                if impModuleName is not None and impModuleName == xbrlModelName:
+                    xbrlCompMdl.error("arelle:selfImportedTaxonomy",
+                                      _("XBRL module %(qname)s imports a taxonomy of its own name. "
+                                        "The import cannot be resolved: either the module imports "
+                                        "itself, or two distinct modules share the name %(qname)s "
+                                        "and must be renamed."),
+                                      xbrlObject=impTxJsonObj, qname=impModuleName)
+                    continue
                 if impModuleName is not None and impModuleName in xbrlCompMdl._loadingInProgress:
                     continue # cyclic back-edge to an ancestor still loading; skip re-descent
                 if impModuleName:
@@ -1235,8 +1314,15 @@ def xbrlModelValidator(val, parameters):
         # Cube completeness checks (facts are owned by XbrlModule; XbrlReport has been removed)
         validateCompleteReportCubes(val.modelXbrl)
     except Exception as ex:
+        # An exception here abandons validation of the WHOLE model at the point it was raised:
+        # every later check -- cube completeness, calculations, whatever this pass had not yet
+        # reached -- simply does not run. The caller then reports "validated in N secs" as
+        # usual, so an abandoned validation is indistinguishable from a clean one unless this
+        # message says so. The flag lets a consumer (and the artifact this model is saved to)
+        # tell "validated" from "validation did not finish".
+        val.modelXbrl._xbrlModelValidationAbandoned = True
         val.modelXbrl.error("arelleOIMloader:error",
-                "Error while validating, error %(errorType)s %(error)s\n traceback %(traceback)s",
+                "Validation ABANDONED (no further checks ran for this model), error %(errorType)s %(error)s\n traceback %(traceback)s",
                 modelObject=val.modelXbrl, errorType=ex.__class__.__name__, error=ex,
                 traceback=traceback.format_tb(sys.exc_info()[2]))
 
@@ -1370,6 +1456,16 @@ def optionsExtender(parser, *args, **kwargs):
                              "roundToNearest | truncation. Overrides the xbrl:roundingMode "
                              "property wherever it is declared; a warning reports that the "
                              "declared mode was overridden."))
+    # Stage a self-contained, servable viewer directory: the compiled model, the source
+    # document(s) it locates facts in, and the viewer bundle. The command-line counterpart of the
+    # GUI's viewer launch, for producing something to hand to a web server rather than to open
+    # in a browser here.
+    parser.add_option("--saveXbrlModelViewer",
+                      action="store",
+                      dest="saveXbrlModelViewer",
+                      help=_("Stage a servable iXBRL Viewer directory (model + source document "
+                             "+ viewer bundle) at this path. Needs the iXBRLViewerPlugin "
+                             "plugin active for its built bundle."))
     from .PdfToolsCli import addPdfToolOptions
     addPdfToolOptions(parser)
 
@@ -1388,6 +1484,40 @@ def pdfToolsMenuExtender(cntlr, menu, *args, **kwargs):
     from .PdfToolsCli import addPdfToolsMenu
     addPdfToolsMenu(cntlr, menu)
     addValidateOnLoadMenu(cntlr, menu)
+    addViewerMenu(cntlr, menu)
+
+def addViewerMenu(cntlr, menu):
+    """Add the XBRL Model viewer entries to the Tools menu: a command to open the loaded model in
+       the ixbrl-viewer, and a checkbutton for whether that happens automatically on load.
+
+       The viewer is the last step of the desktop workflow -- load, validate, views, view the
+       report against its source document -- so on-load is the default. It is a checkbutton
+       rather than a fixed behaviour because a model being examined in the Tk views (a taxonomy,
+       or a report under repair) does not need a browser window each time it is loaded."""
+    try:
+        from tkinter import BooleanVar
+    except ImportError:
+        return
+    from .ViewerLaunch import CONFIG_LAUNCH_ON_LOAD
+    menu.add_command(label=_("View XBRL model in iXBRL Viewer"), underline=0,
+                     command=lambda: viewerLaunchCommand(cntlr))
+    var = BooleanVar(value=cntlr.config.get(CONFIG_LAUNCH_ON_LOAD, True))
+    def _toggle():
+        cntlr.config[CONFIG_LAUNCH_ON_LOAD] = var.get()
+        cntlr.saveConfig()
+    cntlr._xbrlModelViewerOnLoadVar = var # keep a reference so tkinter does not collect it
+    menu.add_checkbutton(label=_("Open iXBRL Viewer on load"), variable=var, underline=0,
+                         command=_toggle)
+
+def viewerLaunchCommand(cntlr):
+    """Tools menu command: open the currently loaded compiled model in the ixbrl-viewer."""
+    modelXbrl = getattr(cntlr.modelManager, "modelXbrl", None)
+    if not isinstance(modelXbrl, XbrlCompiledModel):
+        cntlr.addToLog(_("No XBRL model is loaded."), messageCode="arelle:xbrlModelViewerNoModel",
+                       level="ERROR")
+        return
+    from .ViewerLaunch import launchViewer
+    launchViewer(cntlr, modelXbrl)
 
 def addValidateOnLoadMenu(cntlr, menu):
     """Add a "Validate XBRL model on load" checkbutton to the Tools menu. Checked (the normal
@@ -1460,19 +1590,10 @@ def xbrlModelLoaded(cntlr, options, xbrlCompMdl, *args, **kwargs):
     # introduced in subsequent refactor steps.
 
 
-    # save the whole loaded model as a single OIM compiled model if requested on the command line
-    # (GUI uses the CntlrWinMain.Xbrl.Save hook instead). oimSaveMode selects full | prune | report;
-    # a facts-only module that imports its taxonomy is thereby re-emitted as a complete, self-contained
-    # compiled model (prune drops taxonomy objects not needed to interpret the reported facts).
-    saveOIMmodel = getattr(options, "saveOIMmodel", None) if options is not None else None
-    if saveOIMmodel:
-        saveMode = (getattr(options, "oimSaveMode", None) or "full").lower()
-        if saveMode not in ("full", "prune", "report"):
-            saveMode = "full"
-        saveFiles(cntlr, xbrlCompMdl, saveOIMmodel, saveMode=saveMode)
-        cntlr.addToLog(_("Saved OIM compiled model (%(mode)s) to %(file)s"),
-                       messageArgs={"mode": saveMode, "file": saveOIMmodel},
-                       messageCode="info")
+    # NOTE --saveOIMmodel is NOT emitted here. This hook (CntlrCmdLine.Xbrl.Loaded) runs before
+    # validation, and validation is what materializes a legacy report entry point's facts and
+    # produces the calculation verdicts the artifact is meant to carry. The save happens in
+    # xbrlModelRun (CntlrCmdLine.Xbrl.Run), which runs after validation.
 
     # save schema files if specified by command line option or formula parameter
     saveXmlSchemaFiles = None
@@ -1485,6 +1606,54 @@ def xbrlModelLoaded(cntlr, options, xbrlCompMdl, *args, **kwargs):
             saveXmlSchemaFiles = param[1]
     if saveXmlSchemaFiles:
         saveXmlSchema(cntlr, xbrlCompMdl, saveXmlSchemaFiles)
+
+
+def xbrlModelRun(cntlr, options, xbrlCompMdl, *args, **kwargs):
+    """ CntlrCmdLine.Xbrl.Run:
+        Emit the command-line artifacts that must reflect a validated model. This hook runs AFTER
+        validation, unlike CntlrCmdLine.Xbrl.Loaded, which runs immediately after loading.
+
+        The distinction is not cosmetic. A legacy report opened as an entry point materializes its
+        DTS and facts at validate time (FactPipeline.materializeFactSourceFacts), and calculation
+        and cube verdicts exist only once validation has run. Saving from the Loaded hook therefore
+        wrote out an empty or verdict-less model while reporting success -- the artifact looked
+        like a report that contained nothing rather than one that had not been processed yet.
+
+        --saveOIMmodel and --saveXbrlModelViewer imply validation for that reason: an artifact
+        whose stated purpose is to carry value sources and validation verdicts cannot be produced
+        from an unvalidated model. This matches the GUI, which validates on load by default
+        (Tools > Validate XBRL model on load).
+    """
+    if not isinstance(xbrlCompMdl, XbrlCompiledModel) or options is None:
+        return
+    saveOIMmodel = getattr(options, "saveOIMmodel", None)
+    saveViewer = getattr(options, "saveXbrlModelViewer", None)
+    if not saveOIMmodel and not saveViewer:
+        return
+    if not getattr(xbrlCompMdl, "_xbrlModelValidatedOnLoad", False) and not getattr(options, "validate", False):
+        cntlr.addToLog(_("Validating the model before saving it: a legacy report entry point's "
+                         "facts materialize at validate time, and the saved model carries the "
+                         "validation verdicts."),
+                       messageCode="info", file=saveOIMmodel or saveViewer)
+        xbrlCompMdl._xbrlModelValidatedOnLoad = True
+        from arelle import Validate
+        Validate.validate(xbrlCompMdl)
+    saveMode = (getattr(options, "oimSaveMode", None) or "full").lower()
+    if saveMode not in ("full", "prune", "report"):
+        saveMode = "full"
+    if saveOIMmodel:
+        saveFiles(cntlr, xbrlCompMdl, saveOIMmodel, saveMode=saveMode)
+        cntlr.addToLog(_("Saved OIM compiled model (%(mode)s) to %(file)s"),
+                       messageArgs={"mode": saveMode, "file": saveOIMmodel},
+                       messageCode="info")
+    if saveViewer:
+        from .ViewerLaunch import stageForViewer
+        os.makedirs(saveViewer, exist_ok=True)
+        viewerPath = stageForViewer(cntlr, xbrlCompMdl, saveViewer, saveMode=saveMode)
+        if viewerPath:
+            cntlr.addToLog(_("Staged iXBRL Viewer in %(dir)s; serve it and open %(path)s"),
+                           messageArgs={"dir": saveViewer, "path": viewerPath},
+                           messageCode="info")
 
 
 def xbrlModelViews(cntlr, xbrlCompMdl):
@@ -1559,6 +1728,20 @@ def xbrlModelWinLoaded(cntlr, modelXbrl, attach, *args, **kwargs):
     """
     if isinstance(modelXbrl, XbrlCompiledModel):
         viewXbrlObjectJson(modelXbrl, cntlr.tabWinTopLeft)
+        # Last step of the desktop workflow: show the report in the ixbrl-viewer, against the
+        # document its facts are located in. Only for a model that HAS such a document -- a
+        # taxonomy, or a report whose facts carry no value sources, has nothing to render, and
+        # an empty viewer window would not say why. Runs here rather than in the Views hook so
+        # the Tk views are already up when the browser opens.
+        from .ViewerLaunch import CONFIG_LAUNCH_ON_LOAD, hasViewableSource, launchViewer
+        if (cntlr.config.get(CONFIG_LAUNCH_ON_LOAD, True) if getattr(cntlr, "config", None) else True):
+            try:
+                if hasViewableSource(modelXbrl):
+                    launchViewer(cntlr, modelXbrl)
+            except Exception as ex:
+                cntlr.addToLog(_("Could not open the XBRL Model viewer: %(error)s"),
+                               messageArgs={"error": ex},
+                               messageCode="arelle:xbrlModelViewerError", level="ERROR")
 
 __pluginInfo__ = {
     'name': 'XBRL Model',
@@ -1577,6 +1760,7 @@ __pluginInfo__ = {
     'CntlrWinMain.Menu.Tools': pdfToolsMenuExtender,
     'CntlrCmdLine.Filing.Start': filingStart,
     'CntlrCmdLine.Xbrl.Loaded': xbrlModelLoaded,
+    'CntlrCmdLine.Xbrl.Run': xbrlModelRun,
     'CntlrWinMain.Xbrl.Views': xbrlModelViews,
     'CntlrWinMain.Xbrl.Loaded': xbrlModelWinLoaded,
     'CntlrWinMain.Xbrl.Save': xbrlModelSave,

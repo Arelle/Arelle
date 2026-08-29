@@ -26,12 +26,14 @@ The output is fed to ``loadXbrlModule(cntlr, error, warning, None, moduleDict, u
 """
 from __future__ import annotations
 
+import io, os
 from collections import OrderedDict
 from typing import TYPE_CHECKING, Optional
 
 from arelle import XbrlConst
 
 from .GroupTreeInference import inferGroupTree, roleLabel
+from .XbrlConst import builtInPrefixTaxonomies
 
 if TYPE_CHECKING:
     from arelle.ModelXbrl import ModelXbrl
@@ -223,6 +225,129 @@ class _Emit:
         return set(self.concepts) | set(self.dimensions) | set(self.members) | set(self.domainClasses)
 
 
+_builtInRelTypeCache = None
+
+
+def _builtInRelationshipTypesByUri():
+    """{arcrole URI: relationshipType QName string} for every type the built-in models declare.
+
+    Read from the shipped resources rather than restated here, so a relationshipType added to a
+    spec taxonomy is picked up without touching this module. core.json already declares the LRR
+    deprecation arcroles as xbrl:dep-*, which is why a translated taxonomy using them refers to
+    the canonical objects instead of minting its own.
+    """
+    global _builtInRelTypeCache
+    if _builtInRelTypeCache is None:
+        import json as _json
+        _builtInRelTypeCache = {}
+        resourcesDir = os.path.join(os.path.dirname(__file__), "resources")
+        for name, resource in builtInPrefixTaxonomies.items():
+            if not resource.endswith(".json"):
+                continue  # a namespace URI, not a shipped resource
+            try:
+                with io.open(os.path.join(resourcesDir, resource), "rt", encoding="utf-8") as fh:
+                    doc = _json.load(fh)
+            except (IOError, OSError, ValueError):
+                continue
+            for relType in (doc.get("xbrlModel") or {}).get("relationshipTypes") or ():
+                uri, typeName = relType.get("uri"), relType.get("name")
+                if uri and typeName:
+                    _builtInRelTypeCache.setdefault(uri, typeName)
+    return _builtInRelTypeCache
+
+
+#: Arcroles the translation handles elsewhere (presentation, calculation, and the XDT arcroles
+#: consumed by cube inference), so the generic custom-arcrole pass must not re-emit them.
+_TRANSLATED_ARCROLES = frozenset((
+    XbrlConst.parentChild, XbrlConst.domainMember, XbrlConst.dimensionDomain,
+    XbrlConst.hypercubeDimension, XbrlConst.all, XbrlConst.notAll,
+    XbrlConst.dimensionDefault,
+)) | frozenset(XbrlConst.summationItems)
+
+
+def _arcroleRelationshipTypeName(arcroleUri, pfx, knownByUri):
+    """The relationshipType QName string for an arcrole URI.
+
+    An arcrole already declared by a built-in model keeps that canonical name -- core.json
+    declares the LRR deprecation arcroles as xbrl:dep-*, for instance -- so a translated
+    taxonomy refers to the same object every other model does. Anything else is named in a
+    namespace derived from the arcrole URI itself (everything before its last "/"), which is
+    stable for a given arcrole but carries a synthetic prefix, since nothing registers one.
+
+    Registering more arcroles in a spec taxonomy is what turns a synthetic name into a
+    canonical one; the ESMA wider-narrower anchoring arcrole is the obvious candidate.
+    """
+    known = knownByUri.get(arcroleUri)
+    if known:
+        return known
+    base, _, local = arcroleUri.rpartition("/")
+    if not local:
+        return None
+    return "{}:{}".format(pfx.prefixFor(base or arcroleUri), _safeLocal(local))
+
+
+def _customArcroleNetworks(modelXbrl, pfx, emit, relationshipTypes, networks, labels):
+    """Translate relationships whose arcrole nothing else handles into networks, declaring a
+    relationshipType object for each arcrole.
+
+    Without this the conversion is lossy in a way nothing reports: an ESEF filing's anchoring
+    (the ESMA wider-narrower arcrole, which the RTS requires for every extension concept) has
+    no presentation or calculation meaning, so every anchoring relationship was dropped and the
+    compiled model simply did not say the report was anchored. Measured on L'Oreal's 2025 ESEF
+    package: 23 anchoring relationships, none of them surviving the translation.
+
+    The arcrole's own declaration (an arcroleType, wherever in the DTS it was discovered --
+    for wider-narrower that is the XBRL.org link role registry, fetched over the web) supplies
+    the relationship type's documentation.
+    """
+    knownByUri = dict(_builtInRelationshipTypesByUri())
+    for arcroleUri, arcroleTypes in (getattr(modelXbrl, "arcroleTypes", None) or {}).items():
+        if arcroleUri in _TRANSLATED_ARCROLES or not arcroleUri.startswith("http"):
+            continue
+        relSet = modelXbrl.relationshipSet(arcroleUri)
+        if not relSet.modelRelationships:
+            continue  # declared (an arcroleRef) but never used -- nothing to carry
+        typeName = _arcroleRelationshipTypeName(arcroleUri, pfx, knownByUri)
+        if typeName is None:
+            continue
+        if typeName not in knownByUri.values():
+            rtDict = OrderedDict((("name", typeName), ("uri", arcroleUri)))
+            cycles = next((c for c in (getattr(at, "cyclesAllowed", None) for at in arcroleTypes)
+                           if c), None)
+            if cycles:
+                rtDict["cycles"] = cycles
+            relationshipTypes.append(rtDict)
+            # The arcrole's <definition> is prose about the relationship, and a relationshipType
+            # object has no documentation property -- it goes on a documentation label, as every
+            # other translated object's human-readable text does.
+            definition = next((d for d in (getattr(at, "definition", None) for at in arcroleTypes)
+                               if d), None)
+            if definition:
+                labels.append({"forObject": typeName, "language": "en", "value": definition,
+                               "labelType": "xbrl:documentation"})
+            knownByUri[arcroleUri] = typeName
+        emitted = emit.emitted()
+        for roleUri in sorted(relSet.linkRoleUris):
+            rels, srcs, tgts = [], set(), set()
+            for r in modelXbrl.relationshipSet(arcroleUri, roleUri).modelRelationships:
+                if r.fromModelObject is None or r.toModelObject is None:
+                    continue
+                src, tgt = pfx.pn(r.fromModelObject.qname), pfx.pn(r.toModelObject.qname)
+                if src in emitted and tgt in emitted:
+                    rels.append({"source": src, "target": tgt, "order": r.orderDecimal})
+                    srcs.add(src); tgts.add(tgt)
+            if rels:
+                # roots (sources that are never targets) are declared from the virtual
+                # xbrl:rootSource origin, as for the presentation networks
+                rels = [{"source": "xbrl:rootSource", "target": n}
+                        for n in sorted(srcs - tgts)] + rels
+                netName = "{}:group_{}_{}Net".format(
+                    pfx.prefixFor(_documentNs(modelXbrl)), _safeLocal(roleUri),
+                    _safeLocal(arcroleUri.rpartition("/")[2]))
+                networks.append({"name": netName, "relationshipTypeName": typeName,
+                                 "relationships": rels})
+
+
 def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
                               inlineBase: bool = True, calcError=None) -> OrderedDict:
     """Transform a loaded legacy DTS ``modelXbrl`` into an OIM Taxonomy module dict.
@@ -244,6 +369,7 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
     groupContents: list[dict] = []
     roleGroups: list[tuple[str, str]] = []  # (roleUri, groupName) for group tree inference
     networks: list[dict] = []
+    relationshipTypes: list[dict] = []
     labels: list[dict] = []
     emit = _Emit(concepts, dimensions, members, domainClasses, dataTypes)
 
@@ -402,6 +528,9 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
     oim = OrderedDict()
     oim["documentInfo"] = {"documentType": _MODULE_DOCTYPE,
                            "namespaces": pfx.namespaces}
+    # ---- 2d. custom arcroles -> relationshipType objects + their networks ----
+    _customArcroleNetworks(modelXbrl, pfx, emit, relationshipTypes, networks, labels)
+
     m = oim["xbrlModel"] = OrderedDict()
     m["name"] = modelName
     if concepts:      m["concepts"] = list(concepts.values())
@@ -415,6 +544,7 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
     if groupContents: m["groupContents"] = groupContents
     if groupTree:     m["groupTree"] = groupTree
     if networks:      m["networks"] = networks
+    if relationshipTypes: m["relationshipTypes"] = relationshipTypes
     if labels:        m["labels"] = labels
     if inlineBase:
         _inlineBaseSpecObjects(oim)
@@ -810,9 +940,29 @@ def _documentNs(modelXbrl) -> str:
     return getattr(md, "targetNamespace", None) or "http://example.com/legacy"
 
 
+#: Longest synthesised local name before it is abbreviated. Names derive from extended-link role
+#: URIs, which SEC filers make long and highly similar.
+_MAX_SYNTHESISED_LOCAL = 60
+
+
 def _safeLocal(uri: str) -> str:
-    import re
-    return re.sub(r"\W+", "_", uri.rpartition("/")[2] or uri)[:60]
+    """An NCName-safe local name for a synthesised object, derived from an extended-link role URI.
+
+    Truncation alone is not injective, and SEC role names differ late: "...ByComponentDetail" and
+    "...ByComponentParentheticalDetail" share their first 60 characters, so both collapsed onto one
+    name and the loader then emitted two groups, two cubes, two domain networks and two labels all
+    called the same thing -- reported as oimte:duplicateItemsInSet and oimte:duplicateLabelObject,
+    with the two distinct presentation groups silently merged in the views.
+
+    A name short enough to keep is returned unchanged, so nothing that already fitted moves. One
+    that must be abbreviated carries a digest of the full name, which restores uniqueness.
+    """
+    import re, hashlib
+    local = re.sub(r"\W+", "_", uri.rpartition("/")[2] or uri)
+    if len(local) <= _MAX_SYNTHESISED_LOCAL:
+        return local
+    digest = hashlib.sha1(local.encode("utf-8")).hexdigest()[:6]
+    return "{}_{}".format(local[:_MAX_SYNTHESISED_LOCAL - len(digest) - 1], digest)
 
 
 def _roleDefinition(modelXbrl, roleUri: str) -> Optional[str]:

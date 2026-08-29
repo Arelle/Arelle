@@ -128,7 +128,7 @@ def _factValueInterval(bucket, truncate):
     """Interval for one reported data point, over its duplicate fact values.
 
     Implements sections 7.1, 7.4 and 7.5. Returns (status, interval) where status is None
-    when the interval is usable, and otherwise "nil", "excessDigits" or
+    when the interval is usable, and otherwise "nil", "nonNumeric", "excessDigits" or
     "inconsistentDuplicates". The interval is the intersection over consistent duplicates.
     """
     values = [(fv, getattr(fv, "value", None), getattr(fv, "decimals", None)) for _f, fv in bucket]
@@ -141,14 +141,24 @@ def _factValueInterval(bucket, truncate):
     byDecimals = {}
     for _fv, value, decimals in values:
         dec = "INF" if decimals is None else decimals
-        if insignificantDigits(value, decimals=dec):
-            return "excessDigits", None
+        # A fact whose value is not a number can reach a numeric binding -- an inline fact
+        # whose transformation failed keeps its raw text, for instance -- and rangeValue then
+        # yields NaN, whose ordered comparison raises rather than returning a usable interval.
+        # The defect is reported where the value was produced; here it makes the binding
+        # uncheckable, which the caller must say rather than silently pass over.
+        try:
+            if insignificantDigits(value, decimals=dec):
+                return "excessDigits", None
+            _lo, _hi, _loIncl, _hiIncl = rangeValue(value, dec, truncate=truncate)
+        except (InvalidOperation, ValueError, TypeError, ArithmeticError):
+            return "nonNumeric", None
+        if not (_lo.is_finite() and _hi.is_finite()):
+            return "nonNumeric", None
         if dec in byDecimals:
             if byDecimals[dec] != value:
                 return "inconsistentDuplicates", None
             continue
         byDecimals[dec] = value
-        _lo, _hi, _loIncl, _hiIncl = rangeValue(value, dec, truncate=truncate)
         if lo is None or _lo >= lo:
             lo, loIncl = _lo, (_loIncl if lo is None or _lo > lo else loIncl or _loIncl)
         if hi is None or _hi <= hi:
@@ -248,6 +258,16 @@ def _checkBinding(compMdl, cubeObj, ntwkObj, totalQn, totalBucket, bound, alignK
             emit_error(compMdl, _CALC_ERROR["duplicatesTruncation" if truncate else "duplicatesRounding"],
                        _("Calculation checking stopped for the total %(total)s in cube %(cube)s: a bound data point has inconsistent duplicate facts."),
                        xbrlObject=cubeObj, total=totalQn, cube=cubeObj.name)
+            return
+        if status == "nonNumeric":
+            # Not a calculation inconsistency -- the value is not a number, so the calculation
+            # has no verdict at all. Skipping it silently would leave the calculation looking
+            # checked and consistent, so say which concept made it uncheckable. The invalid
+            # value itself is reported where it was produced (e.g. a failed inline transform).
+            compMdl.warning("arelle:calcNotCheckedNonNumericValue",
+                            _("Calculation checking skipped for the total %(total)s in cube %(cube)s: "
+                              "the bound fact for %(concept)s has a value that is not a number."),
+                            xbrlObject=cubeObj, total=totalQn, cube=cubeObj.name, concept=_conceptQn)
             return
 
     totalStatus, totalInterval = _factValueInterval(totalBucket, truncate)

@@ -8,9 +8,70 @@ JSON / CBOR / Excel. See the module docstring in [`__init__.py`](__init__.py) fo
 loading and the compiled-model save modes (`full` / `prune` / `report`,
 [`SaveModel.py`](SaveModel.py)).
 
-This README documents the **PDF ⟷ fact-locator workflow** — the part that spans
-several modules and whose design rationale is otherwise spread across the code
-and the spec.
+This README documents the two workflows that span several modules and whose
+rationale is otherwise spread across the code and the spec: **filing → compiled
+model → viewer** (quick start below, GUI in §5) and the **PDF ⟷ fact-locator
+workflow** (§1–§4). Where the workflow is still being built, the open questions
+and their measurements are in
+[`HANDOVER-model-workflow.md`](HANDOVER-model-workflow.md).
+
+---
+
+## Quick start — a filing to something you can look at
+
+An EDGAR filing (or an ESEF report package, an inline `.htm`, an XBRL 2.1 `.xml`
+instance, an xBRL-JSON/CSV report, a legacy `.xsd` entry point, or an OIM
+`.json`/`.cbor` model) loads directly into the XBRL Model. One command turns it
+into a self-contained compiled model plus a servable viewer:
+
+```bash
+arelleCmdLine --plugins "XbrlModel|<path>/iXBRLViewerPlugin|<path>/EDGAR/transform" \
+    --internetConnectivity online \
+    -f 0000950170-25-100235-xbrl.zip --saveXbrlModelViewer out/
+cd out && python3 -m http.server 8000     # then open ixbrlviewer.html
+```
+
+Three plugins, each for a distinct reason:
+
+| plugin | why |
+|---|---|
+| **XbrlModel** | the model, its validation, the views, and the staging |
+| **iXBRLViewerPlugin** | only its **built** bundle (`viewer/dist/ixbrlviewer.js`) is used — the viewer's XbrlModel overlay renders a plain document against an OIM model, so no viewer *document* is built |
+| **EDGAR/transform** | supplies the `ixt-sec:*` transformation **functions** for a US filing (§"Transformation registries" below). Not needed for ESEF |
+
+In the **GUI** the same thing happens on **File ▸ Open File…**: load, validate,
+build the Tk views, then open the browser — see §5.
+
+Measured on Microsoft's FY2025 10-K (8.4 MB inline document, 2 MB extension
+schema, `us-gaap`/`dei`/`ecd` fetched and cached):
+
+| | |
+|---|---|
+| wall clock | ~6 s (first run slower — the base taxonomies download) |
+| compiled model | 9.3 MB, one file, **no separate taxonomy needed** |
+| | 12,488 concepts · 124 cubes · 145 networks · 129 groups · groupTree |
+| | 1,829 facts, 1,827 of them located by `xbrl:htmlElementId` |
+| in the viewer | **2,146 bound fact overlays** over the inline document |
+| log | 42 messages: **31 findings** — 21 calculation inconsistencies and 10 on `ecd:` compensation members declared as concepts rather than members — and 11 informational |
+
+Drop `--saveXbrlModelViewer out/` for `--saveOIMmodel model.json` to get just the
+model (`--oimSaveMode full|prune|report`). Both **validate the model first**,
+whether or not `--validate` was given: a legacy report opened as an entry point
+materializes its facts at validate time, and the artifact is meant to carry the
+validation verdicts.
+
+### Transformation registries
+
+A value re-derived from the document is transformed by the registry the fact
+names. The standard registries (`ixt`, `xbrltt`) are built into Arelle; anything
+else is contributed by a plugin through `ModelManager.LoadCustomTransforms`,
+which is how **EDGAR/transform** supplies SEC's `ixt-sec:*` functions. Without it
+a US filing's ballot boxes and spelled-out numbers stay as document text and then
+fail their concept's datatype. The matching *declarations* (transform objects and
+their input datatypes) ship in
+[`resources/sec-transform-types.json`](resources/sec-transform-types.json),
+generated from SEC's own registry by
+[`tools/genSecTransformTypes.py`](tools/genSecTransformTypes.py).
 
 ---
 
@@ -92,6 +153,45 @@ Reflowable reports (e.g. an ESEF annual report) have none of this and locate
 ---
 
 ## 4. Operating the tools (command line)
+
+### Model and viewer
+
+See the quick start above for the worked example. The options:
+
+| option | effect |
+|---|---|
+| `--saveOIMmodel <file>` | save the loaded model as one compiled model (`.json` / `.cbor` / `.xlsx`) |
+| `--oimSaveMode full\|prune\|report` | how much to emit (§"Saving a model") — default `full` |
+| `--saveXbrlModelViewer <dir>` | stage a servable viewer directory: model + source document(s) + viewer bundle |
+| `--calcRoundingMode roundToNearest\|truncation` | override the model's declared rounding mode (§7) |
+| `--xbrlModelStreamThreshold <n>` | fact count above which a fact source must stream |
+
+Both save options validate the model first (see the quick start). They run on the
+`CntlrCmdLine.Xbrl.Run` hook, *after* validation — the earlier `Xbrl.Loaded` hook
+runs before it, and saving from there wrote out a model whose facts had not yet
+materialized.
+
+### Diagnostics this plugin adds
+
+Alongside the specification's `oimte:` / `oimce:` / `oime:` / `oimtc:` codes, the
+plugin reports its own processing conditions under `arelle:`. The ones worth
+recognising:
+
+| code | means |
+|---|---|
+| `arelle:selfImportedTaxonomy` | a module imports a taxonomy of **its own name** — either it imports itself or two distinct modules share a name. The import cannot be resolved, and the whole closure would otherwise be dropped in silence |
+| `arelle:calcNotCheckedNonNumericValue` | a calculation was **not checked** because a bound fact's value is not a number (commonly an untransformed value). Not an inconsistency — a calculation with no verdict |
+| `arelle:calcRoundingModeOverridden` | `--calcRoundingMode` overrode the declared mode, so the results are not conformant results for the model as published |
+| `arelle:xbrlModelViewerUnavailable` | no built viewer bundle was found — activate `iXBRLViewerPlugin`, or set `xbrlModelViewerBundleDir` |
+| `arelle:xbrlModelViewerNoDocument` | the model names no source document, so there is nothing to render facts against (a taxonomy rather than a report) |
+| `arelle:pocLegacyDtsNotDiscovered` | no XBRL 2.1 DTS was found at a referenced entry point |
+| `arelle:factValueResolverFailed` | a fact value could not be resolved from its source document |
+
+`arelleOIMloader:error` is different in kind: it reports that **validation was
+abandoned** at that point, so no later check ran for the model. A model carrying
+it has not been fully validated, however clean the rest of the log looks.
+
+### PDF tools
 
 Prerequisite (both directions):
 
@@ -252,7 +352,43 @@ This lets a facts-only aligned-facts module that imports its taxonomy (e.g. a le
 DTS bound via `importMapping`) be loaded and re-emitted as a complete, self-contained
 compiled model. See the [`__init__.py`](__init__.py) header and
 [`PruneModel.py`](PruneModel.py). (Hooks: `CntlrWinMain.Xbrl.Save`;
-`CntlrCmdLine.Xbrl.Loaded` for the command line.)
+`CntlrCmdLine.Xbrl.Run` for the command line.)
+
+The command-line save runs on the `Xbrl.Run` hook, *after* validation, and
+validates the model first if nothing else has. Both matter: a legacy report opened
+as an entry point materializes its DTS and facts at validate time, and the saved
+model is meant to carry validation verdicts. Saving from the earlier `Xbrl.Loaded`
+hook wrote out an empty model and reported success.
+
+### Opening a model in the iXBRL Viewer
+
+The last step of the desktop workflow — see the *document surface* the facts were
+located in, with the report's own facts bound to it. A compiled model does not go
+through the iXBRL Viewer plugin's own launch (which builds a viewer *document* from
+a legacy inline report); it uses the viewer's XbrlModel overlay, which takes a plain
+document plus an OIM model.
+
+- **Automatic on load**, when the model has a source document *and* facts located in
+  it. **Tools ▸ "Open iXBRL Viewer on load"** turns that off.
+- **Tools ▸ "View XBRL model in iXBRL Viewer"** opens the loaded model on request.
+- **`--saveXbrlModelViewer <dir>`** (command line) stages the same directory without
+  opening a browser, for serving elsewhere.
+
+Either way the staged directory is self-contained: the compiled model, the source
+document(s), and the viewer bundle. The model's `documentInfo.sourceMappings` is
+rewritten to name the staged document, so the viewer resolves it from the model.
+
+The directory follows Arelle's existing convention (as `EDGAR/render` does): a
+subdirectory named `out` beside the entry file — or beside the *archive*, when the
+entry file is inside a zip, report package or taxonomy package — falling back to the
+web cache directory for that URL and then to a temp directory. Configurable with
+`xbrlModelViewerFolder`.
+
+The viewer bundle (`viewer/dist/ixbrlviewer.js` and its code-split chunks) is found
+from a loaded `iXBRLViewerPlugin`, from the plugin configuration's `moduleURL`, or
+from the `xbrlModelViewerBundleDir` config key. Without a built bundle the launch
+reports `arelle:xbrlModelViewerUnavailable` rather than opening an empty window.
+See [`ViewerLaunch.py`](ViewerLaunch.py).
 
 ### PDF fact-locator tools
 
@@ -358,6 +494,31 @@ GUI runs use the defaults (chrome engine, reflow on). For a different engine
 
 ---
 
+### What the legacy translation carries
+
+[`LoadLegacyTaxonomy.py`](LoadLegacyTaxonomy.py) turns a discovered XBRL 2.1 DTS
+into a compiled model. Two properties of that translation are worth knowing
+because they show up in the emitted names and in what survives:
+
+* **Arcroles other than presentation and calculation are carried too.** Each one
+  becomes a `relationshipType` object plus a network per linkrole, taking the
+  **canonical name** where a built-in model declares it (`core.json` declares the
+  LRR deprecation arcroles as `xbrl:dep-*`, so those resolve to the same objects
+  every other model uses) and a synthesised one otherwise. Without this an ESEF
+  filing's anchoring — the ESMA `wider-narrower` arcrole the RTS requires for
+  every extension concept — was dropped in silence, because it has no
+  presentation or calculation meaning. The known-name map is read from the
+  shipped resources, so declaring an arcrole in a spec taxonomy is picked up
+  here automatically and replaces the synthesised name.
+* **Synthesised names carry a digest when abbreviated.** Group, cube and network
+  names derive from extended-link role URIs, which SEC filers make long and
+  highly similar — `…OfferingsDetail` and `…OfferingsParentheticalDetail` agree
+  for the first 60 characters. A name that fits is used unchanged; one that must
+  be abbreviated gets a digest of the full name appended, because truncation
+  alone silently merges two distinct presentation groups into one.
+
+---
+
 ## 7. Calculation validation
 
 Summation-item (calculation) relationships are validated per
@@ -441,6 +602,8 @@ not contribute, so the total is additionally reported as inconsistent.
 | [`ValidateCalculations.py`](ValidateCalculations.py) | summation-item binding and consistency checking (proposal §6.2, §7) |
 | [`ValidateNetworkObjects.py`](ValidateNetworkObjects.py) | network validation, including the summation-item definition-time checks (proposal §5) |
 | [`LoadLegacyTaxonomy.py`](LoadLegacyTaxonomy.py) | legacy XBRL 2.1 DTS → compiled model, including calculation linkbases and the all-facts cube (proposal appendix B) |
+| [`ViewerLaunch.py`](ViewerLaunch.py) | stage a self-contained iXBRL Viewer directory (model + document + bundle) and open it |
+| [`tools/genSecTransformTypes.py`](tools/genSecTransformTypes.py) | regenerate `resources/sec-transform-types.json` from SEC's formal transformation registry |
 | [`loadFromPDF.py`](../loadFromPDF.py) | read a tagged PDF + template into facts (the reverse, standalone PoC) |
 
 Spec: locator property types and fact locator types are defined in

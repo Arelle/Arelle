@@ -732,9 +732,17 @@ def saveOIMFacts(
     else:
         oimDocInfo["documentType"] = "https://xbrl.org/2026/module"
         oimDocInfo["documentNamespacePrefix"] = reportPrefix
-        oimModel["xbrlModel"] = xbrlModelObject = {
-            "name": f"{reportPrefix}:{os.path.splitext(modelXbrl.modelDocument.basename)[0]}"
-            }
+        # The facts module is named after the report document, and each imported taxonomy after
+        # its own document. A report and its extension schema routinely share a basename stem --
+        # SEC names them msft-20250630.htm and msft-20250630.xsd -- so the two naming rules
+        # collide, and a module that appears to import itself has no resolvable import closure at
+        # all. Suffix the facts module so its name is distinct from every taxonomy it imports.
+        importedModelNames = {f"{reportPrefix}:{os.path.splitext(txmyBasename)[0]}"
+                              for txmyBasename in importedTaxonomies}
+        reportModelName = f"{reportPrefix}:{os.path.splitext(modelXbrl.modelDocument.basename)[0]}"
+        if reportModelName in importedModelNames:
+            reportModelName += "Facts"
+        oimModel["xbrlModel"] = xbrlModelObject = {"name": reportModelName}
         if importedTaxonomies:
             oimDocInfo["importMapping"] = OrderedDict()
             xbrlModelObject["importedTaxonomies"] = []

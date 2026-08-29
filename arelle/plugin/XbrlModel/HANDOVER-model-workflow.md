@@ -117,19 +117,19 @@ surfaces (inline filing, HTML5 report, PDF).
   running it against real filings should set `--httpUserAgent` to a real
   address rather than leave it as `NotRegistered@arelle.org`.
 
-## 3. What does not work
+## 3. What did not work, and why — all resolved 2026-08-29
 
-Two failures, which may well be one thing.
+Both failures are fixed. They were unrelated to each other and neither was in the
+mechanism the earlier draft suspected: the import closure and the report entry
+point both worked, and were defeated by a name collision and a hook ordering.
 
-(An earlier draft listed a third, "EDGAR blocks automated retrieval". That
-was wrong -- it blocked a raw curl, not Arelle. See §2.4.)
+Regression check: the OIM taxonomy conformance suite is **725 pass / 31 fail,
+byte-identical before and after** these changes (756 variations).
 
-### 3.0 What has since been fixed nearby (2026-08-29)
+### 3.0 What was fixed nearby (earlier the same day)
 
 A *report entry point* — an xBRL-JSON or xBRL-CSV instance, or an XBRL 2.1 `.xml`
-instance, given directly as the file to load — now does pull in its taxonomy.
-It previously did not, for the same visible symptom as §3.1: facts materialized
-but no concept, cube or network they refer to was ever compiled.
+instance, given directly as the file to load — now pulls in its taxonomy.
 
 Three causes, all fixed in `575e25ad1`:
 
@@ -142,66 +142,328 @@ Three causes, all fixed in `575e25ad1`:
   definition-time validation entirely. That loop now repeats until no new module
   appears.
 
-This does **not** fix §3.1, which was re-tested on 2026-08-29 and is unchanged:
-`msft-facts.json` still produces 0 cubes / 0 concepts / 1,708 facts with the same
-`invalidQNameReference` on a built-in locator type. §3.2 is likewise unchanged
-(0.10 s, empty model). The two paths are different mechanisms — a *factset*
-resolves its taxonomy through `importedTaxonomies` / `importMapping`, not through
-a factSource bound to a built-in fact map — so §3.1 remains the open question.
+### 3.1 A factset did not pull in its own DTS — a name collision
 
-What it does narrow: the fact-map side of the family is now known-good and can be
-used as a working comparison. Loading the calc11 conformance suite's
-`excess-digits-on-total-instance.json`, whose `documentInfo.taxonomy` names
-`calc.xsd`, compiles that DTS, binds its calculation networks and reports an
-inconsistency — the whole chain the factset path fails to complete.
+`saveOIMFacts` named the facts module after the **report document's** basename
+stem, and each imported taxonomy after **its own** document's stem. On EDGAR
+those are the same string: the instance is `msft-20250630.htm` and the extension
+schema is `msft-20250630.xsd`. So the factset came out naming itself
+`msft:msft-20250630` *and* importing `msft:msft-20250630`.
 
-### 3.1 A factset does not pull in its own DTS
+The import-cycle guard in `loadXbrlModule` — added so the legitimately cyclic
+built-in models (`xbrlm:base` ↔ `utr` / `iso4217` / `xbrla`) do not re-descend —
+saw an edge to a name already on the loading path and skipped it. Its assumption,
+sound for a real cycle, is that the target's objects arrive anyway because the
+target is the ancestor. Here the two names denoted **different documents**, so
+nothing arrived: not the DTS, and not even `xbrlm:base`, which is why a
+*built-in* locator type failed to resolve.
 
-```bash
-arelleCmdLine --plugins XbrlModel -f msft-facts.json \
-    --saveOIMmodel out.json --oimSaveMode report      # and --oimSaveMode full
-```
+That was the thread §7 said to pull, and it led to the producer, not the loader.
 
-Both modes produce **0 cubes, 0 concepts, 1,708 facts** — the factset re-emitted.
+Fixed on both sides:
 
-Ruled out:
+* **Producer** (`saveOIMFacts.py`): the facts module is suffixed `Facts` when its
+  name would collide with a taxonomy it imports — `msft:msft-20250630Facts`.
+* **Consumer** (`XbrlModel/__init__.py`): a module importing **its own name** is
+  no longer treated as a cycle to skip. It cannot be one — either a module
+  imports itself, or two distinct modules share a name — so it is reported as
+  `arelle:selfImportedTaxonomy` instead of silently dropping the whole closure.
 
-- **Not the DTS.** The same `msft-20250630.xsd` compiles to 123 cubes as its own
-  entry point (§2.2).
-- **Not a missing file.** The `.xsd` was extracted beside the factset, so the
-  relative `importMapping` path resolves on disk.
-- **Not pruning.** `full` mode behaves the same as `report`.
-
-In `report` mode it also emits, for every fact:
-
-```
-oimte:invalidQNameReference ... factLocatorType xbrl:htmlElementLocatorType
-    does not resolve to any factLocatorType object
-```
-
-`xbrl:htmlElementLocatorType` is a **built-in** from `core.json`, so the model's
-import closure is not being assembled at all, not merely the extension DTS. In
-`full` mode that error disappears while the emptiness remains, which is itself a
-clue.
-
-This is the one that matters most: it is the difference between a two-file
-pairing and a single self-contained model, and the CLI docs describe the
-single-file outcome as the intended one.
-
-### 3.2 The inline entry point claims and then does nothing
+Measured, on the same filing:
 
 ```bash
-arelleCmdLine --plugins XbrlModel -f msft-20250630.htm --saveOIMmodel out.json
+arelleCmdLine --plugins saveOIMFacts --internetConnectivity online \
+    --file 0000950170-25-100235-xbrl.zip --SaveOIMFactspace msft-facts.json
+arelleCmdLine --plugins XbrlModel --internetConnectivity online \
+    -f msft-facts.json --saveOIMmodel msft-complete.json --oimSaveMode full
 ```
 
-Returns in **0.12 s** with an empty model. A plain Arelle load of the same file
-takes **6.67 s** and produces facts.
+8.4 MB, **12,488 concepts · 124 cubes · 141 networks · 129 groups · groupTree ·
+1,708 facts**, in 5.5 s. One self-contained file; no separate `&taxonomy=`.
 
-The plugin does claim it — `__init__.py:1292` calls `pocReportEntryFactMap` for
-inline XBRL 1.1 `.htm`/`.xhtml`, and `xbrlModelLoader` dispatches to
-`pocLoadReportAsEntry`. So the claim fires and the load produces nothing.
+### 3.2 The inline entry point claimed and then did nothing — hook ordering
 
-Same behaviour when pointed at the filing ZIP.
+Two causes, stacked.
+
+1. A report entry point materializes its DTS and facts at **validate** time
+   (`FactPipeline.materializeFactSourceFacts`, called from `validateXbrlModule`).
+   The CLI does not validate unless `--validate` is given, so the load really did
+   produce nothing — in 0.10 s, as observed.
+2. Passing `--validate` was still not enough, because `--saveOIMmodel` was
+   emitted from the **`CntlrCmdLine.Xbrl.Loaded`** hook, which runs immediately
+   after loading and **before** validation (`CntlrCmdLine.py:2054` vs `:2112`).
+   The save therefore serialized the un-materialized model and logged success.
+
+Fixed by moving the save to a new **`CntlrCmdLine.Xbrl.Run`** hook
+(`xbrlModelRun`), which runs after validation, and by making `--saveOIMmodel`
+validate the model if nothing else has. That last part is a deliberate policy,
+not a convenience: an artifact whose stated purpose is to carry value sources and
+validation verdicts (§5) cannot be produced from an unvalidated model. It matches
+the GUI, which validates on load by default.
+
+Measured — one command, filing to complete model:
+
+```bash
+arelleCmdLine --plugins XbrlModel --internetConnectivity online \
+    -f 0000950170-25-100235-xbrl.zip --saveOIMmodel msft-model.json
+```
+
+8.9 MB, **12,488 concepts · 124 cubes · 145 networks · groupTree · 1,829 facts**,
+in 5.7 s. 1,827 of the 1,829 factValues carry an `xbrl:htmlElementId` value
+source, and `documentInfo.sourceMappings` binds the source document. Pointing at
+the extracted `.htm` instead of the ZIP gives the same result.
+
+### 3.3 A crash that was hiding behind them
+
+`ValidateCalculations._factValueInterval` assumed every bound fact value parses
+as a number. `rangeValue` returns a `Decimal` NaN when it does not, and the
+ordered comparison that follows **raises** rather than returning an interval —
+`decimal.InvalidOperation`, caught by `xbrlModelValidator`'s blanket handler,
+which aborted `validateCompleteReportCubes` for the whole model.
+
+On this filing one fact triggered it: `us-gaap:CommercialPaper` with
+`transformation: ixt-sec:numwordsen` and the raw text `"no"`. Arelle without the
+EDGAR plugin does not recognize SEC's 2015 transformation namespace
+(`ix11.11.1.2:invalidTransformation`), so the transform is not applied and the
+**untransformed text is kept as the value**.
+
+The interval function now returns a `nonNumeric` status, and `_checkBinding`
+reports `arelle:calcNotCheckedNonNumericValue` naming the concept and stops
+checking that calculation. Skipping it silently was the alternative and is worse:
+a calculation nobody could check would have been indistinguishable from one that
+passed. Validation now completes (3.54 s) and reports 21 calculation
+inconsistencies where it previously reported none and aborted.
+
+**Left open, deliberately:** an inline fact whose transformation cannot be
+applied keeps its raw text as though that were the value. Carrying no value —
+leaving the factValue in Form A with its `valueSources` — would say what is
+actually known. Same shape as everything else here: a plausible answer and a
+correct one are indistinguishable to the reader.
+
+### 3.4 Four defects that only opening the viewer would find
+
+The compiled model produced above loaded into the viewer, resolved its taxonomy,
+rendered the document — and located **no facts at all**. Each cause produced an
+artifact that looked right by every measure short of using it.
+
+1. **`xbrl:htmlElementId` was serialized as a string, not a collection.** Its
+   declared type is `xbrlr:stringCollection` (`resources/core.json`), and
+   `saveOIMFacts` emits `["F_..."]`; `LoadInlineFacts` emitted `"F_..."`. A
+   consumer that spreads the collection — the viewer adapter does — then gets
+   one "id" per character and matches nothing. Fixed in `LoadInlineFacts`.
+2. **Validation replaces `factDimensions["xbrl:unit"]` with the parsed
+   `(numerators, denominators)` tuple** it checked (`ValidateFacts`,
+   `parseUnitString`). Saving after validation — which §3.2 made the norm —
+   emitted the Python repr `"((iso4217:USD,), ())"` where the OIM string
+   `"iso4217:USD"` belongs. `SaveModel` now writes the unit string back
+   (`unitDimensionString`, the inverse of `parseUnitString`).
+3. **Validation also caches `_periodValue` inside `factDimensions`**, and that
+   internal key was serialized beside the real dimensions. A consumer that reads
+   unrecognized keys as taxonomy-defined dimensions gives every fact a dimension
+   it does not have. `SaveModel` skips underscore-prefixed keys.
+4. **A report loaded from an archive resolved no fact values at all.** Its
+   sourceMapping is bound to the *archive* — deliberately, so the report
+   package's catalog remappings apply and the whole IXDS is discovered — and an
+   archive cannot be read as a document. Every value was therefore "deferred",
+   which is silent by design. `FactPipeline.reportDocumentUrls` now yields the
+   document(s) the entry point actually named (expanding an inline-document-set
+   surrogate URL), and both `FactValueResolver` and the viewer staging use it.
+
+Only the first showed up as a difference between a working artifact and a broken
+one; the other three were found by comparing a model that bound facts against one
+that did not, field by field. An argument for keeping a rendering check in the
+loop: none of the four changed any conformance result, and the suite is 725/756
+either way.
+
+### 3.5 An abandoned validation reads exactly like a clean one
+
+Extending a *domain* network whose base declares no relationships raised
+`AttributeError: 'NoneType' object has no attribute 'add'`
+(`ValidateXbrlModel.py`, the `extendTargetObj.relationships.add(relObj)` line).
+`relationships` is `Optional[NonemptySet]`, so an absent set is `None`, not empty
+— the same guard has existed for `XbrlNetwork` in `ValidateNetworkObjects.py`
+since that path was written; the domain-network path never got it. Fixed.
+
+The more important half is what the failure looked like. `xbrlModelValidator`
+catches every exception, logs one line and returns, so validation of the **whole
+model** was abandoned at that point — no cube completeness, no calculations,
+nothing after it — and the caller still reported `validated in 0.10 secs`. That
+is the third time in this work a blanket handler has turned an abort into
+something indistinguishable from a completed pass (see §3.3, and §3.0's
+`except Exception: pass`).
+
+The handler now says `Validation ABANDONED (no further checks ran for this
+model)` and sets `_xbrlModelValidationAbandoned` on the model. That flag is the
+third state §5 point 4 requires, and the emit step (§5) should carry it: a model
+whose validation did not finish must not be published as validated.
+
+### 3.6 What the first GUI run turned up
+
+The Microsoft filing opened, rendered and selected facts in the viewer on the
+first GUI attempt. The log around it was the problem, and it hid two real
+defects.
+
+**A single message was ~50,000 characters.** A JSON-schema validator reports a
+violation by quoting the offending *instance*, so a `uniqueItems` violation on
+`domainNetworks` quoted every domain network in the model — one log line that
+buried the ~150 messages around it. `schemaErrorMessage` now truncates any
+schema message, and for a duplicate-items violation replaces it entirely with
+the far more useful thing the validator does not report: **which** items collide,
+computed from the instance (`schemaErrorDuplicates`).
+
+That immediately named the second defect. `_safeLocal` truncated a synthesised
+name to 60 characters, and truncation is not injective — SEC role names differ
+late:
+
+```
+Role_DisclosureRevenueClassifiedBySignificantProductAndServiceOfferingsDetail
+Role_DisclosureRevenueClassifiedBySignificantProductAndServiceOfferingsParentheticalDetail
+```
+
+Both collapsed to one name, and so did
+`…SummaryOfChangesInAccumulatedOtherComprehensiveIncomeLossByComponent{,Parenthetical}Detail`.
+Two distinct presentation groups were silently merged, and the merge surfaced
+only as `duplicateItemsInSet` and four `duplicateLabelObject` errors. A name that
+still fits is left alone; one that must be abbreviated now carries a digest of
+the full name. Domain networks 217 → 218 (the collapsed one recovered), groups
+129 and cubes 124 all now uniquely named.
+
+**The SEC transformation registry was shipped but never loaded.**
+`resources/sec-transform-types.json` was present and unreachable: `ixt-sec` was
+not in `builtInPrefixTaxonomies`, and the synthesised report-entry module neither
+imported it nor declared its prefix. All three are fixed.
+
+Together these took the Microsoft filing's log from **~150 messages including one
+of 50 KB** to **139**, with the remaining classes all understood:
+
+| count | code | what it is |
+|---|---|---|
+| 56 | `oimte:factValueDataTypeMismatch` | the untransformed-value case of §3.3: an `ixt-sec` transform is *resolved* but not *applied*, so "☒" fails `xs:boolean` |
+| 47 | `oimte:invalidQNameReference` | the shipped SEC registry declares only `boolballotbox` and `exchnameen`; this filing also uses `duryear` (27), `durwordsen` (10), `numwordsen` (5), `durday` (2), `stateprovnameen` (2), `durmonth` (1) |
+| 21 | `oimtc:inconsistentCalculationUsingRounding` | real calculation findings |
+| 10 | `oimte:invalidDomainNetworkObject` / `invalidDomainTarget` | `ecd:` compensation members declared as concepts, not members |
+
+The 47 are a **spec-data** gap, not a code one — the six missing transforms
+belong in `spec-taxonomies/sec-transform-types.json` upstream. The 56 are the
+open item already recorded in §3.3.
+
+**Not reproduced, and probably not ours:** an `IOerror` resolving
+`http://www.xbrl.org/lrr/arcrole/esma-arcrole-2018-11-21.xsd` (genuinely
+referenced at `msft-20250630.xsd:693`) to a path inside an unrelated
+`ifei_2027-01-01_taxonomia_v1.0` taxonomy package, then looking it up as a member
+of the Microsoft zip. That needs that package enabled, which no run here had. The
+plugin passes URLs and never constructs archive members, so this looks like the
+PackageManager remapping / FileSource interaction in core Arelle. Loading the
+same filing with the XbrlModel plugin disabled distinguishes the two.
+
+### 3.7 ESEF anchoring was being silently discarded
+
+Chasing the ESMA arcrole in §3.6 found a real conversion loss, not a packaging
+problem. `http://www.xbrl.org/lrr/arcrole/esma-arcrole-2018-11-21.xsd` is an
+ordinary schema in the XBRL.org **link role registry**, fetched over the web as
+part of the DTS; nothing remaps it. The Microsoft filing declares an
+`arcroleRef` to it (`msft-20250630.xsd:693`) but uses **no** anchoring arcs, so
+nothing was lost there. L'Oreal's 2025 ESEF package does use it — and every one
+of its anchoring relationships was dropped.
+
+`legacyTaxonomyToOimModule` translated exactly two arcroles: presentation
+(`parent-child`) and calculation (`summation-item`), plus the XDT arcroles that
+cube inference consumes. Anything else — an LRR arcrole, a filer-defined one —
+had no relationshipType object and no network, so it simply was not in the
+compiled model. For ESEF that is a regulatory construct going missing: the RTS
+requires every extension concept to be anchored to a base-taxonomy concept.
+
+`_customArcroleNetworks` now translates any arcrole nothing else handles:
+
+* a `relationshipType` object per arcrole, taking its **canonical name** where a
+  built-in model declares one. `core.json` already declares the LRR deprecation
+  arcroles as `xbrl:dep-*`, so those resolve to the same objects every other
+  model uses. The known-name map is read from the shipped resources rather than
+  restated, so adding one to a spec taxonomy is picked up here for free.
+* the arcrole's `<definition>` as an `xbrl:documentation` label — a
+  relationshipType object has no documentation property.
+* a network per (arcrole, linkrole), with roots declared from `xbrl:rootSource`
+  as the presentation networks are.
+
+Measured on L'Oreal: `loreal:group_Anchoring_wider_narrowerNet`, **59
+relationships**, plus 9 relationshipTypes the DTS declares and uses that were
+previously absent. Error profile unchanged (34 pre-existing calculation
+duplicate-fact findings); Microsoft unchanged; conformance 725/756 unchanged.
+
+**Open, and a spec decision rather than a code one.** The synthesised name is
+`ns6:wider_narrower` — stable for a given arcrole URI, but with a minted prefix,
+because nothing registers one. Making it canonical is exactly what §"lrr entries
+should be a spec taxonomy" asks for, and the precedent is already in `core.json`
+with `xbrl:dep-*`. Whoever owns the spec taxonomies should decide where ESMA's
+wider-narrower (and the rest of the LRR) lives and under which prefix; the loader
+will then use that name automatically and stop minting one.
+
+### 3.8 Custom transform registries reached the model but not the value
+
+Yes — SEC's `ixt-sec:*` transforms map to functions the same way the standard
+registries do. Core keeps the standard tables in `FunctionIxt.ixtNamespaceFunctions`
+and anything else in `modelManager.customTransforms`, filled from the
+`ModelManager.LoadCustomTransforms` hook; the EDGAR transform plugin registers 18
+`ixt-sec` functions through it. Core's own inline evaluator tries the standard
+table and **falls back to `customTransforms`** (`ModelInstanceObject`).
+
+`FactValueResolver.applyTransformation` did not have that fallback. It looked only
+in `ixtNamespaceFunctions` and, on a miss, returned the text unchanged — so a
+value re-derived from the document kept its untransformed form ("☒" where
+`xs:boolean` is expected), which then failed its datatype for a reason pointing at
+the value rather than at the missing transform. That is the 56
+`factValueDataTypeMismatch` of §3.6, and the same root as the
+`us-gaap:CommercialPaper` = `"no"` case in §3.3.
+
+The resolver now falls back to `modelManager.customTransforms`. Measured on the
+Microsoft filing:
+
+| plugins | `factValueDataTypeMismatch` |
+|---|---|
+| `XbrlModel` | 56 |
+| `XbrlModel` + `EDGAR/transform` | **0** |
+
+### The registry the model declares, completed
+
+`sec-transform-types.json` declared **2 of the 15** transforms SEC formally
+registers — `boolballotbox` and `exchnameen` — which was the remaining 47
+`invalidQNameReference`. SEC publishes the rest formally, in the EDGAR plugin:
+
+| source | supplies |
+|---|---|
+| `EDGAR/transform/transformationRegistry/schema/inlinexbrl-sec-transformation.xsd` | the input dataTypes, with their patterns / enumerations |
+| `EDGAR/transform/transformationRegistry/registry/ixt-sec-*.xml` | each transform's signature (input and output type) and its documentation |
+
+The module is now generated from those rather than hand-written, so re-running the
+generator tracks the registry. The thirteen added are `countrynameen`,
+`datequarterend`, `durday`, `durhour`, `durmonth`, `durweek`, `durwordsen`,
+`duryear`, `edgarprovcountryen`, `entityfilercategoryen`, `numwordsen`,
+`stateprovnameen`, `yesnoballotbox`. Written to both copies — the plugin's
+`resources/` snapshot and `oim/specifications/oim-taxonomy/spec-taxonomies/`
+(branch `spec-dev-1`, uncommitted).
+
+Purely additive: the two existing entries are left exactly as curated. Worth a
+look before committing — the registry gives `exchnameen` an output of `xs:token`
+where the curated entry refines it to `dei:edgarExchangeCodeItemType`. The curated
+value is kept; the registry is not the more precise of the two.
+
+Not added: `numinf`, `numnan` and `numneginf`. The EDGAR plugin implements them
+and the schema declares their input types, but they have **no registry entry**, so
+there is no formally stated output type to record and none was invented.
+
+Net effect on the Microsoft filing, from ~150 messages including one of 50,000
+characters:
+
+| plugins | messages |
+|---|---|
+| `XbrlModel` | 95 — the 56 datatype mismatches remain, needing the transform *functions* |
+| `XbrlModel` + `EDGAR/transform` | **38**, of which 31 are genuine findings (21 calculation inconsistencies, 10 `ecd:` compensation members declared as concepts rather than members) and 7 informational |
+
+`arelle:calcNotCheckedNonNumericValue` also disappears: `us-gaap:CommercialPaper`
+= `"no"` now transforms through `numwordsen` to 0, so §3.3's uncheckable
+calculation becomes checkable. That is the §3.3 open item closing for the SEC
+case — though the general one remains: **a report whose transform genuinely
+cannot be applied still keeps its raw text as though it were the value.**
 
 ## 4. The workflow does not end at "viewable"
 
@@ -266,7 +528,55 @@ out, with validation. That would make the round trip complete —
 filing → factset → viewable → tagged → factset — which is the workflow this
 handover is really about.
 
-## 5. Artifacts to work against
+## 5. When validation happens is a workflow decision
+
+The workflow has to offer this as a **step option**, because the answer differs
+between a desktop user and a production receipt pipeline, and the artifact each
+produces differs with it.
+
+The question is where calculation (and other) validation results come from when
+a report is viewed. Two answers:
+
+| | validate at receipt, carry the verdict | validate at viewing |
+|---|---|---|
+| who | production intake — EDGAR does this | a desktop user loading a filing to look at it |
+| artifact | model carries per-binding results and their provenance | model carries none; the viewer computes |
+| stable over time | **yes** | no |
+| needs | `SaveModel` to emit results (not built) | a validating viewer (partially built) |
+
+**The temporal argument is the deciding one.** Validation on receipt is a
+statement about a moment: this is what the rules concluded, then. Revalidating at
+viewing time answers a different question, because standards, rules and
+implementations move between receipt and reading — so the same artifact would
+report differently over the years, with nothing recording which reading was
+authoritative or when it changed. For a disseminated artifact that is a
+misrepresentation of what was filed and accepted, not a fresher opinion.
+
+This was decided for calculations on 2026-08-29 in favour of carrying the
+verdict; see `HANDOVER-calculations.md` §2.4 in the viewer repository, which also
+lists the viewer-side consequences. The workflow consequences are here:
+
+1. **An emit step.** `SaveModel` needs to write per-binding results — which
+   binding, consistent or not, the `oimtc:` code where not. It writes none today.
+2. **Provenance alongside them.** When, by what processor version, against which
+   rule set. A carried verdict without that is no more interpretable than a
+   recomputed one; being able to say *this is what validation concluded, then* is
+   the entire point.
+3. **Both profiles remain legitimate.** A desktop user opening a filing they just
+   downloaded has no receipt event and no carried verdict, and validating locally
+   is the right thing for them. So the step is an option in the workflow, not a
+   mode the product is in.
+4. **The three states must stay distinguishable** end to end: validated and
+   consistent, validated and inconsistent, and *not validated*. A model carrying
+   no results must not be presented as though it carried a clean bill — which is
+   the failure mode a silent local recompute would produce, since it would look
+   identical to a carried verdict.
+
+Point 4 is the one to design for rather than bolt on: it is the same
+silent-wrong-answer shape as the locator failures elsewhere in this work, where
+a plausible result and a correct one are indistinguishable to the reader.
+
+## 6. Artifacts to work against
 
 `/Users/hermf/temp/pdf/Microsoft/` — full characterisation in its `FINDINGS.md`.
 
@@ -292,18 +602,117 @@ The viewer demo set and its URLs are in
 `ixbrl-viewer/iXBRLViewerPlugin/viewer/demo-xbrl-model/README.md` (untracked,
 because most of what it documents is untracked working material).
 
-## 6. Suggested order
+## 7. Suggested order
 
-1. **§3.1 first.** It is the highest-value unblock and the most diagnosable: a
-   working single-file compile removes the two-file pairing everywhere.
-   The `invalidQNameReference` on a *built-in* locator type is the thread to
-   pull — the closure is not being assembled, so the question is what assembles
-   it when a `.xsd` is the entry point and does not when a factset is.
-2. **Recover how the L'Oréal compiled models were made.** If that path still
-   works, comparing it against §3.1 localises the difference quickly.
-3. **§3.2**, which may fall out of the same fix.
-4. Then the workflow proper: one command from filing to viewable, whatever
-   sequence that turns out to be.
-5. **The journal applier** (§4), which closes the loop. Independent of 1--3 and
-   could be done first if a demonstrable round trip is worth more than a tidy
-   single-file compile; the journal format is settled and has a working producer.
+The desktop workflow (§8.2) is now built, and with it artifact portability.
+What remains:
+
+1. **The validation-result emit step** (§5), which the calculations work is
+   waiting on: `SaveModel` writes no per-binding results, and a model that
+   carries none must not read as a clean bill.
+2. **The journal applier** (§4), which closes the loop. Independent of
+   everything else; the journal format is settled and has a working producer.
+3. **A PDF surface for the staged viewer.** The staging handles HTML documents.
+   The viewer's PDF surface additionally needs pdf.js `cmaps` and
+   `standard_fonts`, which the demo directory symlinks out of `node_modules`
+   rather than taking from the build — so they are not in `viewer/dist` for
+   `stageViewerBundle` to copy.
+4. **Multi-document IXDS source mappings.** `LoadInlineFacts` records one
+   sourceMapping per report (its own TODO), so a multi-document report binds
+   every fact to the first document. The staging copies all documents of the
+   set, which is what a per-document mapping would need, but nothing
+   distinguishes them yet.
+
+Also noted while working, unowned: the untransformable-inline-value case in §3.3.
+
+## 8. The four workflow paths
+
+What each category of use needs, as of 2026-08-29. Only the CLI path is complete.
+
+### 8.1 Arelle without the plugin
+
+Unchanged, and must stay so. Nothing in this work touches a load that does not
+activate `XbrlModel`.
+
+### 8.2 Desktop, with the plugin
+
+The traditional Arelle sequence, all four steps now present:
+
+| step | state |
+|---|---|
+| load a legacy or XBRL Model entry point | works — `.xsd`, inline `.htm`, `.xml`, xBRL-JSON/CSV, OIM `.json`/`.cbor`, EDGAR ZIP |
+| validate after loading | works — on by default, Tools ▸ "Validate XBRL model on load" defers it |
+| display the Tk views | works — Concepts, Groups, Networks, Cubes, Facts, ... |
+| invoke the ixbrl-viewer when there is something to view | **`ViewerLaunch.py`** |
+
+`iXBRLViewerPlugin`'s own GUI launch (`guiRun`) builds a viewer *document* from a
+legacy inline `ModelXbrl` and does nothing for anything that is not
+`Type.INLINEXBRL`. A compiled model is not that, and does not need it: the
+XbrlModel overlay takes a *plain* document plus an OIM model, as
+`?xbrlModel=<model>` on the viewer URL (§1). So the work is staging, and
+`ViewerLaunch.stageForViewer` does it — the model, the document(s) it locates
+facts in, and the viewer bundle, in one directory.
+
+Three things it has to get right:
+
+- **Where the directory goes** follows Arelle's existing convention, the one
+  `EDGAR/render` uses (`setProcessingFolder` plus its reportsFolder resolution):
+  a subdirectory of the directory holding the entry file, or — when the entry
+  file is inside a zip, report package or taxonomy package — a *sibling* of the
+  archive, because `FileSource.basefile` is the archive's own path. A read-only
+  location falls back to the web cache directory for that URL, then to a temp
+  directory. Named `out`, as EDGAR's GUI viewer output is; settable through the
+  `xbrlModelViewerFolder` config key.
+- **The model must be portable.** `documentInfo.sourceMappings` is rewritten to
+  name the staged copy (`saveFiles(..., sourceUrlRewrite=...)`), so the viewer
+  resolves the document from the model and the directory is self-contained. As
+  loaded it holds an absolute local path, or the path of the archive.
+- **The whole bundle travels.** The viewer build is code-split; copying only
+  `ixbrlviewer.js` gives a viewer that loads and then fails to open a document,
+  with the cause visible only in the browser console.
+
+Triggered on load when the model has something to show a reader against — a
+sourceMapping naming a document *and* facts located in it (`hasViewableSource`).
+Tools ▸ "Open iXBRL Viewer on load" turns that off; Tools ▸ "View XBRL model in
+iXBRL Viewer" opens it on request.
+
+Measured, on the EDGAR filing ZIP: **2,146 bound fact overlays** over the inline
+document, from a single 8.9 MB compiled model with no separate taxonomy.
+
+The viewer bundle is located from the loaded `iXBRLViewerPlugin`, from the plugin
+configuration's `moduleURL` (so a viewer plugin that failed to load still
+provides its bundle), or from the `xbrlModelViewerBundleDir` config key.
+
+**Known interaction:** with both plugins active, `iXBRLViewerPlugin.guiRun` also
+fires on `CntlrWinMain.Xbrl.Loaded`. Its `processModel` is guarded by
+`isInlineDoc` and does nothing for a compiled model, but `generateViewer` is
+still called with an empty builder. Noise, not breakage; unverified in the GUI.
+
+### 8.3 Command line and API
+
+Complete for loading and saving; incomplete for what the saved artifact carries.
+
+```bash
+# filing (or ZIP, or .xsd, or factset) -> one self-contained compiled model
+arelleCmdLine --plugins XbrlModel -f <entry point> --saveOIMmodel model.json \
+    [--oimSaveMode full|prune|report]
+
+# ... or a servable directory: model + document(s) + viewer bundle
+arelleCmdLine --plugins "XbrlModel|<path>/iXBRLViewerPlugin" -f <entry point> \
+    --saveXbrlModelViewer out/
+```
+
+Validation runs first for either, whether or not `--validate` was given (§3.2).
+`--saveXbrlModelViewer` is the command-line half of §8.2 — the same staging, into
+a named directory, with no browser opened. Still missing: the verdicts
+themselves (§5).
+
+### 8.4 Tagging feedback from the viewer
+
+Nothing exists on the Arelle side. The viewer's tagger emits a journal and
+writes nothing else, by design; applying it is a separate step that belongs
+here. See §4 for the format and the four properties an applier must honour.
+
+The shape it wants is a CLI step alongside the others — journal in, updated
+model out, validated — which would complete the round trip: filing → model →
+viewable → tagged → model.

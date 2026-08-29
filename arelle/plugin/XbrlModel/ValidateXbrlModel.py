@@ -1432,6 +1432,14 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                 else:
                     domNwkObj._extendResolved = True
                     extendedDomClassQn = getattr(extendTargetObj, "root", None)
+                    # The extending relationships are added to extendTargetObj.relationships
+                    # below. relationships is Optional[NonemptySet], so a base domain network
+                    # that declares none carries None, not an empty set -- initialise it before
+                    # extension. (The same guard is in ValidateNetworkObjects for XbrlNetwork;
+                    # without it here the AttributeError propagates to xbrlModelValidator's
+                    # blanket handler, which abandons validation of the whole model.)
+                    if extendTargetObj.relationships is None:
+                        extendTargetObj.relationships = OrderedSet()
         elif not domNwkObj.name:
             compMdl.error("oimte:missingRequiredProperty",
                       _("The domain network object MUST have either a name or an extends, not neither."),

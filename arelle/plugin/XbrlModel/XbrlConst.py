@@ -63,6 +63,11 @@ builtInPrefixTaxonomies = { # these are in resources subdirectory
     "utr": "utr.json",
     "ref": "ref.json",
     "xbrltt": "transform-types.json",
+    # The SEC transformation registry, shipped alongside the standard one. Not an XBRL
+    # International spec taxonomy, but a legacy US report names its transforms in this namespace
+    # and a processor that cannot resolve them reports every such fact twice -- once for the
+    # unresolvable transformation QName and once for the untransformed text failing its datatype.
+    "ixt-sec": "sec-transform-types.json",
     "xbrlx": "xbrlx.json"
 }
 

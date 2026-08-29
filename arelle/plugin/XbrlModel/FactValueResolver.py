@@ -63,7 +63,7 @@ _XBRLTT_NS = _XBRL_NS + "/transform-types"
 # Transformation application (reuses arelle.FunctionIxt registry)
 # --------------------------------------------------------------------
 
-def applyTransformation(transformQn: Optional[QName], text: str) -> str:
+def applyTransformation(transformQn: Optional[QName], text: str, compMdl=None) -> str:
     """Apply an inline-XBRL or OIM transformation to ``text`` and return the
     transformed string. Returns ``text`` unchanged when no transformation is
     given or when the transformation is unknown / fails.
@@ -72,6 +72,14 @@ def applyTransformation(transformQn: Optional[QName], text: str) -> str:
     (the same registry the legacy inline-XBRL evaluator uses). For OIM
     ``xbrltt:*`` transformations we map onto the v5 ixt table, which uses
     matching hyphenated local names (e.g. ``num-dot-decimal``).
+
+    A registry that is NOT built in -- SEC's ``ixt-sec:*`` -- is contributed by a plugin through
+    the ``ModelManager.LoadCustomTransforms`` hook, which is how the EDGAR transform plugin
+    supplies boolballotbox, numwordsen, duryear and the rest. Core's own inline evaluator falls
+    back to ``modelManager.customTransforms`` for exactly this (ModelInstanceObject), and so must
+    this: without it a US filing's value is silently left as its untransformed document text --
+    "☒" where xs:boolean is expected -- which then fails its datatype for a reason that points
+    at the value rather than at the missing transform.
     """
     if transformQn is None or text is None:
         return text
@@ -83,11 +91,29 @@ def applyTransformation(transformQn: Optional[QName], text: str) -> str:
         fnTable = ixtNamespaceFunctions.get(ixtNamespaces["ixt v5"])
     fn = fnTable.get(ln) if fnTable else None
     if fn is None:
+        fn = _customTransform(transformQn, compMdl)
+    if fn is None:
         return text
     try:
         return fn(text)
     except Exception:
         return text
+
+
+def _customTransform(transformQn, compMdl):
+    """A plugin-contributed transformation function for ``transformQn``, or None.
+
+    The registry is built lazily by ModelManager.loadCustomTransforms() from the
+    ``ModelManager.LoadCustomTransforms`` hook, so it is empty until something asks for it.
+    """
+    modelManager = getattr(getattr(compMdl, "modelXbrl", compMdl), "modelManager", None)
+    if modelManager is None:
+        return None
+    try:
+        modelManager.loadCustomTransforms()
+        return (modelManager.customTransforms or {}).get(transformQn)
+    except Exception:
+        return None
 
 
 def _applyScaleAndSign(text: Optional[str],
@@ -446,7 +472,7 @@ def validateAndResolveValueSources(
                 # then apply scale (power of 10) and sign. Per spec these
                 # adjustments apply only to values sourced from html/pdf/etc.
                 # via valueSources -- not to literal factValue.value.
-                resolvedText = applyTransformation(transformQn, text)
+                resolvedText = applyTransformation(transformQn, text, compMdl)
                 resolvedText = _applyScaleAndSign(
                     resolvedText,
                     getattr(factValue, "scale", None),
@@ -575,34 +601,41 @@ def _resolveHtmlValueSource(source, locatorType, factValue, fact, compMdl) -> Op
     url = _resolveSourceUrl(factValue, source, compMdl)
     if not url:
         return None
-    if not _fileSourceCanRead(compMdl, url):
-        return None
-    parsed = _htmlDocFor(compMdl, url)
-    if parsed is None:
-        return None
-    doc, idMap = parsed
-
     props = _propertyValues(source)
-    # element-id lookup (O(1) against the cached id map)
-    v = _firstValue(props.get("htmlElementId"))
-    if v:
-        el = idMap.get(v)
-        if el is not None:
-            return el.text_content()
-    # data-attribute lookup
-    dataAttr = _firstValue(props.get("htmlDataAttribute"))
-    if dataAttr:
-        if "=" in dataAttr:
-            attrName, _, attrVal = dataAttr.partition("=")
-            xpath = f"//*[@{attrName}={_xpathLiteral(attrVal)}]"
-        else:
-            xpath = f"//*[@{dataAttr}]"
-        try:
-            matches = doc.xpath(xpath)
-        except Exception:
-            matches = []
-        if matches:
-            return matches[0].text_content()
+    # A report entry point loaded from an archive binds its sourceMapping to the ARCHIVE so that
+    # the report package's catalog remappings apply and the whole document set is discovered. An
+    # archive cannot be read as a document, so resolving against the mapping URL alone left every
+    # value of such a report unresolved -- silently, since an unresolvable source is "deferred".
+    # reportDocumentUrls yields the document(s) the entry point named; trying each in turn also
+    # gives a multi-document report the document that actually holds the locator.
+    from .FactPipeline import reportDocumentUrls
+    for docUrl in reportDocumentUrls(compMdl, url):
+        if not _fileSourceCanRead(compMdl, docUrl):
+            continue
+        parsed = _htmlDocFor(compMdl, docUrl)
+        if parsed is None:
+            continue
+        doc, idMap = parsed
+        # element-id lookup (O(1) against the cached id map)
+        v = _firstValue(props.get("htmlElementId"))
+        if v:
+            el = idMap.get(v)
+            if el is not None:
+                return el.text_content()
+        # data-attribute lookup
+        dataAttr = _firstValue(props.get("htmlDataAttribute"))
+        if dataAttr:
+            if "=" in dataAttr:
+                attrName, _, attrVal = dataAttr.partition("=")
+                xpath = f"//*[@{attrName}={_xpathLiteral(attrVal)}]"
+            else:
+                xpath = f"//*[@{dataAttr}]"
+            try:
+                matches = doc.xpath(xpath)
+            except Exception:
+                matches = []
+            if matches:
+                return matches[0].text_content()
     return None
 
 
