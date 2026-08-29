@@ -9,6 +9,7 @@ Where each error prefix is defined (authoritative local sources):
   oimte:  / oime:   -> oim-taxonomy/oim-taxonomy.md          (plain text mention)
   oimce:            -> oim-common/oim-common.xml              (<error id="localName">)
   calc11e:          -> oim-taxonomy/spec-taxonomies/calc11e.json  (member "name" values)
+  oimtc:            -> oim-taxonomy/spec-taxonomies/oimtc.json     (member "name" values)
 
 For any undefined code the report also checks whether the SAME localName is
 defined under a different prefix (a prefix-mismatch, e.g. an oimte:* calculation
@@ -27,6 +28,10 @@ TEST_INDEX = os.path.join(SPECS, "oim-taxonomy/conformance/xbrl-model-tests.xml"
 TAXONOMY_MD = os.path.join(SPECS, "oim-taxonomy/oim-taxonomy.md")
 OIM_COMMON_XML = os.path.join(SPECS, "oim-common/oim-common.xml")
 CALC11E_JSON = os.path.join(SPECS, "oim-taxonomy/spec-taxonomies/calc11e.json")
+# oimtc codes are defined by the calculation error taxonomy rather than by prose in
+# oim-taxonomy.md, because the calculation relationships they belong to are still a
+# proposal (summation-item-relationship-proposal.md) rather than part of the spec text.
+OIMTC_JSON = os.path.join(SPECS, "oim-taxonomy/spec-taxonomies/oimtc.json")
 
 # --- collect code -> {test file ids} from the generated test index ---
 variationRe = re.compile(r'<variation id="([^"]+)">.*?<result>(.*?)</result>', re.S)
@@ -46,6 +51,9 @@ oimceIds = set(re.findall(r'<error id="([^"]+)"', open(OIM_COMMON_XML).read()))
 calc = json.load(open(CALC11E_JSON))
 calc11eLocalNames = {m["name"].split(":", 1)[1]
                      for m in calc["xbrlModel"].get("members", ()) if m.get("name")}
+oimtc = json.load(open(OIMTC_JSON))
+oimtcLocalNames = {m["name"].split(":", 1)[1]
+                   for m in oimtc["xbrlModel"].get("members", ()) if m.get("name")}
 
 def isDefined(code):
     prefix, localName = code.split(":", 1)
@@ -55,6 +63,8 @@ def isDefined(code):
         return localName in oimceIds or code in taxonomyText
     if prefix == "calc11e":
         return localName in calc11eLocalNames
+    if prefix == "oimtc":
+        return localName in oimtcLocalNames
     return True  # non-OIM prefixes (e.g. arelle:) not checked here
 
 def definedElsewhere(localName):
@@ -62,6 +72,8 @@ def definedElsewhere(localName):
     hints = []
     if localName in calc11eLocalNames:
         hints.append(f"calc11e:{localName}")
+    if localName in oimtcLocalNames:
+        hints.append(f"oimtc:{localName}")
     if localName in oimceIds:
         hints.append(f"oimce:{localName}")
     if re.search(r'[a-z0-9]+:' + re.escape(localName), taxonomyText):
@@ -71,12 +83,12 @@ def definedElsewhere(localName):
 # --- report ---
 undefinedByPrefix = defaultdict(list)
 for code in sorted(codeFiles):
-    if code.split(":", 1)[0] in ("oimte", "oime", "oimce", "calc11e") and not isDefined(code):
+    if code.split(":", 1)[0] in ("oimte", "oime", "oimce", "oimtc", "calc11e") and not isDefined(code):
         undefinedByPrefix[code.split(":", 1)[0]].append(code)
 
 print(f"Checked {TEST_INDEX}")
 total = 0
-for prefix in ("oimte", "oime", "oimce", "calc11e"):
+for prefix in ("oimte", "oime", "oimce", "oimtc", "calc11e"):
     used = sorted(c for c in codeFiles if c.startswith(prefix + ":"))
     undef = undefinedByPrefix.get(prefix, [])
     total += len(undef)
