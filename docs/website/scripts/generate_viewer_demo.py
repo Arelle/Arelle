@@ -16,8 +16,8 @@ from pathlib import Path
 import regex
 
 
-TAXONOMY_PACKAGE_FILENAME = "arelle-viewer-demo.zip"
-S3_PACKAGE_BUCKET = "https://arelle-public.s3.us-east-1.amazonaws.com/ci/packages/"
+TAXONOMY_PACKAGE_FILENAME = "The_2023_Taxonomy_suite_v1.0.1.zip"
+S3_PACKAGE_BUCKET = "https://arelle-public.s3.us-east-1.amazonaws.com/ci/taxonomy_packages/"
 TAXONOMY_PACKAGE_URL = S3_PACKAGE_BUCKET + TAXONOMY_PACKAGE_FILENAME
 
 
@@ -62,14 +62,14 @@ def validate_viewer(viewer_path: Path) -> None:
 def generate_viewer(base_url: str) -> Path:
     site_root = Path(__file__).resolve().parents[1]
     repo_root = site_root.parent.parent
-    transform_plugin = repo_root / "arelle" / "plugin" / "EDGAR" / "transform"
     filing_directory = site_root / "demo" / "filing"
+    demo_ixbrl_report = filing_directory / "04958719_aa_2026-07-08.xhtml"
     package_directory = site_root / "demo" / "package"
     viewer_config_path = site_root / "demo" / "ixbrlviewer.config.json"
     publish_directory = site_root / "public" / "demo" / "ixbrl-viewer"
     viewer_path = publish_directory / "ixbrlviewer.html"
-    if not transform_plugin.is_dir():
-        raise ValueError(f"EDGAR transform plugin missing: {transform_plugin}")
+    if not demo_ixbrl_report.is_file():
+        raise ValueError(f"Demo iXBRL report missing: {demo_ixbrl_report}")
     if not viewer_config_path.is_file():
         raise ValueError(f"Viewer config missing: {viewer_config_path}")
 
@@ -80,17 +80,16 @@ def generate_viewer(base_url: str) -> Path:
 
     taxonomy_package = _get_taxonomy_package(package_directory)
     shutil.rmtree(publish_directory, ignore_errors=True)
-    publish_directory.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(filing_directory, publish_directory)
+    publish_directory.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(viewer_config_path, publish_directory / viewer_config_path.name)
 
     options = RuntimeOptions(
-        entrypointFile=str(publish_directory / "wk-20251231.htm"),
+        entrypointFile=str(demo_ixbrl_report),
         internetConnectivity="offline",
         logFile="logToStructuredMessage",
         logLevel="warning",
         packages=[str(taxonomy_package)],
-        plugins="ixbrl-viewer|EDGAR/transform",
+        plugins="ixbrl-viewer",
         pluginOptions={
             "highlight_facts_on_startup": True,
             "saveViewerDest": str(publish_directory),

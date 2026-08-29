@@ -1,0 +1,714 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><html xmlns="http://www.w3.org/1999/xhtml" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:ix="http://www.xbrl.org/2013/inlineXBRL" xmlns:ixt2="http://www.xbrl.org/inlineXBRL/transformation/2011-07-31" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:uk-bus="http://xbrl.frc.org.uk/cd/2023-01-01/business" xmlns:uk-core="http://xbrl.frc.org.uk/fr/2023-01-01/core" xmlns:uk-direp="http://xbrl.frc.org.uk/reports/2023-01-01/direp" xmlns:xbrldi="http://xbrl.org/2006/xbrldi" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink">
+
+<head>
+    <meta content="Companies House WebFiling - Micro-entity Accounts Form" name="generator"/>
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
+    <style type="text/css">
+    
+      body {
+     font-family: "Times New Roman", Times, Serif;
+   }
+
+   tr,
+   td,
+   th,
+   tbody {
+     padding: 0;
+     margin: 0;
+   }
+
+   .hidden {
+     display: none;
+   }
+
+   div.pagebreak {
+     page-break-after: always;
+   }
+
+   div.accountspage {
+     width: 100%;
+   }
+
+   div.titlepage {
+     font-weight: bold;
+     margin-top: 1em;
+     text-align: center;
+   }
+
+   div.accountsheader {
+     font-weight: bold;
+     width: 100%;
+     display: block;
+   }
+
+   span.left {
+     float: left;
+     width: 65%;
+   }
+
+   span.right {
+     float: right;
+     width: 35%;
+     text-align: right;
+   }
+
+   .clear {
+     clear: both;
+   }
+
+   #balancesheet {
+     width: 100%;
+     display: block;
+   }
+
+   #balancesheet table {
+     width: 80%;
+     border-collapse: separate;
+     margin-left: 10%;
+     border-spacing: 7px;
+     margin-top: -14px;
+     padding-top: 0;
+   }
+
+   #balancesheet th,
+   .accountspage th {
+     text-align: left;
+   }
+
+   #balancesheet .indent {
+     padding-left: 10px;
+   }
+
+   #balancesheet .figure,
+   .accountspage .figure,
+   td.number {
+     text-align: right;
+     padding: 0 5px 0 0;
+     white-space: nowrap;
+   }
+
+   .accountspage table td.figure span.endnegmark,
+   td.number span.endnegmark {
+     margin-right: -4px;
+   }
+
+   td.row-label {
+     font-weight: bold;
+   }
+
+   .accountspage .total,
+   #balancesheet .total {
+     border-bottom: 3px double #000000;
+     border-top: 1px solid #000;
+   }
+
+   .accountspage .subtotal,
+   #balancesheet .subtotal {
+     border-bottom: 1px solid #000000;
+     border-top: 1px solid #000;
+   }
+
+   .accountspage .totalNoTop,
+   #balancesheet .totalNoTop {
+     border-bottom: 3px double #000000;
+   }
+
+   .accountspage table th.columnHeading {
+     font-style: italic;
+     font-weight: normal;
+     text-align: right;
+   }
+
+   .accountspage table {
+     width: 94%;
+   }
+
+   .noteSummary .right {
+     text-align: right;
+   }
+
+   #balancesheet table .notefigure {
+     text-align: center;
+   }
+
+   h1 {
+     font-size: 100%;
+     font-weight: bold;
+     color: black;
+     text-align: center;
+   }
+
+   h2 {
+     font-size: 100%;
+     font-weight: bold;
+     margin: 0.2em 0 0.5em 0;
+     background: none;
+   }
+
+   h2.middle {
+     text-align: center;
+   }
+
+   h3 {
+     font-size: 100%;
+     font-weight: bold;
+     margin: 0.5em 0
+   }
+
+   span.officername {
+     font-weight: bold;
+   }
+
+   #balancesheet tr.heading td {
+     padding-top: 1em;
+   }
+
+   #balancesheet tr.separator th {
+     margin-top: 0.8em;
+   }
+
+   .keepTogether {
+     page-break-inside: avoid
+   }
+
+   #statements ol {
+     list-style-type: lower-alpha;
+   }
+
+   th.normal {
+     font-weight: normal;
+   }
+
+   #notes .note {
+     margin-left: 1cm;
+     margin-bottom: 20px;
+   }
+
+   #notes .note span.note-number {
+     margin-left: -1cm;
+     width: 1cm;
+     display: inline-block;
+   }
+
+   #footnotes {
+     margin-top: 20px
+   }
+
+   #footnotes ul {
+     margin-top: 7px
+   }
+
+   #footnotes ul li {
+     margin-bottom: -9px
+   }
+
+   table.note {
+     width: auto;
+   }
+
+   .accountspage table.noteSummary {
+     width: 50%;
+   }
+
+   .accountspage .indent {
+     padding-left: 10px;
+   }
+
+   @media screen,
+   projection,
+   tv {
+     body {
+       margin: 2% 4% 2% 4%;
+       background-color: gray;
+     }
+     div.accountspage {
+       background-color: white;
+       padding: 2em;
+
+       /* START CSS Hack for cross browser min height */
+       min-height: 29.7cm;
+       /*A4 Dimensions */
+       height: auto !important;
+       height: 29.7cm;
+       /* A4 Dimensions */
+       /* END CSS Hack */
+       width: 21cm;
+       /*A4 Dimensions*/
+       margin: 2em 0;
+     }
+     div.titlepage {
+       padding: 5em 2em 2em 2em;
+     }
+   }
+    
+    </style>
+    <title>Micro-entity Accounts - XBRL UK LIMITED</title>
+</head>
+<body>
+  
+  <div class="hidden">
+  <ix:header>
+    <ix:hidden>
+      <ix:nonNumeric contextRef="CY" name="uk-bus:NameProductionSoftware">Companies House</ix:nonNumeric>
+      <ix:nonNumeric contextRef="icur1" name="uk-bus:StartDateForPeriodCoveredByReport">2025-07-01</ix:nonNumeric>
+      <ix:nonNumeric contextRef="icur1" name="uk-bus:EndDateForPeriodCoveredByReport">2026-06-30</ix:nonNumeric>
+      <ix:nonNumeric contextRef="dcur1" name="uk-core:DirectorSigningFinancialStatements"/>
+      <ix:nonNumeric contextRef="dcur2" name="uk-core:DirectorSigningFinancialStatements"/>
+      <ix:nonNumeric contextRef="dcur4" name="uk-bus:EntityDormantTruefalse">false</ix:nonNumeric>
+      <ix:nonNumeric contextRef="dcur5" name="uk-bus:AccountingStandardsApplied"/>
+      <ix:nonNumeric contextRef="dcur6" name="uk-bus:AccountsType"/>
+      <ix:nonNumeric contextRef="dcur7" name="uk-bus:AccountsStatusAuditedOrUnaudited"/>
+      <ix:nonNumeric contextRef="dcur4" name="uk-bus:EntityTradingStatus"/>
+    </ix:hidden>
+    <ix:references>
+      <link:schemaRef xlink:href="https://xbrl.frc.org.uk/FRS-102/2023-01-01/FRS-102-2023-01-01.xsd" xlink:type="simple"/>
+    </ix:references>
+    <ix:resources>
+      <xbrli:context id="icur1">
+        <xbrli:entity>
+          <xbrli:identifier scheme="http://www.companieshouse.gov.uk/">04958719</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+          <xbrli:instant>2026-06-30</xbrli:instant>
+        </xbrli:period>
+      </xbrli:context>
+        <xbrli:context id="CY">
+          <xbrli:entity>
+              <xbrli:identifier scheme="http://www.companieshouse.gov.uk/">04958719</xbrli:identifier>
+          </xbrli:entity>
+          <xbrli:period>
+              <xbrli:startDate>2025-07-01</xbrli:startDate>
+              <xbrli:endDate>2026-06-30</xbrli:endDate>
+          </xbrli:period>
+      </xbrli:context>
+          <xbrli:context id="PY">
+            <xbrli:entity>
+              <xbrli:identifier scheme="http://www.companieshouse.gov.uk/">04958719</xbrli:identifier>
+            </xbrli:entity>
+            <xbrli:period>
+              <xbrli:startDate>2024-07-01</xbrli:startDate>
+              <xbrli:endDate>2025-06-30</xbrli:endDate>
+            </xbrli:period>
+          </xbrli:context>
+      <xbrli:context id="dcur1">
+        <xbrli:entity>
+          <xbrli:identifier scheme="http://www.companieshouse.gov.uk/">04958719</xbrli:identifier>
+          <xbrli:segment>
+            <xbrldi:explicitMember dimension="uk-bus:EntityOfficersDimension">uk-bus:Director1</xbrldi:explicitMember>
+          </xbrli:segment>
+        </xbrli:entity>
+        <xbrli:period>
+          <xbrli:startDate>2025-07-01</xbrli:startDate>
+          <xbrli:endDate>2026-06-30</xbrli:endDate>
+        </xbrli:period>
+      </xbrli:context>
+      <xbrli:context id="dcur2">
+        <xbrli:entity>
+          <xbrli:identifier scheme="http://www.companieshouse.gov.uk/">04958719</xbrli:identifier>
+          <xbrli:segment>
+            <xbrldi:explicitMember dimension="uk-bus:EntityOfficersDimension">uk-bus:Director2</xbrldi:explicitMember>
+          </xbrli:segment>
+        </xbrli:entity>
+        <xbrli:period>
+          <xbrli:startDate>2025-07-01</xbrli:startDate>
+          <xbrli:endDate>2026-06-30</xbrli:endDate>
+        </xbrli:period>
+      </xbrli:context>
+      <xbrli:context id="dcur4">
+        <xbrli:entity>
+          <xbrli:identifier scheme="http://www.companieshouse.gov.uk/">04958719</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+          <xbrli:startDate>2025-07-01</xbrli:startDate>
+          <xbrli:endDate>2026-06-30</xbrli:endDate>
+        </xbrli:period>
+      </xbrli:context>
+      <xbrli:context id="dcur5">
+        <xbrli:entity>
+          <xbrli:identifier scheme="http://www.companieshouse.gov.uk/">04958719</xbrli:identifier>
+          <xbrli:segment>
+            <xbrldi:explicitMember dimension="uk-bus:AccountingStandardsDimension">uk-bus:Micro-entities</xbrldi:explicitMember>
+          </xbrli:segment>
+        </xbrli:entity>
+        <xbrli:period>
+          <xbrli:startDate>2025-07-01</xbrli:startDate>
+          <xbrli:endDate>2026-06-30</xbrli:endDate>
+        </xbrli:period>
+      </xbrli:context>
+      <xbrli:context id="dcur6">
+        <xbrli:entity>
+          <xbrli:identifier scheme="http://www.companieshouse.gov.uk/">04958719</xbrli:identifier>
+          <xbrli:segment>
+            <xbrldi:explicitMember dimension="uk-bus:AccountsTypeDimension">uk-bus:FullAccounts</xbrldi:explicitMember>
+          </xbrli:segment>
+        </xbrli:entity>
+        <xbrli:period>
+          <xbrli:startDate>2025-07-01</xbrli:startDate>
+          <xbrli:endDate>2026-06-30</xbrli:endDate>
+        </xbrli:period>
+      </xbrli:context>
+      <xbrli:context id="dcur7">
+        <xbrli:entity>
+          <xbrli:identifier scheme="http://www.companieshouse.gov.uk/">04958719</xbrli:identifier>
+          <xbrli:segment>
+            <xbrldi:explicitMember dimension="uk-bus:AccountsStatusDimension">uk-bus:AuditExempt-NoAccountantsReport</xbrldi:explicitMember>
+          </xbrli:segment>
+        </xbrli:entity>
+        <xbrli:period>
+          <xbrli:startDate>2025-07-01</xbrli:startDate>
+          <xbrli:endDate>2026-06-30</xbrli:endDate>
+        </xbrli:period>
+      </xbrli:context>
+      <xbrli:context id="iprev8">
+        <xbrli:entity>
+          <xbrli:identifier scheme="http://www.companieshouse.gov.uk/">04958719</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+          <xbrli:instant>2025-06-30</xbrli:instant>
+        </xbrli:period>
+      </xbrli:context>
+      <xbrli:context id="icur9">
+        <xbrli:entity>
+          <xbrli:identifier scheme="http://www.companieshouse.gov.uk/">04958719</xbrli:identifier>
+          <xbrli:segment>
+            <xbrldi:explicitMember dimension="uk-core:MaturitiesOrExpirationPeriodsDimension">uk-core:WithinOneYear</xbrldi:explicitMember>
+          </xbrli:segment>
+        </xbrli:entity>
+        <xbrli:period>
+          <xbrli:instant>2026-06-30</xbrli:instant>
+        </xbrli:period>
+      </xbrli:context>
+      <xbrli:context id="iprev10">
+        <xbrli:entity>
+          <xbrli:identifier scheme="http://www.companieshouse.gov.uk/">04958719</xbrli:identifier>
+          <xbrli:segment>
+            <xbrldi:explicitMember dimension="uk-core:MaturitiesOrExpirationPeriodsDimension">uk-core:WithinOneYear</xbrldi:explicitMember>
+          </xbrli:segment>
+        </xbrli:entity>
+        <xbrli:period>
+          <xbrli:instant>2025-06-30</xbrli:instant>
+        </xbrli:period>
+      </xbrli:context>
+      <xbrli:context id="icur11">
+        <xbrli:entity>
+          <xbrli:identifier scheme="http://www.companieshouse.gov.uk/">04958719</xbrli:identifier>
+          <xbrli:segment>
+            <xbrldi:explicitMember dimension="uk-core:MaturitiesOrExpirationPeriodsDimension">uk-core:AfterOneYear</xbrldi:explicitMember>
+          </xbrli:segment>
+        </xbrli:entity>
+        <xbrli:period>
+          <xbrli:instant>2026-06-30</xbrli:instant>
+        </xbrli:period>
+      </xbrli:context>
+      <xbrli:context id="CY_otherpolicy1">
+        <xbrli:entity>
+          <xbrli:identifier scheme="http://www.companieshouse.gov.uk/">04958719</xbrli:identifier>
+          <xbrli:segment>
+              <xbrldi:typedMember dimension="uk-core:X-OtherSpecificAccountingPolicyGroupingDimension">
+                <uk-core:XOtherSpecificAccountingPolicyGroupingDimension.domain>1</uk-core:XOtherSpecificAccountingPolicyGroupingDimension.domain>
+              </xbrldi:typedMember>
+          </xbrli:segment>
+        </xbrli:entity>
+        <xbrli:period>
+          <xbrli:startDate>2025-07-01</xbrli:startDate>
+          <xbrli:endDate>2026-06-30</xbrli:endDate>
+        </xbrli:period>
+      </xbrli:context>
+      <xbrli:context id="CY_otherpolicy2">
+        <xbrli:entity>
+          <xbrli:identifier scheme="http://www.companieshouse.gov.uk/">04958719</xbrli:identifier>
+          <xbrli:segment>
+              <xbrldi:typedMember dimension="uk-core:X-OtherSpecificAccountingPolicyGroupingDimension">
+                <uk-core:XOtherSpecificAccountingPolicyGroupingDimension.domain>2</uk-core:XOtherSpecificAccountingPolicyGroupingDimension.domain>
+              </xbrldi:typedMember>
+          </xbrli:segment>
+        </xbrli:entity>
+        <xbrli:period>
+          <xbrli:startDate>2025-07-01</xbrli:startDate>
+          <xbrli:endDate>2026-06-30</xbrli:endDate>
+        </xbrli:period>
+      </xbrli:context>
+      <xbrli:context id="iprev12">
+        <xbrli:entity>
+          <xbrli:identifier scheme="http://www.companieshouse.gov.uk/">04958719</xbrli:identifier>
+          <xbrli:segment>
+            <xbrldi:explicitMember dimension="uk-core:MaturitiesOrExpirationPeriodsDimension">uk-core:AfterOneYear</xbrldi:explicitMember>
+          </xbrli:segment>
+        </xbrli:entity>
+        <xbrli:period>
+          <xbrli:instant>2025-06-30</xbrli:instant>
+        </xbrli:period>
+      </xbrli:context>
+      <xbrli:unit id="GBP">
+        <xbrli:measure>iso4217:GBP</xbrli:measure>
+      </xbrli:unit>
+    </ix:resources>
+  </ix:header>
+</div>
+
+  
+  <div class="titlepage accountspage pagebreak title">
+  <p>Registered Number <ix:nonNumeric contextRef="dcur4" name="uk-bus:UKCompaniesHouseRegisteredNumber">04958719</ix:nonNumeric></p>
+  <p><ix:nonNumeric contextRef="dcur4" name="uk-bus:EntityCurrentLegalOrRegisteredName">XBRL UK LIMITED</ix:nonNumeric></p>
+  <p>Micro-entity Accounts</p>
+  <p>30 June 2026</p>
+  <p class="dottedLine"/>
+
+</div>
+
+<div class="accountspage pagebreak">
+  <div class="accountsheader">
+    <h2 class="print">
+				<!--[if IE]><span class="left"><![endif]-->XBRL UK LIMITED<!--[if IE]></span><![endif]-->
+            	<span class="right">Registered Number 04958719</span>
+			</h2>
+  </div>
+
+  <div id="balancesheet">
+    <h2 class="middle">Micro-entity Balance Sheet as at   <ix:nonNumeric contextRef="icur1" format="ixt2:datedaymonthyearen" name="uk-bus:BalanceSheetDate">30 June 2026</ix:nonNumeric></h2>
+
+    <p class="print dottedLine"/>
+
+    <table>
+      <tr>
+        <th/>
+        <th class="notefigure columnHeading">Notes</th>
+        <th class="column-1 figure columnHeading" id="currentYear">2026</th>
+        
+            <th class="column-1 figure columnHeading" id="previousYear">2025</th>
+        
+      </tr>
+      <tr>
+        <th/>
+        <th/>
+        <th class="figure columnHeading" id="currentCurrencySymbol">£</th>
+        
+        <th class="figure columnHeading" id="previousCurrencySymbol">£</th>
+        
+      </tr>
+
+      
+
+      
+
+      
+      <tr>
+        <td class="row-label">Current Assets</td>
+        <td class="row-notes"/>
+        <td class="number  ">
+          <div>
+            <ix:nonFraction contextRef="icur1" decimals="2" format="ixt2:numdotdecimal" name="uk-core:CurrentAssets" unitRef="GBP">115,238</ix:nonFraction>
+          </div>
+        </td>
+        
+        <td class="number  ">
+          <div>
+            <ix:nonFraction contextRef="iprev8" decimals="2" format="ixt2:numdotdecimal" name="uk-core:CurrentAssets" unitRef="GBP">96,917</ix:nonFraction>
+          </div>
+        </td>
+        
+      </tr>
+      
+
+      
+
+      
+
+      
+      <tr class="subtotal">
+        <td class="row-label">Net current assets (liabilities)</td>
+        <td class="row-notes"/>
+        <td class="number subtotal ">
+          <div>
+            <ix:nonFraction contextRef="icur1" decimals="2" format="ixt2:numdotdecimal" name="uk-core:NetCurrentAssetsLiabilities" unitRef="GBP">115,238</ix:nonFraction>
+          </div>
+        </td>
+        
+        <td class="number subtotal ">
+          <div>
+            <ix:nonFraction contextRef="iprev8" decimals="2" format="ixt2:numdotdecimal" name="uk-core:NetCurrentAssetsLiabilities" unitRef="GBP">96,917</ix:nonFraction>
+          </div>
+        </td>
+      
+      </tr>
+    
+
+      
+      <tr class="subtotal">
+        <td class="row-label">Total assets less current liabilities</td>
+        <td class="row-notes"/>
+        <td class="number subtotal ">
+          <div>
+            <ix:nonFraction contextRef="icur1" decimals="2" format="ixt2:numdotdecimal" name="uk-core:TotalAssetsLessCurrentLiabilities" unitRef="GBP">115,238</ix:nonFraction>
+          </div>
+        </td>
+        
+        <td class="number subtotal ">
+          <div>
+            <ix:nonFraction contextRef="iprev8" decimals="2" format="ixt2:numdotdecimal" name="uk-core:TotalAssetsLessCurrentLiabilities" unitRef="GBP">96,917</ix:nonFraction>
+          </div>
+        </td>
+      
+      </tr>
+      
+
+      
+
+      
+      <tr>
+        <td class="row-label">Provisions for liabilities</td>
+        <td class="row-notes"/>
+        <td class="number  ">
+          <div>
+            (<ix:nonFraction contextRef="icur1" decimals="2" format="ixt2:numdotdecimal" name="uk-core:ProvisionsForLiabilitiesBalanceSheetSubtotal" unitRef="GBP">4,436</ix:nonFraction><span class="endnegmark">)</span>
+            </div>
+        </td>
+        
+        <td class="number  ">
+          <div>
+            (<ix:nonFraction contextRef="iprev8" decimals="2" format="ixt2:numdotdecimal" name="uk-core:ProvisionsForLiabilitiesBalanceSheetSubtotal" unitRef="GBP">4,165</ix:nonFraction><span class="endnegmark">)</span>
+          </div>
+        </td>
+        
+      </tr>
+      
+
+      
+      <tr>
+        <td class="row-label">Accruals and deferred income</td>
+        <td class="row-notes"/>
+        <td class="number  ">
+          <div>
+            <ix:nonFraction contextRef="icur1" decimals="2" format="ixt2:numdotdecimal" name="uk-core:AccruedLiabilitiesNotExpressedWithinCreditorsSubtotal" unitRef="GBP">0</ix:nonFraction>
+            </div>
+        </td>
+        
+        <td class="number  ">
+          <div>
+            (<ix:nonFraction contextRef="iprev8" decimals="2" format="ixt2:numdotdecimal" name="uk-core:AccruedLiabilitiesNotExpressedWithinCreditorsSubtotal" unitRef="GBP">100</ix:nonFraction><span class="endnegmark">)</span>
+            </div>
+        </td>
+        
+      </tr>
+      
+
+      
+      <tr class="total">
+        <td class="row-label">Total net assets (liabilities)</td>
+        <td class="row-notes"/>
+        <td class="number total ">
+          <div>
+            <ix:nonFraction contextRef="icur1" decimals="2" format="ixt2:numdotdecimal" name="uk-core:NetAssetsLiabilities" unitRef="GBP">110,802</ix:nonFraction>
+          </div>
+        </td>
+        
+        <td class="number total ">
+          <div>
+            <ix:nonFraction contextRef="iprev8" decimals="2" format="ixt2:numdotdecimal" name="uk-core:NetAssetsLiabilities" unitRef="GBP">92,652</ix:nonFraction>
+          </div>
+        </td>
+        
+      </tr>
+      
+
+      
+
+    
+      <tr class="total">
+        <td class="row-label">Reserves</td>
+        <td class="row-notes"/>
+        <td class="number total ">
+          <div>
+            <ix:nonFraction contextRef="icur1" decimals="2" format="ixt2:numdotdecimal" name="uk-core:Equity" unitRef="GBP">110,802</ix:nonFraction>
+          </div>
+        </td>
+        
+        <td class="number total ">
+          <div>
+            <ix:nonFraction contextRef="iprev8" decimals="2" format="ixt2:numdotdecimal" name="uk-core:Equity" unitRef="GBP">92,652</ix:nonFraction>
+          </div>
+        </td>
+        
+      </tr>
+    
+    </table>
+  </div>
+
+
+  <div class="keepTogether">
+    <div id="statements">
+      <ul class="lower-alpha">
+        <li id="fullExempt-statement">
+          <ix:nonNumeric contextRef="dcur4" name="uk-direp:StatementThatCompanyEntitledToExemptionFromAuditUnderSection477CompaniesAct2006RelatingToSmallCompanies">For the year ending 30 June 2026 the company was entitled to exemption under section 477 of the Companies Act 2006 relating to small companies.</ix:nonNumeric>
+        </li>
+        <li id="auditExempt-statement">
+          <ix:nonNumeric contextRef="dcur4" name="uk-direp:StatementThatMembersHaveNotRequiredCompanyToObtainAnAudit">The members have not required the company to obtain an audit in accordance with section 476 of the Companies Act 2006.</ix:nonNumeric>
+        </li>
+        <li id="directorsResponsibilities-statement">
+          <ix:nonNumeric contextRef="dcur4" name="uk-direp:StatementThatDirectorsAcknowledgeTheirResponsibilitiesUnderCompaniesAct">The directors acknowledge their responsibilities for complying with the requirements of the Companies Act 2006 with respect to accounting records and the preparation of accounts.</ix:nonNumeric>
+        </li>
+        <li id="smallCompany-statement">
+          <ix:nonNumeric contextRef="dcur4" name="uk-direp:StatementThatAccountsHaveBeenPreparedInAccordanceWithProvisionsSmallCompaniesRegime">The accounts have been prepared in accordance with the micro-entity provisions and delivered in accordance with the provisions applicable to companies subject to the small companies regime.</ix:nonNumeric>
+        </li>
+      </ul>
+    </div>
+
+    <div id="approval">
+      <p>Approved by the Board on
+        <ix:nonNumeric contextRef="icur1" format="ixt2:datedaymonthyearen" name="uk-core:DateAuthorisationFinancialStatementsForIssue">8 July 2026</ix:nonNumeric>
+      </p>
+      <p>And signed on their behalf by:<br/>
+        
+        <span class="officername" id="officername_1">  <ix:nonNumeric contextRef="dcur1" name="uk-bus:NameEntityOfficer">Philip Allen</ix:nonNumeric>, Director</span><br/>
+      </p>
+    </div>
+  </div>
+
+  
+
+</div>
+
+<div class="accountspage" id="notes">
+  <div class="accountsheader">
+    <h2 class="print">
+    <!--[if IE]><span class="left"><![endif]-->XBRL UK LIMITED<!--[if IE]></span><![endif]-->
+      <span class="right">Registered Number 04958719</span>
+    </h2>
+  <p class="print spacer clear"/>
+    </div>
+    <h2>Notes to the Micro-entity Accounts for the period ended 30 June 2026</h2>
+    
+        <div class="note" id="note-borrowings">
+<span class="note-number">1</span><strong><!-- DS:NOCHANGE -->Employees<!-- DE:NOCHANGE --></strong><br/>
+    <table class="balancesheet">
+        <thead>
+            <tr>
+                <th/>
+                <th class="figure columnHeading" style="width:72px;">2026</th>
+                
+                    <th class="figure columnHeading" style="width:72px;">2025</th>
+                
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="figures">
+                <td id="employeesNote-label">Average number of employees during the period</td>
+                <td class="strong figure" id="employeesNote-curr-val">
+                    <ix:nonFraction contextRef="CY" decimals="0" format="ixt2:numdotdecimal" name="uk-core:AverageNumberEmployeesDuringPeriod" unitRef="GBP">0</ix:nonFraction>
+                </td> 
+                
+                    <td class="figure" id="employeesNote-prev-val">
+                        <ix:nonFraction contextRef="PY" decimals="0" format="ixt2:numdotdecimal" name="uk-core:AverageNumberEmployeesDuringPeriod" unitRef="GBP">0</ix:nonFraction>
+                    </td>
+                
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+    
+  </div>
+
+
+</body>
+</html>
