@@ -7,6 +7,7 @@ from arelle.ModelValue import QName, qname
 from .ErrorCatalog import emit_error
 from .XbrlConcept import XbrlCollectionType, XbrlDataType, XbrlConcept
 from .XbrlConst import objectsWithProperties, qnXbrlRootSource, xbrl, xbrla
+from .XbrlCube import XbrlCube, conceptCoreDim
 from .XbrlDimension import XbrlDomainNetwork
 from .XbrlLabel import XbrlLabelType
 from .XbrlModule import xbrlObjectQNames
@@ -17,6 +18,35 @@ qnXbrlClassSubclass = qname(xbrl, "xbrl:class-subclass")
 qnPreferredLabel = qname(xbrl, "xbrl:preferredLabel")
 qnXbrlTaxonomyGroup = qname(xbrl, "xbrl:taxonomy-group")
 qnXbrlaBalance = qname(xbrla, "xbrla:balance")
+qnXbrlSummationItem = qname(xbrl, "xbrl:summation-item")
+qnXbrlWeight = qname(xbrl, "xbrl:weight")
+# The calculation proposal (summation-item-relationship-proposal.md 5.4) moves the
+# reconciliation property to the accounting namespace, as xbrla:reconciliation, because it
+# is defined entirely in terms of xbrla:balance. That rename is not ratified and core.json
+# still declares xbrl:reconciliation, so the property is named in one place here and the
+# move is a one-line change once the working group rules on it.
+qnReconciliation = qname(xbrl, "xbrl:reconciliation")
+
+# Error codes for the summation-item definition-time checks. The proposal (10) assigns
+# these to a dedicated oimtc namespace; the codes below are the ones the conformance suite
+# expects today, kept in one table so the namespace can be switched in one place.
+_CALC_ERROR = {
+    "nonNumericConcept": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship",
+    "periodTypeMismatch": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship",
+    "balanceInconsistent": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship",
+    "duplicateRelationship": "calc11e:duplicateCalculationRelationships",
+    "conceptNotInCube": "oimte:invalidCalculationRelationship",
+}
+
+# Section 5.1 admits only concepts whose datatype derives from xs:decimal. xs:float and
+# xs:double are numeric but are excluded: the interval arithmetic of section 7 is defined
+# over decimal values and the decimals property, neither of which applies to binary
+# floating point.
+_DECIMAL_DERIVED_XSD_TYPES = frozenset((
+    "decimal", "integer", "long", "int", "short", "byte",
+    "nonPositiveInteger", "negativeInteger", "nonNegativeInteger", "positiveInteger",
+    "unsignedLong", "unsignedInt", "unsignedShort", "unsignedByte",
+))
 
 # Flow relationship-type constraints from oim-taxonomy.md (§instant-inflow/outflow/accrual/contra).
 # Each entry: (required source periodType, required target periodType, balance rule) where the balance
@@ -35,6 +65,131 @@ def _conceptBalance(conceptObj):
         if propObj.property == qnXbrlaBalance:
             return getattr(propObj, "value", None)
     return None
+
+
+def _isDecimalDerived(compMdl, conceptObj):
+    """True if the concept's datatype is, or derives from, xs:decimal (proposal 5.1)."""
+    dtObj = compMdl.namedObjects.get(conceptObj.dataType)
+    if not isinstance(dtObj, XbrlDataType):
+        return True  # unresolved datatype is reported by the concept checks, not here
+    return dtObj.xsBaseType(compMdl) in _DECIMAL_DERIVED_XSD_TYPES
+
+
+def _effectiveReconciliation(ntwkObj, relObj):
+    """Effective reconciliation for a relationship (proposal 3.2: relationship, then network).
+
+    The model level of the precedence chain is not consulted: reconciliation is not
+    declared on the XBRL model object.
+    """
+    for obj in (relObj, ntwkObj):
+        value = obj.propertyObjectValue(qnReconciliation)
+        if value is not None:
+            return str(value).strip().lower() in ("true", "1")
+    return False
+
+
+def _cubeConceptDomains(compMdl, ntwkQn):
+    """Concept-domain members of each cube that lists this network in its cubeNetworks.
+
+    Returns a list of (cubeName, frozenset of concept QNames). A cube whose concept
+    dimension declares no domainNetwork is unconstrained and is omitted, since every
+    concept satisfies it (proposal 5.6).
+    """
+    domainsByNetwork = getattr(compMdl, "_calcCubeConceptDomains", None)
+    if domainsByNetwork is None:
+        domainsByNetwork = defaultdict(list)
+        for cubeObj in compMdl.namedObjects.values():
+            if not isinstance(cubeObj, XbrlCube) or not cubeObj.cubeNetworks:
+                continue
+            members = None
+            for cubeDimObj in cubeObj.cubeDimensions or ():
+                if cubeDimObj.dimension == conceptCoreDim and cubeDimObj.domainNetwork:
+                    domNwkObj = compMdl.namedObjects.get(cubeDimObj.domainNetwork)
+                    if isinstance(domNwkObj, XbrlDomainNetwork):
+                        members = frozenset(relObj.target for relObj in compMdl.effectiveRelationships(domNwkObj))
+                    break
+            if members is not None:
+                for networkQn in cubeObj.cubeNetworks:
+                    domainsByNetwork[networkQn].append((cubeObj.name, members))
+        setattr(compMdl, "_calcCubeConceptDomains", domainsByNetwork)
+    return domainsByNetwork.get(ntwkQn, ())
+
+
+def _validateSummationItemNetwork(compMdl, ntwkObj):
+    """Definition-time checks for a summation-item (calculation) network.
+
+    Implements sections 5.1 and 5.3 to 5.6 of the calculation relationships proposal
+    (oim/specifications/oim-taxonomy/summation-item-relationship-proposal.md). Section 5.2,
+    that a weight is 1 or -1, needs no check here: xbrl:weight is typed xbrlr:weightType,
+    whose enumeration is ("1", "-1"), so a weight of any other value is already reported as
+    oimte:propertyValueDataTypeMismatch by the property value validation.
+    """
+    conceptsUsed = OrderedSet()
+    relsByEndpoints = defaultdict(list)
+    for relObj in ntwkObj.relationships or ():
+        if relObj.source == qnXbrlRootSource:
+            continue  # virtual origin, not a total-to-contributing relationship
+        srcObj = compMdl.namedObjects.get(relObj.source)
+        tgtObj = compMdl.namedObjects.get(relObj.target)
+        if not isinstance(srcObj, XbrlConcept) or not isinstance(tgtObj, XbrlConcept):
+            continue  # non-concept endpoints reported by the generic source/target checks
+        relName = f"{relObj.source}\u2192{relObj.target}"
+        conceptsUsed.add(relObj.source)
+        conceptsUsed.add(relObj.target)
+        relsByEndpoints[(relObj.source, relObj.target)].append(relObj)
+
+        # 5.1 the total and every contributing concept MUST be decimal-derived
+        for conceptQn, conceptObj in ((relObj.source, srcObj), (relObj.target, tgtObj)):
+            if not _isDecimalDerived(compMdl, conceptObj):
+                emit_error(compMdl, _CALC_ERROR["nonNumericConcept"],
+                           _("The summation-item network %(name)s relationship %(rel)s uses concept %(concept)s whose dataType %(dataType)s does not derive from xs:decimal; calculation consistency is defined only over decimal numeric values."),
+                           xbrlObject=relObj, name=ntwkObj.name, rel=relName,
+                           concept=conceptQn, dataType=conceptObj.dataType)
+
+        # 5.3 the total and every contributing concept MUST share a periodType
+        if srcObj.periodType != tgtObj.periodType:
+            emit_error(compMdl, _CALC_ERROR["periodTypeMismatch"],
+                       _("The summation-item network %(name)s relationship %(rel)s relates concepts with different periodTypes, %(sourcePeriodType)s and %(targetPeriodType)s; a summation-item relationship MUST relate concepts of the same periodType."),
+                       xbrlObject=relObj, name=ntwkObj.name, rel=relName,
+                       sourcePeriodType=srcObj.periodType, targetPeriodType=tgtObj.periodType)
+
+        # 5.4 balance, weight and reconciliation
+        srcBal = _conceptBalance(srcObj)
+        tgtBal = _conceptBalance(tgtObj)
+        if srcBal is not None and tgtBal is not None:
+            weight = relObj.propertyObjectValue(qnXbrlWeight)
+            try:
+                weightIsPositive = int(str(weight)) > 0
+            except (TypeError, ValueError):
+                continue  # an unusable weight is reported as a property value error
+            reconciliation = _effectiveReconciliation(ntwkObj, relObj)
+            # Without reconciliation, a weight of 1 keeps the balance side and -1 flips it
+            # (XBRL v2.1 5.1.1.2); reconciliation inverts the rule so that a calculation may
+            # deliberately cross the debit/credit divide.
+            balancesMustMatch = weightIsPositive != reconciliation
+            if (srcBal == tgtBal) != balancesMustMatch:
+                emit_error(compMdl, _CALC_ERROR["balanceInconsistent"],
+                           _("The summation-item network %(name)s relationship %(rel)s has weight %(weight)s with reconciliation %(reconciliation)s, which requires the total and contributing concept to have %(requirement)s xbrla:balance, but they are %(sourceBalance)s and %(targetBalance)s."),
+                           xbrlObject=relObj, name=ntwkObj.name, rel=relName, weight=weight,
+                           reconciliation=str(reconciliation).lower(),
+                           requirement="the same" if balancesMustMatch else "different",
+                           sourceBalance=srcBal, targetBalance=tgtBal)
+
+    # 5.5 a concept contributes to a given total exactly once, whatever the weight or order
+    for (sourceQn, targetQn), relObjs in relsByEndpoints.items():
+        if len(relObjs) > 1:
+            emit_error(compMdl, _CALC_ERROR["duplicateRelationship"],
+                       _("The summation-item network %(name)s defines the relationship %(rel)s %(count)s times; a concept MUST contribute to a given total exactly once."),
+                       xbrlObject=relObjs[0], name=ntwkObj.name,
+                       rel=f"{sourceQn}\u2192{targetQn}", count=len(relObjs))
+
+    # 5.6 every concept used by a cube-associated calculation MUST be in the cube's domain
+    for cubeQn, domainMembers in _cubeConceptDomains(compMdl, ntwkObj.name):
+        for conceptQn in conceptsUsed:
+            if conceptQn not in domainMembers:
+                emit_error(compMdl, _CALC_ERROR["conceptNotInCube"],
+                           _("The summation-item network %(name)s uses concept %(concept)s which is not a member of the concept dimension domain of cube %(cube)s; a calculation cannot constrain facts for a concept the cube does not admit."),
+                           xbrlObject=ntwkObj, name=ntwkObj.name, concept=conceptQn, cube=cubeQn)
 
 
 def _qname_key(value):
@@ -218,6 +373,12 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
                        xbrlObject=ntwkObj, name=ntwkObj.name,
                        names=", ".join(f"{relFrom}\u2192{relTo}{f' [{str(prefLbl)}]' if prefLbl else ''} ord {str(ordr)}"
                                        for (relFrom, relTo, prefLbl, ordr), ct in ntwkCt.items() if ct > 1))
+
+        # Summation-item checks run after the loop above, because they read link property
+        # values through propertyObjectValue, which returns the validated typed value that
+        # validateProperties sets on each relationship inside that loop.
+        if getattr(relTypeObj, "name", None) == qnXbrlSummationItem:
+            _validateSummationItemNetwork(compMdl, ntwkObj)
         ntwkObj._rootsFound = sources - targets
 
         # Non-extending networks with relationships must have at least one xbrl:rootSource relationship.
