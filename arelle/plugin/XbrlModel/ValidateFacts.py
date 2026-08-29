@@ -463,6 +463,7 @@ def validateCompleteReportCubes(txmyMdl):
     Taxonomy-only models (every module with a ``modelType`` set to ``xbrl:taxonomy``,
     with no co-loaded report module) are wholly exempt from completeness checks.
     """
+    from .ValidateCalculations import validateCubeCalculations
     from .ValidateCubes import validateCompleteCube, validateCubeDuplicates
     from .XbrlConst import xbrl
 
@@ -510,6 +511,9 @@ def validateCompleteReportCubes(txmyMdl):
         # Duplicate-fact validation applies to every cube (not just required
         # cubes) per oim-taxonomy "Duplicate fact validation".
         validateCubeDuplicates(txmyMdl, cubeObj)
+        # Calculation consistency binds against a cube's facts, so it runs here,
+        # once _cellFacts has been populated by the per-fact resolution loop.
+        validateCubeCalculations(txmyMdl, cubeObj)
 
 def validateTable(table, reportQn, reportObj, txmyMdl):
     """ Validate table definition.
