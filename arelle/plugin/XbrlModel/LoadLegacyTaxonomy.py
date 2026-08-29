@@ -182,8 +182,16 @@ def _classify(concept) -> str:
         return "dimension"
     if getattr(concept, "isHypercubeItem", False):
         return "hypercube"
+    # A concept whose TYPE is domainItemType is a member whether or not it is abstract. The
+    # abstractness test below cannot carry that distinction on its own: Arelle's isDomainMember
+    # is an alias for isPrimaryItem, true of every ordinary line item, so abstract was doing all
+    # the work. SEC's ECD (pay-versus-performance) taxonomy declares its members NON-abstract --
+    # e.g. ecd:AggtPnsnAdjsSvcCstMember, dtr-types:domainItemType, abstract=false -- so every
+    # such member was emitted as a concept and then failed its domain network's allowedDomainItem.
+    if getattr(getattr(concept, "type", None), "isDomainItemType", False):
+        return "member"
     if getattr(concept, "isDomainMember", False) and getattr(concept, "isAbstract", False):
-        # a domain-member-typed abstract concept is a member/domain, not a line item
+        # an abstract primary item is a member/domain root, not a line item
         return "member"
     return "concept"
 

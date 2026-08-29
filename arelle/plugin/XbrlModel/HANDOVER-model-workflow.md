@@ -465,6 +465,34 @@ calculation becomes checkable. That is the §3.3 open item closing for the SEC
 case — though the general one remains: **a report whose transform genuinely
 cannot be applied still keeps its raw text as though it were the value.**
 
+### 3.9 Domain members that are not abstract
+
+The last finding class on the Microsoft filing was ours, not the filing's. Ten
+`oimte:invalidDomainNetworkObject` / `invalidDomainTarget` on `ecd:` members —
+SEC's pay-versus-performance taxonomy, so this affected every US filing carrying
+that disclosure since 2023.
+
+`_classify` called a concept a member when `isDomainMember and isAbstract`. But
+Arelle's `isDomainMember` is an **alias for `isPrimaryItem`** — true of every
+ordinary line item — so abstractness was carrying the entire distinction. ECD
+declares its members non-abstract:
+
+```
+ecd:AggtPnsnAdjsSvcCstMember   type dtr-types:domainItemType   abstract=false
+```
+
+so each was emitted as a *concept*, and the domain network that targeted it then
+failed its `allowedDomainItem`. A concept whose **type** is `domainItemType` is
+now classified as a member whether or not it is abstract; the abstract-primary-item
+test stays for domain roots declared with other types.
+
+Microsoft: concepts 12,488 → 12,484, members unchanged at 5,581 — those four were
+being emitted as both. All ten findings gone. L'Oreal unchanged, conformance
+725/756 unchanged.
+
+With this, the filing loads with **only genuine findings**: 21 calculation
+inconsistencies, and nothing else.
+
 ## 4. The workflow does not end at "viewable"
 
 The viewer is not only a renderer: its tagging mode emits a **journal** of the
