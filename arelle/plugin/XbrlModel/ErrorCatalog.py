@@ -12,7 +12,7 @@ from typing import Optional
 
 
 RESOURCE_DIR = os.path.join(os.path.dirname(__file__), "resources")
-ERROR_TAXONOMY_FILES = ("oime.json", "oimce.json", "oimte.json")
+ERROR_TAXONOMY_FILES = ("oime.json", "oimce.json", "oimte.json", "oimtc.json")
 LABEL_TYPE = "xbrl:label"
 DOCUMENTATION_TYPE = "xbrl:documentation"
 MESSAGE_TYPE_SUFFIX = ":errorMessage"

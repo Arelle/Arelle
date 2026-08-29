@@ -27,15 +27,14 @@ qnXbrlWeight = qname(xbrl, "xbrl:weight")
 # move is a one-line change once the working group rules on it.
 qnReconciliation = qname(xbrl, "xbrl:reconciliation")
 
-# Error codes for the summation-item definition-time checks. The proposal (10) assigns
-# these to a dedicated oimtc namespace; the codes below are the ones the conformance suite
-# expects today, kept in one table so the namespace can be switched in one place.
+# Error codes for the summation-item definition-time checks, from section 10 of the
+# proposal. They are kept in one table so the namespace can be changed in one place.
 _CALC_ERROR = {
-    "nonNumericConcept": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship",
-    "periodTypeMismatch": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship",
-    "balanceInconsistent": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship",
-    "duplicateRelationship": "calc11e:duplicateCalculationRelationships",
-    "conceptNotInCube": "oimte:invalidCalculationRelationship",
+    "nonNumericConcept": "oimtc:nonNumericConcept",
+    "periodTypeMismatch": "oimtc:summationItemPeriodTypeMismatch",
+    "balanceInconsistent": "oimtc:summationItemBalanceInconsistent",
+    "duplicateRelationship": "oimtc:duplicateSummationItemRelationship",
+    "conceptNotInCube": "oimtc:summationItemConceptNotInCube",
 }
 
 # Section 5.1 admits only concepts whose datatype derives from xs:decimal. xs:float and

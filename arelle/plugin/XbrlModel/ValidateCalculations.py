@@ -37,19 +37,14 @@ qnRoundingMode = qname(xbrl, "xbrl:roundingMode")
 qnTolerance = qname(xbrl, "xbrl:tolerance")
 qnSummationRelation = qname(xbrl, "xbrl:summationRelation")
 
-# Error codes for the consistency checks. The proposal (section 10) assigns these to a
-# dedicated oimtc namespace; the codes below are the registered ones, kept in one table so
-# the namespace can be switched in one place.
-#
-# Note that the conformance suite currently expects an unregistered
-# oimte:inconsistentCalculationUsingRounding on two tests; the registered code, and the one
-# a third test already expects, is the calc11e one used here.
+# Error codes for the consistency checks, from section 10 of the proposal. They are kept in
+# one table so the namespace can be changed in one place.
 _CALC_ERROR = {
-    "inconsistentRounding": "calc11e:inconsistentCalculationUsingRounding",
-    "inconsistentTruncation": "calc11e:inconsistentCalculationUsingTruncation",
-    "excessDigits": "calc11e:excessDigitsInCalculation",
-    "duplicatesRounding": "oime:disallowedDuplicateFacts",
-    "duplicatesTruncation": "calc11e:disallowedDuplicateFactsUsingTruncation",
+    "inconsistentRounding": "oimtc:inconsistentCalculationUsingRounding",
+    "inconsistentTruncation": "oimtc:inconsistentCalculationUsingTruncation",
+    "excessDigits": "oimtc:excessDigits",
+    "duplicatesRounding": "oimtc:disallowedDuplicateFactsUsingRounding",
+    "duplicatesTruncation": "oimtc:disallowedDuplicateFactsUsingTruncation",
 }
 
 _NIL = object()

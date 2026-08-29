@@ -1,0 +1,517 @@
+{
+    "$schema": "../oim-taxonomy-schema.json",
+    "documentInfo": {
+        "documentType": "https://xbrl.org/2026/module",
+        "namespaces": {
+            "oimtc": "https://xbrl.org/2026/oimtaxonomy/calculation/error",
+            "xbrl": "https://xbrl.org/2026",
+            "xs": "http://www.w3.org/2001/XMLSchema",
+            "xbrlm": "https://xbrl.org/2026/model"
+        },
+        "documentNamespacePrefix": "oimtc"
+    },
+    "xbrlModel": {
+        "name": "oimtc:ErrorsTaxonomy",
+        "version": "1.0",
+        "importedTaxonomies": [
+            {
+                "xbrlModelName": "xbrlm:base"
+            }
+        ],
+        "domainClasses": [
+            {
+                "name": "oimtc:CalculationErrorClassDomain",
+                "allowedDomainItem": "xbrl:memberObject"
+            }
+        ],
+        "domainNetworks": [
+            {
+                "name": "oimtc:CalculationErrorDomain",
+                "root": "oimtc:CalculationErrorClassDomain",
+                "relationships": [
+                    {
+                        "source": "oimtc:CalculationErrorClassDomain",
+                        "target": "oimtc:nonNumericConcept",
+                        "order": 1
+                    },
+                    {
+                        "source": "oimtc:CalculationErrorClassDomain",
+                        "target": "oimtc:invalidWeight",
+                        "order": 2
+                    },
+                    {
+                        "source": "oimtc:CalculationErrorClassDomain",
+                        "target": "oimtc:summationItemPeriodTypeMismatch",
+                        "order": 3
+                    },
+                    {
+                        "source": "oimtc:CalculationErrorClassDomain",
+                        "target": "oimtc:summationItemBalanceInconsistent",
+                        "order": 4
+                    },
+                    {
+                        "source": "oimtc:CalculationErrorClassDomain",
+                        "target": "oimtc:duplicateSummationItemRelationship",
+                        "order": 5
+                    },
+                    {
+                        "source": "oimtc:CalculationErrorClassDomain",
+                        "target": "oimtc:summationItemConceptNotInCube",
+                        "order": 6
+                    },
+                    {
+                        "source": "oimtc:CalculationErrorClassDomain",
+                        "target": "oimtc:invalidTolerance",
+                        "order": 7
+                    },
+                    {
+                        "source": "oimtc:CalculationErrorClassDomain",
+                        "target": "oimtc:conflictingSummationRelation",
+                        "order": 8
+                    },
+                    {
+                        "source": "oimtc:CalculationErrorClassDomain",
+                        "target": "oimtc:excessDigits",
+                        "order": 9
+                    },
+                    {
+                        "source": "oimtc:CalculationErrorClassDomain",
+                        "target": "oimtc:inconsistentCalculationUsingRounding",
+                        "order": 10
+                    },
+                    {
+                        "source": "oimtc:CalculationErrorClassDomain",
+                        "target": "oimtc:inconsistentCalculationUsingTruncation",
+                        "order": 11
+                    },
+                    {
+                        "source": "oimtc:CalculationErrorClassDomain",
+                        "target": "oimtc:disallowedDuplicateFactsUsingRounding",
+                        "order": 12
+                    },
+                    {
+                        "source": "oimtc:CalculationErrorClassDomain",
+                        "target": "oimtc:disallowedDuplicateFactsUsingTruncation",
+                        "order": 13
+                    }
+                ]
+            }
+        ],
+        "members": [
+            {
+                "name": "oimtc:nonNumericConcept",
+                "domainClasses": [
+                    "oimtc:CalculationErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimtc:invalidWeight",
+                "domainClasses": [
+                    "oimtc:CalculationErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimtc:summationItemPeriodTypeMismatch",
+                "domainClasses": [
+                    "oimtc:CalculationErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimtc:summationItemBalanceInconsistent",
+                "domainClasses": [
+                    "oimtc:CalculationErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimtc:duplicateSummationItemRelationship",
+                "domainClasses": [
+                    "oimtc:CalculationErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimtc:summationItemConceptNotInCube",
+                "domainClasses": [
+                    "oimtc:CalculationErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimtc:invalidTolerance",
+                "domainClasses": [
+                    "oimtc:CalculationErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimtc:conflictingSummationRelation",
+                "domainClasses": [
+                    "oimtc:CalculationErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimtc:excessDigits",
+                "domainClasses": [
+                    "oimtc:CalculationErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimtc:inconsistentCalculationUsingRounding",
+                "domainClasses": [
+                    "oimtc:CalculationErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimtc:inconsistentCalculationUsingTruncation",
+                "domainClasses": [
+                    "oimtc:CalculationErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimtc:disallowedDuplicateFactsUsingRounding",
+                "domainClasses": [
+                    "oimtc:CalculationErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimtc:disallowedDuplicateFactsUsingTruncation",
+                "domainClasses": [
+                    "oimtc:CalculationErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            }
+        ],
+        "headings": [
+            {
+                "name": "oimtc:CalculationErrors"
+            }
+        ],
+        "networks": [
+            {
+                "name": "oimtc:ErrorsByObjectType",
+                "relationshipTypeName": "xbrl:parent-child",
+                "relationships": [
+                    {
+                        "source": "xbrl:rootSource",
+                        "target": "oimtc:CalculationErrors"
+                    },
+                    {
+                        "source": "oimtc:CalculationErrors",
+                        "target": "oimtc:nonNumericConcept",
+                        "order": 1
+                    },
+                    {
+                        "source": "oimtc:CalculationErrors",
+                        "target": "oimtc:invalidWeight",
+                        "order": 2
+                    },
+                    {
+                        "source": "oimtc:CalculationErrors",
+                        "target": "oimtc:summationItemPeriodTypeMismatch",
+                        "order": 3
+                    },
+                    {
+                        "source": "oimtc:CalculationErrors",
+                        "target": "oimtc:summationItemBalanceInconsistent",
+                        "order": 4
+                    },
+                    {
+                        "source": "oimtc:CalculationErrors",
+                        "target": "oimtc:duplicateSummationItemRelationship",
+                        "order": 5
+                    },
+                    {
+                        "source": "oimtc:CalculationErrors",
+                        "target": "oimtc:summationItemConceptNotInCube",
+                        "order": 6
+                    },
+                    {
+                        "source": "oimtc:CalculationErrors",
+                        "target": "oimtc:invalidTolerance",
+                        "order": 7
+                    },
+                    {
+                        "source": "oimtc:CalculationErrors",
+                        "target": "oimtc:conflictingSummationRelation",
+                        "order": 8
+                    },
+                    {
+                        "source": "oimtc:CalculationErrors",
+                        "target": "oimtc:excessDigits",
+                        "order": 9
+                    },
+                    {
+                        "source": "oimtc:CalculationErrors",
+                        "target": "oimtc:inconsistentCalculationUsingRounding",
+                        "order": 10
+                    },
+                    {
+                        "source": "oimtc:CalculationErrors",
+                        "target": "oimtc:inconsistentCalculationUsingTruncation",
+                        "order": 11
+                    },
+                    {
+                        "source": "oimtc:CalculationErrors",
+                        "target": "oimtc:disallowedDuplicateFactsUsingRounding",
+                        "order": 12
+                    },
+                    {
+                        "source": "oimtc:CalculationErrors",
+                        "target": "oimtc:disallowedDuplicateFactsUsingTruncation",
+                        "order": 13
+                    }
+                ]
+            }
+        ],
+        "labels": [
+            {
+                "forObject": "oimtc:CalculationErrorClassDomain",
+                "language": "en",
+                "value": "🚫",
+                "labelType": "xbrl:iconLabel"
+            },
+            {
+                "forObject": "oimtc:CalculationErrors",
+                "language": "en",
+                "value": "Calculation Errors",
+                "labelType": "xbrl:label"
+            },
+            {
+                "forObject": "oimtc:CalculationErrors",
+                "language": "en",
+                "value": "All identified summation-item calculation errors and inconsistencies.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "forObject": "oimtc:nonNumericConcept",
+                "language": "en",
+                "value": "Non-Numeric Concept",
+                "labelType": "xbrl:label"
+            },
+            {
+                "forObject": "oimtc:nonNumericConcept",
+                "language": "en",
+                "value": "The total concept and every contributing concept of a summation-item relationship must be a numeric concept, whose dataType is or derives from xs:decimal.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "forObject": "oimtc:invalidWeight",
+                "language": "en",
+                "value": "Invalid Weight",
+                "labelType": "xbrl:label"
+            },
+            {
+                "forObject": "oimtc:invalidWeight",
+                "language": "en",
+                "value": "The value of xbrl:weight on a summation-item relationship must be 1 or -1.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "forObject": "oimtc:summationItemPeriodTypeMismatch",
+                "language": "en",
+                "value": "Summation-Item Period Type Mismatch",
+                "labelType": "xbrl:label"
+            },
+            {
+                "forObject": "oimtc:summationItemPeriodTypeMismatch",
+                "language": "en",
+                "value": "The total concept and every contributing concept of a summation-item relationship must have the same periodType.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "forObject": "oimtc:summationItemBalanceInconsistent",
+                "language": "en",
+                "value": "Summation-Item Balance Inconsistent",
+                "labelType": "xbrl:label"
+            },
+            {
+                "forObject": "oimtc:summationItemBalanceInconsistent",
+                "language": "en",
+                "value": "The combination of xbrl:weight, reconciliation and the balance of the total and contributing concept is not a permitted combination.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "forObject": "oimtc:duplicateSummationItemRelationship",
+                "language": "en",
+                "value": "Duplicate Summation-Item Relationship",
+                "labelType": "xbrl:label"
+            },
+            {
+                "forObject": "oimtc:duplicateSummationItemRelationship",
+                "language": "en",
+                "value": "There must not be more than one summation-item relationship with the same total concept and the same contributing concept within a single calculation.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "forObject": "oimtc:summationItemConceptNotInCube",
+                "language": "en",
+                "value": "Summation-Item Concept Not In Cube",
+                "labelType": "xbrl:label"
+            },
+            {
+                "forObject": "oimtc:summationItemConceptNotInCube",
+                "language": "en",
+                "value": "Every total and contributing concept of a calculation associated with a cube must be a member of that cube's concept dimension domain.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "forObject": "oimtc:invalidTolerance",
+                "language": "en",
+                "value": "Invalid Tolerance",
+                "labelType": "xbrl:label"
+            },
+            {
+                "forObject": "oimtc:invalidTolerance",
+                "language": "en",
+                "value": "The value of xbrl:tolerance must be a non-negative decimal.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "forObject": "oimtc:conflictingSummationRelation",
+                "language": "en",
+                "value": "Conflicting Summation Relation",
+                "labelType": "xbrl:label"
+            },
+            {
+                "forObject": "oimtc:conflictingSummationRelation",
+                "language": "en",
+                "value": "Every summation-item relationship of a single calculation must resolve to the same xbrl:summationRelation.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "forObject": "oimtc:excessDigits",
+                "language": "en",
+                "value": "Excess Digits",
+                "labelType": "xbrl:label"
+            },
+            {
+                "forObject": "oimtc:excessDigits",
+                "language": "en",
+                "value": "A fact participating in a binding calculation has digits in excess of its declared precision, and no further checking is performed for that binding.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "forObject": "oimtc:inconsistentCalculationUsingRounding",
+                "language": "en",
+                "value": "Inconsistent Calculation Using Rounding",
+                "labelType": "xbrl:label"
+            },
+            {
+                "forObject": "oimtc:inconsistentCalculationUsingRounding",
+                "language": "en",
+                "value": "A bound calculation is inconsistent under the round-to-nearest rounding mode.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "forObject": "oimtc:inconsistentCalculationUsingTruncation",
+                "language": "en",
+                "value": "Inconsistent Calculation Using Truncation",
+                "labelType": "xbrl:label"
+            },
+            {
+                "forObject": "oimtc:inconsistentCalculationUsingTruncation",
+                "language": "en",
+                "value": "A bound calculation is inconsistent under the truncation rounding mode.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "forObject": "oimtc:disallowedDuplicateFactsUsingRounding",
+                "language": "en",
+                "value": "Disallowed Duplicate Facts Using Rounding",
+                "labelType": "xbrl:label"
+            },
+            {
+                "forObject": "oimtc:disallowedDuplicateFactsUsingRounding",
+                "language": "en",
+                "value": "A binding includes a data point with inconsistent duplicate facts under the round-to-nearest rounding mode, and no further checking is performed for that binding.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "forObject": "oimtc:disallowedDuplicateFactsUsingTruncation",
+                "language": "en",
+                "value": "Disallowed Duplicate Facts Using Truncation",
+                "labelType": "xbrl:label"
+            },
+            {
+                "forObject": "oimtc:disallowedDuplicateFactsUsingTruncation",
+                "language": "en",
+                "value": "A binding includes a data point with inconsistent duplicate facts under the truncation rounding mode, and no further checking is performed for that binding.",
+                "labelType": "xbrl:errorMessage"
+            }
+        ]
+    }
+}
