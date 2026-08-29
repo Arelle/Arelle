@@ -377,8 +377,19 @@ def validateCompiledModel(compMdl):
         labelsCt = defaultdict(list), # count of duplicated labels by forObject, labelType and language
     )
 
-    for module in compMdl.xbrlModels.values():
-        validateXbrlModule(compMdl, module, mdlLvlChecks)
+    # Validating a module can add another one: a factSource whose report names a taxonomy
+    # compiles that DTS on demand (see materializeFactSourceFacts), which appends to
+    # xbrlModels while this loop is running. Iterate until no new module appears, so a
+    # module compiled that way gets the same definition-time validation as one that was
+    # loaded up front rather than escaping it entirely.
+    validatedModules = set()
+    pending = list(compMdl.xbrlModels.values())
+    while pending:
+        for module in pending:
+            validatedModules.add(id(module))
+            validateXbrlModule(compMdl, module, mdlLvlChecks)
+        pending = [module for module in list(compMdl.xbrlModels.values())
+                   if id(module) not in validatedModules]
 
     validateCompletedModel(compMdl)
 

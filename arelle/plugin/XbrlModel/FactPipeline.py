@@ -379,6 +379,60 @@ def _sourceUrlForFactSource(module: "XbrlModule", factSource: "XbrlFactSource") 
     return None
 
 
+def _reportTaxonomyUrls(compMdl, factMapName, url) -> list:
+    """The taxonomy entry points a legacy report names, resolved against the report's URL.
+
+    An xBRL-JSON instance and an xBRL-CSV metadata document name their taxonomy in
+    ``documentInfo.taxonomy``; an XBRL 2.1 instance names it in ``link:schemaRef``. Following
+    them matters: a report's facts are materialized by the fact map regardless, but without
+    the taxonomy the concepts, cubes and networks those facts refer to are never compiled, so
+    nothing binds and no cube, calculation or dimensional validation can run.
+
+    Returns an empty list when the report names no taxonomy, in which case the caller falls
+    back to handing the report's own URL to DTS discovery (an inline document, and an XBRL
+    2.1 instance whose schemaRef could not be read, are discovered that way).
+    """
+    urls = []
+    try:
+        if factMapName in (qnXbrlJsonFactMap, qnXbrlCsvFactMap):
+            import json
+            with io.open(url, "rt", encoding="utf-8") as fh:
+                doc = json.load(fh)
+            docInfo = doc.get("documentInfo") if isinstance(doc, dict) else None
+            taxonomy = docInfo.get("taxonomy") if isinstance(docInfo, dict) else None
+            if isinstance(taxonomy, str):
+                taxonomy = [taxonomy]
+            for href in taxonomy or ():
+                if isinstance(href, str) and href:
+                    urls.append(href)
+        elif factMapName == qnXbrlXmlFactMap:
+            from lxml import etree
+            # schemaRef and linkbaseRef are children of the xbrli:xbrl root, so stop as soon
+            # as the root's element children have been seen rather than parsing the facts.
+            for _event, elt in etree.iterparse(url, events=("start",)):
+                tag = elt.tag
+                if tag == _XBRLI_XBRL_CLARK:
+                    continue
+                if tag in ("{http://www.xbrl.org/2003/linkbase}schemaRef",
+                           "{http://www.xbrl.org/2003/linkbase}linkbaseRef"):
+                    href = elt.get("{http://www.w3.org/1999/xlink}href")
+                    if href:
+                        urls.append(href)
+                elif not tag.startswith("{http://www.xbrl.org/2003/linkbase}"):
+                    break  # past the ref elements, into contexts/units/facts
+    except Exception:
+        return []  # POC: an unreadable report is reported by the parser, not here
+    webCache = getattr(getattr(compMdl, "modelManager", None), "cntlr", None)
+    webCache = getattr(webCache, "webCache", None)
+    resolved = []
+    for href in urls:
+        try:
+            resolved.append(webCache.normalizeUrl(href, url) if webCache is not None else href)
+        except Exception:
+            resolved.append(href)
+    return resolved
+
+
 def materializeFactSourceFacts(compMdl: "XbrlCompiledModel", module: "XbrlModule") -> None:
     """Generate facts (and footnotes) from a module's factSources that reference a
     built-in fact map, and register them in the compiled model so the existing
@@ -417,13 +471,19 @@ def materializeFactSourceFacts(compMdl: "XbrlCompiledModel", module: "XbrlModule
         # loaded. Remove this block with the POC.
         # POC-INLINE: the inline map does its OWN single-pass load (facts + DTS) inside
         # parseInlineFacts, so skip this pre-step for it to avoid loading the report twice.
-        if getattr(factSource, "factMapName", None) != qnInlineFactMap:
-            try:
-                from .LoadLegacyTaxonomy import pocCompileLegacyDts
-                pocCompileLegacyDts(compMdl.modelManager.cntlr, compMdl,
-                                    compMdl.error, compMdl.warning, url)
-            except Exception:
-                pass  # POC: never let discovery break fact materialization
+        factMapName = getattr(factSource, "factMapName", None)
+        if factMapName != qnInlineFactMap:
+            # Discover the taxonomy the report names (schemaRef, or documentInfo.taxonomy)
+            # rather than the report document itself: an xBRL-JSON or xBRL-CSV report is not
+            # a DTS entry point, so handing its own URL to discovery finds no taxonomy at
+            # all and the facts then resolve against nothing.
+            for dtsUrl in (_reportTaxonomyUrls(compMdl, factMapName, url) or [url]):
+                try:
+                    from .LoadLegacyTaxonomy import pocCompileLegacyDts
+                    pocCompileLegacyDts(compMdl.modelManager.cntlr, compMdl,
+                                        compMdl.error, compMdl.warning, dtsUrl)
+                except Exception:
+                    pass  # POC: never let discovery break fact materialization
         facts, footnotes = parse(compMdl, module, factSource, url)
         for fact in facts:
             _registerGeneratedObject(compMdl, module, fact, "facts")

@@ -50,17 +50,36 @@ _CALC_ERROR = {
 _NIL = object()
 
 
+def _propertyValue(obj, propertyQn):
+    """A property's value, whether or not the object has been through property validation.
+
+    propertyObjectValue returns the validated typed value, which validateProperties sets
+    while validating the module that owns the object. A module compiled on demand -- the DTS
+    a legacy report names, discovered while the report module is already being validated --
+    is added to the model after its own validation pass would have run, so its relationships
+    never acquire typed values. Falling back to the raw value keeps checking independent of
+    the order in which modules happen to be compiled.
+    """
+    value = obj.propertyObjectValue(propertyQn)
+    if value is not None:
+        return value
+    for propObj in getattr(obj, "properties", None) or ():
+        if propObj.property == propertyQn:
+            return getattr(propObj, "value", None)
+    return None
+
+
 def _controlProperty(compMdl, ntwkObj, propertyQn, default=None):
     """Effective value of a calculation control property (proposal section 3.2).
 
     Precedence is relationship, then network, then XBRL model object, then the
     specification default. Relationship level is resolved by the caller where it applies.
     """
-    value = ntwkObj.propertyObjectValue(propertyQn)
+    value = _propertyValue(ntwkObj, propertyQn)
     if value is not None:
         return value
     for mdlObj in compMdl.xbrlModels.values():
-        value = mdlObj.propertyObjectValue(propertyQn)
+        value = _propertyValue(mdlObj, propertyQn)
         if value is not None:
             return value
     return default
@@ -130,7 +149,7 @@ def _calculations(compMdl, ntwkObj):
     """
     calcs = defaultdict(list)
     for relObj in compMdl.effectiveRelationships(ntwkObj):
-        weight = relObj.propertyObjectValue(qnXbrlWeight)
+        weight = _propertyValue(relObj, qnXbrlWeight)
         if weight is None:
             continue  # rootSource relationships, and any relationship whose weight failed validation
         try:
