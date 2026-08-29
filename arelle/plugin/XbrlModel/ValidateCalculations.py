@@ -86,8 +86,25 @@ def _controlProperty(compMdl, ntwkObj, propertyQn, default=None):
 
 
 def _isTruncation(compMdl, ntwkObj):
-    """True when the effective xbrl:roundingMode is truncation (proposal section 7.1)."""
-    return str(_controlProperty(compMdl, ntwkObj, qnRoundingMode, "roundToNearest")) == "truncation"
+    """True when the effective xbrl:roundingMode is truncation (proposal section 7.1).
+
+    A processor may override the declared mode at run time (proposal section 3.3), for a
+    report whose rounding convention is known out of band, or to run a conformance suite
+    that parameterises the mode per variation. Where the override is applied it MUST be
+    reported, and the results are then not conformant results for the model as published.
+    """
+    declared = str(_controlProperty(compMdl, ntwkObj, qnRoundingMode, "roundToNearest"))
+    override = getattr(compMdl, "calcRoundingModeOverride", None)
+    if override is not None and override != declared:
+        if not getattr(compMdl, "_calcRoundingModeOverrideReported", False):
+            compMdl._calcRoundingModeOverrideReported = True
+            compMdl.warning("arelle:calcRoundingModeOverridden",
+                            _("The calculation rounding mode declared by the model, %(declared)s, "
+                              "was overridden at run time with %(override)s. Calculation results "
+                              "are not conformant results for the model as published."),
+                            declared=declared, override=override)
+        declared = override
+    return declared == "truncation"
 
 
 def _tolerance(compMdl, ntwkObj):

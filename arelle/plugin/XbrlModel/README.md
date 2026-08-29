@@ -358,7 +358,76 @@ GUI runs use the defaults (chrome engine, reflow on). For a different engine
 
 ---
 
-## 7. Files
+## 7. Calculation validation
+
+Summation-item (calculation) relationships are validated per
+`specifications/oim-taxonomy/summation-item-relationship-proposal.md`, whose
+consistency-checking semantics are those of [Calculations 1.1][calc11]:
+
+* **Definition-time checks** (proposal §5), in [`ValidateNetworkObjects.py`](ValidateNetworkObjects.py):
+  numeric (decimal-derived) concepts, matching `periodType`, the balance/weight/reconciliation
+  table, no duplicate total→contributing pair, and every concept in the associated cube's
+  concept domain.
+* **Binding and consistency checking** (proposal §6.2 and §7), in
+  [`ValidateCalculations.py`](ValidateCalculations.py): a calculation binds only against the
+  facts of a cube that lists its network in `cubeNetworks`, and is checked with interval
+  arithmetic. The intervals themselves reuse `rangeValue()` and `insignificantDigits()` from
+  [`arelle/ValidateXbrlCalcs.py`](../../ValidateXbrlCalcs.py), which is what keeps this and
+  Arelle's Calculations 1.1 implementation in step.
+* **Legacy translation** (proposal appendix B), in [`LoadLegacyTaxonomy.py`](LoadLegacyTaxonomy.py):
+  an XBRL 2.1 calculation linkbase becomes summation-item networks, associated with a
+  generated all-facts cube so they bind against the whole report as they did under
+  Calculations 1.1.
+
+Errors use the proposed `oimtc` namespace, registered in
+[`resources/oimtc.json`](resources/oimtc.json).
+
+### Rounding mode, and overriding it at run time
+
+The rounding mode is a property of the model or the network (`xbrl:roundingMode`, proposal
+§3), not a processor setting, so a calculation is checked the same way by every processor.
+It defaults to `roundToNearest`; `truncation` gives the half-open intervals used where
+amounts are truncated rather than rounded.
+
+The proposal permits a processor to override the declared mode at run time (§3.3) — for a
+report whose rounding convention is known out of band, or to run a conformance suite that
+parameterises the mode per variation:
+
+```bash
+arelleCmdLine --plugins XbrlModel --validate --file report.json \
+    --calcRoundingMode truncation
+```
+
+Accepted values are `roundToNearest` and `truncation`. When the override differs from the
+declared mode, `arelle:calcRoundingModeOverridden` is reported: as the proposal requires,
+results obtained under an override are **not** conformant results for the model as published.
+
+### Running the Calculations 1.1 conformance suite
+
+The XBRL International Calculations 1.1 suite is the check on the interval arithmetic, since
+it exercises truncation, excess digits and duplicate handling, which the OIM taxonomy suite
+does not. Its instances name their taxonomy (`documentInfo.taxonomy` for xBRL-JSON,
+`link:schemaRef` for XBRL 2.1), which is compiled on demand, so a variation runs directly:
+
+```bash
+arelleCmdLine --plugins XbrlModel --validate \
+    --file calc11/excess-digits-on-total-instance.json
+```
+
+Its `index.xml` carries the expected result and a `calc11conf:mode` of `round-to-nearest`
+or `truncate` per variation; map each expected `calc11e:`/`oime:` code to its `oimtc:`
+counterpart using the "Origin" column of §10 of the proposal, and pass
+`--calcRoundingMode truncation` for the truncate variations.
+
+66 of the suite's 68 variations produce exactly the specified codes. The two exceptions are
+the `oim-illegal-fraction-item` pair, where Calculations 1.1 declares the report
+OIM-incompatible and skips checking entirely; here the fraction concept's datatype does not
+resolve, which is reported as `oimte:invalidQNameReference`, and the fraction fact then does
+not contribute, so the total is additionally reported as inconsistent.
+
+[calc11]: https://www.xbrl.org/Specification/calculation-1.1/REC-2023-02-22+corrected-errata-2024-02-14/calculation-1.1-REC-2023-02-22+corrected-errata-2024-02-14.html
+
+## 8. Files
 
 | File | Role |
 |---|---|
@@ -369,6 +438,9 @@ GUI runs use the defaults (chrome engine, reflow on). For a different engine
 | [`PdfTextExtractor.py`](PdfTextExtractor.py) | tagged-PDF text by mcid / struct-id / form field (page-scoped) |
 | [`PdfToolsCli.py`](PdfToolsCli.py) | command-line options + dispatch (wired from `__init__.py`) |
 | [`FactValueResolver.py`](FactValueResolver.py) | resolves html / pdf locators to source text during validation |
+| [`ValidateCalculations.py`](ValidateCalculations.py) | summation-item binding and consistency checking (proposal §6.2, §7) |
+| [`ValidateNetworkObjects.py`](ValidateNetworkObjects.py) | network validation, including the summation-item definition-time checks (proposal §5) |
+| [`LoadLegacyTaxonomy.py`](LoadLegacyTaxonomy.py) | legacy XBRL 2.1 DTS → compiled model, including calculation linkbases and the all-facts cube (proposal appendix B) |
 | [`loadFromPDF.py`](../loadFromPDF.py) | read a tagged PDF + template into facts (the reverse, standalone PoC) |
 
 Spec: locator property types and fact locator types are defined in

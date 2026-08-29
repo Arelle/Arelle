@@ -1356,6 +1356,20 @@ def optionsExtender(parser, *args, **kwargs):
                       help=_("Save mode for --saveOIMmodel: full (default) | prune | report. "
                              "prune keeps only the taxonomy objects needed to interpret the "
                              "reported facts; report additionally tailors facts to viewer Form B."))
+    # Run-time override of the calculation rounding mode. The calculation proposal makes
+    # xbrl:roundingMode a property of the model or network (section 3), but permits a
+    # processor to override it -- for a report whose rounding convention is known out of
+    # band, or to run a conformance suite that parameterises the mode per variation. Where
+    # the override is applied it is reported, and the results are not conformant results
+    # for the model as published (section 3.3).
+    parser.add_option("--calcRoundingMode",
+                      action="store",
+                      choices=("roundToNearest", "truncation"),
+                      dest="calcRoundingMode",
+                      help=_("Override the calculation rounding mode declared by the model: "
+                             "roundToNearest | truncation. Overrides the xbrl:roundingMode "
+                             "property wherever it is declared; a warning reports that the "
+                             "declared mode was overridden."))
     from .PdfToolsCli import addPdfToolOptions
     addPdfToolOptions(parser)
 
@@ -1409,6 +1423,10 @@ def xbrlModelLoaded(cntlr, options, xbrlCompMdl, *args, **kwargs):
     # Stash streaming threshold from CLI option for FactPipeline consumers.
     if options is not None and getattr(options, "xbrlModelStreamThreshold", None) is not None:
         xbrlCompMdl.xbrlModelStreamThreshold = options.xbrlModelStreamThreshold
+
+    # Stash the calculation rounding-mode override for ValidateCalculations.
+    if options is not None and getattr(options, "calcRoundingMode", None) is not None:
+        xbrlCompMdl.calcRoundingModeOverride = options.calcRoundingMode
 
     if hasattr(xbrlCompMdl, '_pendingImportEntries'):
         applyDeferredImportPruning(xbrlCompMdl)
