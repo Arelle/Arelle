@@ -1,0 +1,10 @@
+DirectoryPath: public
+FilePath: download/index.html
+
+IgnoreURLs:
+  # 403 Forbidden for scripts.
+  - https://www.workiva.com/legal/workiva-privacy-policy
+
+# Verify that the versioned release download links work in CI.
+IgnoreExternalBrokenLinks: false
+CacheExpires: 0s

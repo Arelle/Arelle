@@ -1,0 +1,103 @@
+- slug: desktop
+  number: "01"
+  label: Desktop app
+  setup:
+    label: Get the desktop app
+    copy: Supported on Windows, macOS and Linux.
+    href: download/
+    action: Download Arelle
+  content:
+    partial: figure-media.html
+    src: images/gui-light.png
+    darkSrc: images/gui-dark.png
+    resize: 1200x webp q85
+    mobileWidths:
+      - 400
+    desktopWidths:
+      - 864
+      - 1200
+    alt: The Arelle desktop app showing a validated filing with facts and validation messages.
+    caption: Windows, macOS and Linux. Browse the report by table, inspect any fact, and read the validation messages.
+
+- slug: command-line
+  number: "02"
+  label: Command line
+  setup:
+    label: Get the command line
+    copy: Use the Windows, macOS or Linux binaries, or run Arelle from the Python source.
+    href: https://arelle.readthedocs.io/en/latest/command_line.html
+    action: Read the command line documentation
+  content:
+    partial: code-frame.html
+    title: arelle command line
+    label: Command line
+    commandPath: examples/cli-validation-command.txt
+    outputPath: examples/cli-validation-output.txt
+
+- slug: docker
+  number: "03"
+  label: Docker
+  setup:
+    label: Use Docker
+    copy: Pull the official image with
+    code: docker pull arelleproject/arelle
+    href: https://hub.docker.com/r/arelleproject/arelle
+    action: Open Docker Hub
+  content:
+    partial: code-frame.html
+    title: arelle docker container
+    label: Docker
+    commandPath: examples/docker-validation-command.txt
+    outputPath: examples/cli-validation-output.txt
+
+- slug: python
+  number: "04"
+  label: Python API
+  setup:
+    label: Use the Python API
+    copy: Install the package with
+    code: pip install arelle-release
+    href: https://arelle.readthedocs.io/en/latest/python_api/python_api.html
+    action: Read the Python API documentation
+  content:
+    partial: code-frame.html
+    variant: source-output
+    title: revenue.py
+    label: Python API
+    sourcePath: examples/revenue.py
+    language: python
+    commandPath: examples/python-api-command.txt
+    outputPath: examples/python-api-output.txt
+
+- slug: plugin
+  number: "05"
+  label: Plugin system
+  setup:
+    label: Build a plugin
+    copy: Extend Arelle's capabilities with custom validation rules, data extraction, or UI enhancements.
+    href: https://arelle.readthedocs.io/en/latest/plugins/development/getting_started.html
+    action: Read the plugin development guide
+  content:
+    partial: code-frame.html
+    variant: source-output
+    title: house_rules.py
+    label: Plugin system
+    sourcePath: examples/house_rules/house_rules.py
+    language: python
+    commandPath: examples/plugin-command.txt
+    outputPath: examples/plugin-output.txt
+
+- slug: web-server
+  number: "06"
+  label: Web server
+  setup:
+    label: Run the web server
+    copy: Use the local HTTP development server.
+    href: https://arelle.readthedocs.io/en/latest/webserver_security.html
+    action: Read the webserver security policy
+  content:
+    partial: code-frame.html
+    title: arelle webserver
+    label: Web server
+    commandPath: examples/webserver-command.txt
+    outputPath: examples/webserver-output.txt

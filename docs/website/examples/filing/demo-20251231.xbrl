@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xbrli:xbrl
+    xmlns:xbrli="http://www.xbrl.org/2003/instance"
+    xmlns:link="http://www.xbrl.org/2003/linkbase"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+    xmlns:demo="https://example.com/demo">
+
+  <link:schemaRef xlink:type="simple" xlink:href="demo-20251231.xsd"/>
+
+  <xbrli:context id="FY2025">
+    <xbrli:entity>
+      <xbrli:identifier scheme="https://example.com">DEMO</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2025-01-01</xbrli:startDate>
+      <xbrli:endDate>2025-12-31</xbrli:endDate>
+    </xbrli:period>
+  </xbrli:context>
+
+  <xbrli:context id="FY2024">
+    <xbrli:entity>
+      <xbrli:identifier scheme="https://example.com">DEMO</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2024-01-01</xbrli:startDate>
+      <xbrli:endDate>2024-12-31</xbrli:endDate>
+    </xbrli:period>
+  </xbrli:context>
+
+  <xbrli:unit id="USD">
+    <xbrli:measure>iso4217:USD</xbrli:measure>
+  </xbrli:unit>
+
+  <demo:EntityRegistrantName contextRef="FY2025">DEMO CORP</demo:EntityRegistrantName>
+  <demo:DocumentType contextRef="FY2025">10-K</demo:DocumentType>
+
+  <demo:Revenue contextRef="FY2025" unitRef="USD" decimals="-3">884568000</demo:Revenue>
+  <demo:CostOfSales contextRef="FY2025" unitRef="USD" decimals="-3">380364000</demo:CostOfSales>
+  <demo:GrossProfit contextRef="FY2025" unitRef="USD" decimals="-3">513204000</demo:GrossProfit>
+  <demo:OperatingExpenses contextRef="FY2025" unitRef="USD" decimals="-3">-12500000</demo:OperatingExpenses>
+
+  <demo:Revenue contextRef="FY2024" unitRef="USD" decimals="-3">738680000</demo:Revenue>
+  <demo:CostOfSales contextRef="FY2024" unitRef="USD" decimals="-3">324019000</demo:CostOfSales>
+  <demo:GrossProfit contextRef="FY2024" unitRef="USD" decimals="-3">414661000</demo:GrossProfit>
+
+</xbrli:xbrl>

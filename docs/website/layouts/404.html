@@ -1,0 +1,21 @@
+{{ define "shell" }}shell-narrow{{ end }}
+
+{{ define "main" }}
+  {{ partial "page-header.html" (dict "title" "Page not found") }}
+
+  <article class="code-frame">
+    <div class="frame-bar">
+      <span>Arelle</span>
+      <span>Validation</span>
+    </div>
+    <div class="frame-section">
+      <p class="frame-heading">Command</p>
+      <pre><code><span aria-hidden="true">$ </span>arelle --validate</code></pre>
+    </div>
+    <div class="frame-section">
+      <p class="frame-heading">Output</p>
+      <pre><code>[arelle.4.0.4.notFound] The requested page could not be found.
+Validation completed with 1 error.</code></pre>
+    </div>
+  </article>
+{{ end }}

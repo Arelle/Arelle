@@ -1,0 +1,14 @@
+<!doctype html>
+{{/* The html landing page of the legacy WordPress feed. Redirect to hugo feed page. */}}
+<html lang="{{ .Site.Language.Locale }}">
+  <head>
+    <meta charset="utf-8">
+    {{- $updates := site.GetPage "/updates" -}}
+    <meta http-equiv="refresh" content="0; url={{ $updates.RelPermalink }}">
+    <link rel="canonical" href="{{ $updates.Permalink }}">
+    <title>{{ .Title }}</title>
+  </head>
+  <body>
+    <p>This feed has moved to <a href="{{ $updates.RelPermalink }}">the Arelle updates</a>.</p>
+  </body>
+</html>

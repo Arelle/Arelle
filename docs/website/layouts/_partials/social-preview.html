@@ -1,0 +1,8 @@
+{{- $image := resources.Get "images/social-preview.png" -}}
+<link rel="canonical" href="{{ .URL }}">
+<meta property="og:title" content="{{ .Title }}">
+<meta property="og:description" content="{{ .Description }}">
+<meta property="og:url" content="{{ .URL }}">
+<meta property="og:image" content="{{ $image.Permalink }}">
+<meta property="og:image:width" content="{{ $image.Width }}">
+<meta property="og:image:height" content="{{ $image.Height }}">

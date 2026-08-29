@@ -93,7 +93,7 @@ Users are notified of breaking changes through the following channels:
 - **arelle-users Google Group**: Announcements are posted to the
   [arelle-users](https://groups.google.com/g/arelle-users) group.
 - **arelle.org Blog**: Major changes are covered in blog posts on
-  [arelle.org](https://arelle.org/arelle/blog/).
+  [arelle.org](https://arelle.org/updates/).
 - **Direct Outreach**: Key stakeholders and power users may be contacted
   directly for high-impact changes.
 - **Mailing List**: Email [support@arelle.org](mailto:support@arelle.org) with

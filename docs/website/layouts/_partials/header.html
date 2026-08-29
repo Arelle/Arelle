@@ -1,0 +1,30 @@
+<header class="site-header">
+  <nav class="primary-navigation" aria-label="Primary">
+    <a class="wordmark" href="{{ relURL "" }}"{{ if .IsHome }} aria-current="page"{{ end }}>
+      {{ (resources.Get "images/arelle.svg").Content | safeHTML }}
+    </a>
+    <ul>
+      <li>
+        <a href="{{ relURL "download/" }}"{{ if eq .RelPermalink (relURL "download/") }} aria-current="page"{{ end }}>Download</a>
+      </li>
+      <li>
+        <a href="{{ relURL "updates/" }}"{{ if eq .Section "updates" }} aria-current="page"{{ end }}>Updates</a>
+      </li>
+      <li>
+        <a href="https://arelle.readthedocs.io/">Docs</a>
+      </li>
+      <li>
+        <a href="https://github.com/Arelle/Arelle">GitHub</a>
+      </li>
+    </ul>
+    <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch to dark" title="Switch to dark">
+      <svg class="theme-icon theme-icon-moon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+        <path d="M20.7 15.4A9 9 0 0 1 8.6 3.3 9 9 0 1 0 20.7 15.4Z"/>
+      </svg>
+      <svg class="theme-icon theme-icon-sun" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+      </svg>
+    </button>
+  </nav>
+</header>

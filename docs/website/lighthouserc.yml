@@ -1,0 +1,43 @@
+ci:
+  collect:
+    staticDistDir: ./public
+    numberOfRuns: 3
+    url:
+      - /
+      - /download/
+      - /about/
+      - /updates/
+      - /updates/2026/06/26/june-2026-update/
+      - /404.html
+  assert:
+    preset: lighthouse:recommended
+    assertions:
+      'categories:performance': ['error', {minScore: 0.95}]
+      'categories:accessibility': ['error', {minScore: 1}]
+      'categories:best-practices': ['error', {minScore: 1}]
+      'categories:seo': ['error', {minScore: 1}]
+
+      'resource-summary:total:size': ['error', {maxNumericValue: 204800}]
+      'resource-summary:total:count': ['error', {maxNumericValue: 12}]
+      'resource-summary:third-party:size': ['error', {maxNumericValue: 0}]
+      'resource-summary:third-party:count': ['error', {maxNumericValue: 0}]
+      'resource-summary:document:size': ['error', {maxNumericValue: 16384}]
+      'resource-summary:document:count': ['error', {maxNumericValue: 1}]
+      'resource-summary:stylesheet:size': ['error', {maxNumericValue: 16384}]
+      'resource-summary:stylesheet:count': ['error', {maxNumericValue: 1}]
+      'resource-summary:image:size': ['error', {maxNumericValue: 131072}]
+      'resource-summary:image:count': ['error', {maxNumericValue: 6}]
+      'resource-summary:font:size': ['error', {maxNumericValue: 76800}]
+      'resource-summary:font:count': ['error', {maxNumericValue: 3}]
+      'resource-summary:media:size': ['error', {maxNumericValue: 0}]
+      'resource-summary:media:count': ['error', {maxNumericValue: 0}]
+      'resource-summary:other:size': ['error', {maxNumericValue: 2048}]
+      'resource-summary:other:count': ['error', {maxNumericValue: 2}]
+
+      # Could clear these warnings by inlining the CSS, but prefer to cache.
+      'network-dependency-tree-insight': 'off'
+      'render-blocking-insight': 'off'
+      'render-blocking-resources': 'off'
+  upload:
+    target: filesystem
+    outputDir: .lighthouseci

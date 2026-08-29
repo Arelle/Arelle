@@ -1,0 +1,189 @@
+/* Chroma class inventory built from hugo gen chromastyles. */
+:root {
+  --syntax-accent: light-dark(#9a0e80, #db67ba);
+  --syntax-string: light-dark(#6b5200, #77d1c8);
+  --syntax-number: light-dark(#9a3b12, #db67ba);
+  --syntax-keyword: light-dark(#594f75, #db67ba);
+  --code-block-padding: 1rem;
+  --code-block-leading: 1.6;
+
+  & :where(pre:not(.chroma), .highlight > .chroma) {
+    max-width: 100%;
+    overflow-x: auto;
+    border: var(--border-width) solid var(--line);
+    background-color: var(--well);
+    color: var(--ink);
+    font-size: var(--type-label);
+    line-height: var(--code-block-leading);
+    overflow-wrap: normal;
+  }
+
+  & pre:not(.chroma),
+  & .highlight > pre.chroma {
+    padding: var(--code-block-padding);
+
+    & code {
+      padding: 0;
+      background-color: transparent;
+      color: inherit;
+      font-size: inherit;
+    }
+  }
+
+  & .highlight {
+    max-width: 100%;
+
+    & pre {
+      margin: 0;
+    }
+
+    & > div.chroma {
+      & .lntd {
+        & pre {
+          max-width: none;
+          padding: var(--code-block-padding);
+          overflow: visible;
+          border: 0;
+          background-color: transparent;
+        }
+
+        &:first-child {
+          & pre {
+            padding-inline-end: 0;
+          }
+
+          & .hl {
+            display: block;
+          }
+        }
+
+        &:last-child .line.hl {
+          padding-inline: var(--code-block-padding);
+          margin-inline: calc(-1 * var(--code-block-padding));
+        }
+      }
+    }
+  }
+
+  & .chroma {
+    background-color: var(--well);
+    color: var(--ink);
+    -webkit-text-size-adjust: none;
+
+    & :is(.x, .cl, .go, .gp) {
+      color: var(--ink);
+    }
+
+    & :is(.err, .kn, .nt, .o, .ow, .or, .gd, .gr, .gh, .gt) {
+      color: var(--syntax-accent);
+    }
+
+    & :is(.k, .kc, .kd, .kp, .kr, .kt, .no) {
+      color: var(--syntax-keyword);
+    }
+
+    &
+      :is(
+        .na,
+        .nb,
+        .bp,
+        .nc,
+        .nd,
+        .ni,
+        .ne,
+        .nf,
+        .fm,
+        .nl,
+        .nn,
+        .nx,
+        .py,
+        .nv,
+        .vc,
+        .vg,
+        .vi,
+        .vm,
+        .gi
+      ) {
+      color: var(--signal);
+    }
+
+    & :is(.ld, .s, .sa, .sb, .sc, .dl, .sd, .s2, .sh, .si, .sx, .sr, .s1, .ss) {
+      color: var(--syntax-string);
+    }
+
+    & :is(.l, .se, .m, .mb, .mf, .mh, .mi, .il, .mo) {
+      color: var(--syntax-number);
+    }
+
+    & :is(.c, .ch, .cm, .c1, .cs, .cp, .cpf, .gu, .lnt, .ln) {
+      color: var(--muted);
+    }
+
+    & :is(.c, .ch, .cm, .c1, .cs, .cp, .cpf, .ge) {
+      font-style: italic;
+    }
+
+    & :is(.nd, .o, .ow, .or, .cpf, .gh, .gu, .gs) {
+      font-weight: 700;
+    }
+
+    & .gl {
+      text-decoration: underline;
+    }
+
+    & .lnlinks {
+      color: inherit;
+      text-decoration: none;
+      outline: revert;
+    }
+
+    & :is(.lnt, .ln) {
+      padding-inline: 0.4em;
+      margin-inline-end: 0.4em;
+      user-select: none;
+      white-space: pre;
+    }
+
+    & .lntable {
+      display: table;
+      width: max-content;
+      min-width: 100%;
+      max-width: none;
+      padding: 0;
+      margin: 0;
+      overflow: visible;
+      border: 0;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: inherit;
+    }
+
+    & .lntd {
+      padding: 0;
+      margin: 0;
+      border: 0;
+      vertical-align: top;
+    }
+
+    & .hl {
+      background-color: var(--accent-wash);
+    }
+
+    & .gd {
+      background-color: var(--accent-wash);
+    }
+
+    & .gi {
+      background-color: var(--signal-wash);
+    }
+
+    & .line {
+      display: flex;
+    }
+
+    &:focus-visible {
+      outline: var(--focus-ring-width) solid var(--accent);
+      outline-offset: var(--focus-ring-offset);
+    }
+  }
+}

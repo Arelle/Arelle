@@ -1,0 +1,53 @@
+name: Publish Website
+
+on:
+  workflow_call:
+    inputs:
+      github_artifact:
+        description: Name of the GitHub artifact uploaded by the build job
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  verify-website-download-urls:
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
+      - name: Download website artifact
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: ${{ inputs.github_artifact }}
+          path: docs/website/public
+      - name: Verify versioned download URLs
+        uses: ./.github/actions/test_website
+        with:
+          htmltest: 'false'
+          htmltest_downloads: 'true'
+          lighthouse: 'false'
+
+  publish-website:
+    needs: verify-website-download-urls
+    environment: github-pages
+    permissions:
+      id-token: write
+      pages: write
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download tested website artifact
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: ${{ inputs.github_artifact }}
+          path: docs/website/public
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5.0.0
+        with:
+          path: docs/website/public
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v5.0.0

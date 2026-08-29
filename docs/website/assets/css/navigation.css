@@ -1,0 +1,118 @@
+.primary-navigation {
+  --chrome-gap: 0.375rem;
+}
+
+.primary-navigation ul,
+.footer-navigation ul {
+  --navigation-link-padding-inline: 0.75rem;
+  --navigation-link-padding-block: 0.375rem;
+  --navigation-line-width: 3px;
+
+  display: flex;
+  flex-wrap: nowrap;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  & li {
+    display: flex;
+    min-width: 0;
+  }
+
+  & a {
+    display: block;
+    position: relative;
+    padding: var(--navigation-link-padding-block)
+      var(--navigation-link-padding-inline);
+    color: var(--ink);
+    font-size: var(--type-ui);
+    font-weight: 500;
+    line-height: 1.5;
+    text-decoration: none;
+
+    &::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      height: var(--navigation-line-width);
+      background-color: var(--signal);
+      pointer-events: none;
+      transform: scaleX(0);
+      transform-origin: center;
+      transition:
+        background-color var(--duration-theme) ease-out,
+        transform var(--duration-indicator) ease-out;
+    }
+
+    &:hover::after,
+    &:focus-visible::after,
+    &[aria-current="page"]::after {
+      transform: scaleX(1);
+    }
+
+    &[aria-current="page"] {
+      font-weight: 700;
+    }
+
+    &:focus-visible {
+      outline: var(--focus-ring-width) solid var(--signal);
+      outline-offset: var(--focus-ring-offset);
+    }
+  }
+}
+
+.primary-navigation ul {
+  justify-content: flex-end;
+  gap: var(--chrome-gap);
+
+  & a {
+    font-size: var(--type-body);
+  }
+}
+
+@media (width <= 40rem) {
+  .primary-navigation > ul,
+  .footer-navigation > ul {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .primary-navigation {
+    --navigation-compact-column-gap: 1rem;
+    --navigation-compact-row-gap: 0.5rem;
+
+    & > ul {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      gap: var(--navigation-compact-row-gap)
+        var(--navigation-compact-column-gap);
+
+      & li {
+        justify-content: center;
+        min-width: 0;
+      }
+
+      & a {
+        text-align: center;
+      }
+    }
+  }
+}
+
+@media (width <= 22rem) {
+  .primary-navigation > ul,
+  .footer-navigation > ul {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primary-navigation ul,
+  .footer-navigation ul {
+    & a::after {
+      transition: none;
+    }
+  }
+}

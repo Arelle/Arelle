@@ -132,3 +132,23 @@ jobs:
     with:
       arelle_version: ${{ github.ref_name }}
     secrets: inherit
+
+  build-website:
+    uses: ./.github/workflows/build-website.yml
+    with:
+      download_version: ${{ github.ref_name }}
+  publish-website:
+    needs:
+      - build-website
+      - publish-linux
+      - publish-macos-x64
+      - publish-macos-arm64
+      - publish-windows-installer
+      - publish-windows-zip
+    permissions:
+      contents: read
+      id-token: write
+      pages: write
+    uses: ./.github/workflows/publish-website.yml
+    with:
+      github_artifact: ${{ needs.build-website.outputs.uploaded_artifact_name }}

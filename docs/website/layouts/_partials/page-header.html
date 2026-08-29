@@ -1,0 +1,45 @@
+{{- $header := . -}}
+<header class="page-header">
+  {{- with $header.meta }}
+    <div class="page-header-meta">
+      <span class="kicker">{{ .label }}</span>
+      <span aria-hidden="true">&middot;</span>
+      <a class="action-arrow" href="{{ .href }}">
+        {{ .linkLabel }} <span class="action-arrow-icon" aria-hidden="true">&rarr;</span>
+      </a>
+    </div>
+  {{- end }}
+  {{- with $header.kicker }}
+    {{- with $header.kickerHref }}
+      <a class="kicker" href="{{ . }}">{{ $header.kicker }}</a>
+    {{- else }}
+      <p class="kicker">{{ $header.kicker }}</p>
+    {{- end }}
+  {{- end }}
+  {{- with $header.titleLines }}
+    <h1 class="title type-title">
+      {{- range . }}
+        <span>
+          {{- .lead -}}
+          {{- with .accent }}<span class="page-header-title-accent">{{ . }}</span>{{ end -}}
+          {{- .trail -}}
+        </span>
+      {{- end }}
+    </h1>
+  {{- else }}
+    <h1 class="title type-title">{{ $header.title }}</h1>
+  {{- end }}
+  {{- with $header.date }}
+    {{- $machineDate := .Format "2006-01-02" -}}
+    {{- $visibleDate := .Format "January 2, 2006" -}}
+    <time class="type-ui" datetime="{{ $machineDate }}">{{ $visibleDate }}</time>
+  {{- end }}
+  {{- with $header.lede }}
+    <p class="lede type-lede">{{ . }}</p>
+  {{- end }}
+  {{- with $header.action }}
+    {{- $buttonClass := "btn btn-primary" -}}
+    {{- if eq .variant "ghost" }}{{ $buttonClass = "btn btn-ghost" }}{{ end -}}
+    <a class="{{ $buttonClass }}" href="{{ .href }}">{{ .label }}</a>
+  {{- end }}
+</header>

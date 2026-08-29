@@ -1,0 +1,6 @@
+arelleCmdLine \
+    --file demo-20251231.xbrl \
+    --validate \
+    --plugins house_rules \
+    --disclosureSystem house-rules \
+    --logLevel warning

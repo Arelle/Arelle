@@ -1,0 +1,46 @@
+{{- $figure := . -}}
+{{- $loading := $figure.loading | default "lazy" -}}
+{{- $visuals := slice (dict "class" "media-visual" "src" $figure.src) -}}
+{{- with $figure.darkSrc }}
+  {{- $visuals = slice
+    (dict "class" "media-visual media-visual-light" "src" $figure.src)
+    (dict "class" "media-visual media-visual-dark" "src" .)
+  -}}
+{{- end -}}
+<figure class="figure-media">
+  {{- range $visual := $visuals }}
+    {{- $image := resources.Get $visual.src -}}
+    {{- if not $image -}}
+      {{- errorf "Figure/Media image %q was not found in assets" $visual.src -}}
+    {{- end -}}
+    {{- with $figure.resize }}
+      {{- $image = $image.Resize . -}}
+    {{- end -}}
+    {{- $mobileSrcset := slice -}}
+    {{- with $figure.mobileWidths }}
+      {{- range . }}
+        {{- $responsiveImage := resources.Get $visual.src -}}
+        {{- $responsiveImage = $responsiveImage.Resize (printf "%dx webp q85" .) -}}
+        {{- $mobileSrcset = $mobileSrcset | append (printf "%s %dw" $responsiveImage.RelPermalink .) -}}
+      {{- end }}
+    {{- end -}}
+    {{- $desktopSrcset := slice -}}
+    {{- with $figure.desktopWidths }}
+      {{- range . }}
+        {{- $responsiveImage := resources.Get $visual.src -}}
+        {{- $responsiveImage = $responsiveImage.Resize (printf "%dx webp q85" .) -}}
+        {{- $desktopSrcset = $desktopSrcset | append (printf "%s %dw" $responsiveImage.RelPermalink .) -}}
+      {{- end }}
+    {{- end -}}
+    <picture class="{{ $visual.class }}">
+      {{- with $mobileSrcset }}
+        <source media="(max-width: 54rem)" srcset="{{ delimit . ", " }}" sizes="100vw">
+      {{- end }}
+      {{- with $desktopSrcset }}
+        <source media="(min-width: 54.01rem)" srcset="{{ delimit . ", " }}" sizes="54rem">
+      {{- end }}
+      <img class="media-image" src="{{ $image.RelPermalink }}"{{ if reflect.IsImageResourceWithMeta $image }} width="{{ $image.Width }}" height="{{ $image.Height }}"{{ end }} alt="{{ $figure.alt }}" loading="{{ $loading }}" decoding="async">
+    </picture>
+  {{- end }}
+  <figcaption class="media-caption">{{ $figure.caption }}</figcaption>
+</figure>

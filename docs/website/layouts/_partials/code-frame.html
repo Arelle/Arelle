@@ -1,0 +1,32 @@
+{{- $frame := . -}}
+{{- $variant := $frame.variant | default "terminal" -}}
+{{- $command := readFile $frame.commandPath | strings.TrimSpace -}}
+{{- $output := readFile $frame.outputPath | strings.TrimSpace -}}
+<article class="code-frame{{ if eq $variant "source-output" }} code-frame-source-output{{ end }}">
+  <div class="frame-bar">
+    <span>{{ $frame.title }}</span>
+    <span>{{ $frame.label }}</span>
+  </div>
+  {{- if eq $variant "source-output" }}
+    {{- $source := readFile $frame.sourcePath | strings.TrimSpace -}}
+    <div class="frame-section">
+      <p class="frame-heading">Source</p>
+      {{ highlight $source $frame.language "lineNos=false,noClasses=false" }}
+    </div>
+    <div class="frame-section">
+      <p class="frame-heading">Command</p>
+      <pre><code>$ {{ $command }}</code></pre>
+      <p class="frame-heading">Output</p>
+      <pre><code>{{ $output }}</code></pre>
+    </div>
+  {{- else }}
+    <div class="frame-section">
+      <p class="frame-heading">Command</p>
+      <pre><code>$ {{ $command }}</code></pre>
+    </div>
+    <div class="frame-section">
+      <p class="frame-heading">Output</p>
+      <pre><code>{{ $output }}</code></pre>
+    </div>
+  {{- end }}
+</article>

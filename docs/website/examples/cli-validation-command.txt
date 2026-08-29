@@ -1,0 +1,5 @@
+arelleCmdLine \
+    --file demo-20251231.xbrl \
+    --validate \
+    --calc round-to-nearest \
+    --logLevel warning

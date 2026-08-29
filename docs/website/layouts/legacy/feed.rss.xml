@@ -1,0 +1,3 @@
+{{- $archive := site.GetPage "/updates" -}}
+{{- $rss := .OutputFormats.Get "rss" -}}
+{{ partial "rss-channel.xml" (dict "archive" $archive "rss" $rss) }}

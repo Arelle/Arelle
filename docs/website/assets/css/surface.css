@@ -1,0 +1,34 @@
+.surface-panel,
+.surface-stack,
+.surface-cell {
+  min-width: 0;
+  color: var(--ink);
+}
+
+.surface-panel {
+  --surface-panel-padding: clamp(1rem, 3vw, 1.5rem);
+
+  padding: var(--surface-panel-padding);
+  border: var(--border-width) solid var(--line);
+  border-radius: var(--radius-surface);
+  background-color: var(--card);
+}
+
+.surface-stack {
+  --surface-stack-gap: var(--border-width);
+
+  display: grid;
+  gap: var(--surface-stack-gap);
+  margin: 0;
+  overflow: hidden;
+  border: var(--border-width) solid var(--line);
+  border-radius: var(--radius-surface);
+  background-color: var(--well);
+}
+
+.surface-cell {
+  --surface-cell-padding: 1rem;
+
+  padding: var(--surface-cell-padding);
+  background-color: var(--card);
+}

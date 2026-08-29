@@ -1,0 +1,41 @@
+name: Test Website
+description: Validates the built website links, release downloads, and Lighthouse scores.
+
+inputs:
+  htmltest:
+    default: 'true'
+    description: Run the general htmltest link check
+    required: false
+  htmltest_version:
+    default: v0.17.0
+    description: Version of htmltest to use
+    required: false
+  htmltest_downloads:
+    default: 'false'
+    description: Run the release download htmltest link check
+    required: false
+  lighthouse:
+    default: 'true'
+    description: Run Lighthouse CI checks
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Run htmltest
+      if: ${{ inputs.htmltest == 'true' }}
+      shell: bash
+      working-directory: docs/website
+      run: go run github.com/wjdp/htmltest@${{ inputs.htmltest_version }} --conf .htmltest.yml
+
+    - name: Verify release download links
+      if: ${{ inputs.htmltest_downloads == 'true' }}
+      shell: bash
+      working-directory: docs/website
+      run: go run github.com/wjdp/htmltest@${{ inputs.htmltest_version }} --conf .htmltest.download.yml
+
+    - name: Lighthouse performance and accessibility checks
+      if: ${{ inputs.lighthouse == 'true' }}
+      shell: bash
+      working-directory: docs/website
+      run: npm run lighthouse

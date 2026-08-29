@@ -1,0 +1,15 @@
+{{- $timeline := . -}}
+<div class="timeline-navigation">
+  <div class="timeline-rail">
+    <span class="kicker timeline-heading">Timeline</span>
+    <nav class="timeline-rail-navigation" aria-label="Timeline">
+      {{ partial "timeline-node-list.html" (dict "nodes" $timeline.nodes "markers" true) }}
+    </nav>
+  </div>
+  <details class="timeline-disclosure">
+    <summary>Timeline</summary>
+    <nav aria-label="Timeline">
+      {{ partial "timeline-node-list.html" (dict "nodes" $timeline.nodes "markers" false) }}
+    </nav>
+  </details>
+</div>

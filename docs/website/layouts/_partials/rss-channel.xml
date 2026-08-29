@@ -1,0 +1,21 @@
+{{- $archive := .archive -}}
+{{- $rss := .rss -}}
+{{- printf "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>" | safeHTML }}
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>{{ $archive.Title }}</title>
+    <link>{{ $archive.Permalink }}</link>
+    <description>{{ $archive.Description }}</description>
+    <language>{{ site.Language.Locale }}</language>
+    <atom:link href="{{ $rss.Permalink }}" rel="self" type="application/rss+xml" />
+    {{- range $archive.RegularPagesRecursive.ByDate.Reverse }}
+      <item>
+        <title>{{ .Title }}</title>
+        <link>{{ .Permalink }}</link>
+        <pubDate>{{ .Date.Format "Mon, 02 Jan 2006 15:04:05 -0700" | safeHTML }}</pubDate>
+        <guid>{{ .Permalink }}</guid>
+        <description>{{ .Content | transform.XMLEscape | safeHTML }}</description>
+      </item>
+    {{- end }}
+  </channel>
+</rss>

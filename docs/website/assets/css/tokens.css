@@ -1,0 +1,76 @@
+:root {
+  color-scheme: light dark;
+  --font-sans: "DM Sans", ui-sans-serif, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, monospace;
+  --type-micro: 0.75rem;
+  --type-label: 0.8125rem;
+  --type-ui: 0.875rem;
+  --type-body: 1rem;
+  --type-lede: 1.125rem;
+  --type-heading: 1.375rem;
+  --type-title: clamp(2.2rem, 4.5vw, 3.25rem);
+  --type-display: clamp(2.6rem, 6vw, 4.5rem);
+  --shell-narrow: 42rem;
+  --shell-wide: 80rem;
+  --shell-padding-block: clamp(1.25rem, 3vw, 2rem);
+  --reflow-capability: 40rem;
+  --reflow-split: 48rem;
+  --page-gutter: clamp(1rem, 3vw, 2rem);
+  --content-section-gap: 2rem;
+  --tracking-kicker: 0.1em;
+  --border-width: 1px;
+  --radius-surface: 0.25rem;
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 0.25rem;
+  --duration-control: 100ms;
+  --duration-indicator: 150ms;
+  --duration-theme: 200ms;
+  --duration-home-entrance: 700ms;
+  --delay-home-entrance-1: 0ms;
+  --delay-home-entrance-2: 100ms;
+  --delay-home-entrance-3: 200ms;
+  --delay-home-entrance-4: 300ms;
+  --distance-home-entrance: 0.75rem;
+  --transition-theme:
+    color var(--duration-theme) ease-out,
+    background-color var(--duration-theme) ease-out,
+    border-color var(--duration-theme) ease-out,
+    box-shadow var(--duration-theme) ease-out;
+  --page: light-dark(#f6f4ef, #0d1017);
+  --card: light-dark(#ffffff, #141821);
+  --well: light-dark(#f8f6f2, #1a1f2a);
+  --ink: light-dark(#1a1814, #c8d0dc);
+  --muted: light-dark(#4a463f, #8e97a8);
+  --line: light-dark(#cfc8ba, #232936);
+  --accent: light-dark(#9a0e80, #da62b8);
+  --accent-hover: light-dark(#7a0b66, #e768c3);
+  --on-accent: light-dark(#ffffff, #0d1017);
+  --signal: light-dark(#0a6b73, #7ad4cc);
+  --accent-wash: light-dark(
+    rgb(from var(--accent) r g b / 5%),
+    rgb(from var(--accent) r g b / 10%)
+  );
+  --signal-wash: light-dark(
+    rgb(from var(--signal) r g b / 4%),
+    rgb(from var(--signal) r g b / 8%)
+  );
+  --page-wash:
+    radial-gradient(
+      60% 24rem at 15% 0%,
+      var(--accent-wash),
+      rgb(from var(--accent) r g b / 0%) 70%
+    ),
+    radial-gradient(
+      50% 20rem at 90% 1.25rem,
+      var(--signal-wash),
+      rgb(from var(--signal) r g b / 0%) 70%
+    );
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}

@@ -1,0 +1,57 @@
+groups:
+  - title: Core
+    category: specification
+    summary: The foundation for defining XBRL taxonomies and reports.
+    items:
+      - XBRL 2.1
+      - XBRL Dimensions 1.0
+      - Calculations 1.1
+      - Extensible Enumerations 1.0
+      - Extensible Enumerations 2.0
+      - Formula 1.0
+      - Table Linkbase 1.0
+      - Generic Links 1.0
+      - Generic References 1.0
+      - Generic Labels 1.0
+      - Generic Preferred Label 1.0
+
+  - title: Formats
+    category: specification
+    summary: Formats for publishing and exchanging structured data.
+    items:
+      - Inline XBRL 1.0
+      - Inline XBRL 1.1
+      - xBRL-CSV 1.0
+      - xBRL-JSON 1.0
+      - Taxonomy Packages 1.0
+      - Report Packages 1.0
+
+  - title: Registries
+    category: specification
+    summary: Shared registries that keep reports and taxonomies portable.
+    items:
+      - Data Type Registry 1.0
+      - Functions Registry 1.0
+      - Link Role Registry 1.0
+      - Link Role Registry 2.0
+      - Units Registry 1.0
+      - Inline XBRL - Transformation Registry 1.0
+      - Inline XBRL - Transformation Registry 2.0
+      - Inline XBRL - Transformation Registry 3.0
+      - Inline XBRL - Transformation Registry 4.0
+      - Inline XBRL - Transformation Registry 5.0
+
+  - title: Filing Rules
+    category: filing-rule
+    summary: Arelle validates any XBRL report or taxonomy. For these filing programs it also enforces local filing rules that exist only as unstructured prose in the regulator's manual.
+    items:
+      - ESMA ESEF
+      - SEC EDGAR
+      - US FERC
+      - Japan EDINET
+      - South Africa CIPC
+      - Denmark DBA
+      - Netherlands SBR
+      - Netherlands KvK
+      - UK HMRC
+      - Ireland ROS

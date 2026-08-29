@@ -1,0 +1,89 @@
+.btn {
+  --radius-button: 0.25rem;
+  --button-gap: 0.5rem;
+  --button-padding-block: 0.625rem;
+  --button-padding-inline: 1rem;
+
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: var(--button-gap);
+  padding: var(--button-padding-block) var(--button-padding-inline);
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-button);
+  color: inherit;
+  font-size: var(--type-ui);
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: center;
+  text-decoration: none;
+  transition:
+    color var(--duration-control) ease-out,
+    background-color var(--duration-control) ease-out,
+    border-color var(--duration-control) ease-out,
+    box-shadow var(--duration-control) ease-out,
+    transform var(--duration-control) ease-out;
+
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--accent);
+    outline-offset: var(--focus-ring-offset);
+  }
+}
+
+.btn-primary {
+  border-color: var(--accent);
+  background-color: var(--accent);
+  color: var(--on-accent);
+
+  &:hover,
+  &:active {
+    border-color: var(--accent-hover);
+    background-color: var(--accent-hover);
+    color: var(--on-accent);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+.btn-secondary {
+  border-color: var(--line);
+  background-color: var(--well);
+  color: var(--ink);
+
+  &:hover,
+  &:active {
+    border-color: var(--muted);
+    background-color: var(--well);
+    color: var(--ink);
+  }
+}
+
+.btn-ghost {
+  --button-padding-block: 0;
+  --button-padding-inline: 0;
+
+  border: 0;
+  background-color: transparent;
+  color: var(--accent);
+
+  &:hover,
+  &:active {
+    background-color: transparent;
+    color: var(--accent-hover);
+    text-decoration: underline;
+  }
+}
+
+:root[data-theme-changing] .btn {
+  transition: var(--transition-theme);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  :root[data-theme-changing] .btn {
+    transition: none;
+  }
+}

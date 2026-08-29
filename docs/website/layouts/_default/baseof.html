@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="{{ .Site.Language.Locale | default "en" }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {{- $title := .Title -}}
+    {{- $description := or .Description (.Summary | plainify | chomp | truncate 160) -}}
+    {{- if not $description -}}
+      {{- $description = .Site.Params.description -}}
+    {{- end -}}
+    {{- if eq .Kind "404" -}}
+      {{- $title = "Page not found" -}}
+      {{- $description = "The requested page could not be found." -}}
+    {{- end -}}
+    {{- if .IsHome -}}
+      {{- $title = .Site.Title -}}
+    {{- else -}}
+      {{- $title = printf "%s | %s" $title .Site.Title -}}
+    {{- end -}}
+    <meta name="description" content="{{ $description }}">
+    <title>{{ $title }}</title>
+    {{ partial "social-preview.html" (dict "URL" .Permalink "Title" $title "Description" $description) }}
+    {{- with resources.Get "images/favicon.ico" }}
+      <link rel="icon" type="image/x-icon" href="{{ .RelPermalink }}">
+    {{- end }}
+    {{- with resources.Get "images/favicon.svg" }}
+      <link rel="icon" type="image/svg+xml" href="{{ .RelPermalink }}">
+    {{- end }}
+    {{- $updates := site.GetPage "/updates" -}}
+    {{- if eq .RelPermalink $updates.RelPermalink }}
+      {{- with .OutputFormats.Get "rss" }}
+        <link rel="alternate" type="{{ .MediaType.Type }}" href="{{ .RelPermalink }}" title="{{ $.Title }}">
+      {{- end }}
+    {{- end }}
+    {{- $controller := resources.Get "js/main.js" | js.Build (dict "minify" true) -}}
+    <script data-theme-controller>{{ $controller.Content | safeJS }}</script>
+    {{ partialCached "css.html" . }}
+  </head>
+  <body>
+    {{ partial "header.html" . }}
+    <main class="{{ block "shell" . }}shell-wide{{ end }}">
+      {{ block "main" . }}{{ end }}
+    </main>
+    {{ partial "footer.html" . }}
+  </body>
+</html>

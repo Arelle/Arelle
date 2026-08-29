@@ -1,0 +1,60 @@
+{{- $comparison := . -}}
+{{- $interfaces := $comparison.interfaces -}}
+{{- if not $interfaces -}}
+  {{- errorf "Interface comparison requires interface definitions" -}}
+{{- end -}}
+{{- $seenSlugs := slice -}}
+{{- range $interface := $interfaces }}
+  {{- $slug := $interface.slug | default "" -}}
+  {{- if not (strings.TrimSpace $slug) -}}
+    {{- errorf "Interface comparison requires a non-empty slug" -}}
+  {{- end -}}
+  {{- if not (findRE "^[a-z0-9]+(-[a-z0-9]+)*$" $slug) -}}
+    {{- errorf "Interface comparison slug %q is not a safe slug" $slug -}}
+  {{- end -}}
+  {{- if in $seenSlugs $slug -}}
+    {{- errorf "Interface comparison slug %q is duplicated" $slug -}}
+  {{- end -}}
+  {{- $seenSlugs = $seenSlugs | append $slug -}}
+{{- end -}}
+<div class="interface-comparison" data-interface-comparison>
+  <div class="interface-tabs" role="tablist" aria-label="{{ $comparison.label | default "Arelle interfaces" }}">
+    {{- range $index, $interface := $interfaces }}
+      <button
+        class="interface-tab"
+        type="button"
+        role="tab"
+        id="interface-tab-{{ $interface.slug }}"
+        aria-controls="interface-panel-{{ $interface.slug }}"
+        aria-selected="{{ if eq $index 0 }}true{{ else }}false{{ end }}"
+        tabindex="{{ if eq $index 0 }}0{{ else }}-1{{ end }}"
+      >
+        <span class="interface-tab-index" aria-hidden="true">{{ $interface.number }}</span>
+        <span class="interface-tab-label">{{ $interface.label }}</span>
+      </button>
+    {{- end }}
+  </div>
+  {{- range $index, $interface := $interfaces }}
+    <section
+      class="interface-panel"
+      id="interface-panel-{{ $interface.slug }}"
+      role="tabpanel"
+      aria-labelledby="interface-tab-{{ $interface.slug }}"{{ if ne $index 0 }} hidden{{ end }}
+    >
+      {{- with $interface.setup }}
+        <div class="surface-panel interface-setup">
+          <div class="interface-setup-copy">
+            <span class="kicker">{{ .label }}</span>
+            <p>{{ .copy }}{{ with .code }} <code>{{ . }}</code>{{ end }}</p>
+          </div>
+          <a class="btn btn-ghost action-arrow" href="{{ relURL .href }}">
+            {{ .action }} <span class="action-arrow-icon" aria-hidden="true">&rarr;</span>
+          </a>
+        </div>
+      {{- end }}
+      {{- with $interface.content }}
+        {{- partial .partial . -}}
+      {{- end }}
+    </section>
+  {{- end }}
+</div>

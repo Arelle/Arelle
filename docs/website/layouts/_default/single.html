@@ -1,0 +1,13 @@
+{{ define "shell" }}shell-narrow{{ end }}
+
+{{ define "main" }}
+  {{ partial "page-header.html" (dict
+    "kicker" .Params.kicker
+    "title" .Title
+    "lede" .Params.lede
+    "action" .Params.action
+  ) }}
+  <article class="article-prose">
+    {{ .Content }}
+  </article>
+{{ end }}

@@ -1,0 +1,65 @@
+desktop:
+  - name: Windows 64-bit installer
+    description: Standard setup wizard for 64-bit Windows.
+    format: EXE
+    mirrorFile: arelle-win.exe
+  - name: Windows 64-bit zip
+    description: Portable archive for 64-bit Windows.
+    format: ZIP
+    mirrorFile: arelle-win.zip
+  - name: macOS for Apple silicon
+    description: Native build for Apple silicon Macs.
+    format: DMG
+    mirrorFile: arelle-macos-arm64.dmg
+  - name: macOS for Intel
+    description: Build for Intel-based Macs.
+    format: DMG
+    mirrorFile: arelle-macos-x64.dmg
+  - name: Linux
+    description: Precompiled x86_64 package.
+    format: TGZ
+    mirrorFile: arelle-ubuntu.tgz
+
+mirrors:
+  - label: US
+    title: US Amazon S3 mirror
+    baseURL: https://arelle-us.s3-us-west-1.amazonaws.com/
+  - label: Europe
+    title: Europe Amazon S3 mirror
+    baseURL: https://arelle-eu.s3.eu-central-1.amazonaws.com/
+  - label: China
+    title: Mainland China Alibaba Cloud OSS mirror
+    baseURL: https://arelle-cn.oss-cn-shenzhen.aliyuncs.com/
+
+python:
+  heading: Python
+  description: Install the canonical package from PyPI for command-line and Python API use.
+  command: pip install arelle-release
+  documentationURL: https://arelle.readthedocs.io/en/latest/install.html
+
+docker:
+  heading: Docker
+  description: Use the published full image for local validation or an HTTP service.
+  serviceAddress: http://127.0.0.1:8080
+  documentationURL: https://arelle.readthedocs.io/en/latest/install.html#docker
+  examples:
+    - label: Local validation
+      commandPath: examples/docker-validation-command.txt
+      outputPath: examples/cli-validation-output.txt
+    - label: HTTP service
+      commandPath: examples/docker-webserver-command.txt
+      outputPath: examples/webserver-output.txt
+
+plugins:
+  - name: iXBRL Viewer
+    description: Generates interactive reports for exploring Inline XBRL filings in a browser.
+    url: https://github.com/Arelle/ixbrl-viewer
+    linkLabel: View the iXBRL Viewer project
+  - name: XULE
+    description: Adds a rule language for expressing custom validation and data processing rules.
+    url: https://github.com/xbrlus/xule
+    linkLabel: View the XULE project
+  - name: SEC EDGAR
+    description: Adds EDGAR Filer Manual validation and rendering for SEC filing workflows.
+    url: https://github.com/arelle/edgar
+    linkLabel: View the SEC EDGAR plugin

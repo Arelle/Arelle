@@ -44,6 +44,13 @@ buildRenameX86.bat
 conf-*
 dist
 docs/_build
+docs/website/.hugo_build.lock
+docs/website/.lighthouseci/
+docs/website/demo/package/
+docs/website/node_modules/
+docs/website/public/
+docs/website/resources/
+docs/website/tmp/
 docs/source/apidocs
 obj/
 runtime_options.json

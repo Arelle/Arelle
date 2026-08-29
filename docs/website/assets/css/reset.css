@@ -1,0 +1,29 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  background-color: var(--page);
+  background-image: var(--page-wash);
+  color: var(--ink);
+
+  & > main {
+    flex: 1;
+  }
+}
+
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+}

@@ -1,0 +1,100 @@
+@font-face {
+  font-family: "DM Sans";
+  src: url("fonts/dm-sans-400-700.woff2") format("woff2-variations");
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Mono";
+  src: url("fonts/dm-mono-400.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Mono";
+  src: url("fonts/dm-mono-500.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+:where(h1, h2, h3, h4, h5, h6, strong, b) {
+  font-weight: 700;
+}
+
+button {
+  font-family: inherit;
+}
+
+:where(code, kbd, samp, pre) {
+  font-family: var(--font-mono);
+  font-weight: 400;
+}
+
+:where(code, kbd, samp) {
+  font-size: var(--type-label);
+}
+
+.type-micro {
+  font-size: var(--type-micro);
+}
+
+.type-label {
+  font-size: var(--type-label);
+}
+
+.type-ui {
+  font-size: var(--type-ui);
+  font-weight: 500;
+}
+
+.type-body {
+  font-size: var(--type-body);
+  font-weight: 400;
+}
+
+.type-lede {
+  font-size: var(--type-lede);
+  font-weight: 400;
+}
+
+.type-heading {
+  font-size: var(--type-heading);
+  font-weight: 700;
+}
+
+.type-title {
+  font-size: var(--type-title);
+  font-weight: 700;
+}
+
+.type-display {
+  font-size: var(--type-display);
+  font-weight: 700;
+}
+
+.type-mono {
+  font-family: var(--font-mono);
+  font-weight: 400;
+}
+
+.type-mono-strong,
+.stat {
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+.stat {
+  font-size: var(--type-heading);
+}

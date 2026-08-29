@@ -1,0 +1,15 @@
+{
+  "name": "arelle-website",
+  "private": true,
+  "engines": {
+    "node": ">=26"
+  },
+  "scripts": {
+    "lighthouse": "lhci autorun"
+  },
+  "devDependencies": {
+    "@fontsource-variable/dm-sans": "^5.3.0",
+    "@fontsource/dm-mono": "^5.3.0",
+    "@lhci/cli": "^0.15.1"
+  }
+}

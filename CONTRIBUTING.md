@@ -26,8 +26,8 @@ and we'll be ready to take your pull requests.
 ***NOTE***: Only original source code from people who have signed the CLA can be
 accepted into the main repository.
 
-[cla-corporate]: https://arelle.org/arelle/wp-content/uploads/2010/11/ContributorLicenseForEmployees.txt
-[cla-individual]: https://arelle.org/arelle/wp-content/uploads/2010/11/ContributorLicenseForIndividuals.txt
+[cla-corporate]: https://raw.githubusercontent.com/Arelle/Arelle/master/docs/cla/ContributorLicenseForEmployees.txt
+[cla-individual]: https://raw.githubusercontent.com/Arelle/Arelle/master/docs/cla/ContributorLicenseForIndividuals.txt
 
 ### Setting Up Your Environment
 

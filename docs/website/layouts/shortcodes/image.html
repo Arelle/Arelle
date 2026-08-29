@@ -1,0 +1,15 @@
+{{- $assetPath := printf "images/%s" (.Get "src") -}}
+{{- $image := resources.Get $assetPath -}}
+{{- if not $image -}}
+  {{- errorf "Image %q was not found in assets" $assetPath -}}
+{{- end -}}
+{{- $resize := "" -}}
+{{- with (.Get "width") }}
+  {{- $resize = printf "%sx webp q85" . -}}
+{{- end -}}
+{{- partial "figure-media.html" (dict
+  "src" $assetPath
+  "resize" $resize
+  "alt" (.Get "alt")
+  "caption" (.Get "caption" | default "")
+) -}}

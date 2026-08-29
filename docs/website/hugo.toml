@@ -1,0 +1,31 @@
+baseURL = "/"
+locale = "en-US"
+title = "Arelle"
+disableKinds = ["taxonomy", "term"]
+
+[params]
+description = "A free and open source platform for validating, exploring, and extracting XBRL data."
+projectStartYear = 2010
+
+[markup]
+  [markup.goldmark.renderHooks.link]
+    useEmbedded = "always"
+  [markup.highlight]
+    noClasses = false
+
+[permalinks]
+  updates = "/updates/:year/:month/:day/:slug/"
+
+[module]
+  [[module.mounts]]
+    source = "assets"
+    target = "assets"
+  [[module.mounts]]
+    source = "node_modules/@fontsource-variable/dm-sans/files/dm-sans-latin-wght-normal.woff2"
+    target = "assets/fonts/dm-sans-400-700.woff2"
+  [[module.mounts]]
+    source = "node_modules/@fontsource/dm-mono/files/dm-mono-latin-400-normal.woff2"
+    target = "assets/fonts/dm-mono-400.woff2"
+  [[module.mounts]]
+    source = "node_modules/@fontsource/dm-mono/files/dm-mono-latin-500-normal.woff2"
+    target = "assets/fonts/dm-mono-500.woff2"
