@@ -68,7 +68,29 @@
   gap: var(--chrome-gap);
 
   & a {
+    display: inline-flex;
+    align-items: center;
     font-size: var(--type-body);
+
+    &[aria-current="page"] {
+      font-weight: 500;
+    }
+
+    &.btn {
+      --button-font-size: var(--type-body);
+      --button-padding-block: calc(
+        var(--navigation-link-padding-block) - var(--border-width)
+      );
+    }
+
+    &.btn::after {
+      display: none;
+    }
+
+    &.btn:hover,
+    &.btn[aria-current="page"] {
+      box-shadow: 0 0 0 0.25rem var(--signal-wash);
+    }
   }
 }
 
