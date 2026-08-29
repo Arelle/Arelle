@@ -224,7 +224,7 @@ class _Emit:
 
 
 def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
-                              inlineBase: bool = True) -> OrderedDict:
+                              inlineBase: bool = True, calcError=None) -> OrderedDict:
     """Transform a loaded legacy DTS ``modelXbrl`` into an OIM Taxonomy module dict.
 
     ``inlineBase`` folds the base spec closure (xs:/xbrl:/xbrlr: objects and their
@@ -362,6 +362,20 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
             groupContents.append({"groupName": grpName, "forObject": netName})
         groupContents.append({"groupName": grpName, "forObject": cubeName})
 
+    # ---- 2b. calculation linkbases -> summation-item networks + the all-facts cube ----
+    # A legacy calculation linkbase binds against the whole report, whereas a translated
+    # network binds only against the facts of a cube it is listed in. The per-linkrole cubes
+    # above constrain their concept domain to that role's line items, so associating the
+    # calculations with them would both lose bindings and raise
+    # oimtc:summationItemConceptNotInCube. Appendix B.1 of the calculation proposal instead
+    # requires a cube admitting every fact of the report, which the calculations are
+    # associated with; see _allFactsCube.
+    calcNetNames = _calculationNetworks(modelXbrl, pfx, emit, networks, groupContents,
+                                        roleGroups, calcError)
+    if calcNetNames:
+        cubes.append(_allFactsCube(modelXbrl, pfx, dimensions, concepts,
+                                   domainNetworks, calcNetNames))
+
     # dimensions with no domain discovered in any linkbase get a synthetic domainClass.
     for name, dim in dimensions.items():
         if "domainClass" not in dim:
@@ -417,6 +431,107 @@ _BASE_SPEC_RESOURCES = ("xs-types.json", "core.json", "xbrlModel.json",
 # Module-assembly keys that must not be folded from a base resource module into the
 # compiled model (a compiled model MUST NOT carry importedTaxonomies / importMapping).
 _MERGE_SKIP_KEYS = frozenset({"importedTaxonomies", "importMapping"})
+
+
+# The all-facts cube's name is derived from the document namespace so it cannot collide
+# with a per-linkrole cube, whose name always ends in _Cube.
+_ALL_FACTS_CUBE_SUFFIX = ":allFactsCube"
+
+
+def _calculationNetworks(modelXbrl, pfx, emit, networks, groupContents, roleGroups,
+                         calcError=None) -> list:
+    """Translate the DTS's calculation linkbases into summation-item networks.
+
+    Appendix B of the calculation proposal: a calculation extended link role becomes one
+    network object, and a calculationArc becomes a summation-item relationship carrying the
+    arc's weight as the xbrl:weight link property. Both the XBRL 2.1 and the Calculations
+    1.1 arcroles translate to xbrl:summation-item.
+
+    Prohibited and overridden arcs are already resolved: relationshipSet() returns the
+    effective relationship set, so use=prohibited arcs never reach here.
+
+    Returns the names of the networks emitted.
+    """
+    groupForRole = dict((roleUri, grpName) for roleUri, grpName in roleGroups)
+    emitted = emit.emitted()
+    netNames = []
+    calcRoles = set()
+    for arcrole in XbrlConst.summationItems:
+        calcRoles |= set(modelXbrl.relationshipSet(arcrole).linkRoleUris)
+    for roleUri in sorted(calcRoles):
+        frels, srcs, tgts = [], set(), set()
+        for arcrole in XbrlConst.summationItems:
+            for r in modelXbrl.relationshipSet(arcrole, roleUri).modelRelationships:
+                if r.fromModelObject is None or r.toModelObject is None:
+                    continue
+                s, t = pfx.pn(r.fromModelObject.qname), pfx.pn(r.toModelObject.qname)
+                if s not in emitted or t not in emitted:
+                    continue
+                # A weight that is not 1 or -1 cannot be represented: section 5.2 restricts
+                # xbrl:weight to those two values. Report it rather than rounding, dropping
+                # or approximating the weight, which would silently change the calculation.
+                weight = r.weight
+                if weight not in (1, -1):
+                    if calcError is not None:
+                        calcError("oimtc:invalidWeight",
+                                  _("The calculation arc %(source)s to %(target)s in link role %(role)s "
+                                    "has a weight of %(weight)s, which cannot be represented: "
+                                    "xbrl:weight must be 1 or -1."),
+                                  source=s, target=t, role=roleUri, weight=weight)
+                    continue
+                frels.append({"source": s, "target": t,
+                              "order": r.orderDecimal,
+                              "properties": [{"property": "xbrl:weight",
+                                              "value": "1" if weight > 0 else "-1"}]})
+                srcs.add(s); tgts.add(t)
+        if not frels:
+            continue
+        grpName = groupForRole.get(roleUri)
+        netName = (grpName or (pfx.prefixFor(_documentNs(modelXbrl)) + ":group_" + _safeLocal(roleUri))) + "_CalcNet"
+        rels = [{"source": "xbrl:rootSource", "target": n} for n in srcs if n not in tgts]
+        rels += frels
+        networks.append({"name": netName, "relationshipTypeName": "xbrl:summation-item",
+                         "relationships": rels})
+        if grpName:
+            groupContents.append({"groupName": grpName, "forObject": netName})
+        netNames.append(netName)
+    return netNames
+
+
+def _allFactsCube(modelXbrl, pfx, dimensions, concepts, domainNetworks, calcNetNames) -> dict:
+    """Build the cube that admits every fact of the report (proposal appendix B.1).
+
+    A legacy instance has no notion of cube membership as a condition of fact validity, and
+    the per-linkrole cubes inferred from the definition and presentation linkbases will not
+    claim every fact of most real filings. The translated calculations are associated with
+    this cube instead, so that they bind against the whole report as they did under
+    Calculations 1.1.
+
+    The concept dimension names a domain network holding EVERY concept of the taxonomy, so
+    every concept is admitted and section 5.6 is satisfied for any calculation. It cannot
+    simply omit the domainNetwork: xbrl:reportCube declares xbrl:conceptDomain in its
+    coreDomainClasses, and a cube of that type whose concept dimension names no domain
+    raises oimte:missingCoreDomainNameFromCubeDimension.
+
+    Every other dimension is optional, so a fact that omits it -- a string fact with no
+    unit, a fact with no entity -- is still admitted. Every taxonomy-defined dimension MUST
+    be listed: a fact cannot appear in a cube that does not define a dimension the fact
+    carries, so omitting one silently drops every fact that uses it.
+    """
+    cubeName = pfx.prefixFor(_documentNs(modelXbrl)) + _ALL_FACTS_CUBE_SUFFIX
+    allConceptsDom = cubeName + "_ConceptDom"
+    domainNetworks.append({"name": allConceptsDom, "root": "xbrl:conceptDomain",
+                           "relationships": [{"source": "xbrl:conceptDomain", "target": c}
+                                             for c in sorted(concepts)]})
+    cubeDims = [{"dimension": "xbrl:concept", "domainNetwork": allConceptsDom}]
+    for coreDim in ("xbrl:period", "xbrl:entity", "xbrl:unit", "xbrl:language"):
+        cubeDims.append({"dimension": coreDim, "optional": True})
+    for dimName in sorted(dimensions):
+        cubeDims.append({"dimension": dimName, "optional": True})
+    return {"name": cubeName,
+            "cubeType": "xbrl:reportCube",
+            "cubeDimensions": cubeDims,
+            "cubeNetworks": list(calcNetNames)}
 
 
 def _inlineBaseSpecObjects(oim: OrderedDict) -> None:
@@ -764,7 +879,8 @@ def pocLoadLegacyAsEntry(cntlr, modelXbrl, filepath, mappedUri):
             legacyMx.close()
         return None
     try:
-        moduleDict = legacyTaxonomyToOimModule(legacyMx, inlineBase=True)
+        moduleDict = legacyTaxonomyToOimModule(legacyMx, inlineBase=True,
+                                               calcError=modelXbrl.error)
         from . import loadXbrlModule  # lazy: avoid import cycle with the package
         return loadXbrlModule(cntlr, modelXbrl.error, modelXbrl.warning, modelXbrl,
                               moduleDict, mappedUri or filepath)
@@ -805,7 +921,7 @@ def pocCompileLegacyDts(cntlr, targetModelXbrl, error, warning, url,
             return None
         # inlineBase=False: the host importing model already provides the base spec
         # objects (xbrlm:base), so inlining them here would duplicate the base labels.
-        moduleDict = legacyTaxonomyToOimModule(legacyMx, inlineBase=False)
+        moduleDict = legacyTaxonomyToOimModule(legacyMx, inlineBase=False, calcError=error)
         if moduleName is not None:
             # the importer named this taxonomy (importMapping key): the compiled
             # module MUST carry that exact name, and its prefix MUST be bound so the
