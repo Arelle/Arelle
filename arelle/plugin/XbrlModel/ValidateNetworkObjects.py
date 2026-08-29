@@ -2,6 +2,7 @@
 See COPYRIGHT.md for copyright information.
 '''
 from collections import defaultdict
+from decimal import Decimal
 from ordered_set import OrderedSet
 from arelle.ModelValue import QName, qname
 from .ErrorCatalog import emit_error
@@ -26,6 +27,8 @@ qnXbrlWeight = qname(xbrl, "xbrl:weight")
 # still declares xbrl:reconciliation, so the property is named in one place here and the
 # move is a one-line change once the working group rules on it.
 qnReconciliation = qname(xbrl, "xbrl:reconciliation")
+qnTolerance = qname(xbrl, "xbrl:tolerance")
+qnSummationRelation = qname(xbrl, "xbrl:summationRelation")
 
 # Error codes for the summation-item definition-time checks, from section 10 of the
 # proposal. They are kept in one table so the namespace can be changed in one place.
@@ -35,6 +38,8 @@ _CALC_ERROR = {
     "balanceInconsistent": "oimtc:summationItemBalanceInconsistent",
     "duplicateRelationship": "oimtc:duplicateSummationItemRelationship",
     "conceptNotInCube": "oimtc:summationItemConceptNotInCube",
+    "invalidTolerance": "oimtc:invalidTolerance",
+    "conflictingSummationRelation": "oimtc:conflictingSummationRelation",
 }
 
 # Section 5.1 admits only concepts whose datatype derives from xs:decimal. xs:float and
@@ -64,6 +69,37 @@ def _conceptBalance(conceptObj):
         if propObj.property == qnXbrlaBalance:
             return getattr(propObj, "value", None)
     return None
+
+
+def _rawPropertyValue(obj, propertyQn):
+    """A property's value, whether or not its owning object has been property-validated.
+
+    propertyObjectValue returns only the validated typed value, which is absent on an object
+    whose module has not been through validateProperties -- a module compiled on demand, for
+    instance. Falling back to the raw value keeps these checks independent of that ordering.
+    """
+    value = obj.propertyObjectValue(propertyQn)
+    if value is not None:
+        return value
+    for propObj in getattr(obj, "properties", None) or ():
+        if propObj.property == propertyQn:
+            return getattr(propObj, "value", None)
+    return None
+
+
+def _validateTolerance(compMdl, obj, objName):
+    """A declared xbrl:tolerance MUST be a non-negative decimal (proposal 5.7)."""
+    value = _rawPropertyValue(obj, qnTolerance)
+    if value is None:
+        return
+    try:
+        isNegative = Decimal(str(value)) < 0
+    except (ArithmeticError, ValueError):
+        return  # a non-decimal value is reported as a property value error
+    if isNegative:
+        emit_error(compMdl, _CALC_ERROR["invalidTolerance"],
+                   _("The xbrl:tolerance %(tolerance)s declared on %(object)s MUST be a non-negative decimal; a tolerance widens the calculated total interval."),
+                   xbrlObject=obj, tolerance=value, object=objName)
 
 
 def _isDecimalDerived(compMdl, conceptObj):
@@ -123,8 +159,16 @@ def _validateSummationItemNetwork(compMdl, ntwkObj):
     whose enumeration is ("1", "-1"), so a weight of any other value is already reported as
     oimte:propertyValueDataTypeMismatch by the property value validation.
     """
+    # 5.7 tolerance, wherever it is declared for this network
+    _validateTolerance(compMdl, ntwkObj, f"network {ntwkObj.name}")
+    if not getattr(compMdl, "_calcModelToleranceChecked", False):
+        compMdl._calcModelToleranceChecked = True
+        for mdlObj in compMdl.xbrlModels.values():
+            _validateTolerance(compMdl, mdlObj, f"model {getattr(mdlObj, 'name', None)}")
+
     conceptsUsed = OrderedSet()
     relsByEndpoints = defaultdict(list)
+    relationsByTotal = defaultdict(set)
     for relObj in ntwkObj.relationships or ():
         if relObj.source == qnXbrlRootSource:
             continue  # virtual origin, not a total-to-contributing relationship
@@ -136,6 +180,13 @@ def _validateSummationItemNetwork(compMdl, ntwkObj):
         conceptsUsed.add(relObj.source)
         conceptsUsed.add(relObj.target)
         relsByEndpoints[(relObj.source, relObj.target)].append(relObj)
+        # 5.8: the effective relation for a relationship is its own value, else the network's,
+        # else the specification default. It describes how the sum of ALL the contributions
+        # compares with the total, so every relationship of one calculation must agree.
+        relation = _rawPropertyValue(relObj, qnSummationRelation)
+        if relation is None:
+            relation = _rawPropertyValue(ntwkObj, qnSummationRelation)
+        relationsByTotal[relObj.source].add(str(relation) if relation is not None else "equal")
 
         # 5.1 the total and every contributing concept MUST be decimal-derived
         for conceptQn, conceptObj in ((relObj.source, srcObj), (relObj.target, tgtObj)):
@@ -181,6 +232,14 @@ def _validateSummationItemNetwork(compMdl, ntwkObj):
                        _("The summation-item network %(name)s defines the relationship %(rel)s %(count)s times; a concept MUST contribute to a given total exactly once."),
                        xbrlObject=relObjs[0], name=ntwkObj.name,
                        rel=f"{sourceQn}\u2192{targetQn}", count=len(relObjs))
+
+    # 5.8 every relationship of one calculation MUST resolve to the same summation relation
+    for totalQn, relations in relationsByTotal.items():
+        if len(relations) > 1:
+            emit_error(compMdl, _CALC_ERROR["conflictingSummationRelation"],
+                       _("The calculation of %(total)s in network %(name)s resolves to more than one xbrl:summationRelation (%(relations)s); the relation describes how the sum of all the contributions compares with the total, so it cannot differ between them."),
+                       xbrlObject=ntwkObj, total=totalQn, name=ntwkObj.name,
+                       relations=", ".join(sorted(relations)))
 
     # 5.6 every concept used by a cube-associated calculation MUST be in the cube's domain
     for cubeQn, domainMembers in _cubeConceptDomains(compMdl, ntwkObj.name):

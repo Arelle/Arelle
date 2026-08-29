@@ -4,45 +4,51 @@
         "documentType": "https://xbrl.org/2026/module",
         "namespaces": {
             "xbrl": "https://xbrl.org/2026",
-            "xbrlr":"https://xbrl.org/2026/report",
+            "xbrlr": "https://xbrl.org/2026/report",
             "xs": "http://www.w3.org/2001/XMLSchema",
             "utr": "https://xbrl.org/2026/utr",
             "lei": "http://standards.iso.org/iso/17442",
             "ref": "https://xbrl.org/2026/ref"
-            },
-        "documentNamespacePrefix":"xbrl"
+        },
+        "documentNamespacePrefix": "xbrl"
     },
     "xbrlModel": {
         "name": "xbrl:core",
         "frameworkName": "Core",
         "version": "2026",
         "importedTaxonomies": [
-                {
-                    "xbrlModelName": "xs:XMLSchemaTypes"
-                },
-                {
-                    "xbrlModelName": "xbrlr:dataTypes"
-                },
-                {
-                    "xbrlModelName": "ref:referenceProperties"
-                }
-            ],
-        "cubeTypes" :[
-                {
-                    "name": "xbrl:reportCube",
-                    "coreDimensions": ["xbrl:concept", "xbrl:period", "xbrl:unit", "xbrl:entity","xbrl:language"],
-                    "coreDomainClasses": ["xbrl:conceptDomain"]
-
-                },
-                {
-                    "name": "xbrl:negativeCube",
-                    "baseCubeType": "xbrl:reportCube"
-                }
-
+            {
+                "xbrlModelName": "xs:XMLSchemaTypes"
+            },
+            {
+                "xbrlModelName": "xbrlr:dataTypes"
+            },
+            {
+                "xbrlModelName": "ref:referenceProperties"
+            }
+        ],
+        "cubeTypes": [
+            {
+                "name": "xbrl:reportCube",
+                "coreDimensions": [
+                    "xbrl:concept",
+                    "xbrl:period",
+                    "xbrl:unit",
+                    "xbrl:entity",
+                    "xbrl:language"
+                ],
+                "coreDomainClasses": [
+                    "xbrl:conceptDomain"
+                ]
+            },
+            {
+                "name": "xbrl:negativeCube",
+                "baseCubeType": "xbrl:reportCube"
+            }
         ],
         "modelTypes": [
             {
-                "name" : "xbrl:taxonomy",
+                "name": "xbrl:taxonomy",
                 "allowedObjects": [
                     "xbrl:conceptObject",
                     "xbrl:headingObject",
@@ -52,7 +58,6 @@
                     "xbrl:domainNetworkObject",
                     "xbrl:domainClassObject",
                     "xbrl:networkObject",
-                    "xbrl:relationshipObject",
                     "xbrl:groupObject",
                     "xbrl:groupContentObject",
                     "xbrl:groupTreeObject",
@@ -66,11 +71,13 @@
                     "xbrl:referenceTypeObject",
                     "xbrl:importTaxonomyObject",
                     "xbrl:finalTaxonomyObject",
-                    "xbrl:layoutObject"
-            ]
+                    "xbrl:layoutObject",
+                    "xbrl:unitObject",
+                    "xbrl:entityObject"
+                ]
             },
             {
-                "name" : "xbrl:report",
+                "name": "xbrl:report",
                 "allowedObjects": [
                     "xbrl:factObject",
                     "xbrl:footnoteObject",
@@ -78,7 +85,7 @@
                     "xbrl:unitObject",
                     "xbrl:importTaxonomyObject",
                     "xbrl:networkObject"
-                    ],
+                ],
                 "requiredProperties": [
                     "xbrl:reportDate"
                 ]
@@ -109,23 +116,23 @@
         "domainClasses": [
             {
                 "name": "xbrl:conceptDomain",
-                "allowedDomainItem" : "xbrl:conceptObject"
+                "allowedDomainItem": "xbrl:conceptObject"
             },
             {
                 "name": "xbrl:periodDomain",
-                "allowedDomainItem" : "xs:dateTime"
+                "allowedDomainItem": "xs:dateTime"
             },
             {
                 "name": "xbrl:unitDomain",
-                "allowedDomainItem" : "xbrl:unitObject"
+                "allowedDomainItem": "xbrl:unitObject"
             },
             {
                 "name": "xbrl:entityDomain",
-                "allowedDomainItem" : "xbrl:entityObject"
+                "allowedDomainItem": "xbrl:entityObject"
             },
             {
                 "name": "xbrl:languageDomain",
-                "allowedDomainItem" : "xbrl:languageType"
+                "allowedDomainItem": "xbrl:languageType"
             },
             {
                 "name": "xbrl:traitDomain",
@@ -139,7 +146,6 @@
                 "name": "xbrl:checksumAlgorithmDomainClass",
                 "allowedDomainItem": "xbrl:memberObject"
             }
-
         ],
         "labelTypes": [
             {
@@ -267,31 +273,26 @@
                 "name": "xbrl:disclosureGuidance",
                 "uri": "http://www.xbrl.org/2003/role/disclosureGuidance",
                 "formatType": "text"
-                
             },
             {
                 "name": "xbrl:presentationGuidance",
                 "uri": "http://www.xbrl.org/2003/role/presentationGuidance",
                 "formatType": "text"
-                
             },
             {
                 "name": "xbrl:measurementGuidance",
                 "uri": "http://www.xbrl.org/2003/role/measurementGuidance",
                 "formatType": "text"
-                
             },
             {
                 "name": "xbrl:commentaryGuidance",
                 "uri": "http://www.xbrl.org/2003/role/commentaryGuidance",
                 "formatType": "text"
-                
             },
             {
                 "name": "xbrl:exampleGuidance",
                 "uri": "http://www.xbrl.org/2003/role/exampleGuidance",
                 "formatType": "text"
-                
             },
             {
                 "name": "xbrl:deprecatedDateLabel",
@@ -630,7 +631,6 @@
                 "forObject": "xbrl:exampleGuidance",
                 "value": "An example of the type of information intended to be captured by the object."
             },
-        
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
@@ -1598,64 +1598,72 @@
                 "value": "The value is nil for a reason not covered by the other nil reason members."
             },
             {
-                "forObject" : "xbrl:SQName",
-                "language" : "en",
-                "labelType" : "xbrl:documentation",
-                "value" : "SQName provides a simple type. This can be used to define typed dimensions domains that take SQName values. The prefix used in an SQName MUST correspond to a namespace prefix that is in scope at the point of use."
+                "forObject": "xbrl:SQName",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "SQName provides a simple type. This can be used to define typed dimensions domains that take SQName values. The prefix used in an SQName MUST correspond to a namespace prefix that is in scope at the point of use."
             },
             {
-                "forObject" : "xbrl:prefixedContent",
-                "language" : "en",
-                "labelType" : "xbrl:documentation",
-                "value" : "prefixedContent denotes values that rely for correct interpretation on namespace-prefix bindings in scope at the point of use. All item types that involve prefixed content should derive (directly or indirectly) from QName or prefixedContent Processors MUST raise an error if they encounter a fact with a type that is a subtype of prefixedContent that they do not recognise (unless that subtype is itself derived from a subtype that is recognised) as knowledge of the structure of the prefixed content is required to correctly preserve and present such content."
+                "forObject": "xbrl:prefixedContent",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "prefixedContent denotes values that rely for correct interpretation on namespace-prefix bindings in scope at the point of use. All item types that involve prefixed content should derive (directly or indirectly) from QName or prefixedContent Processors MUST raise an error if they encounter a fact with a type that is a subtype of prefixedContent that they do not recognise (unless that subtype is itself derived from a subtype that is recognised) as knowledge of the structure of the prefixed content is required to correctly preserve and present such content."
             },
             {
-                "forObject" : "xbrl:noLangToken",
-                "language" : "en",
-                "labelType" : "xbrl:documentation",
-                "value" : "noLangToken is a derivation of token and is used to denote values that should not have an associated language. This is typically used for values that are unique identifiers, rather than human-readable strings."
+                "forObject": "xbrl:noLangToken",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "noLangToken is a derivation of token and is used to denote values that should not have an associated language. This is typically used for values that are unique identifiers, rather than human-readable strings."
             },
             {
-                "forObject" : "xbrl:noLangString",
-                "language" : "en",
-                "labelType" : "xbrl:documentation",
-                "value" : "noLangString is a derivation of string and is used to denote values that should not have an associated language. This is typically used for values that are unique identifiers, rather than human-readable strings."
+                "forObject": "xbrl:noLangString",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "noLangString is a derivation of string and is used to denote values that should not have an associated language. This is typically used for values that are unique identifiers, rather than human-readable strings."
             },
             {
-                "forObject" : "xbrl:rootSource",
-                "language" : "en",
-                "labelType" : "xbrl:documentation",
-                "value" : "The root source identifies a single point for network roots and group tree object roots to be anchored by a relationship object. This allows multiple network roots to be defined and ordered in a network hierarchy. The root source QName need not be visible by tools and is defined using the same QName across all network objects and group tree objects. The QName xbrl:rootSource is used to define the root source."
+                "forObject": "xbrl:rootSource",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The root source identifies a single point for network roots and group tree object roots to be anchored by a relationship object. This allows multiple network roots to be defined and ordered in a network hierarchy. The root source QName need not be visible by tools and is defined using the same QName across all network objects and group tree objects. The QName xbrl:rootSource is used to define the root source."
             },
             {
-                "forObject" : "xbrl:rootSource",
-                "language" : "en",
-                "labelType" : "xbrl:label",
-                "value" : "Root Source QName"
+                "forObject": "xbrl:rootSource",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Root Source QName"
             },
             {
-                "forObject" : "xbrl:nil",
-                "language" : "en",
-                "labelType" : "xbrl:documentation",
-                "value" : "The nil property indicates a fact is nil and the reason why it is nil. The nil property defines a fact object value is not disclosed, and the reason why. This can be due to the fact being immaterial, confidential, unknown, or not yet available. A fact with a property of nil does not imply it is zero, however for calculation relationships it is excluded from the calculation. The nil property can only be used with concepts that have a nillable property that is not false."
+                "forObject": "xbrl:nil",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "The nil property indicates a fact is nil and the reason why it is nil. The nil property defines a fact object value is not disclosed, and the reason why. This can be due to the fact being immaterial, confidential, unknown, or not yet available. A fact with a property of nil does not imply it is zero, however for calculation relationships it is excluded from the calculation. The nil property can only be used with concepts that have a nillable property that is not false."
             }
         ],
         "namespacePrefixes": [
             {
                 "namespace": "https://xbrl.org/2026",
-                "preferredPrefixes": ["xbrl"]
+                "preferredPrefixes": [
+                    "xbrl"
+                ]
             },
             {
                 "namespace": "https://xbrl.org/2026/report",
-                "preferredPrefixes": ["xbrlr"]
+                "preferredPrefixes": [
+                    "xbrlr"
+                ]
             },
             {
                 "namespace": "http://www.w3.org/2001/XMLSchema",
-                "preferredPrefixes": ["xs"]
+                "preferredPrefixes": [
+                    "xs"
+                ]
             },
             {
                 "namespace": "https://xbrl.org/2026/utr",
-                "preferredPrefixes": ["utr"]
+                "preferredPrefixes": [
+                    "utr"
+                ]
             }
         ],
         "propertyTypes": [
@@ -1684,7 +1692,7 @@
                 ]
             },
             {
-                "name" : "xbrl:reconciliation",
+                "name": "xbrl:reconciliation",
                 "dataType": "xs:boolean",
                 "definitional": false,
                 "allowedObjects": [
@@ -1703,7 +1711,7 @@
                 ]
             },
             {
-                "name" : "xbrl:referenceCubeName",
+                "name": "xbrl:referenceCubeName",
                 "dataType": "xs:QName",
                 "definitional": false,
                 "allowedObjects": [
@@ -1711,11 +1719,12 @@
                 ]
             },
             {
-                "name":"xbrl:preferredLabel",
+                "name": "xbrl:preferredLabel",
                 "dataType": "xs:QName",
                 "definitional": false,
                 "allowedObjects": [
-                    "xbrl:relationshipObject", "xbrl:networkObject"
+                    "xbrl:relationshipObject",
+                    "xbrl:networkObject"
                 ]
             },
             {
@@ -1746,52 +1755,72 @@
                 "name": "xbrl:severity",
                 "dataType": "xs:string",
                 "definitional": true,
-                "allowedObjects": ["xbrl:memberObject"]
+                "allowedObjects": [
+                    "xbrl:memberObject"
+                ]
             },
             {
                 "name": "xbrl:conformanceTestFileName",
                 "dataType": "xs:string",
-                "allowedObjects": ["xbrl:referenceObject"]
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
             },
             {
                 "name": "xbrl:conformanceStatus",
                 "dataType": "xs:string",
-                "allowedObjects": ["xbrl:referenceObject"]
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
             },
             {
                 "name": "xbrl:conformanceErrorsProduced",
                 "dataType": "xs:integer",
-                "allowedObjects": ["xbrl:referenceObject"]
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
             },
             {
                 "name": "xbrl:conformanceTestDescription",
                 "dataType": "xs:string",
-                "allowedObjects": ["xbrl:referenceObject"]
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
             },
             {
                 "name": "xbrl:specificationErrorURI",
                 "dataType": "xbrlr:realURL",
-                "allowedObjects": ["xbrl:referenceObject"]
+                "allowedObjects": [
+                    "xbrl:referenceObject"
+                ]
             },
             {
                 "name": "xbrl:validationLocation",
                 "dataType": "xs:string",
-                "allowedObjects": ["xbrl:memberObject"]
+                "allowedObjects": [
+                    "xbrl:memberObject"
+                ]
             },
             {
                 "name": "xbrl:reportDate",
                 "dataType": "xs:date",
-                "allowedObjects": ["xbrl:xbrlModelObject"]
+                "allowedObjects": [
+                    "xbrl:xbrlModelObject"
+                ]
             },
             {
                 "name": "xbrl:reportFilingDate",
                 "dataType": "xs:dateTime",
-                "allowedObjects": ["xbrl:xbrlModelObject"]
+                "allowedObjects": [
+                    "xbrl:xbrlModelObject"
+                ]
             },
             {
                 "name": "xbrl:defaultLanguage",
                 "dataType": "xbrl:languageType",
-                "allowedObjects": ["xbrl:xbrlModelObject"]
+                "allowedObjects": [
+                    "xbrl:xbrlModelObject"
+                ]
             },
             {
                 "name": "xbrl:propertyValue",
@@ -1884,29 +1913,39 @@
                 ]
             },
             {
-                "name": "xbrl:pdfBBox",
-                "dataType": "xs:string",
-                "definitional": false,
-                "allowedObjects": [
-                    "xbrl:factValueSourceObject",
-                    "xbrl:factValueAnchorObject"
-                ]
-            },
-            {
-                "name": "xbrl:pdfImageHash",
-                "dataType": "xs:string",
-                "definitional": false,
-                "allowedObjects": [
-                    "xbrl:factValueSourceObject",
-                    "xbrl:factValueAnchorObject"
-                ]
-            },
-            {
                 "name": "xbrl:tabularPath",
                 "dataType": "xs:string",
                 "definitional": false,
                 "allowedObjects": [
                     "xbrl:factValueSourceObject"
+                ]
+            },
+            {
+                "name": "xbrl:roundingMode",
+                "dataType": "xbrlr:roundingModeType",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:xbrlModelObject",
+                    "xbrl:networkObject"
+                ]
+            },
+            {
+                "name": "xbrl:tolerance",
+                "dataType": "xs:decimal",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:xbrlModelObject",
+                    "xbrl:networkObject"
+                ]
+            },
+            {
+                "name": "xbrl:summationRelation",
+                "dataType": "xbrlr:summationRelationType",
+                "definitional": false,
+                "allowedAsLinkProperty": true,
+                "allowedObjects": [
+                    "xbrl:networkObject",
+                    "xbrl:relationshipObject"
                 ]
             }
         ],
@@ -1951,21 +1990,7 @@
                     "xbrl:pdfPage",
                     "xbrl:pdfMcid",
                     "xbrl:pdfElementId",
-                    "xbrl:pdfEscape",
-                    "xbrl:pdfBBox"
-                ]
-            },
-            {
-                "name": "xbrl:pdfImageLocatorType",
-                "sourceMediaType": "application/pdf",
-                "requiredProperties": [
-                    "xbrl:pdfPage",
-                    "xbrl:pdfBBox"
-                ],
-                "allowedProperties": [
-                    "xbrl:pdfPage",
-                    "xbrl:pdfBBox",
-                    "xbrl:pdfImageHash"
+                    "xbrl:pdfEscape"
                 ]
             },
             {
@@ -2025,13 +2050,13 @@
                 "uri": "http://www.xbrl.org/2009/role/commonPracticeRef"
             },
             {
-                "name":"xbrl:dataTypeRequirement",
+                "name": "xbrl:dataTypeRequirement",
                 "allowedObjects": [
                     "xbrl:dataTypeObject"
                 ]
             },
             {
-                "name":"xbrl:baseUnitsStandard",
+                "name": "xbrl:baseUnitsStandard",
                 "allowedObjects": [
                     "xbrl:unitObject"
                 ],
@@ -2040,7 +2065,7 @@
                 ]
             },
             {
-                "name":"xbrl:specStatus",
+                "name": "xbrl:specStatus",
                 "allowedObjects": [
                     "xbrl:dataTypeObject",
                     "xbrl:unitObject"
@@ -2048,129 +2073,188 @@
             },
             {
                 "name": "xbrl:semanticRef",
-                "requiredProperties" : [
+                "requiredProperties": [
                     "xbrl:semanticLink"
                 ]
             },
             {
                 "name": "xbrl:conformanceTestReference",
-                "allowedObjects": ["xbrl:memberObject"]
+                "allowedObjects": [
+                    "xbrl:memberObject"
+                ]
             },
             {
                 "name": "xbrl:specificationErrorReference",
-                "allowedObjects": ["xbrl:memberObject"]
+                "allowedObjects": [
+                    "xbrl:memberObject"
+                ]
             }
         ],
         "relationshipTypes": [
             {
                 "name": "xbrl:parent-child",
                 "uri": "http://www.xbrl.org/2003/arcrole/parent-child",
-                "cycles" : "undirected",
-                "allowedLinkProperties" : ["xbrl:preferredLabel"]
+                "cycles": "undirected",
+                "allowedLinkProperties": [
+                    "xbrl:preferredLabel"
+                ]
             },
             {
                 "name": "xbrl:summation-item",
                 "uri": "https://xbrl.org/2023/arcrole/summation-item",
-                "cycles" : "undirected",
-                "allowedLinkProperties" : ["xbrl:weight", "xbrl:reconciliation"],
-                "requiredLinkProperties" : ["xbrl:weight"],
-                "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
+                "cycles": "undirected",
+                "allowedLinkProperties": [
+                    "xbrl:weight",
+                    "xbrl:reconciliation",
+                    "xbrl:summationRelation"
+                ],
+                "requiredLinkProperties": [
+                    "xbrl:weight"
+                ],
+                "sourceObjects": [
+                    "xbrl:conceptObject"
+                ],
+                "targetObjects": [
+                    "xbrl:conceptObject"
+                ]
             },
             {
                 "name": "xbrl:class-subclass",
                 "uri": "http://www.xbrl.org/2003/arcrole/class-subclass",
-                "cycles" : "none",
-                "sourceObjects" : ["xbrl:conceptObject", "xbrl:domainClassObject"],
-                "targetObjects" : ["xbrl:conceptObject", "xbrl:domainClassObject"]
+                "cycles": "none",
+                "sourceObjects": [
+                    "xbrl:conceptObject",
+                    "xbrl:domainClassObject"
+                ],
+                "targetObjects": [
+                    "xbrl:conceptObject",
+                    "xbrl:domainClassObject"
+                ]
             },
             {
                 "name": "xbrl:general-special",
                 "uri": "http://www.xbrl.org/2003/arcrole/general-special",
-                "cycles" : "undirected",
-                "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
+                "cycles": "undirected",
+                "sourceObjects": [
+                    "xbrl:conceptObject"
+                ],
+                "targetObjects": [
+                    "xbrl:conceptObject"
+                ]
             },
             {
                 "name": "xbrl:essence-alias",
                 "uri": "http://www.xbrl.org/2003/arcrole/essence-alias",
-                "cycles" : "undirected",
-                "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
+                "cycles": "undirected",
+                "sourceObjects": [
+                    "xbrl:conceptObject"
+                ],
+                "targetObjects": [
+                    "xbrl:conceptObject"
+                ]
             },
-            
             {
                 "name": "xbrl:propertyValue-object",
                 "uri": "http://xbrl.org/oim/propertyValue-object",
-                "cycles" : "undirected",
-                "allowedLinkProperties" : ["xbrl:traitLinkType"],
-                "requiredLinkProperties" : ["xbrl:traitLinkType"],
-                "sourceObjects" : ["xbrl:memberObject"],
-                "targetObjects" : [
-                            "xbrl:xbrlModelObject",
-                            "xbrl:conceptObject",
-                            "xbrl:headingObject",
-                            "xbrl:memberObject",
-                            "xbrl:dimensionObject",
-                            "xbrl:entityObject",
-                            "xbrl:networkObject",
-                            "xbrl:groupObject",
-                            "xbrl:cubeObject",
-                            "xbrl:domainNetworkObject",
-                            "xbrl:domainClassObject",
-                            "xbrl:relationshipObject",
-                            "xbrl:labelObject",
-                            "xbrl:referenceObject"
-                        ]
+                "cycles": "undirected",
+                "allowedLinkProperties": [
+                    "xbrl:traitLinkType"
+                ],
+                "requiredLinkProperties": [
+                    "xbrl:traitLinkType"
+                ],
+                "sourceObjects": [
+                    "xbrl:memberObject"
+                ],
+                "targetObjects": [
+                    "xbrl:xbrlModelObject",
+                    "xbrl:conceptObject",
+                    "xbrl:headingObject",
+                    "xbrl:memberObject",
+                    "xbrl:dimensionObject",
+                    "xbrl:entityObject",
+                    "xbrl:networkObject",
+                    "xbrl:groupObject",
+                    "xbrl:cubeObject",
+                    "xbrl:domainNetworkObject",
+                    "xbrl:domainClassObject",
+                    "xbrl:relationshipObject",
+                    "xbrl:labelObject",
+                    "xbrl:referenceObject"
+                ]
             },
             {
                 "name": "xbrl:concept-refDimension",
                 "uri": "http://xbrl.org/oim/concept-refDimension",
-                "cycles" : "undirected",
-                "allowedLinkProperties" : ["xbrl:referenceCubeName"],
-                "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:dimensionObject"]
+                "cycles": "undirected",
+                "allowedLinkProperties": [
+                    "xbrl:referenceCubeName"
+                ],
+                "sourceObjects": [
+                    "xbrl:conceptObject"
+                ],
+                "targetObjects": [
+                    "xbrl:dimensionObject"
+                ]
             },
             {
                 "name": "xbrl:concept-aggDimension",
                 "uri": "http://xbrl.org/oim/concept-aggDimension",
-                "cycles" : "undirected",
-                "allowedLinkProperties" : ["xbrl:aggregation"],
-                "requiredLinkProperties" : ["xbrl:aggregation"],
-                "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:dimensionObject"]
+                "cycles": "undirected",
+                "allowedLinkProperties": [
+                    "xbrl:aggregation"
+                ],
+                "requiredLinkProperties": [
+                    "xbrl:aggregation"
+                ],
+                "sourceObjects": [
+                    "xbrl:conceptObject"
+                ],
+                "targetObjects": [
+                    "xbrl:dimensionObject"
+                ]
             },
             {
                 "name": "xbrl:unit-factConcept",
                 "uri": "http://xbrl.org/oim/unit-factConcept",
-                "cycles" : "undirected",
-                "sourceObjects" : ["xbrl:unitObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
+                "cycles": "undirected",
+                "sourceObjects": [
+                    "xbrl:unitObject"
+                ],
+                "targetObjects": [
+                    "xbrl:conceptObject"
+                ]
             },
             {
                 "name": "xbrl:unitFact-factConcept",
                 "uri": "http://xbrl.org/oim/unitFact-factConcept",
-                "cycles" : "undirected",
-                "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
+                "cycles": "undirected",
+                "sourceObjects": [
+                    "xbrl:conceptObject"
+                ],
+                "targetObjects": [
+                    "xbrl:conceptObject"
+                ]
             },
             {
                 "name": "xbrl:dep-concept-deprecatedConcept",
                 "uri": "http://www.xbrl.org/2009/arcrole/dep-concept-deprecatedConcept",
-                "cycles" : "undirected",
-                 "sourceObjects" : ["xbrl:conceptObject",
+                "cycles": "undirected",
+                "sourceObjects": [
+                    "xbrl:conceptObject",
                     "xbrl:headingObject",
-                    "xbrl:memberObject", 
+                    "xbrl:memberObject",
                     "xbrl:domainNetworkObject",
-                    "xbrl:domainClassObject", 
+                    "xbrl:domainClassObject",
                     "xbrl:dimensionObject",
                     "xbrl:cubeObject"
                 ],
-                "targetObjects" : ["xbrl:conceptObject", 
+                "targetObjects": [
+                    "xbrl:conceptObject",
                     "xbrl:headingObject",
-                    "xbrl:memberObject", 
+                    "xbrl:memberObject",
                     "xbrl:domainNetworkObject",
-                    "xbrl:domainClassObject", 
+                    "xbrl:domainClassObject",
                     "xbrl:dimensionObject",
                     "xbrl:cubeObject"
                 ]
@@ -2178,76 +2262,115 @@
             {
                 "name": "xbrl:dep-aggregateConcept-deprecatedPartConcept",
                 "uri": "http://www.xbrl.org/2009/arcrole/dep-aggregateConcept-deprecatedPartConcept",
-                "cycles" : "undirected",
-                "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
+                "cycles": "undirected",
+                "sourceObjects": [
+                    "xbrl:conceptObject"
+                ],
+                "targetObjects": [
+                    "xbrl:conceptObject"
+                ]
             },
             {
                 "name": "xbrl:dep-dimensionallyQualifiedConcept-deprecatedConcept",
                 "uri": "http://www.xbrl.org/2009/arcrole/dep-dimensionallyQualifiedConcept-deprecatedConcept",
-                "cycles" : "undirected",
-                "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
+                "cycles": "undirected",
+                "sourceObjects": [
+                    "xbrl:conceptObject"
+                ],
+                "targetObjects": [
+                    "xbrl:conceptObject"
+                ]
             },
             {
                 "name": "xbrl:dep-mutuallyExclusiveConcept-deprecatedConcept",
                 "uri": "http://www.xbrl.org/2009/arcrole/dep-mutuallyExclusiveConcept-deprecatedConcept",
-                "cycles" : "undirected",
-                "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
+                "cycles": "undirected",
+                "sourceObjects": [
+                    "xbrl:conceptObject"
+                ],
+                "targetObjects": [
+                    "xbrl:conceptObject"
+                ]
             },
             {
                 "name": "xbrl:dep-partConcept-deprecatedAggregateConcept",
                 "uri": "http://www.xbrl.org/2009/arcrole/dep-partConcept-deprecatedAggregateConcept",
-                "cycles" : "undirected",
-                "sourceObjects" : ["xbrl:conceptObject"],
-                "targetObjects" : ["xbrl:conceptObject"]
+                "cycles": "undirected",
+                "sourceObjects": [
+                    "xbrl:conceptObject"
+                ],
+                "targetObjects": [
+                    "xbrl:conceptObject"
+                ]
             },
             {
                 "name": "xbrl:taxonomy-group",
-                "cycles" : "none",
-                "sourceObjects" : ["xbrl:xbrlModelObject", "xbrl:groupObject"],
-                "targetObjects" : ["xbrl:groupObject"]
+                "cycles": "none",
+                "sourceObjects": [
+                    "xbrl:xbrlModelObject",
+                    "xbrl:groupObject"
+                ],
+                "targetObjects": [
+                    "xbrl:groupObject"
+                ]
             },
             {
                 "name": "xbrl:fact-inFact",
                 "uri": "http://xbrl.org/oim/fact-inFact",
-                "cycles" : "undirected",
-                "sourceObjects" : ["xbrl:factObject"],
-                "targetObjects" : ["xbrl:factObject"]
+                "cycles": "undirected",
+                "sourceObjects": [
+                    "xbrl:factObject"
+                ],
+                "targetObjects": [
+                    "xbrl:factObject"
+                ]
             },
             {
                 "name": "xbrl:fact-inFootnote",
                 "uri": "http://xbrl.org/oim/fact-inFootnote",
-                "cycles" : "undirected",
-                "sourceObjects" : ["xbrl:factObject"],
-                "targetObjects" : ["xbrl:footnoteObject"]
+                "cycles": "undirected",
+                "sourceObjects": [
+                    "xbrl:factObject"
+                ],
+                "targetObjects": [
+                    "xbrl:footnoteObject"
+                ]
             },
             {
                 "name": "xbrl:fact-explanatoryFact",
                 "uri": "http://xbrl.org/oim/fact-explanatoryFact",
-                "cycles" : "undirected",
-                "sourceObjects" : ["xbrl:factObject"],
-                "targetObjects" : ["xbrl:factObject"]
+                "cycles": "undirected",
+                "sourceObjects": [
+                    "xbrl:factObject"
+                ],
+                "targetObjects": [
+                    "xbrl:factObject"
+                ]
             },
             {
                 "name": "xbrl:property-dependentProperty",
                 "cycles": "none",
-                "allowedLinkProperties": ["xbrl:propertyValue"],
-                "sourceObjects": ["xbrl:propertyTypeObject"],
-                "targetObjects": ["xbrl:propertyTypeObject"]
+                "allowedLinkProperties": [
+                    "xbrl:propertyValue"
+                ],
+                "sourceObjects": [
+                    "xbrl:propertyTypeObject"
+                ],
+                "targetObjects": [
+                    "xbrl:propertyTypeObject"
+                ]
             }
         ],
         "factMaps": [
             {
-                "name":"xbrl:xBRL-JSON"
+                "name": "xbrl:xBRL-JSON"
             },
             {
-                "name":"xbrl:xBRL-XML"
+                "name": "xbrl:xBRL-XML"
             },
             {
-                "name":"xbrl:inline-XBRL-1.1",
-                "factLocatorType":"xbrl:htmlElementLocatorType"
+                "name": "xbrl:inline-XBRL-1.1",
+                "factLocatorType": "xbrl:htmlElementLocatorType"
             }
         ],
         "networks": [
@@ -2267,7 +2390,7 @@
         "impliedObjects": [
             {
                 "name": "xbrl:LegalEntityIdentifier",
-                "namespace" : "http://standards.iso.org/iso/17442",
+                "namespace": "http://standards.iso.org/iso/17442",
                 "domainClass": "xbrl:entityDomain",
                 "objectType": "xbrl:entityObject",
                 "localNameConstraint": "xbrl:LEICdataType"
@@ -2282,29 +2405,37 @@
             {
                 "name": "xbrl:languageType",
                 "baseType": "xs:string",
-                "patterns": ["^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$"]
+                "patterns": [
+                    "^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$"
+                ]
             },
-
-            {   "name": "xbrl:periodType",
+            {
+                "name": "xbrl:periodType",
                 "baseType": "xs:string",
-                "enumeration": ["instant", "duration", "none"]
+                "enumeration": [
+                    "instant",
+                    "duration",
+                    "none"
+                ]
             },
             {
-                "name" : "xbrl:SQName",
-                "baseType" : "xbrl:prefixedContent",
-                "patterns": ["[^:\\s0-9][^:\\s]*:\\S+"]
+                "name": "xbrl:SQName",
+                "baseType": "xbrl:prefixedContent",
+                "patterns": [
+                    "[^:\\s0-9][^:\\s]*:\\S+"
+                ]
             },
             {
-                "name" : "xbrl:noLangToken",
-                "baseType" : "xs:token"
+                "name": "xbrl:noLangToken",
+                "baseType": "xs:token"
             },
             {
-                "name" : "xbrl:noLangString",
-                "baseType" : "xs:string"
+                "name": "xbrl:noLangString",
+                "baseType": "xs:string"
             },
             {
-                "name" : "xbrl:prefixedContent",
-                "baseType" : "xbrl:noLangToken"
+                "name": "xbrl:prefixedContent",
+                "baseType": "xbrl:noLangToken"
             }
         ],
         "domainNetworks": [
@@ -2358,47 +2489,69 @@
         "members": [
             {
                 "name": "xbrl:unknownNilReason",
-                "domainClasses": ["xbrl:nilReasonDomainClass"]
+                "domainClasses": [
+                    "xbrl:nilReasonDomainClass"
+                ]
             },
             {
                 "name": "xbrl:unavailableNilReason",
-                "domainClasses": ["xbrl:nilReasonDomainClass"]
+                "domainClasses": [
+                    "xbrl:nilReasonDomainClass"
+                ]
             },
             {
                 "name": "xbrl:withheldNilReason",
-                "domainClasses": ["xbrl:nilReasonDomainClass"]
+                "domainClasses": [
+                    "xbrl:nilReasonDomainClass"
+                ]
             },
             {
                 "name": "xbrl:immaterialNilReason",
-                "domainClasses": ["xbrl:nilReasonDomainClass"]
+                "domainClasses": [
+                    "xbrl:nilReasonDomainClass"
+                ]
             },
             {
                 "name": "xbrl:confidentialNilReason",
-                "domainClasses": ["xbrl:nilReasonDomainClass"]
+                "domainClasses": [
+                    "xbrl:nilReasonDomainClass"
+                ]
             },
             {
                 "name": "xbrl:redactedNilReason",
-                "domainClasses": ["xbrl:nilReasonDomainClass"]
+                "domainClasses": [
+                    "xbrl:nilReasonDomainClass"
+                ]
             },
             {
                 "name": "xbrl:notApplicableNilReason",
-                "domainClasses": ["xbrl:nilReasonDomainClass"]
+                "domainClasses": [
+                    "xbrl:nilReasonDomainClass"
+                ]
             },
             {
                 "name": "xbrl:pendingNilReason",
-                "domainClasses": ["xbrl:nilReasonDomainClass"]
+                "domainClasses": [
+                    "xbrl:nilReasonDomainClass"
+                ]
             },
             {
                 "name": "xbrl:notRequiredNilReason",
-                "domainClasses": ["xbrl:nilReasonDomainClass"]
+                "domainClasses": [
+                    "xbrl:nilReasonDomainClass"
+                ]
             },
             {
                 "name": "xbrl:otherNilReason",
-                "domainClasses": ["xbrl:nilReasonDomainClass"]
+                "domainClasses": [
+                    "xbrl:nilReasonDomainClass"
+                ]
             },
             {
                 "name": "xbrl:iso7064-Mod-97-10",
-                "domainClasses": ["xbrl:checksumAlgorithmDomainClass"]
+                "domainClasses": [
+                    "xbrl:checksumAlgorithmDomainClass"
+                ]
             }
         ],
         "collectionTypes": [
@@ -2416,7 +2569,12 @@
                     "xbrl:prefixedContent"
                 ],
                 "referenceType": "xbrl:dataTypeRequirement",
-                "properties": [{"property":"ref:Requirement", "value":"This data type acts as a supertype for all custom types that rely on namespace-prefix bindings. It allows processors to 'fail fast' if presented with prefixed content that they do not understand, rather than silently breaking or changing the semantics of such values."}]
+                "properties": [
+                    {
+                        "property": "ref:Requirement",
+                        "value": "This data type acts as a supertype for all custom types that rely on namespace-prefix bindings. It allows processors to 'fail fast' if presented with prefixed content that they do not understand, rather than silently breaking or changing the semantics of such values."
+                    }
+                ]
             }
         ]
     }

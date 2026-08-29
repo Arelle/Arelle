@@ -512,6 +512,294 @@
                 "value": "A binding includes a data point with inconsistent duplicate facts under the truncation rounding mode, and no further checking is performed for that binding.",
                 "labelType": "xbrl:errorMessage"
             }
+        ],
+        "references": [
+            {
+                "name": "oimte:conceptPropertiesInconsistentWithSummationItemRelationshipReference",
+                "forObjects": [
+                    "oimtc:summationItemPeriodTypeMismatch"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CALCULATION-InvalidConceptsWithDifferentPeriodTypes.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidConceptsWithDifferentPeriodTypes"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship2Reference",
+                "forObjects": [
+                    "oimtc:summationItemBalanceInconsistent"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CALCULATION-ValidWeight1SameBalance.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "✅ Pass"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "0"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-ValidWeight1SameBalance"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship3Reference",
+                "forObjects": [
+                    "oimtc:summationItemBalanceInconsistent"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CALCULATION-InvalidWeight1DifferentBalance.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidWeight1DifferentBalance"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship4Reference",
+                "forObjects": [
+                    "oimtc:summationItemBalanceInconsistent"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CALCULATION-ValidWeightMinus1DifferentBalance.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "✅ Pass"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "0"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-ValidWeightMinus1DifferentBalance"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship5Reference",
+                "forObjects": [
+                    "oimtc:summationItemBalanceInconsistent"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CALCULATION-InvalidWeightMinus1SameBalance.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidWeightMinus1SameBalance"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship6Reference",
+                "forObjects": [
+                    "oimtc:summationItemBalanceInconsistent"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CALCULATION-ValidWeight1DifferentBalanceReconciliation.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "✅ Pass"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "0"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-ValidWeight1DifferentBalanceReconciliation"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship7Reference",
+                "forObjects": [
+                    "oimtc:summationItemBalanceInconsistent"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CALCULATION-InvalidWeight1SameBalanceReconciliation.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidWeight1SameBalanceReconciliation"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship8Reference",
+                "forObjects": [
+                    "oimtc:summationItemBalanceInconsistent"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CALCULATION-ValidWeightMinus1SameBalanceReconciliation.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "✅ Pass"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "0"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-ValidWeightMinus1SameBalanceReconciliation"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship9Reference",
+                "forObjects": [
+                    "oimtc:summationItemBalanceInconsistent"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CALCULATION-InvalidWeightMinus1DifferentBalanceReconciliation.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidWeightMinus1DifferentBalanceReconciliation"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidCalculationRelationshipConformanceReference",
+                "forObjects": [
+                    "oimtc:summationItemConceptNotInCube"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CALCULATION-MissingConceptFromCubeInCalc.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-MissingConceptFromCubeInCalc"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidCalculationRelationship2ConformanceReference",
+                "forObjects": [
+                    "oimtc:summationItemConceptNotInCube"
+                ],
+                "referenceType": "xbrl:conformanceTestReference",
+                "language": "en",
+                "properties": [
+                    {
+                        "property": "xbrl:conformanceTestFileName",
+                        "value": "CALCULATION-InvalidConceptsWithDifferentPeriodTypes.json"
+                    },
+                    {
+                        "property": "xbrl:conformanceStatus",
+                        "value": "❌ Fail"
+                    },
+                    {
+                        "property": "xbrl:conformanceErrorsProduced",
+                        "value": "1"
+                    },
+                    {
+                        "property": "xbrl:specificationErrorURI",
+                        "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidConceptsWithDifferentPeriodTypes"
+                    }
+                ]
+            }
         ]
     }
 }
