@@ -377,6 +377,7 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
     groupContents: list[dict] = []
     roleGroups: list[tuple[str, str]] = []  # (roleUri, groupName) for group tree inference
     networks: list[dict] = []
+    cubeTypes: list[dict] = []
     relationshipTypes: list[dict] = []
     labels: list[dict] = []
     emit = _Emit(concepts, dimensions, members, domainClasses, dataTypes)
@@ -503,12 +504,12 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
     # calculations with them would both lose bindings and raise
     # oimtc:summationItemConceptNotInCube. Appendix B.1 of the calculation proposal instead
     # requires a cube admitting every fact of the report, which the calculations are
-    # associated with; see _allFactsCube.
+    # associated with; see _legacyAccommodationCube.
     calcNetNames = _calculationNetworks(modelXbrl, pfx, emit, networks, groupContents,
                                         roleGroups, calcError)
     if calcNetNames:
-        cubes.append(_allFactsCube(modelXbrl, pfx, dimensions, concepts,
-                                   domainNetworks, calcNetNames, networks))
+        cubes.append(_legacyAccommodationCube(modelXbrl, pfx, dimensions, concepts,
+                                   domainNetworks, calcNetNames, networks, cubeTypes))
 
     # dimensions with no domain discovered in any linkbase get a synthetic domainClass.
     for name, dim in dimensions.items():
@@ -548,6 +549,7 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
     if members:       m["members"] = list(members.values())
     if domainNetworks: m["domainNetworks"] = domainNetworks
     if cubes:         m["cubes"] = cubes
+    if cubeTypes:     m["cubeTypes"] = cubeTypes
     if groups:        m["groups"] = groups
     if groupContents: m["groupContents"] = groupContents
     if groupTree:     m["groupTree"] = groupTree
@@ -573,7 +575,17 @@ _MERGE_SKIP_KEYS = frozenset({"importedTaxonomies", "importMapping"})
 
 # The all-facts cube's name is derived from the document namespace so it cannot collide
 # with a per-linkrole cube, whose name always ends in _Cube.
-_ALL_FACTS_CUBE_SUFFIX = ":allFactsCube"
+#: Local name of the cube, and of the cube type marking it, that a translated legacy report
+#: is given. Named for WHY it exists rather than what it contains: a legacy XBRL 2.1 instance
+#: has no notion of cube membership, so a model that requires one has to accommodate it.
+#:
+#: Not "allFactsCube": that reads as a feature to adopt, when nobody should author one and
+#: nothing should produce one but this translation. It would also invite confusion with ESEF's
+#: [999999] "Line items not dimensionally qualified", which is the opposite kind of object --
+#: authored by the filer to satisfy the RTS, and belonging in a cube navigator where this does
+#: not.
+_LEGACY_ACCOMMODATION_LOCAL = "legacyAccommodationCube"
+_LEGACY_ACCOMMODATION_SUFFIX = ":" + _LEGACY_ACCOMMODATION_LOCAL
 
 
 def _calculationNetworks(modelXbrl, pfx, emit, networks, groupContents, roleGroups,
@@ -636,7 +648,7 @@ def _calculationNetworks(modelXbrl, pfx, emit, networks, groupContents, roleGrou
     return netNames
 
 
-def _allFactsCubeConcepts(modelXbrl, pfx, concepts, calcNetNames, networks) -> set:
+def _legacyAccommodationCubeConcepts(modelXbrl, pfx, concepts, calcNetNames, networks) -> set:
     """The concept domain of the all-facts cube: what it must admit, not the whole taxonomy.
 
     The cube exists to admit every fact OF THE REPORT (appendix B.1), so where the report is
@@ -676,8 +688,8 @@ def _allFactsCubeConcepts(modelXbrl, pfx, concepts, calcNetNames, networks) -> s
     return reported
 
 
-def _allFactsCube(modelXbrl, pfx, dimensions, concepts, domainNetworks, calcNetNames,
-                  networks) -> dict:
+def _legacyAccommodationCube(modelXbrl, pfx, dimensions, concepts, domainNetworks, calcNetNames,
+                  networks, cubeTypes) -> dict:
     """Build the cube that admits every fact of the report (proposal appendix B.1).
 
     A legacy instance has no notion of cube membership as a condition of fact validity, and
@@ -688,7 +700,7 @@ def _allFactsCube(modelXbrl, pfx, dimensions, concepts, domainNetworks, calcNetN
 
     The concept dimension names a domain network holding what the cube must admit -- the
     reported concepts together with those the associated calculations name (see
-    _allFactsCubeConcepts), or every concept of the taxonomy where the model carries no facts.
+    _legacyAccommodationCubeConcepts), or every concept of the taxonomy where the model carries no facts.
     It cannot simply omit the domainNetwork: xbrl:reportCube declares xbrl:conceptDomain in its
     coreDomainClasses, and a cube of that type whose concept dimension names no domain
     raises oimte:missingCoreDomainNameFromCubeDimension.
@@ -698,9 +710,17 @@ def _allFactsCube(modelXbrl, pfx, dimensions, concepts, domainNetworks, calcNetN
     be listed: a fact cannot appear in a cube that does not define a dimension the fact
     carries, so omitting one silently drops every fact that uses it.
     """
-    cubeName = pfx.prefixFor(_documentNs(modelXbrl)) + _ALL_FACTS_CUBE_SUFFIX
+    modelPrefix = pfx.prefixFor(_documentNs(modelXbrl))
+    cubeName = modelPrefix + _LEGACY_ACCOMMODATION_SUFFIX
+    cubeTypeName = cubeName + "Type"
+    # A model-defined cube type, so the model says what this cube is instead of leaving a
+    # consumer to infer it. It derives from xbrl:reportCube and adds nothing but identity --
+    # the marker IS the point. A reserved type would let consumers match one QName across
+    # models rather than a local name; that is a specification question and this does not
+    # block on it, since such a type would simply become this one's baseCubeType.
+    cubeTypes.append({"name": cubeTypeName, "baseCubeType": "xbrl:reportCube"})
     allConceptsDom = cubeName + "_ConceptDom"
-    domainConcepts = _allFactsCubeConcepts(modelXbrl, pfx, concepts, calcNetNames, networks)
+    domainConcepts = _legacyAccommodationCubeConcepts(modelXbrl, pfx, concepts, calcNetNames, networks)
     domainNetworks.append({"name": allConceptsDom, "root": "xbrl:conceptDomain",
                            "relationships": [{"source": "xbrl:conceptDomain", "target": c}
                                              for c in sorted(domainConcepts)]})
@@ -710,7 +730,7 @@ def _allFactsCube(modelXbrl, pfx, dimensions, concepts, domainNetworks, calcNetN
     for dimName in sorted(dimensions):
         cubeDims.append({"dimension": dimName, "optional": True})
     return {"name": cubeName,
-            "cubeType": "xbrl:reportCube",
+            "cubeType": cubeTypeName,
             "cubeDimensions": cubeDims,
             "cubeNetworks": list(calcNetNames)}
 
