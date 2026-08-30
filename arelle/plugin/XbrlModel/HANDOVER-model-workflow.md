@@ -817,6 +817,33 @@ What remains:
    set, which is what a per-document mapping would need, but nothing
    distinguishes them yet.
 
+5. **A marker for the synthetic all-facts cube.** Reported from the viewer side:
+   nothing distinguishes it from a cube the filer authored. It is an ordinary
+   `xbrl:reportCube` whose only distinguishing feature is a minted name, and a
+   consumer drops it from a cube navigator only incidentally (it is absent from
+   the group tree, which happens to hold rather than being stated).
+
+   No mechanism exists to mark it: no property type in `core.json` or
+   `xbrla.json` lists `xbrl:cubeObject` in its `allowedObjects`, and there are
+   exactly two cube types. A *general* "processor generated" property is the
+   wrong answer — on the translated Microsoft model it would mark 129 of 129
+   groups, 123 of 124 cubes and 142 of 145 networks, because a legacy DTS is
+   entirely translated. Those objects at least correspond to something the filer
+   authored, an extended-link role or a calculation arc; the all-facts cube
+   corresponds to nothing, being a mechanism the translator needed so that
+   translated calculations bind report-wide.
+
+   A reserved cube type deriving from `xbrl:reportCube` answers the question a
+   navigator asks — reporting structure, or mechanism? — but **must not be named
+   for what it contains**. `xbrl:allFactsCube` reads as a feature to adopt, when
+   nobody should ever author one, and it invites confusion with ESEF's
+   `[999999] Line items not dimensionally qualified`, which is the opposite kind
+   of thing: authored by the filer to satisfy the RTS, and belonging in a
+   navigator. A name carrying "legacy" and "transition" says what it is and that
+   its life ends with the migration. Definition belongs in the calculation
+   proposal's appendix B, where the cube is introduced. The cube's own local
+   name, `allFactsCube`, has the same problem and should change with it.
+
 Also noted while working, unowned: the untransformable-inline-value case in §3.3.
 
 ## 8. The workflow paths
