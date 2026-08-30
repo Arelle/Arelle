@@ -610,10 +610,29 @@ The rule must be the **union**, not the reported set: §5.6 requires every conce
 of an associated calculation to be in the domain whether or not it was reported.
 Here every calculation concept happens to have a fact, so the two coincide; a
 filing whose calculation names a concept it did not report this period would
-fail if the domain were pruned to reported facts alone. The caveat for
-implementing it is that `_allFactsCube` runs at *load* time — an inline filing's
-legacy model has its facts, but a `.xsd` taxonomy entry point has none, and there
-the present all-concepts behaviour is what makes the cube usable at all.
+fail if the domain were pruned to reported facts alone.
+
+**Implemented** (`_allFactsCubeConcepts`). A `.xsd` taxonomy entry point has no
+facts to compute the union from, and there every concept is admitted exactly as
+before, so the cube stays usable and §5.6 holds for any calculation.
+
+| | before | after |
+|---|---|---|
+| all-facts concept domain | 12,484 | **515** |
+| Microsoft, full | 9.60 MB | **7.46 MB** |
+| Microsoft, report | 8.67 MB, 12,484 concepts | **4.24 MB, 580 concepts** |
+| Microsoft, prune | 3.09 MB | 3.09 MB (prune drops cubes) |
+| `.xsd` entry point | domain 12,484 | domain 12,484, unchanged |
+
+Report mode is what this was for: it now emits the fact closure plus the
+presentation structure — 580 concepts — instead of the entire taxonomy.
+
+Verified rather than assumed: Microsoft and L'Oreal both produce **identical**
+error profiles to before (21 calculation inconsistencies, 34 duplicate-fact
+findings), with no `oimtc:summationItemConceptNotInCube` and no
+`oimte:noFactSpaceForFact` — so the restricted domain admits every fact and
+satisfies §5.6. Conformance 725/756 unchanged; the staged viewer still binds
+2,146 overlays from a model 22% smaller.
 
 ## 4. The workflow does not end at "viewable"
 

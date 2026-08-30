@@ -508,7 +508,7 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
                                         roleGroups, calcError)
     if calcNetNames:
         cubes.append(_allFactsCube(modelXbrl, pfx, dimensions, concepts,
-                                   domainNetworks, calcNetNames))
+                                   domainNetworks, calcNetNames, networks))
 
     # dimensions with no domain discovered in any linkbase get a synthetic domainClass.
     for name, dim in dimensions.items():
@@ -636,7 +636,48 @@ def _calculationNetworks(modelXbrl, pfx, emit, networks, groupContents, roleGrou
     return netNames
 
 
-def _allFactsCube(modelXbrl, pfx, dimensions, concepts, domainNetworks, calcNetNames) -> dict:
+def _allFactsCubeConcepts(modelXbrl, pfx, concepts, calcNetNames, networks) -> set:
+    """The concept domain of the all-facts cube: what it must admit, not the whole taxonomy.
+
+    The cube exists to admit every fact OF THE REPORT (appendix B.1), so where the report is
+    present its concepts are known and the domain is the union of
+
+      * the concepts of the reported facts, so every fact is admitted; and
+      * the concepts named by the calculation networks associated with the cube, whether or not
+        they were reported -- section 5.6 requires every concept of an associated calculation to
+        be in the cube's concept domain, so a calculation naming a concept this period did not
+        report would otherwise raise oimtc:summationItemConceptNotInCube.
+
+    The union matters even where the two coincide, as they do on a typical SEC filing: pruning
+    to reported concepts alone would fail the first filing whose calculation names an unreported
+    concept.
+
+    Where the model has NO facts -- a .xsd taxonomy entry point -- there is nothing to restrict
+    to, and every concept is admitted as before so that section 5.6 holds for any calculation.
+    """
+    reported = set()
+    for fact in getattr(modelXbrl, "facts", None) or ():
+        qn = getattr(fact, "qname", None)
+        if qn is None:
+            continue
+        name = pfx.pn(qn)
+        if name in concepts:
+            reported.add(name)
+    if not reported:
+        return set(concepts)
+    calcNames = set(calcNetNames)
+    for netDict in networks:
+        if netDict.get("name") in calcNames:
+            for relDict in netDict.get("relationships") or ():
+                for endpoint in ("source", "target"):
+                    endpointName = relDict.get(endpoint)
+                    if endpointName in concepts:
+                        reported.add(endpointName)
+    return reported
+
+
+def _allFactsCube(modelXbrl, pfx, dimensions, concepts, domainNetworks, calcNetNames,
+                  networks) -> dict:
     """Build the cube that admits every fact of the report (proposal appendix B.1).
 
     A legacy instance has no notion of cube membership as a condition of fact validity, and
@@ -645,9 +686,10 @@ def _allFactsCube(modelXbrl, pfx, dimensions, concepts, domainNetworks, calcNetN
     this cube instead, so that they bind against the whole report as they did under
     Calculations 1.1.
 
-    The concept dimension names a domain network holding EVERY concept of the taxonomy, so
-    every concept is admitted and section 5.6 is satisfied for any calculation. It cannot
-    simply omit the domainNetwork: xbrl:reportCube declares xbrl:conceptDomain in its
+    The concept dimension names a domain network holding what the cube must admit -- the
+    reported concepts together with those the associated calculations name (see
+    _allFactsCubeConcepts), or every concept of the taxonomy where the model carries no facts.
+    It cannot simply omit the domainNetwork: xbrl:reportCube declares xbrl:conceptDomain in its
     coreDomainClasses, and a cube of that type whose concept dimension names no domain
     raises oimte:missingCoreDomainNameFromCubeDimension.
 
@@ -658,9 +700,10 @@ def _allFactsCube(modelXbrl, pfx, dimensions, concepts, domainNetworks, calcNetN
     """
     cubeName = pfx.prefixFor(_documentNs(modelXbrl)) + _ALL_FACTS_CUBE_SUFFIX
     allConceptsDom = cubeName + "_ConceptDom"
+    domainConcepts = _allFactsCubeConcepts(modelXbrl, pfx, concepts, calcNetNames, networks)
     domainNetworks.append({"name": allConceptsDom, "root": "xbrl:conceptDomain",
                            "relationships": [{"source": "xbrl:conceptDomain", "target": c}
-                                             for c in sorted(concepts)]})
+                                             for c in sorted(domainConcepts)]})
     cubeDims = [{"dimension": "xbrl:concept", "domainNetwork": allConceptsDom}]
     for coreDim in ("xbrl:period", "xbrl:entity", "xbrl:unit", "xbrl:language"):
         cubeDims.append({"dimension": coreDim, "optional": True})
