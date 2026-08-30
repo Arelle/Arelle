@@ -18,7 +18,7 @@ oimSaveMode which overrides the modal):
 
 See the plugin header (XbrlModel/__init__.py) and SAVEMODEL_IMPLEMENTATION_PLAN.md for details.
 '''
-import os, io, json, cbor2, pandas as pd
+import os, io, json, cbor2, datetime, pandas as pd
 from decimal import Decimal
 import tkinter
 from collections import OrderedDict
@@ -374,7 +374,111 @@ def collectCubeContents(txmyMdl):
     return cubeContents
 
 
-def buildDerivedContent(txmyMdl):
+def collectDerivedFactValues(txmyMdl):
+    """derivedContent.factValues: the values this processor obtained for the model's facts.
+
+    A fact value that carries value sources and no literal value is stating that the source
+    document is the point of truth: the value is obtained by locating the text and applying the
+    transformation, scale and sign. Validation does that and mirrors the result onto
+    factValue.value so in-memory consumers see one field -- but the result is the processor's,
+    not the filer's, and emitting it on the fact would make a derived value indistinguishable
+    from a reported one.
+
+    So the fact keeps its faithful form and the resolved value is published here, with a
+    `basis` of `resolved`: derivable content, since a consumer holding the document and the
+    transformation registry reaches the same value.
+    """
+    derived = []
+    for module in txmyMdl.xbrlModels.values():
+        for fact in getattr(module, "facts", None) or ():
+            for factValue in getattr(fact, "factValues", None) or ():
+                value = getattr(factValue, "_derivedValue", None)
+                if value is None or not getattr(factValue, "valueSources", None):
+                    continue
+                entry = OrderedDict((("factValueName", str(factValue.name)),
+                                     ("basis", "resolved"),
+                                     ("value", str(value))))
+                derived.append(entry)
+    return derived
+
+
+def derivedFactValueNames(derivedFactValues):
+    """The factValue names whose value is published as derived content, so the serialized fact
+       can omit it and stay in its faithful (value-source) form."""
+    return {entry["factValueName"] for entry in derivedFactValues}
+
+
+def separateDerivedValues(moduleDict, derivedNames):
+    """Drop the derived value from each serialized factValue that publishes one as derived
+       content. The value sources remain, so the fact still says where its value comes from."""
+    for fact in moduleDict.get("facts", []):
+        for factValue in fact.get("factValues", []):
+            if factValue.get("name") in derivedNames and factValue.get("valueSources"):
+                factValue.pop("value", None)
+
+
+def collectCalculationResults(txmyMdl, **kwargs):
+    """derivedContent.calculationResults: what this processor concluded for each binding.
+
+    Non-derivable content. Whether a calculation is consistent is computable from the model,
+    but the question a reader asks of a published report is not "is this consistent under
+    today's rules" -- it is "what did validation conclude when this report was received".
+    Rules, rule sets and implementations move between the two, so a result recomputed later
+    answers a different question and the two are not interchangeable.
+    """
+    results = []
+    for r in getattr(txmyMdl, "_calculationResults", None) or ():
+        entry = OrderedDict((("cubeName", str(r["cube"])),
+                             ("networkName", str(r["network"])),
+                             ("total", str(r["total"]))))
+        aspects = OrderedDict()
+        for dimQn, dimValue in r["aspects"]:
+            # xbrl:unit is the parsed (numerators, denominators) tuple after validation; the
+            # same inverse the fact dimensions use renders it as its OIM string.
+            if isinstance(dimValue, tuple):
+                unitStr = unitDimensionString(dimValue, "", **kwargs)
+                if unitStr is None:
+                    continue
+                aspects[str(dimQn)] = unitStr
+            else:
+                # through saveableValue, so a QName that arrived without a prefix (xbrl:entity
+                # is scheme:identifier, and SEC filings declare no prefix for the CIK scheme)
+                # is minted and declared here too, rather than emitted as a bare identifier
+                aspects[str(dimQn)] = saveableValue(dimValue, "", **kwargs)
+        if aspects:
+            entry["aspects"] = aspects
+        entry["consistent"] = bool(r["consistent"])
+        if r.get("code"):
+            entry["code"] = r["code"]
+        for key in ("calculated", "reported"):
+            if r.get(key):
+                entry[key] = r[key]
+        results.append(entry)
+    return results
+
+
+def buildDerivationObject(txmyMdl):
+    """derivedContent.derivation: when this content was produced, and by what.
+
+    Required wherever non-derivable content is carried. A record of what a processor concluded
+    is only as interpretable as the account of how it was reached: two processors, or the same
+    one a year apart, may reach different conclusions about the same model without either being
+    wrong, because the rules they applied differ.
+    """
+    from arelle import Version
+    derivation = OrderedDict()
+    derivation["derived"] = datetime.datetime.now(datetime.timezone.utc).replace(
+        microsecond=0).isoformat().replace("+00:00", "Z")
+    derivation["processor"] = "Arelle {} / XbrlModel plugin".format(
+        getattr(Version, "__version__", "unknown"))
+    derivation["ruleSets"] = ["oimte", "oimce", "oime", "oimtc"]
+    roundingMode = getattr(txmyMdl, "calcRoundingModeOverride", None)
+    if roundingMode:
+        derivation["parameters"] = OrderedDict((("roundingMode", roundingMode),))
+    return derivation
+
+
+def buildDerivedContent(txmyMdl, **kwargs):
     """The derivedContent object for a saved compiled model, or None when nothing was derived.
 
     Returns None rather than an empty object: a derived content object that records nothing is
@@ -382,10 +486,20 @@ def buildDerivedContent(txmyMdl):
     absence means "derive it yourself".
     """
     cubeContents = collectCubeContents(txmyMdl)
-    if not cubeContents:
+    factValues = collectDerivedFactValues(txmyMdl)
+    calculationResults = collectCalculationResults(txmyMdl, **kwargs)
+    if not (cubeContents or factValues or calculationResults):
         return None
     derived = OrderedDict()
-    derived["cubeContents"] = cubeContents
+    if calculationResults:
+        # non-derivable content: its provenance is required, not optional
+        derived["derivation"] = buildDerivationObject(txmyMdl)
+    if factValues:
+        derived["factValues"] = factValues
+    if cubeContents:
+        derived["cubeContents"] = cubeContents
+    if calculationResults:
+        derived["calculationResults"] = calculationResults
     return derived
 
 
@@ -409,9 +523,23 @@ def saveFiles(cntlr, txmyMdl, fileName, saveMode="full", sourceUrlRewrite=None, 
     moduleDicts = [saveableObjects(m, "", txmyPrefixes=txmyPrefixes, fileExt=fileExt,
                                    retained=retained, reportMode=reportMode, **kwargs)
                    for m in moduleObjs]
+    derivedContent = buildDerivedContent(txmyMdl, fileExt=fileExt, **kwargs)
     if reportMode: # rewrite facts to Form B (value + valueAnchors) before merging
+        # REPORT mode deliberately makes the value the single source of truth for a viewer
+        # that reads one, so the derived value stays ON the fact and is not also published as
+        # derived content -- it would be the same value twice, said two ways.
+        if derivedContent is not None:
+            derivedContent.pop("factValues", None)
+            if not derivedContent:
+                derivedContent = None
         for moduleDict in moduleDicts:
             tailorFactsToFormB(moduleDict, resolvedValues)
+    elif derivedContent is not None and derivedContent.get("factValues"):
+        # FULL / PRUNE keep the fact faithful: value sources, and no value the filer did not
+        # report. The resolved value is published as derived content instead.
+        derivedNames = derivedFactValueNames(derivedContent["factValues"])
+        for moduleDict in moduleDicts:
+            separateDerivedValues(moduleDict, derivedNames)
     mergedModel = mergeModulesToCompiled(moduleDicts)
     namespaces = OrderedDict()
     for m in moduleObjs:
@@ -421,10 +549,9 @@ def saveFiles(cntlr, txmyMdl, fileName, saveMode="full", sourceUrlRewrite=None, 
                                 collectSourceMappings(txmyMdl, sourceUrlRewrite))
     oimModel = OrderedDict((("documentInfo", docInfo), ("xbrlModel", mergedModel)))
     # derivedContent is a document-level SIBLING of documentInfo and xbrlModel, not part of the
-    # model: it carries what this processor computed (which facts matched which cube, and in
-    # later steps the values it derived and the verdicts it reached), so the model itself stays
-    # the filer's content. Emitted only where there is something to record.
-    derivedContent = buildDerivedContent(txmyMdl)
+    # model: it carries what this processor computed -- which facts matched which cube, the
+    # values it resolved, the verdicts it reached -- so the model itself stays the filer's
+    # content. Built above, before the fact serialization that depends on it.
     if derivedContent is not None:
         oimModel["derivedContent"] = derivedContent
     if fileExt == ".json":

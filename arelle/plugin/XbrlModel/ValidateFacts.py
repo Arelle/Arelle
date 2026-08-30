@@ -123,6 +123,12 @@ def resolveFact(txmyMdl, txmyObj, fact):
         # would for a literally-specified fact.
         if factValue.value is None and resolvedText is not None:
             factValue.value = resolvedText
+            # Remember that this value was DERIVED, not reported. In memory the two are the
+            # same field so consumers need not care; in a serialized model they must not be
+            # confused, so SaveModel emits the fact in its faithful form (value sources, no
+            # value) and publishes the resolved value as derived content instead. Underscore-
+            # prefixed, so it is transient and never serialized itself.
+            factValue._derivedValue = resolvedText
         if factValue.language and cObj.isOimTextFactType(txmyMdl):
             if not factValue.language.islower():
                 txmyMdl.error("xbrlje:invalidLanguageCodeCase",

@@ -364,17 +364,36 @@ hook wrote out an empty model and reported success.
 
 A saved compiled model carries a `derivedContent` object — a document-level sibling of
 `documentInfo` and `xbrlModel`, **not part of the model** — holding what processing computed
-rather than what the filer reported. Today that is `cubeContents`: which fact objects match
-each cube, taken from the association fact validation builds as it resolves each fact.
+rather than what the filer reported:
 
-An unvalidated model has no such association and emits no `cubeContents`, which is the correct
-reading rather than a gap: absence means "not published, derive it yourself", never "no fact
-matches this cube". On Microsoft's FY2025 10-K it is 113 cubes and 4,569 (cube, fact) pairs,
-about 3% of the file.
+| | |
+|---|---|
+| `factValues` | the values resolved from each fact's value sources, with `basis: resolved` |
+| `cubeContents` | which fact objects match each cube |
+| `calculationResults` | what validation concluded for each calculation binding |
+| `derivation` | when, by what processor, under which rule sets — required wherever non-derivable content is carried |
 
-Specified in `oim-taxonomy-derived.md` in the `oim` repository, with a JSON schema alongside
-it. See [`SaveModel.collectCubeContents`](SaveModel.py). Derived fact values and calculation
-results are specified there too and are not yet emitted.
+On Microsoft's FY2025 10-K: 1,827 derived values, 113 cube contents over 4,569 (cube, fact)
+pairs, and 184 calculation results — 163 consistent, 21 not. The 163 are the ones nothing
+reports today, and are the reason to carry results rather than only errors.
+
+**A fact no longer carries a derived value.** In `full` and `prune` modes, a fact whose value
+was resolved from its value sources keeps its faithful form — sources, no value — and the
+resolved value is published as derived content. Emitting it on the fact made a value the
+processor computed indistinguishable from one the filer reported, which is what derived content
+exists to prevent. `report` mode is unchanged: it deliberately makes the value the single
+source of truth for a viewer that reads one, so the value stays on the fact and `factValues` is
+omitted rather than saying the same thing twice.
+
+An unvalidated model derives nothing and emits no derived content, which is the correct reading
+rather than a gap: absence means "not published, derive it yourself" for derivable content, and
+for a calculation result asserts neither consistency nor that anything was checked.
+
+Specified in `oim-taxonomy-derived.md` in the `oim` repository, with a JSON schema alongside it;
+validate a model carrying derived content against `oim-taxonomy-derived-document-schema.json`,
+since the taxonomy schema closes its document root. See
+[`SaveModel.buildDerivedContent`](SaveModel.py). Consumer guidance for the viewer is in
+`HANDOVER-derived-content.md` in the ixbrl-viewer repository.
 
 ### Opening a model in the iXBRL Viewer
 

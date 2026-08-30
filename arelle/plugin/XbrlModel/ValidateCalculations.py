@@ -243,6 +243,30 @@ def validateCubeCalculations(compMdl, cubeObj):
                               alignKey, truncate, tolerance, relation)
 
 
+def _recordResult(compMdl, cubeObj, ntwkObj, totalQn, alignKey, consistent,
+                  code=None, calculated=None, reported=None):
+    """Record what this processor concluded for one calculation binding.
+
+    Kept so SaveModel can publish it as derived content. A conclusion reached under a
+    particular rule set at a particular moment is not recoverable from the model afterwards --
+    re-deriving it later answers a different question, because rules and implementations move --
+    so it is recorded here rather than left to be recomputed. Only bindings that were actually
+    checked are recorded: a binding skipped for a non-numeric or all-nil value has no verdict,
+    and absence must not be readable as either outcome.
+
+    Values are stored raw; SaveModel formats them, so that the unit tuple validation leaves in
+    factDimensions is rendered by the one function that knows how.
+    """
+    results = getattr(compMdl, "_calculationResults", None)
+    if results is None:
+        results = compMdl._calculationResults = []
+    results.append({
+        "cube": cubeObj.name, "network": ntwkObj.name, "total": totalQn,
+        "aspects": [(dimQn, dimValue) for dimQn, dimValue in alignKey if dimValue is not None],
+        "consistent": consistent, "code": code,
+        "calculated": calculated, "reported": reported})
+
+
 def _checkBinding(compMdl, cubeObj, ntwkObj, totalQn, totalBucket, bound, alignKey,
                   truncate, tolerance, relation):
     """Check one binding of one calculation (proposal section 7)."""
@@ -253,11 +277,15 @@ def _checkBinding(compMdl, cubeObj, ntwkObj, totalQn, totalBucket, bound, alignK
             emit_error(compMdl, _CALC_ERROR["excessDigits"],
                        _("Calculation checking stopped for the total %(total)s in cube %(cube)s: a bound fact has digits in excess of its declared precision."),
                        xbrlObject=cubeObj, total=totalQn, cube=cubeObj.name)
+            _recordResult(compMdl, cubeObj, ntwkObj, totalQn, alignKey, False,
+                          _CALC_ERROR["excessDigits"])
             return
         if status == "inconsistentDuplicates":
-            emit_error(compMdl, _CALC_ERROR["duplicatesTruncation" if truncate else "duplicatesRounding"],
+            code = _CALC_ERROR["duplicatesTruncation" if truncate else "duplicatesRounding"]
+            emit_error(compMdl, code,
                        _("Calculation checking stopped for the total %(total)s in cube %(cube)s: a bound data point has inconsistent duplicate facts."),
                        xbrlObject=cubeObj, total=totalQn, cube=cubeObj.name)
+            _recordResult(compMdl, cubeObj, ntwkObj, totalQn, alignKey, False, code)
             return
         if status == "nonNumeric":
             # Not a calculation inconsistency -- the value is not a number, so the calculation
@@ -304,6 +332,11 @@ def _checkBinding(compMdl, cubeObj, ntwkObj, totalQn, totalBucket, bound, alignK
     atMost = calcLo < reportedHi or (calcLo == reportedHi and calcLoIncl and reportedHiIncl)
     atLeast = reportedLo < calcHi or (reportedLo == calcHi and reportedLoIncl and calcHiIncl)
     consistent = {"atMost": atMost, "atLeast": atLeast}.get(relation, atMost and atLeast)
+    _recordResult(compMdl, cubeObj, ntwkObj, totalQn, alignKey, consistent,
+                  None if consistent else
+                  _CALC_ERROR["inconsistentTruncation" if truncate else "inconsistentRounding"],
+                  calculated=f"[{calcLo}, {calcHi}]",
+                  reported=f"[{reportedLo}, {reportedHi}]")
     if not consistent:
         emit_error(compMdl, _CALC_ERROR["inconsistentTruncation" if truncate else "inconsistentRounding"],
                    _("The calculation of %(total)s in network %(network)s bound in cube %(cube)s is inconsistent: the contributions sum to %(calculated)s but the reported total is %(reported)s (aspects %(aspects)s)."),
