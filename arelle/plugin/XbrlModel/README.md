@@ -360,6 +360,22 @@ as an entry point materializes its DTS and facts at validate time, and the saved
 model is meant to carry validation verdicts. Saving from the earlier `Xbrl.Loaded`
 hook wrote out an empty model and reported success.
 
+### Derived content
+
+A saved compiled model carries a `derivedContent` object — a document-level sibling of
+`documentInfo` and `xbrlModel`, **not part of the model** — holding what processing computed
+rather than what the filer reported. Today that is `cubeContents`: which fact objects match
+each cube, taken from the association fact validation builds as it resolves each fact.
+
+An unvalidated model has no such association and emits no `cubeContents`, which is the correct
+reading rather than a gap: absence means "not published, derive it yourself", never "no fact
+matches this cube". On Microsoft's FY2025 10-K it is 113 cubes and 4,569 (cube, fact) pairs,
+about 3% of the file.
+
+Specified in `oim-taxonomy-derived.md` in the `oim` repository, with a JSON schema alongside
+it. See [`SaveModel.collectCubeContents`](SaveModel.py). Derived fact values and calculation
+results are specified there too and are not yet emitted.
+
 ### Opening a model in the iXBRL Viewer
 
 The last step of the desktop workflow — see the *document surface* the facts were

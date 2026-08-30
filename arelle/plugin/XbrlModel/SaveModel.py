@@ -306,6 +306,58 @@ def tailorFactsToFormB(moduleDict, resolvedValues):
                     if anchors:
                         factValue["valueAnchors"] = anchors
 
+def collectCubeContents(txmyMdl):
+    """derivedContent.cubeContents: the fact objects whose dimensions match each cube.
+
+    Derived content is content a processor COMPUTES from a compiled model and publishes
+    alongside it -- a checkable, regenerable cache of a derivation the model already implies,
+    carrying no authority of its own (oim-taxonomy-derived.md). It is a document-level sibling
+    of documentInfo and xbrlModel, NOT part of the XBRL model, because it is not the filer's
+    content: the model stays exactly what was reported, and what processing added sits beside it.
+
+    The association is taken from each cube's _cellFacts, which fact validation populates by
+    the normative dimensional rule as it resolves each fact -- so this publishes what this
+    processor actually matched, which is the thing a consumer would want to check. An
+    unvalidated model has no _cellFacts and yields no cube contents, which is correct: absence
+    means "not published, derive it yourself", never "no fact matches this cube".
+
+    Facts are grouped as an array per cube rather than one object per (cube, fact) pair: on a
+    1.3 MB compiled 10-K that is ~12.6 kB against ~76 kB, and only the former scales to a
+    66,000-fact filing.
+    """
+    cubeContents = []
+    for module in txmyMdl.xbrlModels.values():
+        for cubeObj in getattr(module, "cubes", None) or ():
+            cellFacts = getattr(cubeObj, "_cellFacts", None)
+            if not cellFacts:
+                continue
+            factNames = OrderedSet()
+            for bucket in cellFacts.values():
+                for fact, _factValue in bucket:
+                    name = getattr(fact, "name", None)
+                    if name is not None:
+                        factNames.add(str(name))
+            if factNames:
+                cubeContents.append(OrderedDict((("cubeName", str(cubeObj.name)),
+                                                 ("facts", list(factNames)))))
+    return cubeContents
+
+
+def buildDerivedContent(txmyMdl):
+    """The derivedContent object for a saved compiled model, or None when nothing was derived.
+
+    Returns None rather than an empty object: a derived content object that records nothing is
+    indistinguishable from one whose producer derived nothing, and the spec is explicit that
+    absence means "derive it yourself".
+    """
+    cubeContents = collectCubeContents(txmyMdl)
+    if not cubeContents:
+        return None
+    derived = OrderedDict()
+    derived["cubeContents"] = cubeContents
+    return derived
+
+
 def saveFiles(cntlr, txmyMdl, fileName, saveMode="full", sourceUrlRewrite=None, **kwargs):
     """ Save a loaded XbrlCompiledModel (taxonomy objects + facts) to json, cbor or Excel.
         FULL mode: the entire model as a single compiled document -- every discovered object
@@ -336,7 +388,14 @@ def saveFiles(cntlr, txmyMdl, fileName, saveMode="full", sourceUrlRewrite=None, 
             namespaces.setdefault(prefix, ns)
     docInfo = buildDocumentInfo(COMPILED_DOCTYPE, namespaces,
                                 collectSourceMappings(txmyMdl, sourceUrlRewrite))
-    oimModel = {"documentInfo": docInfo, "xbrlModel": mergedModel}
+    oimModel = OrderedDict((("documentInfo", docInfo), ("xbrlModel", mergedModel)))
+    # derivedContent is a document-level SIBLING of documentInfo and xbrlModel, not part of the
+    # model: it carries what this processor computed (which facts matched which cube, and in
+    # later steps the values it derived and the verdicts it reached), so the model itself stays
+    # the filer's content. Emitted only where there is something to record.
+    derivedContent = buildDerivedContent(txmyMdl)
+    if derivedContent is not None:
+        oimModel["derivedContent"] = derivedContent
     if fileExt == ".json":
         with io.open(fileName, "w") as fp:
             json.dump(oimModel, fp, indent=3, default=_jsonDefault)
