@@ -493,6 +493,92 @@ being emitted as both. All ten findings gone. L'Oreal unchanged, conformance
 With this, the filing loads with **only genuine findings**: 21 calculation
 inconsistencies, and nothing else.
 
+### 3.10 A saved compiled model does not round-trip
+
+Found while measuring the pruning change, and much the larger defect. Reloading
+a saved compiled model that retains `factSources` **re-derives its DTS from the
+source document and loses its facts**:
+
+| | facts | concepts | networks | cubes |
+|---|---|---|---|---|
+| `msft-prune.json` as saved | 1,829 | 515 | 0 | 0 |
+| the same file, reloaded and re-saved | **0** | 12,484 | 141 | 124 |
+
+The log shows why: validating the reloaded model logs `Load OIM Taxonomy file
+0000950170-…-xbrl.zip` and `Loaded 1829 facts from inline report`. The saved
+model already carries those facts, but `materializeFactSourceFacts` does not
+notice, re-runs the whole legacy compile, and the freshly built module then
+displaces the saved one — the pruned taxonomy is replaced by the full one and
+the facts go with it.
+
+Two consequences worth separating:
+
+* **The artifact is not reloadable.** Everything the save modes achieve — the
+  fact closure, the viewer-tailored Form B, derived content — is undone by
+  reading the file back. This is pre-existing, on every save mode.
+* **Reload error counts are not a quality measure.** The inflated figures on a
+  reloaded model (3,654 `factValueLocatorRequiredForValueSources`, twice 1,827;
+  3,280 `oime:invalidJSONStructure`) are artefacts of this, not of the artifact.
+  A comparison of prune output "before and after" a change, measured by
+  reloading, measures the broken path rather than the change.
+
+The fix is a guard rather than a redesign: a factSource whose module already
+carries facts has nothing to materialize, and a *compiled* document is by
+definition a serialised snapshot whose facts are present. Either test is enough.
+Not attempted here — it wants its own verification, and it interacts with the
+factset case, where a facts-only module legitimately has factSources and no
+literal facts.
+
+### 3.11 Pruning kept every type definition
+
+`PruneModel` treated the type-definition collections — property, label,
+reference, relationship, cube, collection and model types — as always-keep, on
+the stated grounds that they are small. True of a 12,000-concept filing, and
+badly false of a small one: a two-fact conformance model emitted 67 property
+types to use 2, and unreferenced type definitions were **44% of the file**.
+
+Worse, keeping them wholesale while pruning what *they* referenced produced 72
+dangling `oimte:invalidQNameReference` in the emitted artifact — the retained
+type definitions pointed at datatypes and domains the closure had dropped.
+
+`pruneClosure` now follows the references that reach type definitions (an
+object's `properties`, a label's `labelType`, a reference's `referenceType` and
+its own properties, a network's `relationshipTypeName` and relationship
+properties, a cube's `cubeType`, a propertyType's `dataType`), and `pruneSkip`
+filters those collections by closure membership:
+
+| | before | after |
+|---|---|---|
+| conformance model, prune | 57.1 KB, 72 dangling refs | **16.3 KB, 0** |
+| conformance model, report | 63.5 KB | 33.2 KB |
+| Microsoft filing, prune | 3.13 MB, 67 property types | 3.09 MB, 2 |
+| Microsoft filing, report | 8.71 MB, 18 dangling refs | 8.67 MB, **0** |
+
+The large-filing saving is ~1%, as the original comment implied; the small-model
+saving is 71%, which is what makes compiled-model conformance cases practical.
+
+**Still oversized, and the cause is known.** `report` mode retains 12,484 of
+12,488 concepts. `_allFactsCube` builds its concept domain as *every concept of
+the taxonomy* (appendix B.1: so §5.6 is satisfied for any calculation), and
+`pruneClosure` retains a cube by its concept domain, so the whole taxonomy comes
+back. Measured on the Microsoft filing, the domain needs 515 entries, not
+12,484 — a 95.9% reduction:
+
+| | |
+|---|---|
+| concepts with a reported fact | 515 |
+| concepts named in the cube's calculation networks | 220 |
+| union — what §5.6 requires | **515** |
+
+The rule must be the **union**, not the reported set: §5.6 requires every concept
+of an associated calculation to be in the domain whether or not it was reported.
+Here every calculation concept happens to have a fact, so the two coincide; a
+filing whose calculation names a concept it did not report this period would
+fail if the domain were pruned to reported facts alone. The caveat for
+implementing it is that `_allFactsCube` runs at *load* time — an inline filing's
+legacy model has its facts, but a `.xsd` taxonomy entry point has none, and there
+the present all-concepts behaviour is what makes the cube usable at all.
+
 ## 4. The workflow does not end at "viewable"
 
 The viewer is not only a renderer: its tagging mode emits a **journal** of the

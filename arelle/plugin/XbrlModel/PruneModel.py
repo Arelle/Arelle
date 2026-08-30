@@ -42,9 +42,18 @@ _DROP_CLASSES = frozenset({
     "XbrlDomainNetwork", "XbrlNetwork", "XbrlCube", "XbrlGroup",
     "XbrlGroupContent", "XbrlGroupTree", "XbrlHeading"})
 
-# Everything else (facts, footnotes, factMaps/factSources/factLocatorTypes, and the small
-# type-definition collections: collectionTypes, cubeTypes, modelTypes, propertyTypes,
-# relationshipTypes, labelTypes, referenceTypes, entities, ...) is always kept.
+# Type-definition objects: kept iff something retained refers to them. These were formerly
+# always kept on the grounds of being small, which holds for a large filing and badly fails for
+# a small one -- a two-fact model emitted 67 property types to use 2, and unreferenced type
+# definitions were 44% of the serialized bytes. pruneClosure follows the references that reach
+# them (a concept's properties, a label's labelType, a network's relationshipTypeName, ...).
+_TYPEDEF_CLASSES = frozenset({
+    "XbrlPropertyType", "XbrlLabelType", "XbrlReferenceType", "XbrlRelationshipType",
+    "XbrlCubeType", "XbrlCollectionType", "XbrlModelType"})
+
+# Everything else (facts, footnotes, factMaps/factSources/factLocatorTypes -- retained
+# deliberately as the chain by which a consumer locates the source document -- entities,
+# impliedObjects, ...) is always kept.
 
 
 # Relationship-bearing collections walked for REPORT-mode network inclusion (decision 4a).
@@ -108,6 +117,33 @@ def pruneClosure(txmyMdl, includeNetworks=False):
                 add(getattr(obj, "allowedDomainItem", None))
             elif cls == "XbrlUnit":
                 add(getattr(obj, "dataType", None))
+            # -- type definitions the retained object depends on --------------------------
+            # Without these the type-definition collections have to be emitted wholesale.
+            # On a large filing that is a rounding error; on a small one it dominates -- a
+            # two-fact model was emitting 67 property types to use 2, and the unreferenced
+            # type definitions were 44% of the file.
+            elif cls == "XbrlPropertyType":
+                add(getattr(obj, "dataType", None))
+                add(getattr(obj, "enumerationDomain", None))
+            elif cls == "XbrlLabelType":
+                add(getattr(obj, "formatType", None))
+            elif cls == "XbrlReferenceType":
+                for pt in (getattr(obj, "allowedProperties", None) or ()):
+                    add(pt)
+                for pt in (getattr(obj, "requiredProperties", None) or ()):
+                    add(pt)
+            elif cls == "XbrlRelationshipType":
+                for pt in (getattr(obj, "allowedLinkProperties", None) or ()):
+                    add(pt)
+                for pt in (getattr(obj, "requiredLinkProperties", None) or ()):
+                    add(pt)
+            elif cls == "XbrlCubeType":
+                for dimObj in getattr(obj, "cubeDimensions", None) or ():
+                    add(getattr(dimObj, "dimension", None))
+            if cls != "XbrlPropertyType":
+                # any object may carry properties, each naming a propertyType
+                for propObj in getattr(obj, "properties", None) or ():
+                    add(getattr(propObj, "property", None))
 
     # ---- seed from the reported facts ----
     for module in txmyMdl.xbrlModels.values():
@@ -124,6 +160,35 @@ def pruneClosure(txmyMdl, includeNetworks=False):
             for factValue in getattr(fact, "factValues", None) or ():
                 add(getattr(factValue, "transformation", None))
     drain()
+
+    # ---- types the retained content refers to ------------------------------------------
+    # Labels and references are retained by forObject (not by name), and networks and cubes by
+    # the report-mode pass below, so the types they name are seeded from those objects rather
+    # than reached by the drain above. Called again after the network pass for the same reason.
+    def addTypesOfRetainedContent():
+        for module in txmyMdl.xbrlModels.values():
+            for labelObj in getattr(module, "labels", None) or ():
+                if getattr(labelObj, "forObject", None) in retained:
+                    add(getattr(labelObj, "labelType", None))
+            for refObj in getattr(module, "references", None) or ():
+                if any(fo in retained for fo in (getattr(refObj, "forObjects", None) or ())):
+                    add(getattr(refObj, "referenceType", None))
+                    # a reference carries its content as properties (ref:Status, ref:Name, ...),
+                    # each naming a propertyType that must travel with it
+                    for propObj in getattr(refObj, "properties", None) or ():
+                        add(getattr(propObj, "property", None))
+            for coll in ("networks", "domainNetworks"):
+                for netObj in getattr(module, coll, None) or ():
+                    if getattr(netObj, "name", None) in retained:
+                        add(getattr(netObj, "relationshipTypeName", None))
+                        for relObj in getattr(netObj, "relationships", None) or ():
+                            for propObj in getattr(relObj, "properties", None) or ():
+                                add(getattr(propObj, "property", None))
+            for cubeObj in getattr(module, "cubes", None) or ():
+                if getattr(cubeObj, "name", None) in retained:
+                    add(getattr(cubeObj, "cubeType", None))
+        drain()
+    addTypesOfRetainedContent()
 
     # ---- REPORT: include networks touching retained objects (+ their full endpoint set) ----
     if includeNetworks:
@@ -229,6 +294,8 @@ def pruneClosure(txmyMdl, includeNetworks=False):
             if anyGroupRetained and groupTree is not None:
                 add(getattr(groupTree, "name", None))
         drain()
+        # the network pass retained networks and cubes; seed the types they name
+        addTypesOfRetainedContent()
     return retained
 
 
@@ -257,6 +324,8 @@ def pruneSkip(obj, retained, reportMode=False):
         # keeps the emitted group tree free of dangling references. The target is always the child
         # endpoint (a group, member or concept); the source may be the taxonomy root, so test target.
         return reportMode and getattr(obj, "target", None) not in retained
+    if cls in _TYPEDEF_CLASSES:
+        return getattr(obj, "name", None) not in retained
     if cls in _DROP_CLASSES:
         if reportMode: # networks/groups/headings kept iff in the (network-expanded) closure
             return getattr(obj, "name", None) not in retained
