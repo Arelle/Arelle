@@ -310,7 +310,10 @@ def _emitFact(compMdl, module, imf, conceptQn, conceptObj,
         fact.properties = [nilProp]
     else:
         if isNumeric:
-            fv.decimals = getattr(imf, "decimals", None)  # TODO: confirm ix decimals/scale
+            # decimals is a NUMBER in the model (or the string "INF"); Arelle's inline fact
+            # carries the raw @decimals attribute as a string, which serializes as "-6" and
+            # fails the schema on every numeric fact of every saved model.
+            fv.decimals = _decimalsValue(getattr(imf, "decimals", None))
         source = _htmlValueSource(imf, fv)
         if source is not None:
             # Faithful inline form: the value is re-derivable from the document, so the
@@ -333,6 +336,21 @@ def _emitFact(compMdl, module, imf, conceptQn, conceptObj,
     fact._sourceInlineFact = imf
 
     return fact
+
+
+def _decimalsValue(decimals):
+    """The model form of an inline @decimals: an int, the string "INF", or None."""
+    if decimals is None:
+        return None
+    text = str(decimals).strip()
+    if not text:
+        return None
+    if text.upper() == "INF":
+        return "INF"
+    try:
+        return int(text)
+    except ValueError:
+        return decimals  # not a number the model can carry; reported where it is validated
 
 
 def _htmlValueSource(imf, fv) -> Optional["XbrlFactValueSource"]:

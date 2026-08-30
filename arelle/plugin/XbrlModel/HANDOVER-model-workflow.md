@@ -522,12 +522,48 @@ Two consequences worth separating:
   A comparison of prune output "before and after" a change, measured by
   reloading, measures the broken path rather than the change.
 
-The fix is a guard rather than a redesign: a factSource whose module already
-carries facts has nothing to materialize, and a *compiled* document is by
-definition a serialised snapshot whose facts are present. Either test is enough.
-Not attempted here — it wants its own verification, and it interacts with the
-factset case, where a facts-only module legitimately has factSources and no
-literal facts.
+**Fixed.** A factSource whose module already carries facts has nothing to
+materialize: the facts are the ones being described, not ones to produce. One
+test in `materializeFactSourceFacts` covers it, and the factset case is
+unaffected — a factset carries factSources and no literal facts, and one from
+`saveOIMFacts` names a *custom* fact map that never reached this function at all
+(only built-in maps are materialized here). A saved model's factSource names the
+**built-in** map, which is why it re-ran.
+
+Round trip now exact — 1,829 facts / 515 concepts / 0 networks / 0 cubes in and
+out — and validating a reloaded model went from 4.00 s to 0.68 s, since it no
+longer recompiles the DTS.
+
+### 3.12 Two serialization defects the round trip exposed
+
+With the re-derivation gone, the reload of a saved model still reported 3,280
+`oime:invalidJSONStructure`. Two systematic faults, the same shape as the
+unit-tuple and `_periodValue` leaks of §3.4 — an internal representation reaching
+the serialization:
+
+* **`decimals` was emitted as a string.** `LoadInlineFacts` took Arelle's raw
+  `@decimals` attribute, so every numeric fact serialized `"decimals": "-6"`
+  where the model requires a number (or the string `"INF"`). 1,443 messages.
+* **A prefixless QName serialized as a bare local name.** `xbrl:entity` is built
+  as *scheme:identifier*, and a document that declares no prefix for the scheme
+  URI — SEC filings declare none for `http://www.sec.gov/CIK` — left the QName
+  unprefixed, so it emitted `"0000789019"`, which is not a QName. 1,829 messages,
+  one per fact. `SaveModel` now mints and declares a prefix for a namespace that
+  arrived without one (`cik` for the SEC scheme, `ns0`… otherwise), so the
+  emitted value is a QName resolving to the same expanded name.
+
+Reload of a pruned Microsoft model, `oime:invalidJSONStructure`: **3,280 → 2**.
+
+Left, both pre-existing and separate:
+
+* the 2 remaining are nil factValues, which serialize as `{"name": …}` with
+  neither `value` nor `valueSources` and fail the schema's `anyOf`. How a nil
+  fact value should serialize is a modelling question, not a leak;
+* `oimce:invalidURIForReservedAlias` for `xbrli`, because the legacy DTS binds
+  that prefix to the 2003 instance namespace and the reserved alias is the 2026
+  one;
+* `oimte:noFactSpaceForFact` per fact on a **prune**-mode reload is inherent to
+  that mode rather than a defect: prune drops the cubes, so no fact matches one.
 
 ### 3.11 Pruning kept every type definition
 

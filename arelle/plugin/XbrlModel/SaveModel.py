@@ -64,11 +64,22 @@ def saveableValue(val, mdlPropName, **kwargs):
         For other types, convert to string.
     """
     if isinstance(val, QName):
-        if "txmyModuleName" in kwargs and "txmyPrefixes" in kwargs and val.prefix:
+        prefix = val.prefix
+        if not prefix and val.namespaceURI:
+            # A QName can reach here with a namespace but no prefix -- xbrl:entity is built as
+            # scheme:identifier, and a document that declares no prefix for the scheme URI (SEC
+            # filings do not declare one for http://www.sec.gov/CIK) leaves it unprefixed. str()
+            # would then emit a bare "0000789019", which is not a QName and fails the schema on
+            # every fact. Mint a prefix from the namespace and declare it, so the emitted value
+            # is a QName and resolves to the same expanded name.
+            prefix = _mintedPrefix(val.namespaceURI, kwargs.get("txmyPrefixes"))
+        if "txmyModuleName" in kwargs and "txmyPrefixes" in kwargs and prefix:
             txmyPrefixes = kwargs["txmyPrefixes"]
             txmyModuleName = str(kwargs["txmyModuleName"])
             if txmyModuleName not in txmyPrefixes: txmyPrefixes[txmyModuleName] = {}
-            txmyPrefixes[txmyModuleName][val.prefix] = val.namespaceURI
+            txmyPrefixes[txmyModuleName][prefix] = val.namespaceURI
+        if prefix and not val.prefix:
+            return "{}:{}".format(prefix, val.localName)
         return str(val)
     elif isinstance(val, (Decimal, int, float, bool)) and kwargs["fileExt"] == ".cbor":
         return val # CBOR needs binary objects
@@ -106,6 +117,26 @@ def unitDimensionString(unitQnTuple, mdlPropName, **kwargs):
         return None  # ((),()) is what parseUnitString returns for a unit it could not resolve
     denominator = group(denominatorQns)
     return "{}/{}".format(numerator, denominator) if denominator else numerator
+
+
+#: Prefixes minted for namespaces a document left unprefixed, by namespace URI. Well-known
+#: schemes get their conventional prefix so a saved model reads as its readers expect.
+_WELL_KNOWN_PREFIXES = {"http://www.sec.gov/CIK": "cik"}
+_mintedPrefixes = {}
+
+
+def _mintedPrefix(namespaceURI, txmyPrefixes=None):
+    """A stable prefix for a namespace that arrived without one."""
+    prefix = _WELL_KNOWN_PREFIXES.get(namespaceURI) or _mintedPrefixes.get(namespaceURI)
+    if prefix is None:
+        used = {p for byModule in (txmyPrefixes or {}).values() for p in byModule}
+        used.update(_mintedPrefixes.values())
+        n = 0
+        while f"ns{n}" in used:
+            n += 1
+        prefix = f"ns{n}"
+    _mintedPrefixes[namespaceURI] = prefix
+    return prefix
 
 
 def saveableObjects(mdlObj, mdlName, **kwargs):

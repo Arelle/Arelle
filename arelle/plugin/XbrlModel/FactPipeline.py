@@ -476,6 +476,20 @@ def materializeFactSourceFacts(compMdl: "XbrlCompiledModel", module: "XbrlModule
     if id(module) in done:
         return
     done.add(id(module))
+    # A module that ALREADY carries facts has nothing to materialize: the facts are the ones
+    # being described, not ones to be produced. This is the case for a saved compiled model,
+    # which is a serialised snapshot -- it holds its facts AND retains the factSource naming the
+    # built-in fact map they came from (kept deliberately, so a consumer can still locate the
+    # source document). Without this test, reloading such a model re-ran the whole legacy
+    # compile from that source, and the freshly built module then DISPLACED the loaded one in
+    # xbrlModels -- the saved model's facts were lost and its pruned taxonomy replaced by the
+    # full one. A saved model simply did not round-trip, on any save mode.
+    #
+    # A factset is unaffected: it carries factSources and no literal facts, so it materializes
+    # as before. (A factset from saveOIMFacts names a custom fact map and never reached here
+    # at all -- only the built-in maps are materialized in this function.)
+    if getattr(module, "facts", None):
+        return
     parsers = _builtinFactMapParsers()
     for factSource in getattr(module, "factSources", None) or ():
         parse = parsers.get(getattr(factSource, "factMapName", None))
