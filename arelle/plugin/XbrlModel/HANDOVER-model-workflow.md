@@ -903,10 +903,45 @@ themselves (§5).
 
 ### 8.4 Tagging feedback from the viewer
 
-Nothing exists on the Arelle side. The viewer's tagger emits a journal and
-writes nothing else, by design; applying it is a separate step that belongs
-here. See §4 for the format and the four properties an applier must honour.
+**Built** — `ApplyTaggingJournal.py`, `--applyTaggingJournal <file>`.
 
-The shape it wants is a CLI step alongside the others — journal in, updated
-model out, validated — which would complete the round trip: filing → model →
-viewable → tagged → model.
+The shape was not obvious and is worth recording, because it is not a
+processing option: **two parties run this step and they want different
+things**, and which one is running decides what the artifact claims.
+
+* A **preparer**, tagging a report they are authoring. The bindings are their
+  own content — the filing says where its values come from — so the journal is
+  applied *into the model*, and the result is a filing with no derived content
+  at all. `--taggingJournalInto model`.
+* A **disseminator**, tagging a report somebody else filed: re-rendering a
+  prior filing onto a surface it was never tagged against (an N-CSR unwieldy
+  as XHTML, laid out as PDF), or locating values for a viewer. Those bindings
+  are not the filer's content, so they become *derived* fact values with a
+  `basis` of `bound`, beside a model left exactly as filed.
+  `--taggingJournalInto derivedContent` (the default).
+
+The preparer has a second choice the model already distinguishes, selected by
+`--taggingValueAuthority`: whether the **document** text is the point of truth
+(the fact carries value sources and no value) or the **value** is (the fact
+carries the value it was given — from an accounting system, a prior filing, a
+spreadsheet — and the binding is an anchor that merely locates it). Both are
+faithful; they differ in what the filing asserts.
+
+Measured on the Microsoft filing with a four-entry journal:
+
+| | the fact in the model | derived content |
+|---|---|---|
+| `into derivedContent` | untouched, `xbrl:htmlElementId` as filed | 3 `bound` fact values with the tagger's sources |
+| `into model` (document) | `valueSources` + `scale` from the journal | no `bound` entries |
+| `into model` (value) | `value` + `valueAnchors` + `scale` | no `bound` entries |
+
+All three validate against the derived-content document schema with zero
+errors.
+
+**A journal entry names its fact by the viewer's fact id**, which for a located
+fact is `<reportIndex>-<htmlElementId>` and resolves against the model. For a
+fact the viewer could not locate, or placed on a PDF, the id is a synthetic
+`hf-N` / `pf-N` — a position in the order the adapter happened to build, not an
+identity — and such an entry is reported unapplied rather than guessed at. That
+is a real limit on the PDF re-rendering case above and wants a stable id from
+the producer side before it is usable there.

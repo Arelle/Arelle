@@ -399,6 +399,24 @@ def collectDerivedFactValues(txmyMdl):
                                      ("basis", "resolved"),
                                      ("value", str(value))))
                 derived.append(entry)
+    # Bindings made by hand and applied as derived content (ApplyTaggingJournal, for the party
+    # tagging somebody else's report). basis "bound": the value sources are recorded here
+    # because the model does not have them, which is what makes this non-derivable -- nobody
+    # can recover a decision a person made from the model alone.
+    resolvedNames = {entry["factValueName"] for entry in derived}
+    for boundEntry in getattr(txmyMdl, "_boundFactValues", None) or ():
+        name = boundEntry["factValueName"]
+        entry = OrderedDict((("factValueName", name), ("basis", "bound")))
+        if boundEntry.get("value") is not None:
+            entry["value"] = str(boundEntry["value"])
+        if boundEntry.get("sourceText") is not None:
+            entry["sourceText"] = str(boundEntry["sourceText"])
+        if boundEntry.get("sources"):
+            entry["valueSources"] = boundEntry["sources"]
+        # a bound binding supersedes a resolved value for the same fact value: the model's own
+        # sources did not locate it on this surface, which is why it was bound by hand
+        derived[:] = [e for e in derived if e["factValueName"] != name]
+        derived.append(entry)
     return derived
 
 

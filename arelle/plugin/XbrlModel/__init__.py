@@ -1466,6 +1466,30 @@ def optionsExtender(parser, *args, **kwargs):
                       help=_("Stage a servable iXBRL Viewer directory (model + source document "
                              "+ viewer bundle) at this path. Needs the iXBRLViewerPlugin "
                              "plugin active for its built bundle."))
+    # Apply a tagging journal from the ixbrl-viewer's tagger. Which party is running the tool
+    # decides what the artifact claims, so it is stated rather than defaulted -- see
+    # ApplyTaggingJournal.
+    parser.add_option("--applyTaggingJournal",
+                      action="store",
+                      dest="applyTaggingJournal",
+                      help=_("Apply a tagging journal (from the iXBRL Viewer tagger) to the "
+                             "loaded model."))
+    parser.add_option("--taggingJournalInto",
+                      action="store",
+                      choices=("model", "derivedContent"),
+                      dest="taggingJournalInto",
+                      help=_("Where the journal's bindings go: 'model' when a preparer tags a "
+                             "report they are authoring, so the bindings are the filing's own "
+                             "content; 'derivedContent' (default) when tagging somebody else's "
+                             "report, so they are recorded beside a model left as filed."))
+    parser.add_option("--taggingValueAuthority",
+                      action="store",
+                      choices=("document", "value"),
+                      dest="taggingValueAuthority",
+                      help=_("For --taggingJournalInto model: whether the 'document' text is "
+                             "the point of truth (the fact carries value sources and no value, "
+                             "default) or the 'value' is (the fact carries the value, and the "
+                             "binding is an anchor that locates it)."))
     from .PdfToolsCli import addPdfToolOptions
     addPdfToolOptions(parser)
 
@@ -1628,7 +1652,8 @@ def xbrlModelRun(cntlr, options, xbrlCompMdl, *args, **kwargs):
         return
     saveOIMmodel = getattr(options, "saveOIMmodel", None)
     saveViewer = getattr(options, "saveXbrlModelViewer", None)
-    if not saveOIMmodel and not saveViewer:
+    journalFile = getattr(options, "applyTaggingJournal", None)
+    if not saveOIMmodel and not saveViewer and not journalFile:
         return
     if not getattr(xbrlCompMdl, "_xbrlModelValidatedOnLoad", False) and not getattr(options, "validate", False):
         cntlr.addToLog(_("Validating the model before saving it: a legacy report entry point's "
@@ -1638,6 +1663,23 @@ def xbrlModelRun(cntlr, options, xbrlCompMdl, *args, **kwargs):
         xbrlCompMdl._xbrlModelValidatedOnLoad = True
         from arelle import Validate
         Validate.validate(xbrlCompMdl)
+    if journalFile:
+        from .ApplyTaggingJournal import applyJournal, loadJournal, INTO_DERIVED, AUTHORITY_DOCUMENT
+        journal = loadJournal(cntlr, journalFile)
+        if journal is not None:
+            applied, unresolved = applyJournal(
+                cntlr, xbrlCompMdl, journal,
+                into=getattr(options, "taggingJournalInto", None) or INTO_DERIVED,
+                authority=getattr(options, "taggingValueAuthority", None) or AUTHORITY_DOCUMENT)
+            cntlr.addToLog(_("Applied %(applied)s of %(total)s tagging journal entries."),
+                           messageArgs={"applied": applied,
+                                        "total": len(journal.get("entries") or ())},
+                           messageCode="arelle:taggingJournalApplied", file=journalFile)
+            for factId, reason in unresolved:
+                cntlr.addToLog(_("Tagging journal entry for %(factId)s not applied: %(reason)s"),
+                               messageArgs={"factId": factId, "reason": reason},
+                               messageCode="arelle:taggingJournalEntryUnresolved",
+                               level="WARNING", file=journalFile)
     saveMode = (getattr(options, "oimSaveMode", None) or "full").lower()
     if saveMode not in ("full", "prune", "report"):
         saveMode = "full"
