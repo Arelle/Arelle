@@ -13,6 +13,10 @@ Two parties run that step, and they want different things:
 * a **preparer**, tagging a report they are authoring. The bindings they make are their own
   content -- the filing says where its values come from -- so the journal is applied INTO THE
   MODEL. The result is a filing with no derived content.
+An entry's `previous` field is not used. The viewer documents it as carrying the sources a
+rebind displaced, and as what makes an entry reversible, but it is currently always null there
+-- every entry looks like a first bind -- so nothing here may depend on it.
+
 * a **disseminator**, tagging a report somebody else filed: re-rendering a prior filing onto a
   surface it was never tagged against (an N-CSR too unwieldy to read as XHTML, laid out as
   PDF), or locating values for a viewer. Those bindings are not the filer's content, so they
@@ -68,33 +72,48 @@ def loadJournal(cntlr, path):
     return journal
 
 
-def _factValuesByElementId(compMdl):
-    """{html element id: factValue} for every fact value the model locates in a document.
+def _factValueIndexes(compMdl):
+    """Three ways to find the fact value a journal entry names, most reliable first.
 
-    A journal entry names its fact by the id the viewer keyed it under, which for an
-    html-located fact is its xbrl:htmlElementId. That is stable across loads, unlike the
-    synthetic keys the viewer mints for facts it could not locate.
+    `factValueName` is the model's own name for the OCCURRENCE being bound -- a fact value is
+    one occurrence of a fact in the document, not one value of it, and a fact printed in four
+    places has four. Naming the occurrence means an entry attaches to exactly one, with no
+    choice for this applier to make.
+
+    `factName` names the fact, which is enough where it has a single occurrence.
+
+    The html element id is the fallback for a journal written before the viewer carried either,
+    when an entry named its fact only by the id the viewer keyed it under. That worked for a
+    located fact and not otherwise, which is why the names were added.
     """
-    index = {}
+    byValueName, byFactName, byElementId = {}, {}, {}
     for module in compMdl.xbrlModels.values():
         for fact in getattr(module, "facts", None) or ():
+            factName = getattr(fact, "name", None)
             for factValue in getattr(fact, "factValues", None) or ():
+                entry = (fact, factValue)
+                valueName = getattr(factValue, "name", None)
+                if valueName is not None:
+                    byValueName[str(valueName)] = entry
+                if factName is not None:
+                    byFactName.setdefault(str(factName), entry)
                 for source in getattr(factValue, "valueSources", None) or ():
                     for prop in getattr(source, "properties", None) or ():
                         if getattr(prop, "property", None) == qnHtmlElementId:
                             value = prop.value
                             for elementId in (value if isinstance(value, (list, tuple)) else [value]):
-                                index.setdefault(str(elementId), (fact, factValue))
-    return index
+                                byElementId.setdefault(str(elementId), entry)
+    return byValueName, byFactName, byElementId
 
 
 def _entryFactKey(factId):
     """The adapter key a journal entry's factId carries, without the report index.
 
-    The viewer forms a fact id as "<reportIndex>-<key>"; the key is the html element id for a
-    located fact, and a synthetic "pf-N" / "hf-N" for one it placed on a PDF or could not
-    locate at all. Only the first is resolvable here -- the synthetic ones are positions in the
-    order the adapter happened to build, not identities.
+    Only used for a journal that carries no factValueName or factName. The viewer forms a fact
+    id as "<reportIndex>-<key>"; the key is the html element id for a located fact, and a
+    synthetic "pf-N" / "hf-N" for one it placed on a PDF or could not locate -- a position in
+    the order the adapter built, not an identity. That is why the model's own names are
+    preferred, and why they were added.
     """
     text = str(factId or "")
     prefix, sep, rest = text.partition("-")
@@ -124,17 +143,29 @@ def _sourceObjectsFrom(entry, factValue):
 def applyJournal(cntlr, compMdl, journal, into=INTO_DERIVED, authority=AUTHORITY_DOCUMENT):
     """Apply a tagging journal. Returns (appliedCount, unresolved) and, for the derived-content
        party, leaves the bindings on compMdl for SaveModel to publish."""
-    index = _factValuesByElementId(compMdl)
+    byValueName, byFactName, byElementId = _factValueIndexes(compMdl)
     applied, unresolved, bound = 0, [], []
     for entry in journal.get("entries") or ():
         if entry.get("op") != "bindValueSource":
             unresolved.append((entry.get("factId"), "unsupported op {}".format(entry.get("op"))))
             continue
-        key = _entryFactKey(entry.get("factId"))
-        found = index.get(key)
+        # resolve by the model's own names where the journal carries them; the element-id
+        # fallback is for journals written before the viewer emitted them
+        found = named = None
+        for name, index in ((entry.get("factValueName"), byValueName),
+                            (entry.get("factName"), byFactName)):
+            if name:
+                named = name
+                found = index.get(str(name))
+                if found is not None:
+                    break
+        if found is None and not named:
+            key = _entryFactKey(entry.get("factId"))
+            named = key
+            found = byElementId.get(key)
         if found is None:
             unresolved.append((entry.get("factId"),
-                               "no fact value in the model is located at '{}'".format(key)))
+                               "the model has no fact value named '{}'".format(named)))
             continue
         fact, factValue = found
         if into == INTO_MODEL:
