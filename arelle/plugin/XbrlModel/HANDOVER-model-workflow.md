@@ -556,9 +556,7 @@ Reload of a pruned Microsoft model, `oime:invalidJSONStructure`: **3,280 → 2**
 
 Left, both pre-existing and separate:
 
-* the 2 remaining are nil factValues, which serialize as `{"name": …}` with
-  neither `value` nor `valueSources` and fail the schema's `anyOf`. How a nil
-  fact value should serialize is a modelling question, not a leak;
+* the 2 remaining were nil facts — **since fixed, and it was ours** (§3.13);
 * `oimce:invalidURIForReservedAlias` for `xbrli`, because the legacy DTS binds
   that prefix to the 2003 instance namespace and the reserved alias is the 2026
   one;
@@ -633,6 +631,33 @@ findings), with no `oimtc:summationItemConceptNotInCube` and no
 `oimte:noFactSpaceForFact` — so the restricted domain admits every fact and
 satisfies §5.6. Conformance 725/756 unchanged; the staged viewer still binds
 2,146 overlays from a model 22% smaller.
+
+### 3.13 Nil facts: the specification was right and we were not
+
+The two schema errors left over from §3.12 were nil facts, and the question of
+whose defect it was is answered by the conformance suite. Every nil fact in it
+takes the same form:
+
+```json
+{ "name": "…", "factDimensions": { … },
+  "properties": [ { "property": "xbrl:nil", "value": "xbrl:unknownNilReason" } ] }
+```
+
+with **no `factValues` at all** — four tests, all consistent
+(`FACT-RequiredDisclosureNoValue`, `…NoValueOpenEnum`,
+`NIL-DuplicateFactWithNilAndValue`, `…WithNilAndValueSource`). Nil is a property
+of the *fact*, naming a nil reason member; the fact reports nothing, so it has
+nothing to report a value for.
+
+So the specification is right, and the schema is right to require `value` or
+`valueSources` of each fact value — a nil fact simply contributes none.
+`LoadInlineFacts` was building a fact value unconditionally and attaching it
+whether or not the fact was nil, emitting `{"name": "…_fv"}` with neither. Fixed:
+a nil fact is given no fact values.
+
+With that, a saved compiled model of the Microsoft filing validates against the
+derived-content document schema with **zero errors**, where it began this work
+with 3,280.
 
 ## 4. The workflow does not end at "viewable"
 

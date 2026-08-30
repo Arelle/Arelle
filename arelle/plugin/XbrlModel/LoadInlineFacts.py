@@ -330,7 +330,12 @@ def _emitFact(compMdl, module, imf, conceptQn, conceptObj,
             # value; this fact stays an ordinary model fact, nothing to derive.
             fv.value = imf.value
 
-    fact.factValues = [fv]
+    # A nil fact has NO fact value: nil is a property of the fact (xbrl:nil, naming a nil
+    # reason member), and the fact simply reports nothing. Attaching an empty fact value
+    # emitted {"name": "..._fv"} with neither a value nor value sources, which the schema
+    # rightly rejects -- a fact value must have one or the other. Every nil fact in the OIM
+    # taxonomy conformance suite carries the property and no factValues.
+    fact.factValues = None if isNil else [fv]
 
     # Transient, non-serialized back-ref for Xule / error messages (see module docstring).
     fact._sourceInlineFact = imf
