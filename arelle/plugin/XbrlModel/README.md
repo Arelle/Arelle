@@ -165,11 +165,47 @@ See the quick start above for the worked example. The options:
 | `--saveXbrlModelViewer <dir>` | stage a servable viewer directory: model + source document(s) + viewer bundle |
 | `--calcRoundingMode roundToNearest\|truncation` | override the model's declared rounding mode (§7) |
 | `--xbrlModelStreamThreshold <n>` | fact count above which a fact source must stream |
+| `--applyTaggingJournal <file>` | apply a tagging journal from the iXBRL Viewer's tagger (below) |
+| `--taggingJournalInto model\|derivedContent` | where its bindings go — default `derivedContent` |
+| `--taggingValueAuthority document\|value` | for `into model`: what the filing asserts is the point of truth — default `document` |
 
 Both save options validate the model first (see the quick start). They run on the
 `CntlrCmdLine.Xbrl.Run` hook, *after* validation — the earlier `Xbrl.Loaded` hook
 runs before it, and saving from there wrote out a model whose facts had not yet
 materialized.
+
+### Applying a tagging journal
+
+The iXBRL Viewer's tagger writes nothing to the model or the document. Its only output is a
+**journal** of the value-source decisions a user made, and applying it is this step.
+
+Which party is tagging decides what the resulting artifact claims, so `--taggingJournalInto`
+states it rather than defaulting silently to one reading:
+
+- **A preparer**, tagging a report they are authoring. The bindings are their own content — the
+  filing says where its values come from — so `--taggingJournalInto model` puts them in the
+  model, and the result is a filing with no derived content at all. This is the path for
+  preparing a filing: import accounting data, let the tooling attempt the mapping to value
+  sources, and tag what it could not place.
+- **A disseminator**, tagging a report somebody else filed — re-rendering a prior filing onto a
+  surface it was never tagged against, or locating values for a viewer.
+  `--taggingJournalInto derivedContent` (the default) records them as derived fact values with
+  a `basis` of `bound`, beside a model left exactly as filed. Nothing the filer did not report
+  enters the model.
+
+For a preparer, `--taggingValueAuthority` selects what the filing asserts is the point of truth
+— a distinction the model already carries:
+
+| | the fact carries | means |
+|---|---|---|
+| `document` (default) | `valueSources`, no value | the document text is authoritative; a consumer re-derives the value from it |
+| `value` | `value` + `valueAnchors` | the value is authoritative — imported from an accounting system, a prior filing, a spreadsheet — and the binding only locates it |
+
+A journal entry names its fact by the viewer's fact id. For a located fact that is
+`<reportIndex>-<htmlElementId>` and resolves against the model; for one the viewer could not
+locate, or placed on a PDF, it is a synthetic `hf-N` / `pf-N` — a position in the order the
+adapter built, not an identity — and such an entry is reported unapplied rather than guessed
+at. See [`ApplyTaggingJournal.py`](ApplyTaggingJournal.py).
 
 ### Diagnostics this plugin adds
 
@@ -184,6 +220,7 @@ recognising:
 | `arelle:calcRoundingModeOverridden` | `--calcRoundingMode` overrode the declared mode, so the results are not conformant results for the model as published |
 | `arelle:xbrlModelViewerUnavailable` | no built viewer bundle was found — activate `iXBRLViewerPlugin`, or set `xbrlModelViewerBundleDir` |
 | `arelle:xbrlModelViewerNoDocument` | the model names no source document, so there is nothing to render facts against (a taxonomy rather than a report) |
+| `arelle:taggingJournalEntryUnresolved` | a journal entry named a fact the model does not locate — commonly a synthetic viewer id (see above) rather than an element id |
 | `arelle:pocLegacyDtsNotDiscovered` | no XBRL 2.1 DTS was found at a referenced entry point |
 | `arelle:factValueResolverFailed` | a fact value could not be resolved from its source document |
 

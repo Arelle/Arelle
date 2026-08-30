@@ -819,9 +819,11 @@ What remains:
 
 Also noted while working, unowned: the untransformable-inline-value case in §3.3.
 
-## 8. The four workflow paths
+## 8. The workflow paths
 
-What each category of use needs, as of 2026-08-29. Only the CLI path is complete.
+What each category of use needs. §8.1–§8.4 are the paths through the *tooling*;
+§8.5 is the distinction that cuts across them, which emerged late and is the one
+to hold on to.
 
 ### 8.1 Arelle without the plugin
 
@@ -945,3 +947,39 @@ fact the viewer could not locate, or placed on a PDF, the id is a synthetic
 identity — and such an entry is reported unapplied rather than guessed at. That
 is a real limit on the PDF re-rendering case above and wants a stable id from
 the producer side before it is usable there.
+
+### 8.5 Who is running the tool decides what the artifact claims
+
+The paths above describe what the tooling does. This is about who is asking, and
+it turned out to matter more than any of them, because the same operation
+produces artifacts that assert different things.
+
+**A preparer** uses the tooling while authoring a filing: importing accounting
+data (a prior year's filing, this year's tables or spreadsheets), letting the
+tooling attempt the mapping to value sources in the report, tagging what it could
+not place, and choosing whether the document's text or the imported value is the
+point of truth. Everything they produce is **their own content**. The artifact is
+a filing, and it should carry **no derived content at all** — nothing in it was
+computed by a processor about somebody else's report.
+
+**A later party** — an authority disseminating, a tool preparing a viewer, anyone
+re-rendering a prior filing onto a surface it was never tagged against (the SEC
+N-CSRs, unreadable as XHTML, laid out as PDF) — produces **only derived content**.
+The model is left exactly as filed; the resolved values, the fact-to-cube
+association, the calculation verdicts and any hand-made bindings sit beside it,
+attributable and separable.
+
+Both parties run the same commands. What differs is which artifact is honest, and
+the tooling makes them state it rather than inferring:
+
+| | preparer | later party |
+|---|---|---|
+| tagging journal | `--taggingJournalInto model` | `--taggingJournalInto derivedContent` (default) |
+| what the fact carries | the binding, as the filing's own | unchanged, as filed |
+| derived content in the output | none | all of it |
+
+The reason to keep the distinction visible is that the failure it prevents is
+silent: a derived value emitted onto a fact is indistinguishable from a reported
+one, and a filing that carries a processor's conclusions reads as though the
+filer asserted them. §3.4 and the derived-content work are both consequences of
+taking it seriously.
