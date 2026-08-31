@@ -742,7 +742,7 @@ because they show up in the emitted names and in what survives:
 
 ## 7. Calculation validation
 
-Summation-item (calculation) relationships are validated per
+Summation-concept (calculation) relationships are validated per
 `specifications/oim-taxonomy/summation-item-relationship-proposal.md`, whose
 consistency-checking semantics are those of [Calculations 1.1][calc11]:
 
@@ -753,11 +753,13 @@ consistency-checking semantics are those of [Calculations 1.1][calc11]:
 * **Binding and consistency checking** (proposal §6.2 and §7), in
   [`ValidateCalculations.py`](ValidateCalculations.py): a calculation binds only against the
   facts of a cube that lists its network in `cubeNetworks`, and is checked with interval
-  arithmetic. The intervals themselves reuse `rangeValue()` and `insignificantDigits()` from
+  arithmetic. The same module checks **greater-lesser** orderings (proposal §11), which
+  assert that one concept's reported value cannot exceed another's at the same dimensional
+  position — gross carrying amount and net, or a total and an "of which" part. The intervals themselves reuse `rangeValue()` and `insignificantDigits()` from
   [`arelle/ValidateXbrlCalcs.py`](../../ValidateXbrlCalcs.py), which is what keeps this and
   Arelle's Calculations 1.1 implementation in step.
 * **Legacy translation** (proposal appendix B), in [`LoadLegacyTaxonomy.py`](LoadLegacyTaxonomy.py):
-  an XBRL 2.1 calculation linkbase becomes summation-item networks, associated with a
+  an XBRL 2.1 calculation linkbase becomes summation-concept networks, associated with a
   generated all-facts cube so they bind against the whole report as they did under
   Calculations 1.1.
 
@@ -820,8 +822,8 @@ not contribute, so the total is additionally reported as inconsistent.
 | [`PdfTextExtractor.py`](PdfTextExtractor.py) | tagged-PDF text by mcid / struct-id / form field (page-scoped) |
 | [`PdfToolsCli.py`](PdfToolsCli.py) | command-line options + dispatch (wired from `__init__.py`) |
 | [`FactValueResolver.py`](FactValueResolver.py) | resolves html / pdf locators to source text during validation |
-| [`ValidateCalculations.py`](ValidateCalculations.py) | summation-item binding and consistency checking (proposal §6.2, §7) |
-| [`ValidateNetworkObjects.py`](ValidateNetworkObjects.py) | network validation, including the summation-item definition-time checks (proposal §5) |
+| [`ValidateCalculations.py`](ValidateCalculations.py) | summation-concept binding and consistency checking (proposal §6.2, §7) |
+| [`ValidateNetworkObjects.py`](ValidateNetworkObjects.py) | network validation, including the summation-concept definition-time checks (proposal §5) |
 | [`LoadLegacyTaxonomy.py`](LoadLegacyTaxonomy.py) | legacy XBRL 2.1 DTS → compiled model, including calculation linkbases and the all-facts cube (proposal appendix B) |
 | [`ViewerLaunch.py`](ViewerLaunch.py) | stage a self-contained iXBRL Viewer directory (model + document + bundle) and open it |
 | [`tools/genSecTransformTypes.py`](tools/genSecTransformTypes.py) | regenerate `resources/sec-transform-types.json` from SEC's formal transformation registry |

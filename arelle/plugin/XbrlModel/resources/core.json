@@ -935,13 +935,13 @@
                 "forObject": "xbrl:weight",
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "value": "A weight link property is used on certain relationship types (for example summation-item) to indicate the multiplier applied to the source when computing aggregates."
+                "value": "A weight link property is used on certain relationship types (for example summation-concept) to indicate the multiplier applied to the source when computing aggregates."
             },
             {
                 "forObject": "xbrl:reconciliation",
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "value": "A reconciliation link property is a boolean value used on a summation-item relationship types to indicate that the source and target xbrla:balance can be the same and have a -1 weight or be different and have a +1 weight."
+                "value": "A reconciliation link property is a boolean value used on a summation-concept relationship types to indicate that the source and target xbrla:balance can be the same and have a -1 weight or be different and have a +1 weight."
             },
             {
                 "forObject": "xbrl:preferredLabel",
@@ -1012,7 +1012,7 @@
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "forObject": "xbrl:summation-item",
+                "forObject": "xbrl:summation-concept",
                 "value": "Relationship type that indicates the source contributes to the target as part of a summation (aggregation) with an associated weight."
             },
             {
@@ -1928,25 +1928,6 @@
                     "xbrl:xbrlModelObject",
                     "xbrl:networkObject"
                 ]
-            },
-            {
-                "name": "xbrl:tolerance",
-                "dataType": "xs:decimal",
-                "definitional": false,
-                "allowedObjects": [
-                    "xbrl:xbrlModelObject",
-                    "xbrl:networkObject"
-                ]
-            },
-            {
-                "name": "xbrl:summationRelation",
-                "dataType": "xbrlr:summationRelationType",
-                "definitional": false,
-                "allowedAsLinkProperty": true,
-                "allowedObjects": [
-                    "xbrl:networkObject",
-                    "xbrl:relationshipObject"
-                ]
             }
         ],
         "factLocatorTypes": [
@@ -2100,13 +2081,12 @@
                 ]
             },
             {
-                "name": "xbrl:summation-item",
-                "uri": "https://xbrl.org/2023/arcrole/summation-item",
+                "name": "xbrl:summation-concept",
+                "uri": "https://xbrl.org/2023/arcrole/summation-concept",
                 "cycles": "undirected",
                 "allowedLinkProperties": [
                     "xbrl:weight",
-                    "xbrl:reconciliation",
-                    "xbrl:summationRelation"
+                    "xbrl:reconciliation"
                 ],
                 "requiredLinkProperties": [
                     "xbrl:weight"
@@ -2358,6 +2338,17 @@
                 ],
                 "targetObjects": [
                     "xbrl:propertyTypeObject"
+                ]
+            },
+            {
+                "name": "xbrl:greater-lesser",
+                "uri": "https://xbrl.org/2026/arcrole/greater-lesser",
+                "cycles": "none",
+                "sourceObjects": [
+                    "xbrl:conceptObject"
+                ],
+                "targetObjects": [
+                    "xbrl:conceptObject"
                 ]
             }
         ],

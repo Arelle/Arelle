@@ -41,33 +41,23 @@
                     },
                     {
                         "source": "oimtc:CalculationErrorClassDomain",
-                        "target": "oimtc:summationItemPeriodTypeMismatch",
+                        "target": "oimtc:summationConceptPeriodTypeMismatch",
                         "order": 3
                     },
                     {
                         "source": "oimtc:CalculationErrorClassDomain",
-                        "target": "oimtc:summationItemBalanceInconsistent",
+                        "target": "oimtc:summationConceptBalanceInconsistent",
                         "order": 4
                     },
                     {
                         "source": "oimtc:CalculationErrorClassDomain",
-                        "target": "oimtc:duplicateSummationItemRelationship",
+                        "target": "oimtc:duplicateSummationConceptRelationship",
                         "order": 5
                     },
                     {
                         "source": "oimtc:CalculationErrorClassDomain",
-                        "target": "oimtc:summationItemConceptNotInCube",
+                        "target": "oimtc:summationConceptNotInCube",
                         "order": 6
-                    },
-                    {
-                        "source": "oimtc:CalculationErrorClassDomain",
-                        "target": "oimtc:invalidTolerance",
-                        "order": 7
-                    },
-                    {
-                        "source": "oimtc:CalculationErrorClassDomain",
-                        "target": "oimtc:conflictingSummationRelation",
-                        "order": 8
                     },
                     {
                         "source": "oimtc:CalculationErrorClassDomain",
@@ -93,6 +83,14 @@
                         "source": "oimtc:CalculationErrorClassDomain",
                         "target": "oimtc:disallowedDuplicateFactsUsingTruncation",
                         "order": 13
+                    },
+                    {
+                        "source": "oimtc:CalculationErrorClassDomain",
+                        "target": "oimtc:greaterLesserPeriodTypeMismatch"
+                    },
+                    {
+                        "source": "oimtc:CalculationErrorClassDomain",
+                        "target": "oimtc:greaterLesserInconsistent"
                     }
                 ]
             }
@@ -123,7 +121,7 @@
                 ]
             },
             {
-                "name": "oimtc:summationItemPeriodTypeMismatch",
+                "name": "oimtc:summationConceptPeriodTypeMismatch",
                 "domainClasses": [
                     "oimtc:CalculationErrorClassDomain"
                 ],
@@ -135,7 +133,7 @@
                 ]
             },
             {
-                "name": "oimtc:summationItemBalanceInconsistent",
+                "name": "oimtc:summationConceptBalanceInconsistent",
                 "domainClasses": [
                     "oimtc:CalculationErrorClassDomain"
                 ],
@@ -147,7 +145,7 @@
                 ]
             },
             {
-                "name": "oimtc:duplicateSummationItemRelationship",
+                "name": "oimtc:duplicateSummationConceptRelationship",
                 "domainClasses": [
                     "oimtc:CalculationErrorClassDomain"
                 ],
@@ -159,31 +157,7 @@
                 ]
             },
             {
-                "name": "oimtc:summationItemConceptNotInCube",
-                "domainClasses": [
-                    "oimtc:CalculationErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimtc:invalidTolerance",
-                "domainClasses": [
-                    "oimtc:CalculationErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimtc:conflictingSummationRelation",
+                "name": "oimtc:summationConceptNotInCube",
                 "domainClasses": [
                     "oimtc:CalculationErrorClassDomain"
                 ],
@@ -253,6 +227,30 @@
                         "value": "error"
                     }
                 ]
+            },
+            {
+                "name": "oimtc:greaterLesserPeriodTypeMismatch",
+                "domainClasses": [
+                    "oimtc:CalculationErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimtc:greaterLesserInconsistent",
+                "domainClasses": [
+                    "oimtc:CalculationErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
             }
         ],
         "headings": [
@@ -281,33 +279,23 @@
                     },
                     {
                         "source": "oimtc:CalculationErrors",
-                        "target": "oimtc:summationItemPeriodTypeMismatch",
+                        "target": "oimtc:summationConceptPeriodTypeMismatch",
                         "order": 3
                     },
                     {
                         "source": "oimtc:CalculationErrors",
-                        "target": "oimtc:summationItemBalanceInconsistent",
+                        "target": "oimtc:summationConceptBalanceInconsistent",
                         "order": 4
                     },
                     {
                         "source": "oimtc:CalculationErrors",
-                        "target": "oimtc:duplicateSummationItemRelationship",
+                        "target": "oimtc:duplicateSummationConceptRelationship",
                         "order": 5
                     },
                     {
                         "source": "oimtc:CalculationErrors",
-                        "target": "oimtc:summationItemConceptNotInCube",
+                        "target": "oimtc:summationConceptNotInCube",
                         "order": 6
-                    },
-                    {
-                        "source": "oimtc:CalculationErrors",
-                        "target": "oimtc:invalidTolerance",
-                        "order": 7
-                    },
-                    {
-                        "source": "oimtc:CalculationErrors",
-                        "target": "oimtc:conflictingSummationRelation",
-                        "order": 8
                     },
                     {
                         "source": "oimtc:CalculationErrors",
@@ -333,6 +321,14 @@
                         "source": "oimtc:CalculationErrors",
                         "target": "oimtc:disallowedDuplicateFactsUsingTruncation",
                         "order": 13
+                    },
+                    {
+                        "source": "oimtc:CalculationErrors",
+                        "target": "oimtc:greaterLesserPeriodTypeMismatch"
+                    },
+                    {
+                        "source": "oimtc:CalculationErrors",
+                        "target": "oimtc:greaterLesserInconsistent"
                     }
                 ]
             }
@@ -353,7 +349,7 @@
             {
                 "forObject": "oimtc:CalculationErrors",
                 "language": "en",
-                "value": "All identified summation-item calculation errors and inconsistencies.",
+                "value": "All identified summation-concept calculation errors and inconsistencies.",
                 "labelType": "xbrl:errorMessage"
             },
             {
@@ -365,7 +361,7 @@
             {
                 "forObject": "oimtc:nonNumericConcept",
                 "language": "en",
-                "value": "The total concept and every contributing concept of a summation-item relationship must be a numeric concept, whose dataType is or derives from xs:decimal.",
+                "value": "The total concept and every contributing concept of a summation-concept relationship must be a numeric concept, whose dataType is or derives from xs:decimal.",
                 "labelType": "xbrl:errorMessage"
             },
             {
@@ -377,79 +373,55 @@
             {
                 "forObject": "oimtc:invalidWeight",
                 "language": "en",
-                "value": "The value of xbrl:weight on a summation-item relationship must be 1 or -1.",
+                "value": "The value of xbrl:weight on a summation-concept relationship must be 1 or -1.",
                 "labelType": "xbrl:errorMessage"
             },
             {
-                "forObject": "oimtc:summationItemPeriodTypeMismatch",
+                "forObject": "oimtc:summationConceptPeriodTypeMismatch",
                 "language": "en",
                 "value": "Summation-Item Period Type Mismatch",
                 "labelType": "xbrl:label"
             },
             {
-                "forObject": "oimtc:summationItemPeriodTypeMismatch",
+                "forObject": "oimtc:summationConceptPeriodTypeMismatch",
                 "language": "en",
-                "value": "The total concept and every contributing concept of a summation-item relationship must have the same periodType.",
+                "value": "The total concept and every contributing concept of a summation-concept relationship must have the same periodType.",
                 "labelType": "xbrl:errorMessage"
             },
             {
-                "forObject": "oimtc:summationItemBalanceInconsistent",
+                "forObject": "oimtc:summationConceptBalanceInconsistent",
                 "language": "en",
                 "value": "Summation-Item Balance Inconsistent",
                 "labelType": "xbrl:label"
             },
             {
-                "forObject": "oimtc:summationItemBalanceInconsistent",
+                "forObject": "oimtc:summationConceptBalanceInconsistent",
                 "language": "en",
                 "value": "The combination of xbrl:weight, reconciliation and the balance of the total and contributing concept is not a permitted combination.",
                 "labelType": "xbrl:errorMessage"
             },
             {
-                "forObject": "oimtc:duplicateSummationItemRelationship",
+                "forObject": "oimtc:duplicateSummationConceptRelationship",
                 "language": "en",
                 "value": "Duplicate Summation-Item Relationship",
                 "labelType": "xbrl:label"
             },
             {
-                "forObject": "oimtc:duplicateSummationItemRelationship",
+                "forObject": "oimtc:duplicateSummationConceptRelationship",
                 "language": "en",
-                "value": "There must not be more than one summation-item relationship with the same total concept and the same contributing concept within a single calculation.",
+                "value": "There must not be more than one summation-concept relationship with the same total concept and the same contributing concept within a single calculation.",
                 "labelType": "xbrl:errorMessage"
             },
             {
-                "forObject": "oimtc:summationItemConceptNotInCube",
+                "forObject": "oimtc:summationConceptNotInCube",
                 "language": "en",
                 "value": "Summation-Item Concept Not In Cube",
                 "labelType": "xbrl:label"
             },
             {
-                "forObject": "oimtc:summationItemConceptNotInCube",
+                "forObject": "oimtc:summationConceptNotInCube",
                 "language": "en",
                 "value": "Every total and contributing concept of a calculation associated with a cube must be a member of that cube's concept dimension domain.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
-                "forObject": "oimtc:invalidTolerance",
-                "language": "en",
-                "value": "Invalid Tolerance",
-                "labelType": "xbrl:label"
-            },
-            {
-                "forObject": "oimtc:invalidTolerance",
-                "language": "en",
-                "value": "The value of xbrl:tolerance must be a non-negative decimal.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
-                "forObject": "oimtc:conflictingSummationRelation",
-                "language": "en",
-                "value": "Conflicting Summation Relation",
-                "labelType": "xbrl:label"
-            },
-            {
-                "forObject": "oimtc:conflictingSummationRelation",
-                "language": "en",
-                "value": "Every summation-item relationship of a single calculation must resolve to the same xbrl:summationRelation.",
                 "labelType": "xbrl:errorMessage"
             },
             {
@@ -511,13 +483,37 @@
                 "language": "en",
                 "value": "A binding includes a data point with inconsistent duplicate facts under the truncation rounding mode, and no further checking is performed for that binding.",
                 "labelType": "xbrl:errorMessage"
+            },
+            {
+                "forObject": "oimtc:greaterLesserPeriodTypeMismatch",
+                "language": "en",
+                "value": "Greater-Lesser Period Type Mismatch",
+                "labelType": "xbrl:label"
+            },
+            {
+                "forObject": "oimtc:greaterLesserPeriodTypeMismatch",
+                "language": "en",
+                "value": "The concepts of a greater-lesser relationship must have the same periodType.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "forObject": "oimtc:greaterLesserInconsistent",
+                "language": "en",
+                "value": "Greater-Lesser Inconsistent",
+                "labelType": "xbrl:label"
+            },
+            {
+                "forObject": "oimtc:greaterLesserInconsistent",
+                "language": "en",
+                "value": "A bound greater-lesser relationship is violated: the lesser concept's reported value exceeds the greater concept's.",
+                "labelType": "xbrl:errorMessage"
             }
         ],
         "references": [
             {
-                "name": "oimte:conceptPropertiesInconsistentWithSummationItemRelationshipReference",
+                "name": "oimtc:summationConceptPeriodTypeMismatchReference",
                 "forObjects": [
-                    "oimtc:summationItemPeriodTypeMismatch"
+                    "oimtc:summationConceptPeriodTypeMismatch"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -541,9 +537,9 @@
                 ]
             },
             {
-                "name": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship2Reference",
+                "name": "oimtc:summationConceptBalanceInconsistent2Reference",
                 "forObjects": [
-                    "oimtc:summationItemBalanceInconsistent"
+                    "oimtc:summationConceptBalanceInconsistent"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -567,9 +563,9 @@
                 ]
             },
             {
-                "name": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship3Reference",
+                "name": "oimtc:summationConceptBalanceInconsistent3Reference",
                 "forObjects": [
-                    "oimtc:summationItemBalanceInconsistent"
+                    "oimtc:summationConceptBalanceInconsistent"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -593,9 +589,9 @@
                 ]
             },
             {
-                "name": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship4Reference",
+                "name": "oimtc:summationConceptBalanceInconsistent4Reference",
                 "forObjects": [
-                    "oimtc:summationItemBalanceInconsistent"
+                    "oimtc:summationConceptBalanceInconsistent"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -619,9 +615,9 @@
                 ]
             },
             {
-                "name": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship5Reference",
+                "name": "oimtc:summationConceptBalanceInconsistent5Reference",
                 "forObjects": [
-                    "oimtc:summationItemBalanceInconsistent"
+                    "oimtc:summationConceptBalanceInconsistent"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -645,9 +641,9 @@
                 ]
             },
             {
-                "name": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship6Reference",
+                "name": "oimtc:summationConceptBalanceInconsistent6Reference",
                 "forObjects": [
-                    "oimtc:summationItemBalanceInconsistent"
+                    "oimtc:summationConceptBalanceInconsistent"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -671,9 +667,9 @@
                 ]
             },
             {
-                "name": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship7Reference",
+                "name": "oimtc:summationConceptBalanceInconsistent7Reference",
                 "forObjects": [
-                    "oimtc:summationItemBalanceInconsistent"
+                    "oimtc:summationConceptBalanceInconsistent"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -697,9 +693,9 @@
                 ]
             },
             {
-                "name": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship8Reference",
+                "name": "oimtc:summationConceptBalanceInconsistent8Reference",
                 "forObjects": [
-                    "oimtc:summationItemBalanceInconsistent"
+                    "oimtc:summationConceptBalanceInconsistent"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -723,9 +719,9 @@
                 ]
             },
             {
-                "name": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship9Reference",
+                "name": "oimtc:summationConceptBalanceInconsistent9Reference",
                 "forObjects": [
-                    "oimtc:summationItemBalanceInconsistent"
+                    "oimtc:summationConceptBalanceInconsistent"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -751,7 +747,7 @@
             {
                 "name": "oimte:invalidCalculationRelationshipConformanceReference",
                 "forObjects": [
-                    "oimtc:summationItemConceptNotInCube"
+                    "oimtc:summationConceptNotInCube"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",
@@ -777,7 +773,7 @@
             {
                 "name": "oimte:invalidCalculationRelationship2ConformanceReference",
                 "forObjects": [
-                    "oimtc:summationItemConceptNotInCube"
+                    "oimtc:summationConceptNotInCube"
                 ],
                 "referenceType": "xbrl:conformanceTestReference",
                 "language": "en",

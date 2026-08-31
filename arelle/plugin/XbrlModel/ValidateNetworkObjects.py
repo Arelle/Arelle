@@ -19,7 +19,8 @@ qnXbrlClassSubclass = qname(xbrl, "xbrl:class-subclass")
 qnPreferredLabel = qname(xbrl, "xbrl:preferredLabel")
 qnXbrlTaxonomyGroup = qname(xbrl, "xbrl:taxonomy-group")
 qnXbrlaBalance = qname(xbrla, "xbrla:balance")
-qnXbrlSummationItem = qname(xbrl, "xbrl:summation-item")
+qnXbrlSummationConcept = qname(xbrl, "xbrl:summation-concept")
+qnXbrlGreaterLesser = qname(xbrl, "xbrl:greater-lesser")
 qnXbrlWeight = qname(xbrl, "xbrl:weight")
 # The calculation proposal (summation-item-relationship-proposal.md 5.4) moves the
 # reconciliation property to the accounting namespace, as xbrla:reconciliation, because it
@@ -27,19 +28,16 @@ qnXbrlWeight = qname(xbrl, "xbrl:weight")
 # still declares xbrl:reconciliation, so the property is named in one place here and the
 # move is a one-line change once the working group rules on it.
 qnReconciliation = qname(xbrl, "xbrl:reconciliation")
-qnTolerance = qname(xbrl, "xbrl:tolerance")
-qnSummationRelation = qname(xbrl, "xbrl:summationRelation")
 
-# Error codes for the summation-item definition-time checks, from section 10 of the
+# Error codes for the summation-concept definition-time checks, from section 10 of the
 # proposal. They are kept in one table so the namespace can be changed in one place.
 _CALC_ERROR = {
     "nonNumericConcept": "oimtc:nonNumericConcept",
-    "periodTypeMismatch": "oimtc:summationItemPeriodTypeMismatch",
-    "balanceInconsistent": "oimtc:summationItemBalanceInconsistent",
-    "duplicateRelationship": "oimtc:duplicateSummationItemRelationship",
-    "conceptNotInCube": "oimtc:summationItemConceptNotInCube",
-    "invalidTolerance": "oimtc:invalidTolerance",
-    "conflictingSummationRelation": "oimtc:conflictingSummationRelation",
+    "periodTypeMismatch": "oimtc:summationConceptPeriodTypeMismatch",
+    "balanceInconsistent": "oimtc:summationConceptBalanceInconsistent",
+    "duplicateRelationship": "oimtc:duplicateSummationConceptRelationship",
+    "conceptNotInCube": "oimtc:summationConceptNotInCube",
+    "greaterLesserPeriodTypeMismatch": "oimtc:greaterLesserPeriodTypeMismatch",
 }
 
 # Section 5.1 admits only concepts whose datatype derives from xs:decimal. xs:float and
@@ -71,6 +69,40 @@ def _conceptBalance(conceptObj):
     return None
 
 
+def _validateGreaterLesserNetwork(compMdl, ntwkObj):
+    """Definition-time checks for a greater-lesser (ordering) network.
+
+    Implements section 11.1 of the calculation relationships proposal. The ordering asserts
+    that the target concept's reported value cannot exceed the source concept's wherever both
+    are reported at the same dimensional position, so both must be numeric and share a
+    periodType.
+
+    There is deliberately no balance constraint: the ordering compares reported magnitudes,
+    and the concepts on either side may have different balances or none -- accumulated
+    depreciation is a credit, the gross carrying amount that bounds it is a debit, and the
+    ordering between them still holds.
+    """
+    for relObj in ntwkObj.relationships or ():
+        if relObj.source == qnXbrlRootSource:
+            continue
+        srcObj = compMdl.namedObjects.get(relObj.source)
+        tgtObj = compMdl.namedObjects.get(relObj.target)
+        if not isinstance(srcObj, XbrlConcept) or not isinstance(tgtObj, XbrlConcept):
+            continue  # non-concept endpoints reported by the generic source/target checks
+        relName = f"{relObj.source}\u2192{relObj.target}"
+        for conceptQn, conceptObj in ((relObj.source, srcObj), (relObj.target, tgtObj)):
+            if not _isDecimalDerived(compMdl, conceptObj):
+                emit_error(compMdl, _CALC_ERROR["nonNumericConcept"],
+                           _("The greater-lesser network %(name)s relationship %(rel)s uses concept %(concept)s whose dataType %(dataType)s does not derive from xs:decimal; an ordering is defined only over decimal numeric values."),
+                           xbrlObject=relObj, name=ntwkObj.name, rel=relName,
+                           concept=conceptQn, dataType=conceptObj.dataType)
+        if srcObj.periodType != tgtObj.periodType:
+            emit_error(compMdl, _CALC_ERROR["greaterLesserPeriodTypeMismatch"],
+                       _("The greater-lesser network %(name)s relationship %(rel)s relates concepts with different periodTypes, %(sourcePeriodType)s and %(targetPeriodType)s."),
+                       xbrlObject=relObj, name=ntwkObj.name, rel=relName,
+                       sourcePeriodType=srcObj.periodType, targetPeriodType=tgtObj.periodType)
+
+
 def _rawPropertyValue(obj, propertyQn):
     """A property's value, whether or not its owning object has been property-validated.
 
@@ -87,21 +119,6 @@ def _rawPropertyValue(obj, propertyQn):
     return None
 
 
-def _validateTolerance(compMdl, obj, objName):
-    """A declared xbrl:tolerance MUST be a non-negative decimal (proposal 5.7)."""
-    value = _rawPropertyValue(obj, qnTolerance)
-    if value is None:
-        return
-    try:
-        isNegative = Decimal(str(value)) < 0
-    except (ArithmeticError, ValueError):
-        return  # a non-decimal value is reported as a property value error
-    if isNegative:
-        emit_error(compMdl, _CALC_ERROR["invalidTolerance"],
-                   _("The xbrl:tolerance %(tolerance)s declared on %(object)s MUST be a non-negative decimal; a tolerance widens the calculated total interval."),
-                   xbrlObject=obj, tolerance=value, object=objName)
-
-
 def _isDecimalDerived(compMdl, conceptObj):
     """True if the concept's datatype is, or derives from, xs:decimal (proposal 5.1)."""
     dtObj = compMdl.namedObjects.get(conceptObj.dataType)
@@ -110,17 +127,16 @@ def _isDecimalDerived(compMdl, conceptObj):
     return dtObj.xsBaseType(compMdl) in _DECIMAL_DERIVED_XSD_TYPES
 
 
-def _effectiveReconciliation(ntwkObj, relObj):
-    """Effective reconciliation for a relationship (proposal 3.2: relationship, then network).
+def _relationshipReconciliation(relObj):
+    """Whether a relationship is marked as a reconciliation (proposal 5.4).
 
-    The model level of the precedence chain is not consulted: reconciliation is not
-    declared on the XBRL model object.
+    Declared on the individual relationship only. A version of the proposal also allowed it
+    on the network; that was withdrawn, because a reconciliation marks the one relationship
+    that reverses out something the total should not include, so a flag on the whole network
+    says nothing useful about the other relationships in it.
     """
-    for obj in (relObj, ntwkObj):
-        value = obj.propertyObjectValue(qnReconciliation)
-        if value is not None:
-            return str(value).strip().lower() in ("true", "1")
-    return False
+    value = _rawPropertyValue(relObj, qnReconciliation)
+    return value is not None and str(value).strip().lower() in ("true", "1")
 
 
 def _cubeConceptDomains(compMdl, ntwkQn):
@@ -150,8 +166,8 @@ def _cubeConceptDomains(compMdl, ntwkQn):
     return domainsByNetwork.get(ntwkQn, ())
 
 
-def _validateSummationItemNetwork(compMdl, ntwkObj):
-    """Definition-time checks for a summation-item (calculation) network.
+def _validateSummationConceptNetwork(compMdl, ntwkObj):
+    """Definition-time checks for a summation-concept (calculation) network.
 
     Implements sections 5.1 and 5.3 to 5.6 of the calculation relationships proposal
     (oim/specifications/oim-taxonomy/summation-item-relationship-proposal.md). Section 5.2,
@@ -159,16 +175,8 @@ def _validateSummationItemNetwork(compMdl, ntwkObj):
     whose enumeration is ("1", "-1"), so a weight of any other value is already reported as
     oimte:propertyValueDataTypeMismatch by the property value validation.
     """
-    # 5.7 tolerance, wherever it is declared for this network
-    _validateTolerance(compMdl, ntwkObj, f"network {ntwkObj.name}")
-    if not getattr(compMdl, "_calcModelToleranceChecked", False):
-        compMdl._calcModelToleranceChecked = True
-        for mdlObj in compMdl.xbrlModels.values():
-            _validateTolerance(compMdl, mdlObj, f"model {getattr(mdlObj, 'name', None)}")
-
     conceptsUsed = OrderedSet()
     relsByEndpoints = defaultdict(list)
-    relationsByTotal = defaultdict(set)
     for relObj in ntwkObj.relationships or ():
         if relObj.source == qnXbrlRootSource:
             continue  # virtual origin, not a total-to-contributing relationship
@@ -180,26 +188,19 @@ def _validateSummationItemNetwork(compMdl, ntwkObj):
         conceptsUsed.add(relObj.source)
         conceptsUsed.add(relObj.target)
         relsByEndpoints[(relObj.source, relObj.target)].append(relObj)
-        # 5.8: the effective relation for a relationship is its own value, else the network's,
-        # else the specification default. It describes how the sum of ALL the contributions
-        # compares with the total, so every relationship of one calculation must agree.
-        relation = _rawPropertyValue(relObj, qnSummationRelation)
-        if relation is None:
-            relation = _rawPropertyValue(ntwkObj, qnSummationRelation)
-        relationsByTotal[relObj.source].add(str(relation) if relation is not None else "equal")
 
         # 5.1 the total and every contributing concept MUST be decimal-derived
         for conceptQn, conceptObj in ((relObj.source, srcObj), (relObj.target, tgtObj)):
             if not _isDecimalDerived(compMdl, conceptObj):
                 emit_error(compMdl, _CALC_ERROR["nonNumericConcept"],
-                           _("The summation-item network %(name)s relationship %(rel)s uses concept %(concept)s whose dataType %(dataType)s does not derive from xs:decimal; calculation consistency is defined only over decimal numeric values."),
+                           _("The summation-concept network %(name)s relationship %(rel)s uses concept %(concept)s whose dataType %(dataType)s does not derive from xs:decimal; calculation consistency is defined only over decimal numeric values."),
                            xbrlObject=relObj, name=ntwkObj.name, rel=relName,
                            concept=conceptQn, dataType=conceptObj.dataType)
 
         # 5.3 the total and every contributing concept MUST share a periodType
         if srcObj.periodType != tgtObj.periodType:
             emit_error(compMdl, _CALC_ERROR["periodTypeMismatch"],
-                       _("The summation-item network %(name)s relationship %(rel)s relates concepts with different periodTypes, %(sourcePeriodType)s and %(targetPeriodType)s; a summation-item relationship MUST relate concepts of the same periodType."),
+                       _("The summation-concept network %(name)s relationship %(rel)s relates concepts with different periodTypes, %(sourcePeriodType)s and %(targetPeriodType)s; a summation-concept relationship MUST relate concepts of the same periodType."),
                        xbrlObject=relObj, name=ntwkObj.name, rel=relName,
                        sourcePeriodType=srcObj.periodType, targetPeriodType=tgtObj.periodType)
 
@@ -212,14 +213,14 @@ def _validateSummationItemNetwork(compMdl, ntwkObj):
                 weightIsPositive = int(str(weight)) > 0
             except (TypeError, ValueError):
                 continue  # an unusable weight is reported as a property value error
-            reconciliation = _effectiveReconciliation(ntwkObj, relObj)
+            reconciliation = _relationshipReconciliation(relObj)
             # Without reconciliation, a weight of 1 keeps the balance side and -1 flips it
             # (XBRL v2.1 5.1.1.2); reconciliation inverts the rule so that a calculation may
             # deliberately cross the debit/credit divide.
             balancesMustMatch = weightIsPositive != reconciliation
             if (srcBal == tgtBal) != balancesMustMatch:
                 emit_error(compMdl, _CALC_ERROR["balanceInconsistent"],
-                           _("The summation-item network %(name)s relationship %(rel)s has weight %(weight)s with reconciliation %(reconciliation)s, which requires the total and contributing concept to have %(requirement)s xbrla:balance, but they are %(sourceBalance)s and %(targetBalance)s."),
+                           _("The summation-concept network %(name)s relationship %(rel)s has weight %(weight)s with reconciliation %(reconciliation)s, which requires the total and contributing concept to have %(requirement)s xbrla:balance, but they are %(sourceBalance)s and %(targetBalance)s."),
                            xbrlObject=relObj, name=ntwkObj.name, rel=relName, weight=weight,
                            reconciliation=str(reconciliation).lower(),
                            requirement="the same" if balancesMustMatch else "different",
@@ -229,24 +230,16 @@ def _validateSummationItemNetwork(compMdl, ntwkObj):
     for (sourceQn, targetQn), relObjs in relsByEndpoints.items():
         if len(relObjs) > 1:
             emit_error(compMdl, _CALC_ERROR["duplicateRelationship"],
-                       _("The summation-item network %(name)s defines the relationship %(rel)s %(count)s times; a concept MUST contribute to a given total exactly once."),
+                       _("The summation-concept network %(name)s defines the relationship %(rel)s %(count)s times; a concept MUST contribute to a given total exactly once."),
                        xbrlObject=relObjs[0], name=ntwkObj.name,
                        rel=f"{sourceQn}\u2192{targetQn}", count=len(relObjs))
-
-    # 5.8 every relationship of one calculation MUST resolve to the same summation relation
-    for totalQn, relations in relationsByTotal.items():
-        if len(relations) > 1:
-            emit_error(compMdl, _CALC_ERROR["conflictingSummationRelation"],
-                       _("The calculation of %(total)s in network %(name)s resolves to more than one xbrl:summationRelation (%(relations)s); the relation describes how the sum of all the contributions compares with the total, so it cannot differ between them."),
-                       xbrlObject=ntwkObj, total=totalQn, name=ntwkObj.name,
-                       relations=", ".join(sorted(relations)))
 
     # 5.6 every concept used by a cube-associated calculation MUST be in the cube's domain
     for cubeQn, domainMembers in _cubeConceptDomains(compMdl, ntwkObj.name):
         for conceptQn in conceptsUsed:
             if conceptQn not in domainMembers:
                 emit_error(compMdl, _CALC_ERROR["conceptNotInCube"],
-                           _("The summation-item network %(name)s uses concept %(concept)s which is not a member of the concept dimension domain of cube %(cube)s; a calculation cannot constrain facts for a concept the cube does not admit."),
+                           _("The summation-concept network %(name)s uses concept %(concept)s which is not a member of the concept dimension domain of cube %(cube)s; a calculation cannot constrain facts for a concept the cube does not admit."),
                            xbrlObject=ntwkObj, name=ntwkObj.name, concept=conceptQn, cube=cubeQn)
 
 
@@ -432,11 +425,13 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
                        names=", ".join(f"{relFrom}\u2192{relTo}{f' [{str(prefLbl)}]' if prefLbl else ''} ord {str(ordr)}"
                                        for (relFrom, relTo, prefLbl, ordr), ct in ntwkCt.items() if ct > 1))
 
-        # Summation-item checks run after the loop above, because they read link property
+        # Summation-concept checks run after the loop above, because they read link property
         # values through propertyObjectValue, which returns the validated typed value that
         # validateProperties sets on each relationship inside that loop.
-        if getattr(relTypeObj, "name", None) == qnXbrlSummationItem:
-            _validateSummationItemNetwork(compMdl, ntwkObj)
+        if getattr(relTypeObj, "name", None) == qnXbrlSummationConcept:
+            _validateSummationConceptNetwork(compMdl, ntwkObj)
+        elif getattr(relTypeObj, "name", None) == qnXbrlGreaterLesser:
+            _validateGreaterLesserNetwork(compMdl, ntwkObj)
         ntwkObj._rootsFound = sources - targets
 
         # Non-extending networks with relationships must have at least one xbrl:rootSource relationship.

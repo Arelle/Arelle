@@ -499,12 +499,12 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
             groupContents.append({"groupName": grpName, "forObject": netName})
         groupContents.append({"groupName": grpName, "forObject": cubeName})
 
-    # ---- 2b. calculation linkbases -> summation-item networks + the all-facts cube ----
+    # ---- 2b. calculation linkbases -> summation-concept networks + the all-facts cube ----
     # A legacy calculation linkbase binds against the whole report, whereas a translated
     # network binds only against the facts of a cube it is listed in. The per-linkrole cubes
     # above constrain their concept domain to that role's line items, so associating the
     # calculations with them would both lose bindings and raise
-    # oimtc:summationItemConceptNotInCube. Appendix B.1 of the calculation proposal instead
+    # oimtc:summationConceptNotInCube. Appendix B.1 of the calculation proposal instead
     # requires a cube admitting every fact of the report, which the calculations are
     # associated with; see _legacyAccommodationCube.
     calcNetNames = _calculationNetworks(modelXbrl, pfx, emit, networks, groupContents,
@@ -592,12 +592,12 @@ _LEGACY_ACCOMMODATION_SUFFIX = ":" + _LEGACY_ACCOMMODATION_LOCAL
 
 def _calculationNetworks(modelXbrl, pfx, emit, networks, groupContents, roleGroups,
                          calcError=None) -> list:
-    """Translate the DTS's calculation linkbases into summation-item networks.
+    """Translate the DTS's calculation linkbases into summation-concept networks.
 
     Appendix B of the calculation proposal: a calculation extended link role becomes one
-    network object, and a calculationArc becomes a summation-item relationship carrying the
+    network object, and a calculationArc becomes a summation-concept relationship carrying the
     arc's weight as the xbrl:weight link property. Both the XBRL 2.1 and the Calculations
-    1.1 arcroles translate to xbrl:summation-item.
+    1.1 arcroles translate to xbrl:summation-concept.
 
     Prohibited and overridden arcs are already resolved: relationshipSet() returns the
     effective relationship set, so use=prohibited arcs never reach here.
@@ -644,7 +644,7 @@ def _calculationNetworks(modelXbrl, pfx, emit, networks, groupContents, roleGrou
         # is hash-randomised per process, and these relationships are emitted in that order
         rels = [{"source": "xbrl:rootSource", "target": n} for n in sorted(srcs - tgts)]
         rels += frels
-        networks.append({"name": netName, "relationshipTypeName": "xbrl:summation-item",
+        networks.append({"name": netName, "relationshipTypeName": "xbrl:summation-concept",
                          "relationships": rels})
         if grpName:
             groupContents.append({"groupName": grpName, "forObject": netName})
@@ -662,7 +662,7 @@ def _legacyAccommodationCubeConcepts(modelXbrl, pfx, concepts, calcNetNames, net
       * the concepts named by the calculation networks associated with the cube, whether or not
         they were reported -- section 5.6 requires every concept of an associated calculation to
         be in the cube's concept domain, so a calculation naming a concept this period did not
-        report would otherwise raise oimtc:summationItemConceptNotInCube.
+        report would otherwise raise oimtc:summationConceptNotInCube.
 
     The union matters even where the two coincide, as they do on a typical SEC filing: pruning
     to reported concepts alone would fail the first filing whose calculation names an unreported

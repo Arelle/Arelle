@@ -1,7 +1,7 @@
 '''
 See COPYRIGHT.md for copyright information.
 
-Consistency checking for summation-item (calculation) relationships.
+Consistency checking for summation-concept (calculation) relationships.
 
 Implements sections 6.2 and 7 of the calculation relationships proposal,
 oim/specifications/oim-taxonomy/summation-item-relationship-proposal.md: binding a
@@ -23,19 +23,16 @@ from arelle.ModelValue import qname
 from arelle.ValidateXbrlCalcs import rangeValue, insignificantDigits
 
 from .ErrorCatalog import emit_error
-from .XbrlConst import xbrl
+from .XbrlConst import xbrl, qnXbrlRootSource
 from .XbrlCube import conceptCoreDim
 from .XbrlNetwork import XbrlNetwork
 
-qnXbrlSummationItem = qname(xbrl, "xbrl:summation-item")
+qnXbrlSummationConcept = qname(xbrl, "xbrl:summation-concept")
+qnXbrlGreaterLesser = qname(xbrl, "xbrl:greater-lesser")
 qnXbrlWeight = qname(xbrl, "xbrl:weight")
 
-# Calculation control properties (proposal section 3). None of these are declared in the
-# base taxonomy yet, so in practice every network takes the specification default; they are
-# read here so that the checking behaves as specified as soon as they are declared.
+# The one calculation control property (proposal section 3).
 qnRoundingMode = qname(xbrl, "xbrl:roundingMode")
-qnTolerance = qname(xbrl, "xbrl:tolerance")
-qnSummationRelation = qname(xbrl, "xbrl:summationRelation")
 
 # Error codes for the consistency checks, from section 10 of the proposal. They are kept in
 # one table so the namespace can be changed in one place.
@@ -45,6 +42,7 @@ _CALC_ERROR = {
     "excessDigits": "oimtc:excessDigits",
     "duplicatesRounding": "oimtc:disallowedDuplicateFactsUsingRounding",
     "duplicatesTruncation": "oimtc:disallowedDuplicateFactsUsingTruncation",
+    "greaterLesserInconsistent": "oimtc:greaterLesserInconsistent",
 }
 
 _NIL = object()
@@ -107,23 +105,6 @@ def _isTruncation(compMdl, ntwkObj):
     return declared == "truncation"
 
 
-def _tolerance(compMdl, ntwkObj):
-    """Effective xbrl:tolerance (proposal section 7.2), as an absolute quantity.
-
-    How the tolerance is scaled is the least settled part of the proposal (appendix C):
-    the value may end up absolute, as coded here and as the current section 7.2 text says,
-    or a multiple of the fact's own rounding unit 10**-decimals, or a fraction of the
-    reported total. It is inert at its default of 0, so no reported result depends on the
-    choice until a taxonomy declares the property.
-    """
-    value = _controlProperty(compMdl, ntwkObj, qnTolerance, 0)
-    try:
-        tolerance = Decimal(str(value))
-    except (InvalidOperation, ValueError):
-        return Decimal(0)
-    return tolerance if tolerance > 0 else Decimal(0)
-
-
 def _factValueInterval(bucket, truncate):
     """Interval for one reported data point, over its duplicate fact values.
 
@@ -169,9 +150,9 @@ def _factValueInterval(bucket, truncate):
 
 
 def _calculations(compMdl, ntwkObj):
-    """The calculations of a summation-item network, as totalQn -> [(contributingQn, weight)].
+    """The calculations of a summation-concept network, as totalQn -> [(contributingQn, weight)].
 
-    A calculation is the set of summation-item relationships sharing a total concept
+    A calculation is the set of summation-concept relationships sharing a total concept
     (proposal section 1).
     """
     calcs = defaultdict(list)
@@ -208,7 +189,7 @@ def _alignedCells(cubeObj):
 
 
 def validateCubeCalculations(compMdl, cubeObj):
-    """Bind and check the summation-item networks associated with a cube.
+    """Bind and check the summation-concept networks associated with a cube.
 
     Consistency checking is performed only on calculation networks listed in a cube's
     cubeNetworks, and binds only against that cube's facts (proposal section 6.1). This is
@@ -218,18 +199,22 @@ def validateCubeCalculations(compMdl, cubeObj):
     """
     if not getattr(cubeObj, "_cellFacts", None) or not cubeObj.cubeNetworks:
         return
-    calcNetworks = []
+    calcNetworks, orderingNetworks = [], []
     for ntwkQn in cubeObj.cubeNetworks:
         ntwkObj = compMdl.namedObjects.get(ntwkQn)
-        if isinstance(ntwkObj, XbrlNetwork) and ntwkObj.relationshipTypeName == qnXbrlSummationItem:
+        if not isinstance(ntwkObj, XbrlNetwork):
+            continue
+        if ntwkObj.relationshipTypeName == qnXbrlSummationConcept:
             calcNetworks.append(ntwkObj)
-    if not calcNetworks:
+        elif ntwkObj.relationshipTypeName == qnXbrlGreaterLesser:
+            orderingNetworks.append(ntwkObj)
+    if not calcNetworks and not orderingNetworks:
         return
     aligned = _alignedCells(cubeObj)
+    for ntwkObj in orderingNetworks:
+        _checkOrdering(compMdl, cubeObj, ntwkObj, aligned, _isTruncation(compMdl, ntwkObj))
     for ntwkObj in calcNetworks:
         truncate = _isTruncation(compMdl, ntwkObj)
-        tolerance = _tolerance(compMdl, ntwkObj)
-        relation = str(_controlProperty(compMdl, ntwkObj, qnSummationRelation, "equal"))
         for totalQn, contributions in _calculations(compMdl, ntwkObj).items():
             for alignKey, byConcept in aligned.items():
                 totalBucket = byConcept.get(totalQn)
@@ -240,7 +225,7 @@ def validateCubeCalculations(compMdl, cubeObj):
                 if not bound:
                     continue  # a calculation binds only where at least one contribution is reported
                 _checkBinding(compMdl, cubeObj, ntwkObj, totalQn, totalBucket, bound,
-                              alignKey, truncate, tolerance, relation)
+                              alignKey, truncate)
 
 
 def _recordResult(compMdl, cubeObj, ntwkObj, totalQn, alignKey, consistent,
@@ -267,8 +252,43 @@ def _recordResult(compMdl, cubeObj, ntwkObj, totalQn, alignKey, consistent,
         "calculated": calculated, "reported": reported})
 
 
+def _checkOrdering(compMdl, cubeObj, ntwkObj, aligned, truncate):
+    """Check a greater-lesser network's orderings (proposal section 11.2).
+
+    Binds exactly as a calculation does: within this cube's facts, wherever a reported data
+    point for the greater concept and one for the lesser concept are dimensionally aligned.
+    The ordering is not strict -- gross equals net exactly when accumulated depreciation is
+    zero -- so it is violated only when every value the lesser concept could have exceeds
+    every value the greater concept could have.
+    """
+    for relObj in compMdl.effectiveRelationships(ntwkObj):
+        if relObj.source == qnXbrlRootSource:
+            continue
+        for alignKey, byConcept in aligned.items():
+            greaterBucket = byConcept.get(relObj.source)
+            lesserBucket = byConcept.get(relObj.target)
+            if not greaterBucket or not lesserBucket:
+                continue
+            greaterStatus, greaterInterval = _factValueInterval(greaterBucket, truncate)
+            lesserStatus, lesserInterval = _factValueInterval(lesserBucket, truncate)
+            if greaterStatus is not None or lesserStatus is not None:
+                continue  # nil, excess digits or inconsistent duplicates: no verdict here
+            greaterLo, greaterHi, _greaterLoIncl, greaterHiIncl = greaterInterval
+            lesserLo, lesserHi, lesserLoIncl, _lesserHiIncl = lesserInterval
+            consistent = (greaterHi > lesserLo
+                          or (greaterHi == lesserLo and greaterHiIncl and lesserLoIncl))
+            if not consistent:
+                emit_error(compMdl, _CALC_ERROR["greaterLesserInconsistent"],
+                           _("The greater-lesser relationship %(greater)s to %(lesser)s in network %(network)s bound in cube %(cube)s is violated: %(lesser)s is reported as %(lesserInterval)s, which exceeds %(greater)s at %(greaterInterval)s (aspects %(aspects)s)."),
+                           xbrlObject=cubeObj, greater=relObj.source, lesser=relObj.target,
+                           network=ntwkObj.name, cube=cubeObj.name,
+                           lesserInterval=f"[{lesserLo}, {lesserHi}]",
+                           greaterInterval=f"[{greaterLo}, {greaterHi}]",
+                           aspects=", ".join(f"{d}={v}" for d, v in alignKey))
+
+
 def _checkBinding(compMdl, cubeObj, ntwkObj, totalQn, totalBucket, bound, alignKey,
-                  truncate, tolerance, relation):
+                  truncate):
     """Check one binding of one calculation (proposal section 7)."""
     # 1 and 2: a duplicate or excess-digit condition stops checking for this binding
     for bucket, _weight, _conceptQn in [(totalBucket, None, totalQn)] + bound:
@@ -302,7 +322,7 @@ def _checkBinding(compMdl, cubeObj, ntwkObj, totalQn, totalBucket, bound, alignK
     if totalStatus is not None:
         return  # an all-nil total is ignored for binding
 
-    # 3 and 4: sum the contribution intervals, then widen by the tolerance
+    # 3 and 4: sum the contribution intervals
     calcLo = calcHi = Decimal(0)
     calcLoIncl = calcHiIncl = True
     contributed = False
@@ -322,16 +342,12 @@ def _checkBinding(compMdl, cubeObj, ntwkObj, totalQn, totalBucket, bound, alignK
         contributed = True
     if not contributed:
         return
-    if tolerance > 0:
-        calcLo -= tolerance
-        calcHi += tolerance
-        calcLoIncl = calcHiIncl = True  # a widened bound is closed
 
-    # 6: compare against the reported total in the effective summation relation
+    # 6: the calculated and reported total intervals must overlap
     reportedLo, reportedHi, reportedLoIncl, reportedHiIncl = totalInterval
-    atMost = calcLo < reportedHi or (calcLo == reportedHi and calcLoIncl and reportedHiIncl)
-    atLeast = reportedLo < calcHi or (reportedLo == calcHi and reportedLoIncl and calcHiIncl)
-    consistent = {"atMost": atMost, "atLeast": atLeast}.get(relation, atMost and atLeast)
+    lowerFits = calcLo < reportedHi or (calcLo == reportedHi and calcLoIncl and reportedHiIncl)
+    upperFits = reportedLo < calcHi or (reportedLo == calcHi and reportedLoIncl and calcHiIncl)
+    consistent = lowerFits and upperFits
     _recordResult(compMdl, cubeObj, ntwkObj, totalQn, alignKey, consistent,
                   None if consistent else
                   _CALC_ERROR["inconsistentTruncation" if truncate else "inconsistentRounding"],

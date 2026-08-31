@@ -6149,13 +6149,13 @@
                 "forObject": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship",
                 "language": "en",
                 "labelType": "xbrl:errorMessage",
-                "value": "The concept '{conceptName}' has properties that are inconsistent with the constraints of the summation-item relationship type '{relationshipTypeName}'."
+                "value": "The concept '{conceptName}' has properties that are inconsistent with the constraints of the summation-concept relationship type '{relationshipTypeName}'."
             },
             {
                 "forObject": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship",
                 "language": "en",
                 "labelType": "xbrl:documentation",
-                "value": "Raised when a concept has properties that are inconsistent with the constraints defined by the summation-item relationship type that uses the concept. For example, a calculation relationship source concept must have a periodType that matches the periodType of the target concept, a weight of 1 must use consistent xbrla:balance properties and a weight of -1 must use different xbrla:balance properties."
+                "value": "Raised when a concept has properties that are inconsistent with the constraints defined by the summation-concept relationship type that uses the concept. For example, a calculation relationship source concept must have a periodType that matches the periodType of the target concept, a weight of 1 must use consistent xbrla:balance properties and a weight of -1 must use different xbrla:balance properties."
             },
             {
                 "forObject": "oimte:invalidUnitDataType",
@@ -9612,7 +9612,7 @@
                     },
                     {
                         "property": "xbrl:conformanceTestDescription",
-                        "value": "A summation-item relationship uses xbrl:weight with a value of '2', which does not conform to the allowed values of -1 or 1 for the xbrl:weight property data type."
+                        "value": "A summation-concept relationship uses xbrl:weight with a value of '2', which does not conform to the allowed values of -1 or 1 for the xbrl:weight property data type."
                     },
                     {
                         "property": "xbrl:specificationErrorURI",

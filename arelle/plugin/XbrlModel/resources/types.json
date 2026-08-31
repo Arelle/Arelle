@@ -526,15 +526,6 @@
                     "roundToNearest",
                     "truncation"
                 ]
-            },
-            {
-                "name": "xbrlr:summationRelationType",
-                "baseType": "xs:string",
-                "enumeration": [
-                    "equal",
-                    "atMost",
-                    "atLeast"
-                ]
             }
         ],
         "units": [
