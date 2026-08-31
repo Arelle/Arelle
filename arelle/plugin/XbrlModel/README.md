@@ -10,8 +10,10 @@ loading and the compiled-model save modes (`full` / `prune` / `report`,
 
 This README documents the two workflows that span several modules and whose
 rationale is otherwise spread across the code and the spec: **filing → compiled
-model → viewer** (quick start below, GUI in §5) and the **PDF ⟷ fact-locator
-workflow** (§1–§4). Where the workflow is still being built, the open questions
+model → viewer** (quick start below, GUI in §5) and **putting a filing's facts
+onto a second surface** — a PDF, or a published HTML5 report that carries no
+XBRL — so the same data can be seen wherever the report is actually read
+(§1–§4). Where the workflow is still being built, the open questions
 and their measurements are in
 [`HANDOVER-model-workflow.md`](HANDOVER-model-workflow.md).
 
@@ -75,7 +77,31 @@ generated from SEC's own registry by
 
 ---
 
-## 1. What the PDF workflow does
+## 1. What the second-surface workflow does
+
+A report is filed once and read in several places: as the filed inline document,
+as the polished annual report on the company's website, as a PDF. Only the first
+carries XBRL. These tools put the filing's facts onto the *other* renderings, so
+the same data can be seen wherever the report is actually read.
+
+Two situations motivate it, and both are ordinary:
+
+- **A published report with no XBRL at all.** Microsoft's and L'Oréal's public
+  annual reports are HTML5 sites, professionally laid out and read far more than
+  the filing. Aligning the filing's facts onto one makes it navigable as XBRL
+  without anyone re-tagging it. `msft-ar25-html5.html` carries 42 `id`
+  attributes across 8,383 elements, none of them on a figure, which is why
+  element pointers with text offsets exist.
+- **A filing too unwieldy to read as filed.** An SEC N-CSR runs to hundreds of
+  pages of fixed-layout XHTML that no viewer opens comfortably. Rendering it to
+  PDF and aligning the facts onto that gives something a reader can actually use.
+
+Both are **later-party** operations in the sense of §"Applying a tagging journal"
+below: the alignment is a finding *about* somebody else's report, not the filer's
+content. See §10.2 of
+[`tools/HANDOVER-html5-aligner.md`](tools/HANDOVER-html5-aligner.md) — the
+aligner currently rewrites the facts document rather than emitting derived
+content, which is a known divergence from that principle.
 
 An inline-XBRL report can be paired with a PDF so that each fact knows **where it
 appears in the PDF**. That location is recorded on the fact's `valueSources` (or
@@ -89,12 +115,26 @@ wired to the command line (see §4):
 
 | Direction | Tool | Use when |
 |---|---|---|
-| **Generate** a tagged PDF from the HTML | [`tools/inlineXbrlToPdf.py`](tools/inlineXbrlToPdf.py) | No good PDF exists; you want a self-contained traceable PDF |
+| **Generate** a tagged PDF from the HTML | [`tools/inlineXbrlToPdf.py`](tools/inlineXbrlToPdf.py) | No good PDF exists; you want a self-contained traceable PDF — the N-CSR case above |
 | **Match** facts onto an existing tagged PDF | [`tools/alignFactsToPdf.py`](tools/alignFactsToPdf.py) | A filer/Acrobat PDF exists and looks better than anything rendered |
+| **Match** facts onto an existing HTML5 document | [`tools/alignFactsToPdf.py`](tools/alignFactsToPdf.py) (`alignToHtml5`) | A published report carries no XBRL — the website case above |
 
-Both consume the *html-locator* facts file produced by `saveOIMFacts`
+All three consume the *html-locator* facts file produced by `saveOIMFacts`
 (`--plugins saveOIMFacts --SaveOIMFactspace facts.json`), whose fact values carry
-`xbrl:htmlElementId` locators, and rewrite those to PDF locators.
+`xbrl:htmlElementId` locators, and rewrite those to the target surface's
+locators: PDF page/MCID/bbox, or the `xbrlx:htmlElementPointer` /
+`htmlTextOffset` / `htmlTextQuote` triple for HTML5.
+
+The HTML5 target needs the triple rather than a bare pointer because a published
+report has no per-fact elements to address: **27% of the numbers in Microsoft's
+HTML5 annual report share an element with another number** (worst `<p>`: 14 of
+them), so a pointer alone cannot say which number is the fact. The three
+properties are collections, and fragment *i* is `pointer[i]` / `offset[i]` /
+`quote[i]`.
+
+The HTML5 direction is currently reachable only by running the tool directly
+(`python3 tools/alignFactsToPdf.py …`); the two PDF directions are also wired to
+`arelleCmdLine` (§4).
 
 ---
 

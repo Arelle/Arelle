@@ -357,9 +357,51 @@ arelleCmdLine --plugins saveOIMFacts --internetConnectivity online \
      jsdom's scripting flag differs from a browser's, so a noscript fixture
      would compare two things at once. Keep the corpus on pointer generation.
 
-4. Build the target token stream and word index; reuse the alignment core.
-5. Emit with the locator type matching the parse mode (5.) and the collection
-   encoding for multi-fragment values (6.).
+4. ~~Build the target token stream and word index; reuse the alignment core~~ --
+   **done**, `_build_html5_target` / `_html5TextRuns` / `_patience_align`.
+5. ~~Emit with the locator type matching the parse mode and the collection
+   encoding for multi-fragment values~~ -- **done**, `alignToHtml5`, emitting the
+   `xbrlx:htmlElementPointer` / `htmlTextOffset` / `htmlTextQuote` triple as
+   parallel collections, with `html5Source` / `html5Map`.
+
+   Landed in `8f751c34e` ("HTML5 fact alignment end to end, and text-offset
+   locators for both surfaces"), with `b2761ef68` making the text offsets
+   integers. **The status line above went stale for nine days**, which is worth a
+   note in itself: a handover that says work is outstanding after it has been
+   done costs the next reader more than one that says nothing.
+
+## 10. What is actually open
+
+**10.1 Not reachable from the plugin command line.** `PdfToolsCli` wires
+`--inline-to-pdf` and `--align-to-pdf` with their options; there is no
+`--align-to-html5`. `alignToHtml5` runs only through the tool's own `__main__`
+(`python3 tools/alignFactsToPdf.py …`). Given the sibling operations are both
+wired, this looks like an oversight rather than a decision, and it is a small
+one to close.
+
+**10.2 It emits a rewritten factset, and by a decision taken since, it should
+emit derived content.** `alignToHtml5` writes a new facts document with the
+locators pointing at the second surface. That predates the derived-content work
+(`HANDOVER-model-workflow.md` §8.5, and the OIM Taxonomy Derived Content
+specification), which settled that **who is running the tool decides what the
+artifact claims**:
+
+* A preparer tagging a report they are authoring produces their own content, and
+  it belongs in the model.
+* A **later party** — anyone aligning a filing's facts onto a rendering somebody
+  else produced — is recording a finding *about* somebody else's report. That is
+  derived content: `derivedContent.factValues` with a `basis` of `bound`,
+  carrying the pointer / offset / quote triple, beside a model left as filed.
+
+Aligning is the clearer case of the two, because nobody would claim a filer
+asserted where their numbers appear in a magazine-layout annual report they did
+not publish. It is also the same operation the tagging journal performs by hand,
+and the two currently produce different shapes for the same kind of finding —
+`ApplyTaggingJournal` records a binding, the aligner rewrites the model.
+
+Note this is a change of *output*, not of alignment: everything in §1--§9 above
+stands, and steps 1--5 do not need revisiting. What changes is where the located
+pointers are written.
 
 **Decision taken for step 5:** emit *corroborated* pointers --
 `xbrlx:htmlTextQuote` and `xbrlx:htmlTextOffset` alongside the required
