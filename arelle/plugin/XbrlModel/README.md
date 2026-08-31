@@ -13,9 +13,7 @@ rationale is otherwise spread across the code and the spec: **filing → compile
 model → viewer** (quick start below, GUI in §5) and **putting a filing's facts
 onto a second surface** — a PDF, or a published HTML5 report that carries no
 XBRL — so the same data can be seen wherever the report is actually read
-(§1–§4). Where the workflow is still being built, the open questions
-and their measurements are in
-[`HANDOVER-model-workflow.md`](HANDOVER-model-workflow.md).
+(§1–§4).
 
 ---
 
@@ -121,8 +119,9 @@ location and the `transformation` / `scale` / `sign` by which it yields the valu
 
 Implemented for the HTML5 surface. `--align-to-pdf` writes into the model only:
 it emits two fact locator types (marked content, and a page region for chart
-facts) and a derived content object names one source. See §10 of
-[`tools/HANDOVER-html5-aligner.md`](tools/HANDOVER-html5-aligner.md).
+facts) and a derived content object names one source. Which of the two an
+alignment writes into is `--alignInto`, and that choice is about who is running
+the tool rather than about the data — see §4.
 
 An inline-XBRL report can be paired with a PDF so that each fact knows **where it
 appears in the PDF**. That location is recorded on the fact's `valueSources` (or
@@ -167,6 +166,52 @@ and all three also run as standalone scripts
 | `xbrl:pdfImageLocatorType` | `pdfPage` + `pdfBBox` (`"x0 y0 x1 y1"`) + optional `pdfImageHash` (`md5:…`) | a rectangular region | a chart **image**, or a sub-MCID text value's glyph box (see below) |
 | `xbrl:pdfFormFieldLocatorType` | `pdfFormField` | an AcroForm field value | facts sourced from PDF form fields |
 | `xbrl:htmlElementLocatorType` | `htmlElementId` | HTML element text | fallback for facts not located in the PDF |
+
+Two further locator types address an HTML element that carries no `id`, and are
+provisional — declared in `resources/xbrlx.json` under an `arelle.org` namespace
+rather than an `xbrl.org` one, because they are implemented ahead of the
+specification and naming them under xbrl.org would misrepresent their status:
+
+| Locator type | Properties | Resolves to |
+|---|---|---|
+| `xbrlx:xhtmlPointerLocatorType` | `htmlElementPointer` (+ optional `htmlTextOffset`, `htmlTextQuote`) | an element of the **XML infoset** tree, and a character range within it |
+| `xbrlx:htmlPointerLocatorType` | as above | an element of the **HTML5** tree |
+
+`htmlElementPointer` is an XPointer `element()` child sequence written without the
+`element(...)` wrapper — `currentAssets`, `/1/14`, `financial-review/2/1` — anchored
+on an ancestor `id` where one is usable and counted from the root where not. It
+exists because most real reports have almost nothing to address: Microsoft's
+published annual report carries 42 `id` attributes across 8,383 elements, all
+navigation anchors, so nothing in its 66 tables is addressable, and injecting ids
+means rewriting a document that may be signed, checksummed, or simply not yours.
+
+**The parse mode is part of the address, which is why there are two types.** An
+element pointer counts element *children*, and the HTML5 tree-construction rules
+(implied `<tbody>`, foster parenting) build a different tree from an XML parse of
+the same bytes. On Microsoft's filed 10-K, which has 85 tables with no `tbody` in
+source, only **6.8%** of pointers survive a parse-mode swap. So an emitter records
+which tree it counted, and a consumer resolves in that mode or not at all. For the
+same reason the aligner parses with lexbor (`selectolax`) and never `lxml.html`,
+and `Html5Normalize.py` blanks `<noscript>` content before parsing — a browser
+parses it as text when scripting is enabled, a bare parser as markup, and the
+element counts then diverge.
+
+**Two implementations must agree exactly, or they address different elements
+silently.** [`HtmlElementPointer.py`](HtmlElementPointer.py) is a port of the
+viewer's `tagging/elementPointer.js`; a disagreement produces a plausible wrong
+element rather than an error. They are held together by a shared fixture corpus —
+`iXBRLViewerPlugin/viewer/src/js/xbrlModel/tagging/corpus/` in the ixbrl-viewer
+repository, SHA-pinned on both sides so neither can edit it unilaterally — which
+both test suites run against.
+
+The offset convention, where a value is part of an element's text rather than all
+of it: `htmlTextOffset` is a 0-based character offset into that element's
+`textContent` (all descendant text in document order, comments contributing
+nothing), the value ends at `offset + len(quote)`, and text is never stripped or
+whitespace-collapsed — collapsing belongs to the transform stage. A consumer
+verifies the resolved text against `htmlTextQuote` and refuses to highlight on
+mismatch, so a regenerated document is detected rather than silently
+mis-addressed.
 
 `pdfBBox` is in PDF user-space points, origin lower-left. For a **chart image**,
 one region is typically referenced by many facts (see §3), so highlighting is
@@ -510,11 +555,31 @@ An unvalidated model derives nothing and emits no derived content, which is the 
 rather than a gap: absence means "not published, derive it yourself" for derivable content, and
 for a calculation result asserts neither consistency nor that anything was checked.
 
+**Why a verdict is carried rather than recomputed when the report is read.** Validation on
+receipt is a statement about a moment: this is what the rules concluded, then. Revalidating at
+viewing time answers a different question, because standards, rules and implementations move
+between receipt and reading — so the same artifact would report differently over the years,
+with nothing recording which reading was authoritative or when it changed. For a disseminated
+artifact that is a misrepresentation of what was filed and accepted, not a fresher opinion.
+Production intake validates on receipt and carries the verdict; EDGAR works this way.
+
+Both profiles stay legitimate, which is why emitting results is a step rather than a mode the
+product is in: a desktop user opening a filing they just downloaded has no receipt event and no
+carried verdict, and validating locally is the right thing for them.
+
+What this asks of a consumer is that **three states stay distinguishable** end to end —
+validated and consistent, validated and inconsistent, and *not validated*. A model carrying no
+result must not be presented as though it carried a clean bill, which is what a silent local
+recompute would produce, since it would look identical to a carried verdict. It is the same
+silent-wrong-answer shape as a mis-placed locator: a plausible result and a correct one,
+indistinguishable to the reader.
+
 Specified in `oim-taxonomy-derived.md` in the `oim` repository, with a JSON schema alongside it;
 validate a model carrying derived content against `oim-taxonomy-derived-document-schema.json`,
 since the taxonomy schema closes its document root. See
-[`SaveModel.buildDerivedContent`](SaveModel.py). Consumer guidance for the viewer is in
-`HANDOVER-derived-content.md` in the ixbrl-viewer repository.
+[`SaveModel.buildDerivedContent`](SaveModel.py). What a consumer does with it is documented on
+the other side, in `iXBRLViewerPlugin/viewer/src/js/xbrlModel/README.md` ("Derived content") in
+the ixbrl-viewer repository.
 
 ### Opening a model in the iXBRL Viewer
 

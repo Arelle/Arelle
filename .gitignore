@@ -75,3 +75,7 @@ tests/resources/packages/
 .settings
 /.classpath
 /.pydevproject
+
+# Handover notes are communication between working sessions, not project
+# documentation: what a maintainer needs is in the plugin README.
+HANDOVER-*.md

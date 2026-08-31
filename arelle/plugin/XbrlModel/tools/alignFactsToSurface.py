@@ -81,7 +81,7 @@ A plain HTML5 presentation of the report is a second rendering just as a PDF is,
 ``alignToHtml5`` emits ``xbrlx:htmlElementPointer`` / ``htmlTextOffset`` / ``htmlTextQuote``
 for it. ``_parse_source_tree`` binds the parse to the source's media type, because a
 positional locator counts element children of a tree and the HTML5 algorithm builds a
-different tree from an XML parse. See ``HANDOVER-html5-aligner.md`` for the evidence, and
+different tree from an XML parse. See the plugin README section 2 for the evidence, and
 ``../HtmlElementPointer.py`` for the pointer generator.
 """
 from __future__ import annotations
@@ -111,7 +111,7 @@ HTML5_POINTER_LOCATOR = "xbrlx:htmlPointerLocatorType"
 # Where the locators this tool produces are written. Which party is running the tool decides
 # what the artifact claims, and it is stated rather than inferred -- the same distinction, the
 # same option values and the same default as ApplyTaggingJournal's --taggingJournalInto (see
-# HANDOVER-model-workflow.md 8.5 and HANDOVER-html5-aligner.md 10.2-10.3).
+# the plugin README, "--alignInto" in section 1 and section 4).
 #
 #   model          a PREPARER aligning onto a surface of their own -- their filing and the
 #                  glossy report on their own website. Saying where their own data appears on
@@ -884,7 +884,7 @@ def align(htmlPath: str, factsPath: str, pdfPath: str,
     region -- which a single derived block cannot carry. Dropping either is not an option:
     on the SEC tailored-shareholder-report filings the image path is most of the fact set.
     Resolving that (one PDF locator type admitting both, or derived content able to name a
-    source per entry) is left open; see HANDOVER-html5-aligner.md section 10.
+    source per entry) is left open.
     """
     if into != INTO_MODEL:
         raise NotImplementedError(
