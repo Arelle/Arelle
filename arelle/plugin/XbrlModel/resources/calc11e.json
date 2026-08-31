@@ -252,7 +252,7 @@
         "properties": [
           {
             "property": "xbrl:conformanceTestFileName",
-            "value": "CALCULATION-InvalidSummationItemValue.json"
+            "value": "CALCULATION-InvalidSummationConceptValue.json"
           },
           {
             "property": "xbrl:conformanceStatus",
@@ -264,7 +264,7 @@
           },
           {
             "property": "xbrl:specificationErrorURI",
-            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidSummationItemValue"
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidSummationConceptValue"
           }
         ]
       },
@@ -278,7 +278,7 @@
         "properties": [
           {
             "property": "xbrl:conformanceTestFileName",
-            "value": "CALCULATION-InvalidSummationItemWeight.json"
+            "value": "CALCULATION-InvalidSummationConceptWeight.json"
           },
           {
             "property": "xbrl:conformanceStatus",
@@ -290,7 +290,7 @@
           },
           {
             "property": "xbrl:specificationErrorURI",
-            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidSummationItemWeight"
+            "value": "https://oim.ci.xbrl.org/oim/spec-dev-1/Specification/oim-taxonomy/WGWD-YYYY-MM-DD/oim-taxonomy-WGWD-YYYY-MM-DD.html#CALCULATION-InvalidSummationConceptWeight"
           }
         ]
       },
