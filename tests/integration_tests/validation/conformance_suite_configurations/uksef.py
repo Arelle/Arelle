@@ -71,7 +71,7 @@ config = ConformanceSuiteConfig(
     ] +
     list(UKFRC_PACKAGES.values()) +
     [
-        package for year in [2022, 2024] for package in ESEF_PACKAGES[year]
+        package for year in [2021, 2022, 2024] for package in ESEF_PACKAGES[year]
     ],
     base_taxonomy_validation="none",
     expected_additional_testcase_errors={f"*tests/FRC/{s}": val for s, val in {

@@ -43,7 +43,7 @@ def rule_ukfrc1(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     UKFRC1: UKSEF 2025 reports MUST have a reference (a schemaRef in a “UKFRS” targeted ix:references element)
     to one of the three possible FRC taxonomy entry-points for either FRS102 or IFRS. Companies House allow use
@@ -61,7 +61,7 @@ def rule_ukfrc1(
     The reference must be in the report, NOT in the extension taxonomy.
     """
     if val.authority != AUTHORITY_UKFRC:
-        return None
+        return
 
     if val.ixdsReferences and TARGET_UKFRS not in val.ixdsReferences:
         yield Validation.error(
@@ -73,7 +73,7 @@ def rule_ukfrc1(
             )
 
     if not pluginData.isUkfrsTarget(val.modelXbrl):
-        return None
+        return
 
     if targetIxReferences := val.ixdsReferences.get(TARGET_UKFRS, []):
         uksefSchemaRefs: list[ModelObject] = []
@@ -105,7 +105,7 @@ def rule_ukfrc1(
                     'No matching schemaRef was found in the report.'
                     ),
                 )
-    return None
+    return
 
 
 @validation(
@@ -116,7 +116,7 @@ def rule_ukfrc2(
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     UKFRC2: UKSEF 2025 reports MUST only be used in conjunction with ESEF 2022 or later.
 
@@ -125,7 +125,7 @@ def rule_ukfrc2(
     If the referenced ESEF taxonomy year is earlier than 2022, report an error.
     """
     if val.authority != AUTHORITY_UKFRC:
-        return None
+        return
 
     # Follow schemaRefs to the extension schema ModelDocuments and gather imported URLs.
     importedUrls: set[str] = set()
@@ -152,4 +152,4 @@ def rule_ukfrc2(
             year=max(esefYears),
         )
 
-    return None
+    return
