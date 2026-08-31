@@ -279,6 +279,12 @@ def saveOIMFacts(
     # are carried on the fact value object itself.
     htmlElementLocatorType = "xbrl:htmlElementLocatorType"
     htmlElementIdProperty = "xbrl:htmlElementId"
+    # A nil fact reports no value, so it produces no fact value object; its nil-ness is a
+    # property of the FACT (oim-taxonomy.md §"Mapping fact value"). xbrl:nil is enumerated over
+    # xbrl:nilReasonType, and an XBRL 2.1 / inline xsi:nil carries no reason, so it maps to the
+    # unknown one.
+    nilProperty = "xbrl:nil"
+    unknownNilReason = "xbrl:unknownNilReason"
 
     namespacePrefixes = NamespacePrefixes({xbrl: "xbrl"})
     if extensionPrefixes:
@@ -603,6 +609,17 @@ def saveOIMFacts(
         if saveOimJson:
             factPositions[f"{fact.id or fact.objectIndex}"] = newFact = {}
             newFact["dimensions"] = factDims
+        elif fact.isNil:
+            # A nil fact gets a fact object of its own rather than joining a factspace: it
+            # contributes no fact value, and a duplicate that is nil in one occurrence and
+            # valued in another is two facts rather than one fact with two values (conformance
+            # NIL-DuplicateFactWithNilAndValue).
+            newFact = {
+                "name": f"{getPrefix(fact)}:fs_{fact.id or f'f{fact.objectIndex}'}",
+                "factDimensions": factDims,
+                "properties": [{"property": nilProperty, "value": unknownNilReason}],
+            }
+            factPositions.append(newFact)
         else:
             # group facts that share identical dimensions into a single factSet (fs_) object,
             # each contributing a fact value object to its factValues array
@@ -620,6 +637,8 @@ def saveOIMFacts(
     
     def appendFactToFactspace(fact: ModelFact, newFact: dict[str, Any]) -> None:
         factValue = None
+        if not saveOimJson and fact.isNil:
+            return  # the nil property is on the fact object; there is no fact value
         # only items with a resolved concept yield a fact value (skip tuples and, e.g. when the
         # taxonomy did not load, facts with an unresolved concept)
         if fact.concept is not None and fact.isItem:
