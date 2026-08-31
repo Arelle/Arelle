@@ -3,12 +3,18 @@
 For the session that owns `tools/alignFactsToSurface.py`.
 
 `alignFactsToSurface` maps facts from a tagged inline document onto a *second*
-rendering of the same report, emitting locators for the second one. Today the
-second rendering is always a PDF. The ask is to add HTML5 as a second target,
+rendering of the same report, emitting locators for the second one. Originally the
+second rendering was always a PDF; the ask was to add HTML5 as a second target,
 emitting `xbrlx:htmlElementPointer` instead of `pdfPage`/`pdfMcid`.
 
-This note carries what the tagger session established, so the alignment work does
+This note carries what the tagger session established, so the alignment work did
 not have to rediscover it. Written 2026-08-21.
+
+**The HTML5 target is built and wired.** §1–§8 are the evidence and the design
+constraints, and they stand; §9 records the implementation order and what each
+step found; §10 records the two parties and where each one's output goes; §11 is
+what is still open. Sections written in the future tense predate the
+implementation and are left as written.
 
 ---
 
@@ -370,86 +376,132 @@ arelleCmdLine --plugins saveOIMFacts --internetConnectivity online \
    note in itself: a handover that says work is outstanding after it has been
    done costs the next reader more than one that says nothing.
 
-## 10. What is actually open
+## 10. Who is running it, and where the output goes
 
-**10.1 Not reachable from the plugin command line.** `PdfToolsCli` wires
-`--inline-to-pdf` and `--align-to-pdf` with their options; there is no
-`--align-to-html5`. `alignToHtml5` runs only through the tool's own `__main__`
-(`python3 tools/alignFactsToSurface.py …`). Given the sibling operations are both
-wired, this looks like an oversight rather than a decision, and it is a small
-one to close.
+**Status 2026-08-30: 10.1, 10.2 and 10.3 are done.** What landed, and the one
+piece of 10.3 that was deliberately not built.
 
-**10.2 It emits a rewritten factset, and by a decision taken since, it should
-emit derived content.** `alignToHtml5` writes a new facts document with the
-locators pointing at the second surface. That predates the derived-content work
-(`HANDOVER-model-workflow.md` §8.5, and the OIM Taxonomy Derived Content
-specification), which settled that **who is running the tool decides what the
-artifact claims**:
+**10.1 CLI wiring — done.** `--align-to-html5` is registered beside
+`--align-to-pdf` in `PdfToolsCli`, taking `--al-html` / `--al-facts` /
+`--al-html5` / `--al-out-facts`, and there is a GUI Tools entry ("Locate facts in
+an HTML5 rendering…"). It was the oversight it looked like.
 
-* A preparer tagging a report they are authoring produces their own content, and
-  it belongs in the model.
-* A **later party** — anyone aligning a filing's facts onto a rendering somebody
-  else produced — is recording a finding *about* somebody else's report. That is
-  derived content: `derivedContent.factValues` with a `basis` of `bound`,
-  carrying the pointer / offset / quote triple, beside a model left as filed.
+**10.2 Derived content — done, and the shape needed two spec changes.** With
+`--alignInto derivedContent` (the default for this surface) the model is left
+*byte-identical* to the input: no `reportSource` rewritten, no `valueSources`
+replaced. Each located fact value becomes a `basis: bound` entry in a
+document-level `derivedContent` object.
 
-Aligning is the clearer case of the two, because nobody would claim a filer
-asserted where their numbers appear in a magazine-layout annual report they did
-not publish. It is also the same operation the tagging journal performs by hand,
-and the two currently produce different shapes for the same kind of finding —
-`ApplyTaggingJournal` records a binding, the aligner rewrites the model.
+Building it turned up three things the derived-content specification did not
+say, all settled with the spec author and now in `oim-taxonomy-derived.md` /
+`-schema.json`:
 
-Note this is a change of *output*, not of alignment: everything in §1--§9 above
-stands, and steps 1--5 do not need revisiting. What changes is where the located
-pointers are written.
+* **A derived fact value required a `value`, and an aligner has none.** Aligning
+  establishes *where* a fact appears on a second rendering; the text found there
+  is the text the filing already states, so nothing has been evaluated. `value`
+  is now optional where `basis` is `bound` and value sources are recorded, and
+  the object takes `transformation` / `scale` / `sign` — the fact value's own
+  derivation properties, carried over — so the entry says how the recorded
+  location yields the value rather than restating a value it did not compute.
+  Scale is on the entry rather than inherited because it is a property of the
+  surface: a report stating billions where the filing stated millions is
+  recorded with the scale it presents.
+* **A bound locator had no way to name the document it addresses.** A model fact
+  value reaches its document, and the parse mode that document's tree was built
+  under, through `reportSource` → `factSource` → `factMap` → `factLocatorType`;
+  a derived fact value is not a fact value and had no such chain, so an element
+  pointer recorded against a surface the model never names was unresolvable.
+  The **derived content object** now carries a `reportSource`, holding a
+  **derived source object** — `url` plus `factLocatorType`, self-contained. One
+  per derived content object, so one such object describes one surface.
 
-**10.3 Both outputs are wanted, by different parties — the same axis as §8.5.**
-Settled with the spec author, and it is not a choice between them:
+  This is not a robustness nicety. Section 5 measured it: only 6.8% of positional
+  locators address the same element under an XHTML parse and an HTML5 parse of
+  the same bytes, and every disagreement is silent.
 
-* **A preparer aligning onto their own surfaces.** They file formally as XHTML
-  (or, in time, PDF or HTML5 where a regulator accepts it), and then map the same
-  tagging onto the glossy interactive HTML5 report on their own website. Both
-  surfaces are theirs, and saying where their data appears on their own site is
-  their own assertion. Output: the **model**.
-* **Anyone else.** An authority taking XHTML filings and providing a derived PDF
-  for dissemination convenience; a data aggregator — Bloomberg and the like —
-  applying tagging to reports they format for their own audiences. None of that
-  is the filer's content. Output: **derived content**, `basis: bound`.
+  It is self-contained rather than a QName into the model's `factSources`
+  because the first cut was not, and that was wrong: the aligner declared the
+  target as a source of the model, which left the *facts* untouched but made the
+  model declare a document the filer never published — the exact confusion §8.5
+  of `HANDOVER-model-workflow.md` exists to prevent. So under
+  `--alignInto derivedContent` the output's `xbrlModel` is byte-identical to the
+  input's and `documentInfo.sourceMappings` is untouched; the only document-level
+  addition is the `xbrlx` prefix binding, which the derived content's own QNames
+  need. Under `--alignInto model` the surface is declared in the model, as a
+  surface the preparer *is* tagging against should be.
 
-So the aligner takes the same option the journal applier already has, with the
-same semantics and the same default:
+* **The spec said a surface the model was not tagged against is never the
+  filer's content**, flatly — which is true only of a later party, and made
+  `--alignInto model` look like a violation of it rather than the other half of
+  the rule. The derived fact value section now makes the party the criterion: an
+  author tagging a further rendering they publish themselves extends their model,
+  anyone else records derived content, neither is visible in the serialisation,
+  and so the producer states which. §8.5 of `HANDOVER-model-workflow.md` is no
+  longer the only place this is written down.
 
-    --taggingJournalInto model | derivedContent      (ApplyTaggingJournal)
-    --align...Into            model | derivedContent      (the aligner)
+**10.3 The party option — done for HTML5, and the PDF surface is the open
+piece.** `--alignInto model|derivedContent` (`--into` on the tool's own command
+line), same values, same semantics and same default as
+`ApplyTaggingJournal`'s `--taggingJournalInto`.
 
-which is what closes the divergence in 10.2 rather than merely moving it.
+`--align-to-pdf` accepts `model` only, and says so rather than half-doing it. A
+derived content object names **one** `reportSource` and so one fact locator
+type; the PDF path emits two — `pdfContentLocatorType` for facts located by
+marked content and `pdfImageLocatorType` for chart facts located by a page
+region. Dropping either is not an option: on the SEC tailored-shareholder-report
+filings the image path is most of the fact set. Closing it means one of
 
-**For the preparer case, the product is probably not a second factset.** The
-model already carries several surfaces in one document, and this is exactly what
-it is for: `reportSource` on a fact value is documented as needed "if there is
-more than one source file used to represent fact values", `documentInfo.
-sourceMappings` is a set whose own example maps two fact sources to two
-documents, and `FactValueResolver` already selects the mapping by `reportSource`.
-So a preparer's aligned output can be **one model whose facts carry value sources
-for the filing and for the website**, each tagged with its `reportSource`, and a
-consumer picks the surface — rather than two factsets that must be kept in step.
+* a PDF locator type admitting both marked content and a page region (note that
+  `xbrl:pdfImageLocatorType`, which this tool already emits, is not declared in
+  `resources/core.json` at all — worth settling at the same time); or
+* derived content able to name a source per entry rather than per object.
 
-That is the design question for the session: confirm the multi-surface model
-works end to end (the loader sets `reportSource` to None today — see the
-TODO(multi-doc) in `LoadInlineFacts`), and only fall back to parallel factsets if
-it does not.
+**The preparer's multi-surface model was deliberately not built.** Section 10.3
+proposed that a preparer's output be one model whose facts carry value sources
+for both the filing and the website, each tagged with its `reportSource`, and
+asked the session to confirm that end to end. It was not attempted: multi-document
+surfaces are wanted eventually, but a single surface per output document is the
+proof of concept. So `--alignInto model` still does what it did — the located
+fact value's sources are replaced by the target's, and facts not located keep
+their original html source. The output of a `model` run is byte-identical to what
+the tool produced before this work.
 
-**Decision taken for step 5:** emit *corroborated* pointers --
-`xbrlx:htmlTextQuote` and `xbrlx:htmlTextOffset` alongside the required
-`xbrlx:htmlElementPointer` -- rather than a bare positional path. This is a
-correctness requirement, not the robustness improvement 6. framed it as: in a
-legacy inline document every fact has its own `ix:` element, so element
-addressing is exact by construction, but in an HTML5 report the taggable numbers
-sit in running prose. **27%** of the numbers in `msft-ar25-html5.html` share an
-element with another number (worst `<p>`: 14 of them), and 14% in loreal, so an
-element pointer alone cannot say *which* number is the fact.
+## 11. What is still open
 
-Consequently the three `xbrlx` properties are now `xbrlr:stringCollection`, not
-`xs:string`: 6. requires a multi-fragment value to be one `valueSource` holding
-an ordered array, which `xs:string` cannot express. Fragment *i* has
-pointer[i], quote[i], offset[i].
+Beyond the PDF derived-content question in 10.3:
+
+* **The multi-surface model** above, when multi-document surfaces are taken up.
+  The infrastructure is already there and untested for this: `reportSource` is
+  read per fact value by the JSON loader, and `FactValueResolver` resolves the
+  `reportSource` → `factSource` → `factMap` → `factLocatorType` chain per fact
+  value, so a fact carrying two fact values on two surfaces should load. The
+  TODO(multi-doc) in `LoadInlineFacts` is a different thing (a multi-document
+  IXDS), not this.
+*(Nil facts were listed here as an open item and are now fixed upstream:
+`saveOIMFacts` emitted a nil fact as a fact value carrying a `name` and nothing
+else, where oim-taxonomy §"Mapping fact value" says a nil fact produces no fact
+value and takes an `xbrl:nil` property on the fact object. Fixed 2026-08-30, and
+the whole pipeline — factset, aligned model output, aligned derived output — now
+validates with zero schema errors.)*
+
+## 12. Measurements, 2026-08-30
+
+`msft-20250630.htm` + `msft-facts.json` onto `msft-ar25-html5.html`, on this
+machine, 0.5 s:
+
+```
+total facts ................. 1800
+located ..................... 1725  (95%)
+  fragments emitted ......... 4473  (values spanning >1 element: 70)
+  pointer failed to verify .. 0
+unlocated ................... 75
+```
+
+Identical under both parties, as it should be — `--alignInto` changes where the
+located pointers are written, not the alignment. The derived output carries 1,725
+`bound` entries and an `xbrlModel` byte-identical to the input's. Both outputs
+validate against the derived-content document schema with zero errors.
+
+The PDF surface, re-run at the same time (`msft-fy25-10k.pdf`): 1676/1800 (93%),
+row-granular 1034 + token 642, `pdfMcid` 413 / `pdfBBox` 1263. Section 7's 84% is
+the pre-`40afce203` reading; section 9.1 explains the difference.

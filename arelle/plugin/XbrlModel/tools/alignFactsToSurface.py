@@ -54,21 +54,35 @@ Usage
             --facts report-html-facts.json --pdf filer.pdf \
             [--out-facts report-pdf-facts.json]
 
+    python3 alignFactsToSurface.py --html report.xhtml \
+            --facts report-html-facts.json --html5 annual-report.html \
+            [--into model|derivedContent] [--out-facts report-html5-facts.json]
+
 ``--facts`` is the OIM-Taxonomy facts file from ``saveOIMFacts`` (html
 ``valueSources``). The PDF must be tagged (marked content) for the text path;
 the image path additionally needs the filing's image files next to the HTML.
 
-An HTML5 second target
-----------------------
-The PDF is one *second rendering* of a report whose facts live in a tagged
-inline document. A plain HTML5 presentation of the same report is another, and
-the groundwork for it is here: ``_parse_source_tree`` binds the parse to the
-source's media type, because a positional locator counts element children of a
-tree and the HTML5 algorithm builds a different tree from an XML parse. Nothing
-in this tool emits HTML5 locators yet -- the only call site passes
-``application/xhtml+xml`` -- so the behaviour above is unchanged. See
-``HANDOVER-html5-aligner.md`` for the remaining work, and
-``../HtmlElementPointer.py`` for the pointer the HTML5 path will emit.
+Both are also reachable from the plugin command line, as ``--align-to-pdf`` and
+``--align-to-html5``; see ``../PdfToolsCli.py``.
+
+Who is running it decides what the output claims
+------------------------------------------------
+``--into`` is not a processing option. A **preparer** aligning onto a surface of their own --
+their filing and the report on their own website -- is asserting where their own data appears,
+so the locators go on the facts (``model``). **Anyone else** -- an authority rendering
+somebody else's filing, an aggregator formatting reports for its own audience -- is recording
+a finding *about* another party's report, which is derived content: bound derived fact values
+beside a model left exactly as filed (``derivedContent``, the default for the HTML5 surface,
+and the same distinction and default as ``ApplyTaggingJournal``'s ``--taggingJournalInto``).
+
+The HTML5 target
+----------------
+A plain HTML5 presentation of the report is a second rendering just as a PDF is, and
+``alignToHtml5`` emits ``xbrlx:htmlElementPointer`` / ``htmlTextOffset`` / ``htmlTextQuote``
+for it. ``_parse_source_tree`` binds the parse to the source's media type, because a
+positional locator counts element children of a tree and the HTML5 algorithm builds a
+different tree from an XML parse. See ``HANDOVER-html5-aligner.md`` for the evidence, and
+``../HtmlElementPointer.py`` for the pointer generator.
 """
 from __future__ import annotations
 
@@ -93,6 +107,22 @@ HTML_ELEMENT_POINTER = "xbrlx:htmlElementPointer"
 HTML_TEXT_OFFSET = "xbrlx:htmlTextOffset"
 HTML_TEXT_QUOTE = "xbrlx:htmlTextQuote"
 HTML5_POINTER_LOCATOR = "xbrlx:htmlPointerLocatorType"
+
+# Where the locators this tool produces are written. Which party is running the tool decides
+# what the artifact claims, and it is stated rather than inferred -- the same distinction, the
+# same option values and the same default as ApplyTaggingJournal's --taggingJournalInto (see
+# HANDOVER-model-workflow.md 8.5 and HANDOVER-html5-aligner.md 10.2-10.3).
+#
+#   model          a PREPARER aligning onto a surface of their own -- their filing and the
+#                  glossy report on their own website. Saying where their own data appears on
+#                  their own site is their own assertion, so the locators go on the facts.
+#   derivedContent ANYONE ELSE -- an authority rendering somebody else's filing for
+#                  dissemination, an aggregator tagging reports it formats for its own
+#                  audience. That is a finding ABOUT another party's report, so it is recorded
+#                  beside a model left exactly as filed, as derived fact values with a basis
+#                  of "bound".
+INTO_MODEL = "model"
+INTO_DERIVED = "derivedContent"
 
 _WORD = re.compile(r"\w+|[^\w\s]")
 def _toks(s: Optional[str]) -> List[str]:
@@ -772,6 +802,59 @@ def _image_source(page: int, bbox: List[float], imgHash: str) -> List[Dict[str, 
 
 
 # --------------------------------------------------------------------------
+# Derived content (the later party's output)
+# --------------------------------------------------------------------------
+def _derivationObject() -> Dict[str, Any]:
+    """derivedContent.derivation -- when this content was produced, and by what.
+
+    Required wherever non-derivable content is carried, and a bound derived fact value is
+    non-derivable: nobody can recover from the model alone that an aligner placed this fact
+    here. The processor string is the tool, not just Arelle, because the placement is this
+    tool's algorithm and a different one would place facts differently.
+    """
+    import datetime
+    try:
+        from arelle import Version
+        version = getattr(Version, "__version__", "unknown")
+    except ImportError:      # run as a standalone script, outside an Arelle checkout
+        version = "unknown"
+    return {
+        "derived": datetime.datetime.now(datetime.timezone.utc).replace(
+            microsecond=0).isoformat().replace("+00:00", "Z"),
+        "processor": f"Arelle {version} / XbrlModel alignFactsToSurface",
+    }
+
+
+def _derivedFactValue(fv: Dict[str, Any], valueSources: List[Dict[str, Any]],
+                      sourceText: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """One derivedContent.factValues entry for a fact value located on the target surface.
+
+    The entry carries NO ``value``. Aligning establishes where a fact appears on a second
+    rendering; the text found there is the text the filing already states, so nothing has been
+    evaluated and there is no derived value to publish. What the entry records instead is the
+    location and the ``transformation`` / ``scale`` / ``sign`` by which that location yields the
+    value -- the fact value's own, carried over, since the aligner matched identical tokens.
+    (A surface that restated the magnitude -- billions where the filing said millions -- would
+    take a different scale here; that is why scale belongs on the entry rather than being
+    inherited from the fact. This aligner does not match across such a restatement, so it
+    copies.)
+
+    Returns None for a fact value the model does not name, which cannot be referenced.
+    """
+    name = fv.get("name")
+    if not name:
+        return None
+    entry: Dict[str, Any] = {"factValueName": name, "basis": "bound"}
+    if sourceText is not None:
+        entry["sourceText"] = sourceText
+    for prop in ("transformation", "scale", "sign"):
+        if fv.get(prop) is not None:
+            entry[prop] = fv[prop]
+    entry["valueSources"] = valueSources
+    return entry
+
+
+# --------------------------------------------------------------------------
 # Driver
 # --------------------------------------------------------------------------
 def _collect_fact_html_ids(factsDoc):
@@ -791,7 +874,23 @@ def _collect_fact_html_ids(factsDoc):
 
 
 def align(htmlPath: str, factsPath: str, pdfPath: str,
-          outFactsPath: Optional[str] = None) -> Dict[str, Any]:
+          outFactsPath: Optional[str] = None, into: str = INTO_MODEL) -> Dict[str, Any]:
+    """Locate a tagged inline document's facts inside an existing tagged PDF.
+
+    ``into`` is accepted for symmetry with ``alignToHtml5`` but only INTO_MODEL is
+    implemented for this surface. A derived content object declares ONE ``reportSource``, and
+    so one fact locator type; the PDF path emits two -- ``pdfContentLocatorType`` for facts
+    located by marked content and ``pdfImageLocatorType`` for chart facts located by a page
+    region -- which a single derived block cannot carry. Dropping either is not an option:
+    on the SEC tailored-shareholder-report filings the image path is most of the fact set.
+    Resolving that (one PDF locator type admitting both, or derived content able to name a
+    source per entry) is left open; see HANDOVER-html5-aligner.md section 10.
+    """
+    if into != INTO_MODEL:
+        raise NotImplementedError(
+            "alignFactsToSurface: --into derivedContent is implemented for the HTML5 surface "
+            "only; the PDF surface emits two fact locator types and a derived content object "
+            "names one source. Use --into model for --pdf.")
     with open(factsPath, "r", encoding="utf-8") as fh:
         factsDoc = json.load(fh)
     perFV, allIds = _collect_fact_html_ids(factsDoc)
@@ -1606,28 +1705,53 @@ def _fact_html5_runs(ids, hm, h2t, tsrc):
     return [(el, a, b) for el, a, b in runs]
 
 
-def _rewriteHtml5(factsDoc, perFV, runsByFV, tgt, idIndex, targetBasename):
+def _rewriteHtml5(factsDoc, perFV, runsByFV, tgt, idIndex, targetBasename,
+                  into=INTO_DERIVED):
     """Emit xbrlx pointer locators for facts located in the HTML5 target.
 
     One valueSource per fact value, holding ordered arrays: fragment i has
-    pointer[i], offset[i], quote[i]. Facts not located keep their original html
-    source untouched, exactly as the PDF path leaves them.
+    pointer[i], offset[i], quote[i].
+
+    ``into`` decides where that source is written and so what the artifact claims (see
+    INTO_MODEL / INTO_DERIVED above):
+
+    * ``model`` -- the preparer's own surface: the locator replaces the fact value's own,
+      and facts not located keep their original html source untouched, exactly as the PDF
+      path leaves them.
+    * ``derivedContent`` -- somebody else's report: the model is not touched at all, and each
+      located fact value becomes a ``bound`` derived fact value beside it.
+
+    Either way the target surface is identified, because a pointer without a document, and
+    without the parse mode the fact locator type carries, is unresolvable. WHERE it is
+    identified differs, and that is the point of the distinction: under ``model`` it is the
+    model's own -- a sourceMapping, a factSource and a factMap, as for any surface the report
+    is tagged against -- while under ``derivedContent`` the derived content object's
+    ``reportSource`` carries it, so recording where somebody else's facts appear never adds a
+    document to their model.
     """
     import HtmlElementPointer as hep
     di = factsDoc.setdefault("documentInfo", {})
     xm = factsDoc.setdefault("xbrlModel", {})
-    di.setdefault("namespaces", {})["xbrlx"] = XBRLX_NS
     origMappings = di.get("sourceMappings") or []
     prefix = (origMappings[0]["sourceName"].split(":", 1)[0] if origMappings else "report")
     htmlSrc = origMappings[0]["sourceName"] if origMappings else None
     tSrc, tMap = f"{prefix}:html5Source", f"{prefix}:html5Map"
-    di["sourceMappings"] = list(origMappings) + [{"sourceName": tSrc, "url": targetBasename}]
-    xm["factSources"] = list(xm.get("factSources") or []) + [{"name": tSrc, "factMapName": tMap}]
-    xm["factMaps"] = list(xm.get("factMaps") or []) + [
-        {"name": tMap, "factLocatorType": HTML5_POINTER_LOCATOR}]
 
+    def declareTargetSurfaceInModel():
+        """Declare the target document as a source of the MODEL: its url, and the fact locator
+        type whose source media type says which parse the pointers count against. Deferred
+        until something is actually located, so a run that places nothing leaves the document
+        as it found it."""
+        di["sourceMappings"] = list(di.get("sourceMappings") or []) + [
+            {"sourceName": tSrc, "url": targetBasename}]
+        xm["factSources"] = list(xm.get("factSources") or []) + [
+            {"name": tSrc, "factMapName": tMap}]
+        xm["factMaps"] = list(xm.get("factMaps") or []) + [
+            {"name": tMap, "factLocatorType": HTML5_POINTER_LOCATOR}]
+
+    derived: List[Dict[str, Any]] = []
     stats = {"total": 0, "located": 0, "fragments": 0, "multiFragment": 0,
-             "unverified": 0, "unmapped": 0}
+             "unverified": 0, "unnamed": 0, "unmapped": 0}
     for fact in xm.get("facts", []):
         for fv in fact.get("factValues", []):
             if not perFV.get(id(fv)):
@@ -1650,30 +1774,59 @@ def _rewriteHtml5(factsDoc, perFV, runsByFV, tgt, idIndex, targetBasename):
                 quotes.append(tgt.ownerText[id(el)][a:b])
             if not pointers:
                 stats["unmapped"] += 1
-                if htmlSrc is not None:
+                if into == INTO_MODEL and htmlSrc is not None:
                     fv["reportSource"] = htmlSrc
                 continue
-            fv["reportSource"] = tSrc
-            fv["valueSources"] = [{"properties": [
+            valueSources = [{"properties": [
                 {"property": HTML_ELEMENT_POINTER, "value": pointers},
                 {"property": HTML_TEXT_OFFSET, "value": offsets},
                 {"property": HTML_TEXT_QUOTE, "value": quotes},
             ]}]
+            if into == INTO_MODEL:
+                fv["reportSource"] = tSrc
+                fv["valueSources"] = valueSources
+            else:
+                # fragments concatenate with nothing between them (section 6): the quote is
+                # what a reviewer compares against the fact without re-resolving the pointer.
+                entry = _derivedFactValue(fv, valueSources, sourceText="".join(quotes))
+                if entry is None:
+                    stats["unnamed"] += 1
+                    stats["unmapped"] += 1
+                    continue
+                derived.append(entry)
             stats["located"] += 1
             stats["fragments"] += len(pointers)
             if len(pointers) > 1:
                 stats["multiFragment"] += 1
+    if into == INTO_MODEL:
+        di.setdefault("namespaces", {})["xbrlx"] = XBRLX_NS
+        declareTargetSurfaceInModel()
+    elif derived:
+        # a document-level SIBLING of documentInfo and xbrlModel, never part of the model. The
+        # target surface is identified HERE, self-contained, so nothing is added to somebody
+        # else's model in order to say where their facts were found. The prefix binding is a
+        # document-level declaration, not a model one, and the QNames below need it.
+        di.setdefault("namespaces", {})["xbrlx"] = XBRLX_NS
+        dc = factsDoc.setdefault("derivedContent", {})
+        dc["reportSource"] = {"url": targetBasename,
+                              "factLocatorType": HTML5_POINTER_LOCATOR}
+        dc["derivation"] = _derivationObject()
+        dc["factValues"] = list(dc.get("factValues") or []) + derived
     return stats
 
 
 def alignToHtml5(htmlPath: str, factsPath: str, targetPath: str,
-                 outFactsPath: Optional[str] = None):
+                 outFactsPath: Optional[str] = None, into: str = INTO_DERIVED):
     """Locate a tagged inline document's facts inside a separate HTML5 rendering.
 
     The same shape as ``align``: tokenise both sides, align the streams, then
     turn each fact's token range into a locator. Only the target surface differs
     -- ``(element, charStart, charEnd)`` here where the PDF path has
     ``(page, mcid)``.
+
+    ``into`` says which party is running this and so what the output claims -- see
+    INTO_MODEL / INTO_DERIVED. It changes only where the located pointers are written, not
+    the alignment that produced them.
     """
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     import HtmlElementPointer as hep
@@ -1695,16 +1848,22 @@ def alignToHtml5(htmlPath: str, factsPath: str, targetPath: str,
                 runsByFV[id(fv)] = _fact_html5_runs(ids, hm, h2t, tgt.src)
     idIndex = hep.buildIdIndex(tgt.root)
     stats = _rewriteHtml5(factsDoc, perFV, runsByFV, tgt, idIndex,
-                          os.path.basename(targetPath))
+                          os.path.basename(targetPath), into=into)
     pct = 100 * stats["located"] // max(stats["total"], 1)
+    where = ("onto the model's facts" if into == INTO_MODEL
+             else "as bound derived fact values beside the model")
     print("[summary] fact locators in the HTML5 target"
+          f"\n    written ..................... {where}"
           f"\n    total facts ................. {stats['total']}"
           f"\n    located ..................... {stats['located']}  ({pct}%)"
           f"\n      fragments emitted ......... {stats['fragments']}"
           f"  (values spanning >1 element: {stats['multiFragment']})"
           f"\n      pointer failed to verify .. {stats['unverified']}"
-          f"\n    unlocated ................... {stats['unmapped']}"
-          "  (kept the original html source)", flush=True)
+          + (f"\n      fact value unnamed ........ {stats['unnamed']}"
+             "  (nothing to reference it by)" if stats["unnamed"] else "")
+          + f"\n    unlocated ................... {stats['unmapped']}"
+          + ("  (kept the original html source)" if into == INTO_MODEL
+             else "  (no derived entry)"), flush=True)
     outFactsPath = outFactsPath or (os.path.splitext(targetPath)[0] + "-html5-facts.json")
     with open(outFactsPath, "w", encoding="utf-8") as fh:
         json.dump(factsDoc, fh, indent=1)
@@ -1720,13 +1879,23 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--html5", default=None,
                     help="existing HTML5 rendering to locate facts within (alternative to --pdf)")
     ap.add_argument("--out-facts", default=None, help="output rewritten facts JSON path")
+    ap.add_argument("--into", choices=(INTO_MODEL, INTO_DERIVED), default=None,
+                    help="where the located sources go: 'model' when a preparer aligns onto a "
+                         "surface of their own, 'derivedContent' when anyone else aligns onto "
+                         "somebody else's report (default for --html5; --pdf is model only)")
     args = ap.parse_args(argv)
     if bool(args.pdf) == bool(args.html5):
         ap.error("give exactly one target: --pdf or --html5")
+    if args.pdf and args.into == INTO_DERIVED:
+        ap.error("--into derivedContent is implemented for the HTML5 surface only; the PDF "
+                 "surface emits two fact locator types and a derived content object names "
+                 "one source")
     if args.pdf:
-        align(args.html, args.facts, args.pdf, args.out_facts)
+        align(args.html, args.facts, args.pdf, args.out_facts,
+              into=args.into or INTO_MODEL)
     else:
-        alignToHtml5(args.html, args.facts, args.html5, args.out_facts)
+        alignToHtml5(args.html, args.facts, args.html5, args.out_facts,
+                     into=args.into or INTO_DERIVED)
     return 0
 
 

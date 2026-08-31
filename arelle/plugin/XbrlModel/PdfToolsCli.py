@@ -6,9 +6,13 @@ plugin (``--plugins XbrlModel``):
 
   * ``inlineXbrlToPdf``  — GENERATE a structurally tagged PDF from an inline
     XBRL document, with fact ``valueSources`` traceable to page + MCID.
-  * ``alignFactsToSurface``  — LOCATE inline-XBRL facts inside an EXISTING (filer /
-    Acrobat) tagged PDF, emitting page+mcid, image page+bbox, and form-field
-    ``valueSources`` (no rendering).
+  * ``alignFactsToSurface``  — LOCATE inline-XBRL facts inside an EXISTING second
+    rendering of the same report (no rendering of its own):
+
+      - ``--align-to-pdf``: a filer / Acrobat tagged PDF, emitting page+mcid, image
+        page+bbox and form-field ``valueSources``;
+      - ``--align-to-html5``: a published HTML5 report carrying no XBRL at all,
+        emitting ``xbrlx:htmlElementPointer`` + text offset + quote.
 
 Both operate on file inputs (no loaded model), so they run from the
 ``CntlrCmdLine.Utility.Run`` hook. Heavy dependencies (Chrome, WeasyPrint, PIL)
@@ -24,6 +28,10 @@ Examples
     arelleCmdLine --plugins XbrlModel --inline-to-pdf \
         --ix-html report.xhtml --ix-facts report-html-facts.json \
         --ix-pdf report.pdf
+
+    arelleCmdLine --plugins XbrlModel --align-to-html5 \
+        --al-html report.xhtml --al-facts report-html-facts.json \
+        --al-html5 annual-report.html --al-out-facts report-html5-facts.json
 """
 import importlib.util
 import os
@@ -61,10 +69,26 @@ def addPdfToolOptions(parser):
     parser.add_option("--align-to-pdf", action="store_true", dest="alignToPdf",
                       help=_("XbrlModel: locate inline-XBRL facts in an existing tagged PDF "
                              "(requires --al-html, --al-facts, --al-pdf)."))
+    parser.add_option("--align-to-html5", action="store_true", dest="alignToHtml5",
+                      help=_("XbrlModel: locate inline-XBRL facts in an existing HTML5 "
+                             "rendering of the same report, emitting element pointers "
+                             "(requires --al-html, --al-facts, --al-html5)."))
     parser.add_option("--al-html", dest="alHtml", help=_("inline XBRL .xhtml/.html source"))
     parser.add_option("--al-facts", dest="alFacts", help=_("OIM-Taxonomy html-locator facts JSON (saveOIMFacts)"))
     parser.add_option("--al-pdf", dest="alPdf", help=_("existing tagged PDF to locate facts within"))
+    parser.add_option("--al-html5", dest="alHtml5", help=_("existing HTML5 rendering to locate facts within"))
     parser.add_option("--al-out-facts", dest="alOutFacts", help=_("output rewritten facts JSON path"))
+    # Which party is running the aligner decides what its output claims, so it is stated
+    # rather than inferred -- the same distinction, values and default as
+    # --taggingJournalInto. See alignFactsToSurface's INTO_MODEL / INTO_DERIVED.
+    parser.add_option("--alignInto", action="store", dest="alignInto",
+                      choices=("model", "derivedContent"),
+                      help=_("Where the located sources go: 'model' when a preparer aligns "
+                             "onto a surface of their own, so the locators are the filing's "
+                             "own content; 'derivedContent' (default for --align-to-html5) "
+                             "when anyone else aligns onto somebody else's report, so they "
+                             "are recorded as bound derived fact values beside a model left "
+                             "as filed. --align-to-pdf supports 'model' only."))
 
 
 def _require(cntlr, options, names):
@@ -87,9 +111,24 @@ def runPdfTools(cntlr, options, *args, **kwargs):
                 engine=(options.ixEngine or "chrome"), reflow=not options.ixNoReflow)
     if getattr(options, "alignToPdf", None):
         if _require(cntlr, options, ("alHtml", "alFacts", "alPdf")):
-            cntlr.showStatus(_("alignFactsToSurface: locating facts in {0}").format(os.path.basename(options.alPdf)))
-            _loadTool("alignFactsToSurface").align(
-                options.alHtml, options.alFacts, options.alPdf, options.alOutFacts)
+            tool = _loadTool("alignFactsToSurface")
+            into = getattr(options, "alignInto", None) or tool.INTO_MODEL
+            if into != tool.INTO_MODEL:
+                cntlr.addToLog(_("XbrlModel --align-to-pdf: --alignInto %(into)s is not "
+                                 "supported for the PDF surface (it emits two fact locator "
+                                 "types, and a derived content object names one source); "
+                                 "use --alignInto model.") % {"into": into}, level="ERROR")
+            else:
+                cntlr.showStatus(_("alignFactsToSurface: locating facts in {0}").format(os.path.basename(options.alPdf)))
+                tool.align(options.alHtml, options.alFacts, options.alPdf, options.alOutFacts,
+                           into=into)
+    if getattr(options, "alignToHtml5", None):
+        if _require(cntlr, options, ("alHtml", "alFacts", "alHtml5")):
+            tool = _loadTool("alignFactsToSurface")
+            cntlr.showStatus(_("alignFactsToSurface: locating facts in {0}").format(os.path.basename(options.alHtml5)))
+            tool.alignToHtml5(options.alHtml, options.alFacts, options.alHtml5,
+                              options.alOutFacts,
+                              into=getattr(options, "alignInto", None) or tool.INTO_DERIVED)
 
 
 # --------------------------------------------------------------------------
@@ -174,10 +213,37 @@ def guiAlign(cntlr):
                  lambda: _loadTool("alignFactsToSurface").align(html, facts, pdf, outFacts))
 
 
+def guiAlignHtml5(cntlr):
+    htmlFt = [(_("Inline XBRL (.xhtml .htm .html)"), "*.xhtml *.htm *.html")]
+    jsonFt = [(_("OIM facts JSON (.json)"), "*.json")]
+    html5Ft = [(_("HTML5 document (.html .htm)"), "*.html *.htm")]
+    html = _askOpen(cntlr, "xbrlModelPdfHtmlDir", _("Select inline XBRL document"), htmlFt)
+    if not html:
+        return
+    facts = _askOpen(cntlr, "xbrlModelPdfFactsDir",
+                     _("Select html-locator facts JSON (from saveOIMFacts)"), jsonFt)
+    if not facts:
+        return
+    target = _askOpen(cntlr, "xbrlModelHtml5InDir",
+                      _("Select the HTML5 rendering to locate facts within"), html5Ft)
+    if not target:
+        return
+    outFacts = _askSave(cntlr, "xbrlModelPdfOutDir", _("Save located facts JSON as"), jsonFt, ".json")
+    if not outFacts:
+        return
+    # The GUI takes the default party -- derived content, which claims nothing on the filer's
+    # behalf. A preparer aligning onto their own website uses --alignInto model on the command
+    # line, as with the engine and reflow options above.
+    _runInThread(cntlr, _("Locate facts in HTML5 rendering"),
+                 lambda: _loadTool("alignFactsToSurface").alignToHtml5(html, facts, target, outFacts))
+
+
 def addPdfToolsMenu(cntlr, menu):
-    """Add the PDF fact-locator tools to the GUI Tools menu (called from the
+    """Add the fact-locator tools to the GUI Tools menu (called from the
     plugin's ``CntlrWinMain.Menu.Tools`` hook)."""
     menu.add_command(label=_("Inline XBRL → tagged PDF (generate)…"),
                      underline=0, command=lambda: guiGenerate(cntlr))
     menu.add_command(label=_("Locate facts in existing tagged PDF…"),
                      underline=0, command=lambda: guiAlign(cntlr))
+    menu.add_command(label=_("Locate facts in an HTML5 rendering…"),
+                     underline=0, command=lambda: guiAlignHtml5(cntlr))

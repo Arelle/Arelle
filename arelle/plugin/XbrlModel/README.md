@@ -101,16 +101,27 @@ Two situations motivate it, and both are ordinary:
 
 - **The preparer**, mapping their own tagging onto their own website's report as
   well as onto the formal filing. Both surfaces are theirs, so where their data
-  appears on their own site is their own assertion, and it belongs in the model —
-  a fact can carry value sources for several surfaces, each named by its
-  `reportSource`.
+  appears on their own site is their own assertion, and it belongs in the model.
 - **Anyone else** — an authority deriving a PDF from XHTML filings for
   dissemination, or a data aggregator tagging reports it formats for its own
   audience. None of that is the filer's content, so it belongs in derived
   content, as a bound fact value beside a model left as filed.
 
-The aligner does not yet make that distinction: it rewrites the facts document
-in both cases. See §10.2–§10.3 of
+`--alignInto model|derivedContent` states which, with the same semantics and the
+same default (`derivedContent`) as `--taggingJournalInto`. Under
+`derivedContent` the model is not touched at all — the output's `xbrlModel` is
+byte-identical to the input's: each located fact value becomes a `basis: bound`
+derived fact value carrying the pointer / offset / quote triple, and the
+`derivedContent` object's own `reportSource` identifies the surface (a `url` and
+a `factLocatorType`, self-contained, so recording where somebody else's facts
+appear never adds a document to their model). Those entries carry **no `value`** —
+aligning establishes *where* a fact appears, and the text found there is the text
+the filing already states, so nothing was evaluated; the entry records the
+location and the `transformation` / `scale` / `sign` by which it yields the value.
+
+Implemented for the HTML5 surface. `--align-to-pdf` writes into the model only:
+it emits two fact locator types (marked content, and a page region for chart
+facts) and a derived content object names one source. See §10 of
 [`tools/HANDOVER-html5-aligner.md`](tools/HANDOVER-html5-aligner.md).
 
 An inline-XBRL report can be paired with a PDF so that each fact knows **where it
@@ -142,9 +153,9 @@ them), so a pointer alone cannot say which number is the fact. The three
 properties are collections, and fragment *i* is `pointer[i]` / `offset[i]` /
 `quote[i]`.
 
-The HTML5 direction is currently reachable only by running the tool directly
-(`python3 tools/alignFactsToSurface.py …`); the two PDF directions are also wired to
-`arelleCmdLine` (§4).
+All three directions are wired to `arelleCmdLine` (§4) and to the GUI Tools menu,
+and all three also run as standalone scripts
+(`python3 tools/alignFactsToSurface.py --html … --facts … --html5 …`).
 
 ---
 
@@ -218,6 +229,8 @@ See the quick start above for the worked example. The options:
 | `--applyTaggingJournal <file>` | apply a tagging journal from the iXBRL Viewer's tagger (below) |
 | `--taggingJournalInto model\|derivedContent` | where its bindings go — default `derivedContent` |
 | `--taggingValueAuthority document\|value` | for `into model`: what the filing asserts is the point of truth — default `document` |
+| `--align-to-pdf` / `--align-to-html5` | locate the facts of a tagged inline document in a second rendering (below) |
+| `--alignInto model\|derivedContent` | where the located sources go — default `derivedContent` (HTML5 only; PDF is `model`) |
 
 Both save options validate the model first (see the quick start). They run on the
 `CntlrCmdLine.Xbrl.Run` hook, *after* validation — the earlier `Xbrl.Loaded` hook
@@ -312,8 +325,29 @@ arelleCmdLine --plugins XbrlModel --align-to-pdf \
   fields; whole-MCID text goes to the content source, sub-MCID text values and
   chart images to the image source (see §2), and facts not found in the PDF keep
   a valid html-fallback locator.
+- Writes into the model. `--alignInto derivedContent` is not supported here — see
+  the HTML5 direction below.
 
-Both tools can also be run standalone (`python3 tools/<tool>.py --help`).
+### Match facts onto an existing HTML5 rendering
+
+```bash
+arelleCmdLine --plugins XbrlModel --align-to-html5 \
+    --al-html report.xhtml --al-facts report-html-facts.json \
+    --al-html5 annual-report.html --al-out-facts report-html5-facts.json \
+    [--alignInto model|derivedContent]
+```
+- The target needs no XBRL and no `id` attributes: facts are located by an
+  `xbrlx:htmlElementPointer` (XPointer `element()` child sequence, anchored on an
+  ancestor `id` where one is usable) plus a text offset and quote.
+- Parsed with lexbor (`selectolax`), never `lxml.html` — an element pointer counts
+  element children of the **HTML5** tree, and an XML parse builds a different one.
+- `--alignInto` says who is running it (§2). Default `derivedContent`: the model
+  is left byte-identical and the locators become `basis: bound` derived fact
+  values, the `derivedContent` object identifying the surface itself. `model`
+  writes them onto the facts and declares the surface as a source of the model,
+  for a preparer aligning onto their own site.
+
+All three tools can also be run standalone (`python3 tools/<tool>.py --help`).
 
 ---
 

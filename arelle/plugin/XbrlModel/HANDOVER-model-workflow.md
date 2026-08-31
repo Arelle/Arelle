@@ -1028,8 +1028,23 @@ the tooling makes them state it rather than inferring:
 | | preparer | later party |
 |---|---|---|
 | tagging journal | `--taggingJournalInto model` | `--taggingJournalInto derivedContent` (default) |
+| fact aligner | `--alignInto model` | `--alignInto derivedContent` (default) |
 | what the fact carries | the binding, as the filing's own | unchanged, as filed |
 | derived content in the output | none | all of it |
+
+`--alignInto` was added 2026-08-30 for the HTML5 surface
+(`tools/alignFactsToSurface.py`, `--align-to-html5`), which is why the aligner and
+the journal applier no longer produce different shapes for the same kind of
+finding. The PDF surface takes `model` only; see §10 of
+`tools/HANDOVER-html5-aligner.md` for why and what would close it.
+
+For the aligner's half of the axis this is no longer only a local convention: the
+OIM Taxonomy Derived Content specification now carries it, in the derived fact
+value object section — an author tagging a further rendering they publish
+themselves extends their model, anyone else records derived content, and since
+neither is visible in the serialisation the producer states which. The tagging
+journal's half remains as described above; the spec deliberately leaves open when
+a tagging decision is *accepted* into a model.
 
 The reason to keep the distinction visible is that the failure it prevents is
 silent: a derived value emitted onto a fact is indistinguishable from a reported
