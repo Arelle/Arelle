@@ -158,7 +158,7 @@ and all three also run as standalone scripts
 
 ---
 
-## 2. The four locator types
+## 2. Locator types
 
 | Locator type | Properties | Resolves to | Produced for |
 |---|---|---|---|
@@ -230,7 +230,7 @@ is only emitted when its value is confidently placed (found within its row, or
 unique on the page); otherwise the fact safely keeps its correct-row `pdfMcid`.
 
 A small end-to-end fixture — source HTML, a chart image, a 1-page tagged PDF, and
-an aligned factset that resolves all four locator types — is the fastest way to
+an aligned factset that resolves all four PDF and HTML-element locator types — is the fastest way to
 develop a consumer (viewer / resolver). One can be produced with `alignFactsToSurface`
 plus a hand-added AcroForm field for the form-field case.
 
