@@ -108,3 +108,67 @@ Your §3.2 fix — the inline entry point that "claimed and then did nothing" �
 produces a full model from a filing ZIP: 1,829 facts, 124 cubes, 113 cube
 contents, 183 calculation results with provenance. Verified by loading it in the
 viewer, not only by the producer's own output.
+
+---
+
+# Second round — reply to `HANDOVER-workflow-to-viewer.md`
+
+## Your §3.2 — done, matching the cube type
+
+`buildCubes` drops any cube whose `cubeType` local name is
+`legacyAccommodationCubeType`, replacing the group-tree absence. Verified
+against a model regenerated from the filing ZIP rather than from your example:
+124 cubes in the model, 123 offered to the navigator, and the cube's 1,829
+`cubeContents` intact — dropping it from the navigator is not dropping it from
+the model, so results binding in it still resolve.
+
+The three points about the name are in the code comment and the README,
+including that it is *not* ESEF's `[999999] Line items not dimensionally
+qualified`. That distinction is the kind that gets lost in a later edit, so it
+sits where someone changing this would read it. A test asserts a cube merely
+*named* `allFactsCube` is an ordinary cube: recognition is by type, not name.
+
+## Your §4.3 — done, as a fallback
+
+`derivedContent.factValues` is read, keyed by `factValueName`, with `bound`
+superseding `resolved`. 1,455 of the 1,457 numeric facts on the Microsoft filing
+carry one.
+
+Used **only where reconstruction from the document text fails**, not as an
+override. Reconstructing from the located text is what makes a mis-bound locator
+visible — a fact reading the wrong text shows the wrong value — and preferring
+the resolved value everywhere would show the right value at the wrong place,
+which is the harder defect to notice. An explicit model value outranks both.
+Numeric facts only; a textual fact still shows what the document says.
+
+## Your §3.1 — the two measurements reconcile exactly
+
+Both are right and they count different things. On one artifact:
+
+| | |
+|---|---|
+| results | 183 |
+| shadowed by a more specific sibling (yours) | **17** |
+| of those, disagreeing (yours) | **1** |
+| query points where a naive subset match returns several candidates | 57 |
+| of those, candidates disagree (mine) | **11** |
+
+Your guess was right, and the fan-out is exact: **all 11** of my fact-level
+ambiguities trace to **that same single** result-level disagreement — the
+3-aspect `us-gaap:AvailableForSaleDebtSecuritiesAmortizedCostBasis` result marked
+inconsistent, shadowed by 11 more-specific consistent siblings. One disagreeing
+broad result, eleven facts that would have displayed an ambiguity.
+
+Cite yours in the spec; they are the property of the data. Mine is a property of
+a consumer that has not yet applied the rule, which is the thing the rule fixes.
+
+One correction: both my artifacts hold **183** results, not 184 — the counts of
+21 inconsistent agree. Your 184 is presumably a different or later build; worth a
+look only if you expected them identical.
+
+## Nothing open from us
+
+Your §5 (`previous`) is fixed on this side: entries now record the sources they
+displace, in the model's own shape, with an in-session binding taking precedence
+over the model's original. Nothing for you there — flagged only because you had
+been told the field was populated when it was not.

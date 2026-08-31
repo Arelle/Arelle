@@ -490,7 +490,9 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
                 srcs.add(s); tgts.add(t)
         if frels:
             netName = grpName + "_PreNet"
-            rels = [{"source": "xbrl:rootSource", "target": n} for n in srcs if n not in tgts]
+            # sorted: srcs is a set, and iterating one puts these relationships in
+            # hash-randomised order, so the same input produced a different document each run
+            rels = [{"source": "xbrl:rootSource", "target": n} for n in sorted(srcs - tgts)]
             rels += frels
             networks.append({"name": netName, "relationshipTypeName": "xbrl:parent-child",
                              "relationships": rels})
@@ -638,7 +640,9 @@ def _calculationNetworks(modelXbrl, pfx, emit, networks, groupContents, roleGrou
             continue
         grpName = groupForRole.get(roleUri)
         netName = (grpName or (pfx.prefixFor(_documentNs(modelXbrl)) + ":group_" + _safeLocal(roleUri))) + "_CalcNet"
-        rels = [{"source": "xbrl:rootSource", "target": n} for n in srcs if n not in tgts]
+        # sorted: see the note in the presentation-network builder -- a set's iteration order
+        # is hash-randomised per process, and these relationships are emitted in that order
+        rels = [{"source": "xbrl:rootSource", "target": n} for n in sorted(srcs - tgts)]
         rels += frels
         networks.append({"name": netName, "relationshipTypeName": "xbrl:summation-item",
                          "relationships": rels})

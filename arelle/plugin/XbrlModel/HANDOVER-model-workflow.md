@@ -659,6 +659,43 @@ With that, a saved compiled model of the Microsoft filing validates against the
 derived-content document schema with **zero errors**, where it began this work
 with 3,280.
 
+### 3.14 The same filing produced a different model each run
+
+Found by asking the right question rather than by a failing test: could an
+intermediate `set` need to be ordered for run-to-run determinism?
+
+It could. Two loops emitted a presentation network's root relationships by
+iterating a `set`:
+
+```python
+rels = [{"source": "xbrl:rootSource", "target": n} for n in srcs if n not in tgts]
+```
+
+A set of strings iterates in hash-randomised order — Python randomises string
+hashing per process by default — so **39 of 145 networks came out with their
+root relationships in a different order on every run**. Same relationships, same
+count, different document. Both are now `sorted(srcs - tgts)`.
+
+Measured before and after, on three runs of the same filing:
+
+| | before | after |
+|---|---|---|
+| `xbrlModel` byte-identical across runs | **no** | **yes** |
+| `derivedContent` identical (bar its timestamp) | yes | yes |
+
+Derived content was already stable, which is why nothing had noticed: the facts,
+cubes, results and cube contents are all built from ordered structures. It was
+the translated taxonomy that moved.
+
+This is worth more than tidiness. `sourceModelChecksum` in the derived-content
+specification binds derived content to *a specific serialised model* so a
+consumer can tell whether it is stale — and a model that serialises differently
+each run cannot be checksummed at all. The feature was unimplementable until
+this was fixed, and nothing said so.
+
+It also makes a saved model diffable: two runs, or a run before and after a
+change, now differ only where something actually changed.
+
 ## 4. The workflow does not end at "viewable"
 
 The viewer is not only a renderer: its tagging mode emits a **journal** of the
