@@ -96,12 +96,22 @@ Two situations motivate it, and both are ordinary:
   pages of fixed-layout XHTML that no viewer opens comfortably. Rendering it to
   PDF and aligning the facts onto that gives something a reader can actually use.
 
-Both are **later-party** operations in the sense of §"Applying a tagging journal"
-below: the alignment is a finding *about* somebody else's report, not the filer's
-content. See §10.2 of
-[`tools/HANDOVER-html5-aligner.md`](tools/HANDOVER-html5-aligner.md) — the
-aligner currently rewrites the facts document rather than emitting derived
-content, which is a known divergence from that principle.
+**Who is aligning decides what the result claims**, on the same axis as
+§"Applying a tagging journal" below:
+
+- **The preparer**, mapping their own tagging onto their own website's report as
+  well as onto the formal filing. Both surfaces are theirs, so where their data
+  appears on their own site is their own assertion, and it belongs in the model —
+  a fact can carry value sources for several surfaces, each named by its
+  `reportSource`.
+- **Anyone else** — an authority deriving a PDF from XHTML filings for
+  dissemination, or a data aggregator tagging reports it formats for its own
+  audience. None of that is the filer's content, so it belongs in derived
+  content, as a bound fact value beside a model left as filed.
+
+The aligner does not yet make that distinction: it rewrites the facts document
+in both cases. See §10.2–§10.3 of
+[`tools/HANDOVER-html5-aligner.md`](tools/HANDOVER-html5-aligner.md).
 
 An inline-XBRL report can be paired with a PDF so that each fact knows **where it
 appears in the PDF**. That location is recorded on the fact's `valueSources` (or

@@ -403,6 +403,42 @@ Note this is a change of *output*, not of alignment: everything in §1--§9 abov
 stands, and steps 1--5 do not need revisiting. What changes is where the located
 pointers are written.
 
+**10.3 Both outputs are wanted, by different parties — the same axis as §8.5.**
+Settled with the spec author, and it is not a choice between them:
+
+* **A preparer aligning onto their own surfaces.** They file formally as XHTML
+  (or, in time, PDF or HTML5 where a regulator accepts it), and then map the same
+  tagging onto the glossy interactive HTML5 report on their own website. Both
+  surfaces are theirs, and saying where their data appears on their own site is
+  their own assertion. Output: the **model**.
+* **Anyone else.** An authority taking XHTML filings and providing a derived PDF
+  for dissemination convenience; a data aggregator — Bloomberg and the like —
+  applying tagging to reports they format for their own audiences. None of that
+  is the filer's content. Output: **derived content**, `basis: bound`.
+
+So the aligner takes the same option the journal applier already has, with the
+same semantics and the same default:
+
+    --taggingJournalInto model | derivedContent      (ApplyTaggingJournal)
+    --align...Into            model | derivedContent      (the aligner)
+
+which is what closes the divergence in 10.2 rather than merely moving it.
+
+**For the preparer case, the product is probably not a second factset.** The
+model already carries several surfaces in one document, and this is exactly what
+it is for: `reportSource` on a fact value is documented as needed "if there is
+more than one source file used to represent fact values", `documentInfo.
+sourceMappings` is a set whose own example maps two fact sources to two
+documents, and `FactValueResolver` already selects the mapping by `reportSource`.
+So a preparer's aligned output can be **one model whose facts carry value sources
+for the filing and for the website**, each tagged with its `reportSource`, and a
+consumer picks the surface — rather than two factsets that must be kept in step.
+
+That is the design question for the session: confirm the multi-surface model
+works end to end (the loader sets `reportSource` to None today — see the
+TODO(multi-doc) in `LoadInlineFacts`), and only fall back to parallel factsets if
+it does not.
+
 **Decision taken for step 5:** emit *corroborated* pointers --
 `xbrlx:htmlTextQuote` and `xbrlx:htmlTextOffset` alongside the required
 `xbrlx:htmlElementPointer` -- rather than a bare positional path. This is a
