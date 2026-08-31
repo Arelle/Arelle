@@ -1082,7 +1082,7 @@ class ModelDocument(ModelDocumentBase):
                         messageCodes=("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06", "SBR.NL.2.2.0.17"))
                 return
             doc = None
-            importSchemaLocationBasename = os.path.basename(importNamespace)
+            importSchemaLocationBasename = os.path.basename(importSchemaLocation)
             # is there an exact match for importNamespace and uri?
             for otherDoc in self.modelXbrl.namespaceDocs[importNamespace]:
                 doc = otherDoc
