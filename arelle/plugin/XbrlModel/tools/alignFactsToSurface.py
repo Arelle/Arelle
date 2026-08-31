@@ -3,15 +3,28 @@ See XbrlModel/COPYRIGHT.md for copyright information.
 
 THIS IS A PROOF OF CONCEPT.
 
-alignFactsToPdf — locate inline-XBRL facts inside an EXISTING (filer- or
-Acrobat-produced) tagged PDF, instead of generating a PDF from the HTML.
+alignFactsToSurface — locate an inline-XBRL report's facts inside a SECOND
+rendering of the same report, and emit locators addressing that rendering.
+
+Two surfaces are supported today and the design is not specific to either:
+
+* **PDF** — an existing filer- or Acrobat-produced tagged PDF, located by
+  ``(page, mcid)`` or a bounding box (``align``).
+* **HTML5** — a published report carrying no XBRL at all, located by an element
+  pointer with a text offset and quote (``alignToHtml5``).
+
+A third (Markdown, say) would reuse everything but the target tokeniser and the
+locator it emits: the source side, the patience alignment, the row-granular
+strategies and the residue handling are all surface-independent. That is why the
+name says *surface* rather than PDF.
 
 Motivation
 ----------
 Generating a PDF from the inline document (see ``inlineXbrlToPdf.py``) never
-looks as good as the filer's own PDF or an Acrobat conversion. This tool takes
-the good-looking PDF as given and *matches* the facts onto it, producing PDF
-``valueSources`` without any rendering:
+looks as good as the filer's own PDF or an Acrobat conversion, and a company's
+public HTML5 annual report cannot be generated from the filing at all. This tool
+takes the good-looking rendering as given and *matches* the facts onto it,
+producing ``valueSources`` for it without any rendering:
 
 1. **Visible facts** (fees, returns, prose) are matched by aligning the
    document-order word-token streams of the HTML and of the PDF marked content,
@@ -37,7 +50,7 @@ filings.
 
 Usage
 -----
-    python3 alignFactsToPdf.py --html report.xhtml \
+    python3 alignFactsToSurface.py --html report.xhtml \
             --facts report-html-facts.json --pdf filer.pdf \
             [--out-facts report-pdf-facts.json]
 
@@ -1700,7 +1713,7 @@ def alignToHtml5(htmlPath: str, factsPath: str, targetPath: str,
 
 
 def main(argv: Optional[List[str]] = None) -> int:
-    ap = argparse.ArgumentParser(description="Locate inline-XBRL facts in an existing tagged PDF.")
+    ap = argparse.ArgumentParser(description="Locate an inline-XBRL report's facts in a second rendering of it (tagged PDF or HTML5).")
     ap.add_argument("--html", required=True, help="inline XBRL .xhtml/.html source")
     ap.add_argument("--facts", required=True, help="OIM-Taxonomy html-locator facts JSON (saveOIMFacts)")
     ap.add_argument("--pdf", default=None, help="existing tagged PDF to locate facts within")

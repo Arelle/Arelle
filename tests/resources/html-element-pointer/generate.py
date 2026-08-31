@@ -27,7 +27,7 @@ sys.path.insert(0, REPO)
 sys.setrecursionlimit(200000)
 
 from arelle.plugin.XbrlModel import HtmlElementPointer as hep      # noqa: E402
-from arelle.plugin.XbrlModel.tools.alignFactsToPdf import _parse_source_tree   # noqa: E402
+from arelle.plugin.XbrlModel.tools.alignFactsToSurface import _parse_source_tree   # noqa: E402
 
 # (filename, media type). The media type is what selects the parse, and it is
 # not sniffed: an XHTML document keeps the XML infoset, an HTML5 document is

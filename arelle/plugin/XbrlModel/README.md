@@ -126,8 +126,8 @@ wired to the command line (see §4):
 | Direction | Tool | Use when |
 |---|---|---|
 | **Generate** a tagged PDF from the HTML | [`tools/inlineXbrlToPdf.py`](tools/inlineXbrlToPdf.py) | No good PDF exists; you want a self-contained traceable PDF — the N-CSR case above |
-| **Match** facts onto an existing tagged PDF | [`tools/alignFactsToPdf.py`](tools/alignFactsToPdf.py) | A filer/Acrobat PDF exists and looks better than anything rendered |
-| **Match** facts onto an existing HTML5 document | [`tools/alignFactsToPdf.py`](tools/alignFactsToPdf.py) (`alignToHtml5`) | A published report carries no XBRL — the website case above |
+| **Match** facts onto an existing tagged PDF | [`tools/alignFactsToSurface.py`](tools/alignFactsToSurface.py) | A filer/Acrobat PDF exists and looks better than anything rendered |
+| **Match** facts onto an existing HTML5 document | [`tools/alignFactsToSurface.py`](tools/alignFactsToSurface.py) (`alignToHtml5`) | A published report carries no XBRL — the website case above |
 
 All three consume the *html-locator* facts file produced by `saveOIMFacts`
 (`--plugins saveOIMFacts --SaveOIMFactspace facts.json`), whose fact values carry
@@ -143,7 +143,7 @@ properties are collections, and fragment *i* is `pointer[i]` / `offset[i]` /
 `quote[i]`.
 
 The HTML5 direction is currently reachable only by running the tool directly
-(`python3 tools/alignFactsToPdf.py …`); the two PDF directions are also wired to
+(`python3 tools/alignFactsToSurface.py …`); the two PDF directions are also wired to
 `arelleCmdLine` (§4).
 
 ---
@@ -165,7 +165,7 @@ region-level, not per-value.
 often *row-grained*: a whole table row — `TOTAL GROUPE 41 182,5 43 486,8 44 052,0
 …` — is a single marked-content id, so a `pdfMcid` locator for one figure would
 highlight the entire row. When a fact's value is only a **portion** of its MCID,
-`alignFactsToPdf` instead emits a per-value `pdfBBox` — the glyph rectangle of
+`alignFactsToSurface` instead emits a per-value `pdfBBox` — the glyph rectangle of
 just that value, computed with pypdfium2 and disambiguated by the MCID row text —
 carried on the image source (which viewers already render). A fact that *is* its
 whole MCID(s) keeps the structural, reflow-robust `pdfMcid`. So for text a
@@ -175,7 +175,7 @@ unique on the page); otherwise the fact safely keeps its correct-row `pdfMcid`.
 
 A small end-to-end fixture — source HTML, a chart image, a 1-page tagged PDF, and
 an aligned factset that resolves all four locator types — is the fastest way to
-develop a consumer (viewer / resolver). One can be produced with `alignFactsToPdf`
+develop a consumer (viewer / resolver). One can be produced with `alignFactsToSurface`
 plus a hand-added AcroForm field for the form-field case.
 
 ---
@@ -715,7 +715,7 @@ not contribute, so the total is additionally reported as inconsistent.
 | File | Role |
 |---|---|
 | [`tools/inlineXbrlToPdf.py`](tools/inlineXbrlToPdf.py) | generate a tagged PDF (Chrome/WeasyPrint), token carrier, reflow |
-| [`tools/alignFactsToPdf.py`](tools/alignFactsToPdf.py) | match facts to an existing PDF (row-granular signature match → token patience-align → phrase-locate → image pairing) |
+| [`tools/alignFactsToSurface.py`](tools/alignFactsToSurface.py) | match facts onto a second rendering — PDF or HTML5 (row-granular signature match → token patience-align → phrase-locate → image pairing) |
 | [`Html5Normalize.py`](Html5Normalize.py) | pre-parse normalization of HTML5 bytes so Arelle's tree matches the browser's (`<noscript>` content) |
 | [`HtmlElementPointer.py`](HtmlElementPointer.py) | XPointer `element()` child sequences — generate, resolve, verify (port of the viewer's `elementPointer.js`) |
 | [`PdfTextExtractor.py`](PdfTextExtractor.py) | tagged-PDF text by mcid / struct-id / form field (page-scoped) |

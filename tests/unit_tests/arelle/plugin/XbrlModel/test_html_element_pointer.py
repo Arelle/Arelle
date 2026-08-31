@@ -35,7 +35,7 @@ def _loadLeaf(name, path):
 
     ``arelle/plugin/XbrlModel/__init__.py`` is 1,569 lines and pulls in cbor2
     and jsonschema_rs before it will import. Neither module under test needs any
-    of it: HtmlElementPointer imports ``re`` and ``typing``, alignFactsToPdf only
+    of it: HtmlElementPointer imports ``re`` and ``typing``, alignFactsToSurface only
     the standard library (lxml and selectolax are imported lazily, inside the
     functions that parse). Loading the package to reach two leaves would tie
     this suite to the whole model runtime and to optional binary dependencies,
@@ -50,7 +50,7 @@ def _loadLeaf(name, path):
 
 hep = _loadLeaf("_xbrlmodel_HtmlElementPointer", "HtmlElementPointer.py")
 _parse_source_tree = _loadLeaf(
-    "_xbrlmodel_alignFactsToPdf", os.path.join("tools", "alignFactsToPdf.py"))._parse_source_tree
+    "_xbrlmodel_alignFactsToSurface", os.path.join("tools", "alignFactsToSurface.py"))._parse_source_tree
 
 CORPUS = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..",
                       "resources", "html-element-pointer")

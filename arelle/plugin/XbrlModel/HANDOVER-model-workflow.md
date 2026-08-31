@@ -817,7 +817,7 @@ a plausible result and a correct one are indistinguishable to the reader.
 | `msft-20250630.xsd`, `msft-20250630.htm` | extracted from it, needed for relative resolution |
 | `msft-facts.json` | §2.1 output, 1,708 facts |
 | `msft-dts-model.json` | §2.2 output, 123 cubes |
-| `msft-facts-pdf.json` | after `alignFactsToPdf`, 1,525 of 1,800 located |
+| `msft-facts-pdf.json` | after `alignFactsToSurface`, 1,525 of 1,800 located |
 | `msft-ar25-html5.html`, `msft-fy25-10k.pdf` | the other two surfaces |
 
 L'Oréal is the contrast case: its demos use **compiled models**

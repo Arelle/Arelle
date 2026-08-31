@@ -6,7 +6,7 @@ plugin (``--plugins XbrlModel``):
 
   * ``inlineXbrlToPdf``  — GENERATE a structurally tagged PDF from an inline
     XBRL document, with fact ``valueSources`` traceable to page + MCID.
-  * ``alignFactsToPdf``  — LOCATE inline-XBRL facts inside an EXISTING (filer /
+  * ``alignFactsToSurface``  — LOCATE inline-XBRL facts inside an EXISTING (filer /
     Acrobat) tagged PDF, emitting page+mcid, image page+bbox, and form-field
     ``valueSources`` (no rendering).
 
@@ -87,8 +87,8 @@ def runPdfTools(cntlr, options, *args, **kwargs):
                 engine=(options.ixEngine or "chrome"), reflow=not options.ixNoReflow)
     if getattr(options, "alignToPdf", None):
         if _require(cntlr, options, ("alHtml", "alFacts", "alPdf")):
-            cntlr.showStatus(_("alignFactsToPdf: locating facts in {0}").format(os.path.basename(options.alPdf)))
-            _loadTool("alignFactsToPdf").align(
+            cntlr.showStatus(_("alignFactsToSurface: locating facts in {0}").format(os.path.basename(options.alPdf)))
+            _loadTool("alignFactsToSurface").align(
                 options.alHtml, options.alFacts, options.alPdf, options.alOutFacts)
 
 
@@ -171,7 +171,7 @@ def guiAlign(cntlr):
     if not outFacts:
         return
     _runInThread(cntlr, _("Locate facts in PDF"),
-                 lambda: _loadTool("alignFactsToPdf").align(html, facts, pdf, outFacts))
+                 lambda: _loadTool("alignFactsToSurface").align(html, facts, pdf, outFacts))
 
 
 def addPdfToolsMenu(cntlr, menu):

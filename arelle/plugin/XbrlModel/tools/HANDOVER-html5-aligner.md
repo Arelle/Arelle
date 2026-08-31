@@ -1,8 +1,8 @@
 # Handover: an HTML5 target for the fact aligner
 
-For the session that owns `tools/alignFactsToPdf.py`.
+For the session that owns `tools/alignFactsToSurface.py`.
 
-`alignFactsToPdf` maps facts from a tagged inline document onto a *second*
+`alignFactsToSurface` maps facts from a tagged inline document onto a *second*
 rendering of the same report, emitting locators for the second one. Today the
 second rendering is always a PDF. The ask is to add HTML5 as a second target,
 emitting `xbrlx:htmlElementPointer` instead of `pdfPage`/`pdfMcid`.
@@ -260,7 +260,7 @@ unlocated ........... 275
   worth understanding.
 
 **Provenance of these two, stated plainly.** They are read off the tool's own
-summary line by the tagger session, which ran `alignFactsToPdf.py` once against
+summary line by the tagger session, which ran `alignFactsToSurface.py` once against
 this corpus and did not open its internals. An earlier draft of this note said
 "the row-granular path appears to prefer a rectangle even where a marked-content
 id was available" — that was an inference from the counts, not something observed
@@ -284,7 +284,7 @@ characterisation.
 | `msft-ar25-html5.html` | public annual report, HTML5, no XBRL, 42 ids / 8,383 elements |
 | `msft-fy25-10k.pdf` | 158 pages, Acrobat-tagged, clean MCIDs |
 | `msft-facts.json` | factset from `saveOIMFacts`, 1,708 facts |
-| `msft-facts-pdf.json` | after `alignFactsToPdf`, 1,525 located |
+| `msft-facts-pdf.json` | after `alignFactsToSurface`, 1,525 located |
 | `0000950170-25-100235-xbrl.zip` | the filing DTS |
 
 `/Users/hermf/temp/pdf/loreal/loreal-ar25-html5.html` is a second HTML5 report
@@ -375,7 +375,7 @@ arelleCmdLine --plugins saveOIMFacts --internetConnectivity online \
 **10.1 Not reachable from the plugin command line.** `PdfToolsCli` wires
 `--inline-to-pdf` and `--align-to-pdf` with their options; there is no
 `--align-to-html5`. `alignToHtml5` runs only through the tool's own `__main__`
-(`python3 tools/alignFactsToPdf.py …`). Given the sibling operations are both
+(`python3 tools/alignFactsToSurface.py …`). Given the sibling operations are both
 wired, this looks like an oversight rather than a decision, and it is a small
 one to close.
 
