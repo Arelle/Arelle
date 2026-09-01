@@ -41,12 +41,6 @@ runs:
       run: |
         python -m pip install --upgrade pip setuptools wheel
         pip install -r requirements.txt -r requirements-plugins.txt
-    - name: Checkout EDGAR
-      uses: actions/checkout@v7.0.1
-      with:
-        repository: Arelle/EDGAR
-        path: arelle/plugin/EDGAR
-        fetch-depth: 1
     - name: Build website
       shell: bash
       working-directory: docs/website

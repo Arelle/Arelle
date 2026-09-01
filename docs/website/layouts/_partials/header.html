@@ -5,7 +5,7 @@
     </a>
     <ul>
       <li>
-        <a href="{{ relURL "download/" }}"{{ if eq .RelPermalink (relURL "download/") }} aria-current="page"{{ end }}>Download</a>
+        <a class="btn btn-primary" href="{{ relURL "download/" }}"{{ if eq .RelPermalink (relURL "download/") }} aria-current="page"{{ end }}>Download</a>
       </li>
       <li>
         <a href="{{ relURL "updates/" }}"{{ if eq .Section "updates" }} aria-current="page"{{ end }}>Updates</a>

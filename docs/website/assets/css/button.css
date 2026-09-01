@@ -1,7 +1,6 @@
 .btn {
   --radius-button: 0.25rem;
   --button-gap: 0.5rem;
-  --button-padding-block: 0.625rem;
   --button-padding-inline: 1rem;
 
   display: inline-flex;
@@ -9,11 +8,11 @@
   align-items: center;
   justify-content: center;
   gap: var(--button-gap);
-  padding: var(--button-padding-block) var(--button-padding-inline);
+  padding: var(--button-padding-block, 0.625rem) var(--button-padding-inline);
   border: var(--border-width) solid transparent;
   border-radius: var(--radius-button);
   color: inherit;
-  font-size: var(--type-ui);
+  font-size: var(--button-font-size, var(--type-ui));
   font-weight: 500;
   line-height: 1.5;
   text-align: center;
