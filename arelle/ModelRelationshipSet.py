@@ -92,7 +92,7 @@ def ineffectiveArcs(
                         elif priorRel[1] == 2: # prior rel is prohibited
                             ineffective = keyEquivRelList[priorRel[2]]
                             effective = keyEquivRelList[rel[2]]
-                            ineffective.ineffectivity = _("prohibited arc (priority {0}, {1} - {2}) has an equivalent prohibited arc (priority {3}, {4} - {5})\n").format(
+                            ineffective.ineffectivity = _("prohibited arc (priority {0}, {1} - {2}) has an equivalent prohibited arc (priority {3}, {4} - {5})").format(
                                                      ineffective.priority, ineffective.modelDocument.basename, ineffective.sourceline,
                                                      effective.priority, effective.modelDocument.basename, effective.sourceline)
                             ineffectives.append(ineffective)
@@ -100,7 +100,7 @@ def ineffectiveArcs(
                         if priorRel is not None and priorRel[1] != 2:
                             ineffective = keyEquivRelList[priorRel[2]]
                             effective = keyEquivRelList[rel[2]]
-                            ineffective.ineffectivity = _("arc (priority {0}, {1} - {2}) is ineffective due to equivalent arc (priority {3}, {4} - {5})\n").format(
+                            ineffective.ineffectivity = _("arc (priority {0}, {1} - {2}) is ineffective due to equivalent arc (priority {3}, {4} - {5})").format(
                                                      ineffective.priority, ineffective.modelDocument.basename, ineffective.sourceline,
                                                      effective.priority, effective.modelDocument.basename, effective.sourceline)
                             ineffectives.append(ineffective) # prior ineffective
