@@ -2082,7 +2082,7 @@
             },
             {
                 "name": "xbrl:summation-concept",
-                "uri": "https://xbrl.org/2023/arcrole/summation-concept",
+                "uri": "https://xbrl.org/2026/arcrole/summation-concept",
                 "cycles": "undirected",
                 "allowedLinkProperties": [
                     "xbrl:weight",
