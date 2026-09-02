@@ -1,0 +1,778 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:ixt="http://www.xbrl.org/inlineXBRL/transformation/2020-02-12" xmlns:ix="http://www.xbrl.org/2013/inlineXBRL" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrldi="http://xbrl.org/2006/xbrldi" xmlns:ird_tc="http://xbrl.ird.gov.hk/taxonomy/2026-04-01/ird_tc" version="-//XBRL International//DTD XHTML Inline XBRL 1.1//EN" xsi:schemaLocation="http://www.w3.org/1999/xhtml ../../../../schema/xhtml-inlinexbrl-1_1.xsd">
+
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
+  <title>BIR51 Combined — FS-PE Taxonomy (TC + FS, Private Entity)</title>
+  <style type="text/css">
+    body {
+      max-width:1400px;
+      margin: 2em auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border-bottom: 1px solid #cdcdcd;
+      padding: 0.5em;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    h1 {
+      margin-top: 2em;
+    }
+  </style>
+</head>
+
+<body xml:lang="en">
+  <div style="display:none">
+    <ix:header>
+      <ix:references>
+        <link:schemaRef xlink:href="http://xbrl.ird.gov.hk/taxonomy/2026-04-01/ird_tc_entry_point_2026-04-01.xsd" xlink:type="simple"/>
+      </ix:references>
+      <ix:resources>
+        <!--
+          _ctx1: instant context at period end date (used for
+          ConversionRate / MonetaryInstant items only)
+        -->
+        <xbrli:context id="tc__ctx1">
+          <xbrli:entity>
+            <xbrli:identifier scheme="http://www.ird.gov.hk">01/12345678</xbrli:identifier>
+          </xbrli:entity>
+          <xbrli:period>
+            <xbrli:instant>2026-03-31</xbrli:instant>
+          </xbrli:period>
+        </xbrli:context>
+        <!--
+          _ctx2: duration context for the accounting / basis period
+          (used for MonetaryDuration items and period-scoped Yes/No / text fields)
+        -->
+        <xbrli:context id="tc__ctx2">
+          <xbrli:entity>
+            <xbrli:identifier scheme="http://www.ird.gov.hk">01/12345678</xbrli:identifier>
+          </xbrli:entity>
+          <xbrli:period>
+            <xbrli:startDate>2025-04-01</xbrli:startDate>
+            <xbrli:endDate>2026-03-31</xbrli:endDate>
+          </xbrli:period>
+        </xbrli:context>
+        <!-- Monetary unit: Hong Kong dollar -->
+        <xbrli:unit id="tc_unit_HKD">
+          <xbrli:measure>iso4217:HKD</xbrli:measure>
+        </xbrli:unit>
+        <!-- Pure unit: used for ConversionRate (decimalItemType) -->
+        <xbrli:unit id="tc_unit_pure">
+          <xbrli:measure>xbrli:pure</xbrli:measure>
+        </xbrli:unit>
+      </ix:resources>
+    </ix:header>
+  </div>
+
+  <h1>Basic Information</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Standard Label</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Company name</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:CompanyName" id="tc_id001">ABC Company</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>IRD file number</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:IRDFileNumber" id="tc_id002">01/12345678</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Year of assessment</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:YearOfAssessment" id="tc_id003">2025/26</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Principal business activity</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:PrincipalBusinessActivity" id="tc_id004">No business activities
+          </ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Hong Kong Standard Industrial Classification Code</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:HongKongStandardIndustrialClassificationCode" id="tc_id005">000000
+          </ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Preferred language for future correspondence</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:PreferredLanguageForFutureCorrespondence" id="tc_id006">English</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Accounting date different from that of last year</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:AccountingDateDifferentFromThatOfLastYear" id="tc_id007" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Accounting period start date</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:AccountingPeriodStartDate" id="tc_id009" format="ixt:date-day-month-year">01/04/2025</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Accounting period end date</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:AccountingPeriodEndDate" id="tc_id010" format="ixt:date-day-month-year">31/03/2026</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Currency used</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:CurrencyUsed" id="tc_id011">HKD</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Conversion rate</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx1" name="ird_tc:ConversionRate" id="tc_id012" unitRef="tc_unit_pure" decimals="INF">
+            1</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Total amount of gross income</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:GrossIncome" id="tc_id013" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Royalty payment to non-resident in Section 15(1)(a), (b), (ba) or (bb)</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:NonResidentRoyaltyPaymentS15" id="tc_id014" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Intellectual property payments</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:IntellectualPropertyPayments" id="tc_id015" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Deemed assessable profits under section 20AE, 20AF, 20AX, and/or 20AY or section 22 and/or 23 of Schedule
+          16E to the Inland Revenue Ordinance</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:DeemedAssessableProfitsUnderSection20AE20AF20AXAndOr20AYOrSection22AndOr23OfSchedule16E" id="tc_id016" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Include any interest, profits/loss arising from "short/medium term debt instruments" (issued before 1 April
+          2018)</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:IncludeAnyInterestProfitsLossArisingFromShortMediumTermDebtInstruments" id="tc_id017" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Tax relief from tax treaty</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:TaxReliefDTA" id="tc_id018" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Obtained advance ruling</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:AdvanceRuling" id="tc_id021" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Debt treatment for an arrangement for this year of assessment as "an originator" or "a bond-issuer" of a
+          specified alternative bond scheme</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:DebtTreatmentABSOriginatorBondIssuer" id="tc_id023" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Deduction for distribution arising from a regulatory capital security</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:DeductionRegulatoryCapitalSecurityDistribution" id="tc_id024" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Permanent establishment in Hong Kong of a non-Hong Kong resident person</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:PermanentEstablishmentHongKongNonHongKongResidentPerson" id="tc_id025" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Required to be audited</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:AuditRequirement" id="tc_id027" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr><td>PractisingCertificateNumber</td><td><ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:PractisingCertificateNumber" id="tc_mut_practising_cert_number">P99999</ix:nonNumeric></td></tr><tr>
+        <td>Private company</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:PrivateCompany" id="tc_id030" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Amalgamation</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:Amalgamation" id="tc_id032" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Accounts prepared at consolidated level</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:AccountsPreparedAtConsolidatedLevel" id="tc_id033" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Insurance corporation commencing to implement risk-based capital regime to determine capital requirements
+        </td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:InsuranceCorporationCommencingToImplementRiskBasedCapitalRegimeToDetermineCapitalRequirements" id="tc_id034" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Family-owned special purpose entity in which an eligible family-owned investment holding vehicle has
+          beneficial interest</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:FamilyOwnedSpecialPurposeEntityInWhichAnEligibleFamilyOwnedInvestmentHoldingVehicleHasBeneficialInterest" id="tc_id038" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Profits earned by a family-owned special purpose entity from transactions specified in section 16(3) of
+          Schedule 16E to the Inland Revenue Ordinance</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ProfitsEarnedByAFamilyOwnedSpecialPurposeEntityFromTransactionsSpecified" id="tc_id039" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Eligible single family office of a family</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:EligibleSingleFamilyOfficeOfAFamily" id="tc_id040" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h1>Additional Information for Tax Computation</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Standard Label</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Assessable profits (Adjusted loss) of the period in Hong Kong dollar</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:AssessableProfitsAdjustedLossOfThePeriodHKD" id="tc_id060" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Basis period start date</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:BasisPeriodStartDate" id="tc_id041" format="ixt:date-day-month-year">01/04/2025</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Basis period end date</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:BasisPeriodEndDate" id="tc_id042" format="ixt:date-day-month-year">31/03/2026</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Whether the business was commenced during the basis period</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:BusinessCommencement" id="tc_id043" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Whether the business was ceased during the basis period</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:BusinessCessation" id="tc_id045" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Align the tax treatment of financial instruments with their accounting treatment and have the related
+          profits assessed in accordance with sections 18I to 18L of the Inland Revenue Ordinance</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:TaxTreatmentOfFinancialInstruments" id="tc_id050" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Chinese Mainland processing arrangement</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:ProcessingArrangementMainland" id="tc_id051" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Sell any goods or provide any services on behalf of non-resident</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:TransactionWithNonResidentSellGoodsServices" id="tc_id052" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Receive income on behalf of non-resident</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:TransactionWithNonResidentAgent" id="tc_id053" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Value creation contributions in Hong Kong in relation to the intellectual property of a non-Hong Kong
+          resident associate</td>
+        <td>
+          <ix:nonNumeric contextRef="tc__ctx2" name="ird_tc:ValueCreationContributionsinHongKong" id="tc_id054" format="ixt:fixed-false">No</ix:nonNumeric>
+        </td>
+      </tr>
+      <tr>
+        <td>Hire charges paid or accrued to non-resident persons</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:TransactionWithNonResidentHireCharges" id="tc_id055" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Professional services fee paid to non-resident</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:TransactionWithNonResidentProfessionalServicesFee" id="tc_id056" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Deduction claimed for interest to non-Hong Kong associated corporations in the ordinary course of an
+          intra-group financing business</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:DeductionClaimedInterestNonHongKongAssociatedCorporationsIntraGroupFinancingBusiness" id="tc_id057" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Deduction claimed for leased premises reinstatement costs</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:DeductionClaimedForLeasedPremisesReinstatementCosts" id="tc_id058" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Foreign tax paid claimed as a unilateral tax credit</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ForeignTaxPaidClaimedAsAUnilateralTaxCredit" id="tc_id059" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h1>Profit and Loss Account</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Standard Label</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Turnover</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:Turnover" id="tc_id101" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Opening inventories</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx1" name="ird_tc:OpeningInventories" id="tc_id090" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Purchases</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:Purchases" id="tc_id096" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Closing inventories</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx1" name="ird_tc:ClosingInventories" id="tc_id062" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Gross profit (loss)</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:GrossProfitLoss" id="tc_id081" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Dividend income</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:DividendIncome" id="tc_id066" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Hong Kong bank interest income</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:InterestIncomeHongKongBank" id="tc_id083" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Loan interest income</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:LoanInterestIncome" id="tc_id086" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Non-Hong Kong bank interest income</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:InterestIncomeNonHongKongBank" id="tc_id084" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Interest expenses</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:InterestExpenses" id="tc_id082" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Director remuneration</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:DirectorRemuneration" id="tc_id109" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Staff salaries</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:StaffSalaries" id="tc_id099" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Cash-settled share-based payment</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ShareBasedPaymentCashSettled" id="tc_id116" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Equity-settled share-based payment, shares issued by the company</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ShareBasedPaymentEquitySettledCompany" id="tc_id117" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Equity-settled share-based payment, shares issued by group company with recharge</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ShareBasedPaymentEquitySettledGroupCoRecharge" id="tc_id119" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Equity-settled share-based payment, shares issued by group company without recharge</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ShareBasedPaymentEquitySettledGroupCoNoRecharge" id="tc_id118" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Commission expenses</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:Commission" id="tc_id063" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Consultancy fee</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ConsultancyFee" id="tc_id064" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Management fee</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ManagementFee" id="tc_id087" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Contractor charges</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ContractorCharges" id="tc_id065" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Subcontractor charges</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:SubContractorCharges" id="tc_id100" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>General provision for bad debts/doubtful debts</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ProvisionGeneralBadDebt" id="tc_id094" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Specific provision for bad debts/doubtful debts</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ProvisionSpecificBadDebt" id="tc_id095" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h1>Tax Adjustments</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Standard Label</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Offshore profits excluded</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:OffshoreProfitsExcluded" id="tc_id088" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Offshore profits from business attributable to the use of the Internet to accept orders, sell goods, provide services or accept payment</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:OffshoreProfitsFromBusinessAttributableToTheUseOfTheInternetToAcceptOrdersSellGoodsProvideServicesOrAcceptPayment" id="tc_id089" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Offshore profits from business attributable to contract processing or import processing arrangement in the Chinese Mainland</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:OffshoreProfitsFromBusinessAttributableToContractProcessingOrImportProcessingArrangementInTheChineseMainland" id="tc_id115" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Tax adjustment, profits from sale of landed properties in Hong Kong excluded from the Assessable Profits or Adjusted Loss</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ProfitsFromSaleOfLandPropertiesInHongKongExcludedFromAssessableProfitsTaxAdjustment" id="tc_id093" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Tax adjustment, profits from sale of capital assets (other than landed properties in Hong Kong) excluded from the Assessable Profits or Adjusted Loss</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ProfitsFromSaleOfCapitalAssetsOtherThanLandedPropertiesInHongKongExcludedFromTheAssessableProfitsOrAdjustedLossTaxAdjustment2024" id="tc_id092" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Tax adjustment, exempt bank interest income</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ExemptBankInterestIncomeTaxAdjustment" id="tc_id067" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Tax adjustment, interest, profits or gains from qualifying debt instruments (issued on or after 1 April 2018) exempted from payment of Profits Tax</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:InterestProfitsGainsFromQualifyingDebtInstrumentsIssuedOnOrAfter1April2018ExemptedTaxAdjustment" id="tc_id085" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Profits from transactions in assets of a class specified in Schedule 16C to the Inland Revenue Ordinance and incidental transactions exempted from payment of Profits Tax</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:Schedule16CAndIncidentalTransactionsExempted" id="tc_id097" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Profits from transactions in relation to specified securities exempted from payment of Profits Tax</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:SpecifiedSecuritiesExempted" id="tc_id098" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Tax adjustment, approved charitable donations</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ApprovedCharitableDonationsTaxAdjustment" id="tc_id061" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Tax adjustment, expenditure on building refurbishment</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ExpenditureOnBuildingRefurbishmentTaxAdjustment" id="tc_id110" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Tax adjustment, expenditure on computer hardware and software</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ExpenditureOnComputerHardwareAndSoftwareTaxAdjustment" id="tc_id068" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Tax adjustment, expenditure on prescribed manufacturing machinery or plant</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ExpenditureOnPrescribedManufacturingMachineryOrPlantTaxAdjustment" id="tc_id075" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Tax adjustment, expenditure on environmental protection machinery</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ExpenditureOnEnvironmentalProtectionMachineryTaxAdjustment" id="tc_id072" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Tax adjustment, expenditure on environmental protection installation</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ExpenditureOnEnvironmentalProtectionInstallationTaxAdjustment" id="tc_id071" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Tax adjustment, expenditure on environment-friendly vehicles</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ExpenditureOnEnvironmentFriendlyVehiclesTaxAdjustment" id="tc_id070" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Tax adjustment, expenditure on patent rights</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ExpenditureOnPatentRightsTaxAdjustment" id="tc_id073" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Tax adjustment, expenditure on rights to know-how</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ExpenditureOnRightsToKnowHowTaxAdjustment" id="tc_id080" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Tax adjustment, expenditure on copyrights</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ExpenditureOnCopyrightsTaxAdjustment" id="tc_id069" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Tax adjustment, expenditure on performer's economic rights</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ExpenditureOnPerformersEconomicRightsTaxAdjustment" id="tc_id074" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Tax adjustment, expenditure on protected layout-design (topography) rights</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ExpenditureOnProtectedLayoutDesignTopographyRightsTaxAdjustment" id="tc_id076" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Tax adjustment, expenditure on protected plant variety rights</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ExpenditureOnProtectedPlantVarietyRightsTaxAdjustment" id="tc_id077" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Tax adjustment, expenditure on registered designs</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ExpenditureOnRegisteredDesignsTaxAdjustment" id="tc_id078" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Tax adjustment, expenditure on registered trade marks</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ExpenditureOnRegisteredTrademarksTaxAdjustment" id="tc_id079" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h1>Depreciation Allowances</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Standard Label</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Industrial building allowance, initial allowance</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:IBAInitalAllowance" id="tc_id114" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Industrial building allowance, annual allowance</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:IBAAnnualAllowance" id="tc_id111" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Industrial building allowance, balancing allowance</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:IBABalancingAllowance" id="tc_id112" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Industrial building allowance, balancing charge</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:IBABalancingCharge" id="tc_id113" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Commercial building allowance, annual allowance</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:CBAAnnualAllowance" id="tc_id102" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Commercial building allowance, balancing allowance</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:CBABalancingAllowance" id="tc_id103" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Commercial building allowance, balancing charge</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:CBABalancingCharge" id="tc_id104" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Depreciation allowance, pooling total initial allowance</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:DepreciationAllowancesPoolingTotalInitialAllowance" id="tc_id108" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Depreciation allowance, pooling total annual allowance</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:DepreciationAllowancesPoolingTotalAnnualAllowance" id="tc_id105" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Depreciation allowance, pooling total balancing allowance</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:DepreciationAllowancesPoolingTotalBalancingAllowance" id="tc_id106" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Depreciation allowance, pooling total balancing charge</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:DepreciationAllowancesPoolingTotalBalancingCharge" id="tc_id107" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h1>Financial Statements</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Standard Label</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Profit (loss) before tax</td>
+        <td>
+          <ix:nonFraction contextRef="tc__ctx2" name="ird_tc:ProfitLossBeforeTax" id="tc_id091" unitRef="tc_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+</body>
+
+</html>

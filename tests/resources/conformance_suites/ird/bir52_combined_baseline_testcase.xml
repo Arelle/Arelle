@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="bir52_combined_baseline" description="BIR52 Combined — Baseline Partnership (TC + FS)">
+  <variation id="bir52_combined_baseline" name="bir52_combined_baseline">
+    <description>A complete BIR52 filing comprising a paired tax computation data file and financial statements data file for a two-partner partnership. Revenue and ProfitLossBeforeTax are always mandatory in the FS file for BIR52. ProfitLossBeforeTax must match between TC and FS files (NVAD-E-1390).</description>
+    <data>
+      <instance readMeFirst="true">bir52_tc_baseline_partnership.html</instance>
+      <instance readMeFirst="true">bir52_fs_hkfrs_baseline.html</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+</testcase>

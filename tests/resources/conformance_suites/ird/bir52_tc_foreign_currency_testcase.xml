@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="bir52_tc_foreign_currency" description="BIR52 TC — Foreign Functional Currency">
+  <variation id="bir52_tc_foreign_currency" name="bir52_tc_foreign_currency">
+    <description>A valid BIR52 tax computation (two-partner partnership) where the entity's functional currency is not HKD. CurrencyUsed is set to a valid ISO 4217 code and ConversionRate reflects the applicable exchange rate.</description>
+    <data>
+      <instance readMeFirst="true">bir52_tc_foreign_currency.html</instance>
+      <instance readMeFirst="true">bir52_fs_hkfrs_baseline.html</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+</testcase>

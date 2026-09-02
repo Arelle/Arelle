@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="NVAD-E-0100-yoa-format — invalid variation">
+  <variation id="NVAD-E-0100-yoa-format_invalid" name="NVAD-E-0100-yoa-format_invalid">
+    <description>YearOfAssessment set to '2025-26' (hyphen instead of slash fails the 20XX/YY regex), triggering NVAD-E-0100.</description>
+    <data>
+      <instance readMeFirst="true">NVAD-E-0100-yoa-format_invalid.html</instance>
+    </data>
+    <result expected="invalid">
+      <error>IRD.NVAD-E-0100</error>
+    </result>
+  </variation>
+</testcase>

@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="bir51_fs_pe_baseline" description="BIR51 FS — HKFRS for Private Entities (FS-PE Taxonomy)">
+  <variation id="bir51_fs_pe_baseline" name="bir51_fs_pe_baseline">
+    <description>A valid financial statements iXBRL data file for a BIR51 (corporation) filing prepared under HKFRS for Private Entities or SME-FRF &amp; SME-FRS, using the IRD FS-PE Taxonomy. Mandatory FS items are the same as the full HKFRS path (Revenue, ProfitLossBeforeTax, TotalEquity) but the entry point and element namespace differ.</description>
+    <data>
+      <instance readMeFirst="true">bir51_fs_pe_baseline.html</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+</testcase>

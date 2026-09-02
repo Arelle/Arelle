@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="NVAD-E-1230 — invalid variation">
+  <variation id="NVAD-E-1230_invalid" name="NVAD-E-1230_invalid">
+    <description>BIR52ProprietorPartnerFullName is removed from partner context tc__ctx_p1 while DateLeft remains tagged, triggering NVAD-E-1230. DateEntered is also removed from the same partner to isolate from NVAD-E-1220. NVAD-E-1210 also fires because FullName is a mandatory per-partner particular.</description>
+    <data>
+      <instance readMeFirst="true">NVAD-E-1230_invalid.html</instance>
+    </data>
+    <result expected="invalid">
+      <error>IRD.NVAD-E-1230</error>
+      <error>IRD.NVAD-E-1210</error>
+    </result>
+  </variation>
+</testcase>

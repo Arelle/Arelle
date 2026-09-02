@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="bir51_combined_consolidated" description="BIR51 Combined — Consolidated Accounts (TC + FS)">
+  <variation id="bir51_combined_consolidated" name="bir51_combined_consolidated">
+    <description>A complete BIR51 filing where accounts are prepared at consolidated level. AccountsPreparedAtConsolidatedLevel = true in the TC file; Revenue and ProfitLossBeforeTax are omitted from the FS file under the consolidated-accounts exemption. TotalEquity remains mandatory in the FS file.</description>
+    <data>
+      <instance readMeFirst="true">bir51_tc_consolidated_accounts.html</instance>
+      <instance readMeFirst="true">bir51_fs_hkfrs_consolidated.html</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+</testcase>

@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="NVAD-E-0370 — invalid variation">
+  <variation id="NVAD-E-0370_invalid" name="NVAD-E-0370_invalid">
+    <description>ApprovedCharitableDonationsTaxAdjustment is tagged with a non-zero value (8000) while ApprovedCharitableDonationsDetails remains untagged, triggering NVAD-E-0370.</description>
+    <data>
+      <instance readMeFirst="true">NVAD-E-0370_invalid.html</instance>
+    </data>
+    <result expected="invalid">
+      <error>IRD.NVAD-E-0370</error>
+    </result>
+  </variation>
+</testcase>

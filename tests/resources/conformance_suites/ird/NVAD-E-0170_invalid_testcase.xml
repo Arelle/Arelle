@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="NVAD-E-0170 — invalid variation">
+  <variation id="NVAD-E-0170_invalid" name="NVAD-E-0170_invalid">
+    <description>The HongKongStandardIndustrialClassificationCode element is removed entirely; the validator requires it to be present in all submissions, triggering NVAD-E-0170. NVAD-E-0050 also fires because HKSIC is a mandatory TC item.</description>
+    <data>
+      <instance readMeFirst="true">NVAD-E-0170_invalid.html</instance>
+    </data>
+    <result expected="invalid">
+      <error>IRD.NVAD-E-0170</error>
+      <error>IRD.NVAD-E-0050</error>
+    </result>
+  </variation>
+</testcase>

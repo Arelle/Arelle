@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="bir51_combined_foreign_currency" description="BIR51 Combined — Foreign Functional Currency (TC + FS)">
+  <variation id="bir51_combined_foreign_currency" name="bir51_combined_foreign_currency">
+    <description>A complete BIR51 filing where the entity's functional currency is not HKD. Both the TC and FS files use USD (or another valid ISO 4217 code) for monetary facts. NVAD-E-1430 requires FS monetary facts to use the same functional currency declared in the TC file. NVAD-E-1390 requires ProfitLossBeforeTax to match in both files (in the functional currency).</description>
+    <data>
+      <instance readMeFirst="true">bir51_tc_foreign_currency.html</instance>
+      <instance readMeFirst="true">bir51_fs_foreign_currency.html</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+</testcase>

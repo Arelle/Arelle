@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="NVAD-E-0020 — invalid variation">
+  <variation id="NVAD-E-0020_invalid" name="NVAD-E-0020_invalid">
+    <description>GrossIncome duration fact points to a context whose period (2025-01-01 to 2025-12-31) does not match the basis period (2025-04-01 to 2026-03-31), triggering NVAD-E-0020.</description>
+    <data>
+      <instance readMeFirst="true">NVAD-E-0020_invalid.html</instance>
+    </data>
+    <result expected="invalid">
+      <error>IRD.NVAD-E-0020</error>
+    </result>
+  </variation>
+</testcase>

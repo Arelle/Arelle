@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="bir51_tc_all_flags" description="BIR51 TC — All Flags (Kitchen Sink)">
+  <variation id="bir51_tc_all_flags" name="bir51_tc_all_flags">
+    <description>A valid BIR51 tax computation with virtually every optional boolean flag set to true. Useful as a structural reference showing all possible elements. All mandatory TC items are tagged. NVAD-E-1290 does not apply to this TC-only filing.</description>
+    <data>
+      <instance readMeFirst="true">bir51_tc_all_flags.html</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+</testcase>

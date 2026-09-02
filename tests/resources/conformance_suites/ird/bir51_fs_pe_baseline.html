@@ -1,0 +1,316 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+  BIR51 Financial Statements Template — IRD FS-PE Taxonomy
+  (HKFRS for Private Entities; also applicable to SME-FRF & SME-FRS)
+
+  Entry point : ird_fs_pe_entry_point_2026-04-01.xsd
+  Namespace   : xmlns:ird_fs_pe = http://xbrl.ird.gov.hk/taxonomy/2026-04-01/ird_fs_pe
+
+  Mandatory FS items present (NVAD-E-1290 / 1291 / 1292):
+    ird_fs_pe:Revenue            = 100  (duration, _ctx2)
+    ird_fs_pe:ProfitLossBeforeTax = 0   (duration, _ctx2)
+    ird_fs_pe:Equity             = 300  (instant, _ctx1)
+
+  Balance-sheet check (NVAD-E-1300):
+    ird_fs_pe:Assets = 500 = ird_fs_pe:EquityAndLiabilities = 500  ✓
+
+  Minimum tagging requirement (all four primary sections present):
+    [210000] Statement of financial position
+    [310000] Statement of comprehensive income
+    [822100] Notes — Property, plant and equipment
+    [840000] Notes — Related party transactions
+-->
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:ixt="http://www.xbrl.org/inlineXBRL/transformation/2020-02-12" xmlns:ix="http://www.xbrl.org/2013/inlineXBRL" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ird_fs_pe="http://xbrl.ird.gov.hk/taxonomy/2026-04-01/ird_fs_pe" version="-//XBRL International//DTD XHTML Inline XBRL 1.1//EN" xsi:schemaLocation="http://www.w3.org/1999/xhtml ../../../../schema/xhtml-inlinexbrl-1_1.xsd">
+
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
+  <title>BIR51 FS — HKFRS for Private Entities (FS-PE Taxonomy)</title>
+</head>
+
+<body xml:lang="en">
+  <div style="display:none">
+    <ix:header>
+      <ix:references>
+        <link:schemaRef xlink:href="http://xbrl.ird.gov.hk/taxonomy/2026-04-01/ird_fs_pe_entry_point_2026-04-01.xsd" xlink:type="simple"/>
+      </ix:references>
+      <ix:resources>
+        <!--
+          _ctx1  : instant context at current period end date
+                   Used for balance sheet (statement of financial position) items.
+        -->
+        <xbrli:context id="fs__ctx1">
+          <xbrli:entity>
+            <xbrli:identifier scheme="http://www.ird.gov.hk">01/12345678</xbrli:identifier>
+          </xbrli:entity>
+          <xbrli:period>
+            <xbrli:instant>2026-03-31</xbrli:instant>
+          </xbrli:period>
+        </xbrli:context>
+        <!--
+          _ctx1_py : instant context at prior year end date
+                     Used for comparative balance sheet items and opening
+                     balances in notes (e.g. PPE movement table).
+        -->
+        <xbrli:context id="fs__ctx1_py">
+          <xbrli:entity>
+            <xbrli:identifier scheme="http://www.ird.gov.hk">01/12345678</xbrli:identifier>
+          </xbrli:entity>
+          <xbrli:period>
+            <xbrli:instant>2025-03-31</xbrli:instant>
+          </xbrli:period>
+        </xbrli:context>
+        <!--
+          _ctx2  : duration context for the current reporting period
+                   Used for income statement and note items.
+        -->
+        <xbrli:context id="fs__ctx2">
+          <xbrli:entity>
+            <xbrli:identifier scheme="http://www.ird.gov.hk">01/12345678</xbrli:identifier>
+          </xbrli:entity>
+          <xbrli:period>
+            <xbrli:startDate>2025-04-01</xbrli:startDate>
+            <xbrli:endDate>2026-03-31</xbrli:endDate>
+          </xbrli:period>
+        </xbrli:context>
+        <!-- Monetary unit: Hong Kong dollar -->
+        <xbrli:unit id="fs_unit_HKD">
+          <xbrli:measure>iso4217:HKD</xbrli:measure>
+        </xbrli:unit>
+      </ix:resources>
+    </ix:header>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       [210000] Statement of Financial Position
+       (HKFRS for Private Entities does not mandate current/non-current
+       classification; the format below uses it for readability)
+       ═══════════════════════════════════════════════════════════════ -->
+  <h1>Statement of Financial Position</h1>
+  <p>As at 31 March 2026</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>HK$</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <!-- ── Non-current assets ── -->
+      <tr>
+        <td colspan="2"><strong>Non-current assets</strong></td>
+      </tr>
+      <tr>
+        <td>Property, plant and equipment</td>
+        <td>
+          <ix:nonFraction contextRef="fs__ctx1" name="ird_fs_pe:PropertyPlantAndEquipment" id="fs_id001" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">300</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Total non-current assets</strong></td>
+        <td>
+          <ix:nonFraction contextRef="fs__ctx1" name="ird_fs_pe:NoncurrentAssets" id="fs_id002" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">300</ix:nonFraction>
+        </td>
+      </tr>
+
+      <!-- ── Current assets ── -->
+      <tr>
+        <td colspan="2"><strong>Current assets</strong></td>
+      </tr>
+      <tr>
+        <td>Trade and other receivables</td>
+        <td>
+          <ix:nonFraction contextRef="fs__ctx1" name="ird_fs_pe:TradeAndOtherCurrentReceivables" id="fs_id003" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">150</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Cash and cash equivalents</td>
+        <td>
+          <ix:nonFraction contextRef="fs__ctx1" name="ird_fs_pe:CashAndCashEquivalents" id="fs_id004" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">50</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Total current assets</strong></td>
+        <td>
+          <ix:nonFraction contextRef="fs__ctx1" name="ird_fs_pe:CurrentAssets" id="fs_id005" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">200</ix:nonFraction>
+        </td>
+      </tr>
+
+      <!-- ── Total assets (NVAD-E-1300 lhs) ── -->
+      <tr>
+        <td><strong>Total assets</strong></td>
+        <td>
+          <ix:nonFraction contextRef="fs__ctx1" name="ird_fs_pe:Assets" id="fs_id006" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">500</ix:nonFraction>
+        </td>
+      </tr>
+
+      <!-- ── Equity ── -->
+      <tr>
+        <td colspan="2"><strong>Equity</strong></td>
+      </tr>
+      <tr>
+        <td>Issued capital</td>
+        <td>
+          <ix:nonFraction contextRef="fs__ctx1" name="ird_fs_pe:IssuedCapital" id="fs_id007" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">200</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Retained earnings</td>
+        <td>
+          <ix:nonFraction contextRef="fs__ctx1" name="ird_fs_pe:RetainedEarnings" id="fs_id008" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">100</ix:nonFraction>
+        </td>
+      </tr>
+      <!--
+        ird_fs_pe:Equity — BIR51 mandatory FS item (NVAD-E-1290).
+      -->
+      <tr>
+        <td><strong>Total equity</strong></td>
+        <td>
+          <ix:nonFraction contextRef="fs__ctx1" name="ird_fs_pe:Equity" id="fs_id009" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">300</ix:nonFraction>
+        </td>
+      </tr>
+
+      <!-- ── Current liabilities ── -->
+      <tr>
+        <td colspan="2"><strong>Current liabilities</strong></td>
+      </tr>
+      <tr>
+        <td>Trade and other payables</td>
+        <td>
+          <ix:nonFraction contextRef="fs__ctx1" name="ird_fs_pe:TradeAndOtherCurrentPayables" id="fs_id010" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">200</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Total current liabilities</strong></td>
+        <td>
+          <ix:nonFraction contextRef="fs__ctx1" name="ird_fs_pe:CurrentLiabilities" id="fs_id011" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">200</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Total liabilities</strong></td>
+        <td>
+          <ix:nonFraction contextRef="fs__ctx1" name="ird_fs_pe:Liabilities" id="fs_id012" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">200</ix:nonFraction>
+        </td>
+      </tr>
+
+      <!-- ── Total equity and liabilities (NVAD-E-1300; must equal Assets) ── -->
+      <tr>
+        <td><strong>Total equity and liabilities</strong></td>
+        <td>
+          <ix:nonFraction contextRef="fs__ctx1" name="ird_fs_pe:EquityAndLiabilities" id="fs_id013" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">500</ix:nonFraction>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       [310000] Statement of Comprehensive Income
+       (HKFRS for PE allows presentation by function or nature)
+       ═══════════════════════════════════════════════════════════════ -->
+  <h1>Statement of Comprehensive Income</h1>
+  <p>For the year ended 31 March 2026</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>HK$</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <!--
+        ird_fs_pe:Revenue — BIR51 mandatory FS item (NVAD-E-1291).
+      -->
+      <tr>
+        <td>Revenue</td>
+        <td>
+          <ix:nonFraction contextRef="fs__ctx2" name="ird_fs_pe:Revenue" id="fs_id014" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">100</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Cost of sales</td>
+        <td>(
+          <ix:nonFraction contextRef="fs__ctx2" name="ird_fs_pe:CostOfSales" id="fs_id015" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">100</ix:nonFraction>)
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Gross profit</strong></td>
+        <td>
+          <ix:nonFraction contextRef="fs__ctx2" name="ird_fs_pe:GrossProfit" id="fs_id016" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+
+      <!--
+        ird_fs_pe:ProfitLossBeforeTax — BIR51 mandatory FS item (NVAD-E-1292).
+        Must equal ird_tc:ProfitLossBeforeTax in the paired TC file (NVAD-E-1390).
+      -->
+      <tr>
+        <td><strong>Profit before tax</strong></td>
+        <td>
+          <ix:nonFraction contextRef="fs__ctx2" name="ird_fs_pe:ProfitLossBeforeTax" id="fs_id017" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       [822100] Notes — Property, Plant and Equipment
+       ═══════════════════════════════════════════════════════════════ -->
+  <h1>Notes to the Financial Statements</h1>
+
+  <h2>1. Property, Plant and Equipment</h2>
+  <table>
+    <thead>
+      <tr>
+        <th/>
+        <th>Fixtures and fittings HK$</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Net book value at 1 April 2025</td>
+        <td>
+          <ix:nonFraction contextRef="fs__ctx1_py" name="ird_fs_pe:PropertyPlantAndEquipment" id="fs_id018" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">350</ix:nonFraction>
+        </td>
+      </tr>
+      <tr>
+        <td>Depreciation charge for the year</td>
+        <td>(
+          <ix:nonFraction contextRef="fs__ctx2" name="ird_fs_pe:DepreciationPropertyPlantAndEquipment" id="fs_id019" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">50</ix:nonFraction>)
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Net book value at 31 March 2026</strong></td>
+        <td>300</td>
+        <!-- ird_fs_pe:PropertyPlantAndEquipment at _ctx1 = 300 is already
+             tagged in the Statement of Financial Position (id="id001"). -->
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Text block tag for the PPE note (minimum tagging requirement [822100]) -->
+  <div style="display:none">
+    <ix:nonNumeric contextRef="fs__ctx2" name="ird_fs_pe:DisclosureOfPropertyPlantAndEquipmentExplanatory" id="fs_id020">
+      Property, plant and equipment comprised fixtures and fittings. Net book value at
+      31 March 2026 was HK$300 (2025: HK$350). Depreciation of HK$50 was charged
+      during the year on a straight-line basis over five years.
+    </ix:nonNumeric>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       [840000] Notes — Related Party Transactions
+       ═══════════════════════════════════════════════════════════════ -->
+  <h2>2. Related Party Transactions</h2>
+  <p>
+    <ix:nonNumeric contextRef="fs__ctx2" name="ird_fs_pe:DisclosureOfRelatedPartyExplanatory" id="fs_id021">
+      The entity had no material related party transactions during the year ended
+      31 March 2026, other than key management compensation of HK$
+      <ix:nonFraction contextRef="fs__ctx2" name="ird_fs_pe:KeyManagementPersonnelCompensation" id="fs_id022" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">0</ix:nonFraction>.
+    </ix:nonNumeric>
+  </p>
+
+</body>
+
+</html>

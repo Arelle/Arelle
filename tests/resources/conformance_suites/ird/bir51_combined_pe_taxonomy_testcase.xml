@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="bir51_combined_pe_taxonomy" description="BIR51 Combined — FS-PE Taxonomy (TC + FS, Private Entity)">
+  <variation id="bir51_combined_pe_taxonomy" name="bir51_combined_pe_taxonomy">
+    <description>A complete BIR51 filing for a private entity / SME reporter using the IRD FS-PE Taxonomy for the financial statements file. The TC file uses the standard ird_tc entry point. The FS file uses the ird_fs_pe entry point.</description>
+    <data>
+      <instance readMeFirst="true">bir51_tc_baseline.html</instance>
+      <instance readMeFirst="true">bir51_fs_pe_baseline.html</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+</testcase>

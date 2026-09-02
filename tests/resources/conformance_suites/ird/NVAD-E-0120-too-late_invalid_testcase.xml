@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="NVAD-E-0120-too-late — invalid variation">
+  <variation id="NVAD-E-0120-too-late_invalid" name="NVAD-E-0120-too-late_invalid">
+    <description>BasisPeriodEndDate set to 01/04/2026 (one day after the assessment year 2025/26 window end of 31/03/2026). Start date stays 01/04/2025; contexts retargeted to match so only NVAD-E-0120 fires.</description>
+    <data>
+      <instance readMeFirst="true">NVAD-E-0120-too-late_invalid.html</instance>
+    </data>
+    <result expected="invalid">
+      <error>IRD.NVAD-E-0120</error>
+    </result>
+  </variation>
+</testcase>

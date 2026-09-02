@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="NVAD-E-0150 — invalid variation">
+  <variation id="NVAD-E-0150_invalid" name="NVAD-E-0150_invalid">
+    <description>AccountingPeriodStartDate set to 31/03/2026 and AccountingPeriodEndDate set to 01/04/2025 (end earlier than start), triggering NVAD-E-0150.</description>
+    <data>
+      <instance readMeFirst="true">NVAD-E-0150_invalid.html</instance>
+    </data>
+    <result expected="invalid">
+      <error>IRD.NVAD-E-0150</error>
+    </result>
+  </variation>
+</testcase>

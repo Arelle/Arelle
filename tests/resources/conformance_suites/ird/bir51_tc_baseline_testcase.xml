@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="bir51_tc_baseline" description="BIR51 TC — Baseline (Minimal Valid)">
+  <variation id="bir51_tc_baseline" name="bir51_tc_baseline">
+    <description>A minimal but fully valid BIR51 tax computation. All mandatory items are present and correctly tagged. Every optional flag is false or omitted. Currency is HKD. Standard 12-month basis period ending 31 March 2026. No business commencement, cessation, offshore claim, or special regimes. Intended as the clean passing baseline and starting point for derived scenarios.</description>
+    <data>
+      <instance readMeFirst="true">bir51_tc_baseline.html</instance>
+      <instance readMeFirst="true">bir51_fs_hkfrs_baseline.html</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+</testcase>
