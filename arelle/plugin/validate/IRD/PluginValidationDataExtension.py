@@ -25,6 +25,8 @@ class PluginValidationDataExtension(PluginData):
     # Taxonomy entry point URIs (553-E rules)
     validTcEntryPoints: frozenset[str]
 
+    assessmentYear: int
+
     # Mandatory element sets (NVAD-E-0010, NVAD-E-0050)
     mandatoryTcBir51Qns: frozenset[QName]
     mandatoryTcBir52Qns: frozenset[QName]
@@ -37,6 +39,8 @@ class PluginValidationDataExtension(PluginData):
 
     # Identifiers & basis period
     companyNameQn: QName
+    irdFileNumberQn: QName
+    yearOfAssessmentQn: QName
     basisPeriodStartDateQn: QName
     basisPeriodEndDateQn: QName
 
@@ -44,6 +48,10 @@ class PluginValidationDataExtension(PluginData):
     hksicCodeQn: QName
     hksicCodeRegex: re.Pattern[str]     # r'^\d{6}$'
     validHksicCodes: frozenset[str]
+
+    # Compiled regexes
+    irdFileNumberRegex: re.Pattern[str]     # r'^\d{2}/\d{8}$'
+    yearOfAssessmentRegex: re.Pattern[str]  # r'^20(\d{2})/(\d{2})$'
 
     # Identity hash for caching.
     def __hash__(self) -> int:
