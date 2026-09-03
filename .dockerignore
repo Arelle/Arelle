@@ -34,6 +34,7 @@ tests/resources/conformance_suites/*
 !tests/resources/conformance_suites/dba_*
 !tests/resources/conformance_suites/edinet/
 !tests/resources/conformance_suites/HMRC/
+!tests/resources/conformance_suites/ird/
 !tests/resources/conformance_suites/nl_*/
 !tests/resources/conformance_suites/ros/
 tests/resources/packages/
