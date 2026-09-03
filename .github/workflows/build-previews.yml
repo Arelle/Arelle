@@ -106,7 +106,7 @@ jobs:
           mv "${{ needs.build-windows.outputs.zip_artifact_versioned_name }}" "$WINDOWS_ZIP_PREVIEW_NAME"
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v6.2.3
+        uses: aws-actions/configure-aws-credentials@v6.2.4
         with:
           role-to-assume: arn:aws:iam::494047596077:role/GitHubActionsArelleS3Upload
           aws-region: us-west-1
