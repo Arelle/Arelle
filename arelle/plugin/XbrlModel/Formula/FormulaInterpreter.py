@@ -722,7 +722,9 @@ def _itemSortKey(val: FormulaValue) -> tuple:
 
 def _formatCollectionItem(val: FormulaValue) -> str:
     if val.type == FormulaValueType.NONE:
-        return "None"
+        # The language's literal is `none`; rendering Python's spelling leaked
+        # the implementation into every message and expected value.
+        return "none"
     if val.type == FormulaValueType.DATE and isinstance(val.value, InstantValue):
         return format_instant(val.value)
     if val.type == FormulaValueType.DURATION and isinstance(val.value, DateRangeValue):
@@ -801,7 +803,7 @@ def _formatValue(val: FormulaValue) -> str:
         n = getattr(val.value, "name", val.value)
         return str(n)
     if val.type == FormulaValueType.NONE:
-        return "None"
+        return "none"
     if val.type == FormulaValueType.SKIP:
         return "skip"
     if val.type == FormulaValueType.BOOLEAN:

@@ -60,8 +60,15 @@ def _unwrapCollection(fv: FormulaValue) -> List[FormulaValue]:
 
 
 def _typeName(fv: FormulaValue, capitalizeNone: bool = False) -> str:
+    """The type name of a value, as a diagnostic names it.
+
+    `capitalizeNone` reproduced the reference Xule implementation's "None" in
+    some messages and "none" in others. The language's literal is `none`, so
+    that is what a diagnostic naming the type says; the parameter is kept so
+    call sites need not change, but is now ignored.
+    """
     if fv.type == FormulaValueType.NONE:
-        return "None" if capitalizeNone else "none"
+        return "none"
     return fv.type.name.lower()
 
 
@@ -893,7 +900,7 @@ def _fn_inlineTransform(args: List[FormulaValue], ctx: "FormulaRuleContext") -> 
         raise FormulaRuntimeError("inline-transform() requires two or three arguments")
     source = args[0]
     if source.type == FormulaValueType.NONE:
-        return FormulaValue(FormulaValueType.STRING, "None")
+        return FormulaValue(FormulaValueType.STRING, "none")
     src = _stringLike(source, "inline-transform")
     transform_name = args[1]
     if transform_name.type != FormulaValueType.QNAME:
