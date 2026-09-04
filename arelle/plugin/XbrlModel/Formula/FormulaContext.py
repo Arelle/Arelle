@@ -74,6 +74,7 @@ class FormulaGlobalContext:
         self.namespaces: Dict[str, str] = {}
         if hasattr(txmyMdl, "namespaces"):
             self.namespaces.update(txmyMdl.namespaces)
+        self.namespaces.update(self._modelNamespaces(txmyMdl))
         self.namespaces.update(ruleSet.namespaces)
         # CLI / parameter override for the default namespace (key ""), used by
         # --formula-default-namespace to re-aim unqualified concept refs at the
@@ -122,6 +123,27 @@ class FormulaGlobalContext:
             ]
             self.factCache[conceptQn] = matching
         return self.factCache[conceptQn]
+
+    @staticmethod
+    def _modelNamespaces(txmyMdl) -> Dict[str, str]:
+        """Prefix bindings declared by the loaded model's own documents.
+
+        The compiled model does not keep the documentInfo `namespaces` map as a
+        dict; the loader registers each binding on the document element, so the
+        document nsmaps are where a prefix a rule writes (`xbrl:parent-child`)
+        can be resolved.  Without this a prefixed QName whose prefix the rule set
+        did not itself declare silently resolves to a no-namespace QName.
+        """
+        out: Dict[str, str] = {}
+        for doc in (getattr(txmyMdl, "urlDocs", None) or {}).values():
+            root = getattr(doc, "xmlRootElement", None)
+            nsmap = getattr(root, "nsmap", None)
+            if not nsmap:
+                continue
+            for prefix, uri in nsmap.items():
+                if prefix and uri:
+                    out.setdefault(prefix, uri)
+        return out
 
     def resolveQName(self, prefix: str, localName: str) -> QName:
         """

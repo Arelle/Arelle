@@ -45,6 +45,14 @@ class FormulaValueType(Enum):
     CONCEPT = auto()        # XbrlConcept
     CUBE = auto()           # XbrlCube
     NETWORK = auto()        # XbrlNetwork
+    DOMAIN_NETWORK = auto() # XbrlDomainNetwork
+    RELATIONSHIP = auto()   # XbrlRelationship (with navigation context attached)
+    RELATIONSHIP_TYPE = auto()  # XbrlRelationshipType
+    GROUP = auto()          # XbrlGroup
+    CUBE_DIMENSION = auto() # XbrlCubeDimension
+    MEMBER = auto()         # XbrlMember
+    DIMENSION = auto()      # XbrlDimension
+    HEADING = auto()        # XbrlHeading
     TAXONOMY = auto()       # XbrlCompiledModel
     ENTITY = auto()         # entity aspect value (wraps QName: scheme=ns, id=local)
     UNIT_VALUE = auto()     # unit aspect value (tuple (numerator-qns, denominator-qns))

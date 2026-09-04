@@ -115,6 +115,35 @@ def _buildGrammar():
     asKw            = CaselessKeyword("as")
     nilDefaultKw    = CaselessKeyword("nildefault")
     coveredDimsKw   = CaselessKeyword("covered-dims")
+    noDupsKw        = CaselessKeyword("nodups")
+    dupsKw          = CaselessKeyword("dups")
+    navigateKw      = CaselessKeyword("navigate")
+    includeKw       = CaselessKeyword("include")
+    startKw         = CaselessKeyword("start")
+    fromKw          = CaselessKeyword("from")
+    toKw            = CaselessKeyword("to")
+    stopKw          = CaselessKeyword("stop")
+    whenKw          = CaselessKeyword("when")
+    acrossKw        = CaselessKeyword("across")
+    containersKw    = CaselessKeyword("containers")
+    networkKw       = CaselessKeyword("network")
+    domainKw        = CaselessKeyword("domain")
+    groupKw         = CaselessKeyword("group")
+    cubeKw          = CaselessKeyword("cube")
+    dimensionKw     = CaselessKeyword("dimension")
+    modelKw         = CaselessKeyword("model")
+    pathsKw         = CaselessKeyword("paths")
+    byKw            = CaselessKeyword("by")
+    listKw          = CaselessKeyword("list")
+    setKw           = CaselessKeyword("set")
+    # `across networks` is the XBRL Formula 1.0 spelling; domain networks are
+    # crossed too, so the specification renames it `across containers`.
+    networksKw      = CaselessKeyword("networks")
+    directionKw     = (CaselessKeyword("descendants") | CaselessKeyword("children")
+                       | CaselessKeyword("ancestors") | CaselessKeyword("parents")
+                       | CaselessKeyword("previous-siblings")
+                       | CaselessKeyword("next-siblings")
+                       | CaselessKeyword("siblings") | CaselessKeyword("self"))
 
     declKeywords = (assertKw | outputKw | namespaceKw | constantKw | functionKw | versionKw)
 
@@ -180,6 +209,13 @@ def _buildGrammar():
         (errorKw | warningKw | okKw | passKw).setResultsName("value")
     ).setResultsName("severity")
 
+    # instant / duration are literals, not QNames: a concept's periodType is a
+    # string, so without these `$c.periodType == duration` compares a string to
+    # a no-namespace QName and is quietly false.
+    periodTypeLiteral = Group(
+        (CaselessKeyword("instant") | CaselessKeyword("duration")).setResultsName("value")
+    ).setResultsName("periodType")
+
     # ---- Variable reference ----
     varRef = Group(
         Suppress(Literal("$")) + simpleName.setResultsName("varName")
@@ -243,7 +279,8 @@ def _buildGrammar():
 
     factQueryModifier = Group(
         (coveredDimsKw | coveredKw | uncoveredKw
-         | nilDefaultKw | nilsKw | nonilsKw).setResultsName("kw")
+         | nilDefaultKw | nilsKw | nonilsKw
+         | noDupsKw | dupsKw).setResultsName("kw")
     ).setResultsName("modifier", listAllMatches=True)
 
     factQueryWhere = Group(
@@ -292,6 +329,7 @@ def _buildGrammar():
         | coveredDimsKw | nilDefaultKw | asKw
         | errorKw | warningKw | okKw | passKw
         | whereKw | returnKw | filterKw
+        | navigateKw
         | declKeywords
     )
     funcCall = Group(
@@ -374,12 +412,89 @@ def _buildGrammar():
         + Opt(Suppress(returnKw) + blockExpr.setResultsName("returnExpr"))
     ).setResultsName("filterExpr")
 
+    # ---- Navigate expression (tavi-formula.md "Model Navigation") ----
+    #
+    #   navigate [relType] direction [depth]
+    #            ['include start'] ['from' e] ['to' e] ['stop when' e]
+    #            [scope] ['across containers'] ['model' e] ['where' e]
+    #            ['returns' returnSpec]
+    #
+    # The relationship type is optional and precedes the direction, so the
+    # direction keyword is what disambiguates the two: `navigate descendants`
+    # has no relationship type, `navigate xbrl:parent-child descendants` does.
+    # `expr` would swallow the direction keyword, so the optional type is
+    # matched as an atom that is explicitly not a direction.
+    _navRelType = Group(
+        (~directionKw + (qnameExpr | varRef | funcCall | setLiteral | listLiteral))
+    ).setResultsName("navRelType")
+
+    _navScope = Group(
+        (
+            (Suppress(networkKw) + expr.setResultsName("scopeValue")).setResultsName("network")
+            | (Suppress(domainKw) + expr.setResultsName("scopeValue")).setResultsName("domain")
+            | (Suppress(groupKw) + expr.setResultsName("scopeValue")).setResultsName("group")
+            | (Suppress(cubeKw) + expr.setResultsName("scopeValue")
+               + Opt(Suppress(dimensionKw) + expr.setResultsName("dimensionValue"))
+               ).setResultsName("cube")
+        )
+    ).setResultsName("navScope")
+
+    _navReturnComponent = Group(
+        (qnameExpr.setResultsName("qname")
+         + Group(ZeroOrMore(
+             Group(Suppress(Literal(".")) + simpleName.setResultsName("propName"))
+         )).setResultsName("propChain"))
+    ).setResultsName("component", listAllMatches=True)
+
+    _navReturnComponents = (
+        Suppress(Literal("(")) + delimited_list(_navReturnComponent) + Suppress(Literal(")"))
+    ) | _navReturnComponent
+
+    _navReturns = Group(
+        Suppress(returnKw)
+        + Opt(Suppress(byKw)
+              + (containersKw | CaselessKeyword("container") | networkKw | groupKw)
+              .setResultsName("by"))
+        + Opt((listKw | setKw).setResultsName("collection"))
+        + Opt(pathsKw.setResultsName("paths"))
+        + Opt(Group(_navReturnComponents).setResultsName("components"))
+        + Opt(Suppress(asKw) + (CaselessKeyword("dictionary") | listKw).setResultsName("as"))
+    ).setResultsName("navReturns")
+
+    # The clauses after the direction may be written in any order.  Requiring a
+    # fixed order costs nothing to parse but a great deal to use: an out-of-order
+    # clause does not fail, it ends the navigate expression early and the
+    # remaining text is read as a separate expression, so the query silently
+    # means something else.
+    _navClause = (
+        (Suppress(includeKw) + Suppress(startKw))
+            .setParseAction(lambda: True).setResultsName("includeStart")
+        | (Suppress(fromKw) + expr.setResultsName("fromValue"))
+        | (Suppress(toKw) + expr.setResultsName("toValue"))
+        | (Suppress(stopKw) + Suppress(whenKw) + expr.setResultsName("stopExpr"))
+        | _navScope
+        | (Suppress(acrossKw) + Suppress(containersKw | networksKw))
+            .setParseAction(lambda: True).setResultsName("acrossContainers")
+        | (Suppress(modelKw) + expr.setResultsName("modelValue"))
+        | (Suppress(whereKw) + expr.setResultsName("whereExpr"))
+        | _navReturns
+    )
+
+    navigateExpr = Group(
+        Suppress(navigateKw)
+        + Opt(_navRelType)
+        + directionKw.setResultsName("direction")
+        + Opt(intLiteral.setResultsName("depth"))
+        + ZeroOrMore(_navClause)
+    ).setResultsName("navigateExpr")
+
     # ---- Parenthesised expression ----
     parenExpr = Suppress(Literal("(")) + blockExpr + Suppress(Literal(")"))
 
     # ---- Atom ----
     atom = (
         factQuery
+        | navigateExpr
         | ifExpr
         | forExpr
         | filterExpr
@@ -391,6 +506,7 @@ def _buildGrammar():
         | noneLiteral
         | skipLiteral
         | severityLiteral
+        | periodTypeLiteral
         | stringLiteral
         | floatLiteral
         | intLiteral

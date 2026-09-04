@@ -390,7 +390,7 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
         if "base" in node or "props" in node:
             baseNode = None
             for namedKey in (
-                "funcCall", "varRef", "factQuery", "ifExpr", "forExpr",
+                "funcCall", "varRef", "factQuery", "navigateExpr", "ifExpr", "forExpr",
                 "filterExpr",
                 "setLiteral", "listLiteral", "boolean", "none", "skip",
                 "severity", "string", "qname",
@@ -442,6 +442,24 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
 
     exprName = node.get("exprName", "")
 
+    # ---- Navigate ----
+    # Dispatched before the base/props short-circuits below: pyparsing flattens
+    # a navigate node into a dict carrying `base` and `props` alongside
+    # `navigateExpr`, and those short-circuits would consume it as a bare atom.
+    if exprName == "navigateExpr" or "navigateExpr" in node:
+        result = _evalNavigate(node.get("navigateExpr", node), ctx)
+        propsField = node.get("props")
+        chain = propsField.get("_chain") if isinstance(propsField, dict) else None
+        if isinstance(chain, dict):
+            chain = [chain]
+        for step in chain or ():
+            if isinstance(step, ParseResults):
+                step = step.as_dict()
+            propName = step.get("propName") if isinstance(step, dict) else None
+            if propName:
+                result = getProperty(result, propName, [], ctx)
+        return result
+
     # ---- Atom-with-props short-circuit ----
     # When pyparsing has flattened an ``atomWithProps`` envelope into a dict
     # carrying both the base atom (e.g. ``qname``, ``funcCall``, ``base``)
@@ -484,6 +502,10 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
     if exprName == "severity" or "severity" in node:
         inner = node.get("severity", node)
         return FormulaValue(FormulaValueType.SEVERITY, inner.get("value", "error"))
+
+    if exprName == "periodType" or "periodType" in node:
+        inner = node.get("periodType", node)
+        return FormulaValue(FormulaValueType.STRING, str(inner.get("value", "")).lower())
 
     if exprName == "string" or "string" in node:
         # If the node also has a chained property access, hand off to the
@@ -544,6 +566,7 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
     # ---- Fact query ----
     if exprName == "factQuery" or "factQuery" in node:
         return _evalFactQuery(node.get("factQuery", node), ctx)
+
 
     # ---- Atom with property chain ----
     if exprName == "atomWithProps" or "atomWithProps" in node:
@@ -899,6 +922,12 @@ def _evalFactQuery(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
     if "nils" in modKws:        nilsMode = "nils"
     elif "nonils" in modKws:    nilsMode = "nonils"
     elif "nildefault" in modKws: nilsMode = "nildefault"
+    # Duplicate handling: a fact query de-duplicates by default, so that a total
+    # reported both in a table and parenthetically in narrative text yields one
+    # iteration rather than two.  See FormulaDuplicates.
+    dupsMode = None
+    if "nodups" in modKws:  dupsMode = "nodups"
+    elif "dups" in modKws:  dupsMode = "dups"
 
     # ---- Parse filters ----
     filtersRaw = body.get("filters", [])
@@ -1013,6 +1042,9 @@ def _evalFactQuery(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
                 continue
 
         matched.append(fact)
+
+    from .FormulaDuplicates import deduplicateFacts
+    matched = deduplicateFacts(matched, dupsMode)
 
     return FormulaValue(
         FormulaValueType.LIST,
@@ -2034,6 +2066,209 @@ def _buildMessage(rule, result: FormulaValue, ctx: FormulaRuleContext) -> str:
 # ---------------------------------------------------------------------------
 # Truthiness
 # ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Navigate expression
+# ---------------------------------------------------------------------------
+
+# Return components that name something about the traversal itself rather than a
+# property of the relationship object.
+_NAV_COMPONENTS = frozenset((
+    "source", "source-name", "target", "target-name", "order",
+    "relationship", "relationshipType", "relationshipTypeName",
+    "network", "domainNetwork", "container", "group",
+    "cube", "dimension", "cubeDimension",
+    "cycle", "navigation-depth", "navigation-order", "result-order",
+))
+
+
+def _navScopeOf(node: dict, ctx: FormulaRuleContext):
+    """Return (scopeKind, scopeValue, dimensionValue) for a navigate node."""
+    scope = node.get("navScope")
+    if not scope:
+        return None, None, None
+    if isinstance(scope, ParseResults):
+        scope = scope.as_dict() if scope.keys() else (scope[0] if len(scope) else None)
+    if not isinstance(scope, dict):
+        return None, None, None
+    # pyparsing keeps the scope-kind key (network/domain/group/cube) alongside
+    # the flattened scopeValue/dimensionValue, so the kind is read from which
+    # key is present and the values are read from the scope dict itself.
+    for kind in ("network", "domain", "group", "cube"):
+        if kind not in scope:
+            continue
+        dimNode = scope.get("dimensionValue") if kind == "cube" else None
+        return (
+            kind,
+            evaluateExpr(scope.get("scopeValue"), ctx),
+            evaluateExpr(dimNode, ctx) if dimNode is not None else None,
+        )
+    # A scope whose kind was flattened away carries no selection this evaluator
+    # can act on; treating it as unscoped is safer than guessing which of four
+    # selections the author meant.
+    return None, None, None
+
+
+def _evalNavigate(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
+    from .FormulaNavigate import navigate, NavRelationship
+
+    scopeKind, scopeValue, dimensionValue = _navScopeOf(node, ctx)
+
+    modelValue = node.get("modelValue")
+    mdl = None
+    if modelValue is not None:
+        mv = evaluateExpr(modelValue, ctx)
+        if mv.type == FormulaValueType.TAXONOMY:
+            mdl = mv.value
+
+    stopExpr = node.get("stopExpr")
+    stopFn = None
+    if stopExpr is not None:
+        def stopFn(nav, _expr=stopExpr):
+            child = ctx.childContext()
+            child.bindVariable("relationship", _navValue(nav, ctx))
+            return _isTruthy(evaluateExpr(_expr, child))
+
+    relTypeNode = node.get("navRelType")
+    relTypeValue = evaluateExpr(relTypeNode, ctx) if relTypeNode is not None else None
+
+    depth = node.get("depth")
+    spec = {
+        "direction": str(node.get("direction", "descendants")).lower(),
+        "depth": int(depth) if depth is not None else None,
+        "includeStart": bool(node.get("includeStart")),
+        "fromValue": evaluateExpr(node["fromValue"], ctx) if node.get("fromValue") is not None else None,
+        "toValue": evaluateExpr(node["toValue"], ctx) if node.get("toValue") is not None else None,
+        "stopFn": stopFn,
+        "scopeKind": scopeKind,
+        "scopeValue": scopeValue,
+        "dimensionValue": dimensionValue,
+        "acrossContainers": bool(node.get("acrossContainers")),
+        "model": mdl,
+        "relationshipType": relTypeValue,
+    }
+    navs = navigate(ctx, spec)
+
+    whereExpr = node.get("whereExpr")
+    if whereExpr is not None:
+        kept = []
+        for nav in navs:
+            child = ctx.childContext()
+            child.bindVariable("relationship", _navValue(nav, ctx))
+            if _isTruthy(evaluateExpr(whereExpr, child)):
+                kept.append(nav)
+        navs = kept
+
+    return _navResult(navs, node.get("navReturns"), ctx)
+
+
+def _navValue(nav, ctx) -> FormulaValue:
+    """Wrap a NavRelationship so `$relationship` reaches its properties."""
+    return FormulaValue(FormulaValueType.RELATIONSHIP, nav)
+
+
+def _navComponentValue(nav, name: str, propChain, ctx) -> FormulaValue:
+    from .FormulaProperties import getProperty
+    value = getProperty(_navValue(nav, ctx), name, [], ctx)
+    for step in propChain or ():
+        if isinstance(step, ParseResults):
+            step = step.as_dict()
+        propName = step.get("propName") if isinstance(step, dict) else None
+        if not propName:
+            continue
+        value = getProperty(value, propName, [], ctx)
+    return value
+
+
+def _navReturnSpec(returns):
+    """Normalise the parsed `returns` clause to plain Python."""
+    if returns is None:
+        return None
+    if isinstance(returns, ParseResults):
+        returns = returns.as_dict()
+    if not isinstance(returns, dict):
+        return None
+    comps = returns.get("components")
+    if isinstance(comps, ParseResults):
+        comps = comps.as_dict()
+    rawList = []
+    if isinstance(comps, dict):
+        c = comps.get("component")
+        rawList = c if isinstance(c, list) else ([c] if c else [])
+    elif isinstance(comps, list):
+        rawList = comps
+    parsed = []
+    for item in rawList:
+        if isinstance(item, ParseResults):
+            item = item.as_dict()
+        if not isinstance(item, dict):
+            continue
+        qn = item.get("qname")
+        if isinstance(qn, ParseResults):
+            qn = qn.as_dict()
+        name = None
+        if isinstance(qn, dict):
+            prefix = qn.get("prefix", "*")
+            local = qn.get("localName", "")
+            name = local if prefix in ("*", "", None) else f"{prefix}:{local}"
+        chain = item.get("propChain") or []
+        if isinstance(chain, ParseResults):
+            chain = list(chain)
+        parsed.append((name, chain))
+    return {
+        "by": returns.get("by"),
+        "collection": returns.get("collection"),
+        "paths": bool(returns.get("paths")),
+        "as": returns.get("as"),
+        "components": parsed,
+    }
+
+
+def _navResult(navs, returns, ctx) -> FormulaValue:
+    spec = _navReturnSpec(returns)
+
+    # No returns clause: the result is the set of target objects.
+    if spec is None or not spec["components"]:
+        if spec is None:
+            items = [_navComponentValue(nav, "target", None, ctx) for nav in navs]
+            return FormulaValue(FormulaValueType.SET, OrderedSet(items))
+        items = [_navComponentValue(nav, "target", None, ctx) for nav in navs]
+    else:
+        comps = spec["components"]
+        items = []
+        for nav in navs:
+            values = [_navComponentValue(nav, name, chain, ctx) for name, chain in comps]
+            items.append(values[0] if len(values) == 1
+                         else FormulaValue(FormulaValueType.LIST, values))
+
+    asDict = (spec or {}).get("as") == "dictionary"
+    if asDict and spec and len(spec["components"]) > 1:
+        out = {}
+        for nav in navs:
+            comps = spec["components"]
+            key = _navComponentValue(nav, comps[0][0], comps[0][1], ctx)
+            rest = [_navComponentValue(nav, n, c, ctx) for n, c in comps[1:]]
+            out[key] = rest[0] if len(rest) == 1 else FormulaValue(FormulaValueType.LIST, rest)
+        return FormulaValue(FormulaValueType.DICT, out)
+
+    by = (spec or {}).get("by")
+    if by:
+        buckets: dict = {}
+        for nav, item in zip(navs, items):
+            keyName = {"containers": "container", "container": "container",
+                       "network": "network", "group": "group"}.get(by, "container")
+            key = _navComponentValue(nav, keyName, None, ctx)
+            if key.type == FormulaValueType.NONE:
+                continue
+            buckets.setdefault(key, []).append(item)
+        return FormulaValue(FormulaValueType.DICT, {
+            k: FormulaValue(FormulaValueType.LIST, v) for k, v in buckets.items()
+        })
+
+    if (spec or {}).get("collection") == "list":
+        return FormulaValue(FormulaValueType.LIST, items)
+    return FormulaValue(FormulaValueType.SET, OrderedSet(items))
+
 
 def _isTruthy(val: FormulaValue) -> bool:
     """Return Python bool for a FormulaValue, following Xule semantics."""

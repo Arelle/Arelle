@@ -5,9 +5,25 @@ An Arelle plugin that evaluates rules and queries written in the
 loaded through the [XbrlModel](../) plugin.
 
 The language is specified in
-[`oim/specifications/oim-taxonomy/Formula/formula.md`](https://gitlab.xbrl.org/oim/oim/-/blob/spec-dev-1/specifications/oim-taxonomy/Formula/formula.md)
-and is a successor to XBRL Formula 1.0 with broader querying capabilities
-targeting the Xbrl Model 1.0 data model rather than XBRL 2.1 XML.
+[`oim/specifications/tavi-formula/tavi-formula.md`](https://gitlab.xbrl.org/oim/oim/-/blob/tavi-formula/specifications/tavi-formula/tavi-formula.md)
+(branch `tavi-formula`), a successor to XBRL Formula 1.0 that targets the
+[Tavi][tavi] model rather than XBRL 2.1 XML.
+
+That specification replaces the earlier `oim-formula.md` draft on branch
+`spec-dev-1`.  The changes that affect this implementation are:
+
+* **`navigate` is specified against Tavi's relationship containers.**  A
+  relationship lives in a network object or a domain network object; a group or
+  a cube *selects* containers rather than being traversed.  There is no
+  dimensional-navigation mode, because a cube's structure is cube dimension
+  objects — properties, not relationships.  See `FormulaNavigate.py`.
+* **`role` is replaced by four scope clauses** — `network`, `domain`, `group`,
+  `cube` — and `taxonomy` by `model`.
+* **Arc attributes are link properties.**  `weight` and `preferredLabel` are
+  reached as `property(xbrl:weight)` or by the property-name shorthand.
+* **Fact queries de-duplicate.**  See `FormulaDuplicates.py`.
+
+[tavi]: https://gitlab.xbrl.org/oim/oim/-/blob/master/specifications/tavi/tavi.md
 
 ---
 
@@ -446,6 +462,28 @@ Rule execution flow:
 
 ---
 
+### `FormulaNavigate.py`
+
+The `navigate` engine.  Selects relationship containers (network objects and
+domain network objects) from a scope clause, traverses them in the requested
+direction, and returns `NavRelationship` objects that carry the traversal
+context — container, cube, cube dimension, depth, sibling order — alongside the
+`XbrlRelationship`, because the same relationship reached two ways answers the
+return components differently.
+
+Relationships whose source is `xbrl:rootSource` anchor a network's roots and are
+never returned: they are an anchoring device, not model content.
+
+### `FormulaDuplicates.py`
+
+Duplicate resolution.  A fact query de-duplicates by default, so a total stated
+both in a table and parenthetically in narrative text yields one iteration
+rather than two.  The same rule resolves a fact object carrying several fact
+value objects.  Classification follows Tavi's duplicate fact validation:
+complete duplicates agree on value and decimals, consistent duplicates are
+numeric with intersecting rounding intervals, anything else is inconsistent.
+The `nodups` and `dups` fact-query modifiers override the default.
+
 ## Fact Alignment — Design and Performance
 
 ### The problem
@@ -567,21 +605,24 @@ add a branch in `getProperty()`.
 
 ## Testing
 
-The reference `.xule` test files live alongside the OIM Formula spec:
+The reference `.xule` test files live in the Tavi conformance suite, on the
+`tavi-formula` branch of the oim repository:
 
 ```
-oim/specifications/oim-taxonomy/Formula/base/
+oim/tests/oim-taxonomy/formula/
+├── README.md                   // index and status
+├── namespace.xule              // shared `namespace …` declarations
+├── constants.xule              // shared $INSTANCE1, $US-GAAP-2020 …
+├── functions.xule              // shared user-defined functions
 ├── factFunctions.xule          // FACT* fact-query tests
 ├── factFilters.xule
+├── navigate.xule               // NAV*/NAX* navigation tests
 ├── collectionFunctions.xule
-├── stringFunctions.xule
+├── strings.xule
 ├── numericalFunctions.xule
 ├── dateFunctions.xule
 ├── messages.xule
-├── constants.xule              // shared $INSTANCE1, $US-GAAP-2020 …
-├── namespace.xule              // shared `namespace …` declarations
-├── functions.xule              // shared user-defined functions
-└── base-taxonomy-2020.xule
+└── fixtures/                   // the models the tests evaluate against
 ```
 
 The individual fixture files typically depend on shared declarations from
@@ -593,11 +634,11 @@ included in the same ruleset run.
 ```sh
 python arelleCmdLine.py \
     --plugin 'XbrlModel|XbrlModel/Formula' \
-    --formula-ruleset oim/specifications/oim-taxonomy/Formula/base/namespace.xule \
-    --formula-ruleset oim/specifications/oim-taxonomy/Formula/base/constants.xule \
-    --formula-ruleset oim/specifications/oim-taxonomy/Formula/base/factFunctions.xule \
+    --formula-ruleset oim/tests/oim-taxonomy/formula/namespace.xule \
+    --formula-ruleset oim/tests/oim-taxonomy/formula/functions.xule \
+    --formula-ruleset oim/tests/oim-taxonomy/formula/factFunctions.xule \
     --formula-output-file /tmp/formula-results.out \
-    --file oim/specifications/oim-taxonomy/examples/aapl-10K-20250927-factset.json \
+    --file oim/tests/oim-taxonomy/formula/fixtures/aapl-10K-20250927-factset.json \
     --validate
 ```
 
@@ -609,7 +650,7 @@ set.  Results are written both to the Arelle log and (if specified) to the
 
 ```python
 from arelle.plugin.XbrlModel.Formula.FormulaParser import parseFormulaFile
-ruleSet = parseFormulaFile("oim/specifications/oim-taxonomy/Formula/base/factFunctions.xule")
+ruleSet = parseFormulaFile("oim/tests/oim-taxonomy/formula/factFunctions.xule")
 print(len(ruleSet.outputRules), "output rules parsed")
 ```
 

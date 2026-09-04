@@ -104,25 +104,32 @@ def _factPropDimensions(fact, args, ctx):
     })
 
 def _factPropValue(fact, args, ctx):
-    if fact.factValues:
-        fv = next(iter(fact.factValues))
-        return FormulaValue.fromScalar(fv.value)
-    return NONE_VALUE
+    # A fact may carry several fact value objects -- the same value located in a
+    # table and again in narrative text, or an amended value -- which resolve to
+    # one by the duplicate rules rather than by taking whichever came first.
+    from .FormulaDuplicates import effectiveFactValue
+    fv = effectiveFactValue(fact)
+    return FormulaValue.fromScalar(fv.value) if fv is not None else NONE_VALUE
 
 def _factPropDecimals(fact, args, ctx):
-    if fact.factValues:
-        fv = next(iter(fact.factValues))
-        return _wrap(getattr(fv, "decimals", None))
-    return NONE_VALUE
+    from .FormulaDuplicates import effectiveFactValue
+    fv = effectiveFactValue(fact)
+    return _wrap(getattr(fv, "decimals", None)) if fv is not None else NONE_VALUE
+
+def _factPropFactValues(fact, args, ctx):
+    return FormulaValue(FormulaValueType.SET, OrderedSet(
+        FormulaValue.fromScalar(getattr(fv, "value", None))
+        for fv in (getattr(fact, "factValues", None) or ())
+    ))
 
 def _factPropName(fact, args, ctx):
     return _wrap(getattr(fact, "name", None), FormulaValueType.QNAME)
 
 def _factPropIsNil(fact, args, ctx):
-    if fact.factValues:
-        fv = next(iter(fact.factValues))
-        return FormulaValue(FormulaValueType.BOOLEAN, fv.value is None)
-    return FormulaValue(FormulaValueType.BOOLEAN, False)
+    from .FormulaDuplicates import effectiveFactValue
+    fv = effectiveFactValue(fact)
+    return FormulaValue(FormulaValueType.BOOLEAN,
+                        fv is not None and fv.value is None)
 
 def _factPropDimension(fact, args, ctx):
     """fact.dimension(dimQName) → member value"""
@@ -211,6 +218,7 @@ FACT_PROPS: Dict[str, Callable] = {
     "concept":        _factPropConcept,
     "dimensions":     _factPropDimensions,
     "value":          _factPropValue,
+    "factValues":     _factPropFactValues,
     "decimals":       _factPropDecimals,
     "name":           _factPropName,
     "is-nil":         _factPropIsNil,
@@ -709,15 +717,68 @@ def _taxonomyProp(txmy, propName: str, args, ctx) -> FormulaValue:
             FormulaValue.fromScalar(d.name) for d in objs if hasattr(d, "name")
         ))
     if propName == "networks":
-        # networks($T)                       -> all networks
-        # networks($T, arcrole)              -> filter by arcrole (QName, shorthand, or arcrole URI)
-        # networks($T, arcrole, roleUri)     -> additionally filter by role URI
+        # networks()                    -> every network in the model
+        # networks(relationshipType)    -> networks of that relationship type
+        # networks(relationshipType, g) -> ...that group `g` contains
+        #
+        # tavi-formula.md changes the second parameter from a role URI (XBRL
+        # Formula 1.0) to a group QName: a network is already addressable by its
+        # own name through network(), so filtering by network name here would
+        # make the function redundant, whereas selecting a group is a selection
+        # no other function offers.
         arcArg = args[0].value if args else None
-        roleArg = args[1].value if len(args) > 1 else None
-        objs = list(txmy.filterNetworks(arcrole=arcArg, role=roleArg))
+        objs = list(txmy.filterNetworks(arcrole=arcArg))
+        if len(args) > 1 and args[1].type != FormulaValueType.NONE:
+            groupQn = args[1].value
+            if not isinstance(groupQn, QName):
+                groupQn = getattr(groupQn, "name", None)
+            wanted = set()
+            for mod in getattr(txmy, "xbrlModels", {}).values():
+                for gc in getattr(mod, "groupContents", ()) or ():
+                    if getattr(gc, "groupName", None) == groupQn:
+                        wanted.add(getattr(gc, "forObject", None))
+            objs = [n for n in objs if getattr(n, "name", None) in wanted]
         return FormulaValue(FormulaValueType.SET, OrderedSet(
             FormulaValue(FormulaValueType.NETWORK, n) for n in objs
         ))
+    if propName == "domainNetworks":
+        from XbrlModel.XbrlDimension import XbrlDomainNetwork
+        return FormulaValue(FormulaValueType.SET, OrderedSet(
+            FormulaValue(FormulaValueType.DOMAIN_NETWORK, d)
+            for d in txmy.filterNamedObjects(XbrlDomainNetwork)
+        ))
+    if propName == "groups":
+        from XbrlModel.XbrlGroup import XbrlGroup
+        return FormulaValue(FormulaValueType.SET, OrderedSet(
+            FormulaValue(FormulaValueType.GROUP, g)
+            for g in txmy.filterNamedObjects(XbrlGroup)
+        ))
+    if propName == "relationshipTypes":
+        from XbrlModel.XbrlNetwork import XbrlRelationshipType
+        return FormulaValue(FormulaValueType.SET, OrderedSet(
+            FormulaValue(FormulaValueType.RELATIONSHIP_TYPE, rt)
+            for rt in txmy.filterNamedObjects(XbrlRelationshipType)
+        ))
+    if propName == "members":
+        from XbrlModel.XbrlDimension import XbrlMember
+        return FormulaValue(FormulaValueType.SET, OrderedSet(
+            FormulaValue(FormulaValueType.MEMBER, m)
+            for m in txmy.filterNamedObjects(XbrlMember)
+        ))
+    if propName in ("network", "domainNetwork", "group"):
+        # Single-object lookups by QName.
+        if not args:
+            raise FormulaRuntimeError(f"model.{propName}() requires a QName argument")
+        from XbrlModel.XbrlDimension import XbrlDomainNetwork
+        from XbrlModel.XbrlGroup import XbrlGroup
+        from XbrlModel.XbrlNetwork import XbrlNetwork
+        cls, vtype = {
+            "network": (XbrlNetwork, FormulaValueType.NETWORK),
+            "domainNetwork": (XbrlDomainNetwork, FormulaValueType.DOMAIN_NETWORK),
+            "group": (XbrlGroup, FormulaValueType.GROUP),
+        }[propName]
+        obj = txmy.namedObjects.get(args[0].value)
+        return FormulaValue(vtype, obj) if isinstance(obj, cls) else NONE_VALUE
     if propName == "namespaces":
         return _wrapSet(getattr(txmy, "namespaces", {}).values())
     if propName == "entry-point":
@@ -794,6 +855,368 @@ def _cubeProp(cube, propName: str, args, ctx) -> FormulaValue:
     raise FormulaRuntimeError(f"Unknown cube property {propName!r}")
 
 
+
+# ---------------------------------------------------------------------------
+# Relationship, network, domain network, group and relationship type properties
+#
+# tavi-formula.md, "Object Data Model".  A property that yields a Tavi object
+# property's stated value carries that property's name; where the stated value
+# is a reference, a second property named without the `Name` suffix resolves it
+# to the object.
+# ---------------------------------------------------------------------------
+
+def _objValue(mdl, qn) -> FormulaValue:
+    """Wrap a model object QName as the typed FormulaValue for its object kind."""
+    if qn is None:
+        return NONE_VALUE
+    from XbrlModel.XbrlConcept import XbrlConcept
+    from XbrlModel.XbrlCube import XbrlCube
+    from XbrlModel.XbrlDimension import XbrlDimension, XbrlDomainNetwork, XbrlMember
+    from XbrlModel.XbrlGroup import XbrlGroup
+    from XbrlModel.XbrlHeading import XbrlHeading
+    from XbrlModel.XbrlNetwork import XbrlNetwork, XbrlRelationshipType
+
+    obj = mdl.namedObjects.get(qn) if mdl is not None else None
+    if obj is None:
+        # A relationship source or target need not resolve — xbrl:rootSource
+        # names no object, and a domain class root may be a built-in — so the
+        # QName itself is the value rather than an error.
+        return FormulaValue(FormulaValueType.QNAME, qn)
+    for cls, vtype in (
+        (XbrlConcept, FormulaValueType.CONCEPT),
+        (XbrlHeading, FormulaValueType.HEADING),
+        (XbrlMember, FormulaValueType.MEMBER),
+        (XbrlCube, FormulaValueType.CUBE),
+        (XbrlDimension, FormulaValueType.DIMENSION),
+        (XbrlDomainNetwork, FormulaValueType.DOMAIN_NETWORK),
+        (XbrlNetwork, FormulaValueType.NETWORK),
+        (XbrlGroup, FormulaValueType.GROUP),
+        (XbrlRelationshipType, FormulaValueType.RELATIONSHIP_TYPE),
+    ):
+        if isinstance(obj, cls):
+            return FormulaValue(vtype, obj)
+    return FormulaValue(FormulaValueType.QNAME, qn)
+
+
+def _propertyByQName(obj, qn) -> FormulaValue:
+    """The model-defined property value of `obj` whose propertyType is `qn`."""
+    for propObj in getattr(obj, "properties", None) or ():
+        if getattr(propObj, "property", None) == qn:
+            return FormulaValue.fromScalar(getattr(propObj, "value", None))
+    return NONE_VALUE
+
+
+def _propertyByLocalName(obj, localName: str) -> Optional[FormulaValue]:
+    """Property-name shorthand: match `localName` against property type local
+    names.  Returns None when nothing matches so the caller can go on to raise
+    a proper unknown-property error; raises when the name is ambiguous."""
+    matches = [p for p in (getattr(obj, "properties", None) or ())
+               if getattr(getattr(p, "property", None), "localName", None) == localName]
+    if not matches:
+        return None
+    if len(matches) > 1:
+        raise FormulaRuntimeError(
+            f"Property name {localName!r} matches more than one property type; "
+            f"use the QName form."
+        )
+    return FormulaValue.fromScalar(getattr(matches[0], "value", None))
+
+
+def _groupsOf(mdl, containerName) -> FormulaValue:
+    if containerName is None or mdl is None:
+        return FormulaValue(FormulaValueType.SET, OrderedSet())
+    from XbrlModel.XbrlGroup import XbrlGroup
+    out = OrderedSet()
+    for mod in getattr(mdl, "xbrlModels", {}).values():
+        for gc in getattr(mod, "groupContents", ()) or ():
+            if getattr(gc, "forObject", None) != containerName:
+                continue
+            grp = mdl.namedObjects.get(getattr(gc, "groupName", None))
+            if isinstance(grp, XbrlGroup):
+                out.add(FormulaValue(FormulaValueType.GROUP, grp))
+    return FormulaValue(FormulaValueType.SET, out)
+
+
+def _relationshipProp(nav, propName: str, args, ctx) -> FormulaValue:
+    """Properties of a relationship as reached by navigation.
+
+    `nav` is a FormulaNavigate.NavRelationship, which carries the traversal
+    context (container, cube, depth) alongside the XbrlRelationship, because the
+    same relationship reached two ways answers these differently.
+    """
+    from XbrlModel.XbrlDimension import XbrlDomainNetwork
+    from .FormulaNavigate import _domainMemberQn
+
+    mdl = ctx.txmyMdl
+    rel = nav.rel
+    container = nav.container
+
+    if propName in ("source",):
+        return _objValue(mdl, nav.source)
+    if propName in ("source-name", "sourceName"):
+        return FormulaValue(FormulaValueType.QNAME, nav.source) if nav.source is not None else NONE_VALUE
+    if propName in ("target",):
+        return _objValue(mdl, nav.target)
+    if propName in ("target-name", "targetName"):
+        return FormulaValue(FormulaValueType.QNAME, nav.target) if nav.target is not None else NONE_VALUE
+    if propName == "order":
+        o = getattr(rel, "order", None)
+        return FormulaValue.fromScalar(o if o is not None else 0)
+    if propName == "relationship":
+        return FormulaValue(FormulaValueType.RELATIONSHIP, nav)
+
+    if propName in ("relationshipType", "relationship-type"):
+        if isinstance(container, XbrlDomainNetwork):
+            # xbrl:domain-member has no relationship type object to resolve.
+            return NONE_VALUE
+        rt = getattr(container, "relationshipType", None)
+        return FormulaValue(FormulaValueType.RELATIONSHIP_TYPE, rt) if rt is not None else NONE_VALUE
+    if propName in ("relationshipTypeName", "relationship-type-name"):
+        if isinstance(container, XbrlDomainNetwork):
+            return FormulaValue(FormulaValueType.QNAME, _domainMemberQn(mdl))
+        rtn = getattr(container, "relationshipTypeName", None)
+        return FormulaValue(FormulaValueType.QNAME, rtn) if rtn is not None else NONE_VALUE
+
+    if propName == "network":
+        return (NONE_VALUE if isinstance(container, XbrlDomainNetwork)
+                else FormulaValue(FormulaValueType.NETWORK, container))
+    if propName in ("domainNetwork", "domain-network"):
+        return (FormulaValue(FormulaValueType.DOMAIN_NETWORK, container)
+                if isinstance(container, XbrlDomainNetwork) else NONE_VALUE)
+    if propName == "container":
+        vtype = (FormulaValueType.DOMAIN_NETWORK if isinstance(container, XbrlDomainNetwork)
+                 else FormulaValueType.NETWORK)
+        return FormulaValue(vtype, container)
+    if propName in ("group", "groups"):
+        grps = _groupsOf(mdl, getattr(container, "name", None))
+        if propName == "group":
+            items = list(grps.value)
+            return items[0] if items else NONE_VALUE
+        return grps
+
+    if propName == "cube":
+        return FormulaValue(FormulaValueType.CUBE, nav.cube) if nav.cube is not None else NONE_VALUE
+    if propName in ("cubeDimension", "cube-dimension"):
+        return (FormulaValue(FormulaValueType.CUBE_DIMENSION, nav.cubeDimension)
+                if nav.cubeDimension is not None else NONE_VALUE)
+    if propName == "dimension":
+        cd = nav.cubeDimension
+        return _objValue(mdl, getattr(cd, "dimension", None)) if cd is not None else NONE_VALUE
+
+    if propName == "cycle":
+        return FormulaValue(FormulaValueType.BOOLEAN, bool(nav.isCycle))
+    if propName in ("navigation-depth", "navigationDepth"):
+        return FormulaValue(FormulaValueType.INTEGER, nav.depth)
+    if propName in ("navigation-order", "navigationOrder"):
+        return FormulaValue(FormulaValueType.INTEGER, nav.navOrder)
+    if propName in ("result-order", "resultOrder"):
+        return FormulaValue(FormulaValueType.INTEGER, getattr(nav, "resultOrder", 0))
+    if propName in ("is-root-source", "isRootSource"):
+        from XbrlModel.XbrlConst import qnXbrlRootSource
+        return FormulaValue(FormulaValueType.BOOLEAN,
+                            getattr(rel, "source", None) == qnXbrlRootSource)
+    if propName == "properties":
+        return FormulaValue(FormulaValueType.SET, OrderedSet(
+            FormulaValue(FormulaValueType.PART, p)
+            for p in (getattr(rel, "properties", None) or ())
+        ))
+
+    # Property-name shorthand over the relationship's link properties, so that
+    # `weight` and `preferredLabel` reach xbrl:weight and xbrl:preferredLabel.
+    shorthand = _propertyByLocalName(rel, propName)
+    if shorthand is not None:
+        return shorthand
+    raise FormulaRuntimeError(f"Unknown relationship property {propName!r}")
+
+
+def _networkProp(nwk, propName: str, args, ctx) -> FormulaValue:
+    from XbrlModel.XbrlConst import qnXbrlRootSource
+    mdl = ctx.txmyMdl
+    if propName == "name":
+        return FormulaValue(FormulaValueType.QNAME, getattr(nwk, "name", None))
+    if propName in ("relationshipTypeName", "relationship-type-name"):
+        rtn = getattr(nwk, "relationshipTypeName", None)
+        return FormulaValue(FormulaValueType.QNAME, rtn) if rtn is not None else NONE_VALUE
+    if propName in ("relationshipType", "relationship-type"):
+        rt = getattr(nwk, "relationshipType", None)
+        return FormulaValue(FormulaValueType.RELATIONSHIP_TYPE, rt) if rt is not None else NONE_VALUE
+    if propName == "relationships":
+        from .FormulaNavigate import NavRelationship, _effectiveRelationships
+        rels = [r for r in _effectiveRelationships(mdl, nwk)
+                if getattr(r, "source", None) != qnXbrlRootSource]
+        return FormulaValue(FormulaValueType.SET, OrderedSet(
+            FormulaValue(FormulaValueType.RELATIONSHIP, NavRelationship(r, nwk)) for r in rels
+        ))
+    if propName in ("roots", "root-names"):
+        from .FormulaNavigate import _roots
+        qns = _roots(mdl, nwk)
+        if propName == "root-names":
+            return _wrapSet(qns)
+        return FormulaValue(FormulaValueType.SET, OrderedSet(_objValue(mdl, q) for q in qns))
+    if propName in ("sources", "targets", "concepts", "concept-names"):
+        from .FormulaNavigate import _effectiveRelationships
+        from XbrlModel.XbrlConcept import XbrlConcept
+        rels = [r for r in _effectiveRelationships(mdl, nwk)
+                if getattr(r, "source", None) != qnXbrlRootSource]
+        if propName == "sources":
+            qns = OrderedSet(getattr(r, "source", None) for r in rels)
+        elif propName == "targets":
+            qns = OrderedSet(getattr(r, "target", None) for r in rels)
+        else:
+            qns = OrderedSet()
+            for r in rels:
+                qns.add(getattr(r, "source", None))
+                qns.add(getattr(r, "target", None))
+            qns = OrderedSet(q for q in qns
+                             if isinstance(mdl.namedObjects.get(q), XbrlConcept))
+        if propName == "concept-names":
+            return _wrapSet(qns)
+        return FormulaValue(FormulaValueType.SET, OrderedSet(_objValue(mdl, q) for q in qns))
+    if propName in ("group", "groups"):
+        grps = _groupsOf(mdl, getattr(nwk, "name", None))
+        if propName == "group":
+            items = list(grps.value)
+            return items[0] if items else NONE_VALUE
+        return grps
+    if propName == "isExtensible":
+        return FormulaValue(FormulaValueType.BOOLEAN, bool(getattr(nwk, "isExtensible", True)))
+    if propName in ("label", "all-labels", "references"):
+        return _conceptLabel(nwk, propName, args, ctx) if propName != "references" \
+            else _conceptReferences(nwk, args, ctx)
+    if propName == "property":
+        return _propertyByQName(nwk, args[0].value) if args else NONE_VALUE
+    shorthand = _propertyByLocalName(nwk, propName)
+    if shorthand is not None:
+        return shorthand
+    raise FormulaRuntimeError(f"Unknown network property {propName!r}")
+
+
+def _domainNetworkProp(dom, propName: str, args, ctx) -> FormulaValue:
+    mdl = ctx.txmyMdl
+    if propName == "name":
+        return FormulaValue(FormulaValueType.QNAME, getattr(dom, "name", None))
+    if propName == "root":
+        return _objValue(mdl, getattr(dom, "root", None))
+    if propName == "relationships":
+        from .FormulaNavigate import NavRelationship, _effectiveRelationships
+        return FormulaValue(FormulaValueType.SET, OrderedSet(
+            FormulaValue(FormulaValueType.RELATIONSHIP, NavRelationship(r, dom))
+            for r in _effectiveRelationships(mdl, dom)
+        ))
+    if propName in ("members", "member-names"):
+        from .FormulaNavigate import _effectiveRelationships
+        qns = OrderedSet(getattr(r, "target", None)
+                         for r in _effectiveRelationships(mdl, dom))
+        if propName == "member-names":
+            return _wrapSet(qns)
+        return FormulaValue(FormulaValueType.SET, OrderedSet(_objValue(mdl, q) for q in qns))
+    if propName in ("relationshipTypeName", "relationship-type-name"):
+        from .FormulaNavigate import _domainMemberQn
+        return FormulaValue(FormulaValueType.QNAME, _domainMemberQn(mdl))
+    if propName in ("group", "groups"):
+        grps = _groupsOf(mdl, getattr(dom, "name", None))
+        if propName == "group":
+            items = list(grps.value)
+            return items[0] if items else NONE_VALUE
+        return grps
+    if propName == "isExtensible":
+        return FormulaValue(FormulaValueType.BOOLEAN, bool(getattr(dom, "isExtensible", True)))
+    if propName == "property":
+        return _propertyByQName(dom, args[0].value) if args else NONE_VALUE
+    shorthand = _propertyByLocalName(dom, propName)
+    if shorthand is not None:
+        return shorthand
+    raise FormulaRuntimeError(f"Unknown domainNetwork property {propName!r}")
+
+
+def _groupProp(grp, propName: str, args, ctx) -> FormulaValue:
+    mdl = ctx.txmyMdl
+    if propName == "name":
+        return FormulaValue(FormulaValueType.QNAME, getattr(grp, "name", None))
+    if propName in ("groupURI", "group-uri", "uri"):
+        return _wrap(getattr(grp, "groupURI", None))
+    if propName in ("label", "all-labels"):
+        return _conceptLabel(grp, propName, args, ctx)
+    if propName == "references":
+        return _conceptReferences(grp, args, ctx)
+    if propName in ("contents", "networks", "domainNetworks", "cubes", "tableTemplates"):
+        from XbrlModel.XbrlCube import XbrlCube
+        from XbrlModel.XbrlDimension import XbrlDomainNetwork
+        from XbrlModel.XbrlNetwork import XbrlNetwork
+        wanted = {"networks": XbrlNetwork, "domainNetworks": XbrlDomainNetwork,
+                  "cubes": XbrlCube}.get(propName)
+        gName = getattr(grp, "name", None)
+        out = OrderedSet()
+        for mod in getattr(mdl, "xbrlModels", {}).values():
+            for gc in getattr(mod, "groupContents", ()) or ():
+                if getattr(gc, "groupName", None) != gName:
+                    continue
+                qn = getattr(gc, "forObject", None)
+                obj = mdl.namedObjects.get(qn)
+                if wanted is not None and not isinstance(obj, wanted):
+                    continue
+                if propName == "tableTemplates":
+                    if type(obj).__name__ != "XbrlTableTemplate":
+                        continue
+                out.add(_objValue(mdl, qn))
+        return FormulaValue(FormulaValueType.SET, out)
+    if propName == "property":
+        return _propertyByQName(grp, args[0].value) if args else NONE_VALUE
+    shorthand = _propertyByLocalName(grp, propName)
+    if shorthand is not None:
+        return shorthand
+    raise FormulaRuntimeError(f"Unknown group property {propName!r}")
+
+
+def _relationshipTypeProp(rt, propName: str, args, ctx) -> FormulaValue:
+    if propName == "name":
+        return FormulaValue(FormulaValueType.QNAME, getattr(rt, "name", None))
+    if propName == "uri":
+        return _wrap(getattr(rt, "uri", None))
+    if propName in ("cycles", "cycles-allowed", "cyclesAllowed"):
+        return _wrap(getattr(rt, "cycles", None) or "none")
+    if propName in ("allowedLinkProperties", "requiredLinkProperties",
+                    "sourceObjects", "targetObjects"):
+        return _wrapSet(getattr(rt, propName, None) or ())
+    if propName in ("label", "all-labels"):
+        return _conceptLabel(rt, propName, args, ctx)
+    if propName == "references":
+        return _conceptReferences(rt, args, ctx)
+    raise FormulaRuntimeError(f"Unknown relationshipType property {propName!r}")
+
+
+def _cubeDimensionProp(cd, propName: str, args, ctx) -> FormulaValue:
+    mdl = ctx.txmyMdl
+    if propName == "dimension":
+        return _objValue(mdl, getattr(cd, "dimension", None))
+    if propName in ("dimensionName", "dimension-name"):
+        return FormulaValue(FormulaValueType.QNAME, getattr(cd, "dimension", None))
+    if propName == "domainNetwork":
+        return _objValue(mdl, getattr(cd, "domainNetwork", None))
+    if propName == "domainDataType":
+        return _objValue(mdl, getattr(cd, "domainDataType", None))
+    if propName in ("is-typed", "isTyped"):
+        return FormulaValue(FormulaValueType.BOOLEAN,
+                            getattr(cd, "domainDataType", None) is not None)
+    if propName in ("is-explicit", "isExplicit"):
+        return FormulaValue(FormulaValueType.BOOLEAN,
+                            getattr(cd, "domainDataType", None) is None)
+    if propName == "typedSort":
+        return _wrap(getattr(cd, "typedSort", None))
+    if propName == "optional":
+        return FormulaValue(FormulaValueType.BOOLEAN, bool(getattr(cd, "optional", False)))
+    if propName == "members":
+        try:
+            qns = cd.allowedMembers(mdl)
+        except Exception:
+            qns = ()
+        return FormulaValue(FormulaValueType.SET, OrderedSet(_objValue(mdl, q) for q in qns))
+    if propName == "cube":
+        cube = getattr(cd, "cube", None)
+        return FormulaValue(FormulaValueType.CUBE, cube) if cube is not None else NONE_VALUE
+    raise FormulaRuntimeError(f"Unknown cubeDimension property {propName!r}")
+
+
 # ---------------------------------------------------------------------------
 # Public dispatch entry point
 # ---------------------------------------------------------------------------
@@ -815,6 +1238,14 @@ _TYPE_NAMES = {
     FormulaValueType.CONCEPT:    "concept",
     FormulaValueType.CUBE:       "cube",
     FormulaValueType.NETWORK:    "network",
+    FormulaValueType.DOMAIN_NETWORK: "domainNetwork",
+    FormulaValueType.RELATIONSHIP:   "relationship",
+    FormulaValueType.RELATIONSHIP_TYPE: "relationshipType",
+    FormulaValueType.GROUP:      "group",
+    FormulaValueType.CUBE_DIMENSION: "cubeDimension",
+    FormulaValueType.MEMBER:     "member",
+    FormulaValueType.DIMENSION:  "dimension",
+    FormulaValueType.HEADING:    "heading",
     FormulaValueType.TAXONOMY:   "taxonomy",
     FormulaValueType.ENTITY:     "entity",
     FormulaValueType.UNIT_VALUE: "unit",
@@ -948,6 +1379,28 @@ def getProperty(
 
     if obj.type == FormulaValueType.CUBE:
         return _cubeProp(obj.value, propName, args, ctx)
+
+    if obj.type == FormulaValueType.RELATIONSHIP:
+        return _relationshipProp(obj.value, propName, args, ctx)
+
+    if obj.type == FormulaValueType.NETWORK:
+        return _networkProp(obj.value, propName, args, ctx)
+
+    if obj.type == FormulaValueType.DOMAIN_NETWORK:
+        return _domainNetworkProp(obj.value, propName, args, ctx)
+
+    if obj.type == FormulaValueType.GROUP:
+        return _groupProp(obj.value, propName, args, ctx)
+
+    if obj.type == FormulaValueType.RELATIONSHIP_TYPE:
+        return _relationshipTypeProp(obj.value, propName, args, ctx)
+
+    if obj.type == FormulaValueType.CUBE_DIMENSION:
+        return _cubeDimensionProp(obj.value, propName, args, ctx)
+
+    if obj.type in (FormulaValueType.MEMBER, FormulaValueType.HEADING,
+                    FormulaValueType.DIMENSION):
+        return _conceptProp(obj.value, propName, args, ctx)
 
     if propName == "random":
         raise FormulaRuntimeError("'random' is not a valid property.")

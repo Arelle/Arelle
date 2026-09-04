@@ -1143,17 +1143,23 @@ def _fn_taxonomy(args: List[FormulaValue], ctx: "FormulaRuleContext") -> Formula
     Loads (or retrieves from cache) a taxonomy by its entry-point URI.
     For the current report's taxonomy, call with no arguments.
     """
-    if not args:
-        # Return the current model's taxonomy
+    if not args or args[0].type == FormulaValueType.NONE:
+        # Return the model currently being evaluated
         return FormulaValue(FormulaValueType.TAXONOMY, ctx.txmyMdl)
+    # A model passed straight through -- model($INSTANCE1) -- is already the
+    # answer; only a URI needs loading.
+    if args[0].type == FormulaValueType.TAXONOMY:
+        return args[0]
     # Loading an external taxonomy requires Arelle's model loader
     uri = str(args[0].value)
     cntlr = ctx.globalCtx.cntlr
     if cntlr is None:
-        raise FormulaRuntimeError("taxonomy(uri) requires an Arelle controller")
-    from arelle import ModelDocument
+        raise FormulaRuntimeError("model(uri) requires an Arelle controller")
     from XbrlModel import castToXbrlCompiledModel
-    mdl = cntlr.modelManager.load(uri)
+    # The context's controller is a Cntlr in a CLI/GUI run and a ModelManager
+    # when the evaluator is driven directly, so accept either.
+    modelManager = getattr(cntlr, "modelManager", cntlr)
+    mdl = modelManager.load(uri)
     txmy = castToXbrlCompiledModel(mdl)
     return FormulaValue(FormulaValueType.TAXONOMY, txmy)
 
@@ -1574,12 +1580,15 @@ def _fn_clark(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaVal
 
 def _fn_model(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
     """
-    model(uri) → reference to an XBRL instance/model.
+    model()      → the model being evaluated
+    model(uri)   → the model at `uri`
 
-    Alias accepted by some test fixtures for `instance()`. Returns the
-    currently-loaded model; multi-instance support deferred.
+    tavi-formula.md replaces both `taxonomy()` and `instance()` with `model()`:
+    Tavi draws no distinction between a document carrying structure and one
+    carrying facts, so there is nothing for two functions to distinguish.
+    `taxonomy()` and `instance()` remain as deprecated aliases.
     """
-    return FormulaValue(FormulaValueType.TAXONOMY, ctx.txmyMdl)
+    return _fn_taxonomy(args, ctx)
 
 
 # ---------------------------------------------------------------------------
