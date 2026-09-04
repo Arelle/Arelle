@@ -612,6 +612,15 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
     if "leftExpr" in node and "rightExpr" in node:
         return _evalBinary(node, ctx)
 
+    # ---- Bare base wrapper ----
+    # A parenthesised expression carrying a property chain -- `(expr).prop` --
+    # is flattened to {"base": expr} once the chain has been peeled off for
+    # separate evaluation. Without this the node falls through to none, so
+    # `(navigate … ).length` and `(list(1,2)).length` both silently returned
+    # none while `$x.length` worked.
+    if "base" in node and len(node) == 1:
+        return evaluateExpr(node["base"], ctx)
+
     # ---- Unknown / passthrough ----
     return NONE_VALUE
 
@@ -2167,9 +2176,16 @@ def _navValue(nav, ctx) -> FormulaValue:
     return FormulaValue(FormulaValueType.RELATIONSHIP, nav)
 
 
-def _navComponentValue(nav, name: str, propChain, ctx) -> FormulaValue:
+def _navComponentValue(nav, name: str, propChain, ctx, prefix=None) -> FormulaValue:
     from .FormulaProperties import getProperty
-    value = getProperty(_navValue(nav, ctx), name, [], ctx)
+    if prefix:
+        # A prefixed return component names a link property of the relationship
+        # by QName -- `returns xbrl:weight` -- rather than a built-in component.
+        qn = ctx.globalCtx.resolveQName(prefix, name)
+        value = getProperty(_navValue(nav, ctx), "property",
+                            [FormulaValue(FormulaValueType.QNAME, qn)], ctx)
+    else:
+        value = getProperty(_navValue(nav, ctx), name, [], ctx)
     for step in propChain or ():
         if isinstance(step, ParseResults):
             step = step.as_dict()
@@ -2207,14 +2223,20 @@ def _navReturnSpec(returns):
         if isinstance(qn, ParseResults):
             qn = qn.as_dict()
         name = None
+        prefix = None
         if isinstance(qn, dict):
             prefix = qn.get("prefix", "*")
             local = qn.get("localName", "")
-            name = local if prefix in ("*", "", None) else f"{prefix}:{local}"
+            name = local
+            if prefix in ("*", "", None):
+                prefix = None
         chain = item.get("propChain") or []
         if isinstance(chain, ParseResults):
             chain = list(chain)
-        parsed.append((name, chain))
+        elif isinstance(chain, dict):
+            # a single accessor is collapsed to the accessor's own dict
+            chain = [chain]
+        parsed.append((name, chain, prefix))
     return {
         "by": returns.get("by"),
         "collection": returns.get("collection"),
@@ -2237,7 +2259,8 @@ def _navResult(navs, returns, ctx) -> FormulaValue:
         comps = spec["components"]
         items = []
         for nav in navs:
-            values = [_navComponentValue(nav, name, chain, ctx) for name, chain in comps]
+            values = [_navComponentValue(nav, name, chain, ctx, pfx)
+                      for name, chain, pfx in comps]
             items.append(values[0] if len(values) == 1
                          else FormulaValue(FormulaValueType.LIST, values))
 
@@ -2246,8 +2269,8 @@ def _navResult(navs, returns, ctx) -> FormulaValue:
         out = {}
         for nav in navs:
             comps = spec["components"]
-            key = _navComponentValue(nav, comps[0][0], comps[0][1], ctx)
-            rest = [_navComponentValue(nav, n, c, ctx) for n, c in comps[1:]]
+            key = _navComponentValue(nav, comps[0][0], comps[0][1], ctx, comps[0][2])
+            rest = [_navComponentValue(nav, n, c, ctx, pf) for n, c, pf in comps[1:]]
             out[key] = rest[0] if len(rest) == 1 else FormulaValue(FormulaValueType.LIST, rest)
         return FormulaValue(FormulaValueType.DICT, out)
 

@@ -46,6 +46,7 @@ class FormulaValueType(Enum):
     CUBE = auto()           # XbrlCube
     NETWORK = auto()        # XbrlNetwork
     DOMAIN_NETWORK = auto() # XbrlDomainNetwork
+    DOMAIN_CLASS = auto()   # XbrlDomainClass
     RELATIONSHIP = auto()   # XbrlRelationship (with navigation context attached)
     RELATIONSHIP_TYPE = auto()  # XbrlRelationshipType
     GROUP = auto()          # XbrlGroup

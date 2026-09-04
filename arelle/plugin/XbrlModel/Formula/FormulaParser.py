@@ -425,7 +425,7 @@ def _buildGrammar():
     # `expr` would swallow the direction keyword, so the optional type is
     # matched as an atom that is explicitly not a direction.
     _navRelType = Group(
-        (~directionKw + (qnameExpr | varRef | funcCall | setLiteral | listLiteral))
+        (~directionKw + (funcCall | varRef | setLiteral | listLiteral | qnameExpr))
     ).setResultsName("navRelType")
 
     _navScope = Group(

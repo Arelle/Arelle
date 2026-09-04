@@ -170,7 +170,7 @@ def selectContainers(ctx, scopeKind: Optional[str], scopeValue: Optional[Formula
     if scopeKind == "group":
         wanted = set(qns)
         out = []
-        for mod in getattr(mdl, "xbrlModels", {}).values():
+        for mod in (getattr(mdl, "xbrlModels", None) or {}).values():
             for gc in getattr(mod, "groupContents", ()) or ():
                 if getattr(gc, "groupName", None) not in wanted:
                     continue
@@ -223,29 +223,12 @@ def _relationshipTypeMatches(container, wanted: Optional[set], mdl) -> bool:
 # Traversal
 # ---------------------------------------------------------------------------
 
-def _relsFrom(mdl, container) -> Dict[QName, List[Any]]:
-    try:
-        return mdl.effectiveRelationshipsFrom(container)
-    except Exception:
-        return getattr(container, "relationshipsFrom", {}) or {}
-
-
-def _relsTo(mdl, container) -> Dict[QName, List[Any]]:
-    rels = _effectiveRelationships(mdl, container)
-    out: Dict[QName, List[Any]] = {}
-    rootQn = _rootSourceQn()
-    for rel in rels:
-        if getattr(rel, "source", None) == rootQn:
-            continue
-        out.setdefault(getattr(rel, "target", None), []).append(rel)
-    return out
 
 
 def _effectiveRelationships(mdl, container):
-    try:
-        return list(mdl.effectiveRelationships(container))
-    except Exception:
-        return list(getattr(container, "relationships", ()) or ())
+    if getattr(container, "relationships", None) is None:
+        return []
+    return list(mdl.effectiveRelationships(container))
 
 
 def _roots(mdl, container) -> List[QName]:
@@ -254,39 +237,58 @@ def _roots(mdl, container) -> List[QName]:
         root = getattr(container, "root", None)
         if root is not None:
             return [root]
-    try:
-        return list(mdl.effectiveRelationshipRoots(container))
-    except Exception:
-        return list(getattr(container, "relationshipRoots", ()) or ())
+    if getattr(container, "relationships", None) is None:
+        return []
+    return list(mdl.effectiveRelationshipRoots(container))
 
 
-def _ordered(rels: Iterable[Any]) -> List[Any]:
-    """Order relationships by their `order` property, stable within equal orders.
+
+# ---------------------------------------------------------------------------
+# Traversal
+#
+# Traversal runs over an *index* of source QName -> [(relationship, container,
+# cube, cubeDimension)] rather than over a container directly.  By default one
+# index is built per container, so a path stays inside the container it started
+# in.  With `across containers` a single index is built over every container in
+# scope and the traversal runs once over the union -- traversing each container
+# separately and merging afterwards would revisit the same relationship once per
+# container it could be reached from.
+# ---------------------------------------------------------------------------
+
+def _buildIndex(mdl, containers, forward=True) -> Dict[QName, List[tuple]]:
+    rootQn = _rootSourceQn()
+    index: Dict[QName, List[tuple]] = {}
+    for container, cube, cubeDim in containers:
+        for rel in _effectiveRelationships(mdl, container):
+            source = getattr(rel, "source", None)
+            if source == rootQn:
+                continue
+            key = source if forward else getattr(rel, "target", None)
+            index.setdefault(key, []).append((rel, container, cube, cubeDim))
+    return index
+
+
+def _orderedEntries(entries: Iterable[tuple]) -> List[tuple]:
+    """Order index entries by their relationship's `order`, stable within ties.
 
     A relationship with no stated order defaults to 0, so unordered
     relationships keep the order they appear in.
     """
-    indexed = list(enumerate(rels))
+    indexed = list(enumerate(entries))
+
     def key(pair):
-        i, rel = pair
+        i, (rel, _c, _cu, _cd) = pair
         o = getattr(rel, "order", None)
         return (Decimal(o) if o is not None else Decimal(0), i)
-    return [rel for _, rel in sorted(indexed, key=key)]
+
+    return [entry for _, entry in sorted(indexed, key=key)]
 
 
-def _descend(mdl, container, cube, cubeDim, startQn, maxDepth,
-             stopFn, acrossContainers, allContainers, results, visited, depth=1):
-    rootQn = _rootSourceQn()
-    relsFrom = _relsFrom(mdl, container)
-    outgoing = [r for r in relsFrom.get(startQn, ()) if getattr(r, "source", None) != rootQn]
-    if acrossContainers:
-        for other, oCube, oCd in allContainers:
-            if other is container:
-                continue
-            outgoing += [r for r in _relsFrom(mdl, other).get(startQn, ())
-                         if getattr(r, "source", None) != rootQn]
-    for navOrder, rel in enumerate(_ordered(outgoing), start=1):
-        key = (id(container), id(rel), getattr(rel, "target", None))
+def _walk(index, startQn, maxDepth, stopFn, results, visited, forward, depth=1):
+    for navOrder, (rel, container, cube, cubeDim) in enumerate(
+            _orderedEntries(index.get(startQn, ())), start=1):
+        nextQn = getattr(rel, "target" if forward else "source", None)
+        key = (id(rel), nextQn)
         isCycle = key in visited
         nav = NavRelationship(rel, container, cube, cubeDim,
                               depth=depth, navOrder=navOrder, isCycle=isCycle)
@@ -298,61 +300,28 @@ def _descend(mdl, container, cube, cubeDim, startQn, maxDepth,
         if maxDepth is not None and depth >= maxDepth:
             continue
         visited.add(key)
-        _descend(mdl, container, cube, cubeDim, getattr(rel, "target", None),
-                 maxDepth, stopFn, acrossContainers, allContainers,
-                 results, visited, depth + 1)
+        _walk(index, nextQn, maxDepth, stopFn, results, visited, forward, depth + 1)
         visited.discard(key)
 
 
-def _ascend(mdl, container, cube, cubeDim, startQn, maxDepth,
-            stopFn, acrossContainers, allContainers, results, visited, depth=1):
-    relsTo = _relsTo(mdl, container)
-    incoming = list(relsTo.get(startQn, ()))
-    if acrossContainers:
-        for other, oCube, oCd in allContainers:
-            if other is container:
-                continue
-            incoming += list(_relsTo(mdl, other).get(startQn, ()))
-    for navOrder, rel in enumerate(_ordered(incoming), start=1):
-        key = (id(container), id(rel), getattr(rel, "source", None))
-        isCycle = key in visited
-        nav = NavRelationship(rel, container, cube, cubeDim,
-                              depth=depth, navOrder=navOrder, isCycle=isCycle)
-        results.append(nav)
-        if isCycle:
-            continue
-        if stopFn is not None and stopFn(nav):
-            continue
-        if maxDepth is not None and depth >= maxDepth:
-            continue
-        visited.add(key)
-        _ascend(mdl, container, cube, cubeDim, getattr(rel, "source", None),
-                maxDepth, stopFn, acrossContainers, allContainers,
-                results, visited, depth + 1)
-        visited.discard(key)
-
-
-def _siblings(mdl, container, cube, cubeDim, startQn, which, results):
+def _siblings(mdl, containers, startQn, which, results):
     """Relationships sharing a parent with the relationships targeting startQn."""
-    relsTo = _relsTo(mdl, container)
-    relsFrom = _relsFrom(mdl, container)
-    rootQn = _rootSourceQn()
-    for parentRel in relsTo.get(startQn, ()):
+    fromIndex = _buildIndex(mdl, containers, forward=True)
+    toIndex = _buildIndex(mdl, containers, forward=False)
+    for parentRel, container, cube, cubeDim in toIndex.get(startQn, ()):
         parentQn = getattr(parentRel, "source", None)
-        sibs = _ordered([r for r in relsFrom.get(parentQn, ())
-                         if getattr(r, "source", None) != rootQn])
+        sibs = _orderedEntries(fromIndex.get(parentQn, ()))
         try:
-            atIdx = next(i for i, r in enumerate(sibs)
-                         if getattr(r, "target", None) == startQn)
+            atIdx = next(i for i, (rel, _c, _cu, _cd) in enumerate(sibs)
+                         if getattr(rel, "target", None) == startQn)
         except StopIteration:
             continue
         if which == "previous-siblings":
             sibs = sibs[:atIdx]
         elif which == "next-siblings":
             sibs = sibs[atIdx + 1:]
-        for navOrder, rel in enumerate(sibs, start=1):
-            results.append(NavRelationship(rel, container, cube, cubeDim,
-                                           depth=1, navOrder=navOrder))
+        for navOrder, (rel, c, cu, cd) in enumerate(sibs, start=1):
+            results.append(NavRelationship(rel, c, cu, cd, depth=1, navOrder=navOrder))
 
 
 def navigate(ctx, spec: Dict[str, Any]) -> List[NavRelationship]:
@@ -380,27 +349,44 @@ def navigate(ctx, spec: Dict[str, Any]) -> List[NavRelationship]:
     includeStart = bool(spec.get("includeStart"))
 
     results: List[NavRelationship] = []
-    for container, cube, cubeDim in containers:
-        starts = fromQns if fromQns is not None else _roots(mdl, container)
+    # `across containers` traverses the in-scope containers as one graph;
+    # otherwise each container is traversed on its own.
+    containerGroups = [containers] if acrossContainers else [[c] for c in containers]
+
+    for group in containerGroups:
+        if not group:
+            continue
+        forward = direction in ("descendants", "children")
+        index = _buildIndex(mdl, group, forward=forward) \
+            if direction not in ("siblings", "previous-siblings", "next-siblings", "self") \
+            else None
+        starts = fromQns
+        if starts is None:
+            starts = []
+            for container, _cube, _cd in group:
+                starts.extend(_roots(mdl, container))
         for startQn in starts:
             if startQn is None:
                 continue
+            container, cube, cubeDim = group[0]
             if includeStart:
                 results.append(NavRelationship(_StartRel(startQn), container, cube, cubeDim,
                                                depth=0, navOrder=0, isStart=True))
+            if maxDepth == 0 and direction in ("descendants", "ancestors"):
+                # A depth of 0 selects nothing; `include start` still applies.
+                continue
             if direction in ("descendants", "children"):
-                _descend(mdl, container, cube, cubeDim, startQn,
-                         1 if direction == "children" else maxDepth,
-                         stopFn, acrossContainers, containers, results, set())
+                _walk(index, startQn, 1 if direction == "children" else maxDepth,
+                      stopFn, results, set(), forward=True)
             elif direction in ("ancestors", "parents"):
-                _ascend(mdl, container, cube, cubeDim, startQn,
-                        1 if direction == "parents" else maxDepth,
-                        stopFn, acrossContainers, containers, results, set())
+                _walk(index, startQn, 1 if direction == "parents" else maxDepth,
+                      stopFn, results, set(), forward=False)
             elif direction in ("siblings", "previous-siblings", "next-siblings"):
-                _siblings(mdl, container, cube, cubeDim, startQn, direction, results)
+                _siblings(mdl, group, startQn, direction, results)
             elif direction == "self":
-                for rel in _relsTo(mdl, container).get(startQn, ()):
-                    results.append(NavRelationship(rel, container, cube, cubeDim, depth=0))
+                toIndex = _buildIndex(mdl, group, forward=False)
+                for rel, c, cu, cd in toIndex.get(startQn, ()):
+                    results.append(NavRelationship(rel, c, cu, cd, depth=0))
 
     if toQns is not None:
         results = _prunePathsTo(results, toQns)

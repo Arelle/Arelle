@@ -1164,6 +1164,37 @@ def _fn_taxonomy(args: List[FormulaValue], ctx: "FormulaRuleContext") -> Formula
     return FormulaValue(FormulaValueType.TAXONOMY, txmy)
 
 
+def _fn_denone(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+    """
+    denone(collection) -> the collection with its none items removed.
+
+    Navigation and property projection legitimately yield none for items a
+    property does not apply to -- a relationship in a domain network has no
+    relationship type object, a relationship with no preferred label has no
+    xbrl:preferredLabel -- so a rule interested in the items that do have a
+    value needs a way to drop the rest.
+    """
+    if len(args) != 1:
+        raise FormulaRuntimeError(
+            f"The 'denone' function must have only 1 argument, found {len(args)}."
+        )
+    coll = args[0]
+    if coll.type == FormulaValueType.SET:
+        return FormulaValue(FormulaValueType.SET, OrderedSet(
+            item for item in coll.value
+            if not (isinstance(item, FormulaValue) and item.type == FormulaValueType.NONE)
+        ))
+    if coll.type == FormulaValueType.LIST:
+        return FormulaValue(FormulaValueType.LIST, [
+            item for item in coll.value
+            if not (isinstance(item, FormulaValue) and item.type == FormulaValueType.NONE)
+        ])
+    raise FormulaRuntimeError(
+        f"The first argument of function 'denone' must be set, list, "
+        f"found {_TYPE_LABEL.get(coll.type, coll.type.name.lower())!r}."
+    )
+
+
 # ---------------------------------------------------------------------------
 # Alignment function
 # ---------------------------------------------------------------------------
@@ -1892,6 +1923,7 @@ BUILTIN_FUNCTIONS: Dict[str, Callable] = {
     "trunc":            _fn_trunc,
     "random":           _fn_random,
     # Taxonomy / model
+    "denone":           _fn_denone,
     "taxonomy":         _fn_taxonomy,
     # Alignment
     "alignment":        _fn_alignment,    # Date/time
