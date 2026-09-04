@@ -7,23 +7,174 @@ from arelle.XbrlConst import xsd
 
 # MERGE TO arelle.XbrlConst when promoting plugin to infrastructure
 
-oimTaxonomyDocTypePattern = re.compile(r"\s*\{.*\"documentType\"\s*:\s*\"https://xbrl.org/[0-9]{4}/(?:module|compiled|archive|labelBundle|referenceBundle)\"", flags=re.DOTALL)
+# Sniffs a candidate OIM taxonomy document. Accepts any status date -- including
+# the specification's own template -- so that recognition and acceptance are
+# separate decisions: a document with an unknown date is recognised here and then
+# reported against the namespace policy, rather than as an unknown document type.
+oimTaxonomyDocTypePattern = re.compile(r"\s*\{.*\"documentType\"\s*:\s*\"https://xbrl.org/[^\"/]+/(?:module|compiled|archive|labelBundle|referenceBundle)\"", flags=re.DOTALL)
 # Bundle doctypes: a labelBundle contains only label objects, a referenceBundle only reference objects
 # (oim-taxonomy §bundle module constraints). "bundle" was renamed to "labelBundle" (2026-07-17).
-oimLabelBundleDocType = "https://xbrl.org/2026/labelBundle"
-oimReferenceBundleDocType = "https://xbrl.org/2026/referenceBundle"
+# ---------------------------------------------------------------------------
+# Dated specification namespaces
+#
+# A specification namespace carries a status date that moves as the spec goes
+# PWD -> CR -> REC, and the specification source itself carries a template in
+# place of a date until one is settled -- which may be a year of review away.
+# A document under development may legitimately use any of these; strictly, only
+# a REC date is legitimate in production, and a specification revised after
+# publication will have more than one REC date.
+#
+# The legacy arelle.XbrlConst idiom for this is a constant per date unioned into
+# acceptance sets (see qnEnumerationItemType2014 / 2020 / YYYY). It works, but
+# every new date touches every set *and* every comparison site, because a site
+# must then test set membership rather than equality.
+#
+# Here a recognised date is instead folded onto one canonical namespace as a
+# document is read, so the ~111 `qname(xbrl, ...)` sites downstream keep
+# comparing a single constant, and adding a date is a table entry.
+#
+# The fold is only sound where the dates mean the same thing, which is true of
+# every pre-REC date: they are all "the specification we implement now". A
+# future REC that changes meaning would NOT be an alias, and would need the
+# model to record which era it was loaded as so that behaviour can branch. That
+# seam is deliberately left until there is a second REC to be concrete about.
+# ---------------------------------------------------------------------------
+
+STATUS_TEMPLATE = "template"
+STATUS_PWD = "pwd"
+STATUS_CR = "cr"
+STATUS_REC = "rec"
+
+# The date this build emits, and that date's standing.
+statusDate = "2026"
+statusDateStatus = STATUS_PWD
+
+# Date token -> standing. The template is a syntactically legal URI path segment
+# (its characters are RFC 3986 sub-delims and unreserved), so it needs no
+# handling beyond appearing here.
+#
+# Only Tavi-era dates belong in this table. XBRL 2.1-era namespaces that happen
+# to carry a year -- xbrl.org/2003/instance, /2020/extensible-enumerations-2.0,
+# /2021/oim-common/error -- are fixed by their own specifications and MUST NOT
+# be folded.
+recognisedStatusDates = {
+    "((~status_date_uri~))": STATUS_TEMPLATE,
+    "2025": STATUS_PWD,
+    "2026": STATUS_PWD,
+}
+
+# Paths hanging off a dated https://xbrl.org/<date> stem, listed explicitly so
+# that an unrelated xbrl.org URI is never rewritten by accident.
+datedNamespacePaths = frozenset((
+    "",                                     # the xbrl namespace itself
+    "/report", "/model", "/ref", "/utr", "/transform-types",
+    "/oimtaxonomy/error", "/oimtaxonomy/calculation/error",
+    "/oimtaxonomy/documentation", "/accounting",
+    # documentType values share the stem and fold by the same rule
+    "/module", "/compiled", "/archive", "/labelBundle", "/referenceBundle",
+))
+
+# Which standings a policy accepts as input.
+namespacePolicies = {
+    "production": (STATUS_REC,),
+    "draft": (STATUS_REC, STATUS_CR, STATUS_PWD),
+    "development": (STATUS_REC, STATUS_CR, STATUS_PWD, STATUS_TEMPLATE),
+}
+# No REC exists yet, so a production default would accept nothing. Change this
+# to "production" once the specification is published.
+defaultNamespacePolicy = "development"
+
+# Irregular aliases: a namespace whose canonical form does not follow the dated
+# stem, so the fold cannot derive it. The accounting domain is here because
+# tavi.md writes it dated -- https://xbrl.org/<date>/accounting -- while the
+# shipped xbrla.json declares it undated as http://xbrl.org/accounting. Both
+# spellings are accepted, and mapped to the resource's, until the two are
+# reconciled; then this entry goes away.
+irregularNamespaceAliases = {
+    "/accounting": "http://xbrl.org/accounting",
+}
+
+_datedNamespacePattern = re.compile(
+    r"^https://xbrl\.org/(?P<date>[^/]+)(?P<path>/.*)?$")
+
+
+def datedNamespaceParts(uri):
+    """Split a dated specification namespace into (date, path), or None.
+
+    None for anything that is not https://xbrl.org/<date><knownPath>, which
+    leaves XBRL 2.1-era and undated namespaces untouched.
+    """
+    if not isinstance(uri, str):
+        return None
+    match = _datedNamespacePattern.match(uri)
+    if match is None:
+        return None
+    path = match.group("path") or ""
+    if path not in datedNamespacePaths:
+        return None
+    return match.group("date"), path
+
+
+def namespaceStatus(uri):
+    """The standing of a dated namespace's date, or None if it is not one."""
+    parts = datedNamespaceParts(uri)
+    return None if parts is None else recognisedStatusDates.get(parts[0])
+
+
+def normalizeNamespace(uri, policy=None):
+    """Fold a recognised dated namespace onto the canonical date.
+
+    Returns (uri, status). `status` is None where the URI is not a dated
+    specification namespace, in which case it is returned unchanged. An
+    unrecognised date is also returned unchanged, so that it reaches the
+    caller's own error reporting rather than being quietly accepted.
+    """
+    parts = datedNamespaceParts(uri)
+    if parts is None:
+        return uri, None
+    date, path = parts
+    status = recognisedStatusDates.get(date)
+    if status is None:
+        return uri, None
+    if not isAcceptedNamespaceStatus(status, policy):
+        return uri, status
+    irregular = irregularNamespaceAliases.get(path)
+    if irregular is not None:
+        return irregular, status
+    return f"https://xbrl.org/{statusDate}{path}", status
+
+
+def isAcceptedNamespaceStatus(status, policy=None):
+    if status is None:
+        return True
+    accepted = namespacePolicies.get(policy or defaultNamespacePolicy,
+                                     namespacePolicies[defaultNamespacePolicy])
+    return status in accepted
+
+
+def isOimTaxonomyDocType(documentType, policy=None):
+    """Whether a documentType names an OIM taxonomy document, at any known date."""
+    normalized, _status = normalizeNamespace(documentType, policy)
+    return normalized in oimTaxonomyDocTypes
+
+
+oimLabelBundleDocType = f"https://xbrl.org/{statusDate}/labelBundle"
+oimReferenceBundleDocType = f"https://xbrl.org/{statusDate}/referenceBundle"
 oimBundleDocTypes = (oimLabelBundleDocType, oimReferenceBundleDocType)
 oimTaxonomyDocTypes = (
-        "https://xbrl.org/2026/module",
-        "https://xbrl.org/2026/compiled",
-        "https://xbrl.org/2026/archive",
+        f"https://xbrl.org/{statusDate}/module",
+        f"https://xbrl.org/{statusDate}/compiled",
+        f"https://xbrl.org/{statusDate}/archive",
         oimLabelBundleDocType,
         oimReferenceBundleDocType,
     )
 
-xbrl = "https://xbrl.org/2026"
+xbrl = f"https://xbrl.org/{statusDate}"
+# The accounting domain namespace is deliberately undated: it is a domain model
+# rather than a specification, so it does not move with the specification's
+# status date. tavi.md documents it as dated; the two should reconcile.
 xbrla = "http://xbrl.org/accounting"
-xbrlr = "https://xbrl.org/2026/report"
+xbrlr = f"https://xbrl.org/{statusDate}/report"
 # Provisional terms implemented ahead of the specification (see resources/xbrlx.json).
 # Deliberately not an xbrl.org URI: these are not sanctioned by the standards body,
 # and naming them under one would misrepresent their status.
@@ -38,12 +189,12 @@ reservedPrefixNamespaces = {
     "enum2": "https://xbrl.org/2020/extensible-enumerations-2.0",
     "oimce": "https://xbrl.org/2021/oim-common/error",
     "oime": "http://www.xbrl.org/2021/oim/error",
-    "oimte": "https://xbrl.org/2025/oimtaxonomy/error",
+    "oimte": f"https://xbrl.org/{statusDate}/oimtaxonomy/error",
     "iso4217": "http://www.xbrl.org/2003/iso4217",
     "lei": "http://standards.iso.org/iso/17442",
-    "utr": "https://xbrl.org/2025/utr",
-    "ref": "https://xbrl.org/2025/ref",
-    "xbrltt": "https://xbrl.org/2026/transform-types",
+    "utr": f"https://xbrl.org/{statusDate}/utr",
+    "ref": f"https://xbrl.org/{statusDate}/ref",
+    "xbrltt": f"https://xbrl.org/{statusDate}/transform-types",
     "xbrlx": xbrlx
     }
 

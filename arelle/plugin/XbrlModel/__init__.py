@@ -152,7 +152,11 @@ from .ValidateFacts import validateDateResolutionConceptFacts, validateCompleteR
 from .SelectImportedObjects import validateImportSelections, applyDeferredImportPruning
 from .ModelValueMore import SQName, QNameAt
 from .ViewXbrlTaxonomyObject import viewXbrlTaxonomyObject, viewXbrlObjectJson, findObjects, XbrlCubeFacts
-from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, oimBundleDocTypes, oimReferenceBundleDocType, xbrlTaxonomyObjects
+from .XbrlConst import (xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, oimBundleDocTypes,
+                        oimReferenceBundleDocType, xbrlTaxonomyObjects,
+                        isOimTaxonomyDocType, normalizeNamespace, namespaceStatus,
+                        isAcceptedNamespaceStatus, defaultNamespacePolicy, statusDate,
+                        namespacePolicies)
 from .ParseSelectionWhereClause import parseSelectionWhereClause
 from .LoadCsvTable import csvTableRowFacts
 from .SaveModel import xbrlModelSave, saveFiles
@@ -418,7 +422,8 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         errPrefix = "oime"
         moduleFileObj = None
         try:
-            if isinstance(moduleFile, dict) and moduleFile.get("documentInfo",{}).get("documentType") in oimTaxonomyDocTypes:
+            if isinstance(moduleFile, dict) and isOimTaxonomyDocType(
+                    moduleFile.get("documentInfo",{}).get("documentType")):
                 moduleFileObj = moduleFile
                 # A dict module carries no filename of its own; use the caller-supplied
                 # mappedUri (e.g. a report entry point, or a compiled legacy DTS url) for
@@ -467,6 +472,12 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             raise OIMException("{}:noFile".format(errPrefix),
                     "File not loaded for schema validation: %(file)s",
                     file=moduleFile)
+        # Fold recognised specification status dates onto the canonical one before
+        # schema validation: the JSON schema pins the documentType enum to a single
+        # date, so a document written against the specification's own date template
+        # would otherwise be rejected as invalid JSON structure rather than being
+        # read. See XbrlConst "Dated specification namespaces".
+        _foldStatusDates(moduleFileObj, modelXbrl, moduleFile, error)
         if jsonschemaValidator is None:
             cntlr.showStatus(_("Loading schema validator schema file"))
             with io.open(OIMT_SCHEMA, mode="rt", encoding="utf-8") as fh:
@@ -606,11 +617,24 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
             error("oimce:unsupportedDocumentType",
                   _("/documentInfo/docType is missing."),
                   file=moduleFile)
-        elif documentType not in oimTaxonomyDocTypes:
-            error("oimce:unsupportedDocumentType",
-                  _("Unrecognized /documentInfo/docType: %(documentType)s"),
-                  file=moduleFile, documentType=documentType)
+        elif not isOimTaxonomyDocType(documentType, _namespacePolicy(modelXbrl)):
+            status = namespaceStatus(documentType)
+            if status is not None:
+                # Recognised document type, but its status date is not one this
+                # policy accepts -- a different report from "unrecognised".
+                error("oimce:unsupportedDocumentType",
+                      _("/documentInfo/docType %(documentType)s has status '%(status)s', "
+                        "which the '%(policy)s' namespace policy does not accept."),
+                      file=moduleFile, documentType=documentType, status=status,
+                      policy=_namespacePolicy(modelXbrl))
+            else:
+                error("oimce:unsupportedDocumentType",
+                      _("Unrecognized /documentInfo/docType: %(documentType)s"),
+                      file=moduleFile, documentType=documentType)
             return {}
+        else:
+            documentType, _dtStatus = normalizeNamespace(
+                documentType, _namespacePolicy(modelXbrl))
 
         # report loadDict errors
         for msgCode, msgText, kwargs in loadDictErrors:
@@ -653,8 +677,13 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         namespacePrefixes = {}
         prefixNamespaces = {}
         namespaceUrls = {}
+        nsPolicy = _namespacePolicy(modelXbrl)
         for prefix, ns in documentInfo.get("namespaces", EMPTY_DICT).items():
             if ns and prefix:
+                # Already folded by _foldStatusDates before schema validation;
+                # repeated here so that a caller passing a dict module directly
+                # still gets one canonical namespace.
+                ns, _nsStatus = normalizeNamespace(ns, nsPolicy)
                 namespacePrefixes[ns] = prefix
                 prefixNamespaces[prefix] = ns
                 try:
@@ -1356,7 +1385,7 @@ def isXbrlModelLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs)
                 decoder = cbor2.CBORDecoder(f)
                 obj = decoder.decode() # this stream-reads outermost object, documentInfo should be first
                 if (isinstance(obj, dict) and isinstance(obj.get("documentInfo",{}), dict) and
-                    obj.get("documentInfo",{}).get("documentType","") in oimTaxonomyDocTypes):
+                    isOimTaxonomyDocType(obj.get("documentInfo",{}).get("documentType",""))):
                     lastFilePathIsOIM = True
                     lastFilePath = filepath
         except IOError as ex:
@@ -1413,6 +1442,68 @@ def xbrlModelLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
         return None # not an OIM file
     return doc
 
+def _foldStatusDates(moduleFileObj, modelXbrl, moduleFile, error):
+    """Rewrite a document's dated specification URIs to the canonical status date.
+
+    Applies to /documentInfo/documentType and the values of
+    /documentInfo/namespaces, which are the only places a document spells a
+    specification namespace in full; everywhere else it uses a prefix.
+    """
+    if not isinstance(moduleFileObj, dict):
+        return
+    documentInfo = moduleFileObj.get("documentInfo")
+    if not isinstance(documentInfo, dict):
+        return
+    policy = _namespacePolicy(modelXbrl)
+    folded = []
+
+    documentType = documentInfo.get("documentType")
+    if isinstance(documentType, str):
+        newType, status = normalizeNamespace(documentType, policy)
+        if status is not None and not isAcceptedNamespaceStatus(status, policy):
+            error("oimce:unsupportedDocumentType",
+                  _("/documentInfo/documentType %(documentType)s has status "
+                    "'%(status)s', which the '%(policy)s' namespace policy does "
+                    "not accept."),
+                  file=moduleFile, documentType=documentType, status=status, policy=policy)
+        elif newType != documentType:
+            documentInfo["documentType"] = newType
+            folded.append((documentType, newType, status))
+
+    namespaces = documentInfo.get("namespaces")
+    if isinstance(namespaces, dict):
+        for prefix, uri in list(namespaces.items()):
+            if not isinstance(uri, str):
+                continue
+            newUri, status = normalizeNamespace(uri, policy)
+            if status is not None and not isAcceptedNamespaceStatus(status, policy):
+                error("oimce:unsupportedNamespaceStatus",
+                      _("Namespace %(namespace)s has status '%(status)s', which the "
+                        "'%(policy)s' namespace policy does not accept."),
+                      file=moduleFile, namespace=uri, status=status, policy=policy)
+            elif newUri != uri:
+                namespaces[prefix] = newUri
+                folded.append((uri, newUri, status))
+
+    if folded:
+        statuses = {status for _old, _new, status in folded}
+        modelXbrl.info("arelle:oimNamespaceStatusDate",
+                       _("Read %(count)s %(status)s specification URI(s) as status date "
+                         "%(statusDate)s, e.g. %(example)s."),
+                       count=len(folded), status="/".join(sorted(s for s in statuses if s)),
+                       statusDate=statusDate, example=folded[0][0])
+
+
+def _namespacePolicy(modelXbrl):
+    """The namespace policy in force: --oimNamespacePolicy, else the default.
+
+    Read from the controller rather than an options object because the decision
+    is needed during load, before the post-load hooks that usually carry options.
+    """
+    cntlr = getattr(getattr(modelXbrl, "modelManager", None), "cntlr", None)
+    return getattr(cntlr, "oimNamespacePolicy", None) or defaultNamespacePolicy
+
+
 def optionsExtender(parser, *args, **kwargs):
     """ CntlrCmdLine.Options:
         Extend command line options to include option for saving XML schema files from OIM taxonomies"""
@@ -1420,6 +1511,13 @@ def optionsExtender(parser, *args, **kwargs):
                       action="store",
                       dest="saveXMLSchemaFiles",
                       help=_("Save OIM taxonomy namespaces to xsd files in specified directory."))
+    parser.add_option("--oimNamespacePolicy",
+                      action="store", dest="oimNamespacePolicy", default=None,
+                      help=_("Which specification namespace status dates to accept: "
+                             "'production' (REC only), 'draft' (REC, CR, PWD), or "
+                             "'development' (adds the specification's own date template). "
+                             f"Default '{defaultNamespacePolicy}'; a recognised date is read "
+                             f"as the current one, {statusDate}."))
     parser.add_option("--xbrlModelStreamThreshold",
                       action="store",
                       type="int",
@@ -1497,6 +1595,16 @@ def pdfToolsUtilityRun(cntlr, options, *args, **kwargs):
     """ CntlrCmdLine.Utility.Run:
         Run the inline-XBRL->PDF generator or the facts->existing-PDF aligner
         when their trigger options are given (file-based, no loaded model)."""
+    # Stash the namespace policy where the loader can reach it: the decision is
+    # needed while reading documentInfo, before any post-load hook runs.
+    policy = getattr(options, "oimNamespacePolicy", None)
+    if policy:
+        if policy not in namespacePolicies:
+            cntlr.addToLog(_("Unknown --oimNamespacePolicy %(policy)s; expected one of %(known)s.")
+                           % {"policy": policy, "known": ", ".join(sorted(namespacePolicies))},
+                           messageCode="arelle:oimNamespacePolicy", level="ERROR")
+        else:
+            cntlr.oimNamespacePolicy = policy
     from .PdfToolsCli import runPdfTools
     runPdfTools(cntlr, options, *args, **kwargs)
 

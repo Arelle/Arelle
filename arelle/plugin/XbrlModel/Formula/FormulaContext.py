@@ -76,6 +76,17 @@ class FormulaGlobalContext:
             self.namespaces.update(txmyMdl.namespaces)
         self.namespaces.update(self._modelNamespaces(txmyMdl))
         self.namespaces.update(ruleSet.namespaces)
+        # A rule set declares prefixes the same way a model document does, and
+        # may write a specification namespace in the template form the spec
+        # itself uses. Fold recognised status dates onto the canonical one, so a
+        # QName a rule builds matches the QNames in the loaded model.
+        try:
+            from XbrlModel.XbrlConst import normalizeNamespace
+        except ImportError:
+            normalizeNamespace = None
+        if normalizeNamespace is not None:
+            self.namespaces = {prefix: normalizeNamespace(uri)[0]
+                               for prefix, uri in self.namespaces.items()}
         # CLI / parameter override for the default namespace (key ""), used by
         # --formula-default-namespace to re-aim unqualified concept refs at the
         # filing's taxonomy version when the rule set's bare `namespace "URI"`
@@ -165,6 +176,13 @@ class FormulaGlobalContext:
         if uri is None:
             raise KeyError(f"Unknown namespace prefix {prefix!r}")
         return mkQn(uri, localName)
+
+    def _foldNamespace(self, uri):
+        try:
+            from XbrlModel.XbrlConst import normalizeNamespace
+        except ImportError:
+            return uri
+        return normalizeNamespace(uri)[0]
 
     def log(self, level: str, code: str, msg: str, **kwargs) -> None:
         """Route a message to the Arelle controller or stdout."""
