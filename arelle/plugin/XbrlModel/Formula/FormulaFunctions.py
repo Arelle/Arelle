@@ -235,16 +235,32 @@ def _fn_avg(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue
 # first-value: return first non-skip/non-none/non-empty argument, else skip
 # ---------------------------------------------------------------------------
 
-def _fn_firstValue(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+def _firstPresent(args: List[FormulaValue]):
     for arg in args:
-        if arg.type == FormulaValueType.SKIP:
-            continue
-        if arg.type == FormulaValueType.NONE:
+        if arg.type in (FormulaValueType.SKIP, FormulaValueType.NONE):
             continue
         if arg.type in (FormulaValueType.SET, FormulaValueType.LIST) and len(arg.value) == 0:
             continue
         return arg
-    return SKIP_VALUE
+    return None
+
+
+def _fn_firstValue(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+    """first-value(any, ...) -> the first present argument, else skip."""
+    found = _firstPresent(args)
+    return found if found is not None else SKIP_VALUE
+
+
+def _fn_firstValueOrNone(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+    """
+    first-value-or-none(any, ...) -> the first present argument, else none.
+
+    The difference from first-value is what happens when nothing is present:
+    first-value skips the iteration, which drops the result entirely, while
+    this yields none so the iteration continues and the caller can test for it.
+    """
+    found = _firstPresent(args)
+    return found if found is not None else NONE_VALUE
 
 
 # ---------------------------------------------------------------------------
@@ -1935,6 +1951,7 @@ BUILTIN_FUNCTIONS: Dict[str, Callable] = {
     "year":             _fn_year,
     # Misc
     "first-value":      _fn_firstValue,
+    "first-value-or-none": _fn_firstValueOrNone,
     # Instance / model references
     "instance":         _fn_instance,
     "model":            _fn_model,

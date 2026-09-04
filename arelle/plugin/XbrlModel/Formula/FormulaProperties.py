@@ -383,7 +383,7 @@ def _labelProp(label, propName: str, args, ctx) -> FormulaValue:
     if propName == "labelTypeName":
         return _wrap(getattr(label, "labelType", None), FormulaValueType.QNAME)
     if propName == "forObject":
-        return _objValue(ctx.txmyMdl, getattr(label, "forObject", None))
+        return _objValue(_mdlOf(label, ctx), getattr(label, "forObject", None))
     if propName == "concept":
         rn = getattr(label, "forObject", None)
         if rn is not None and ctx.txmyMdl is not None:
@@ -871,14 +871,15 @@ _TXMY_INVALID_PROP_MARKER = None
 # ---------------------------------------------------------------------------
 
 def _cubeProp(cube, propName: str, args, ctx) -> FormulaValue:
+    mdl = _mdlOf(cube, ctx)
     if propName == "name":
         return FormulaValue(FormulaValueType.QNAME, getattr(cube, "name", None))
     if propName == "cubeType":
-        return _objValue(ctx.txmyMdl, getattr(cube, "cubeType", None))
+        return _objValue(mdl, getattr(cube, "cubeType", None))
     if propName == "cube-concept":
         qn = getattr(cube, "name", None)
         if qn:
-            obj = ctx.txmyMdl.namedObjects.get(qn)
+            obj = mdl.namedObjects.get(qn)
             if obj:
                 return FormulaValue(FormulaValueType.CONCEPT, obj)
         return NONE_VALUE
@@ -907,21 +908,21 @@ def _cubeProp(cube, propName: str, args, ctx) -> FormulaValue:
         for cd in getattr(cube, "cubeDimensions", None) or ():
             if getattr(cd, "dimension", None) == conceptDimQn:
                 try:
-                    members = cd.allowedMembers(ctx.txmyMdl)
+                    members = cd.allowedMembers(mdl)
                 except AttributeError:
                     members = ()
                 return FormulaValue(FormulaValueType.SET, OrderedSet(
-                    _objValue(ctx.txmyMdl, q) for q in members))
+                    _objValue(mdl, q) for q in members))
         return FormulaValue(FormulaValueType.SET, OrderedSet())
     if propName == "groups":
-        return _groupsOf(ctx.txmyMdl, getattr(cube, "name", None))
+        return _groupsOf(mdl, getattr(cube, "name", None))
     if propName == "facts":
         from XbrlModel.XbrlFact import XbrlFact
         from arelle.ModelValue import qname as mkQn
         cubeDimQn = mkQn("https://xbrl.org/2026", "cube")
         cubeQn = getattr(cube, "name", None)
         facts = [
-            f for f in ctx.txmyMdl.filterNamedObjects(XbrlFact)
+            f for f in mdl.filterNamedObjects(XbrlFact)
             if f.factDimensions.get(cubeDimQn) == cubeQn
         ]
         return FormulaValue(FormulaValueType.SET, OrderedSet(
@@ -939,6 +940,18 @@ def _cubeProp(cube, propName: str, args, ctx) -> FormulaValue:
 # is a reference, a second property named without the `Name` suffix resolves it
 # to the object.
 # ---------------------------------------------------------------------------
+
+def _mdlOf(obj, ctx):
+    """The compiled model an object belongs to, falling back to the evaluated one.
+
+    A rule may query a model other than the one loaded -- `$US-GAAP-2020.networks`,
+    `navigate ... model $OTHER` -- and the QNames on those objects resolve in
+    *their* model, not in the evaluation context's. Resolving against ctx.txmyMdl
+    silently returned none for every object reached that way.
+    """
+    mdl = getattr(obj, "xbrlCompMdl", None)
+    return mdl if mdl is not None else ctx.txmyMdl
+
 
 def _objValue(mdl, qn) -> FormulaValue:
     """Wrap a model object QName as the typed FormulaValue for its object kind."""
@@ -1024,9 +1037,9 @@ def _relationshipProp(nav, propName: str, args, ctx) -> FormulaValue:
     from XbrlModel.XbrlDimension import XbrlDomainNetwork
     from .FormulaNavigate import _domainMemberQn
 
-    mdl = ctx.txmyMdl
     rel = nav.rel
     container = nav.container
+    mdl = _mdlOf(container, ctx)
 
     if propName in ("source",):
         return _objValue(mdl, nav.source)
@@ -1112,7 +1125,7 @@ def _relationshipProp(nav, propName: str, args, ctx) -> FormulaValue:
 
 def _networkProp(nwk, propName: str, args, ctx) -> FormulaValue:
     from XbrlModel.XbrlConst import qnXbrlRootSource
-    mdl = ctx.txmyMdl
+    mdl = _mdlOf(nwk, ctx)
     if propName == "name":
         return FormulaValue(FormulaValueType.QNAME, getattr(nwk, "name", None))
     if propName in ("relationshipTypeName", "relationship-type-name"):
@@ -1173,7 +1186,7 @@ def _networkProp(nwk, propName: str, args, ctx) -> FormulaValue:
 
 
 def _domainNetworkProp(dom, propName: str, args, ctx) -> FormulaValue:
-    mdl = ctx.txmyMdl
+    mdl = _mdlOf(dom, ctx)
     if propName == "name":
         return FormulaValue(FormulaValueType.QNAME, getattr(dom, "name", None))
     if propName == "root":
@@ -1211,7 +1224,7 @@ def _domainNetworkProp(dom, propName: str, args, ctx) -> FormulaValue:
 
 
 def _groupProp(grp, propName: str, args, ctx) -> FormulaValue:
-    mdl = ctx.txmyMdl
+    mdl = _mdlOf(grp, ctx)
     if propName == "name":
         return FormulaValue(FormulaValueType.QNAME, getattr(grp, "name", None))
     if propName in ("groupURI", "group-uri", "uri"):
@@ -1267,7 +1280,7 @@ def _relationshipTypeProp(rt, propName: str, args, ctx) -> FormulaValue:
 
 
 def _cubeDimensionProp(cd, propName: str, args, ctx) -> FormulaValue:
-    mdl = ctx.txmyMdl
+    mdl = _mdlOf(cd, ctx)
     if propName == "dimension":
         return _objValue(mdl, getattr(cd, "dimension", None))
     if propName in ("dimensionName", "dimension-name"):
@@ -1481,7 +1494,7 @@ def getProperty(
         if propName == "allowedDomainItem":
             return _wrap(getattr(dc, "allowedDomainItem", None), FormulaValueType.QNAME)
         if propName == "baseDomainClass":
-            return _objValue(ctx.txmyMdl, getattr(dc, "baseDomainClass", None))
+            return _objValue(_mdlOf(dc, ctx), getattr(dc, "baseDomainClass", None))
         if propName in ("label", "all-labels"):
             return _conceptLabel(dc, propName, args, ctx)
         raise FormulaRuntimeError(f"Unknown domainClass property {propName!r}")
@@ -1648,6 +1661,17 @@ def getProperty(
             and all(isinstance(it, FormulaValue) and it.type == FormulaValueType.FACT
                     for it in items_list)
             and (propName in FACT_PROPS or propName == "is-fact")):
+            projected = [getProperty(it, propName, args, ctx) for it in items_list]
+            if obj.type == FormulaValueType.SET:
+                return FormulaValue(FormulaValueType.SET, OrderedSet(projected))
+            return FormulaValue(FormulaValueType.LIST, projected)
+        # Per-element projection for FACT items: a collection of facts answers
+        # a fact property by answering it for each fact, which is how
+        # `$facts.concept`, `$facts.decimals` and `$facts.entity` read.
+        if (items_list
+            and all(isinstance(it, FormulaValue) and it.type == FormulaValueType.FACT
+                    for it in items_list)
+            and propName in FACT_PROPS):
             projected = [getProperty(it, propName, args, ctx) for it in items_list]
             if obj.type == FormulaValueType.SET:
                 return FormulaValue(FormulaValueType.SET, OrderedSet(projected))
