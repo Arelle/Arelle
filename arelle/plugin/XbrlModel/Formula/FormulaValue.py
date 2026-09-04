@@ -47,6 +47,8 @@ class FormulaValueType(Enum):
     NETWORK = auto()        # XbrlNetwork
     DOMAIN_NETWORK = auto() # XbrlDomainNetwork
     DOMAIN_CLASS = auto()   # XbrlDomainClass
+    CUBE_TYPE = auto()      # XbrlCubeType
+    MODEL_OBJECT = auto()   # any other named model object
     RELATIONSHIP = auto()   # XbrlRelationship (with navigation context attached)
     RELATIONSHIP_TYPE = auto()  # XbrlRelationshipType
     GROUP = auto()          # XbrlGroup

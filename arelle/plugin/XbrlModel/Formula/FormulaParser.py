@@ -405,9 +405,11 @@ def _buildGrammar():
     # set containing either `$item` (when no returns) or the body result.
     filterExpr = Group(
         Suppress(filterKw)
-        + Suppress(Literal("("))
-        + blockExpr.setResultsName("collection")
-        + Suppress(Literal(")"))
+        + (
+            (Suppress(Literal("(")) + blockExpr.setResultsName("collection")
+             + Suppress(Literal(")")))
+            | expr.setResultsName("collection")
+        )
         + Opt(Suppress(whereKw) + blockExpr.setResultsName("whereExpr"))
         + Opt(Suppress(returnKw) + blockExpr.setResultsName("returnExpr"))
     ).setResultsName("filterExpr")
