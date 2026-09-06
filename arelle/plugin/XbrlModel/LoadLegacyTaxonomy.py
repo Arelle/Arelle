@@ -509,7 +509,12 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
     # associated with; see _legacyAccommodationCube.
     calcNetNames = _calculationNetworks(modelXbrl, pfx, emit, networks, groupContents,
                                         roleGroups, calcError)
-    if calcNetNames:
+    # The cube is built whether or not the taxonomy defines any calculations. An XBRL 2.1
+    # instance has no notion of cube membership as a condition of fact validity, and the
+    # per-linkrole cubes above do not claim every fact of most reports, so without it a
+    # report whose taxonomy has no calculation linkbase -- which is most inline filings --
+    # has every one of its facts raise oimte:noFactSpaceForFact.
+    if concepts:
         cubes.append(_legacyAccommodationCube(modelXbrl, pfx, dimensions, concepts,
                                    domainNetworks, calcNetNames, networks, cubeTypes))
 
