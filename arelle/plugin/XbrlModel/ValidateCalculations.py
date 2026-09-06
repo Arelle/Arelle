@@ -67,15 +67,14 @@ def _propertyValue(obj, propertyQn):
     return None
 
 
-def _controlProperty(compMdl, ntwkObj, propertyQn, default=None):
-    """Effective value of a calculation control property (proposal section 3.2).
+def _controlProperty(compMdl, propertyQn, default=None):
+    """Value of a calculation control property, declared on the XBRL model object.
 
-    Precedence is relationship, then network, then XBRL model object, then the
-    specification default. Relationship level is resolved by the caller where it applies.
+    The rounding mode is deliberately report-wide (proposal section 7.1): it describes how a
+    reported value was produced, which is a property of the fact, so it cannot vary between
+    the networks that bind against that fact without the same value acquiring two different
+    fact value intervals.
     """
-    value = _propertyValue(ntwkObj, propertyQn)
-    if value is not None:
-        return value
     for mdlObj in compMdl.xbrlModels.values():
         value = _propertyValue(mdlObj, propertyQn)
         if value is not None:
@@ -83,7 +82,7 @@ def _controlProperty(compMdl, ntwkObj, propertyQn, default=None):
     return default
 
 
-def _isTruncation(compMdl, ntwkObj):
+def _isTruncation(compMdl):
     """True when the effective xbrl:roundingMode is truncation (proposal section 7.1).
 
     A processor may override the declared mode at run time (proposal section 3.3), for a
@@ -91,7 +90,7 @@ def _isTruncation(compMdl, ntwkObj):
     that parameterises the mode per variation. Where the override is applied it MUST be
     reported, and the results are then not conformant results for the model as published.
     """
-    declared = str(_controlProperty(compMdl, ntwkObj, qnRoundingMode, "roundToNearest"))
+    declared = str(_controlProperty(compMdl, qnRoundingMode, "roundToNearest"))
     override = getattr(compMdl, "calcRoundingModeOverride", None)
     if override is not None and override != declared:
         if not getattr(compMdl, "_calcRoundingModeOverrideReported", False):
@@ -211,10 +210,10 @@ def validateCubeCalculations(compMdl, cubeObj):
     if not calcNetworks and not orderingNetworks:
         return
     aligned = _alignedCells(cubeObj)
+    truncate = _isTruncation(compMdl)
     for ntwkObj in orderingNetworks:
-        _checkOrdering(compMdl, cubeObj, ntwkObj, aligned, _isTruncation(compMdl, ntwkObj))
+        _checkOrdering(compMdl, cubeObj, ntwkObj, aligned, truncate)
     for ntwkObj in calcNetworks:
-        truncate = _isTruncation(compMdl, ntwkObj)
         for totalQn, contributions in _calculations(compMdl, ntwkObj).items():
             for alignKey, byConcept in aligned.items():
                 totalBucket = byConcept.get(totalQn)

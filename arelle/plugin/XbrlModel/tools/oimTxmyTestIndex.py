@@ -12,18 +12,23 @@ import os, csv, regex as re, json
 from openpyxl import load_workbook
 from collections import defaultdict
 
-DIR = "/Users/hermf/Documents/projects/XBRL.org/oim/specifications/oim-taxonomy"
+# Project Tavi layout: the spec and its error taxonomies live under specifications/tavi,
+# the conformance tests under tests/oim-taxonomy at the repository root.
+REPO = "/Users/hermf/Documents/projects/XBRL.org/oim"
+DIR = os.path.join(REPO, "specifications/tavi")
+ERRORDIR = os.path.join(DIR, "error")
+TESTDIR = os.path.join(REPO, "tests/oim-taxonomy")
 TESTINDEX = "xbrl-model-tests.xml"
-TESTCASE = os.path.join(DIR, "conformance", TESTINDEX)
+TESTCASE = os.path.join(TESTDIR, TESTINDEX)
 # Only .json test-case files are variations; skip supporting files (.html/.md/.xml)
-# and the build manifest that also live in the conformance directory.
+# and the build manifest that also live in the test directory.
 NON_TESTCASE_FILES = {"manifest.json"}
-testcaseFiles = {f for f in os.listdir(os.path.join(DIR, "conformance"))
+testcaseFiles = {f for f in os.listdir(TESTDIR)
                  if f.endswith(".json") and f not in NON_TESTCASE_FILES}
 origCount = len(testcaseFiles)
 fileErrs = defaultdict(list)
 for oimErrFile in ("oimte.json", "oime.json", "oimce.json", "oimtc.json"):
-    with open(os.path.join(DIR, "spec-taxonomies", oimErrFile), "r") as fp:
+    with open(os.path.join(ERRORDIR, oimErrFile), "r") as fp:
         errorsTxmy = json.load(fp)
     for refObj in errorsTxmy["xbrlModel"]["references"]:
       for propObj in refObj.get("properties", ()):
@@ -56,7 +61,7 @@ def resultFromDescription(f):
     name a code as the feature under test, which must NOT be treated as an expected
     error."""
     try:
-        with open(os.path.join(DIR, "conformance", f), "r") as fp:
+        with open(os.path.join(TESTDIR, f), "r") as fp:
             doc = json.load(fp)
     except (OSError, ValueError):
         return None

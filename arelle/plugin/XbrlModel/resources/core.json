@@ -1,14 +1,13 @@
 {
-    "$schema": "../oim-taxonomy-schema.json",
     "documentInfo": {
-        "documentType": "https://xbrl.org/2026/module",
+        "documentType": "https://xbrl.org/((~status_date_uri~))/module",
         "namespaces": {
-            "xbrl": "https://xbrl.org/2026",
-            "xbrlr": "https://xbrl.org/2026/report",
+            "xbrl": "https://xbrl.org/((~status_date_uri~))",
+            "xbrlr": "https://xbrl.org/((~status_date_uri~))/report",
             "xs": "http://www.w3.org/2001/XMLSchema",
-            "utr": "https://xbrl.org/2026/utr",
+            "utr": "https://xbrl.org/((~status_date_uri~))/utr",
             "lei": "http://standards.iso.org/iso/17442",
-            "ref": "https://xbrl.org/2026/ref"
+            "ref": "https://xbrl.org/((~status_date_uri~))/ref"
         },
         "documentNamespacePrefix": "xbrl"
     },
@@ -58,6 +57,7 @@
                     "xbrl:domainNetworkObject",
                     "xbrl:domainClassObject",
                     "xbrl:networkObject",
+                    "xbrl:relationshipObject",
                     "xbrl:groupObject",
                     "xbrl:groupContentObject",
                     "xbrl:groupTreeObject",
@@ -71,9 +71,7 @@
                     "xbrl:referenceTypeObject",
                     "xbrl:importTaxonomyObject",
                     "xbrl:finalTaxonomyObject",
-                    "xbrl:layoutObject",
-                    "xbrl:unitObject",
-                    "xbrl:entityObject"
+                    "xbrl:layoutObject"
                 ]
             },
             {
@@ -1642,13 +1640,13 @@
         ],
         "namespacePrefixes": [
             {
-                "namespace": "https://xbrl.org/2026",
+                "namespace": "https://xbrl.org/((~status_date_uri~))",
                 "preferredPrefixes": [
                     "xbrl"
                 ]
             },
             {
-                "namespace": "https://xbrl.org/2026/report",
+                "namespace": "https://xbrl.org/((~status_date_uri~))/report",
                 "preferredPrefixes": [
                     "xbrlr"
                 ]
@@ -1660,7 +1658,7 @@
                 ]
             },
             {
-                "namespace": "https://xbrl.org/2026/utr",
+                "namespace": "https://xbrl.org/((~status_date_uri~))/utr",
                 "preferredPrefixes": [
                     "utr"
                 ]
@@ -1925,8 +1923,7 @@
                 "dataType": "xbrlr:roundingModeType",
                 "definitional": false,
                 "allowedObjects": [
-                    "xbrl:xbrlModelObject",
-                    "xbrl:networkObject"
+                    "xbrl:xbrlModelObject"
                 ]
             }
         ],
@@ -2082,7 +2079,7 @@
             },
             {
                 "name": "xbrl:summation-concept",
-                "uri": "https://xbrl.org/2026/arcrole/summation-concept",
+                "uri": "https://xbrl.org/((~status_date_uri~))/arcrole/summation-concept",
                 "cycles": "undirected",
                 "allowedLinkProperties": [
                     "xbrl:weight",
@@ -2342,7 +2339,7 @@
             },
             {
                 "name": "xbrl:greater-lesser",
-                "uri": "https://xbrl.org/2026/arcrole/greater-lesser",
+                "uri": "https://xbrl.org/((~status_date_uri~))/arcrole/greater-lesser",
                 "cycles": "none",
                 "sourceObjects": [
                     "xbrl:conceptObject"
