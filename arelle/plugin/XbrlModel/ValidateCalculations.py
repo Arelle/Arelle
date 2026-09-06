@@ -70,12 +70,16 @@ def _propertyValue(obj, propertyQn):
 def _controlProperty(compMdl, propertyQn, default=None):
     """Value of a calculation control property, declared on the XBRL model object.
 
-    The rounding mode is deliberately report-wide (proposal section 7.1): it describes how a
-    reported value was produced, which is a property of the fact, so it cannot vary between
-    the networks that bind against that fact without the same value acquiring two different
-    fact value intervals.
+    The rounding mode applies to every fact of the model: it describes how a reported value
+    was produced, which is a property of the fact, so it cannot vary between the networks
+    that bind against that fact without the same value acquiring two different fact value
+    intervals.
+
+    Modules are searched importing-model first, because these are non-definitional
+    properties and an importing model's value takes precedence over an imported one's.
+    xbrlModels is in import order, base modules first, so it is walked in reverse.
     """
-    for mdlObj in compMdl.xbrlModels.values():
+    for mdlObj in reversed(list(compMdl.xbrlModels.values())):
         value = _propertyValue(mdlObj, propertyQn)
         if value is not None:
             return value
