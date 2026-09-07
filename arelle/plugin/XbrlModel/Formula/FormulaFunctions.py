@@ -142,6 +142,13 @@ def _fn_sum(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue
             return dict(v.value)
         if v.type in (FormulaValueType.INTEGER, FormulaValueType.FLOAT, FormulaValueType.DECIMAL, FormulaValueType.STRING):
             return v.value
+        if v.type == FormulaValueType.FACT:
+            # Summing facts means summing what they report; without this the
+            # reduction tried to add the fact objects themselves.
+            try:
+                return v.numericValue()
+            except TypeError:
+                return None
         return v.value
 
     def _fromPython(v) -> FormulaValue:

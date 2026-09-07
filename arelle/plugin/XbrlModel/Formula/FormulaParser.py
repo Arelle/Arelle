@@ -174,8 +174,12 @@ def _buildGrammar():
     ).addParseAction(lambda t: float(t[0]))
 
     # String literals with embedded {expr} interpolations
-    _strEscape = Suppress(Literal("\\")) + Regex(".")
-    _strInterp = Suppress(Literal("{")) + blockExpr + Suppress(Literal("}"))
+    # Both openers leave whitespace alone. Without that, pyparsing skips a
+    # space before `{` while trying the interpolation alternative, and the
+    # space is gone from the string: '{$a} {$b}' rendered as 'ab'.
+    _strEscape = Suppress(Literal("\\").leaveWhitespace()) + Regex(".")
+    _strInterp = (Suppress(Literal("{").leaveWhitespace())
+                  + blockExpr + Suppress(Literal("}")))
     _strPart   = Regex(r"[^\\'{}]+").leaveWhitespace()
     _sqString  = (
         Suppress(Literal("'"))

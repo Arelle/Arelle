@@ -239,6 +239,11 @@ class FormulaRuleContext:
         # scope is still visible to the rule's message, which is where the
         # specification says tags are for.
         self.tags:       Dict[str, FormulaValue] = {}
+        # iterId -> the value this iteration binds for that source. Set by the
+        # rule's iteration driver; read by the fact query and for loop
+        # evaluators so the expression evaluator itself stays unaware of
+        # iteration.
+        self.iterBindings: Dict[int, FormulaValue] = {}
         self.alignment:  Optional[AlignmentKey] = None
         self.ruleValue:  Optional[FormulaValue] = None
         self.ruleName:   Optional[str] = None
@@ -287,6 +292,7 @@ class FormulaRuleContext:
         child = FormulaRuleContext(self.globalCtx)
         child.variables = dict(self.variables)
         child.tags = self.tags   # shared, so nested tags reach the message
+        child.iterBindings = self.iterBindings
         child.alignment = self.alignment
         child.ruleName = self.ruleName
         child.ruleSuffix = self.ruleSuffix

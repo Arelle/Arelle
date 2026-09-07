@@ -105,36 +105,153 @@ def evaluateRuleSet(globalCtx: FormulaGlobalContext) -> None:
                           f"Unexpected error in rule {rule.name!r}: {exc}")
 
 
+# A rule that selects a very large fact set would otherwise emit a result per
+# fact. The cap bounds one rule's output; it is reported when it bites.
+MAX_ITERATIONS = 10000
+
+
 def evaluateRule(rule, globalCtx: FormulaGlobalContext) -> None:
-    """
-    Run a single output or assert rule, iterating over all aligned fact groups.
-    """
-    from .FormulaRuleSet import OutputRule, AssertRule
+    """Run one output or assert rule, once per iteration of its body.
 
-    # Collect fact-query slots from the rule body AST
-    slots: List[_FactQuerySlot] = []
-    _collectFactQueries(rule.expr, slots)
+    A query block evaluates once unless something in it multiplies the
+    iterations. A for loop multiplies them by the values it binds, so loops
+    nest, and an inner one sees the bindings of those outside it.
 
-    if not slots:
-        # No fact queries — evaluate the expression once, no alignment needed
+    Fact queries do not multiply each other: they are joined on <<alignment>>.
+    The rule runs once for each distinct alignment any of its fact queries
+    selected, and within that iteration each query is bound to the fact it has
+    there -- or to `none` where it has none, so that one query finding nothing
+    does not cancel the iterations another query found. Where no query finds
+    anything the rule still runs once, on the start iteration, with each bound
+    to `none`.
+    """
+    from .FormulaIterations import collectIterationSources
+
+    sources = collectIterationSources(rule.expr)
+    loops = [src for src in sources if src.kind == "forExpr"]
+    queries = [src for src in sources if src.kind == "factQuery"]
+
+    if not loops and not queries:
         ruleCtx = FormulaRuleContext(globalCtx)
         ruleCtx.ruleName = rule.name
         _runRuleIteration(rule, ruleCtx, globalCtx, boundFacts=[])
         return
 
-    # Gather fact lists for each slot
-    factSets: List[List] = []
-    for slot in slots:
-        qn = globalCtx.resolveQName(slot.prefix, slot.localName)
-        facts = globalCtx.factsForConcept(qn) if qn.namespaceURI else \
-                _findFactsByLocalName(globalCtx, slot.localName)
-        factSets.append(facts)
+    emitted = [0]
 
-    # Align fact groups using VectorSearch (GPU) or exact fallback
-    for factGroup in _alignedGroups(globalCtx, factSets):
+    def run(bindings, alignment):
+        if emitted[0] >= MAX_ITERATIONS:
+            return
+        emitted[0] += 1
         ruleCtx = FormulaRuleContext(globalCtx)
         ruleCtx.ruleName = rule.name
-        _runRuleIteration(rule, ruleCtx, globalCtx, boundFacts=list(zip(slots, factGroup)))
+        ruleCtx.iterBindings = dict(bindings)
+        ruleCtx.alignment = alignment
+        # A loop variable is bound on the rule's own context, not only inside
+        # the loop body, so that the message can report the value this
+        # iteration is for.
+        for src in loops:
+            value = bindings.get(src.iterId)
+            varName = src.inner.get("varName")
+            if value is not None and varName:
+                ruleCtx.bindVariable(varName, value)
+        _runRuleIteration(rule, ruleCtx, globalCtx, boundFacts=[])
+
+    def joinQueries(bindings):
+        """Run once per alignment the rule's fact queries between them select."""
+        probe = FormulaRuleContext(globalCtx)
+        probe.ruleName = rule.name
+        probe.iterBindings = dict(bindings)
+        grouped = []
+        for src in queries:
+            groups: Dict[Any, List[FormulaValue]] = {}
+            try:
+                for value in _iterationValues(src, probe):
+                    groups.setdefault(getattr(value, "alignment", None), []).append(value)
+            except (FormulaRuntimeError, FormulaIterationStop, FormulaSkip):
+                pass
+            grouped.append((src, groups))
+
+        alignments = []
+        for _src, groups in grouped:
+            for key in groups:
+                if key is not None and key not in alignments:
+                    alignments.append(key)
+
+        if not alignments:
+            # Nothing was selected at any alignment, so the rule keeps its
+            # start iteration with every query bound to none. Without this a
+            # query that found nothing would silently delete the rule's output
+            # rather than reporting on what it did not find.
+            bound = dict(bindings)
+            for src, groups in grouped:
+                vals = groups.get(None) or []
+                bound[src.iterId] = vals[0] if vals else NONE_VALUE
+            run(bound, None)
+            return
+
+        for alignment in alignments:
+            bound = dict(bindings)
+            for src, groups in grouped:
+                vals = groups.get(alignment) or groups.get(None) or []
+                bound[src.iterId] = vals[0] if vals else NONE_VALUE
+            run(bound, alignment)
+
+    def drive(i, bindings):
+        if i >= len(loops):
+            if queries:
+                joinQueries(bindings)
+            else:
+                run(bindings, None)
+            return
+        src = loops[i]
+        probe = FormulaRuleContext(globalCtx)
+        probe.ruleName = rule.name
+        probe.iterBindings = dict(bindings)
+        try:
+            values = _iterationValues(src, probe)
+        except (FormulaRuntimeError, FormulaIterationStop, FormulaSkip):
+            # The loop's collection could not be evaluated. The rule is run
+            # once without the binding so the error is reported rather than
+            # turning the rule into no output at all.
+            run(bindings, None)
+            return
+        for value in values:
+            bindings[src.iterId] = value
+            try:
+                drive(i + 1, bindings)
+            finally:
+                bindings.pop(src.iterId, None)
+
+    drive(0, {})
+
+    if emitted[0] >= MAX_ITERATIONS:
+        globalCtx.log("WARNING", f"formula:iterations:{rule.name}",
+                      f"Rule {rule.name!r} stopped after {MAX_ITERATIONS} iterations.")
+
+
+def _iterationValues(src, ctx) -> List[FormulaValue]:
+    """The values one iteration source contributes, in order."""
+    if src.kind == "factQuery":
+        node = src.node
+        result = _evalFactQuery(node.get("factQuery", node), ctx)
+        return _unwrapColl(result) if result.type in (
+            FormulaValueType.LIST, FormulaValueType.SET) else [result]
+    # for loop: the values of its collection
+    collection = evaluateExpr(src.inner.get("collection"), ctx)
+    if collection.type not in (FormulaValueType.SET, FormulaValueType.LIST):
+        raise FormulaRuntimeError(
+            f"For loop requires a set or list, found '{_typeNameOf(collection)}'."
+        )
+    return list(_unwrapColl(collection))
+
+
+def _iterBinding(node, ctx) -> Optional[FormulaValue]:
+    """The value the rule's iteration driver bound for this node, if any."""
+    iterId = node.get("_iterId") if isinstance(node, dict) else None
+    if iterId is None:
+        return None
+    return ctx.iterBindings.get(iterId)
 
 
 # The severity names a rule may resolve to. `info` is here as well as the four
@@ -610,6 +727,9 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
 
     # ---- Fact query ----
     if exprName == "factQuery" or "factQuery" in node:
+        bound = _iterBinding(node, ctx)
+        if bound is not None:
+            return bound
         return _evalFactQuery(node.get("factQuery", node), ctx)
 
 
@@ -635,7 +755,16 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
 
     # ---- For loop ----
     if exprName == "forExpr" or "forExpr" in node:
-        return _evalFor(node.get("forExpr", node), ctx)
+        inner = node.get("forExpr", node)
+        bound = _iterBinding(node, ctx)
+        if bound is not None:
+            # The rule's driver is supplying this loop's value for the current
+            # iteration, so the loop binds it and runs its body once rather
+            # than collecting every value into a list.
+            childCtx = ctx.childContext()
+            childCtx.bindVariable(inner.get("varName", ""), bound)
+            return evaluateExpr(inner.get("body"), childCtx)
+        return _evalFor(inner, ctx)
 
     # ---- Filter expression ----
     if exprName == "filterExpr" or "filterExpr" in node:
@@ -1129,10 +1258,39 @@ def _evalFactQuery(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
     from .FormulaDuplicates import deduplicateFacts
     matched = deduplicateFacts(matched, dupsMode)
 
-    return FormulaValue(
-        FormulaValueType.LIST,
-        [FormulaValue.fromFact(f) for f in matched],
-    )
+    # A fact's alignment is the dimensions the query did NOT cover, so it can
+    # only be worked out here, where what the query named is known. `covered`
+    # covers everything, leaving no alignment at all; `covered-dims` covers the
+    # taxonomy-defined dimensions and leaves the core ones; and `@@` keeps a
+    # dimension in alignment even though the filter names it.
+    coverAll = "covered" in modKws
+    coverTaxDims = "covered-dims" in modKws
+    coveredDims = {pf["dimQn"] for pf in parsedFilters
+                   if pf.get("dimQn") is not None and pf.get("atSign") != "@@"}
+
+    values = []
+    for f in matched:
+        fv = FormulaValue.fromFact(f)
+        fv.alignment = _queryAlignment(f, coverAll, coverTaxDims, coveredDims)
+        values.append(fv)
+    return FormulaValue(FormulaValueType.LIST, values)
+
+
+def _queryAlignment(fact, coverAll: bool, coverTaxDims: bool, coveredDims) -> Optional[frozenset]:
+    """The dimensions of `fact` that the query left uncovered, with their values."""
+    if coverAll:
+        return None
+    from .FormulaValue import _makeHashable
+    items = []
+    for dimQn, value in fact.factDimensions.items():
+        if not isinstance(dimQn, QName):
+            continue                      # internal slots such as _periodValue
+        if dimQn in coveredDims:
+            continue
+        if coverTaxDims and not _isCoreDimQn(dimQn):
+            continue
+        items.append((dimQn, _makeHashable(value)))
+    return frozenset(items)
 
 
 # ---- Core dim QNames (formula.md "core dimensions") -----------------------
