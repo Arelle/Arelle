@@ -204,24 +204,37 @@ def _fn_count(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaVal
     )
 
 
-def _fn_max(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+def _extremum(args, ctx, which, fname):
+    """The least or greatest *item* of a collection, not merely its value.
+
+    Returning the item matters for facts: `max(list(facts)).decimals` asks the
+    fact that turned out greatest what its decimals are, and reducing the
+    collection to a bare number leaves nothing to ask.
+    """
     if len(args) != 1:
-        raise FormulaRuntimeError("max() requires exactly one argument")
-    items = _unwrapCollection(args[0])
-    nums = [_num(i) for i in items if i.type != FormulaValueType.NONE]
-    if not nums:
+        raise FormulaRuntimeError(f"{fname}() requires exactly one argument")
+    items = [i for i in _unwrapCollection(args[0])
+             if i.type not in (FormulaValueType.NONE, FormulaValueType.SKIP)]
+    if not items:
         return NONE_VALUE
-    return FormulaValue(FormulaValueType.DECIMAL, max(nums))
+    if all(i.type == FormulaValueType.STRING for i in items):
+        return which(items, key=lambda i: str(i.value))
+    winner = which(items, key=_num)
+    if winner.type != FormulaValueType.FACT:
+        value = _num(winner)
+        if value.is_infinite():
+            # `inf` and `-inf` are written as bare names but are numbers;
+            # returning the name reports 'inf' rather than 'Infinity'.
+            return FormulaValue(FormulaValueType.DECIMAL, value)
+    return winner
+
+
+def _fn_max(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+    return _extremum(args, ctx, max, "max")
 
 
 def _fn_min(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
-    if len(args) != 1:
-        raise FormulaRuntimeError("min() requires exactly one argument")
-    items = _unwrapCollection(args[0])
-    nums = [_num(i) for i in items if i.type != FormulaValueType.NONE]
-    if not nums:
-        return NONE_VALUE
-    return FormulaValue(FormulaValueType.DECIMAL, min(nums))
+    return _extremum(args, ctx, min, "min")
 
 
 def _fn_avg(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
