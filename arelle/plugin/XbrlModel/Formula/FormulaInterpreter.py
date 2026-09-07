@@ -2201,11 +2201,15 @@ def _evalNavigate(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
         "acrossContainers": bool(node.get("acrossContainers")),
         "model": mdl,
         "relationshipType": relTypeValue,
+        "paths": bool((_navReturnSpec(node.get("navReturns")) or {}).get("paths")),
     }
     navs = navigate(ctx, spec)
 
     whereExpr = node.get("whereExpr")
-    if whereExpr is not None:
+    if whereExpr is not None and spec["paths"]:
+        navs = [[nav for nav in path if _navWhere(nav, whereExpr, ctx)] for path in navs]
+        navs = [p for p in navs if p]
+    elif whereExpr is not None:
         kept = []
         for nav in navs:
             child = ctx.childContext()
@@ -2215,6 +2219,12 @@ def _evalNavigate(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
         navs = kept
 
     return _navResult(navs, node.get("navReturns"), ctx)
+
+
+def _navWhere(nav, whereExpr, ctx) -> bool:
+    child = ctx.childContext()
+    child.bindVariable("relationship", _navValue(nav, ctx))
+    return _isTruthy(evaluateExpr(whereExpr, child))
 
 
 def _navValue(nav, ctx) -> FormulaValue:
@@ -2294,6 +2304,24 @@ def _navReturnSpec(returns):
 
 def _navResult(navs, returns, ctx) -> FormulaValue:
     spec = _navReturnSpec(returns)
+
+    if spec is not None and spec.get("paths"):
+        # One list per root-to-leaf path, each holding the relationships of that
+        # path in traversal order. With return components each relationship is
+        # itself a list of them, so the result is three deep.
+        comps = spec["components"]
+        out = []
+        for path in navs:
+            if comps:
+                items = []
+                for nav in path:
+                    values = [_navComponentValue(nav, n, c, ctx, p) for n, c, p in comps]
+                    items.append(values[0] if len(values) == 1
+                                 else FormulaValue(FormulaValueType.LIST, values))
+            else:
+                items = [_navComponentValue(nav, "target", None, ctx) for nav in path]
+            out.append(FormulaValue(FormulaValueType.LIST, items))
+        return FormulaValue(FormulaValueType.LIST, out)
 
     # No returns clause: the result is the set of target objects.
     if spec is None or not spec["components"]:

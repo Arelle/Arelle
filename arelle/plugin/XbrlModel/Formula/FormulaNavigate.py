@@ -278,24 +278,41 @@ def _orderedEntries(entries: Iterable[tuple]) -> List[tuple]:
     return [entry for _, entry in sorted(indexed, key=key)]
 
 
-def _walk(index, startQn, maxDepth, stopFn, results, visited, forward, depth=1):
-    for navOrder, (rel, container, cube, cubeDim) in enumerate(
-            _orderedEntries(index.get(startQn, ())), start=1):
+def _walk(index, startQn, maxDepth, stopFn, results, visited, forward, depth=1,
+          stack=None, paths=None):
+    """Traverse depth-first, appending each relationship reached to `results`.
+
+    When `paths` is given, a copy of the current stack is appended to it each
+    time traversal can go no further -- so `paths` ends up holding one list per
+    root-to-leaf path, each in traversal order, which is what `returns paths`
+    reports.
+    """
+    entries = _orderedEntries(index.get(startQn, ()))
+    if paths is not None and not entries and stack:
+        paths.append(list(stack))
+    for navOrder, (rel, container, cube, cubeDim) in enumerate(entries, start=1):
         nextQn = getattr(rel, "target" if forward else "source", None)
         key = (id(rel), nextQn)
         isCycle = key in visited
         nav = NavRelationship(rel, container, cube, cubeDim,
                               depth=depth, navOrder=navOrder, isCycle=isCycle)
         results.append(nav)
-        if isCycle:
-            continue
-        if stopFn is not None and stopFn(nav):
-            continue
-        if maxDepth is not None and depth >= maxDepth:
-            continue
-        visited.add(key)
-        _walk(index, nextQn, maxDepth, stopFn, results, visited, forward, depth + 1)
-        visited.discard(key)
+        if stack is not None:
+            stack.append(nav)
+        try:
+            if isCycle or (stopFn is not None and stopFn(nav)) or (
+                    maxDepth is not None and depth >= maxDepth):
+                # traversal stops here, so this is the end of a path
+                if paths is not None and stack:
+                    paths.append(list(stack))
+                continue
+            visited.add(key)
+            _walk(index, nextQn, maxDepth, stopFn, results, visited, forward,
+                  depth + 1, stack, paths)
+            visited.discard(key)
+        finally:
+            if stack is not None:
+                stack.pop()
 
 
 def _siblings(mdl, containers, startQn, which, results):
@@ -350,6 +367,8 @@ def navigate(ctx, spec: Dict[str, Any]) -> List[NavRelationship]:
     includeStart = bool(spec.get("includeStart"))
 
     results: List[NavRelationship] = []
+    wantPaths = bool(spec.get("paths"))
+    allPaths: List[List[NavRelationship]] = []
     # `across networks` traverses the in-scope networks as one graph; otherwise
     # each is traversed on its own. Domain networks are never crossed: two domain
     # networks are two separate hierarchies.
@@ -377,12 +396,16 @@ def navigate(ctx, spec: Dict[str, Any]) -> List[NavRelationship]:
             if maxDepth == 0 and direction in ("descendants", "ancestors"):
                 # A depth of 0 selects nothing; `include start` still applies.
                 continue
+            startNav = results[-1] if (includeStart and results) else None
+            stack = ([startNav] if startNav is not None else []) if wantPaths else None
             if direction in ("descendants", "children"):
                 _walk(index, startQn, 1 if direction == "children" else maxDepth,
-                      stopFn, results, set(), forward=True)
+                      stopFn, results, set(), forward=True,
+                      stack=stack, paths=allPaths if wantPaths else None)
             elif direction in ("ancestors", "parents"):
                 _walk(index, startQn, 1 if direction == "parents" else maxDepth,
-                      stopFn, results, set(), forward=False)
+                      stopFn, results, set(), forward=False,
+                      stack=stack, paths=allPaths if wantPaths else None)
             elif direction in ("siblings", "previous-siblings", "next-siblings"):
                 _siblings(mdl, group, startQn, direction, results)
             elif direction == "self":
@@ -395,6 +418,12 @@ def navigate(ctx, spec: Dict[str, Any]) -> List[NavRelationship]:
 
     for i, nav in enumerate(results, start=1):
         nav.resultOrder = i
+    if wantPaths:
+        if toQns is not None:
+            kept = set(id(n) for n in results)
+            allPaths = [[n for n in path if id(n) in kept] for path in allPaths]
+            allPaths = [p for p in allPaths if p]
+        return allPaths
     return results
 
 

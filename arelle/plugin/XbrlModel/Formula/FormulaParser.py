@@ -87,6 +87,7 @@ def _buildGrammar():
     messageKw       = CaselessKeyword("message")
     severityKw      = CaselessKeyword("severity")
     ruleSuffixKw    = CaselessKeyword("rule-suffix")
+    querySuffixKw   = CaselessKeyword("query-suffix")
     ruleFocusKw     = CaselessKeyword("rule-focus")
     filterKw        = CaselessKeyword("filter")
     returnKw        = CaselessKeyword("returns")
@@ -175,7 +176,7 @@ def _buildGrammar():
     # String literals with embedded {expr} interpolations
     _strEscape = Suppress(Literal("\\")) + Regex(".")
     _strInterp = Suppress(Literal("{")) + blockExpr + Suppress(Literal("}"))
-    _strPart   = Regex(r"[^\\'{}\n]+").leaveWhitespace()
+    _strPart   = Regex(r"[^\\'{}]+").leaveWhitespace()
     _sqString  = (
         Suppress(Literal("'"))
         + Group(ZeroOrMore(
@@ -589,9 +590,18 @@ def _buildGrammar():
     ).addParseAction(_mkAssign)
 
     blockStmt = (~(declKeywords | elseKw | ruleSuffixKw | ruleFocusKw) + (assignExpr | expr))
+    # A block runs until a clause keyword or the next declaration. Without the
+    # guard the body swallowed its own rule's trailing clauses -- `message`,
+    # `severity`, `query-suffix`, `rule-focus` parsed as further steps, and a
+    # block yields its last step, so `output R  2 + 2  query-suffix 'S'`
+    # reported 'S'. The clauses were then absent from the rule, which is why no
+    # message or severity ever reached a result.
+    _clauseKw = (messageKw | severityKw | ruleSuffixKw | ruleFocusKw
+                 | querySuffixKw | assertKw | outputKw | constantKw
+                 | functionKw | namespaceKw)
     blockExpr <<= Group(
         Group(
-            OneOrMore(blockStmt + Opt(Suppress(Literal(";"))))
+            OneOrMore(~_clauseKw + blockStmt + Opt(Suppress(Literal(";"))))
         ).setResultsName("steps")
     ).addParseAction(_mkBlockExpr)
 
@@ -612,7 +622,7 @@ def _buildGrammar():
     # The evaluated string is appended (with '.') to the emitted rule name
     # and reported by the rule-name() builtin.
     ruleSuffixClause = Group(
-        Suppress(ruleSuffixKw)
+        Suppress(querySuffixKw | ruleSuffixKw)
         + blockExpr.setResultsName("suffixExpr")
     ).setResultsName("ruleSuffix")
 
