@@ -244,6 +244,11 @@ class FormulaRuleContext:
         # evaluators so the expression evaluator itself stays unaware of
         # iteration.
         self.iterBindings: Dict[int, FormulaValue] = {}
+        # The iteration sources the body actually read. A source the body never
+        # reaches -- an argument a short-circuiting function skipped -- has no
+        # business multiplying the rule's results, and one that selected
+        # nothing only cancels the iteration if something asked it for a value.
+        self.readIterIds: set = set()
         self.alignment:  Optional[AlignmentKey] = None
         self.ruleValue:  Optional[FormulaValue] = None
         self.ruleName:   Optional[str] = None
@@ -293,6 +298,7 @@ class FormulaRuleContext:
         child.variables = dict(self.variables)
         child.tags = self.tags   # shared, so nested tags reach the message
         child.iterBindings = self.iterBindings
+        child.readIterIds = self.readIterIds
         child.alignment = self.alignment
         child.ruleName = self.ruleName
         child.ruleSuffix = self.ruleSuffix

@@ -138,6 +138,25 @@ def evaluateRule(rule, globalCtx: FormulaGlobalContext) -> None:
         return
 
     emitted = [0]
+    seen = set()
+    empties = set()          # sources that selected nothing this pass
+
+    def guard(ruleCtx):
+        """Decide, once the body has run, whether this iteration is real.
+
+        A source the body never read cannot distinguish one iteration from
+        another, so iterations that differ only in such a source are the same
+        iteration reported twice. And a source that selected nothing cancels
+        the iteration only if the body actually asked it for a value.
+        """
+        read = ruleCtx.readIterIds
+        if read & empties:
+            return False
+        key = tuple(sorted((i, id(ruleCtx.iterBindings.get(i))) for i in read))
+        if key in seen:
+            return False
+        seen.add(key)
+        return True
 
     def run(bindings, alignment):
         if emitted[0] >= MAX_ITERATIONS:
@@ -155,7 +174,7 @@ def evaluateRule(rule, globalCtx: FormulaGlobalContext) -> None:
             varName = src.inner.get("varName")
             if value is not None and varName:
                 ruleCtx.bindVariable(varName, value)
-        _runRuleIteration(rule, ruleCtx, globalCtx, boundFacts=[])
+        _runRuleIteration(rule, ruleCtx, globalCtx, boundFacts=[], emitGuard=guard)
 
     def joinQueries(bindings):
         """Run once per alignment the rule's fact queries between them select."""
@@ -179,14 +198,18 @@ def evaluateRule(rule, globalCtx: FormulaGlobalContext) -> None:
                     alignments.append(key)
 
         if not alignments:
-            # Nothing was selected at any alignment, so the rule keeps its
-            # start iteration with every query bound to none. Without this a
-            # query that found nothing would silently delete the rule's output
-            # rather than reporting on what it did not find.
+            # Nothing was selected at any alignment. The rule keeps its start
+            # iteration, but only for a body that never asks the empty query
+            # for a value -- the guard drops it otherwise, which is what makes
+            # a rule over a concept that was never reported report nothing.
             bound = dict(bindings)
             for src, groups in grouped:
                 vals = groups.get(None) or []
-                bound[src.iterId] = vals[0] if vals else NONE_VALUE
+                if vals:
+                    bound[src.iterId] = vals[0]
+                else:
+                    bound[src.iterId] = NONE_VALUE
+                    empties.add(src.iterId)
             run(bound, None)
             return
 
@@ -251,6 +274,8 @@ def _iterBinding(node, ctx) -> Optional[FormulaValue]:
     iterId = node.get("_iterId") if isinstance(node, dict) else None
     if iterId is None:
         return None
+    if iterId in ctx.iterBindings:
+        ctx.readIterIds.add(iterId)
     return ctx.iterBindings.get(iterId)
 
 
@@ -368,7 +393,7 @@ def _findFactsByLocalName(globalCtx: FormulaGlobalContext, localName: str) -> Li
 
 def _runRuleIteration(rule, ruleCtx: FormulaRuleContext,
                       globalCtx: FormulaGlobalContext,
-                      boundFacts: List[Tuple]) -> None:
+                      boundFacts: List[Tuple], emitGuard=None) -> None:
     """
     Bind fact variables into ruleCtx, evaluate the rule expression, then
     emit an output/assertion result.
@@ -468,6 +493,12 @@ def _runRuleIteration(rule, ruleCtx: FormulaRuleContext,
         return
 
     ruleCtx.ruleValue = result
+
+    # The body has run, so what it actually read is known. The driver uses that
+    # to drop an iteration that is a duplicate of one already reported, or that
+    # depends on a query which selected nothing.
+    if emitGuard is not None and not emitGuard(ruleCtx):
+        return
 
     # Build the message string
     message = _buildMessage(rule, result, ruleCtx)
@@ -1773,8 +1804,38 @@ def _evalFuncCall(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
         rawArgs = [rawArgs]
     elif rawArgs is None:
         rawArgs = []
+    if funcName.lower() in _SHORT_CIRCUIT_FUNCTIONS:
+        return _evalFirstValue(funcName, rawArgs, ctx)
     args = [evaluateExpr(a, ctx) for a in rawArgs]
     return callFunction(funcName, args, ctx)
+
+
+# These take their arguments in order and stop at the first that has a value,
+# so an argument after that one is never evaluated -- and an argument that
+# selected nothing is a reason to try the next, not to cancel the iteration.
+_SHORT_CIRCUIT_FUNCTIONS = frozenset(("first-value", "first-value-or-none"))
+
+
+def _evalFirstValue(funcName: str, rawArgs, ctx: FormulaRuleContext) -> FormulaValue:
+    tolerated = set()
+    for rawArg in rawArgs:
+        before = set(ctx.readIterIds)
+        try:
+            value = evaluateExpr(rawArg, ctx)
+        except (FormulaIterationStop, FormulaSkip):
+            tolerated |= ctx.readIterIds - before
+            continue
+        if value.type not in (FormulaValueType.NONE, FormulaValueType.SKIP) and not (
+                value.type in (FormulaValueType.LIST, FormulaValueType.SET)
+                and not _unwrapColl(value)):
+            return value
+        # This argument had nothing to give. Whatever it read is not a reason
+        # to drop the iteration -- trying the next argument is the point.
+        tolerated |= ctx.readIterIds - before
+    ctx.readIterIds -= tolerated
+    if funcName.lower() == "first-value-or-none":
+        return NONE_VALUE
+    return SKIP_VALUE
 
 
 # ---------------------------------------------------------------------------
