@@ -82,6 +82,14 @@
                         "source": "oimtc:CalculationErrorClassDomain",
                         "target": "oimtc:disallowedDuplicateFactsUsingTruncation",
                         "order": 13
+                    },
+                    {
+                        "source": "oimtc:CalculationErrorClassDomain",
+                        "target": "oimtc:greaterLesserPeriodTypeMismatch"
+                    },
+                    {
+                        "source": "oimtc:CalculationErrorClassDomain",
+                        "target": "oimtc:greaterLesserInconsistent"
                     }
                 ]
             }
@@ -218,6 +226,30 @@
                         "value": "error"
                     }
                 ]
+            },
+            {
+                "name": "oimtc:greaterLesserPeriodTypeMismatch",
+                "domainClasses": [
+                    "oimtc:CalculationErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimtc:greaterLesserInconsistent",
+                "domainClasses": [
+                    "oimtc:CalculationErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
             }
         ],
         "headings": [
@@ -288,6 +320,14 @@
                         "source": "oimtc:CalculationErrors",
                         "target": "oimtc:disallowedDuplicateFactsUsingTruncation",
                         "order": 13
+                    },
+                    {
+                        "source": "oimtc:CalculationErrors",
+                        "target": "oimtc:greaterLesserPeriodTypeMismatch"
+                    },
+                    {
+                        "source": "oimtc:CalculationErrors",
+                        "target": "oimtc:greaterLesserInconsistent"
                     }
                 ]
             }
@@ -441,6 +481,30 @@
                 "forObject": "oimtc:disallowedDuplicateFactsUsingTruncation",
                 "language": "en",
                 "value": "A binding includes a data point with inconsistent duplicate facts under the truncation rounding mode, and no further checking is performed for that binding.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "forObject": "oimtc:greaterLesserPeriodTypeMismatch",
+                "language": "en",
+                "value": "Greater-Lesser Period Type Mismatch",
+                "labelType": "xbrl:label"
+            },
+            {
+                "forObject": "oimtc:greaterLesserPeriodTypeMismatch",
+                "language": "en",
+                "value": "The concepts of a greater-lesser relationship must have the same periodType.",
+                "labelType": "xbrl:errorMessage"
+            },
+            {
+                "forObject": "oimtc:greaterLesserInconsistent",
+                "language": "en",
+                "value": "Greater-Lesser Inconsistent",
+                "labelType": "xbrl:label"
+            },
+            {
+                "forObject": "oimtc:greaterLesserInconsistent",
+                "language": "en",
+                "value": "A bound greater-lesser relationship is violated: the lesser concept's reported value exceeds the greater concept's.",
                 "labelType": "xbrl:errorMessage"
             }
         ],

@@ -314,6 +314,11 @@ def _emitFact(compMdl, module, imf, conceptQn, conceptObj,
             # carries the raw @decimals attribute as a string, which serializes as "-6" and
             # fails the schema on every numeric fact of every saved model.
             fv.decimals = _decimalsValue(getattr(imf, "decimals", None))
+            if fv.decimals is None and getattr(imf, "precision", None) is not None:
+                # ix:nonFraction may state @precision instead, and the conformance suite
+                # does. The {decimals} property is then inferred from it (XBRL 2.1 4.6.6).
+                from .LoadFactsCommon import decimalsValue as _inferDecimals
+                fv.decimals = _inferDecimals(imf, error=compMdl.error)
         source = _htmlValueSource(imf, fv)
         if source is not None:
             # Faithful inline form: the value is re-derivable from the document, so the

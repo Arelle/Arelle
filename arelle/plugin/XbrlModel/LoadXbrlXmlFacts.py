@@ -194,7 +194,7 @@ def parseXbrlXmlFacts(compMdl, module, factSource, url):
             text = elt.text if elt.text is not None else ""
             fv.value = text
             if isNumeric:
-                fv.decimals = _decimalsValue(elt)
+                fv.decimals = _decimalsValue(elt, error=compMdl.error)
         fact.factValues = [fv]
 
         facts.append(fact)

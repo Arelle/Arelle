@@ -2336,6 +2336,17 @@
                 "targetObjects": [
                     "xbrl:propertyTypeObject"
                 ]
+            },
+            {
+                "name": "xbrl:greater-lesser",
+                "uri": "https://xbrl.org/((~status_date_uri~))/arcrole/greater-lesser",
+                "cycles": "none",
+                "sourceObjects": [
+                    "xbrl:conceptObject"
+                ],
+                "targetObjects": [
+                    "xbrl:conceptObject"
+                ]
             }
         ],
         "factMaps": [

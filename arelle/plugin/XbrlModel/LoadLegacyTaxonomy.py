@@ -738,10 +738,14 @@ def _legacyAccommodationCube(modelXbrl, pfx, dimensions, concepts, domainNetwork
         cubeDims.append({"dimension": coreDim, "optional": True})
     for dimName in sorted(dimensions):
         cubeDims.append({"dimension": dimName, "optional": True})
-    return {"name": cubeName,
+    cube = {"name": cubeName,
             "cubeType": cubeTypeName,
-            "cubeDimensions": cubeDims,
-            "cubeNetworks": list(calcNetNames)}
+            "cubeDimensions": cubeDims}
+    # cubeNetworks is a non-empty set: a taxonomy with no calculations lists none, and the
+    # property must then be absent rather than an empty array (oimte:invalidEmptySet).
+    if calcNetNames:
+        cube["cubeNetworks"] = list(calcNetNames)
+    return cube
 
 
 def _inlineBaseSpecObjects(oim: OrderedDict) -> None:

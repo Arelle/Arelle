@@ -21,6 +21,7 @@ namespace-map redirect.
 from __future__ import annotations
 
 from datetime import date, timedelta
+from math import isinf, isnan
 from typing import Optional
 
 from arelle.ModelValue import QName
@@ -351,9 +352,19 @@ def factLocalName(factElt, positionalId: str) -> str:
     return positionalId
 
 
-def decimalsValue(elt) -> Optional[int]:
-    """Decimals for a numeric fact: @decimals (INF -> None), else inferred from
-    @precision, else None."""
+def decimalsValue(elt, error=None) -> Optional[int]:
+    """Decimals for a numeric fact, per the xBRL-XML mapping of the {decimals} property:
+    @decimals where present, otherwise the value inferred from @precision as described in
+    XBRL 2.1 section 4.6.6, and absent where either is INF.
+
+    The inference is arelle.ValidateXbrlCalcs.inferredDecimals, which is the implementation
+    of that section already used by calculation validation, so an imported fact carries the
+    same accuracy that Arelle attributes to it elsewhere.
+
+    A fact whose @precision is zero has no determinable accuracy. xBRL-XML prohibits such a
+    fact (xbrlxe:unsupportedZeroPrecisionFact) rather than assigning it one, so ``error`` is
+    called where given and the fact is imported with no decimals.
+    """
     dec = elt.get("decimals")
     if dec is not None:
         dec = dec.strip()
@@ -364,11 +375,22 @@ def decimalsValue(elt) -> Optional[int]:
         except ValueError:
             return None
     prec = elt.get("precision")
-    if prec is not None:
-        prec = prec.strip()
-        if prec in ("INF", "INFINITY"):
-            return None
-        # decimals cannot be inferred from precision without the value magnitude;
-        # treat as infinitely precise (best-effort) rather than mis-report.
+    if prec is None:
         return None
-    return None
+    if prec.strip() in ("INF", "INFINITY"):
+        return None
+    if prec.strip() == "0":
+        if error is not None:
+            error("xbrlxe:unsupportedZeroPrecisionFact",
+                  _("The fact %(concept)s is reported with a precision of zero, from which no "
+                    "accuracy can be inferred."),
+                  concept=getattr(elt, "qname", None))
+        return None
+    from arelle.ValidateXbrlCalcs import inferredDecimals
+    try:
+        d = inferredDecimals(elt)
+    except (AttributeError, TypeError, ValueError):
+        return None
+    if d is None or isinf(d) or isnan(d):
+        return None  # INF, a zero value, or an unusable precision: no decimals in the model
+    return int(d)
