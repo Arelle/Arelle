@@ -43,6 +43,7 @@ from __future__ import annotations
 
 import re
 from decimal import Decimal, InvalidOperation
+from dataclasses import replace
 from typing import Any, Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING
 
 from pyparsing import ParseResults
@@ -134,6 +135,12 @@ def evaluateRule(rule, globalCtx: FormulaGlobalContext) -> None:
         ruleCtx = FormulaRuleContext(globalCtx)
         ruleCtx.ruleName = rule.name
         _runRuleIteration(rule, ruleCtx, globalCtx, boundFacts=list(zip(slots, factGroup)))
+
+
+# The severity names a rule may resolve to. `info` is here as well as the four
+# the specification enumerates because it is the severity an output block has
+# when it says nothing, so a rule may name it explicitly.
+_SEVERITIES = ("error", "warning", "ok", "pass", "info")
 
 
 # ---------------------------------------------------------------------------
@@ -264,6 +271,31 @@ def _runRuleIteration(rule, ruleCtx: FormulaRuleContext,
         if slot.tag:
             ruleCtx.bindVariable(slot.tag, factVal)
 
+    # Resolve the severity clause. It is an expression, so it can only be
+    # checked here; a value that is not a severity name is an error in the
+    # rule rather than in what the rule was looking at.
+    severityExpr = getattr(rule, "severityExpr", None)
+    if severityExpr is not None:
+        try:
+            sev = evaluateExpr(severityExpr, ruleCtx)
+            sevText = (str(sev.value) if sev.type != FormulaValueType.NONE else "").lower()
+            if sevText in _SEVERITIES:
+                rule = replace(rule, severity=sevText)
+            else:
+                globalCtx.addResult(
+                    ruleName=rule.name, ruleType="output", severity="error",
+                    message=(f"Output {rule.name!r}: Evaluation error: "
+                             f"taviqe:invalidSeverityValue: {_formatValue(sev)} is not "
+                             f"one of {', '.join(_SEVERITIES)}"),
+                    alignment=ruleCtx.alignment, factObj=None)
+                return
+        except (FormulaRuntimeError, FormulaIterationStop, FormulaSkip) as exc:
+            globalCtx.addResult(
+                ruleName=rule.name, ruleType="output", severity="error",
+                message=f"Output {rule.name!r}: Evaluation error: {exc}",
+                alignment=ruleCtx.alignment, factObj=None)
+            return
+
     # Evaluate the rule-suffix clause (if any) so rule-name() can see it.
     suffixExpr = getattr(rule, "suffixExpr", None)
     if suffixExpr is not None:
@@ -390,6 +422,7 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
         if "base" in node or "props" in node:
             baseNode = None
             for namedKey in (
+                "taggedExpr",
                 "funcCall", "varRef", "factQuery", "navigateExpr", "ifExpr", "forExpr",
                 "filterExpr",
                 "setLiteral", "listLiteral", "boolean", "none", "skip",
@@ -550,6 +583,7 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
         # the index expression is just a literal int.
         if not chain and "base" in node and not any(
             k in node for k in (
+                "taggedExpr",
                 "funcCall", "factQuery", "varRef", "qname", "ifExpr",
                 "forExpr", "filterExpr", "setLiteral", "listLiteral",
                 "boolean", "none", "skip", "severity", "string",
@@ -557,6 +591,17 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
             )
         ):
             return evaluateExpr(node["base"], ctx)
+
+    # ---- Tagged expression  (expr#tag) ----
+    # The tag names the atom's value for the rule's message; the value itself
+    # passes through unchanged.
+    if exprName == "taggedExpr" or "taggedExpr" in node:
+        inner = node.get("taggedExpr", node)
+        value = evaluateExpr(inner.get("expr"), ctx)
+        tagNm = inner.get("tagName")
+        if tagNm:
+            ctx.bindTag(str(tagNm), value)
+        return value
 
     # ---- Variable reference ----
     if exprName == "varRef" or "varRef" in node:

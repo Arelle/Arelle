@@ -234,6 +234,11 @@ class FormulaRuleContext:
     def __init__(self, globalCtx: FormulaGlobalContext):
         self.globalCtx   = globalCtx
         self.variables:  Dict[str, FormulaValue] = {}
+        # Tags are held apart from variables and shared by reference with any
+        # child context, so a `#tag` set inside a for loop or other nested
+        # scope is still visible to the rule's message, which is where the
+        # specification says tags are for.
+        self.tags:       Dict[str, FormulaValue] = {}
         self.alignment:  Optional[AlignmentKey] = None
         self.ruleValue:  Optional[FormulaValue] = None
         self.ruleName:   Optional[str] = None
@@ -251,10 +256,17 @@ class FormulaRuleContext:
     def bindVariable(self, name: str, value: FormulaValue) -> None:
         self.variables[name] = value
 
+    def bindTag(self, name: str, value: FormulaValue) -> None:
+        self.tags[name] = value
+
     def lookupVariable(self, name: str) -> FormulaValue:
         # Check local variables first, then global constants
         if name in self.variables:
             return self.variables[name]
+        # A tag is looked up after variables, so a variable of the same name
+        # shadows it.
+        if name in self.tags:
+            return self.tags[name]
         if name in self.globalCtx.constants:
             return self.globalCtx.constants[name]
         # Built-in $rule-value
@@ -274,6 +286,7 @@ class FormulaRuleContext:
         """Return a new child context that inherits current variable bindings."""
         child = FormulaRuleContext(self.globalCtx)
         child.variables = dict(self.variables)
+        child.tags = self.tags   # shared, so nested tags reach the message
         child.alignment = self.alignment
         child.ruleName = self.ruleName
         child.ruleSuffix = self.ruleSuffix

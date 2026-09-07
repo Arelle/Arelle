@@ -42,6 +42,7 @@ class OutputRule:
     expr: Any           # AST node for the body expression
     messageExpr: Optional[Any] = None   # AST node for the message string, if present
     severity: str = "info"
+    severityExpr: Optional[Any] = None  # AST node for the severity clause
     suffixExpr: Optional[Any] = None    # AST node for the rule-suffix string
 
 
@@ -52,6 +53,7 @@ class AssertRule:
     expr: Any           # AST node for the boolean condition
     messageExpr: Optional[Any] = None
     severity: str = "error"
+    severityExpr: Optional[Any] = None  # AST node for the severity clause
     suffixExpr: Optional[Any] = None    # AST node for the rule-suffix string
 
 

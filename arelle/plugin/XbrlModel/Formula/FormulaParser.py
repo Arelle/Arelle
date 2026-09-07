@@ -13,8 +13,8 @@ Statement     := NamespaceDecl | ConstantDecl | OutputRule | AssertRule | Versio
 
 NamespaceDecl := 'namespace' NCName '<' URI '>'
 ConstantDecl  := 'constant' '$'VarName '=' Expr
-OutputRule    := 'output' RuleName Expr ['message' StringExpr] ['severity' SeverityKw]
-AssertRule    := 'assert' RuleName Expr ['message' StringExpr] ['severity' SeverityKw]
+OutputRule    := 'output' RuleName Expr ['message' StringExpr] ['severity' Expr]
+AssertRule    := 'assert' RuleName Expr ['message' StringExpr] ['severity' Expr]
 VersionDecl   := 'version' StringLiteral
 
 Expr          := ... (see buildExprGrammar)
@@ -558,8 +558,17 @@ def _buildGrammar():
 
     _propsGroup = Group(ZeroOrMore(propAccess | indexAccess)).setParseAction(_propsToList)
 
+    # A tag binds the atom it follows, ahead of any property chain: the
+    # precedence order puts `#` above both `[ ]` and `.`, so `$f#t.name` tags
+    # the fact and then takes its name, rather than tagging the name.
+    taggedAtom = Group(
+        atom.setResultsName("expr")
+        + tagOp
+        + tagName.setResultsName("tagName")
+    ).setResultsName("taggedExpr")
+
     atomWithProps = Group(
-        atom.setResultsName("base")
+        (taggedAtom | atom).setResultsName("base")
         + _propsGroup.setResultsName("props")
     ).setResultsName("atomWithProps")
 
@@ -612,10 +621,14 @@ def _buildGrammar():
     ).setResultsName("message")
 
     # ---- Severity clause ----
+    # Severity is an expression, not just a keyword: it may be a variable or
+    # anything else resolving to one of the severity names, so that a rule can
+    # decide its own severity from what it found. The value is checked when
+    # the rule runs.
     severityClause = Group(
         Suppress(severityKw)
-        + severityLiteral.setResultsName("severity")
-    ).setResultsName("severity")
+        + (~_clauseKw + expr).setResultsName("severityExpr")
+    ).setResultsName("severityClause")
 
     # ---- Rule-suffix clause ----
     # Form:  rule-suffix <stringExpr>
@@ -913,7 +926,7 @@ def _buildRuleSet(parseRes: dict, filePath: str) -> FormulaRuleSet:
                 name=node["name"],
                 expr=_normalizeNode(node["expr"]),
                 messageExpr=_normalizeNode(node.get("message", {}).get("msgExpr")),
-                severity=node.get("severity", {}).get("severity", {}).get("value", "info"),
+                severityExpr=_normalizeNode(node.get("severityClause", {}).get("severityExpr")),
                 suffixExpr=_normalizeNode(node.get("ruleSuffix", {}).get("suffixExpr")),
             )
             ruleSet.outputRules[rule.name] = rule
@@ -923,7 +936,7 @@ def _buildRuleSet(parseRes: dict, filePath: str) -> FormulaRuleSet:
                 name=node["name"],
                 expr=_normalizeNode(node["expr"]),
                 messageExpr=_normalizeNode(node.get("message", {}).get("msgExpr")),
-                severity=node.get("severity", {}).get("severity", {}).get("value", "error"),
+                severityExpr=_normalizeNode(node.get("severityClause", {}).get("severityExpr")),
                 suffixExpr=_normalizeNode(node.get("ruleSuffix", {}).get("suffixExpr")),
             )
             ruleSet.assertRules[rule.name] = rule
