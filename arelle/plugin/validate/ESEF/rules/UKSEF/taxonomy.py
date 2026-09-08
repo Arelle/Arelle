@@ -147,14 +147,14 @@ def rule_ukfrc2(
         if match:
             esefYears.append(int(match.group(1)))
 
-    if esefYears and max(esefYears) < _MIN_ESEF_YEAR:
+    if esefYears and min(esefYears) < _MIN_ESEF_YEAR:
         yield Validation.error(
             codes="ESEF.UKFRC2.incorrectEsefTaxonomyVersionUsed",
             msg=_(
                 "UKSEF 2025 reports MUST only be used in conjunction with ESEF 2022 or later. "
                 "The extension taxonomy references ESEF taxonomy version %(year)s."
             ),
-            year=max(esefYears),
+            year=min(esefYears),
         )
 
     return
