@@ -129,21 +129,39 @@ def rule_ukfrc3(
 
 
 @validation(
-    hook=ValidationHook.XBRL_FINALLY,
+    # using FINALLY hook to ensure that the ixdsReferences are fully populated before checking for the UKFRS target
+    hook=ValidationHook.FINALLY,
 )
 def rule_ukfrc4(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     UKFRC4: In accordance with the ESEF Reporting Manual, Rule 2.5.3, 'All [ESEF] tagged data MUST
     be in the "default" target XBRL document'. ESEF tagged data MUST NOT carry a target attribute.
     """
     if val.authority != AUTHORITY_UKFRC:
-        return None
-    return None
+        return
+
+    if not pluginData.isUkfrsTarget(val.modelXbrl):
+        return
+
+    ixdsReferences = getattr(val, "ixdsReferences", None)
+    if ixdsReferences:
+        ESEFTargets = ixdsReferences.get(None, [])
+        if not ESEFTargets:
+            yield Validation.error(
+                codes="ESEF.UKFRC4.targetAttributeUsedForESEFContents",
+                msg=_(
+                    "ESEF tagged data MUST be in the default (unnamed) target XBRL document and "
+                    "MUST NOT carry a target attribute. Found ESEF concept element(s) with target attribute."
+                ),
+                modelObject=ESEFTargets,
+            )
+
+    return
 
 
 @validation(
