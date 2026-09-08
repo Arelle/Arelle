@@ -1046,7 +1046,7 @@ def checkElements(val: ValidateXbrl, modelDocument: ModelDocument, parent: _Elem
                 elif elt.localName == "nonNumeric":
                     checkIxContinuationChain(val, elt)
                 elif elt.localName == "references":
-                    val.ixdsReferences[elt.get("target")].append(elt)  # type: ignore[index]
+                    val.ixdsReferences[elt.get("target")].append(elt)
                 elif elt.localName == "relationship":
                     val.ixdsRelationships.append(elt)
                 elif elt.localName == "tuple":

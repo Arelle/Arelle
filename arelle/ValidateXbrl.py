@@ -68,7 +68,7 @@ class ValidateXbrl:
     ixdsDocs: list[ModelDocument]
     ixdsFootnotes: dict[str, Any]
     ixdsHeaderCount: int
-    ixdsReferences: dict[str, Any]
+    ixdsReferences: dict[str | None, Any]
     ixdsRelationships: list[ModelObject]
     ixdsRoleRefURIs: dict[Any, Any]
     ixdsArcroleRefURIs: dict[Any, Any]
