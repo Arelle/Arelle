@@ -197,8 +197,8 @@ def rule_ukfrc5(
             yield Validation.error(
                 codes="ESEF.UKFRC5.noESEFData",
                 msg=_(
-                    'UKSEF reports MUST have an default (unnamed) targeted ix:references element. '
-                    'No matching ix:references element was found in the report.'
+                    "UKSEF reports MUST have an default (unnamed) targeted ix:references element. "
+                    "No matching ix:references element was found in the report."
                 ),
             )
 
