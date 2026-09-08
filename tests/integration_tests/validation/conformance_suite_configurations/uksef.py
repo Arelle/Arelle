@@ -77,6 +77,8 @@ config = ConformanceSuiteConfig(
     expected_additional_testcase_errors={f"*tests/FRC/{s}": val for s, val in {
         "FRC_01/index.xml:TC7_invalid": {
             "invalidIdentifier": 1,
+            # UKFRC1 and UKFRC5 have the same conditions for the test case, but have different checks and fire different errors
+            "noUKFRSData": 1,
             "multipleIdentifiers": 1,
             "segmentUsed": 1,
         },
