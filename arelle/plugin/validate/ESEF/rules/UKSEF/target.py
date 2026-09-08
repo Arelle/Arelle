@@ -49,7 +49,7 @@ def _ix_tags_for_namespace(ns: str, local_names: Iterable[str]) -> tuple[str, ..
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
-def rule_ukfrc3(
+def ruleUkfrc3(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
@@ -72,57 +72,57 @@ def rule_ukfrc3(
     if ixdsTarget is None or isinstance(ixdsTarget, str) and ixdsTarget.upper() != TARGET_UKFRS:
         return
 
-    invalid_target_elts: list[ModelObject] = []
-    invalid_target_values: set[str] = set()
-    disallowed_target_elts: list[ModelObject] = []
+    invalidTargetElts: list[ModelObject] = []
+    invalidTargetValues: set[str] = set()
+    disallowedTargetElts: list[ModelObject] = []
 
-    for ixds_html_root_elt in val.modelXbrl.ixdsHtmlElements or ():
-        ns = getattr(ixds_html_root_elt.modelDocument, "ixNS", ixbrl11)
-        allowed_tags = _ix_tags_for_namespace(ns, _TARGET_ALLOWED_LOCAL_NAMES)
-        disallowed_tags = _ix_tags_for_namespace(ns, _TARGET_DISALLOWED_LOCAL_NAMES)
+    for ixdsHtmlRootElt in val.modelXbrl.ixdsHtmlElements or ():
+        ns = getattr(ixdsHtmlRootElt.modelDocument, "ixNS", ixbrl11)
+        allowedTags = _ix_tags_for_namespace(ns, _TARGET_ALLOWED_LOCAL_NAMES)
+        disallowedTags = _ix_tags_for_namespace(ns, _TARGET_DISALLOWED_LOCAL_NAMES)
 
         # Also cover the ix 1.0 namespace to be safe when both are present.
-        other_ns = ixbrl if ns == ixbrl11 else ixbrl11
-        allowed_tags = allowed_tags + _ix_tags_for_namespace(other_ns, _TARGET_ALLOWED_LOCAL_NAMES)
-        disallowed_tags = disallowed_tags + _ix_tags_for_namespace(other_ns, _TARGET_DISALLOWED_LOCAL_NAMES)
+        otherNs = ixbrl if ns == ixbrl11 else ixbrl11
+        allowedTags = allowedTags + _ix_tags_for_namespace(otherNs, _TARGET_ALLOWED_LOCAL_NAMES)
+        disallowedTags = disallowedTags + _ix_tags_for_namespace(otherNs, _TARGET_DISALLOWED_LOCAL_NAMES)
 
-        for elt in ixds_html_root_elt.iter():
+        for elt in ixdsHtmlRootElt.iter():
             tag = getattr(elt, "tag", None)
 
             if not isinstance(tag, str):
                 continue
 
-            if tag in allowed_tags:
+            if tag in allowedTags:
                 if "target" in elt.attrib:
-                    target_value = elt.get("target") or ""
+                    targetValue = elt.get("target") or ""
 
-                    if target_value != TARGET_UKFRS:
-                        invalid_target_elts.append(elt)
-                        invalid_target_values.add(target_value)
+                    if targetValue != TARGET_UKFRS:
+                        invalidTargetElts.append(elt)
+                        invalidTargetValues.add(targetValue)
 
-            elif tag in disallowed_tags:
+            elif tag in disallowedTags:
                 if "target" in elt.attrib:
-                    disallowed_target_elts.append(elt)
+                    disallowedTargetElts.append(elt)
 
-    if invalid_target_elts:
+    if invalidTargetElts:
         yield Validation.error(
             codes="ESEF.UKFRC3.incorrectTarget",
             msg=_(
                 'The target attribute on Inline XBRL elements in a UKSEF report MUST be '
                 '"UKFRS" (case-sensitive). Found invalid target value(s): %(targets)s.'
             ),
-            modelObject=invalid_target_elts,
-            targets=", ".join(sorted(f'"{v}"' for v in invalid_target_values)),
+            modelObject=invalidTargetElts,
+            targets=", ".join(sorted(f'"{v}"' for v in invalidTargetValues)),
         )
 
-    if disallowed_target_elts:
+    if disallowedTargetElts:
         yield Validation.error(
             codes="ESEF.UKFRC3.incorrectTarget",
             msg=_(
                 "The target attribute MUST NOT appear on ix:resources, ix:continuation or "
                 "ix:exclude elements."
             ),
-            modelObject=disallowed_target_elts,
+            modelObject=disallowedTargetElts,
         )
 
     return
