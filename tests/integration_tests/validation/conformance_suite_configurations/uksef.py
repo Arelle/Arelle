@@ -141,12 +141,6 @@ config = ConformanceSuiteConfig(
     }.items()},
     expected_failure_ids=frozenset({f"tests/FRC/{s}" for s in [
         # FRC XBRL Tagging Guide not yet implemented.
-        "FRC_03/index.xml:TC2_invalid",
-        "FRC_03/index.xml:TC3_invalid",
-        "FRC_03/index.xml:TC4_invalid",
-        "FRC_04/index.xml:TC2_invalid",
-        "FRC_05/index.xml:TC4_invalid",
-        "FRC_05/index.xml:TC5_invalid",
         "FRC_09/index.xml:TC6_invalid",
         "FRC_10/index.xml:TC3_invalid",
         "FRC_10/index.xml:TC4_invalid",
