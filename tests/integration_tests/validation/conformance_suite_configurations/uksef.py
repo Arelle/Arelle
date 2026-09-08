@@ -113,6 +113,18 @@ config = ConformanceSuiteConfig(
             # Data in this test case is invalid for the rule UKFRC5
             "noESEFData": 2,
         },
+        "FRC_05/index.xml:TC2_valid": {
+            "incorrectTarget": 1,
+        },
+        "FRC_05/index.xml:TC3_valid": {
+            "incorrectTarget": 1,
+        },
+        "FRC_05/index.xml:TC4_invalid": {
+            "incorrectTarget": 1,
+        },
+        "FRC_05/index.xml:TC5_invalid": {
+            "targetAttributeUsedForESEFContents": 1,
+        },
         "FRC_07/index.xml:TC2_invalid": {
             # By the same logic that FRC_06:TC2 fires multipleIdentifiers, so should FRC_07:TC2
             "multipleIdentifiers": 1,
