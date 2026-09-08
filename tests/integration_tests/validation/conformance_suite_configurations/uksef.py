@@ -86,6 +86,28 @@ config = ConformanceSuiteConfig(
             "info:duplicatedSchema": 1,
             "xbrl:multipleTopLevelSchemasForNamespace": 1,
         },
+        "FRC_03/index.xml:TC2_invalid": {
+            # UKFRC3 uses UKFRC1 for tracking incorrectTarget errors.
+            # UKFRC1 and UKFRC5 have the same conditions for the test case, but have different checks and fire different errors
+            "noUKFRSData": 1,
+            "invalidIdentifier": 1,
+            "multipleIdentifiers": 1,
+            "segmentUsed": 1,
+        },
+        "FRC_03/index.xml:TC3_invalid": {
+            "incorrectTarget": 1,
+            # UKFRC3 uses UKFRC1 for tracking incorrectTarget errors.
+            # UKFRC1 and UKFRC5 have the same conditions for the test case, but have different checks and fire different errors
+            "noUKFRSData": 2,
+            "invalidIdentifier": 1,
+            "segmentUsed": 1,
+        },
+        "FRC_03/index.xml:TC4_invalid": {
+            "invalidIdentifier": 1,
+            # UKFRC3 and UKFRC5 have the same conditions for the test case, but have different checks and fire different errors
+            "noUKFRSData": 2,
+            "segmentUsed": 1,
+        },
         "FRC_07/index.xml:TC2_invalid": {
             # By the same logic that FRC_06:TC2 fires multipleIdentifiers, so should FRC_07:TC2
             "multipleIdentifiers": 1,
