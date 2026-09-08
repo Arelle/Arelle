@@ -165,19 +165,57 @@ def rule_ukfrc4(
 
 
 @validation(
-    hook=ValidationHook.XBRL_FINALLY,
+    # using FINALLY hook to ensure that the ixdsReferences are fully populated before checking for the UKFRS target
+    hook=ValidationHook.FINALLY,
 )
 def rule_ukfrc5(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
-) -> Iterable[Validation] | None:
+) -> Iterable[Validation]:
     """
     UKFRC5: In a UKSEF report, there should be two ix:references containers – one should contain the
     schemaRef for the issuer’s private extension as per ESEF requirements and MUST omit the target.
     The other must contain a UKSEF schemaRef with the "UKFRS" target attribute.
     """
     if val.authority != AUTHORITY_UKFRC:
-        return None
-    return None
+        return
+
+    ixdsReferences = getattr(val, "ixdsReferences", None)
+    if ixdsReferences:
+        if not ixdsReferences.get(TARGET_UKFRS, []):
+            yield Validation.error(
+                codes="ESEF.UKFRC5.noUKFRSData",
+                msg=_(
+                    'UKSEF reports MUST have a "UKFRS" targeted ix:references element. '
+                    'No matching ix:references element was found in the report.'
+                ),
+            )
+
+        if not ixdsReferences.get(None, []):
+            yield Validation.error(
+                codes="ESEF.UKFRC5.noESEFData",
+                msg=_(
+                    'UKSEF reports MUST have an default (unnamed) targeted ix:references element. '
+                    'No matching ix:references element was found in the report.'
+                ),
+            )
+
+        if not pluginData.isUkfrsTarget(val.modelXbrl):
+            return
+
+        if (pluginData.isUkfrsTarget(val.modelXbrl)
+                and (foundTargets := ixdsReferences.get(TARGET_UKFRS, []))
+                and len(foundTargets) > 1):
+
+            yield Validation.error(
+                codes="ESEF.UKFRC5.multipleEntryPoints",
+                msg=_(
+                    'UKSEF reports MUST have a single targeted element with the "UKFRS" target. '
+                    'Multiple matching ix:references elements were found in the report.'
+                    ),
+                modelObject=foundTargets,
+                )
+
+    return
