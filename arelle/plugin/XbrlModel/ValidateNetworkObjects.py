@@ -22,11 +22,10 @@ qnXbrlaBalance = qname(xbrla, "xbrla:balance")
 qnXbrlSummationConcept = qname(xbrl, "xbrl:summation-concept")
 qnXbrlGreaterLesser = qname(xbrl, "xbrl:greater-lesser")
 qnXbrlWeight = qname(xbrl, "xbrl:weight")
-# The calculation proposal (summation-item-relationship-proposal.md 5.4) moves the
-# reconciliation property to the accounting namespace, as xbrla:reconciliation, because it
-# is defined entirely in terms of xbrla:balance. That rename is not ratified and core.json
-# still declares xbrl:reconciliation, so the property is named in one place here and the
-# move is a one-line change once the working group rules on it.
+# The property is defined entirely in terms of xbrla:balance, so moving it to the accounting
+# namespace as xbrla:reconciliation has been raised. core.json declares xbrl:reconciliation and
+# tavi.md now names it that way throughout, so it is named in one place here and the move stays
+# a one-line change should the working group rule on it.
 qnReconciliation = qname(xbrl, "xbrl:reconciliation")
 
 # Error codes for the summation-concept definition-time checks, from section 10 of the
@@ -70,17 +69,17 @@ def _conceptBalance(conceptObj):
 
 
 def _validateGreaterLesserNetwork(compMdl, ntwkObj):
-    """Definition-time checks for a greater-lesser (ordering) network.
+    """Definition-time checks for a greater-lesser network.
 
-    Implements section 11.1 of the calculation relationships proposal. The ordering asserts
-    that the target concept's reported value cannot exceed the source concept's wherever both
-    are reported at the same dimensional position, so both must be numeric and share a
-    periodType.
+    Implements section 11.1 of the calculation relationships proposal. A greater-lesser
+    relationship asserts that the target concept's reported value cannot exceed the source
+    concept's wherever both are reported at the same dimensional position, so both must be
+    numeric and share a periodType.
 
-    There is deliberately no balance constraint: the ordering compares reported magnitudes,
+    There is deliberately no balance constraint: the comparison is of reported magnitudes,
     and the concepts on either side may have different balances or none -- accumulated
     depreciation is a credit, the gross carrying amount that bounds it is a debit, and the
-    ordering between them still holds.
+    constraint between them still holds.
     """
     for relObj in ntwkObj.relationships or ():
         if relObj.source == qnXbrlRootSource:
@@ -93,7 +92,7 @@ def _validateGreaterLesserNetwork(compMdl, ntwkObj):
         for conceptQn, conceptObj in ((relObj.source, srcObj), (relObj.target, tgtObj)):
             if not _isDecimalDerived(compMdl, conceptObj):
                 emit_error(compMdl, _CALC_ERROR["nonNumericConcept"],
-                           _("The greater-lesser network %(name)s relationship %(rel)s uses concept %(concept)s whose dataType %(dataType)s does not derive from xs:decimal; an ordering is defined only over decimal numeric values."),
+                           _("The greater-lesser network %(name)s relationship %(rel)s uses concept %(concept)s whose dataType %(dataType)s does not derive from xs:decimal; a greater-lesser relationship is defined only over decimal numeric values."),
                            xbrlObject=relObj, name=ntwkObj.name, rel=relName,
                            concept=conceptQn, dataType=conceptObj.dataType)
         if srcObj.periodType != tgtObj.periodType:

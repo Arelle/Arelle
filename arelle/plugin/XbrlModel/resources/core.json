@@ -1011,7 +1011,7 @@
                 "labelType": "xbrl:documentation",
                 "language": "en",
                 "forObject": "xbrl:summation-concept",
-                "value": "Relationship type that indicates the source contributes to the target as part of a summation (aggregation) with an associated weight."
+                "value": "Relationship type that indicates the target contributes to the source as part of a summation (aggregation) with an associated weight."
             },
             {
                 "labelType": "xbrl:documentation",
@@ -2079,7 +2079,6 @@
             },
             {
                 "name": "xbrl:summation-concept",
-                "uri": "https://xbrl.org/((~status_date_uri~))/arcrole/summation-concept",
                 "cycles": "undirected",
                 "allowedLinkProperties": [
                     "xbrl:weight",
@@ -2339,7 +2338,6 @@
             },
             {
                 "name": "xbrl:greater-lesser",
-                "uri": "https://xbrl.org/((~status_date_uri~))/arcrole/greater-lesser",
                 "cycles": "none",
                 "sourceObjects": [
                     "xbrl:conceptObject"

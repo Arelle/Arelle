@@ -202,7 +202,7 @@ def validateCubeCalculations(compMdl, cubeObj):
     """
     if not getattr(cubeObj, "_cellFacts", None) or not cubeObj.cubeNetworks:
         return
-    calcNetworks, orderingNetworks = [], []
+    calcNetworks, greaterLesserNetworks = [], []
     for ntwkQn in cubeObj.cubeNetworks:
         ntwkObj = compMdl.namedObjects.get(ntwkQn)
         if not isinstance(ntwkObj, XbrlNetwork):
@@ -210,13 +210,13 @@ def validateCubeCalculations(compMdl, cubeObj):
         if ntwkObj.relationshipTypeName == qnXbrlSummationConcept:
             calcNetworks.append(ntwkObj)
         elif ntwkObj.relationshipTypeName == qnXbrlGreaterLesser:
-            orderingNetworks.append(ntwkObj)
-    if not calcNetworks and not orderingNetworks:
+            greaterLesserNetworks.append(ntwkObj)
+    if not calcNetworks and not greaterLesserNetworks:
         return
     aligned = _alignedCells(cubeObj)
     truncate = _isTruncation(compMdl)
-    for ntwkObj in orderingNetworks:
-        _checkOrdering(compMdl, cubeObj, ntwkObj, aligned, truncate)
+    for ntwkObj in greaterLesserNetworks:
+        _checkGreaterLesser(compMdl, cubeObj, ntwkObj, aligned, truncate)
     for ntwkObj in calcNetworks:
         for totalQn, contributions in _calculations(compMdl, ntwkObj).items():
             for alignKey, byConcept in aligned.items():
@@ -255,12 +255,12 @@ def _recordResult(compMdl, cubeObj, ntwkObj, totalQn, alignKey, consistent,
         "calculated": calculated, "reported": reported})
 
 
-def _checkOrdering(compMdl, cubeObj, ntwkObj, aligned, truncate):
-    """Check a greater-lesser network's orderings (proposal section 11.2).
+def _checkGreaterLesser(compMdl, cubeObj, ntwkObj, aligned, truncate):
+    """Check a greater-lesser network against the facts (proposal section 11.2).
 
     Binds exactly as a calculation does: within this cube's facts, wherever a reported data
     point for the greater concept and one for the lesser concept are dimensionally aligned.
-    The ordering is not strict -- gross equals net exactly when accumulated depreciation is
+    The constraint is not strict -- gross equals net exactly when accumulated depreciation is
     zero -- so it is violated only when every value the lesser concept could have exceeds
     every value the greater concept could have.
     """

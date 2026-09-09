@@ -753,7 +753,7 @@ consistency-checking semantics are those of [Calculations 1.1][calc11]:
 * **Binding and consistency checking** (proposal §6.2 and §7), in
   [`ValidateCalculations.py`](ValidateCalculations.py): a calculation binds only against the
   facts of a cube that lists its network in `cubeNetworks`, and is checked with interval
-  arithmetic. The same module checks **greater-lesser** orderings (proposal §11), which
+  arithmetic. The same module checks **greater-lesser** constraints (proposal §11), which
   assert that one concept's reported value cannot exceed another's at the same dimensional
   position — gross carrying amount and net, or a total and an "of which" part. The intervals themselves reuse `rangeValue()` and `insignificantDigits()` from
   [`arelle/ValidateXbrlCalcs.py`](../../ValidateXbrlCalcs.py), which is what keeps this and
