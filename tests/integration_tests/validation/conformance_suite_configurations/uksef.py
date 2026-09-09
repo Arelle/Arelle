@@ -76,9 +76,12 @@ config = ConformanceSuiteConfig(
     base_taxonomy_validation="none",
     expected_additional_testcase_errors={f"*tests/FRC/{s}": val for s, val in {
         "FRC_01/index.xml:TC7_invalid": {
+            # UKFRC6 fire invalidIdentifier error because `FRC_01:TC7` doesn't have a second `ix:references` element with a target attribute,
+            # and we can't separate schemas iso17442 and ENTITY_IDENTIFIER_SCHEME_CRN
             "invalidIdentifier": 1,
             # UKFRC1 and UKFRC5 have the same conditions for the test case, but have different checks and fire different errors
             "noUKFRSData": 1,
+            # same explanation as invalidIdentifier error above
             "multipleIdentifiers": 1,
             "segmentUsed": 1,
         },
@@ -90,7 +93,10 @@ config = ConformanceSuiteConfig(
             # UKFRC3 uses UKFRC1 for tracking incorrectTarget errors.
             # UKFRC1 and UKFRC5 have the same conditions for the test case, but have different checks and fire different errors
             "noUKFRSData": 1,
+            # UKFRC6 fire invalidIdentifier error because `FRC_03:TC2` doesn't have a target attribute,
+            # and we can't separate schemas iso17442 and ENTITY_IDENTIFIER_SCHEME_CRN
             "invalidIdentifier": 1,
+            # same explanation as invalidIdentifier error above
             "multipleIdentifiers": 1,
             "segmentUsed": 1,
         },
@@ -99,11 +105,9 @@ config = ConformanceSuiteConfig(
             # UKFRC3 uses UKFRC1 for tracking incorrectTarget errors.
             # UKFRC1 and UKFRC5 have the same conditions for the test case, but have different checks and fire different errors
             "noUKFRSData": 2,
-            "invalidIdentifier": 1,
             "segmentUsed": 1,
         },
         "FRC_03/index.xml:TC4_invalid": {
-            "invalidIdentifier": 1,
             # UKFRC3 and UKFRC5 have the same conditions for the test case, but have different checks and fire different errors
             "noUKFRSData": 2,
             "segmentUsed": 1,
