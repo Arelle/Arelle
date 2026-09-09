@@ -87,7 +87,7 @@ class XbrlNetwork(XbrlReferencableModelObject, XbrlRelationshipSet):
     module: XbrlModuleAlias
     name: QNameKeyType # (required if no extendedTargetName) The name is a QName that uniquely identifies the network object.
     relationshipTypeName: QName # (required if no extendedTargetName) The relationshipType object of the network expressed as a QName such as xbrl:parent-child
-    relationships: Optional[NonemptySet[XbrlRelationship]] # (optional) A set of the relationship objects comprising the network. Root nodes are identified by relationships from the virtual xbrl:rootSource origin.
+    relationships: Optional[NonemptySet[XbrlRelationship]] # (optional) An ordered set of the relationship objects comprising the network. Root nodes are identified by relationships from the virtual xbrl:rootSource origin.
     extends: Optional[QName] # (required if no name) Names the network object that the defined network relationships should be appended to. The items in the network with this property are appended to the end of the relationships or roots defined in the target network object. This property cannot be used in conjunction with the relationshipTypeName and name property.
     isExtensible: Union[bool, DefaultTrue] # (optional) If set to false, the network is non-extensible and no importing taxonomy may augment it using extends. If set to true or omitted, the network may be extended. The default value is true.
     properties: Optional[NonemptySet[XbrlProperty]] # (optional) ordered set of property objects used to specify additional properties associated with the concept using the property object. Only immutable properties as defined in the propertyType object can be added to a concept.
