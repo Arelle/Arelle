@@ -38,7 +38,7 @@ def rule_ukfrc6(
         return
 
     modelXbrl = val.modelXbrl
-    if getattr(modelXbrl, "ixdsTarget", "") is not None:
+    if not pluginData.isEsefTarget(modelXbrl):
         return
 
     invalidSchemeRefs = []
