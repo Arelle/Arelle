@@ -47,9 +47,10 @@ def _ix_tags_for_namespace(ns: str, local_names: Iterable[str]) -> tuple[str, ..
 
 
 @validation(
-    hook=ValidationHook.XBRL_FINALLY,
+    # using FINALLY hook to ensure that the ixdsReferences are fully populated before checking for the UKFRS target
+    hook=ValidationHook.FINALLY,
 )
-def ruleUkfrc3(
+def rule_ukfrc3(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
@@ -59,73 +60,24 @@ def ruleUkfrc3(
     UKFRC3: If the target attribute exists on certain key Inline XBRL elements their content
     is diverted to a target XBRL document with a name derived from the attribute value, which
     for the UK MUST be "UKFRS" (all caps).
-
-    The target attribute is only permitted on ix:nonFraction, ix:nonNumeric, ix:footnote and
-    ix:references, and MUST NOT appear on ix:resources, ix:continuation or ix:exclude.
     """
-    if val.authority != AUTHORITY_UKFRC:
+    if val.authority != AUTHORITY_UKFRC or pluginData.isEsefTarget(val.modelXbrl):
         return
 
-    # Check if the Inline XBRL document has a target attribute set to "UKFRS" (case-insensitive).
-    # If not, skip the validation for this rule.
-    ixdsTarget = getattr(val.modelXbrl, "ixdsTarget", None)
-    if ixdsTarget is None or isinstance(ixdsTarget, str) and ixdsTarget.upper() != TARGET_UKFRS:
-        return
+    ixdsReferences = getattr(val, "ixdsReferences", None)
 
-    invalidTargetElts: list[ModelObject] = []
-    invalidTargetValues: set[str] = set()
-    disallowedTargetElts: list[ModelObject] = []
-
-    for ixdsHtmlRootElt in val.modelXbrl.ixdsHtmlElements or ():
-        ns = getattr(ixdsHtmlRootElt.modelDocument, "ixNS", ixbrl11)
-        allowedTags = _ix_tags_for_namespace(ns, _TARGET_ALLOWED_LOCAL_NAMES)
-        disallowedTags = _ix_tags_for_namespace(ns, _TARGET_DISALLOWED_LOCAL_NAMES)
-
-        # Also cover the ix 1.0 namespace to be safe when both are present.
-        otherNs = ixbrl if ns == ixbrl11 else ixbrl11
-        allowedTags = allowedTags + _ix_tags_for_namespace(otherNs, _TARGET_ALLOWED_LOCAL_NAMES)
-        disallowedTags = disallowedTags + _ix_tags_for_namespace(otherNs, _TARGET_DISALLOWED_LOCAL_NAMES)
-
-        for elt in ixdsHtmlRootElt.iter():
-            tag = getattr(elt, "tag", None)
-
-            if not isinstance(tag, str):
-                continue
-
-            if tag in allowedTags:
-                if "target" in elt.attrib:
-                    targetValue = elt.get("target") or ""
-
-                    if targetValue != TARGET_UKFRS:
-                        invalidTargetElts.append(elt)
-                        invalidTargetValues.add(targetValue)
-
-            elif tag in disallowedTags:
-                if "target" in elt.attrib:
-                    disallowedTargetElts.append(elt)
-
-    if invalidTargetElts:
-        yield Validation.error(
-            codes="ESEF.UKFRC3.incorrectTarget",
-            msg=_(
-                'The target attribute on Inline XBRL elements in a UKSEF report MUST be '
-                '"UKFRS" (case-sensitive). Found invalid target value(s): %(targets)s.'
-            ),
-            modelObject=invalidTargetElts,
-            targets=", ".join(sorted(f'"{v}"' for v in invalidTargetValues)),
-        )
-
-    if disallowedTargetElts:
-        yield Validation.error(
-            codes="ESEF.UKFRC3.incorrectTarget",
-            msg=_(
-                "The target attribute MUST NOT appear on ix:resources, ix:continuation or "
-                "ix:exclude elements."
-            ),
-            modelObject=disallowedTargetElts,
-        )
-
-    return
+    if ixdsReferences and not ixdsReferences.get(TARGET_UKFRS, []):
+        for target, referencesElts in ixdsReferences.items():
+            if target is not None and target.upper() == TARGET_UKFRS:
+                yield Validation.error(
+                    codes="ESEF.UKFRC3.incorrectTarget",
+                    msg=_(
+                        'The target attribute on Inline XBRL elements in a UKSEF report MUST be '
+                        '"UKFRS" (case-sensitive). Found invalid target value: "%(target)s".'
+                    ),
+                    modelObject=referencesElts,
+                    target=target,
+                )
 
 
 @validation(
@@ -156,12 +108,45 @@ def rule_ukfrc4(
                 codes="ESEF.UKFRC4.targetAttributeUsedForESEFContents",
                 msg=_(
                     "ESEF tagged data MUST be in the default (unnamed) target XBRL document and "
-                    "MUST NOT carry a target attribute. Found ESEF concept element(s) with target attribute."
+                    "MUST NOT carry a target attribute. No matching ix:references element was found in the report."
                 ),
-                modelObject=ESEFTargets,
             )
 
-    return
+    invalidTargetElts: list[ModelObject] = []
+    invalidTargetValues: set[str] = set()
+
+    for ixdsHtmlRootElt in val.modelXbrl.ixdsHtmlElements or ():
+        ns = getattr(ixdsHtmlRootElt.modelDocument, "ixNS", ixbrl11)
+        allowedTags = _ix_tags_for_namespace(ns, _TARGET_ALLOWED_LOCAL_NAMES)
+        disallowedTags = _ix_tags_for_namespace(ns, _TARGET_DISALLOWED_LOCAL_NAMES)
+
+        otherNs = ixbrl if ns == ixbrl11 else ixbrl11
+        allowedTags += _ix_tags_for_namespace(otherNs, _TARGET_ALLOWED_LOCAL_NAMES)
+        disallowedTags += _ix_tags_for_namespace(otherNs, _TARGET_DISALLOWED_LOCAL_NAMES)
+
+        for elt in ixdsHtmlRootElt.iter(*allowedTags, *disallowedTags):
+            tag = getattr(elt, "tag", None)
+            if not isinstance(tag, str) or "target" not in elt.attrib:
+                continue
+
+            targetValue = elt.get("target") or ""
+            if tag in allowedTags and targetValue == TARGET_UKFRS:
+                continue
+
+            if tag in allowedTags:
+                invalidTargetElts.append(elt)
+                invalidTargetValues.add(targetValue)
+
+    if invalidTargetElts:
+        yield Validation.error(
+            codes="ESEF.UKFRC4.targetAttributeUsedForESEFContents",
+            msg=_(
+                "ESEF tagged data MUST be in the default (unnamed) target XBRL document and "
+                "MUST NOT carry a target attribute. Found target attribute value(s): %(targets)s."
+            ),
+            modelObject=invalidTargetElts,
+            targets=", ".join(sorted(f'"{value}"' for value in invalidTargetValues)),
+        )
 
 
 @validation(
@@ -217,5 +202,3 @@ def rule_ukfrc5(
                     ),
                 modelObject=foundTargets,
                 )
-
-    return
