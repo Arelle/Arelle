@@ -36,9 +36,11 @@ def rule_ukfrc6(
     """
     if val.authority != AUTHORITY_UKFRC:
         return
+
     modelXbrl = val.modelXbrl
-    if pluginData.isUkfrsTarget(modelXbrl):
+    if not pluginData.isEsefTarget(modelXbrl):
         return
+
     invalidSchemeRefs = []
     contextsByEntityIdentifier = pluginData.getContextsByEntityIdentifier(modelXbrl)
     for (scheme, __), contexts in contextsByEntityIdentifier.items():
@@ -60,6 +62,7 @@ def rule_ukfrc6(
                 for scheme, identifier in contextsByEntityIdentifier
             ),
         )
+
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,

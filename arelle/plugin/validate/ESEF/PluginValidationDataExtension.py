@@ -4,7 +4,6 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import cast
 
 from arelle.ModelInstanceObject import ModelContext
 from arelle.ModelXbrl import ModelXbrl
@@ -23,6 +22,11 @@ class PluginValidationDataExtension(PluginData):
         return getContextsByEntityIdentifier(modelXbrl)
 
     def isUkfrsTarget(self, modelXbrl: ModelXbrl) -> bool:
-        if not hasattr(modelXbrl, "ixdsTarget"):
-            return False
-        return cast(str | None, modelXbrl.ixdsTarget) == TARGET_UKFRS
+        """Check if the target document is a UKFRS target."""
+        ixdsTarget: str | None = getattr(modelXbrl, "ixdsTarget", "")
+        return ixdsTarget == TARGET_UKFRS
+
+    def isEsefTarget(self, modelXbrl: ModelXbrl) -> bool:
+        """Check if the target document is an ESEF target."""
+        ixdsTarget: str | None = getattr(modelXbrl, "ixdsTarget", "")
+        return ixdsTarget is None

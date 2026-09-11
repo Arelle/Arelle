@@ -76,13 +76,58 @@ config = ConformanceSuiteConfig(
     base_taxonomy_validation="none",
     expected_additional_testcase_errors={f"*tests/FRC/{s}": val for s, val in {
         "FRC_01/index.xml:TC7_invalid": {
+            # UKFRC6 fire invalidIdentifier error because `FRC_01:TC7` doesn't have a second `ix:references` element with a target attribute,
+            # and we can't separate schemas iso17442 and ENTITY_IDENTIFIER_SCHEME_CRN
             "invalidIdentifier": 1,
+            # UKFRC1 and UKFRC5 have the same conditions for the test case, but have different checks and fire different errors
+            "noUKFRSData": 1,
+            # same explanation as invalidIdentifier error above
             "multipleIdentifiers": 1,
             "segmentUsed": 1,
         },
         "FRC_02/index.xml:TC3_invalid": {
             "info:duplicatedSchema": 1,
             "xbrl:multipleTopLevelSchemasForNamespace": 1,
+        },
+        "FRC_03/index.xml:TC2_invalid": {
+            # UKFRC3 uses UKFRC1 for tracking incorrectTarget errors.
+            # UKFRC1 and UKFRC5 have the same conditions for the test case, but have different checks and fire different errors
+            "noUKFRSData": 1,
+            # UKFRC6 fire invalidIdentifier error because `FRC_03:TC2` doesn't have a target attribute,
+            # and we can't separate schemas iso17442 and ENTITY_IDENTIFIER_SCHEME_CRN
+            "invalidIdentifier": 1,
+            # same explanation as invalidIdentifier error above
+            "multipleIdentifiers": 1,
+            "segmentUsed": 1,
+        },
+        "FRC_03/index.xml:TC3_invalid": {
+            "incorrectTarget": 1,
+            # UKFRC3 uses UKFRC1 for tracking incorrectTarget errors.
+            # UKFRC1 and UKFRC5 have the same conditions for the test case, but have different checks and fire different errors
+            "noUKFRSData": 2,
+            "segmentUsed": 1,
+        },
+        "FRC_03/index.xml:TC4_invalid": {
+            # UKFRC3 and UKFRC5 have the same conditions for the test case, but have different checks and fire different errors
+            "noUKFRSData": 2,
+            "segmentUsed": 1,
+        },
+        "FRC_04/index.xml:TC2_invalid": {
+            "targetAttributeUsedForESEFContents": 1,
+            # Data in this test case is invalid for the rule UKFRC5
+            "noESEFData": 2,
+        },
+        "FRC_05/index.xml:TC2_valid": {
+            "targetAttributeUsedForESEFContents": 1,
+        },
+        "FRC_05/index.xml:TC3_valid": {
+            "targetAttributeUsedForESEFContents": 1,
+        },
+        "FRC_05/index.xml:TC4_invalid": {
+            "incorrectTarget": 1,
+        },
+        "FRC_05/index.xml:TC5_invalid": {
+            "targetAttributeUsedForESEFContents": 1,
         },
         "FRC_07/index.xml:TC2_invalid": {
             # By the same logic that FRC_06:TC2 fires multipleIdentifiers, so should FRC_07:TC2
@@ -100,12 +145,6 @@ config = ConformanceSuiteConfig(
     }.items()},
     expected_failure_ids=frozenset({f"tests/FRC/{s}" for s in [
         # FRC XBRL Tagging Guide not yet implemented.
-        "FRC_03/index.xml:TC2_invalid",
-        "FRC_03/index.xml:TC3_invalid",
-        "FRC_03/index.xml:TC4_invalid",
-        "FRC_04/index.xml:TC2_invalid",
-        "FRC_05/index.xml:TC4_invalid",
-        "FRC_05/index.xml:TC5_invalid",
         "FRC_09/index.xml:TC6_invalid",
         "FRC_10/index.xml:TC3_invalid",
         "FRC_10/index.xml:TC4_invalid",
