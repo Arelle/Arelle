@@ -17,6 +17,7 @@ from arelle.Version import authorLabel, copyrightLabel
 
 from .ValidationPluginExtension import ValidationPluginExtension
 from .rules import (
+    nvad_form_type,
     nvad_structural,
 )
 
@@ -30,6 +31,7 @@ validationPlugin = ValidationPluginExtension(
     validationTypes=[DISCLOSURE_SYSTEM_VALIDATION_TYPE],
     validationRuleModules=[
         nvad_structural,
+        nvad_form_type,
     ],
 )
 

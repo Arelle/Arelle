@@ -84,6 +84,13 @@ def iterValidNonNilFactsByQname(modelXbrl: ModelXbrl, qname: QName) -> Iterable[
             yield fact
 
 
+def getValidNonNilFactsByQname(modelXbrl: ModelXbrl, qname: QName) -> set[ModelFact]:
+    """
+    Returns facts with the given QName that are valid and non-nil.
+    """
+    return set(iterValidNonNilFactsByQname(modelXbrl, qname))
+
+
 def hasValidNonNilFactByQname(modelXbrl: ModelXbrl, qname: QName) -> bool:
     """
     Returns True if at least one valid, non-nil fact exists for the given QName.

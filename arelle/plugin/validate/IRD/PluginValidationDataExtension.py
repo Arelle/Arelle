@@ -36,6 +36,7 @@ class PluginValidationDataExtension(PluginData):
     bir51ExclusiveQns: frozenset[QName]
 
     # Identifiers & basis period
+    companyNameQn: QName
     basisPeriodStartDateQn: QName
     basisPeriodEndDateQn: QName
 
@@ -66,6 +67,13 @@ class PluginValidationDataExtension(PluginData):
         if n51 == 0 and n52 == 0:
             return False  # FS-only / no exclusive facts → keep today's BIR51 default
         return n52 > n51
+
+    def isBir51(self, modelXbrl: ModelXbrl) -> bool:
+        """True when the document is a BIR51 (corporation) filing.
+
+        BIR51 is assumed unless BIR52-exclusive concepts outnumber BIR51-exclusive ones.
+        """
+        return not self.isBir52(modelXbrl)
 
     @lru_cache(1)
     def getSchemaRefsByDocument(
