@@ -113,15 +113,15 @@ config = ConformanceSuiteConfig(
             "segmentUsed": 1,
         },
         "FRC_04/index.xml:TC2_invalid": {
-            "incorrectTarget": 1,
+            "targetAttributeUsedForESEFContents": 1,
             # Data in this test case is invalid for the rule UKFRC5
             "noESEFData": 2,
         },
         "FRC_05/index.xml:TC2_valid": {
-            "incorrectTarget": 1,
+            "targetAttributeUsedForESEFContents": 1,
         },
         "FRC_05/index.xml:TC3_valid": {
-            "incorrectTarget": 1,
+            "targetAttributeUsedForESEFContents": 1,
         },
         "FRC_05/index.xml:TC4_invalid": {
             "incorrectTarget": 1,
