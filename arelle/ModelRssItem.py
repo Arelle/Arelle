@@ -17,6 +17,11 @@ if TYPE_CHECKING:
 
 _: TypeGetText
 
+# Statuses (see ModelRssItem.setResults) that mean an item was already fully validated on a
+# prior run - shared by Validate.validateRssFeed and WatchRss.watchCycle so both agree on
+# whether an item needs to be re-downloaded and re-validated.
+rssItemAlreadyValidatedStatuses = frozenset(("pass", "fail", "unsuccessful"))
+
 
 def _descendantText(
     element: ModelObject,

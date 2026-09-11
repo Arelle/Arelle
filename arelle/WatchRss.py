@@ -10,6 +10,7 @@ from typing import Any
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.ModelXbrl import ModelXbrl, load as ModelXbrlLoad
 from arelle.ModelDocument import load as ModelDocumentLoad
+from arelle.ModelRssItem import rssItemAlreadyValidatedStatuses
 from arelle.XmlUtil import datetimeValue
 from arelle.formula import ValidateFormula
 from arelle.FileSource import openFileSource
@@ -159,13 +160,16 @@ class WatchRss:
                         key=lambda i: (i[0] is not None, i[0] if i[0] is not None else "", i[1])):
                     if self.stopRequested:
                         break
+                    rssItem = self.rssModelXbrl.modelObject(rssItemObjectId)
                     latestPubDate = datetimeValue(rssWatchOptions.get("latestPubDate"))
-                    if latestPubDate and pubDate is not None and pubDate < latestPubDate:
-                        # already processed on a prior poll - skip without moving the
+                    if ((latestPubDate and pubDate is not None and pubDate < latestPubDate) or
+                            getattr(rssItem, "status", None) in rssItemAlreadyValidatedStatuses):
+                        # already processed - by an earlier poll (pubDate watermark) or by a
+                        # manual Validate run since (status already pass/fail/unsuccessful,
+                        # see ModelRssItem.setResults) - skip without moving the
                         # selection/view onto it, so watching a refresh only visits items
                         # that are actually "not tested"
                         continue
-                    rssItem = self.rssModelXbrl.modelObject(rssItemObjectId)
                     # update ui thread via modelManager (running in background here)
                     self.rssModelXbrl.modelManager.viewModelObject(self.rssModelXbrl, rssItem.objectId())  # type: ignore[union-attr]
                     if self.stopRequested:

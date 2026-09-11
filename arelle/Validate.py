@@ -20,6 +20,7 @@ from arelle import (
     ValidateInfoset, ViewFileRenderedLayout, UrlUtil,
     )
 from arelle.CompareInstance import compareInstance
+from arelle.ModelRssItem import rssItemAlreadyValidatedStatuses
 from arelle.ModelRssObject import ModelRssObject
 from arelle.PythonUtil import isLegacyAbs
 from arelle.ValidateFileSource import ValidateFileSource
@@ -62,10 +63,6 @@ class ValidationException(Exception):
         return "{0}({1})={2}".format(self.code,self.severity,self.message)
 
 commaSpaceSplitPattern = re.compile(r",\s*")
-
-# RSS item statuses (see ModelRssItem.setResults) that mean the item was already fully validated
-# on a prior run; validateRssFeed skips re-downloading and re-validating these.
-rssItemAlreadyValidatedStatuses = frozenset(("pass", "fail", "unsuccessful"))
 
 class Validate:
     """Validation operations are separated from the objects that are validated, because the operations are
