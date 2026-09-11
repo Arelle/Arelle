@@ -59,7 +59,7 @@ def get_testcase_variation_map(config: ConformanceSuiteConfig) -> dict[str, list
         return _collect_dir_test_case_variation_ids(entry_point_root, test_case_paths)
 
 
-def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
+def get_test_shards(config: ConformanceSuiteConfig, shard_count: int) -> list[Shard]:
     testcase_variation_map = get_testcase_variation_map(config)
     assert testcase_variation_map
 
@@ -103,11 +103,11 @@ def get_test_shards(config: ConformanceSuiteConfig) -> list[Shard]:
         for args, paths in paths_by_args.items()}
     total_runtime = sum(runtime_by_args.values())
     shards_by_args: dict[tuple[str | None, frozenset[str]], list[tuple[float, list[tuple[str, str]]]]] = {}
-    remaining_shards = config.shards
+    remaining_shards = shard_count
     for i, (args, _) in enumerate(paths_by_args.items()):
         n_shards = (remaining_shards
             if i == len(paths_by_args) - 1
-            else 1 + round(runtime_by_args[args] / total_runtime * (config.shards - len(paths_by_args))))
+            else 1 + round(runtime_by_args[args] / total_runtime * (shard_count - len(paths_by_args))))
         remaining_shards -= n_shards
         shards_by_args[args] = [(0, []) for _ in range(n_shards)]
     assert remaining_shards == 0
@@ -322,20 +322,33 @@ def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: st
 def get_conformance_suite_test_results(
         config: ConformanceSuiteConfig,
         shards: list[int],
+        shard_count: int,
         build_cache: bool = False,
         log_to_file: bool = False,
         offline: bool = False,
         series: bool = False,
         testcase_filters: list[str] | None = None,
 ) -> list[ParameterSet]:
-    assert len(shards) == 0 or config.shards != 1, \
-        "Conformance suite configuration must specify shards if --shard is passed"
     if shards:
+        plugin_combinations = len({plugins for _, plugins in config.additional_plugins_by_prefix}) + 1
+        assert plugin_combinations <= shard_count, \
+            "Too few shards to accommodate the number of plugin combinations:" \
+            f" combinations={plugin_combinations} shards={shard_count}"
+        disclosure_systems = {ds for _, ds in config.disclosure_system_by_prefix} | {str(config.disclosure_system)}
+        assert shard_count >= len(disclosure_systems), \
+            f"Too few shards to accommodate disclosure systems: shards={shard_count} disclosure systems={sorted(disclosure_systems)}."
         assert not testcase_filters, "Testcase filters are not supported with shards."
         return get_conformance_suite_test_results_with_shards(
-            config=config, shards=shards, build_cache=build_cache, log_to_file=log_to_file, offline=offline, series=series
+            config=config,
+            shards=shards,
+            shard_count=shard_count,
+            build_cache=build_cache,
+            log_to_file=log_to_file,
+            offline=offline,
+            series=series
         )
     else:
+        assert shard_count == 1, "Must specify shards if shard count is provided."
         return get_conformance_suite_test_results_without_shards(
             config=config, build_cache=build_cache, log_to_file=log_to_file, offline=offline, testcase_filters=testcase_filters
         )
@@ -344,13 +357,14 @@ def get_conformance_suite_test_results(
 def get_conformance_suite_test_results_with_shards(
         config: ConformanceSuiteConfig,
         shards: list[int],
+        shard_count: int,
         build_cache: bool,
         log_to_file: bool,
         offline: bool,
         series: bool) -> list[ParameterSet]:
     tasks = []
     all_testcase_filters = []
-    test_shards = get_test_shards(config)
+    test_shards = get_test_shards(config, shard_count)
     all_test_paths = {path for test_shard in test_shards for path in test_shard.paths}
     unrecognized_additional_error_ids = {
         pattern
