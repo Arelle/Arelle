@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import multiprocessing
 import sys
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
@@ -87,7 +88,7 @@ ARGUMENTS: list[dict[str, Any]] = [
     {
         "name": "--shard",
         "action": "store",
-        "help": "comma separated list of 0-indexed shards to run",
+        "help": "comma separated list of 0-indexed shards to run, optionally append /# to override shard count",
     },
     {
         "name": "--test",
@@ -124,6 +125,28 @@ def _get_conformance_suite_names(select_option: str) -> tuple[ConformanceSuiteCo
         raise ValueError("Please use --all, --public, or --name to specify which conformance suites to use.")
 
 
+def _get_shard_config(config: ConformanceSuiteConfig, shard_input: str) -> tuple[list[int], int]:
+    if not shard_input:
+        return [], 1
+    shards: list[int] = []
+    shard_count = config.shards
+    shard, sep, shard_count_override = shard_input.partition("/")
+    if len(shard_count_override) > 0:
+        if shard_count_override == "auto":
+            shard_count = multiprocessing.cpu_count()
+        else:
+            shard_count = int(shard_count_override)
+    for part in shard.split(","):
+        if part == "all":
+            shards.extend(range(0, shard_count))
+        elif "-" in part:
+            start, end = part.split("-")
+            shards.extend(range(int(start), int(end) + 1))
+        else:
+            shards.append(int(part))
+    return shards, shard_count
+
+
 def run_conformance_suites(
         select_option: str,
         test_option: bool,
@@ -153,19 +176,11 @@ def run_conformance_suites(
     all_results = []
     if test_option:
         for config in conformance_suite_configs:
-            shards: list[int] = []
-            full_run = True
-            if shard:
-                for part in shard.split(","):
-                    if "-" in part:
-                        start, end = part.split("-")
-                        shards.extend(range(int(start), int(end) + 1))
-                    else:
-                        shards.append(int(part))
-                full_run = set(shards) == set(range(0, config.shards))
+            shards, shard_count = _get_shard_config(config, shard)
             results = get_conformance_suite_test_results(
                 config,
                 shards=shards,
+                shard_count=shard_count,
                 build_cache=build_cache,
                 log_to_file=log_to_file,
                 offline=offline_option,
@@ -175,7 +190,7 @@ def run_conformance_suites(
             if log_to_file:
                 save_timing_file(config, results)
                 actual_results_path = save_actual_results_file(config, results)
-                if full_run:
+                if not shards or set(shards) == set(range(0, shard_count)):
                     expected_results_path = CONFORMANCE_SUITE_EXPECTED_RESOURCES_DIRECTORY / Path(config.name).with_suffix(".csv")
                     if expected_results_path.exists():
                         save_diff_html_file(expected_results_path, actual_results_path, Path(f"conf-{config.name}-diff.html"))
