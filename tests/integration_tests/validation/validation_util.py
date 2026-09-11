@@ -99,6 +99,8 @@ def get_test_shards(config: ConformanceSuiteConfig, shard_count: int) -> list[Sh
             ))
     paths_in_runtime_order: list[PathInfo] = sorted((path for paths in paths_by_args.values() for path in paths),
         key=lambda path: path.runtime, reverse=True)
+    assert shard_count <= len(paths_in_runtime_order), \
+        f"Shard count ({shard_count}) is greater than path count ({len(paths_in_runtime_order)})."
     runtime_by_args: dict[tuple[str | None, frozenset[str]], float] = {args: sum(path.runtime for path in paths)
         for args, paths in paths_by_args.items()}
     total_runtime = sum(runtime_by_args.values())
@@ -330,6 +332,16 @@ def get_conformance_suite_test_results(
         testcase_filters: list[str] | None = None,
 ) -> list[ParameterSet]:
     if shards:
+        assert shard_count > 0, "Shard count must be a positive integer."
+        assert all(0 <= s < shard_count for s in shards), \
+            "Shard indices must be non-negative and less than shard count."
+        plugin_combinations = len({plugins for _, plugins in config.additional_plugins_by_prefix}) + 1
+        assert plugin_combinations <= shard_count, \
+            "Too few shards to accommodate the number of plugin combinations:" \
+            f" combinations={plugin_combinations} shards={shard_count}"
+        disclosure_systems = {ds for _, ds in config.disclosure_system_by_prefix} | {str(config.disclosure_system)}
+        assert shard_count >= len(disclosure_systems), \
+            f"Too few shards to accommodate disclosure systems: shards={shard_count} disclosure systems={sorted(disclosure_systems)}."
         assert not testcase_filters, "Testcase filters are not supported with shards."
         return get_conformance_suite_test_results_with_shards(
             config=config,
