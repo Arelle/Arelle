@@ -63,6 +63,10 @@ class ValidationException(Exception):
 
 commaSpaceSplitPattern = re.compile(r",\s*")
 
+# RSS item statuses (see ModelRssItem.setResults) that mean the item was already fully validated
+# on a prior run; validateRssFeed skips re-downloading and re-validating these.
+rssItemAlreadyValidatedStatuses = frozenset(("pass", "fail", "unsuccessful"))
+
 class Validate:
     """Validation operations are separated from the objects that are validated, because the operations are
     complex, interwoven, and factored quite differently than the objects being validated.
@@ -193,6 +197,11 @@ class Validate:
             if getattr(rssItem, "skipRssItem", False):
                 self.modelXbrl.info("info", _("skipping RSS Item %(accessionNumber)s %(formType)s %(companyName)s %(period)s"),
                     modelObject=rssItem, accessionNumber=rssItem.accessionNumber, formType=rssItem.formType, companyName=rssItem.companyName, period=rssItem.period)  # type: ignore[union-attr]
+                continue
+            if getattr(rssItem, "status", None) in rssItemAlreadyValidatedStatuses:
+                self.modelXbrl.info("info", _("skipping already validated RSS Item %(accessionNumber)s %(formType)s %(companyName)s %(period)s, status %(status)s"),
+                    modelObject=rssItem, accessionNumber=rssItem.accessionNumber, formType=rssItem.formType, companyName=rssItem.companyName,  # type: ignore[union-attr]
+                    period=rssItem.period, status=rssItem.status)  # type: ignore[union-attr]
                 continue
             self.modelXbrl.info("info", _("RSS Item %(accessionNumber)s %(formType)s %(companyName)s %(period)s"),
                 modelObject=rssItem, accessionNumber=rssItem.accessionNumber, formType=rssItem.formType, companyName=rssItem.companyName, period=rssItem.period)  # type: ignore[union-attr]

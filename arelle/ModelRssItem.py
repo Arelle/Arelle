@@ -96,6 +96,17 @@ class ModelRssItem(ModelObject):
         self.edgrSequence = edgrPrefix + "sequence"
         self.edgrType = edgrPrefix + "type"
         self.edgrUrl = edgrPrefix + "url"
+        # Restore validation results captured for this item on a prior cycle. ModelRssItem objects
+        # are lxml element proxies, and RSS watch reloads the feed (new ModelRssObject and fresh
+        # proxies) on every poll, so results are kept on the persistent ModelXbrl keyed by accession
+        # number and restored here - otherwise already-tested rows revert to "not tested" on refresh.
+        rssModelXbrl = getattr(modelDocument, "modelXbrl", None)
+        priorResults = getattr(rssModelXbrl, "rssItemResults", {}).get(self.accessionNumber or "")
+        if priorResults is not None:
+            self.status = priorResults["status"]
+            self.results = priorResults["results"]
+            self.assertions = priorResults["assertions"]
+            self.assertionUnsuccessful = priorResults["assertionUnsuccessful"]
 
 
     @property
@@ -245,6 +256,18 @@ class ModelRssItem(ModelObject):
                 self.results.append(error)
                 self.status = "fail"  # error code
         self.results.sort()
+        # Persist on the persistent ModelXbrl (survives RSS watch feed reloads, which replace the
+        # ModelRssObject and every ModelRssItem proxy) so this result is restored in init().
+        rssModelXbrl = self.modelXbrl
+        if rssModelXbrl is not None and self.accessionNumber:
+            if not hasattr(rssModelXbrl, "rssItemResults"):
+                rssModelXbrl.rssItemResults = {}
+            rssModelXbrl.rssItemResults[self.accessionNumber] = {
+                "status": self.status,
+                "results": list(self.results),
+                "assertions": self.assertions,
+                "assertionUnsuccessful": self.assertionUnsuccessful,
+            }
 
     @property
     def propertyView(self) -> tuple[tuple[str, Any], ...]:

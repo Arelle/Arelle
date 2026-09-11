@@ -1215,6 +1215,27 @@ class CntlrWinMain(Cntlr.Cntlr):
                 parent=self.parent,
             )
             return
+        # RSS Watch reloads and mutates a loaded RSS feed's ModelXbrl on its own background thread
+        # (see WatchRss.watchCycle); running Validate on the same feed concurrently corrupts both,
+        # since they share and separately reset the same ModelXbrl state (modelObjects, contexts,
+        # rssItems, etc.). Only worth refusing when the watch has a validate/alert/plugin action
+        # checked - that's when watchCycle spends real time loading and processing each item and
+        # the race window is significant; with nothing checked it just refreshes the feed listing.
+        from arelle.WatchRss import hasWatchAction
+        watchingModelXbrl = next(
+            (modelXbrl for modelXbrl in self.modelManager.loadedModelXbrls
+             if (watchRss := getattr(modelXbrl, "watchRss", None)) is not None
+             and watchRss.thread is not None and watchRss.thread.is_alive()
+             and hasWatchAction(self, self.modelManager.rssWatchOptions)),
+            None)
+        if watchingModelXbrl is not None:
+            tkinter.messagebox.showwarning(
+                _("arelle - Warning"),
+                _("RSS Watch is currently running on {0}. Stop RSS Watch before running Validate; "
+                  "running both at once on the same feed corrupts results.").format(watchingModelXbrl.modelDocument.basename),
+                parent=self.parent,
+            )
+            return
         threading.Thread(target=self.backgroundValidate, daemon=True).start()
 
     def backgroundValidate(self) -> None:
