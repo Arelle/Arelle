@@ -330,6 +330,13 @@ def get_conformance_suite_test_results(
         testcase_filters: list[str] | None = None,
 ) -> list[ParameterSet]:
     if shards:
+        plugin_combinations = len({plugins for _, plugins in config.additional_plugins_by_prefix}) + 1
+        assert plugin_combinations <= shard_count, \
+            "Too few shards to accommodate the number of plugin combinations:" \
+            f" combinations={plugin_combinations} shards={shard_count}"
+        disclosure_systems = {ds for _, ds in config.disclosure_system_by_prefix} | {str(config.disclosure_system)}
+        assert shard_count >= len(disclosure_systems), \
+            f"Too few shards to accommodate disclosure systems: shards={shard_count} disclosure systems={sorted(disclosure_systems)}."
         assert not testcase_filters, "Testcase filters are not supported with shards."
         return get_conformance_suite_test_results_with_shards(
             config=config,
