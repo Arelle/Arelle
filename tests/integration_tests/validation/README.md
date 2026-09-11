@@ -24,7 +24,8 @@ python -m tests.integration_tests.validation.run_conformance_suites --help
                         (local files and cache only)
   --public              Select all public conformance suites
   --series              Run shards in series
-  --shard SHARD         comma separated list of 0-indexed shards to run
+  --shard SHARD         Comma-separated list of 0-indexed shards to run,
+                        optionally append /# to override shard count
   --test                Run selected conformance suite tests
   --testcase-filter TESTCASE_FILTER
                         Filter test cases (see --testcaseFilter)
