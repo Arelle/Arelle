@@ -395,6 +395,12 @@ def bodyCells(view, row, yStrctNodes, xStrctNodes, zAspectStrctNodes, lytMdlYCel
     hasRows = False
     if True: # yParentStrctNode is not None:
         dimDefaults = view.modelXbrl.qnameDimensionDefaults
+        # A table may declare that only the dimensions it addresses constrain its
+        # cells.  The two tests below are what make a dimension the table never
+        # mentions exclude a fact, so they are the ones this disables; the
+        # dimensions the table does address are matched through matchableAspects
+        # either way, and are unaffected.
+        positionalDimensionsOnly = view.defnMdlTable.positionalDimensionsOnly
         for yStrctNode in yStrctNodes: # yParentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
             #row = view.bodyCells(row, yStrctNode, xStrctNodes, zAspectStrctNodes)
             if not (yStrctNode.isAbstract or
@@ -467,9 +473,10 @@ def bodyCells(view, row, yStrctNodes, xStrctNodes, zAspectStrctNodes, lytMdlYCel
                         for fact in sorted(facts, key=lambda f:f.objectIndex):
                             if (all(aspectMatches(view.rendrCntx, fact, fp, aspect)
                                     for aspect in matchableAspects) and
-                                all(fact.context.dimMemberQname(dim,includeDefaults=True) in (dimDefaults[dim], None)
-                                    for dim in cellDefaultedDims) and
-                                    len(fp.context.qnameDims) == len(fact.context.qnameDims)):
+                                (positionalDimensionsOnly or
+                                 (all(fact.context.dimMemberQname(dim,includeDefaults=True) in (dimDefaults[dim], None)
+                                      for dim in cellDefaultedDims) and
+                                  len(fp.context.qnameDims) == len(fact.context.qnameDims)))):
                                 if yStrctNode.hasValueExpression(xStrctNode):
                                     value = yStrctNode.evalValueExpression(fact, xStrctNode)
                                 else:
