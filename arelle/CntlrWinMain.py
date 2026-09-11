@@ -1221,11 +1221,16 @@ class CntlrWinMain(Cntlr.Cntlr):
         # rssItems, etc.). Only worth refusing when the watch has a validate/alert/plugin action
         # checked - that's when watchCycle spends real time loading and processing each item and
         # the race window is significant; with nothing checked it just refreshes the feed listing.
+        # Also skip watches that already have a stop requested: stop() only sets a flag, so a
+        # watch sleeping between polls (up to 10 minutes) still reports its thread as alive even
+        # though it won't touch the model again - checking stopRequested lets Validate proceed
+        # right after Stop is clicked instead of waiting out the rest of that sleep.
         from arelle.WatchRss import hasWatchAction
         watchingModelXbrl = next(
             (modelXbrl for modelXbrl in self.modelManager.loadedModelXbrls
              if (watchRss := getattr(modelXbrl, "watchRss", None)) is not None
              and watchRss.thread is not None and watchRss.thread.is_alive()
+             and not watchRss.stopRequested
              and hasWatchAction(self, self.modelManager.rssWatchOptions)),
             None)
         if watchingModelXbrl is not None:
