@@ -118,7 +118,9 @@ class ViewRssFeed(ViewWinTree.ViewTree):
     def treeviewSelect(self, *args: Any) -> None:
         if self.blockSelectEvent == 0 and self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
-            self.modelXbrl.viewModelObject(self.treeView.selection()[0])
+            selection = self.treeView.selection()
+            if selection is not None and len(selection) > 0:
+                self.modelXbrl.viewModelObject(selection[0])
             self.blockViewModelObject -= 1
 
     def viewModelObject(self, rssItem: ModelRssItem) -> None:

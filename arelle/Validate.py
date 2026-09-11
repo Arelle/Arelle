@@ -20,6 +20,7 @@ from arelle import (
     ValidateInfoset, ViewFileRenderedLayout, UrlUtil,
     )
 from arelle.CompareInstance import compareInstance
+from arelle.ModelRssItem import rssItemAlreadyValidatedStatuses
 from arelle.ModelRssObject import ModelRssObject
 from arelle.PythonUtil import isLegacyAbs
 from arelle.ValidateFileSource import ValidateFileSource
@@ -160,6 +161,25 @@ class Validate:
                     exc_info=True)
         self.close()
 
+    def _closeRssItemModelXbrl(self, modelXbrl: ModelXbrl | None) -> None:
+        # An RSS item that is an inline filing with separate IXDS targets (e.g. an EX-FILING FEES
+        # exhibit) causes inlineXbrlDocumentSet to publish its secondary-target modelXbrls into
+        # modelManager.loadedModelXbrls, sharing the primary item's parsed html elements. Close and
+        # unregister those together with the item so a later loadedModelXbrls sweep (such as the GUI
+        # backgroundValidate loop) does not validate a model whose parser points at the now-closed
+        # primary (which would raise AttributeError on qnameConcepts and similar).
+        if modelXbrl is None:
+            return
+        loadedModelXbrls = self.modelXbrl.modelManager.loadedModelXbrls
+        for supplementalModelXbrl in getattr(modelXbrl, "supplementalModelXbrls", ()):
+            try:
+                while supplementalModelXbrl in loadedModelXbrls:
+                    loadedModelXbrls.remove(supplementalModelXbrl)
+                supplementalModelXbrl.close()
+            except Exception:
+                pass
+        modelXbrl.close()
+
     def validateRssFeed(self) -> None:
         self.modelXbrl.info("info", "RSS Feed", modelDocument=self.modelXbrl)
         reloadCache = getattr(self.modelXbrl, "reloadCache", False)
@@ -174,6 +194,11 @@ class Validate:
             if getattr(rssItem, "skipRssItem", False):
                 self.modelXbrl.info("info", _("skipping RSS Item %(accessionNumber)s %(formType)s %(companyName)s %(period)s"),
                     modelObject=rssItem, accessionNumber=rssItem.accessionNumber, formType=rssItem.formType, companyName=rssItem.companyName, period=rssItem.period)  # type: ignore[union-attr]
+                continue
+            if getattr(rssItem, "status", None) in rssItemAlreadyValidatedStatuses:
+                self.modelXbrl.info("info", _("skipping already validated RSS Item %(accessionNumber)s %(formType)s %(companyName)s %(period)s, status %(status)s"),
+                    modelObject=rssItem, accessionNumber=rssItem.accessionNumber, formType=rssItem.formType, companyName=rssItem.companyName,  # type: ignore[union-attr]
+                    period=rssItem.period, status=rssItem.status)  # type: ignore[union-attr]
                 continue
             self.modelXbrl.info("info", _("RSS Item %(accessionNumber)s %(formType)s %(companyName)s %(period)s"),
                 modelObject=rssItem, accessionNumber=rssItem.accessionNumber, formType=rssItem.formType, companyName=rssItem.companyName, period=rssItem.period)  # type: ignore[union-attr]
@@ -205,7 +230,7 @@ class Validate:
                 for pluginXbrlMethod in modelXbrl.modelManager.cntlr.plugins.hooks("RssItem.Xbrl.Loaded"):
                     pluginXbrlMethod(modelXbrl, {}, rssItem)
                 if getattr(rssItem, "doNotProcessRSSitem", False) or modelXbrl.modelDocument is None:
-                    modelXbrl.close()
+                    self._closeRssItemModelXbrl(modelXbrl)
                     continue # skip entry based on processing criteria
                 self.instValidator.validate(modelXbrl, self.modelXbrl.modelManager.formulaOptions.typedParameters(self.modelXbrl.prefixedNamespaces))
                 self.instValidator.close()
@@ -213,7 +238,7 @@ class Validate:
                 self.modelXbrl.modelManager.viewModelObject(self.modelXbrl, rssItem.objectId())  # type: ignore[union-attr]
                 for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.plugins.hooks("Validate.RssItem"):
                     pluginXbrlMethod(self, modelXbrl, rssItem)
-                modelXbrl.close()
+                self._closeRssItemModelXbrl(modelXbrl)
             except Exception as err:
                 self.modelXbrl.error("exception:" + type(err).__name__,
                     _("RSS item validation exception: %(error)s, instance: %(instance)s"),
@@ -222,8 +247,7 @@ class Validate:
                     exc_info=True)
                 try:
                     self.instValidator.close()
-                    if modelXbrl is not None:
-                        modelXbrl.close()
+                    self._closeRssItemModelXbrl(modelXbrl)
                 except Exception as err:
                     pass
             del modelXbrl  # completely dereference
