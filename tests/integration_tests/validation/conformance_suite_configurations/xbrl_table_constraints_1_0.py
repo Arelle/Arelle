@@ -41,6 +41,10 @@ config = ConformanceSuiteConfig(
         "720-tc-report-processor/index-tc-report-table.xml:V-25": {
             "tcme:illegalKeyField": 2,
         },
+        # Three xs:duration key fields without durationType are each reported.
+        "720-tc-report-processor/index-tc-report-table.xml:V-25": {
+            "tcme:illegalKeyField": 2,
+        },
         # paramThree (xs:duration without durationType) also triggers illegalUniqueKeyOrder because it follows
         # constrained column fields keyOne and keyTwo in the unique key fields list.
         "720-tc-report-processor/index-tc-report-table.xml:V-61": {
@@ -60,7 +64,6 @@ config = ConformanceSuiteConfig(
     expected_failure_ids=frozenset(f"table-constraints-conformance-{_VERSION}/{s}" for s in [
         "720-tc-report-processor/index-tc-report-table.xml:V-901-tp-unknown",
         "720-tc-report-processor/index-tc-report-table.xml:V-100",
-        "720-tc-report-processor/index-tc-report-table.xml:V-25",
         "720-tc-report-processor/index-tc-report-table.xml:V-26",
         "720-tc-report-processor/index-tc-report-table.xml:V-27a",
         "720-tc-report-processor/index-tc-report-table.xml:V-27b",
