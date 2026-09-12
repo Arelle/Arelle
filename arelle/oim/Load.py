@@ -477,6 +477,14 @@ def parseMetadataCellValues(metadataTable):
         elif isinstance(dimValue, str) and dimValue.startswith("##"):
             metadataTable[dimName] = dimValue[1:]
 
+def parseParameterValues(parameters, error):
+    for parameterName, parameterValue in parameters.items():
+        if isinstance(parameterValue, str) and parameterValue:
+            try:
+                parameters[parameterName] = csvCellValue(parameterValue)
+            except OIMException as ex:
+                error(ex.code, ex.message, **ex.msgArgs)
+
 def xlTrimHeaderRow(row):
     numEmptyCellsAtEndOfRow = 0
     for i in range(len(row)-1, -1, -1):
@@ -1201,7 +1209,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             reportDimensions = oimObject.get("dimensions", EMPTY_DICT)
             reportDecimals = oimObject.get("decimals", None)
             reportParameters = oimObject.get("parameters", {}) # fresh empty dict because csv-loaded parameters get added
-            parseMetadataCellValues(reportParameters)
+            parseParameterValues(reportParameters, error)
             tableTemplates = oimObject.get("tableTemplates", EMPTY_DICT)
             tables = oimObject.get("tables", EMPTY_DICT)
             footnotes = (oimObject.get("links", {}), )
@@ -1292,6 +1300,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         parseMetadataCellValues(tableDimensions)
                         tableIsOptional = table.get("optional", False)
                         tableParameters = table.get("parameters", EMPTY_DICT)
+                        parseParameterValues(tableParameters, error)
                         rowIdColName = tableTemplate.get("rowIdColumn")
                         tableUrl = table["url"]
                         tableParameterColNames = set()
