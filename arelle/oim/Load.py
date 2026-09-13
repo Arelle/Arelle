@@ -12,8 +12,10 @@ import sys
 import time
 import traceback
 from collections import defaultdict
+from collections.abc import Iterator
 from types import MappingProxyType
 from math import log10
+from typing import TYPE_CHECKING
 
 import isodate
 import regex as re
@@ -50,6 +52,9 @@ from arelle.PythonUtil import attrdict, isLegacyAbs, strTruncate
 from arelle.typing import TypeGetText
 from arelle.ValidateDuplicateFacts import (DuplicateTypeArg,
                                            getDuplicateFactSetsWithType)
+
+if TYPE_CHECKING:
+    from arelle.FileSource import FileSource
 
 _: TypeGetText
 
@@ -607,7 +612,7 @@ def increaseMaxFieldSize():
         except OverflowError:
             maxInt = int(maxInt/10)
 
-def openCsvReader(fileSource, csvFilePath, fileType):
+def openCsvReader(fileSource: FileSource, csvFilePath: str, fileType: int) -> Iterator[list[str]]:
     _file = fileSource.file(csvFilePath, binary=True)[0]
     bytes = _file.read(16) # test encoding
     try:
