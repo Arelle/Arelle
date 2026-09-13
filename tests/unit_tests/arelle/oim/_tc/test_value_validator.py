@@ -83,6 +83,27 @@ class TestValidateDate:
         assert _validator(tc_types.DATE).validate(value) is expected
 
 
+class TestValidateWhitespaceNormalisation:
+    @pytest.mark.parametrize(
+        "constraint_type, patterns, value, expected",
+        [
+            (tc_types.STRING, {" A"}, " A", True),
+            (tc_types.STRING, {" A"}, "A", False),
+            (tc_types.STRING, {"A"}, "\tA", False),
+            (tc_types.NORMALIZED_STRING, {" A"}, "\tA", True),
+            (tc_types.NORMALIZED_STRING, {"A"}, " A", False),
+            (tc_types.TOKEN, {"A"}, " \r\nA\t", True),
+            (tc_types.TOKEN, {"D D"}, "D  D", True),
+            (tc_types.TOKEN, {" A"}, "A", False),
+            (tc_types.INTEGER, {"1"}, " 1 ", True),
+        ],
+    )
+    def test_patterns_apply_to_the_normalised_value(
+        self, constraint_type: QName, patterns: set[str], value: str, expected: bool
+    ) -> None:
+        assert _validator(constraint_type, patterns=frozenset(patterns)).validate(value) is expected
+
+
 class TestValidateGMonthDay:
     @pytest.mark.parametrize(
         "value, expected",

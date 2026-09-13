@@ -28,8 +28,10 @@ from arelle.oim._tc.metadata.types import (
     CORE_UNIT,
     DATE,
     DATE_TIME,
+    NORMALIZED_STRING,
     OPTIONALLY_TIME_ZONED_TYPES,
     QNAME,
+    STRING,
     resolve_effective_lexical_type,
 )
 from arelle.oim.const import (
@@ -48,6 +50,7 @@ from arelle.oim.const import (
     UNIT_QNAME_SUBSTITUTION_CHAR,
     XSD_TZ_PATTERN,
 )
+from arelle.XmlUtil import collapseWhitespace, replaceWhitespace
 from arelle.XmlValidate import XmlValidationResult, XsdPattern, validateFacetValueString, validateValueString
 
 # TC prohibits uppercase characters in core language.
@@ -121,6 +124,7 @@ class ValueConstraintValidator:
         typed_value_result = self._validate_base_type(self._effective_lexical_type, value, self._facets)
         if not typed_value_result.isXValid:
             return TCRE_INVALID_VALUE
+        value = self._normalized_lexical_value(value)
         if not self._is_patterns_valid(value):
             return TCRE_INVALID_VALUE
         if not self._is_enumeration_valid(typed_value_result.xValue):
@@ -158,6 +162,13 @@ class ValueConstraintValidator:
             facets=facets,
             nsmap=cast(Mapping[str | None, str], self._namespaces),
         )
+
+    def _normalized_lexical_value(self, value: str) -> str:
+        if self._effective_lexical_type == STRING:
+            return value
+        if self._effective_lexical_type == NORMALIZED_STRING:
+            return replaceWhitespace(value)
+        return collapseWhitespace(value)
 
     def _is_enumeration_valid(self, typed_value: TypeXValue) -> bool:
         if self._enumeration_typed_values is None:
