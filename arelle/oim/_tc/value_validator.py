@@ -8,11 +8,14 @@ import contextlib
 import math
 from collections.abc import Callable, Mapping
 from types import MappingProxyType
+from dataclasses import dataclass
 from typing import Any, cast
 
 import regex
 
 from arelle.ModelValue import DateTime, QName, TypeXValue, dayTimeDuration, yearMonthDuration
+from arelle.oim._tc import xs_dates
+from arelle.oim._tc.xs_dates import XsInstant
 from arelle.oim._tc.const import (
     TCRE_INVALID_DURATION_TYPE,
     TCRE_INVALID_PERIOD_TYPE,
@@ -57,12 +60,50 @@ from arelle.XmlValidate import XmlValidationResult, XsdPattern, validateFacetVal
 _TC_CORE_LANGUAGE_PATTERN = regex.compile(r"[a-z]{1,8}(-[a-z0-9]{1,8})*$")
 
 
+
+@dataclass(frozen=True, slots=True)
+class _TypedValue:
+    is_valid: bool
+    value: TypeXValue | XsInstant = None
+
+
+_INVALID_TYPED_VALUE = _TypedValue(is_valid=False)
+
+_BOUNDS_FACET_ALLOWED_ORDERS: Mapping[str, frozenset[int]] = MappingProxyType(
+    {
+        "minInclusive": frozenset({0, 1}),
+        "maxInclusive": frozenset({-1, 0}),
+        "minExclusive": frozenset({1}),
+        "maxExclusive": frozenset({-1}),
+    }
+)
+
+
+# Types validated without the model, so their years are not limited to the datetime range.
+_WIDE_YEAR_PARSERS: Mapping[str, Callable[[str], XsInstant | None]] = MappingProxyType(
+    {
+        "date": xs_dates.parse_date,
+        "dateTime": xs_dates.parse_date_time,
+        "gYear": xs_dates.parse_g_year,
+        "gYearMonth": xs_dates.parse_g_year_month,
+    }
+)
+
+
 class ValueConstraintValidator:
     def __init__(self, constraint: TCValueConstraint, namespaces: Mapping[str, str]) -> None:
         self._constraint = constraint
         self._namespaces = namespaces
         self._effective_lexical_type = resolve_effective_lexical_type(constraint.type, namespaces)
-        self._facets = self._build_facets()
+        self._wide_year_parser = None
+        if self._effective_lexical_type is not None:
+            self._wide_year_parser = _WIDE_YEAR_PARSERS.get(self._effective_lexical_type.localName)
+        self._facets: Mapping[str, Any] = MappingProxyType({})
+        self._wide_year_bounds: tuple[tuple[str, XsInstant], ...] = ()
+        if self._wide_year_parser is None:
+            self._facets = self._build_facets()
+        else:
+            self._wide_year_bounds = self._build_wide_year_bounds()
         self._compiled_patterns = self._compile_patterns()
         self._enumeration_typed_values = self._typed_enumeration_values()
 
@@ -92,17 +133,35 @@ class ValueConstraintValidator:
                     facets[facet_name] = result.xValue
         return MappingProxyType(facets)
 
+    def _build_wide_year_bounds(self) -> tuple[tuple[str, XsInstant], ...]:
+        """Bounds facets as instants. Unparseable bounds are reported by metadata validation."""
+        bounds = []
+        for facet_name, raw_value in (
+            ("minInclusive", self._constraint.min_inclusive),
+            ("maxInclusive", self._constraint.max_inclusive),
+            ("minExclusive", self._constraint.min_exclusive),
+            ("maxExclusive", self._constraint.max_exclusive),
+        ):
+            if raw_value is None:
+                continue
+            bound = self._parse_wide_year(raw_value)
+            if bound is not None:
+                bounds.append((facet_name, bound))
+        return tuple(bounds)
+
+    def _parse_wide_year(self, value: str) -> XsInstant | None:
+        assert self._wide_year_parser is not None
+        return self._wide_year_parser(collapseWhitespace(value))
+
     def _typed_enumeration_values(self) -> frozenset[object] | None:
-        """Enumeration members in the value space of the effective type, so that lexically
-        different representations of one value match. Members that are not valid for the
-        type are reported by metadata validation and are ignored here."""
+        """Enumeration members in the value space, so lexically different forms of one value match."""
         if self._constraint.enumeration_values is None or self._effective_lexical_type is None:
             return None
         typed_values = set()
         for member in self._constraint.enumeration_values:
-            result = self._validate_base_type(self._effective_lexical_type, member)
-            if result.isXValid:
-                typed_values.add(result.xValue)
+            result = self._typed_value(member)
+            if result.is_valid:
+                typed_values.add(result.value)
         return frozenset(typed_values)
 
     def _compile_patterns(self) -> tuple[XsdPattern, ...]:
@@ -121,15 +180,15 @@ class ValueConstraintValidator:
         """Returns the tcre error code for the first constraint the value violates, or None if it satisfies all."""
         if self._effective_lexical_type is None:
             return TCRE_INVALID_VALUE
-        typed_value_result = self._validate_base_type(self._effective_lexical_type, value, self._facets)
-        if not typed_value_result.isXValid:
+        typed_value = self._typed_value(value, with_facets=True)
+        if not typed_value.is_valid:
             return TCRE_INVALID_VALUE
         value = self._normalized_lexical_value(value)
         if not self._is_patterns_valid(value):
             return TCRE_INVALID_VALUE
-        if not self._is_enumeration_valid(typed_value_result.xValue):
+        if not self._is_enumeration_valid(typed_value.value):
             return TCRE_INVALID_VALUE
-        if self._effective_lexical_type == QNAME and not self._is_valid_qname(typed_value_result.xValue):
+        if self._effective_lexical_type == QNAME and not self._is_valid_qname(typed_value.value):
             return TCRE_INVALID_VALUE
         if self._constraint.type == CORE_ENTITY and not self._is_valid_sqname(value):
             return TCRE_INVALID_VALUE
@@ -149,6 +208,21 @@ class ValueConstraintValidator:
         if not self._is_time_zone_valid(value):
             return TCRE_MISSING_TIME_ZONE if self._constraint.time_zone else TCRE_UNEXPECTED_TIME_ZONE
         return None
+
+    def _typed_value(self, value: str, with_facets: bool = False) -> _TypedValue:
+        """Parses value in the effective type, applying the bounds and length facets when asked."""
+        assert self._effective_lexical_type is not None
+        if self._wide_year_parser is None:
+            result = self._validate_base_type(self._effective_lexical_type, value, self._facets if with_facets else None)
+            return _TypedValue(result.isXValid, result.xValue)
+        instant = self._parse_wide_year(value)
+        if instant is None:
+            return _INVALID_TYPED_VALUE
+        if with_facets:
+            for facet_name, bound in self._wide_year_bounds:
+                if instant.compare(bound) not in _BOUNDS_FACET_ALLOWED_ORDERS[facet_name]:
+                    return _INVALID_TYPED_VALUE
+        return _TypedValue(True, instant)
 
     def _validate_base_type(
         self,
@@ -170,7 +244,7 @@ class ValueConstraintValidator:
             return replaceWhitespace(value)
         return collapseWhitespace(value)
 
-    def _is_enumeration_valid(self, typed_value: TypeXValue) -> bool:
+    def _is_enumeration_valid(self, typed_value: TypeXValue | XsInstant) -> bool:
         if self._enumeration_typed_values is None:
             return True
         if typed_value in self._enumeration_typed_values:
@@ -187,7 +261,7 @@ class ValueConstraintValidator:
             return True
         return any(pattern.match(value) is not None for pattern in self._compiled_patterns)
 
-    def _is_valid_qname(self, typed_value: TypeXValue) -> bool:
+    def _is_valid_qname(self, typed_value: TypeXValue | XsInstant) -> bool:
         if not isinstance(typed_value, QName):
             return False
         if not typed_value.prefix:
