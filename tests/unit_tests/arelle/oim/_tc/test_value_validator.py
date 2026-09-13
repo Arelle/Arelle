@@ -373,6 +373,9 @@ class TestValidateTimeZone:
             (tc_types.G_YEAR, False, "2024", True),
             (tc_types.G_YEAR, False, "2024Z", False),
             (tc_types.G_YEAR, False, "2024+00:00", False),
+            (tc_types.G_YEAR, False, "-2024", True),
+            (tc_types.G_YEAR, True, "-2024", False),
+            (tc_types.G_YEAR_MONTH, False, "-2024-12", True),
             # period instant with timeZone
             (tc_types.CORE_PERIOD, True, "2024-01-01T00:00:00Z", True),
             (tc_types.CORE_PERIOD, True, "2024-01-01T00:00:00", False),

@@ -46,7 +46,7 @@ XBRLCE_INVALID_IDENTIFIER = "xbrlce:invalidIdentifier"
 _YEAR = r"(?!0000)[0-9]{4}"
 _DATE = rf"{_YEAR}-[0-9]{{2}}-[0-9]{{2}}"
 _TIME = r"(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]"
-_XSD_TZ = r"(?:Z|[+-][0-2][0-9]:?[0-5][0-9])"
+_XSD_TZ = r"(?:Z|[+-](?:(?:0[0-9]|1[0-3]):[0-5][0-9]|14:00))"
 # OIM periods require canonical UTC (Z), so +00:00/-00:00 are rejected.
 _PER_TZ = r"(?:Z|[+-](?!00:?00)[0-2][0-9]:?[0-5][0-9])"
 _PER_DATETIME = rf"{_DATE}T{_TIME}(?:{_PER_TZ})?"
