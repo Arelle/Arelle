@@ -984,24 +984,24 @@ def isStandardArcInExtLinkElement(element: ModelObject) -> bool:
 
 
 standardExtLinkQnames = frozenset({
-    qname("{http://www.xbrl.org/2003/linkbase}definitionLink"),
-    qname("{http://www.xbrl.org/2003/linkbase}calculationLink"),
-    qname("{http://www.xbrl.org/2003/linkbase}presentationLink"),
-    qname("{http://www.xbrl.org/2003/linkbase}labelLink"),
-    qname("{http://www.xbrl.org/2003/linkbase}referenceLink"),
-    qname("{http://www.xbrl.org/2003/linkbase}footnoteLink"),
+    qnLinkDefinitionLink,
+    qnLinkCalculationLink,
+    qnLinkPresentationLink,
+    qnLinkLabelLink,
+    qnLinkReferenceLink,
+    qnLinkFootnoteLink,
 })
 
 standardExtLinkQnamesAndResources = frozenset({
-    qname("{http://www.xbrl.org/2003/linkbase}definitionLink"),
-    qname("{http://www.xbrl.org/2003/linkbase}calculationLink"),
-    qname("{http://www.xbrl.org/2003/linkbase}presentationLink"),
-    qname("{http://www.xbrl.org/2003/linkbase}labelLink"),
-    qname("{http://www.xbrl.org/2003/linkbase}referenceLink"),
-    qname("{http://www.xbrl.org/2003/linkbase}footnoteLink"),
-    qname("{http://www.xbrl.org/2003/linkbase}label"),
-    qname("{http://www.xbrl.org/2003/linkbase}footnote"),
-    qname("{http://www.xbrl.org/2003/linkbase}reference"),
+    qnLinkDefinitionLink,
+    qnLinkCalculationLink,
+    qnLinkPresentationLink,
+    qnLinkLabelLink,
+    qnLinkReferenceLink,
+    qnLinkFootnoteLink,
+    qnLinkLabel,
+    qnLinkFootnote,
+    qnLinkReference,
 })
 
 
@@ -1011,12 +1011,12 @@ def isStandardExtLinkQname(qName: QName) -> bool:
 
 def isStandardArcQname(qName: QName) -> bool:
     return qName in {
-        qname("{http://www.xbrl.org/2003/linkbase}definitionArc"),
-        qname("{http://www.xbrl.org/2003/linkbase}calculationArc"),
-        qname("{http://www.xbrl.org/2003/linkbase}presentationArc"),
-        qname("{http://www.xbrl.org/2003/linkbase}labelArc"),
-        qname("{http://www.xbrl.org/2003/linkbase}referenceArc"),
-        qname("{http://www.xbrl.org/2003/linkbase}footnoteArc"),
+        qnLinkDefinitionArc,
+        qnLinkCalculationArc,
+        qnLinkPresentationArc,
+        qnLinkLabelArc,
+        qnLinkReferenceArc,
+        qnLinkFootnoteArc,
     }
 
 
