@@ -301,6 +301,7 @@ class ModelXbrl:
     qnameDimensionContextElement: dict[QName, str]
     xbrlCsvLoadingContext: XbrlCsvLoadingContext | None
     watchRss: WatchRss
+    rssItemResults: dict[str | None, dict[str, Any]]
     _factsByDimQname: dict[QName, dict[QName | str | None, set[ModelFact]]]
     _factsByQname: dict[QName, set[ModelFact]]
     _factsByDatatype: dict[bool | tuple[bool, QName], set[ModelFact]]
