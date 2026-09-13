@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, cast
 from lxml import etree
 from arelle import XmlUtil
 
-from arelle.ModelValue import QName, qname
+from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
 
 if TYPE_CHECKING:
@@ -99,4 +99,4 @@ def loadCsvTestcase(
 
 
 def _conformanceQName(name: str) -> QName:
-    return qname(CONFORMANCE_NAMESPACE, name)
+    return QName.fromParts(name, CONFORMANCE_NAMESPACE)
