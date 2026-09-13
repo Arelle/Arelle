@@ -69,7 +69,7 @@ def node_name(
     p: OperationDef,
     contextItem: XPathContext.ContextItem,
     args: XPathContext.ResultStack,
-) -> tuple[()] | ModelValueQName:
+) -> tuple[()] | ModelValueQName | None:
     node = nodeArg(xc, args, 0, "node()?", missingArgFallback=contextItem, emptyFallback=())
     if node != ():
         return qname(node)  # type: ignore[arg-type]
