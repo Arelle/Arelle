@@ -1286,6 +1286,30 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                   _('The base-url must be absolute: "%(url)s".'),
                   modelObject=modelXbrl, url=documentBase)
 
+        if modelXbrl.modelManager.validateTableConstraintsSkipLoading:
+            if not isCSV:
+                raise OIMException("arelle:tableConstraintsSkipLoadingRequiresXbrlCsv",
+                                   _("Table constraints validation without loading requires an xBRL-CSV report: %(file)s"),
+                                   file=oimFile)
+            if tcMetadataResult.metadata is None and not tcMetadataResult.errors:
+                raise OIMException("arelle:noTableConstraints",
+                                   _("Table constraints validation without loading requested but the report has no table constraints metadata: %(file)s"),
+                                   file=oimFile)
+            # Taxonomy discovery and fact creation are skipped. An empty entry document
+            # keeps the model usable for validation dispatch and the GUI.
+            modelXbrl.tableConstraintsSkipLoading = True
+            modelXbrl.modelDocument = _return = ModelDocument.create(
+                  modelXbrl,
+                  ModelDocumentType.INSTANCE,
+                  instanceFileName,
+                  isEntry=True,
+                  initialComment="table constraints validation without loading of OIM {}".format(mappedUri),
+                  documentEncoding="utf-8",
+                  base=documentBase or modelXbrl.entryLoadingUrl)
+            modelXbrl.modelDocument.inDTS = True
+            _return.isModified = False
+            return _return
+
         factProduced = FactProduced() # pass back fact info to csv Fact producer
 
         if isCSVorXL:
