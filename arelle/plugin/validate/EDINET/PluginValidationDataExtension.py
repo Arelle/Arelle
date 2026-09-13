@@ -23,7 +23,7 @@ from arelle.ModelDocument import Type as ModelDocumentType, ModelDocument, load 
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelFact, ModelUnit, ModelContext, ModelInlineFact
 from arelle.ModelObject import ModelObject
-from arelle.ModelValue import QName, qname
+from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
 from arelle.PrototypeDtsObject import LinkPrototype
 from arelle.ValidateDuplicateFacts import getDeduplicatedFacts, DeduplicationType
@@ -113,50 +113,50 @@ class PluginValidationDataExtension(PluginData):
         self.namespaces = NamespaceConfig(disclosureSystemName)
 
         # QNames
-        self.accountingStandardsDeiQn = qname(self.namespaces.jpdei, "AccountingStandardsDEI")
-        self.assetsIfrsQn = qname(self.namespaces.jpigp, "AssetsIFRS")
-        self.baseRemunerationRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "BaseRemunerationRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")
-        self.bonusRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "BonusRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")
-        self.categoriesOfDirectorsAndOtherOfficersAxisQn = qname(self.namespaces.jpcrp, "CategoriesOfDirectorsAndOtherOfficersAxis")
-        self.consolidatedOrNonConsolidatedAxisQn = qname(self.namespaces.jppfs, "ConsolidatedOrNonConsolidatedAxis")
-        self.corporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlockQn = qname(self.namespaces.jpcrp, "CorporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlock")
-        self.corporateGovernanceCompanyWithCorporateAuditorsTextBlockQn = qname(self.namespaces.jpcrp, "CorporateGovernanceCompanyWithCorporateAuditorsTextBlock")
-        self.corporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlockQn = qname(self.namespaces.jpcrp, "CorporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlock")
-        self.directorsAndOtherOfficersAxisQn = qname(self.namespaces.jpcrp, "DirectorsAndOtherOfficersAxis")
-        self.directorsAndOtherOfficersMemberQn = qname(self.namespaces.jpcrp, "DirectorsAndOtherOfficersMember")
-        self.documentTypeDeiQn = qname(self.namespaces.jpdei, "DocumentTypeDEI")
-        self.executiveOfficersMemberQn = qname(self.namespaces.jpcrp, "ExecutiveOfficersMember")
-        self.fixedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "FixedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficers")
-        self.issuedSharesTotalNumberOfSharesEtcQn = qname(self.namespaces.jpcrp, "IssuedSharesTotalNumberOfSharesEtcTextBlock")
-        self.jpcrpEsrFilingDateCoverPageQn = qname(self.namespaces.jpcrpEsr, "FilingDateCoverPage")
-        self.jpcrpFilingDateCoverPageQn = qname(self.namespaces.jpcrp, "FilingDateCoverPage")
-        self.jplvhFilingDateCoverPageQn = qname(self.namespaces.jplvh, "FilingDateCoverPage")
-        self.jpspsFilingDateCoverPageQn = qname(self.namespaces.jpsps, "FilingDateCoverPage")
-        self.jptoiFilingDateCoverPageQn = qname(self.namespaces.jptoi, "FilingDateCoverPage")
-        self.nonConsolidatedMemberQn = qname(self.namespaces.jppfs, "NonConsolidatedMember")
-        self.nonMonetaryRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "NonMonetaryRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficers")
-        self.otherRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "OtherRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")
-        self.performanceBasedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "PerformanceBasedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficers")
-        self.performanceLinkedShareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "PerformanceLinkedShareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")
-        self.ratioOfFemaleDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "RatioOfFemaleDirectorsAndOtherOfficers")
-        self.restrictedShareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "RestrictedShareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")
-        self.retirementBenefitsRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "RetirementBenefitsRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")
-        self.shareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "ShareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")
-        self.shareOptionRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "ShareOptionRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")
-        self.totalAmountByTypeOfRemunerationRemunerationEtcByCategoryOfDirectorsAndOtherOfficersAbstractQn = qname(self.namespaces.jpcrp, "TotalAmountByTypeOfRemunerationRemunerationEtcByCategoryOfDirectorsAndOtherOfficersAbstract")
-        self.totalAmountOfRemunerationEtcPaidByGroupRemunerationEtcPaidByGroupToEachDirectorOrOtherOfficerQn = qname(self.namespaces.jpcrp, "TotalAmountOfRemunerationEtcPaidByGroupRemunerationEtcPaidByGroupToEachDirectorOrOtherOfficer")
-        self.totalAmountOfRemunerationEtcRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = qname(self.namespaces.jpcrp, "TotalAmountOfRemunerationEtcRemunerationEtcByCategoryOfDirectorsAndOtherOfficers")
+        self.accountingStandardsDeiQn = QName.fromParts("AccountingStandardsDEI", self.namespaces.jpdei)
+        self.assetsIfrsQn = QName.fromParts("AssetsIFRS", self.namespaces.jpigp)
+        self.baseRemunerationRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = QName.fromParts("BaseRemunerationRemunerationEtcByCategoryOfDirectorsAndOtherOfficers", self.namespaces.jpcrp)
+        self.bonusRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = QName.fromParts("BonusRemunerationEtcByCategoryOfDirectorsAndOtherOfficers", self.namespaces.jpcrp)
+        self.categoriesOfDirectorsAndOtherOfficersAxisQn = QName.fromParts("CategoriesOfDirectorsAndOtherOfficersAxis", self.namespaces.jpcrp)
+        self.consolidatedOrNonConsolidatedAxisQn = QName.fromParts("ConsolidatedOrNonConsolidatedAxis", self.namespaces.jppfs)
+        self.corporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlockQn = QName.fromParts("CorporateGovernanceCompanyWithAuditAndSupervisoryCommitteeTextBlock", self.namespaces.jpcrp)
+        self.corporateGovernanceCompanyWithCorporateAuditorsTextBlockQn = QName.fromParts("CorporateGovernanceCompanyWithCorporateAuditorsTextBlock", self.namespaces.jpcrp)
+        self.corporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlockQn = QName.fromParts("CorporateGovernanceCompanyWithNominatingAndOtherCommitteesTextBlock", self.namespaces.jpcrp)
+        self.directorsAndOtherOfficersAxisQn = QName.fromParts("DirectorsAndOtherOfficersAxis", self.namespaces.jpcrp)
+        self.directorsAndOtherOfficersMemberQn = QName.fromParts("DirectorsAndOtherOfficersMember", self.namespaces.jpcrp)
+        self.documentTypeDeiQn = QName.fromParts("DocumentTypeDEI", self.namespaces.jpdei)
+        self.executiveOfficersMemberQn = QName.fromParts("ExecutiveOfficersMember", self.namespaces.jpcrp)
+        self.fixedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn = QName.fromParts("FixedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficers", self.namespaces.jpcrp)
+        self.issuedSharesTotalNumberOfSharesEtcQn = QName.fromParts("IssuedSharesTotalNumberOfSharesEtcTextBlock", self.namespaces.jpcrp)
+        self.jpcrpEsrFilingDateCoverPageQn = QName.fromParts("FilingDateCoverPage", self.namespaces.jpcrpEsr)
+        self.jpcrpFilingDateCoverPageQn = QName.fromParts("FilingDateCoverPage", self.namespaces.jpcrp)
+        self.jplvhFilingDateCoverPageQn = QName.fromParts("FilingDateCoverPage", self.namespaces.jplvh)
+        self.jpspsFilingDateCoverPageQn = QName.fromParts("FilingDateCoverPage", self.namespaces.jpsps)
+        self.jptoiFilingDateCoverPageQn = QName.fromParts("FilingDateCoverPage", self.namespaces.jptoi)
+        self.nonConsolidatedMemberQn = QName.fromParts("NonConsolidatedMember", self.namespaces.jppfs)
+        self.nonMonetaryRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn = QName.fromParts("NonMonetaryRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficers", self.namespaces.jpcrp)
+        self.otherRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = QName.fromParts("OtherRemunerationEtcByCategoryOfDirectorsAndOtherOfficers", self.namespaces.jpcrp)
+        self.performanceBasedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficersQn = QName.fromParts("PerformanceBasedRemunerationRemunerationByCategoryOfDirectorsAndOtherOfficers", self.namespaces.jpcrp)
+        self.performanceLinkedShareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = QName.fromParts("PerformanceLinkedShareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficers", self.namespaces.jpcrp)
+        self.ratioOfFemaleDirectorsAndOtherOfficersQn = QName.fromParts("RatioOfFemaleDirectorsAndOtherOfficers", self.namespaces.jpcrp)
+        self.restrictedShareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = QName.fromParts("RestrictedShareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficers", self.namespaces.jpcrp)
+        self.retirementBenefitsRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = QName.fromParts("RetirementBenefitsRemunerationEtcByCategoryOfDirectorsAndOtherOfficers", self.namespaces.jpcrp)
+        self.shareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = QName.fromParts("ShareAwardsRemunerationEtcByCategoryOfDirectorsAndOtherOfficers", self.namespaces.jpcrp)
+        self.shareOptionRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = QName.fromParts("ShareOptionRemunerationEtcByCategoryOfDirectorsAndOtherOfficers", self.namespaces.jpcrp)
+        self.totalAmountByTypeOfRemunerationRemunerationEtcByCategoryOfDirectorsAndOtherOfficersAbstractQn = QName.fromParts("TotalAmountByTypeOfRemunerationRemunerationEtcByCategoryOfDirectorsAndOtherOfficersAbstract", self.namespaces.jpcrp)
+        self.totalAmountOfRemunerationEtcPaidByGroupRemunerationEtcPaidByGroupToEachDirectorOrOtherOfficerQn = QName.fromParts("TotalAmountOfRemunerationEtcPaidByGroupRemunerationEtcPaidByGroupToEachDirectorOrOtherOfficer", self.namespaces.jpcrp)
+        self.totalAmountOfRemunerationEtcRemunerationEtcByCategoryOfDirectorsAndOtherOfficersQn = QName.fromParts("TotalAmountOfRemunerationEtcRemunerationEtcByCategoryOfDirectorsAndOtherOfficers", self.namespaces.jpcrp)
 
 
         self.coverItemRequirementsPath = Path(__file__).parent / "resources" / "cover-item-requirements.json"
         self.coverPageTitleQns = (
-            qname(self.namespaces.jpsps, "DocumentTitleAnnualSecuritiesReportCoverPage"),
-            qname(self.namespaces.jpcrp, "DocumentTitleCoverPage"),
-            qname(self.namespaces.jpcrpEsr, "DocumentTitleCoverPage"),
-            qname(self.namespaces.jpsps, "DocumentTitleCoverPage"),
+            QName.fromParts("DocumentTitleAnnualSecuritiesReportCoverPage", self.namespaces.jpsps),
+            QName.fromParts("DocumentTitleCoverPage", self.namespaces.jpcrp),
+            QName.fromParts("DocumentTitleCoverPage", self.namespaces.jpcrpEsr),
+            QName.fromParts("DocumentTitleCoverPage", self.namespaces.jpsps),
         )
         self.deiItems = tuple(
-            qname(self.namespaces.jpdei, localName)
+            QName.fromParts(localName, self.namespaces.jpdei)
             for localName in DEI_LOCAL_NAMES
         )
         self.deiRequirementsPath = Path(__file__).parent / "resources" / "dei-requirements.csv"
@@ -251,7 +251,7 @@ class PluginValidationDataExtension(PluginData):
     def qname(self, prefix: str, localName: str) -> QName:
         ns = self.namespaces.get(prefix)
         assert ns is not None, f"Unknown namespace prefix: {prefix}"
-        return qname(ns, localName)
+        return QName.fromParts(localName, ns)
 
     @lru_cache(1)
     def isCorporateForm(self, modelXbrl: ModelXbrl) -> bool:
