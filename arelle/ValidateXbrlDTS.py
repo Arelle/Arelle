@@ -701,7 +701,7 @@ def checkElements(val: ValidateXbrl, modelDocument: ModelDocument, parent: _Elem
                                     _("%(element)s %(roleURI)s usedOn %(value)s on has s-equal duplicate"),
                                     modelObject=elt, element=elt.qname, roleURI=roleURI, value=qName,
                                     messageCodes=("xbrl.5.1.3:roleTypes-inequality", "xbrl.5.1.4:arcroleTypes-inequality"))
-                            if val.validateSBRNL:
+                            if val.validateSBRNL and qName is not None:
                                 val.valUsedPrefixes.add(qName.prefix)  # type: ignore[arg-type]
                                 if qName == XbrlConst.qnLinkCalculationLink:
                                     val.modelXbrl.error("SBR.NL.2.2.3.01",
