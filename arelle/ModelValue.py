@@ -6,6 +6,7 @@ import datetime, isodate
 from collections.abc import Mapping
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, cast, overload, Optional, Union
+from typing_extensions import Self
 from fractions import Fraction
 from arelle.UrlUtil import isValidUriReference
 from arelle.typing import ModelObjectBase
@@ -206,6 +207,10 @@ class QName:
         self.namespaceURI = namespaceURI
         self.localName = localName
         self.qnameValueHash = hash((self.namespaceURI, self.localName))
+
+    @classmethod
+    def fromParts(cls, localName: str, namespaceURI: str | None = None, prefix: str | None = None) -> Self:
+        return cls(prefix, namespaceURI, localName)
 
     def __hash__(self) -> int:
         return self.qnameValueHash

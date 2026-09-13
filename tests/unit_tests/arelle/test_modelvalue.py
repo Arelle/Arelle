@@ -13,6 +13,28 @@ NSMAP = {
 }
 
 
+class TestQNameFromParts:
+    def test_local_name(self):
+        result = QName.fromParts("item")
+        assert (result.prefix, result.namespaceURI, result.localName) == (None, None, "item")
+
+    def test_namespace(self):
+        result = QName.fromParts("item", "urn:example")
+        assert (result.prefix, result.namespaceURI, result.localName) == (None, "urn:example", "item")
+
+    def test_prefix(self):
+        result = QName.fromParts("item", "urn:example", "ex")
+        assert (result.prefix, result.namespaceURI, result.localName) == ("ex", "urn:example", "item")
+
+    def test_subclass(self):
+        class CustomQName(QName):
+            pass
+
+        result = CustomQName.fromParts("item", "urn:example", "ex")
+        assert type(result) is CustomQName
+        assert (result.prefix, result.namespaceURI, result.localName) == ("ex", "urn:example", "item")
+
+
 class TestQnameFromNsmap:
     def test_unprefixed_name(self):
         result = qnameFromNsmap(NSMAP, "localName")
