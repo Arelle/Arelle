@@ -12,6 +12,13 @@ from typing import Any, cast
 import regex
 
 from arelle.ModelValue import DateTime, QName, TypeXValue, dayTimeDuration, yearMonthDuration
+from arelle.oim._tc.const import (
+    TCRE_INVALID_DURATION_TYPE,
+    TCRE_INVALID_PERIOD_TYPE,
+    TCRE_INVALID_VALUE,
+    TCRE_MISSING_TIME_ZONE,
+    TCRE_UNEXPECTED_TIME_ZONE,
+)
 from arelle.oim._tc.metadata.model import TCValueConstraint
 from arelle.oim._tc.metadata.types import (
     CORE_ENTITY,
@@ -90,41 +97,37 @@ class ValueConstraintValidator:
         return tuple(compiled)
 
     def validate(self, value: str) -> bool:
+        return self.first_violation(value) is None
+
+    def first_violation(self, value: str) -> str | None:
+        """Returns the tcre error code for the first constraint the value violates, or None if it satisfies all."""
         if self._effective_lexical_type is None:
-            return False
+            return TCRE_INVALID_VALUE
         typed_value_result = self._validate_base_type(self._effective_lexical_type, value, self._facets)
         if not typed_value_result.isXValid:
-            return False
+            return TCRE_INVALID_VALUE
         if not self._is_patterns_valid(value):
-            return False
-        if not self._is_duration_type_valid(value):
-            return False
-        if not self._is_time_zone_valid(value):
-            return False
-        if self._effective_lexical_type == QNAME:
-            tc_valid_qname = self._is_valid_qname(typed_value_result.xValue)
-            if not tc_valid_qname:
-                return False
-        if self._constraint.type == CORE_ENTITY:
-            tc_valid_sqname = self._is_valid_sqname(value)
-            if not tc_valid_sqname:
-                return False
-        if self._constraint.type == CORE_LANGUAGE:
-            tc_valid_language = self._is_valid_core_language(value)
-            if not tc_valid_language:
-                return False
-        if self._constraint.type == CORE_UNIT:
-            tc_valid_unit = self._is_valid_unit(value)
-            if not tc_valid_unit:
-                return False
+            return TCRE_INVALID_VALUE
+        if self._effective_lexical_type == QNAME and not self._is_valid_qname(typed_value_result.xValue):
+            return TCRE_INVALID_VALUE
+        if self._constraint.type == CORE_ENTITY and not self._is_valid_sqname(value):
+            return TCRE_INVALID_VALUE
+        if self._constraint.type == CORE_LANGUAGE and not self._is_valid_core_language(value):
+            return TCRE_INVALID_VALUE
+        if self._constraint.type == CORE_UNIT and not self._is_valid_unit(value):
+            return TCRE_INVALID_VALUE
         if self._constraint.type == CORE_PERIOD:
+            if not any(validator(value) for validator in _ALL_PERIOD_VALIDATORS):
+                return TCRE_INVALID_VALUE
             if self._constraint.period_type is not None:
                 validator = PERIOD_TYPE_VALIDATORS.get(self._constraint.period_type)
                 if validator is None or not validator(value):
-                    return False
-            elif not any(validator(value) for validator in _ALL_PERIOD_VALIDATORS):
-                return False
-        return True
+                    return TCRE_INVALID_PERIOD_TYPE
+        if not self._is_duration_type_valid(value):
+            return TCRE_INVALID_DURATION_TYPE
+        if not self._is_time_zone_valid(value):
+            return TCRE_MISSING_TIME_ZONE if self._constraint.time_zone else TCRE_UNEXPECTED_TIME_ZONE
+        return None
 
     def _validate_base_type(
         self,

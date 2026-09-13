@@ -496,3 +496,44 @@ class TestValidateWithFacets:
 
     def test_multiple_facets_one_violated(self) -> None:
         assert _validator(tc_types.STRING, length=3, patterns=frozenset({"[a-z]+"})).validate("abcd") is False
+
+
+class TestFirstViolation:
+    def test_valid_value_has_no_violation(self) -> None:
+        assert _validator(tc_types.DATE, time_zone=True).first_violation("2024-01-01Z") is None
+
+    def test_unknown_type_is_invalid_value(self) -> None:
+        assert _validator("unknown:type").first_violation("1") == "tcre:invalidValue"
+
+    @pytest.mark.parametrize(
+        "kwargs, value",
+        [
+            ({}, "not-a-date"),
+            ({"patterns": frozenset({"[0-9]{4}-01-01"})}, "2024-02-01"),
+            # A lexically invalid value is reported before the time zone is considered.
+            ({"time_zone": True}, "2024-13-01"),
+        ],
+    )
+    def test_type_and_pattern_violations_are_invalid_value(self, kwargs: dict[str, object], value: str) -> None:
+        assert _validator(tc_types.DATE, **kwargs).first_violation(value) == "tcre:invalidValue"
+
+    @pytest.mark.parametrize(
+        "constraint_type, kwargs, value, expected",
+        [
+            (tc_types.DATE, {"time_zone": True}, "2024-01-01", "tcre:missingTimeZone"),
+            (tc_types.DATE, {"time_zone": False}, "2024-01-01Z", "tcre:unexpectedTimeZone"),
+            (tc_types.CORE_PERIOD, {"time_zone": True}, "2024Q1", "tcre:missingTimeZone"),
+            (tc_types.CORE_PERIOD, {"time_zone": False}, "2024-01-01T00:00:00Z/2025-01-01T00:00:00Z", "tcre:unexpectedTimeZone"),
+            (tc_types.CORE_PERIOD, {"period_type": "year"}, "2024Q1", "tcre:invalidPeriodType"),
+            (tc_types.CORE_PERIOD, {"period_type": "year"}, "2019-13-32", "tcre:invalidValue"),
+            (tc_types.DURATION, {"duration_type": "yearMonth"}, "P1D", "tcre:invalidDurationType"),
+            (tc_types.DURATION, {"duration_type": "dayTime"}, "P1Y", "tcre:invalidDurationType"),
+            (tc_types.DURATION, {"duration_type": "dayTime"}, "one day", "tcre:invalidValue"),
+            # Period and duration type checks come before the time zone check.
+            (tc_types.CORE_PERIOD, {"period_type": "year", "time_zone": True}, "2024Q1", "tcre:invalidPeriodType"),
+        ],
+    )
+    def test_specific_violation_codes(
+        self, constraint_type: QName | str, kwargs: dict[str, object], value: str, expected: str
+    ) -> None:
+        assert _validator(constraint_type, **kwargs).first_violation(value) == expected

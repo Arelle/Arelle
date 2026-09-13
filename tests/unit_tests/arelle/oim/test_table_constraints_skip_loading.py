@@ -68,7 +68,7 @@ _JSON_METADATA = {
 }
 
 
-def _run(tmp_path: Path, metadata: dict[str, Any], table_constraints_only: bool) -> ModelXbrl:
+def _run(tmp_path: Path, metadata: dict[str, Any], table_constraints_skip_loading: bool) -> ModelXbrl:
     (tmp_path / "taxonomy.xsd").write_text(_TAXONOMY, encoding="utf-8")
     (tmp_path / "data.csv").write_text(_CSV, encoding="utf-8")
     metadata_path = tmp_path / "report.json"
@@ -81,7 +81,7 @@ def _run(tmp_path: Path, metadata: dict[str, Any], table_constraints_only: bool)
                 keepOpen=True,
                 logFormat="[%(messageCode)s] %(message)s",
                 validate=True,
-                validateTableConstraintsOnly=table_constraints_only,
+                validateTableConstraintsSkipLoading=table_constraints_skip_loading,
             )
         )
         (model,) = session.get_models()
@@ -89,22 +89,22 @@ def _run(tmp_path: Path, metadata: dict[str, Any], table_constraints_only: bool)
 
 
 def test_normal_validation_runs_table_constraints_validation(tmp_path: Path) -> None:
-    model = _run(tmp_path, _csv_metadata("xs:integerish"), table_constraints_only=False)
-    assert not model.tableConstraintsOnly
+    model = _run(tmp_path, _csv_metadata("xs:integerish"), table_constraints_skip_loading=False)
+    assert not model.tableConstraintsSkipLoading
     assert "tcme:unknownType" in model.errors
     assert len(model.facts) == 1
 
 
-def test_table_constraints_only_skips_taxonomy_and_facts(tmp_path: Path) -> None:
-    model = _run(tmp_path, _csv_metadata("xs:integerish"), table_constraints_only=True)
-    assert model.tableConstraintsOnly
+def test_table_constraints_skip_loading_skips_taxonomy_and_facts(tmp_path: Path) -> None:
+    model = _run(tmp_path, _csv_metadata("xs:integerish"), table_constraints_skip_loading=True)
+    assert model.tableConstraintsSkipLoading
     assert "tcme:unknownType" in model.errors
     assert len(model.facts) == 0
     assert not any(doc.uri.endswith("taxonomy.xsd") for doc in model.urlDocs.values())
 
 
-def test_table_constraints_only_valid_report_has_no_errors(tmp_path: Path) -> None:
-    model = _run(tmp_path, _csv_metadata("xs:integer"), table_constraints_only=True)
+def test_table_constraints_skip_loading_valid_report_has_no_errors(tmp_path: Path) -> None:
+    model = _run(tmp_path, _csv_metadata("xs:integer"), table_constraints_skip_loading=True)
     assert model.errors == []
 
 
@@ -112,12 +112,12 @@ def test_table_constraints_only_valid_report_has_no_errors(tmp_path: Path) -> No
     "metadata, expected_error",
     [
         (_csv_metadata(None), "arelle:noTableConstraints"),
-        (_JSON_METADATA, "arelle:tableConstraintsOnlyRequiresXbrlCsv"),
+        (_JSON_METADATA, "arelle:tableConstraintsSkipLoadingRequiresXbrlCsv"),
     ],
 )
-def test_table_constraints_only_rejects_unsuitable_reports(
+def test_table_constraints_skip_loading_rejects_unsuitable_reports(
     tmp_path: Path, metadata: dict[str, Any], expected_error: str
 ) -> None:
-    model = _run(tmp_path, metadata, table_constraints_only=True)
+    model = _run(tmp_path, metadata, table_constraints_skip_loading=True)
     assert expected_error in model.errors
     assert model.modelDocument is None
