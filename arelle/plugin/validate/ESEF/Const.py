@@ -7,8 +7,10 @@ import regex as re
 
 from arelle import XbrlConst
 from arelle.FunctionIxt import ixtNamespaces
-from arelle.ModelValue import QName, qname
+from arelle.ModelValue import QName
 from arelle.XmlValidate import lexicalPatterns
+
+_DTR_TYPES_PREFIX = "dtr-types"
 
 styleCssHiddenPattern = re.compile(r"(.*[^\w]|^)display\s*:\s*none([^\w].*|$)")
 datetimePattern = lexicalPatterns["XBRLI_DATEUNION"]
@@ -27,9 +29,9 @@ FOOTNOTE_LINK_CHILDREN = frozenset((
     XbrlConst.qnIXbrl11Footnote,
 ))
 
-PERCENT_TYPE = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType")
-PERCENT_TYPE_2020 = qname("{http://www.xbrl.org/dtr/type/2020-01-21}dtr-types:percentItemType")
-PERCENT_TYPE_2022 = qname("{http://www.xbrl.org/dtr/type/2022-03-31}dtr-types:percentItemType")
+PERCENT_TYPE = QName.fromParts("percentItemType", XbrlConst.dtrNumeric, "num")
+PERCENT_TYPE_2020 = QName.fromParts("percentItemType", XbrlConst.dtrTypeNamespace_2020_01_21, _DTR_TYPES_PREFIX)
+PERCENT_TYPE_2022 = QName.fromParts("percentItemType", XbrlConst.dtrTypeNamespace_2022_03_31, _DTR_TYPES_PREFIX)
 PERCENT_TYPES = {
     PERCENT_TYPE,
     PERCENT_TYPE_2020,
@@ -86,16 +88,16 @@ LineItemsNotQualifiedLinkroles = (
 )
 
 qnDomainItemTypesBefore2023 = frozenset((
-    qname("{http://www.xbrl.org/dtr/type/non-numeric}nonnum:domainItemType"),
-    qname("{http://www.xbrl.org/dtr/type/2020-01-21}dtr-types:domainItemType"),
+    QName.fromParts("domainItemType", "http://www.xbrl.org/dtr/type/non-numeric", "nonnum"),
+    QName.fromParts("domainItemType", XbrlConst.dtrTypeNamespace_2020_01_21, _DTR_TYPES_PREFIX),
 ))
 
 qnDomainItemTypes2023 = frozenset((
-    qname("{http://www.xbrl.org/dtr/type/2020-01-21}dtr-types:domainItemType"),
+    QName.fromParts("domainItemType", XbrlConst.dtrTypeNamespace_2020_01_21, _DTR_TYPES_PREFIX),
 ))
 
 qnDomainItemTypes2024 = frozenset((
-    qname("{http://www.xbrl.org/dtr/type/2022-03-31}dtr-types:domainItemType"),
+    QName.fromParts("domainItemType", XbrlConst.dtrTypeNamespace_2022_03_31, _DTR_TYPES_PREFIX),
 ))
 
 
