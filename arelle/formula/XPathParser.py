@@ -444,7 +444,7 @@ class VariableRef:
 
 
 def pushVarRef(sourceStr: str, loc: int, toks: ParseResults) -> VariableRef:
-    qname = ModelValue.qname(xmlElement, toks[0][1:], noPrefixIsNoNamespace=True)  # type: ignore[arg-type]
+    qname = ModelValue.qname(xmlElement, toks[0][1:], noPrefixIsNoNamespace=True)
     if qname is None:
         assert modelXbrl is not None
         modelXbrl.error("err:XPST0081",

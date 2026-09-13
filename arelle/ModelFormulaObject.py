@@ -414,7 +414,7 @@ class ModelFormulaRules:
 
     def source(self, aspect: int | QName | None = None, ruleElement: ModelObject | None = None, acceptFormulaSource: bool = True) -> QName | None:
         if aspect is None and ruleElement is None:
-            return qname(self, self.get("source"), noPrefixIsNoNamespace=True) if self.get("source") else None  # type: ignore[call-overload,attr-defined]
+            return qname(self, self.get("source"), noPrefixIsNoNamespace=True) if self.get("source") else None  # type: ignore[attr-defined]
         # find nearest source
         if ruleElement is None:
             if aspect == Aspect.DIMENSIONS:  # SAV is the formula element

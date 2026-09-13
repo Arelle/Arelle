@@ -72,7 +72,7 @@ def node_name(
 ) -> tuple[()] | ModelValueQName | None:
     node = nodeArg(xc, args, 0, "node()?", missingArgFallback=contextItem, emptyFallback=())
     if node != ():
-        return qname(node)  # type: ignore[arg-type]
+        return qname(node)
     return ()
 
 
