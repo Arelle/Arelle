@@ -41,6 +41,11 @@ UNIT_PATTERN = regex.compile(
     "(^((\x07)|([(]\x07([*]\x07)+[)]))([/]((\x07)|([(]\x07([*]\x07)+[)])))?$)"
 )
 
+SPECIAL_VALUE_PREFIX = "#"
+EMPTY_SPECIAL_VALUE = "#empty"
+NIL_SPECIAL_VALUE = "#nil"
+NONE_SPECIAL_VALUE = "#none"
+
 XBRLCE_INVALID_IDENTIFIER = "xbrlce:invalidIdentifier"
 
 XSD_YEAR = r"-?(?:[1-9][0-9]{3,}|0[0-9]{3})"
