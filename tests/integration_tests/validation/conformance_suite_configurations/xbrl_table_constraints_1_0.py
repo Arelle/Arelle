@@ -8,6 +8,9 @@ from tests.integration_tests.validation.conformance_suite_config import (
 _VERSION = "2026-09-10"
 
 config = ConformanceSuiteConfig(
+    args=[
+        "--validateTableConstraintsSkipLoading",
+    ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
             Path(f"table-constraints-conformance-{_VERSION}.zip"),
@@ -24,6 +27,19 @@ config = ConformanceSuiteConfig(
         },
         "720-tc-report-processor/index-tc-report-table.xml:V-901-tp-null": {
             "arelle:notLoaded": 1,
+        },
+        # The tc prefix is not bound to the Table Constraints namespace, so there is no
+        # metadata to validate when skipping report loading.
+        **{
+            f"710-tc-metadata-processor/index-tc-metadata-table.xml:{s}": {
+                "arelle:notLoaded": 1,
+                "arelle:noTableConstraints": 1,
+            }
+            for s in ("V-809dc", "V-809de", "V-817b")
+        },
+        # Three xs:duration key fields without durationType are each reported.
+        "720-tc-report-processor/index-tc-report-table.xml:V-25": {
+            "tcme:illegalKeyField": 2,
         },
         # paramThree (xs:duration without durationType) also triggers illegalUniqueKeyOrder because it follows
         # constrained column fields keyOne and keyTwo in the unique key fields list.
@@ -42,6 +58,7 @@ config = ConformanceSuiteConfig(
         },
     }.items()},
     expected_failure_ids=frozenset(f"table-constraints-conformance-{_VERSION}/{s}" for s in [
+        "720-tc-report-processor/index-tc-report-table.xml:V-901-tp-unknown",
         "720-tc-report-processor/index-tc-report-table.xml:V-100",
         "720-tc-report-processor/index-tc-report-table.xml:V-25",
         "720-tc-report-processor/index-tc-report-table.xml:V-26",
@@ -237,7 +254,6 @@ config = ConformanceSuiteConfig(
         "720-tc-report-processor/index-tc-report-table.xml:V-774b",
         "720-tc-report-processor/index-tc-report-table.xml:V-774c",
         "720-tc-report-processor/index-tc-report-table.xml:V-786",
-        "720-tc-report-processor/index-tc-report-table.xml:V-791",
         "720-tc-report-processor/index-tc-report-table.xml:V-806",
         "720-tc-report-processor/index-tc-report-table.xml:V-81",
         "720-tc-report-processor/index-tc-report-table.xml:V-812a",
@@ -251,7 +267,6 @@ config = ConformanceSuiteConfig(
         "720-tc-report-processor/index-tc-report-table.xml:V-815h",
         "720-tc-report-processor/index-tc-report-table.xml:V-82",
         "720-tc-report-processor/index-tc-report-table.xml:V-83",
-        "720-tc-report-processor/index-tc-report-table.xml:V-834",
         "720-tc-report-processor/index-tc-report-table.xml:V-835",
         "720-tc-report-processor/index-tc-report-table.xml:V-835a",
         "720-tc-report-processor/index-tc-report-table.xml:V-835b",
