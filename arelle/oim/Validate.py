@@ -25,21 +25,26 @@ _: TypeGetText
 precisionZeroPattern = re.compile(r"^\s*0+\s*$")
 
 
+def validateTableConstraints(modelXbrl: ModelXbrl) -> None:
+    """Runs xBRL-CSV Table Constraints validation for a loaded xBRL-CSV report."""
+    csvContext = modelXbrl.xbrlCsvLoadingContext
+    if csvContext is None or csvContext.tc_metadata is None:
+        return
+    tcValidator = TCMetadataValidator(csvContext.metadata, csvContext.tc_metadata)
+    for tcError in tcValidator.validate():
+        modelXbrl.error(
+            tcError.code,
+            _("Invalid table constraints metadata: %(error)s"),
+            modelObject=modelXbrl,
+            error=str(tcError),
+        )
+
+
 def validateOIM(modelXbrl: ModelXbrl) -> None:
     if modelXbrl.loadedFromOIM:
         if modelXbrl.loadedFromOimErrorCount < len(modelXbrl.errors):
             modelXbrl.error("oime:invalidTaxonomy", _("XBRL validation errors were logged for this instance."), modelObject=modelXbrl)
-        if csvContext := modelXbrl.xbrlCsvLoadingContext:
-            csvMetadata = csvContext.metadata
-            if tcMetadata := csvContext.tc_metadata:
-                tcValidator = TCMetadataValidator(csvMetadata, tcMetadata)
-                for tcError in tcValidator.validate():
-                    modelXbrl.error(
-                        tcError.code,
-                        _("Invalid table constraints metadata: %(error)s"),
-                        modelObject=modelXbrl,
-                        error=str(tcError),
-                    )
+        validateTableConstraints(modelXbrl)
 
     else:
         modelDocument = modelXbrl.modelDocument

@@ -232,6 +232,11 @@ class CntlrWinMain(Cntlr.Cntlr):
         self.validateXmlOim.trace_add("write", self.setValidateXmlOim)
         validateMenu.add_checkbutton(label=_("OIM validate xBRL-XML documents"), underline=0, variable=self.validateXmlOim, onvalue=True, offvalue=False)
 
+        self.modelManager.validateTableConstraintsSkipLoading = self.config.setdefault("validateTableConstraintsSkipLoading", False)
+        self.validateTableConstraintsSkipLoading = BooleanVar(value=self.modelManager.validateTableConstraintsSkipLoading)
+        self.validateTableConstraintsSkipLoading.trace_add("write", self.setValidateTableConstraintsSkipLoading)
+        validateMenu.add_checkbutton(label=_("xBRL-CSV: Table Constraints only (no load)"), underline=0, variable=self.validateTableConstraintsSkipLoading, onvalue=True, offvalue=False)
+
         self.modelManager.validateAllFilesAsReportPackages = self.config.setdefault("validateAllFilesAsReportPackages", False)
         self.validateAllFilesAsReportPackages = BooleanVar(value=self.modelManager.validateAllFilesAsReportPackages)
         self.validateAllFilesAsReportPackages.trace_add("write", self.setValidateAllFilesAsReportPackages)
@@ -1049,6 +1054,8 @@ class CntlrWinMain(Cntlr.Cntlr):
                 currentAction = "view of RSS feed"
                 ViewWinRssFeed.viewRssFeed(modelXbrl, self.tabWinTopRt)
                 topView = modelXbrl.views[-1]
+            elif modelXbrl.tableConstraintsSkipLoading:
+                currentAction = "table constraints without loading, no views"
             else:
                 if modelXbrl.hasTableIndexing:
                     currentAction = "table index view"
@@ -1505,6 +1512,8 @@ class CntlrWinMain(Cntlr.Cntlr):
                 valName = ModelDocument.Type.typeName[valType]
             if valType == ModelDocument.Type.VERSIONINGREPORT:
                 v = _("Validate versioning report")
+            elif self.modelManager.modelXbrl.tableConstraintsSkipLoading:
+                v = _("Validate table constraints")
             else:
                 c = "\n" + CalcsMode.label(self.modelManager.validateCalcs)  # type: ignore[operator]
                 if self.modelManager.validateUtr:
@@ -1544,6 +1553,11 @@ class CntlrWinMain(Cntlr.Cntlr):
         self.config["validateXmlOim"] = self.modelManager.validateXmlOim
         self.saveConfig()
         self.setValidateTooltipText()
+
+    def setValidateTableConstraintsSkipLoading(self, *args: Any) -> None:
+        self.modelManager.validateTableConstraintsSkipLoading = self.validateTableConstraintsSkipLoading.get()
+        self.config["validateTableConstraintsSkipLoading"] = self.modelManager.validateTableConstraintsSkipLoading
+        self.saveConfig()
 
     def setValidateAllFilesAsReportPackages(self, *args: Any) -> None:
         self.modelManager.validateAllFilesAsReportPackages = self.validateAllFilesAsReportPackages.get()

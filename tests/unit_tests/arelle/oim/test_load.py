@@ -6,7 +6,11 @@ import pytest
 
 from arelle import ModelRelationshipSet, ModelXbrl
 from arelle.ModelDtsObject import ModelRelationship
-from arelle.oim.Load import getTaxonomyContextElement
+from arelle.oim.Load import (
+    NONE_CELL,
+    getTaxonomyContextElement,
+    parseParameterValues,
+)
 
 
 def _mock_model_xbrl(dts_context_elements: list[str]) -> Mock:
@@ -23,6 +27,39 @@ def _mock_model_xbrl(dts_context_elements: list[str]) -> Mock:
 
 
 class TestLoadFromOIM:
+
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ("", ""),
+            ("value", "value"),
+            ("#empty", ""),
+            ("#nil", None),
+            ("#none", NONE_CELL),
+            ("##escaped", "#escaped"),
+        ],
+    )
+    def test_parse_parameter_values(self, value: str, expected: str | None) -> None:
+        parameters = {"parameter": value}
+        error = Mock()
+
+        parseParameterValues(parameters, error)
+
+        if expected is NONE_CELL:
+            assert parameters["parameter"] is NONE_CELL
+        else:
+            assert parameters["parameter"] == expected
+        error.assert_not_called()
+
+    def test_parse_parameter_values_unknown_special_value(self) -> None:
+        parameters = {"parameter": "#unknown"}
+        error = Mock()
+
+        parseParameterValues(parameters, error)
+
+        assert parameters["parameter"] == "#unknown"
+        error.assert_called_once()
+        assert error.call_args.args[0] == "xbrlce:unknownSpecialValue"
 
     @pytest.mark.parametrize(
         "dts_context_elements, expected_context_element",

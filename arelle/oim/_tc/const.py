@@ -10,6 +10,7 @@ TC_NS_CR = "https://xbrl.org/CR/2025-10-07/tc"
 TC_NS_DPR = "https://xbrl.org/DPR/YYYY-MM-DD/tc"
 TC_NS_PR_1 = "https://xbrl.org/PR/2026-03-18/tc"
 TC_NS_PR_2 = "https://xbrl.org/PR/2026-05-05/tc"
+TC_REC = "https://xbrl.org/2026/tc"
 
 TC_NAMESPACES = frozenset({
     TC_NS_GIT,
@@ -18,6 +19,7 @@ TC_NAMESPACES = frozenset({
     TC_NS_DPR,
     TC_NS_PR_1,
     TC_NS_PR_2,
+    TC_REC,
 })
 
 TC_METADATA_ERROR_NAMESPACES = frozenset(f"{ns}/metadataerror" for ns in TC_NAMESPACES)
