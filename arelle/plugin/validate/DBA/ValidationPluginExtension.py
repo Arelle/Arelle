@@ -551,7 +551,7 @@ class ValidationPluginExtension(ValidationPlugin):
                 qname(f"{{{NAMESPACE_FSA}}}DistributedDividendsFromParticipatingInterests"),
                 qname(f"{{{NAMESPACE_FSA}}}CashPaymentsConcerningFormationOfEntity"),
                 qname(f"{{{NAMESPACE_FSA}}}ContributionFromGroup"),
-                qname(f"{{{NAMESPACE_FSA}}} IncreaseDecreaseOfReservesThroughApplicationOfUnitingOfInterestsMethodEquity")
+                qname(f"{{{NAMESPACE_FSA}}}IncreaseDecreaseOfReservesThroughApplicationOfUnitingOfInterestsMethodEquity")
                 ]),
             taxExpenseOnOrdinaryActivitiesQn=qname(f"{{{NAMESPACE_FSA}}}TaxExpenseOnOrdinaryActivities"),
             taxExpenseQn=qname(f"{{{NAMESPACE_FSA}}}TaxExpense"),
