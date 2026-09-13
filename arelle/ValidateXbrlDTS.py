@@ -32,7 +32,13 @@ _: TypeGetText
 instanceSequence: dict[str, int] = {"schemaRef": 1, "linkbaseRef": 2, "roleRef": 3, "arcroleRef": 4}
 schemaTop: set[str] = {"import", "include", "redefine"}
 schemaBottom: set[str] = {"element", "attribute", "notation", "simpleType", "complexType", "group", "attributeGroup"}
-xsd1_1datatypes: set[QName] = {qname(XbrlConst.xsd, "anyAtomicType"), qname(XbrlConst.xsd, "yearMonthDuration"), qname(XbrlConst.xsd, "dayTimeDuration"), qname(XbrlConst.xsd, "dateTimeStamp"), qname(XbrlConst.xsd, "precisionDecimal")}
+xsd1_1datatypes: set[QName] = {
+    QName.fromParts("anyAtomicType", XbrlConst.xsd),
+    QName.fromParts("yearMonthDuration", XbrlConst.xsd),
+    QName.fromParts("dayTimeDuration", XbrlConst.xsd),
+    QName.fromParts("dateTimeStamp", XbrlConst.xsd),
+    QName.fromParts("precisionDecimal", XbrlConst.xsd),
+}
 link_loc_spec_sections: dict[str, str] = {"labelLink": "5.2.2.1",
                                           "referenceLink": "5.2.3.1",
                                           "calculationLink": "5.2.5.1",

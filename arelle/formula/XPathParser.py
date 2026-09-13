@@ -451,7 +451,7 @@ def pushVarRef(sourceStr: str, loc: int, toks: ParseResults) -> VariableRef:
             _("QName prefix not defined for variable reference $%(variable)s"),
             modelObject=xmlElement,
             variable=toks[0][1:])
-        qname = ModelValue.qname(XbrlConst.xpath2err, "XPST0081")  # use as qname to allow parsing to complete
+        qname = ModelValue.QName.fromParts("XPST0081", XbrlConst.xpath2err)  # use as qname to allow parsing to complete
     varRef = VariableRef(loc, qname)
     exprStack.append(varRef)
     return varRef
