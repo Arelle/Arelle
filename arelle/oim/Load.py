@@ -12,6 +12,7 @@ import sys
 import time
 import traceback
 from collections import defaultdict
+from types import MappingProxyType
 from math import log10
 
 import isodate
@@ -1210,6 +1211,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             reportDimensions = oimObject.get("dimensions", EMPTY_DICT)
             reportDecimals = oimObject.get("decimals", None)
             reportParameters = oimObject.get("parameters", {}) # fresh empty dict because csv-loaded parameters get added
+            rawReportParameters = dict(reportParameters)
             parseParameterValues(reportParameters, error)
             tableTemplates = oimObject.get("tableTemplates", EMPTY_DICT)
             tables = oimObject.get("tables", EMPTY_DICT)
@@ -1231,6 +1233,8 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             modelXbrl.xbrlCsvLoadingContext = XbrlCsvLoadingContext(
                 metadata=csvMetadata,
                 tc_metadata=tcMetadataResult.metadata,
+                report_parameters=MappingProxyType(rawReportParameters),
+                metadata_path=oimFile,
             )
 
         entityNaQName = qname(re.sub("/xbrl-(json|csv)$","/entities",documentType), "NA")
