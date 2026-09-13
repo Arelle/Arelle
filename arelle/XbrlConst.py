@@ -468,7 +468,7 @@ qnFormulaOccEmpty = qname(
 ca = "http://xbrl.org/2008/assertion/consistency"
 qnConsistencyAssertion = qname("{http://xbrl.org/2008/assertion/consistency}ca:consistencyAssertion")
 qnCaAspectMatchedFacts = qname("{http://xbrl.org/2008/assertion/consistency}ca:aspect-matched-facts")
-qnCaAcceptanceRadius = qname("{http://xbrl.org/2008/assertion/consistency}ca:ca:acceptance-radius")
+qnCaAcceptanceRadius = qname("{http://xbrl.org/2008/assertion/consistency}ca:acceptance-radius")
 qnCaAbsoluteAcceptanceRadiusExpression = qname(
     "{http://xbrl.org/2008/assertion/consistency}ca:absolute-acceptance-radius-expression"
 )
