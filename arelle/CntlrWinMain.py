@@ -1234,10 +1234,11 @@ class CntlrWinMain(Cntlr.Cntlr):
              and hasWatchAction(self, self.modelManager.rssWatchOptions)),
             None)
         if watchingModelXbrl is not None:
+            basename = watchingModelXbrl.modelDocument.basename if watchingModelXbrl.modelDocument is not None else None
             tkinter.messagebox.showwarning(
                 _("arelle - Warning"),
                 _("RSS Watch is currently running on {0}. Stop RSS Watch before running Validate; "
-                  "running both at once on the same feed corrupts results.").format(watchingModelXbrl.modelDocument.basename),
+                  "running both at once on the same feed corrupts results.").format(basename),
                 parent=self.parent,
             )
             return
