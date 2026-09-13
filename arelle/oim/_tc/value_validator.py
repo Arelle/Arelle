@@ -5,6 +5,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import contextlib
+import math
 from collections.abc import Callable, Mapping
 from types import MappingProxyType
 from typing import Any, cast
@@ -60,6 +61,7 @@ class ValueConstraintValidator:
         self._effective_lexical_type = resolve_effective_lexical_type(constraint.type, namespaces)
         self._facets = self._build_facets()
         self._compiled_patterns = self._compile_patterns()
+        self._enumeration_typed_values = self._typed_enumeration_values()
 
     def _build_facets(self) -> Mapping[str, Any]:
         if self._effective_lexical_type is None:
@@ -87,6 +89,19 @@ class ValueConstraintValidator:
                     facets[facet_name] = result.xValue
         return MappingProxyType(facets)
 
+    def _typed_enumeration_values(self) -> frozenset[object] | None:
+        """Enumeration members in the value space of the effective type, so that lexically
+        different representations of one value match. Members that are not valid for the
+        type are reported by metadata validation and are ignored here."""
+        if self._constraint.enumeration_values is None or self._effective_lexical_type is None:
+            return None
+        typed_values = set()
+        for member in self._constraint.enumeration_values:
+            result = self._validate_base_type(self._effective_lexical_type, member)
+            if result.isXValid:
+                typed_values.add(result.xValue)
+        return frozenset(typed_values)
+
     def _compile_patterns(self) -> tuple[XsdPattern, ...]:
         if not self._constraint.patterns:
             return ()
@@ -107,6 +122,8 @@ class ValueConstraintValidator:
         if not typed_value_result.isXValid:
             return TCRE_INVALID_VALUE
         if not self._is_patterns_valid(value):
+            return TCRE_INVALID_VALUE
+        if not self._is_enumeration_valid(typed_value_result.xValue):
             return TCRE_INVALID_VALUE
         if self._effective_lexical_type == QNAME and not self._is_valid_qname(typed_value_result.xValue):
             return TCRE_INVALID_VALUE
@@ -140,6 +157,18 @@ class ValueConstraintValidator:
             value_string,
             facets=facets,
             nsmap=cast(Mapping[str | None, str], self._namespaces),
+        )
+
+    def _is_enumeration_valid(self, typed_value: TypeXValue) -> bool:
+        if self._enumeration_typed_values is None:
+            return True
+        if typed_value in self._enumeration_typed_values:
+            return True
+        # XML Schema treats NaN as equal to itself, Python floats do not.
+        return (
+            isinstance(typed_value, float)
+            and math.isnan(typed_value)
+            and any(isinstance(member, float) and math.isnan(member) for member in self._enumeration_typed_values)
         )
 
     def _is_patterns_valid(self, value: str) -> bool:
