@@ -1895,9 +1895,14 @@ class CntlrCmdLine(Cntlr.Cntlr):
         fo = FormulaOptions()
         if options.parameters:
             parameterSeparator = options.parameterSeparator or ","
-            fo.parameterValues = dict(((qname(key, noPrefixIsNoNamespace=True), (None, value))
-                                       for param in options.parameters.split(parameterSeparator)
-                                       for key, sep, value in (param.partition("="), )))
+            for param in options.parameters.split(parameterSeparator):
+                key, _sep, value = param.partition("=")
+                parameterQname = qname(key, noPrefixIsNoNamespace=True)
+                if not parameterQname:
+                    self.addToLog(_("Invalid parameter name: %(name)s"),
+                                  messageCode="error", level=logging.ERROR, messageArgs={"name": key})
+                    return False
+                fo.parameterValues[parameterQname] = (None, value)
         fo.maximumMessageInterpolationLength = options.formulaMaximumMessageInterpolationLength
         if options.formulaParamExprResult:
             fo.traceParameterExpressionResult = True

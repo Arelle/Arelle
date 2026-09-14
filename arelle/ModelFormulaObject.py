@@ -34,7 +34,7 @@ _: TypeGetText
 
 class FormulaOptions:
     def __init__(self, savedValues: dict[str, Any] | None = None) -> None:
-        self.parameterValues: dict[QName | None, Any] = {}
+        self.parameterValues: dict[QName, Any] = {}
         self.runIDs: int | str | None = None # formula and assertion/assertionset IDs to execute
         self.cacheSize: int = 10_000_000  # maximum number of fact aspect comparisons to cache
         self.compileOnly: bool = False # compile but don't execute formulas
