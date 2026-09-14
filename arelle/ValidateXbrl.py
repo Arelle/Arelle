@@ -66,7 +66,8 @@ class ValidateXbrl:
     hasExtensionPre: bool
     hasExtensionSchema: bool
     ixdsDocs: list[ModelDocument]
-    ixdsFootnotes: dict[str, Any]
+    ixdsFootnotes: dict[str, ModelObject]
+    ixdsFootnotesById: dict[str, list[ModelObject]]
     ixdsHeaderCount: int
     ixdsReferences: dict[str, Any]
     ixdsRelationships: list[ModelObject]
@@ -520,7 +521,7 @@ class ValidateXbrl:
                         _("Instance facts missing schema concept definition: %(elements)s"),
                         modelObject=undefinedFacts, elements=", ".join(sorted(set(str(f.qname) for f in undefinedFacts))))
             del undefinedFacts # dereference facts
-            for _id, objs in self.ixdsFootnotes.items():
+            for _id, objs in self.ixdsFootnotesById.items():
                 if len(objs) > 1:
                     modelXbrl.error(ixMsgCode("uniqueFootnoteId", ns=_ixNS, name="footnote", sect="validation"),
                         _("Inline XBRL footnote id is not unique in the IXDS: %(id)s"),
