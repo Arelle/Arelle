@@ -1950,7 +1950,8 @@ def element_name(
     element = modelRel.arcElement
     if elementParent:
         element = element.getparent()
-    return qname(element)
+    name: QName | None = qname(element)
+    return name
 
 
 def relationship_name(xc: XPathContext.XPathContext, p: OperationDef, args: XPathContext.ResultStack) -> QName | None:

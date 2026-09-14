@@ -16,7 +16,7 @@ from arelle import XbrlConst, XmlUtil
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.FileSource import openXmlFileStream
 from arelle.ModelObject import ModelObject, ModelComment
-from arelle.ModelValue import QName, qname
+from arelle.ModelValue import QName, qnameClarkName
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.Contexts import partitionModelXbrlContexts
@@ -684,10 +684,10 @@ def rule_fr_nl_5_11(
                     styleProperty = styleValues[0].strip()
                     if styleProperty not in XHTML_ALLOWED_STYLES:
                         invalidStyles.add(styleProperty)
-            tag = qname(cast(str, elt.tag)).localName
+            tag = qnameClarkName(cast(str, elt.tag)).localName
             parent = elt.getparent()
             if tag == "li" and parent is not None:
-                parentTag = qname(cast(str, parent.tag)).localName
+                parentTag = qnameClarkName(cast(str, parent.tag)).localName
                 if parentTag in XHTML_LIST_ITEM_TYPES:
                     typeAttr = elt.get("type")
                     if typeAttr not in XHTML_LIST_ITEM_TYPES[parentTag]:

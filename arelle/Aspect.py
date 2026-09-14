@@ -36,7 +36,7 @@ class Aspect:
     }
 
 
-def aspectStr(aspect: int | QName) -> str:
+def aspectStr(aspect: int | QName | None) -> str:
     return Aspect.label.get(aspect, str(aspect))  # type: ignore[arg-type]
 
 

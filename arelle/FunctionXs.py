@@ -525,7 +525,7 @@ def QName(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) ->
         element = xc.progHeader.element
     else:
         element = xc.sourceElement
-    return ModelValue.qname(element, source, castException=FORG0001, prefixException=FONS0004)  # type: ignore[call-overload,no-any-return]
+    return ModelValue.qname(element, source, castException=FORG0001, prefixException=FONS0004)
 
 
 def NOTATION(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> NoReturn:

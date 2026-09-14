@@ -19,7 +19,7 @@ from arelle.LinkbaseType import LinkbaseType
 from arelle.ModelDtsObject import ModelResource, ModelConcept
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelRelationshipSet import ModelRelationshipSet
-from arelle.ModelValue import QName, qname
+from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateDuplicateFacts import DuplicateType
 from arelle.ValidateXbrl import ValidateXbrl
@@ -1722,7 +1722,7 @@ def rule_EC8050W(
     else:
         return
 
-    reportableSegmentsMemberQn = qname(pluginData.namespaces.jpcrp, "ReportableSegmentsMember")
+    reportableSegmentsMemberQn = QName.fromParts("ReportableSegmentsMember", pluginData.namespaces.jpcrp)
 
     def _getConceptAndDescendantQNames(
             modelXbrl: ModelXbrl,

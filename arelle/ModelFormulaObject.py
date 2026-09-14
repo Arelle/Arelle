@@ -34,7 +34,7 @@ _: TypeGetText
 
 class FormulaOptions:
     def __init__(self, savedValues: dict[str, Any] | None = None) -> None:
-        self.parameterValues: dict[QName, Any] = {} # index is QName, value is typed value
+        self.parameterValues: dict[QName | None, Any] = {}
         self.runIDs: int | str | None = None # formula and assertion/assertionset IDs to execute
         self.cacheSize: int = 10_000_000  # maximum number of fact aspect comparisons to cache
         self.compileOnly: bool = False # compile but don't execute formulas
@@ -213,9 +213,9 @@ class ModelFormulaRules:
     valueProg: ExpressionStack | None
     hasPrecision: bool
     hasDecimals: bool
-    aspectValues: defaultdict[int | QName, list[QName] | QName | ModelObject | str | None]
-    aspectProgs: defaultdict[int | QName, list[ExpressionStack | None]]
-    typedDimProgAspects: set[QName]
+    aspectValues: defaultdict[int | QName | None, list[QName | None] | QName | ModelObject | str | None]
+    aspectProgs: defaultdict[int | QName | None, list[ExpressionStack | None]]
+    typedDimProgAspects: set[QName | None]
     modelXbrl: ModelXbrl
     aspectModel: str
 
@@ -258,7 +258,7 @@ class ModelFormulaRules:
                                 self.modelXbrl.error("xbrlfe:conflictingAspectRules",
                                                      _("Dimension %(dimension)s aspect has multiple rules in formula."),
                                                      modelObject=self, dimension=qnDim)
-                            self.aspectValues[qnDim] = value  # type: ignore[index]
+                            self.aspectValues[qnDim] = value
                     elif name == "qnameExpression":
                         if ruleElt.getparent().localName == "concept":  # type: ignore[union-attr]
                             exprs = [(Aspect.CONCEPT, XmlUtil.text(ruleElt))]
@@ -267,10 +267,10 @@ class ModelFormulaRules:
                     elif name == "omit" and ruleElt.getparent().get("dimension") is not None:  # type: ignore[union-attr]
                         self.aspectValues[Aspect.OMIT_DIMENSIONS].append(qname(ruleElt.getparent(), ruleElt.getparent().get("dimension")))  # type: ignore[union-attr,arg-type]
                     elif name == "value" and ruleElt.getparent().get("dimension") is not None:  # type: ignore[union-attr]
-                        self.aspectValues[qname(ruleElt.getparent(), ruleElt.getparent().get("dimension"))] = XmlUtil.child(ruleElt,"*","*")  # type: ignore[union-attr,index]
+                        self.aspectValues[qname(ruleElt.getparent(), ruleElt.getparent().get("dimension"))] = XmlUtil.child(ruleElt,"*","*")  # type: ignore[union-attr]
                     elif name == "xpath" and ruleElt.getparent().get("dimension") is not None:  # type: ignore[union-attr]
                         typedDimQname = qname(ruleElt.getparent(), ruleElt.getparent().get("dimension"))  # type: ignore[union-attr]
-                        self.typedDimProgAspects.add(typedDimQname)  # type: ignore[arg-type]
+                        self.typedDimProgAspects.add(typedDimQname)
                         exprs = [(typedDimQname, XmlUtil.text(ruleElt))]
                     elif name == "entityIdentifier":
                         if ruleElt.get("scheme") is not None:
@@ -414,7 +414,7 @@ class ModelFormulaRules:
 
     def source(self, aspect: int | QName | None = None, ruleElement: ModelObject | None = None, acceptFormulaSource: bool = True) -> QName | None:
         if aspect is None and ruleElement is None:
-            return qname(self, self.get("source"), noPrefixIsNoNamespace=True) if self.get("source") else None  # type: ignore[call-overload,attr-defined]
+            return qname(self, self.get("source"), noPrefixIsNoNamespace=True) if self.get("source") else None  # type: ignore[attr-defined]
         # find nearest source
         if ruleElement is None:
             if aspect == Aspect.DIMENSIONS:  # SAV is the formula element
@@ -975,8 +975,8 @@ class ModelPatternFilter(ModelFilter):
 
 
 class ModelAspectCover(ModelFilter):
-    _aspectsCovered: set[int | QName]
-    _dimsExcluded: set[QName]
+    _aspectsCovered: set[int | QName | None]
+    _dimsExcluded: set[QName | None]
     isAll: bool
     allDimensions: bool
     includedDimQnameProgs: list[ExpressionStack | None]
@@ -990,7 +990,7 @@ class ModelAspectCover(ModelFilter):
         XPathParser.clearNamedProgs(self, "includedDimQnameProgs")
         super(ModelAspectCover, self).clear()
 
-    def aspectsCovered(self, varBinding: VariableBinding, xpCtx: XPathContextType = None) -> set[int | QName]:  # type: ignore[override,assignment]
+    def aspectsCovered(self, varBinding: VariableBinding, xpCtx: XPathContextType = None) -> set[int | QName | None]:  # type: ignore[override,assignment]
         try:
             return self._aspectsCovered
         except AttributeError:
@@ -1014,9 +1014,9 @@ class ModelAspectCover(ModelFilter):
             for dimElt in XmlUtil.descendants(self, XbrlConst.acf, "qname"):
                 dimAspect = qname( dimElt, XmlUtil.text(dimElt) )
                 if dimElt.getparent().localName == "excludeDimension":  # type: ignore[union-attr]
-                    self._dimsExcluded.add(dimAspect)  # type: ignore[arg-type]
+                    self._dimsExcluded.add(dimAspect)
                 else:
-                    self._aspectsCovered.add(dimAspect)  # type: ignore[arg-type]
+                    self._aspectsCovered.add(dimAspect)
             if xpCtx:   # provided during validate formula checking
                 for dimProgs, isExcluded in ((self.includedDimQnameProgs, False), (self.excludedDimQnameProgs, True)):
                     for dimProg in dimProgs:

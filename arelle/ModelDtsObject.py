@@ -1193,7 +1193,8 @@ class ModelAttributeGroup(ModelNamableTerm):
         ref = self.get("ref")
         if ref:
             assert self.modelXbrl is not None, "ModelXbrl must be set"
-            return self.modelXbrl.qnameAttributeGroups.get(ModelValue.qname(self, ref))
+            refQname = ModelValue.qname(self, ref)
+            return self.modelXbrl.qnameAttributeGroups.get(refQname) if refQname is not None else None
         return self
 
 class ModelType(ModelNamableTerm):

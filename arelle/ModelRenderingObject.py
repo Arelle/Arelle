@@ -1789,8 +1789,8 @@ aspectNodeAspectCovered = {"conceptAspect": Aspect.CONCEPT,
 
 class DefnMdlAspectNode(DefnMdlOpenDefinitionNode):
     _filterRelationships: list[ModelRelationship | ModelConceptName]
-    _aspectsCovered: set[int | QName]
-    _dimensionsCovered: set[QName]
+    _aspectsCovered: set[int | QName | None]
+    _dimensionsCovered: set[QName | None]
     includeUnreportedValue: bool
 
     def init(self, modelDocument: ModelDocument) -> None:
@@ -1822,7 +1822,7 @@ class DefnMdlAspectNode(DefnMdlOpenDefinitionNode):
     def hasAspect(self, structuralNode: StrctMdlStructuralNode, aspect: int) -> bool:
         return aspect in self.aspectsCovered()
 
-    def aspectsCovered(self, varBinding: VariableBinding | None = None) -> set[int | QName]:
+    def aspectsCovered(self, varBinding: VariableBinding | None = None) -> set[int | QName | None]:
         try:
             return self._aspectsCovered
         except AttributeError:
@@ -1841,7 +1841,7 @@ class DefnMdlAspectNode(DefnMdlOpenDefinitionNode):
                     self._aspectsCovered.add(aspectNodeAspectCovered[aspectElt.localName])
             return self._aspectsCovered
 
-    def aspectValue(self, xpCtx: XPathContext, aspect: int, inherit: bool = False) -> set[QName] | None:  # type: ignore[override]
+    def aspectValue(self, xpCtx: XPathContext, aspect: int, inherit: bool = False) -> set[QName | None] | None:  # type: ignore[override]
         if aspect == Aspect.DIMENSIONS:
             return self._dimensionsCovered
         # does not apply to filter, value can only come from a bound fact

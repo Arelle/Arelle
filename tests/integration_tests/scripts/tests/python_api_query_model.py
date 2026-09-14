@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 from arelle.ModelInstanceObject import ModelFact
-from arelle.ModelValue import qname
+from arelle.ModelValue import QName
 from arelle.RuntimeOptions import RuntimeOptions
 from arelle.api.Session import Session
 from tests.integration_tests.integration_test_util import download_from_public_s3
@@ -57,7 +57,7 @@ options = RuntimeOptions(
     plugins="validate/ESEF",
     validate=True,
 )
-target_qname = qname("https://xbrl.ifrs.org/taxonomy/2022-03-24/ifrs-full", "Equity")
+target_qname = QName.fromParts("Equity", "https://xbrl.ifrs.org/taxonomy/2022-03-24/ifrs-full")
 with Session() as session:
     session.run(options)
     model_xbrls = session.get_models()

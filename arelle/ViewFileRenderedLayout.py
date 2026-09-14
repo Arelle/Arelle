@@ -141,7 +141,7 @@ class ViewRenderedLayout(ViewFile.View):
                                     if lytMdlConstraint.tag:
                                         constraintAttrib = {"tag": lytMdlConstraint.tag}
                                     constraintElt = etree.SubElement(cellElt, self.tableModelQName("constraint"), constraintAttrib)
-                                    etree.SubElement(constraintElt, self.tableModelQName("aspect")).text=aspectStr(lytMdlConstraint.aspect)  # type: ignore[arg-type]
+                                    etree.SubElement(constraintElt, self.tableModelQName("aspect")).text=aspectStr(lytMdlConstraint.aspect)
                                     valueElt = etree.SubElement(constraintElt, self.tableModelQName("value"))
                                     aspect = lytMdlConstraint.aspect
                                     aspectValue = lytMdlConstraint.value

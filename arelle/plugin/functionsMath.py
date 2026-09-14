@@ -10,10 +10,13 @@ from collections.abc import Callable
 
 from arelle.formula import XPathContext
 from arelle.FunctionUtil import numericArg
-from arelle.ModelValue import QName, qname
+from arelle.ModelValue import QName
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.formula.XPathParser import OperationDef
 from arelle.typing import EmptyTuple
+
+_XFM_NAMESPACE = "http://www.xbrl.org/2008/function/math"
+_XFM_PREFIX = "xfm"
 
 INF = float("inf")
 MINUSINF = float("-inf")
@@ -275,20 +278,20 @@ def xfmMathFunctions() -> dict[
     ], float | EmptyTuple]
 ]:
     return {
-        qname("{http://www.xbrl.org/2008/function/math}xfm:pi"): xfm_pi,
-        qname("{http://www.xbrl.org/2008/function/math}xfm:exp"): xfm_exp,
-        qname("{http://www.xbrl.org/2008/function/math}xfm:exp10"): xfm_exp10,
-        qname("{http://www.xbrl.org/2008/function/math}xfm:log"): xfm_log,
-        qname("{http://www.xbrl.org/2008/function/math}xfm:log10"): xfm_log10,
-        qname("{http://www.xbrl.org/2008/function/math}xfm:pow"): xfm_pow,
-        qname("{http://www.xbrl.org/2008/function/math}xfm:sqrt"): xfm_sqrt,
-        qname("{http://www.xbrl.org/2008/function/math}xfm:sin"): xfm_sin,
-        qname("{http://www.xbrl.org/2008/function/math}xfm:cos"): xfm_cos,
-        qname("{http://www.xbrl.org/2008/function/math}xfm:tan"): xfm_tan,
-        qname("{http://www.xbrl.org/2008/function/math}xfm:asin"): xfm_asin,
-        qname("{http://www.xbrl.org/2008/function/math}xfm:acos"): xfm_acos,
-        qname("{http://www.xbrl.org/2008/function/math}xfm:atan"): xfm_atan,
-        qname("{http://www.xbrl.org/2008/function/math}xfm:atan2"): xfm_atan2,
+        QName.fromParts("pi", _XFM_NAMESPACE, _XFM_PREFIX): xfm_pi,
+        QName.fromParts("exp", _XFM_NAMESPACE, _XFM_PREFIX): xfm_exp,
+        QName.fromParts("exp10", _XFM_NAMESPACE, _XFM_PREFIX): xfm_exp10,
+        QName.fromParts("log", _XFM_NAMESPACE, _XFM_PREFIX): xfm_log,
+        QName.fromParts("log10", _XFM_NAMESPACE, _XFM_PREFIX): xfm_log10,
+        QName.fromParts("pow", _XFM_NAMESPACE, _XFM_PREFIX): xfm_pow,
+        QName.fromParts("sqrt", _XFM_NAMESPACE, _XFM_PREFIX): xfm_sqrt,
+        QName.fromParts("sin", _XFM_NAMESPACE, _XFM_PREFIX): xfm_sin,
+        QName.fromParts("cos", _XFM_NAMESPACE, _XFM_PREFIX): xfm_cos,
+        QName.fromParts("tan", _XFM_NAMESPACE, _XFM_PREFIX): xfm_tan,
+        QName.fromParts("asin", _XFM_NAMESPACE, _XFM_PREFIX): xfm_asin,
+        QName.fromParts("acos", _XFM_NAMESPACE, _XFM_PREFIX): xfm_acos,
+        QName.fromParts("atan", _XFM_NAMESPACE, _XFM_PREFIX): xfm_atan,
+        QName.fromParts("atan2", _XFM_NAMESPACE, _XFM_PREFIX): xfm_atan2,
     }
 
 

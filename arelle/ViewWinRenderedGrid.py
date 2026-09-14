@@ -41,8 +41,8 @@ ENTRY_WIDTH_IN_CHARS = 12 # width of a data column entry cell in characters (nom
 ENTRY_WIDTH_SCREEN_UNITS = 100
 PADDING = 20 # screen units of padding between entry cells
 
-qnPercentItemType = qname("{http://www.xbrl.org/dtr/type/numeric}num:percentItemType")
-qnPureItemType = qname("{http://www.xbrl.org/2003/instance}xbrli:pureItemType")
+qnPercentItemType = QName.fromParts("percentItemType", XbrlConst.dtrNumeric, "num")
+qnPureItemType = QName.fromParts("pureItemType", XbrlConst.xbrli, "xbrli")
 integerItemTypes = {"integerItemType", "nonPositiveIntegerItemType", "negativeIntegerItemType",
                     "longItemType", "intItemType", "shortItemType", "byteItemType",
                     "nonNegativeIntegerItemType", "unsignedLongItemType", "unsignedIntItemType",
@@ -801,7 +801,9 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                 # new context
                                 if concept.isNumeric:
                                     if concept.isMonetary:
-                                        unitMeasure = qname(XbrlConst.iso4217, self.newFactItemOptions.monetaryUnit)
+                                        monetaryUnitMeasure = qname(XbrlConst.iso4217, self.newFactItemOptions.monetaryUnit)
+                                        assert monetaryUnitMeasure is not None, "A fixed namespace and string name always produce a QName"
+                                        unitMeasure = monetaryUnitMeasure
                                         unitMeasure.prefix = "iso4217" # want to save with a recommended prefix
                                         decimals = self.newFactItemOptions.monetaryDecimals
                                     elif concept.isShares:
@@ -833,7 +835,9 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
                                     if fact.concept.isNumeric:  # type: ignore[union-attr]
                                         value = Locale.atof(self.modelXbrl.locale, value, str.strip)  # type: ignore[arg-type]
                                         if fact.concept.isMonetary:  # type: ignore[union-attr]
-                                            unitMeasure = qname(XbrlConst.iso4217, self.newFactItemOptions.monetaryUnit)
+                                            monetaryUnitMeasure = qname(XbrlConst.iso4217, self.newFactItemOptions.monetaryUnit)
+                                            assert monetaryUnitMeasure is not None, "A fixed namespace and string name always produce a QName"
+                                            unitMeasure = monetaryUnitMeasure
                                             unitMeasure.prefix = "iso4217" # want to save with a recommended prefix
                                             decimals = self.newFactItemOptions.monetaryDecimals
                                         elif fact.concept.isShares:  # type: ignore[union-attr]

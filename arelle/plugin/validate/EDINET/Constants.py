@@ -5,7 +5,7 @@ from enum import Enum
 
 import regex
 
-from arelle.ModelValue import qname
+from arelle.ModelValue import QName
 
 class AccountingStandard(Enum):
     IFRS = "IFRS"
@@ -13,15 +13,16 @@ class AccountingStandard(Enum):
     US_GAAP = "US GAAP"
 
 
-domainItemTypeQname = qname("{http://www.xbrl.org/dtr/type/non-numeric}nonnum:domainItemType")
+domainItemTypeQname = QName.fromParts("domainItemType", "http://www.xbrl.org/dtr/type/non-numeric", "nonnum")
 
-qnEdinetManifestInsert = qname("{http://disclosure.edinet-fsa.go.jp/2013/manifest}insert")
-qnEdinetManifestInstance = qname("{http://disclosure.edinet-fsa.go.jp/2013/manifest}instance")
-qnEdinetManifestItem = qname("{http://disclosure.edinet-fsa.go.jp/2013/manifest}item")
-qnEdinetManifestIxbrl = qname("{http://disclosure.edinet-fsa.go.jp/2013/manifest}ixbrl")
-qnEdinetManifestList = qname("{http://disclosure.edinet-fsa.go.jp/2013/manifest}list")
-qnEdinetManifestTitle = qname("{http://disclosure.edinet-fsa.go.jp/2013/manifest}title")
-qnEdinetManifestTocComposition = qname("{http://disclosure.edinet-fsa.go.jp/2013/manifest}tocComposition")
+_MANIFEST_NAMESPACE = "http://disclosure.edinet-fsa.go.jp/2013/manifest"
+qnEdinetManifestInsert = QName.fromParts("insert", _MANIFEST_NAMESPACE)
+qnEdinetManifestInstance = QName.fromParts("instance", _MANIFEST_NAMESPACE)
+qnEdinetManifestItem = QName.fromParts("item", _MANIFEST_NAMESPACE)
+qnEdinetManifestIxbrl = QName.fromParts("ixbrl", _MANIFEST_NAMESPACE)
+qnEdinetManifestList = QName.fromParts("list", _MANIFEST_NAMESPACE)
+qnEdinetManifestTitle = QName.fromParts("title", _MANIFEST_NAMESPACE)
+qnEdinetManifestTocComposition = QName.fromParts("tocComposition", _MANIFEST_NAMESPACE)
 xhtmlDtdExtension = "xhtml1-strict-ix.dtd"
 
 COVER_PAGE_FILENAME_PREFIX = "0000000_header_"

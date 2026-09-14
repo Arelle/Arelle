@@ -21,6 +21,11 @@ if TYPE_CHECKING:
 
     _: TypeGetText
 
+_GL_BUS_NAMESPACE = "http://www.xbrl.org/int/gl/bus/2006-10-25"
+_GL_BUS_PREFIX = "gl-bus"
+_GL_COR_NAMESPACE = "http://www.xbrl.org/int/gl/cor/2006-10-25"
+_GL_COR_PREFIX = "gl-cor"
+
 userName: str | None = None
 sessions: dict[str, list[dict[str, str]]] = {}  # use when interactive session started by Quickbooks side (not used now)
 qbRequests: list[dict[str, str]] = []  # used by rest API or GUI requests for QB data
@@ -252,7 +257,7 @@ def docEltText(doc: etree._ElementTree, tag: str, defaultValue: str = "") -> str
 
 def processQbResponse(qbRequest: dict[str, str], responseXml: str) -> None:
     from arelle import ModelXbrl, XbrlConst
-    from arelle.ModelValue import qname
+    from arelle.ModelValue import QName
     ticket = qbRequest["ticket"]
     qbRequestStatus[ticket] = _("Generating XBRL-GL from QuickBooks response")
     qbReport = qbRequest["request"]
@@ -303,13 +308,13 @@ def processQbResponse(qbRequest: dict[str, str], responseXml: str) -> None:
                   "instant", None, datetime.date.today() + datetime.timedelta(1),  # type: ignore[arg-type]
                   None, {}, [], [], afterSibling=ModelXbrl.AUTO_LOCATE_ELEMENT)  # type: ignore[arg-type]
 
-    monetaryUnit = qname(XbrlConst.iso4217, "iso4217:USD")
+    monetaryUnit = QName.fromParts("USD", XbrlConst.iso4217, "iso4217")
     newUnit = instance.createUnit([monetaryUnit],[], afterSibling=ModelXbrl.AUTO_LOCATE_ELEMENT)  # type: ignore[arg-type]
 
     nonNumAttr: tuple[tuple[str, str]] = (("contextRef", newCntx.id),)  # type: ignore[assignment]
     monetaryAttr = [("contextRef", newCntx.id), ("unitRef", newUnit.id), ("decimals", "2")]
 
-    isoLanguage = qname("{http://www.xbrl.org/2005/iso639}iso639:en")
+    isoLanguage = QName.fromParts("en", "http://www.xbrl.org/2005/iso639", "iso639")
 
     # root of GL is accounting entries tuple
     xbrlElt = instance.modelDocument.xmlRootElement  # type: ignore[union-attr]
@@ -320,43 +325,43 @@ def processQbResponse(qbRequest: dict[str, str], responseXml: str) -> None:
     The primary key to understanding an XBRL GL file is the entriesType. A single physical XBRL GL
     file can have multiple accountingEntries structures to represent both transactions and
     master files; the differences are signified by the appropriate entriesType enumerated values."""
-    accountingEntries = instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:accountingEntries"))
+    accountingEntries = instance.createFact(QName.fromParts("accountingEntries", _GL_COR_NAMESPACE, _GL_COR_PREFIX))
 
     # Because entriesType is strongly suggested, documentInfo will be required
-    docInfo = instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:documentInfo"), parent=accountingEntries)
+    docInfo = instance.createFact(QName.fromParts("documentInfo", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=accountingEntries)
     # This field, entriesType, provides the automated guidance on the purpose of the XBRL GL information.
-    instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:entriesType"), parent=docInfo, attributes=nonNumAttr,
+    instance.createFact(QName.fromParts("entriesType", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=docInfo, attributes=nonNumAttr,
                         text=glEntriesType[qbReport])
     """Like a serial number, this field, uniqueID, provides a place to uniquely identify/track
     a series of entries. It is like less relevant for ad-hoc reports. XBRL GL provides for later
     correction through replacement or augmentation of transferred information."""
-    instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:uniqueID"), parent=docInfo, attributes=nonNumAttr,
+    instance.createFact(QName.fromParts("uniqueID", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=docInfo, attributes=nonNumAttr,
                         text="001")
-    instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:language"), parent=docInfo, attributes=nonNumAttr,
+    instance.createFact(QName.fromParts("language", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=docInfo, attributes=nonNumAttr,
                         text=XmlUtil.addQnameValue(xbrlElt, isoLanguage))
     """The date associated with the creation of the data reflected within the associated
     accountingEntries section. Somewhat like a "printed date" on a paper report"""
-    instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:creationDate"), parent=docInfo, attributes=nonNumAttr,
+    instance.createFact(QName.fromParts("creationDate", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=docInfo, attributes=nonNumAttr,
                         text=str(datetime.date.today()))
-    instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:periodCoveredStart"), parent=docInfo, attributes=nonNumAttr,
+    instance.createFact(QName.fromParts("periodCoveredStart", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=docInfo, attributes=nonNumAttr,
                         text=fromDate)
-    instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:periodCoveredEnd"), parent=docInfo, attributes=nonNumAttr,
+    instance.createFact(QName.fromParts("periodCoveredEnd", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=docInfo, attributes=nonNumAttr,
                         text=toDate)
-    instance.createFact(qname("{http://www.xbrl.org/int/gl/bus/2006-10-25}gl-bus:sourceApplication"), parent=docInfo, attributes=nonNumAttr,
+    instance.createFact(QName.fromParts("sourceApplication", _GL_BUS_NAMESPACE, _GL_BUS_PREFIX), parent=docInfo, attributes=nonNumAttr,
                         text=docEltText(companyQbDoc, "ProductName","QuickBooks (version not known)"))
-    instance.createFact(qname("{http://www.xbrl.org/int/gl/muc/2006-10-25}gl-muc:defaultCurrency"), parent=docInfo, attributes=nonNumAttr,
+    instance.createFact(QName.fromParts("defaultCurrency", "http://www.xbrl.org/int/gl/muc/2006-10-25", "gl-muc"), parent=docInfo, attributes=nonNumAttr,
                         text=XmlUtil.addQnameValue(xbrlElt, monetaryUnit))
 
     """Typically, an export from an accounting system does not carry with it information
     specifically about the company. However, the name of the company would be a very good
     thing to include with the file, making the entityInformation tuple necessary."""
-    entityInfo = instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:entityInformation"), parent=accountingEntries)
+    entityInfo = instance.createFact(QName.fromParts("entityInformation", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=accountingEntries)
     """The name of the company would be a very good thing to include with the file;
     this structure and its content are where that would be stored."""
-    orgIds = instance.createFact(qname("{http://www.xbrl.org/int/gl/bus/2006-10-25}gl-bus:organizationIdentifiers"), parent=entityInfo)
-    instance.createFact(qname("{http://www.xbrl.org/int/gl/bus/2006-10-25}gl-bus:organizationIdentifier"), parent=orgIds, attributes=nonNumAttr,
+    orgIds = instance.createFact(QName.fromParts("organizationIdentifiers", _GL_BUS_NAMESPACE, _GL_BUS_PREFIX), parent=entityInfo)
+    instance.createFact(QName.fromParts("organizationIdentifier", _GL_BUS_NAMESPACE, _GL_BUS_PREFIX), parent=orgIds, attributes=nonNumAttr,
                         text=docEltText(companyQbDoc, "CompanyName"))
-    instance.createFact(qname("{http://www.xbrl.org/int/gl/bus/2006-10-25}gl-bus:organizationDescription"), parent=orgIds, attributes=nonNumAttr,
+    instance.createFact(QName.fromParts("organizationDescription", _GL_BUS_NAMESPACE, _GL_BUS_PREFIX), parent=orgIds, attributes=nonNumAttr,
                         text=docEltText(companyQbDoc, "LegalCompanyName"))
 
     if qbReport == "trialBalance":
@@ -423,13 +428,13 @@ def processQbResponse(qbRequest: dict[str, str], responseXml: str) -> None:
             """Journal entries require entry in entryHeader and entryDetail.
             Few files can be represented using only documentInfo and entityInformation sections,
             but it is certainly possible."""
-            entryHdr = instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:entryHeader"), parent=accountingEntries)
+            entryHdr = instance.createFact(QName.fromParts("entryHeader", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=accountingEntries)
             #instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:enteredBy"), parent=entryHdr, attributes=nonNumAttr, text="")
-            instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:enteredDate"), parent=entryHdr, attributes=nonNumAttr,
+            instance.createFact(QName.fromParts("enteredDate", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=entryHdr, attributes=nonNumAttr,
                                 text=str(datetime.date.today()))
             """This is an enumerated entry that ties the source journal from the reporting
             organization to a fixed list that helps in data interchange."""
-            instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:sourceJournalID"), parent=entryHdr, attributes=nonNumAttr,
+            instance.createFact(QName.fromParts("sourceJournalID", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=entryHdr, attributes=nonNumAttr,
                                 text="gj")
             """Since sourceJournalID is enumerated (you must pick one of the entries already
             identified within XBRL GL), sourceJournalDescription lets you capture the actual
@@ -438,33 +443,33 @@ def processQbResponse(qbRequest: dict[str, str], responseXml: str) -> None:
             """An enumerated field to differentiate between details that represent actual accounting
             entries - as opposed to entries for budget purposes, planning purposes, or other entries
             that may not contribute to the financial statements."""
-            instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:entryType"), parent=entryHdr, attributes=nonNumAttr,
+            instance.createFact(QName.fromParts("entryType", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=entryHdr, attributes=nonNumAttr,
                                 text="standard")
             """When capturing journal entries, you have a series of debits and credits that (normally)
             add up to zero. The hierarchical nature of XBRL GL keeps the entry detail lines associated
             with the entry header by a parent-child relationship. The unique identifier of each entry
             is entered here."""
-            instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:entryNumber"), parent=entryHdr, attributes=nonNumAttr,
+            instance.createFact(QName.fromParts("entryNumber", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=entryHdr, attributes=nonNumAttr,
                                 text=str(entryNumber))
             entryNumber += 1
             # The reason for making an entry goes here.
             if qbRefNumber:
-                instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:entryComment"), parent=entryHdr, attributes=nonNumAttr,
+                instance.createFact(QName.fromParts("entryComment", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=entryHdr, attributes=nonNumAttr,
                                     text=qbRefNumber)
 
         """Individual lines of journal entries will normally require their own entryDetail section -
         one primary amount per entryDetail line. However, you can list different accounts within
         the same entryDetail line that are associated with that amount. For example, if you
         capitalize for US GAAP and expense for IFRS"""
-        entryDetail = instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:entryDetail"), parent=entryHdr)
+        entryDetail = instance.createFact(QName.fromParts("entryDetail", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=entryHdr)
         # A unique identifier for each entry detail line within an entry header, this should at the least be a counter.
-        instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:lineNumber"), parent=entryDetail, attributes=nonNumAttr,
+        instance.createFact(QName.fromParts("lineNumber", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=entryDetail, attributes=nonNumAttr,
                             text=str(lineNumber))
         lineNumber += 1
 
         """If account information is represented elsewhere or as a master file, some of the
         fields below would not need to be here (signified by *)"""
-        account = instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:account"), parent=entryDetail)
+        account = instance.createFact(QName.fromParts("account", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=entryDetail)
         """The account number is the basis for posting journal entries. In some cases,
         accounting systems used by small organizations do not use account numbers/codes,
         but only use a descriptive name for the account."""
@@ -474,14 +479,14 @@ def processQbResponse(qbRequest: dict[str, str], responseXml: str) -> None:
         be sufficient for data exchange purposes. As noted previously, some implementations use the
         description as the primary identifier of the account."""
         if qbAccount:
-            instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:accountMainDescription"), parent=account, attributes=nonNumAttr,
+            instance.createFact(QName.fromParts("accountMainDescription", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=account, attributes=nonNumAttr,
                                 text=qbAccount)
         """Accounts serve many purposes, and in a large company using more sophisticated software,
         the company may wish to record the account used for the original entry and a separate
         consolidating account. The Japanese system may require a counterbalancing account for
         each line item. And an entry may be recorded differently for US GAAP, IFRS and other purposes.
         This code is an enumerated code to help identify accounts for those purposes."""
-        instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:accountPurposeCode"), parent=account, attributes=nonNumAttr,
+        instance.createFact(QName.fromParts("accountPurposeCode", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=account, attributes=nonNumAttr,
                             text="usgaap")
         """In an international environment, the "chart of accounts" will include not only
         traditional accounts, like Cash, Accounts Payable/Due to Creditors or Retained Earnings,
@@ -492,7 +497,7 @@ def processQbResponse(qbRequest: dict[str, str], responseXml: str) -> None:
         vendors and employees of the identifier structure, fixed-assets in the measurable
         structure, jobs in the jobInfo structure and other representations, they can also be
         represented here as appropriate to the jurisidiction."""
-        instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:accountType"), parent=account, attributes=nonNumAttr, text="account")
+        instance.createFact(QName.fromParts("accountType", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=account, attributes=nonNumAttr, text="account")
 
         """What is a journal entry without a (monetary) amount? While XBRL GL may usher in journal
         entries that also incorporate quantities, to reflect the detail of business metrics, the
@@ -500,13 +505,13 @@ def processQbResponse(qbRequest: dict[str, str], responseXml: str) -> None:
         how popular accounting systems store amounts - some combination of a signed amount (e.g., 5, -10),
         a separate sign (entered into signOfAmount) and a separate place to indicate the number is
         associated with a debit or credit (debitCreditCode)."""
-        instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:amount"), parent=entryDetail, attributes=monetaryAttr,  # type: ignore[arg-type]
+        instance.createFact(QName.fromParts("amount", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=entryDetail, attributes=monetaryAttr,  # type: ignore[arg-type]
                             text=amt)
         """Depending on the originating system, this field may contain whether the amount is
         associated with a debit or credit. Interpreting the number correctly for import requires
         an understanding of the three related amount fields - amount, debitCreditCode and sign of amount."""
         if drCrCode:
-            instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:debitCreditCode"), parent=entryDetail, attributes=nonNumAttr,
+            instance.createFact(QName.fromParts("debitCreditCode", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=entryDetail, attributes=nonNumAttr,
                                 text=drCrCode)
         """Depending on the originating system, this field may contain whether the amount is
         signed (+ or -) separately from the amount field itself. Interpreting the number correctly
@@ -515,16 +520,16 @@ def processQbResponse(qbRequest: dict[str, str], responseXml: str) -> None:
         # instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:signOfAmount"), parent=entryDetail, attributes=nonNumAttr, text="+")
         # This date is the accounting significance date, not the date that entries were actually entered or posted to the system.
         if qbDate:
-            instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:postingDate"), parent=entryDetail, attributes=nonNumAttr,
+            instance.createFact(QName.fromParts("postingDate", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=entryDetail, attributes=nonNumAttr,
                                 text=qbDate)
 
         if qbName or qbMemo:
-            identRef = instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:identifierReference"), parent=entryDetail)
+            identRef = instance.createFact(QName.fromParts("identifierReference", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=entryDetail)
             if qbMemo:
-                instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:identifierCode"), parent=identRef, attributes=nonNumAttr,
+                instance.createFact(QName.fromParts("identifierCode", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=identRef, attributes=nonNumAttr,
                                     text=qbMemo)
             if qbName:
-                instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:identifierDescription"), parent=identRef, attributes=nonNumAttr,
+                instance.createFact(QName.fromParts("identifierDescription", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=identRef, attributes=nonNumAttr,
                                     text=qbName)
             #instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:identifierType"), parent=identRef, attributes=nonNumAttr,
             #                    text="V")
@@ -539,12 +544,12 @@ def processQbResponse(qbRequest: dict[str, str], responseXml: str) -> None:
                     # TBD add more QB transations here as they are discovered and not in table
                     else:
                         glDocType = qbTxnType # if all else fails pass through QB TxnType, it will fail GL validation and be noticed!
-                instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:documentType"), parent=entryDetail, attributes=nonNumAttr,
+                instance.createFact(QName.fromParts("documentType", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=entryDetail, attributes=nonNumAttr,
                                     text=glDocType)
 
             """This enumerated field is used to specifically state whether the entries have been
             posted to the originating system or not."""
-            instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:postingStatus"), parent=entryDetail, attributes=nonNumAttr,
+            instance.createFact(QName.fromParts("postingStatus", _GL_COR_NAMESPACE, _GL_COR_PREFIX), parent=entryDetail, attributes=nonNumAttr,
                                 text="posted")
             # A comment at the individual entry detail level.
             # instance.createFact(qname("{http://www.xbrl.org/int/gl/cor/2006-10-25}gl-cor:detailComment"), parent=entryDetail, attributes=nonNumAttr, text="Comment...")

@@ -25,7 +25,7 @@ from arelle.FileSource import FileNamedStringIO
 from arelle.ModelDtsObject import ModelConcept, ModelRelationship
 from arelle.ModelObject import ModelObject
 from arelle.ModelRelationshipSet import ModelRelationshipSet
-from arelle.ModelValue import QName, qname
+from arelle.ModelValue import QName, qname, qnameClarkName
 from arelle.ModelVersObject import (
     relateConceptMdlObjs,
     ModelConceptChange,
@@ -581,7 +581,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                 toCustAttrs: dict[QName, str] = {}
                 for concept, attrs in ((fromConcept, fromCustAttrs), (toConcept, toCustAttrs)):
                     for attrName, attrValue in concept.items():
-                        attrQname = qname(attrName)
+                        attrQname = qnameClarkName(attrName)
                         if (attrName not in ("abstract", "block", "default", "final", "fixed", "form", "id", "maxOccurs",
                                              "minOccurs", "name", "nillable", "ref", "substitutionGroup", "type") and
                             attrQname.namespaceURI != XbrlConst.xbrli and
