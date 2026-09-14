@@ -146,6 +146,7 @@ def checkDTS(val: ValidateXbrl, modelDocument: ModelDocument, checkedModelDocume
             val.validateIXDS = True
             val.ixdsDocs = []
             val.ixdsFootnotes = {}
+            val.ixdsFootnotesById = {}
             val.ixdsHeaderCount = 0
             val.ixdsTuples = {}
             val.ixdsReferences = defaultdict(list)
@@ -972,6 +973,9 @@ def checkElements(val: ValidateXbrl, modelDocument: ModelDocument, parent: _Elem
                                 _("Inline XBRL footnote %(footnoteID)s is missing an xml:lang attribute"),
                                 modelObject=elt, footnoteID=id)
                     if elt.namespaceURI == XbrlConst.ixbrl:
+                        if elt.footnoteID not in val.ixdsFootnotesById:
+                            val.ixdsFootnotesById[elt.footnoteID] = []
+                        val.ixdsFootnotesById[elt.footnoteID].append(elt)
                         val.ixdsFootnotes[elt.footnoteID] = elt
                     else:
                         checkIxContinuationChain(val, elt)
