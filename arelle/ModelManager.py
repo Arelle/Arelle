@@ -78,6 +78,7 @@ class ModelManager:
         self.validateAllFilesAsTaxonomyPackages = False
         self.validateDuplicateFacts = ValidateDuplicateFactsConst.DuplicateType.NONE
         self.validateXmlOim = False
+        self.validateTableConstraintsSkipLoading = False
         self.setLocale()
         ValidateXbrlCalcs.init()  # required due to circular dependencies in module
 

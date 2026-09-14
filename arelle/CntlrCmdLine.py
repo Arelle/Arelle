@@ -353,6 +353,16 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict[str, Any]]:
             )
         )
     validationGroup.add_option(
+        "--validateTableConstraintsSkipLoading",
+        "--validatetableconstraintsskiploading",
+        action="store_true",
+        dest="validateTableConstraintsSkipLoading",
+        help=_(
+            "Validates an xBRL-CSV report against its Table Constraints metadata only, "
+            "without loading the taxonomy or creating facts. Implies --validate."
+            )
+        )
+    validationGroup.add_option(
         "--baseTaxonomyValidation",
         "--basetaxonomyvalidation",
         choices=("disclosureSystem", "none", "all"),
@@ -1813,6 +1823,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if options.baseTaxonomyValidationMode is not None:
             self.modelManager.baseTaxonomyValidationMode = ValidateBaseTaxonomiesMode.fromName(options.baseTaxonomyValidationMode)
         self.modelManager.validateXmlOim = options.validateXmlOim
+        self.modelManager.validateTableConstraintsSkipLoading = options.validateTableConstraintsSkipLoading
+        if options.validateTableConstraintsSkipLoading:
+            options.validate = True
         if options.validateDuplicateFacts:
             duplicateTypeArg = ValidateDuplicateFactsConst.DuplicateTypeArg(options.validateDuplicateFacts)
             duplicateType = duplicateTypeArg.duplicateType()

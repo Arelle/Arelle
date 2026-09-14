@@ -5,6 +5,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import contextlib
+import math
 from collections.abc import Callable, Mapping
 from types import MappingProxyType
 from typing import Any, cast
@@ -12,6 +13,13 @@ from typing import Any, cast
 import regex
 
 from arelle.ModelValue import DateTime, QName, TypeXValue, dayTimeDuration, yearMonthDuration
+from arelle.oim._tc.const import (
+    TCRE_INVALID_DURATION_TYPE,
+    TCRE_INVALID_PERIOD_TYPE,
+    TCRE_INVALID_VALUE,
+    TCRE_MISSING_TIME_ZONE,
+    TCRE_UNEXPECTED_TIME_ZONE,
+)
 from arelle.oim._tc.metadata.model import TCValueConstraint
 from arelle.oim._tc.metadata.types import (
     CORE_ENTITY,
@@ -53,6 +61,7 @@ class ValueConstraintValidator:
         self._effective_lexical_type = resolve_effective_lexical_type(constraint.type, namespaces)
         self._facets = self._build_facets()
         self._compiled_patterns = self._compile_patterns()
+        self._enumeration_typed_values = self._typed_enumeration_values()
 
     def _build_facets(self) -> Mapping[str, Any]:
         if self._effective_lexical_type is None:
@@ -80,6 +89,19 @@ class ValueConstraintValidator:
                     facets[facet_name] = result.xValue
         return MappingProxyType(facets)
 
+    def _typed_enumeration_values(self) -> frozenset[object] | None:
+        """Enumeration members in the value space of the effective type, so that lexically
+        different representations of one value match. Members that are not valid for the
+        type are reported by metadata validation and are ignored here."""
+        if self._constraint.enumeration_values is None or self._effective_lexical_type is None:
+            return None
+        typed_values = set()
+        for member in self._constraint.enumeration_values:
+            result = self._validate_base_type(self._effective_lexical_type, member)
+            if result.isXValid:
+                typed_values.add(result.xValue)
+        return frozenset(typed_values)
+
     def _compile_patterns(self) -> tuple[XsdPattern, ...]:
         if not self._constraint.patterns:
             return ()
@@ -90,41 +112,39 @@ class ValueConstraintValidator:
         return tuple(compiled)
 
     def validate(self, value: str) -> bool:
+        return self.first_violation(value) is None
+
+    def first_violation(self, value: str) -> str | None:
+        """Returns the tcre error code for the first constraint the value violates, or None if it satisfies all."""
         if self._effective_lexical_type is None:
-            return False
+            return TCRE_INVALID_VALUE
         typed_value_result = self._validate_base_type(self._effective_lexical_type, value, self._facets)
         if not typed_value_result.isXValid:
-            return False
+            return TCRE_INVALID_VALUE
         if not self._is_patterns_valid(value):
-            return False
-        if not self._is_duration_type_valid(value):
-            return False
-        if not self._is_time_zone_valid(value):
-            return False
-        if self._effective_lexical_type == QNAME:
-            tc_valid_qname = self._is_valid_qname(typed_value_result.xValue)
-            if not tc_valid_qname:
-                return False
-        if self._constraint.type == CORE_ENTITY:
-            tc_valid_sqname = self._is_valid_sqname(value)
-            if not tc_valid_sqname:
-                return False
-        if self._constraint.type == CORE_LANGUAGE:
-            tc_valid_language = self._is_valid_core_language(value)
-            if not tc_valid_language:
-                return False
-        if self._constraint.type == CORE_UNIT:
-            tc_valid_unit = self._is_valid_unit(value)
-            if not tc_valid_unit:
-                return False
+            return TCRE_INVALID_VALUE
+        if not self._is_enumeration_valid(typed_value_result.xValue):
+            return TCRE_INVALID_VALUE
+        if self._effective_lexical_type == QNAME and not self._is_valid_qname(typed_value_result.xValue):
+            return TCRE_INVALID_VALUE
+        if self._constraint.type == CORE_ENTITY and not self._is_valid_sqname(value):
+            return TCRE_INVALID_VALUE
+        if self._constraint.type == CORE_LANGUAGE and not self._is_valid_core_language(value):
+            return TCRE_INVALID_VALUE
+        if self._constraint.type == CORE_UNIT and not self._is_valid_unit(value):
+            return TCRE_INVALID_VALUE
         if self._constraint.type == CORE_PERIOD:
+            if not any(validator(value) for validator in _ALL_PERIOD_VALIDATORS):
+                return TCRE_INVALID_VALUE
             if self._constraint.period_type is not None:
                 validator = PERIOD_TYPE_VALIDATORS.get(self._constraint.period_type)
                 if validator is None or not validator(value):
-                    return False
-            elif not any(validator(value) for validator in _ALL_PERIOD_VALIDATORS):
-                return False
-        return True
+                    return TCRE_INVALID_PERIOD_TYPE
+        if not self._is_duration_type_valid(value):
+            return TCRE_INVALID_DURATION_TYPE
+        if not self._is_time_zone_valid(value):
+            return TCRE_MISSING_TIME_ZONE if self._constraint.time_zone else TCRE_UNEXPECTED_TIME_ZONE
+        return None
 
     def _validate_base_type(
         self,
@@ -137,6 +157,18 @@ class ValueConstraintValidator:
             value_string,
             facets=facets,
             nsmap=cast(Mapping[str | None, str], self._namespaces),
+        )
+
+    def _is_enumeration_valid(self, typed_value: TypeXValue) -> bool:
+        if self._enumeration_typed_values is None:
+            return True
+        if typed_value in self._enumeration_typed_values:
+            return True
+        # XML Schema treats NaN as equal to itself, Python floats do not.
+        return (
+            isinstance(typed_value, float)
+            and math.isnan(typed_value)
+            and any(isinstance(member, float) and math.isnan(member) for member in self._enumeration_typed_values)
         )
 
     def _is_patterns_valid(self, value: str) -> bool:

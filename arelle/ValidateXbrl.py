@@ -23,7 +23,7 @@ from arelle.XbrlConst import (ixbrlAll, dtrNoDecimalsItemTypes, dtrPrefixedConte
 from arelle.XhtmlInlineUtil import ixMsgCode
 from arelle.XmlValidateConst import VALID
 from collections import defaultdict
-from arelle.oim.Validate import validateOIM
+from arelle.oim.Validate import validateOIM, validateTableConstraints
 from arelle.typing import TypeGetText
 from arelle.utils.PluginData import PluginData
 from arelle.ModelRelationshipSet import ModelRelationshipSet
@@ -117,6 +117,9 @@ class ValidateXbrl:
             self.testModelXbrl = testModelXbrl
 
     def validate(self, modelXbrl: ModelXbrl, parameters: dict[Any, Any] | None = None) -> None:
+        if modelXbrl.tableConstraintsSkipLoading:
+            validateTableConstraints(modelXbrl)
+            return
         self.parameters = parameters
         self.precisionPattern = re.compile("^([0-9]+|INF)$")
         self.decimalsPattern = re.compile("^(-?[0-9]+|INF)$")

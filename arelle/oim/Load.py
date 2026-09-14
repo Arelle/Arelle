@@ -12,6 +12,7 @@ import sys
 import time
 import traceback
 from collections import defaultdict
+from types import MappingProxyType
 from math import log10
 
 import isodate
@@ -477,6 +478,14 @@ def parseMetadataCellValues(metadataTable):
         elif isinstance(dimValue, str) and dimValue.startswith("##"):
             metadataTable[dimName] = dimValue[1:]
 
+def parseParameterValues(parameters, error):
+    for parameterName, parameterValue in parameters.items():
+        if isinstance(parameterValue, str) and parameterValue:
+            try:
+                parameters[parameterName] = csvCellValue(parameterValue)
+            except OIMException as ex:
+                error(ex.code, ex.message, **ex.msgArgs)
+
 def xlTrimHeaderRow(row):
     numEmptyCellsAtEndOfRow = 0
     for i in range(len(row)-1, -1, -1):
@@ -598,6 +607,71 @@ def increaseMaxFieldSize():
         except OverflowError:
             maxInt = int(maxInt/10)
 
+def openCsvReader(fileSource, csvFilePath, fileType):
+    _file = fileSource.file(csvFilePath, binary=True)[0]
+    bytes = _file.read(16) # test encoding
+    try:
+        m = EBCDIC_Bytes_Pattern.match(bytes)
+        if m and not NEVER_EBCDIC_Bytes_Pattern.findall(bytes):
+            raise OIMException("xbrlce:invalidCSVFileFormat",
+                  _("CSV file MUST use utf-8 encoding: %(file)s, appears to be EBCDIC"),
+                  file=csvFilePath)
+        m = UTF_7_16_Bytes_Pattern.match(bytes)
+        if m:
+            raise OIMException("xbrlce:invalidCSVFileFormat",
+                  _("CSV file MUST use utf-8 encoding: %(file)s, appears to be %(encoding)s"),
+                  file=csvFilePath, encoding=m.lastgroup)
+        _file.close()
+    except UnicodeDecodeError as ex:
+        raise OIMException("xbrlce:invalidCSVFileFormat",
+              _("CSV file MUST use utf-8 encoding: %(file)s, appears to be %(encoding)s"),
+              file=csvFilePath, encoding=m.lastgroup)
+    _file = fileSource.file(csvFilePath, encoding="utf-8-sig")[0]
+    if CSV_HAS_HEADER_ROW:
+        try:
+            chars = _file.read(1024)
+            _dialect = csv.Sniffer().sniff(chars, delimiters=[",", "\t", ";", "|"]) # also check for disallowed potential separators
+            if _dialect.lineterminator not in ("\r", "\n", "\r\n"):
+                raise OIMException("xbrlce:invalidCSVFileFormat",
+                                   _("CSV line ending is not CR, LF or CR LF, file %(file)s"),
+                                  file=csvFilePath)
+            if _dialect.delimiter not in (","):
+                raise OIMException({CSV_PARAMETER_FILE: "xbrlce:invalidParameterCSVFile",
+                                    CSV_FACTS_FILE: "xbrlce:invalidHeaderValue"}[fileType],
+                                   _("CSV deliminator %(deliminator)s is not comma: file %(file)s"),
+                                  file=csvFilePath, deliminator=repr(_dialect.delimiter))
+        except csv.Error:
+            # possibly can't be sniffed because there's only one column in the row
+            _dialect = "excel"
+            for char in chars:
+                if char in (",", "\n", "\r"):
+                    break
+                elif char == "\t":
+                    _dialect = "excel-tab"
+                    break
+        except UnicodeDecodeError as ex:
+            raise OIMException("xbrlce:invalidCSVFileFormat",
+                               _("CSV file must use utf-8 encoding %(file)s: %(error)s"),
+                              file=csvFilePath, error=str(ex))
+        _file.seek(0)
+    else:
+        # check for comma or tab in first line
+        _dialect = "excel" # fallback if no first line tab is determinable
+        for char in _file.read(1024):
+            if char in (",", "\n", "\r", ";", "|"): # ;, | force invalid parameter file detection
+                _dialect = "excel"
+                break
+            elif char == "\t": # only way to sniff first row deliminator if value contains SQName semicolon
+                _dialect = "excel-tab"
+                break
+        _file.seek(0)
+
+    # Must increase the max supported CSV field size before opening the CSV reader.
+    # Otherwise large HTML values will trigger csv.ERROR: field larger than field limit.
+    increaseMaxFieldSize()
+    return csv.reader(_file, _dialect, doublequote=True)
+
+
 def idDeduped(modelXbrl, id):
     for i in range(99999):
         if i == 0:
@@ -656,70 +730,6 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
 
         currentAction = "loading and parsing OIM file"
         loadDictErrors = []
-        def openCsvReader(csvFilePath, fileType):
-            _file = modelXbrl.fileSource.file(csvFilePath, binary=True)[0]
-            bytes = _file.read(16) # test encoding
-            try:
-                m = EBCDIC_Bytes_Pattern.match(bytes)
-                if m and not NEVER_EBCDIC_Bytes_Pattern.findall(bytes):
-                    raise OIMException("xbrlce:invalidCSVFileFormat",
-                          _("CSV file MUST use utf-8 encoding: %(file)s, appears to be EBCDIC"),
-                          file=csvFilePath)
-                m = UTF_7_16_Bytes_Pattern.match(bytes)
-                if m:
-                    raise OIMException("xbrlce:invalidCSVFileFormat",
-                          _("CSV file MUST use utf-8 encoding: %(file)s, appears to be %(encoding)s"),
-                          file=csvFilePath, encoding=m.lastgroup)
-                _file.close()
-            except UnicodeDecodeError as ex:
-                raise OIMException("xbrlce:invalidCSVFileFormat",
-                      _("CSV file MUST use utf-8 encoding: %(file)s, appears to be %(encoding)s"),
-                      file=csvFilePath, encoding=m.lastgroup)
-            _file = modelXbrl.fileSource.file(csvFilePath, encoding="utf-8-sig")[0]
-            if CSV_HAS_HEADER_ROW:
-                try:
-                    chars = _file.read(1024)
-                    _dialect = csv.Sniffer().sniff(chars, delimiters=[",", "\t", ";", "|"]) # also check for disallowed potential separators
-                    if _dialect.lineterminator not in ("\r", "\n", "\r\n"):
-                        raise OIMException("xbrlce:invalidCSVFileFormat",
-                                           _("CSV line ending is not CR, LF or CR LF, file %(file)s"),
-                                          file=csvFilePath)
-                    if _dialect.delimiter not in (","):
-                        raise OIMException({CSV_PARAMETER_FILE: "xbrlce:invalidParameterCSVFile",
-                                            CSV_FACTS_FILE: "xbrlce:invalidHeaderValue"}[fileType],
-                                           _("CSV deliminator %(deliminator)s is not comma: file %(file)s"),
-                                          file=csvFilePath, deliminator=repr(_dialect.delimiter))
-                except csv.Error:
-                    # possibly can't be sniffed because there's only one column in the row
-                    _dialect = "excel"
-                    for char in chars:
-                        if char in (",", "\n", "\r"):
-                            break
-                        elif char == "\t":
-                            _dialect = "excel-tab"
-                            break
-                except UnicodeDecodeError as ex:
-                    raise OIMException("xbrlce:invalidCSVFileFormat",
-                                       _("CSV file must use utf-8 encoding %(file)s: %(error)s"),
-                                      file=csvFilePath, error=str(ex))
-                _file.seek(0)
-            else:
-                # check for comma or tab in first line
-                _dialect = "excel" # fallback if no first line tab is determinable
-                for char in _file.read(1024):
-                    if char in (",", "\n", "\r", ";", "|"): # ;, | force invalid parameter file detection
-                        _dialect = "excel"
-                        break
-                    elif char == "\t": # only way to sniff first row deliminator if value contains SQName semicolon
-                        _dialect = "excel-tab"
-                        break
-                _file.seek(0)
-
-            # Must increase the max supported CSV field size before opening the CSV reader.
-            # Otherwise large HTML values will trigger csv.ERROR: field larger than field limit.
-            increaseMaxFieldSize()
-            return csv.reader(_file, _dialect, doublequote=True)
-
         def ldError(msgCode, msgText, **kwargs):
             loadDictErrors.append((msgCode, msgText, kwargs))
         def loadDict(keyValuePairs):
@@ -1041,7 +1051,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                     problems = []
                     badIdentifiers = []
                     identifiersInThisFile = set()
-                    for i, row in enumerate(openCsvReader(parameterFilePath, CSV_PARAMETER_FILE)):
+                    for i, row in enumerate(openCsvReader(modelXbrl.fileSource, parameterFilePath, CSV_PARAMETER_FILE)):
                         if i == 0:
                             if row != ["name", "value"]:
                                 problems.append(_('The first row must only consist of "name" and "value" but contains: {}').format(",".join(row)))
@@ -1201,7 +1211,8 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             reportDimensions = oimObject.get("dimensions", EMPTY_DICT)
             reportDecimals = oimObject.get("decimals", None)
             reportParameters = oimObject.get("parameters", {}) # fresh empty dict because csv-loaded parameters get added
-            parseMetadataCellValues(reportParameters)
+            rawReportParameters = dict(reportParameters)
+            parseParameterValues(reportParameters, error)
             tableTemplates = oimObject.get("tableTemplates", EMPTY_DICT)
             tables = oimObject.get("tables", EMPTY_DICT)
             footnotes = (oimObject.get("links", {}), )
@@ -1222,6 +1233,8 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             modelXbrl.xbrlCsvLoadingContext = XbrlCsvLoadingContext(
                 metadata=csvMetadata,
                 tc_metadata=tcMetadataResult.metadata,
+                report_parameters=MappingProxyType(rawReportParameters),
+                metadata_path=oimFile,
             )
 
         entityNaQName = qname(re.sub("/xbrl-(json|csv)$","/entities",documentType), "NA")
@@ -1273,6 +1286,30 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                   _('The base-url must be absolute: "%(url)s".'),
                   modelObject=modelXbrl, url=documentBase)
 
+        if modelXbrl.modelManager.validateTableConstraintsSkipLoading:
+            if not isCSV:
+                raise OIMException("arelle:tableConstraintsSkipLoadingRequiresXbrlCsv",
+                                   _("Table constraints validation without loading requires an xBRL-CSV report: %(file)s"),
+                                   file=oimFile)
+            if tcMetadataResult.metadata is None and not tcMetadataResult.errors:
+                raise OIMException("arelle:noTableConstraints",
+                                   _("Table constraints validation without loading requested but the report has no table constraints metadata: %(file)s"),
+                                   file=oimFile)
+            # Taxonomy discovery and fact creation are skipped. An empty entry document
+            # keeps the model usable for validation dispatch and the GUI.
+            modelXbrl.tableConstraintsSkipLoading = True
+            modelXbrl.modelDocument = _return = ModelDocument.create(
+                  modelXbrl,
+                  ModelDocumentType.INSTANCE,
+                  instanceFileName,
+                  isEntry=True,
+                  initialComment="table constraints validation without loading of OIM {}".format(mappedUri),
+                  documentEncoding="utf-8",
+                  base=documentBase or modelXbrl.entryLoadingUrl)
+            modelXbrl.modelDocument.inDTS = True
+            _return.isModified = False
+            return _return
+
         factProduced = FactProduced() # pass back fact info to csv Fact producer
 
         if isCSVorXL:
@@ -1292,6 +1329,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         parseMetadataCellValues(tableDimensions)
                         tableIsOptional = table.get("optional", False)
                         tableParameters = table.get("parameters", EMPTY_DICT)
+                        parseParameterValues(tableParameters, error)
                         rowIdColName = tableTemplate.get("rowIdColumn")
                         tableUrl = table["url"]
                         tableParameterColNames = set()
@@ -1383,7 +1421,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                                 _cellValue = xlValue
                             else:
                                 # must be CSV
-                                _rowIterator = openCsvReader(tablePath, CSV_FACTS_FILE)
+                                _rowIterator = openCsvReader(modelXbrl.fileSource, tablePath, CSV_FACTS_FILE)
                                 _cellValue = csvCellValue
                                 # if tableIsTransposed:
                                 #    _rowIterator = transposer(_rowIterator)
