@@ -178,7 +178,12 @@ class Validate:
                 supplementalModelXbrl.close()
             except Exception:
                 pass
-        modelXbrl.close()
+        # ModelManager.close also collects garbage.  A closed filing's model objects and lxml trees remain in
+        # reference cycles, which only the cycle collector frees, and its automatic passes are triggered by
+        # allocation counts, not memory, so over a long feed several closed filings would otherwise stay alive
+        # between passes.  The item's modelXbrl is passed explicitly: it is not the modelManager's current
+        # modelXbrl (the feed), which close() would otherwise close.
+        self.modelXbrl.modelManager.close(modelXbrl)
 
     def validateRssFeed(self) -> None:
         self.modelXbrl.info("info", "RSS Feed", modelDocument=self.modelXbrl)
