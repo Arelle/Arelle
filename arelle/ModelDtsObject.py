@@ -970,7 +970,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
 
         _refT = tuple(
             (
-                self.modelXbrl.roleTypeDefinition(_ref.role, _lang),  # type: ignore[union-attr]
+                self.modelXbrl.roleTypeDefinition(_ref.role or XbrlConst.standardReference, _lang),  # type: ignore[union-attr]
                 " ",
                 tuple(
                     (_refPart.localName, _refPart.stringValue.strip())
