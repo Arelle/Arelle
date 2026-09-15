@@ -85,12 +85,8 @@ config = ConformanceSuiteConfig(
             "multipleIdentifiers": 1,
             "segmentUsed": 1,
         },
-        "FRC_02/index.xml:TC3_invalid": {
-            "info:duplicatedSchema": 1,
-            "xbrl:multipleTopLevelSchemasForNamespace": 1,
-        },
         "FRC_03/index.xml:TC2_invalid": {
-            # UKFRC3 uses UKFRC1 for tracking incorrectTarget errors.
+            # rule_incorrectTarget covers the UKFRC1 and UKFRC3 incorrectTarget conditions.
             # UKFRC1 and UKFRC5 have the same conditions for the test case, but have different checks and fire different errors
             "noUKFRSData": 1,
             # UKFRC6 fire invalidIdentifier error because `FRC_03:TC2` doesn't have a target attribute,
@@ -101,8 +97,7 @@ config = ConformanceSuiteConfig(
             "segmentUsed": 1,
         },
         "FRC_03/index.xml:TC3_invalid": {
-            "incorrectTarget": 1,
-            # UKFRC3 uses UKFRC1 for tracking incorrectTarget errors.
+            # rule_incorrectTarget covers the UKFRC1 and UKFRC3 incorrectTarget conditions.
             # UKFRC1 and UKFRC5 have the same conditions for the test case, but have different checks and fire different errors
             "noUKFRSData": 2,
             "segmentUsed": 1,

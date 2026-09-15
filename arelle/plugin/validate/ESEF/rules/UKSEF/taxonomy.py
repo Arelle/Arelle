@@ -10,35 +10,28 @@ from typing import Any
 
 import regex as re
 
-from arelle import XbrlConst
-from arelle.ModelObject import ModelObject
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateXbrl import ValidateXbrl
-from ...Const import AUTHORITY_UKFRC, TARGET_UKFRS
-from ...PluginValidationDataExtension import PluginValidationDataExtension
-from ...Util import isExtensionDoc
+from arelle.plugin.validate.ESEF.Const import AUTHORITY_UKFRC, TARGET_UKFRS
+from arelle.plugin.validate.ESEF.PluginValidationDataExtension import PluginValidationDataExtension
+from arelle.plugin.validate.ESEF.Util import isExtensionDoc
 
 _: TypeGetText
 
-_UKSEF_ENTRY_POINT_PATTERN = re.compile(
-    r"^https://xbrl\.frc\.org\.uk/(FRS-102|IFRS)/(2023|2024|2025)-01-01/UKSEF/\1-\2-01-01\.xsd$"
-)
 _ESEF_TAXONOMY_URL_PATTERN = re.compile(
     r"^http[s]?://www\.esma\.europa\.eu/taxonomy/(\d{4})-\d{2}-\d{2}/esef_"
 )
 _MIN_ESEF_YEAR = 2022
-_LINK_SCHEMA_REF = f"{{{XbrlConst.link}}}schemaRef"
-_XLINK_HREF = f"{{{XbrlConst.xlink}}}href"
 
 
 @validation(
     # using FINALLY hook to ensure that the ixdsReferences are fully populated before checking for the UKFRS target
     hook=ValidationHook.FINALLY,
 )
-def rule_ukfrc1(
+def rule_unsupportedEntryPoint(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
@@ -60,43 +53,13 @@ def rule_ukfrc1(
     *	https://xbrl.frc.org.uk/IFRS/2023-01-01/UKSEF/IFRS-2023-01-01.xsd
     The reference must be in the report, NOT in the extension taxonomy.
     """
-    if val.authority != AUTHORITY_UKFRC:
+    if val.authority != AUTHORITY_UKFRC or not pluginData.isUkfrsTarget(val.modelXbrl):
         return
 
-    ixdsReferences = getattr(val, "ixdsReferences", None)
-    if ixdsReferences:
-        # case-insensitive check for the presence of the "UKFRS" target in ixdsReferences
-        # case-sensitive checks in the rule UKFRC3
-        ixdsReferencesKeys = [key.upper() for key in ixdsReferences if isinstance(key, str)]
-        if TARGET_UKFRS not in ixdsReferencesKeys:
-            yield Validation.error(
-                codes="ESEF.UKFRC1.incorrectTarget",
-                msg=_(
-                    'UKSEF reports MUST have a "UKFRS" targeted ix:references element. '
-                    'No matching ix:references element was found in the report.'
-                    ),
-                )
-
-        if not pluginData.isUkfrsTarget(val.modelXbrl):
-            return
+    if ixdsReferences := getattr(val, "ixdsReferences", None):
 
         if targetIxReferences := ixdsReferences.get(TARGET_UKFRS, []):
-            uksefSchemaRefs: list[ModelObject] = []
-            for referencesElt in targetIxReferences:
-                for schemaRef in referencesElt.iterdescendants(tag=_LINK_SCHEMA_REF):
-                    href = schemaRef.get(_XLINK_HREF, "").strip()
-                    if _UKSEF_ENTRY_POINT_PATTERN.match(href):
-                        uksefSchemaRefs.append(schemaRef)
-
-            if len(targetIxReferences) == 1 and len(uksefSchemaRefs) > 1:
-                yield Validation.error(
-                    codes="ESEF.UKFRC1.multipleEntryPoints",
-                    msg=_(
-                        'UKSEF reports MUST have a single schemaRef in a "UKFRS" targeted ix:references element. '
-                        'Multiple matching schemaRefs were found in the report.'
-                        ),
-                    modelObject=uksefSchemaRefs,
-                    )
+            uksefSchemaRefs = pluginData.getUksefSchemaRefs(targetIxReferences)
 
             if not uksefSchemaRefs:
                 yield Validation.error(
@@ -110,13 +73,12 @@ def rule_ukfrc1(
                         'No matching schemaRef was found in the report.'
                         ),
                     )
-    return
 
 
 @validation(
     hook=ValidationHook.XBRL_FINALLY,
 )
-def rule_ukfrc2(
+def rule_incorrectEsefTaxonomyVersionUsed(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
@@ -137,6 +99,7 @@ def rule_ukfrc2(
     for doc in val.modelXbrl.urlDocs.values():
         if not isExtensionDoc(val, doc):
             continue
+
         for referencedDoc, docRef in doc.referencesDocument.items():
             if "import" in docRef.referenceTypes:
                 importedUrls.add(referencedDoc.uri)
@@ -144,6 +107,7 @@ def rule_ukfrc2(
     esefYears: list[int] = []
     for url in importedUrls:
         match = _ESEF_TAXONOMY_URL_PATTERN.match(url)
+
         if match:
             esefYears.append(int(match.group(1)))
 
@@ -156,5 +120,3 @@ def rule_ukfrc2(
             ),
             year=min(esefYears),
         )
-
-    return

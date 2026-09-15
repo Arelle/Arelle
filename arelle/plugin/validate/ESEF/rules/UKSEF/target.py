@@ -15,8 +15,8 @@ from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XbrlConst import ixbrl, ixbrl11
-from ...Const import AUTHORITY_UKFRC, TARGET_UKFRS
-from ...PluginValidationDataExtension import PluginValidationDataExtension
+from arelle.plugin.validate.ESEF.Const import AUTHORITY_UKFRC, TARGET_UKFRS
+from arelle.plugin.validate.ESEF.PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
 
@@ -50,41 +50,102 @@ def _ix_tags_for_namespace(ns: str, local_names: Iterable[str]) -> tuple[str, ..
     # using FINALLY hook to ensure that the ixdsReferences are fully populated before checking for the UKFRS target
     hook=ValidationHook.FINALLY,
 )
-def rule_ukfrc3(
+def rule_incorrectTarget(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    UKFRC3: If the target attribute exists on certain key Inline XBRL elements their content
-    is diverted to a target XBRL document with a name derived from the attribute value, which
-    for the UK MUST be "UKFRS" (all caps).
+    Validate all UKSEF incorrect-target conditions in one place.
+
+    A UKSEF report must contain an ix:references element with the exact target value "UKFRS".
+    A case-insensitive match is reported under UKFRC3, while a missing or otherwise invalid
+    target is reported under UKFRC1.
     """
-    if val.authority != AUTHORITY_UKFRC or pluginData.isEsefTarget(val.modelXbrl):
+    if (val.authority != AUTHORITY_UKFRC
+            or not pluginData.isEsefTarget(val.modelXbrl)
+            or not (ixdsReferences := getattr(val, "ixdsReferences", None))
+            or ixdsReferences.get(TARGET_UKFRS, [])):
         return
 
-    ixdsReferences = getattr(val, "ixdsReferences", None)
+    caseInsensitiveTargets = [
+        (target, referencesElts)
+        for target, referencesElts in ixdsReferences.items()
+        if isinstance(target, str) and target.upper() == TARGET_UKFRS
+    ]
 
-    if ixdsReferences and not ixdsReferences.get(TARGET_UKFRS, []):
-        for target, referencesElts in ixdsReferences.items():
-            if target is not None and target.upper() == TARGET_UKFRS:
-                yield Validation.error(
-                    codes="ESEF.UKFRC3.incorrectTarget",
-                    msg=_(
-                        'The target attribute on Inline XBRL elements in a UKSEF report MUST be '
-                        '"UKFRS" (case-sensitive). Found invalid target value: "%(target)s".'
-                    ),
-                    modelObject=referencesElts,
-                    target=target,
-                )
+    if caseInsensitiveTargets:
+        for target, referencesElts in caseInsensitiveTargets:
+            yield Validation.error(
+                codes="ESEF.UKFRC3.incorrectTarget",
+                msg=_(
+                    'The target attribute on Inline XBRL elements in a UKSEF report MUST be '
+                    '"UKFRS" (case-sensitive). Found invalid target value: "%(target)s".'
+                ),
+                modelObject=referencesElts,
+                target=target,
+            )
+    else:
+        yield Validation.error(
+            codes="ESEF.UKFRC1.incorrectTarget",
+            msg=_(
+                'UKSEF reports MUST have a "UKFRS" targeted ix:references element. '
+                "No matching ix:references element was found in the report."
+            ),
+        )
+
+
+@validation(
+    # using FINALLY hook to ensure that the ixdsReferences are fully populated before checking entry points
+    hook=ValidationHook.FINALLY,
+)
+def rule_multipleEntryPoints(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    Validate all UKSEF multiple-entry-point conditions in one place.
+
+    UKFRC1 limits the matching UKSEF schemaRefs in a single UKFRS target to one.
+    UKFRC5 limits the UKFRS-targeted ix:references elements to one.
+    """
+    if (val.authority != AUTHORITY_UKFRC
+            or not pluginData.isUkfrsTarget(val.modelXbrl)
+            or not (ixdsReferences := getattr(val, "ixdsReferences", None))):
+        return
+
+    foundTargets = ixdsReferences.get(TARGET_UKFRS, [])
+    if len(foundTargets) > 1:
+        yield Validation.error(
+            codes="ESEF.UKFRC5.multipleEntryPoints",
+            msg=_(
+                'UKSEF reports MUST have a single targeted element with the "UKFRS" target. '
+                "Multiple matching ix:references elements were found in the report."
+            ),
+            modelObject=foundTargets,
+        )
+
+    if len(foundTargets) == 1:
+        uksefSchemaRefs = pluginData.getUksefSchemaRefs(foundTargets)
+        if len(uksefSchemaRefs) > 1:
+            yield Validation.error(
+                codes="ESEF.UKFRC1.multipleEntryPoints",
+                msg=_(
+                    'UKSEF reports MUST have a single schemaRef in a "UKFRS" targeted ix:references element. '
+                    "Multiple matching schemaRefs were found in the report."
+                ),
+                modelObject=uksefSchemaRefs,
+            )
 
 
 @validation(
     # using FINALLY hook to ensure that the ixdsReferences are fully populated before checking for the UKFRS target
     hook=ValidationHook.FINALLY,
 )
-def rule_ukfrc4(
+def rule_targetAttributeUsedForESEFContents(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
@@ -94,14 +155,10 @@ def rule_ukfrc4(
     UKFRC4: In accordance with the ESEF Reporting Manual, Rule 2.5.3, 'All [ESEF] tagged data MUST
     be in the "default" target XBRL document'. ESEF tagged data MUST NOT carry a target attribute.
     """
-    if val.authority != AUTHORITY_UKFRC:
+    if val.authority != AUTHORITY_UKFRC or not pluginData.isUkfrsTarget(val.modelXbrl):
         return
 
-    if not pluginData.isUkfrsTarget(val.modelXbrl):
-        return
-
-    ixdsReferences = getattr(val, "ixdsReferences", None)
-    if ixdsReferences:
+    if ixdsReferences := getattr(val, "ixdsReferences", None):
         ESEFTargets = ixdsReferences.get(None, [])
         if not ESEFTargets:
             yield Validation.error(
@@ -153,7 +210,7 @@ def rule_ukfrc4(
     # using FINALLY hook to ensure that the ixdsReferences are fully populated before checking for the UKFRS target
     hook=ValidationHook.FINALLY,
 )
-def rule_ukfrc5(
+def rule_noUKFRSData(
         pluginData: PluginValidationDataExtension,
         val: ValidateXbrl,
         *args: Any,
@@ -167,8 +224,7 @@ def rule_ukfrc5(
     if val.authority != AUTHORITY_UKFRC:
         return
 
-    ixdsReferences = getattr(val, "ixdsReferences", None)
-    if ixdsReferences:
+    if ixdsReferences := getattr(val, "ixdsReferences", None):
         if not ixdsReferences.get(TARGET_UKFRS, []):
             yield Validation.error(
                 codes="ESEF.UKFRC5.noUKFRSData",
@@ -178,6 +234,26 @@ def rule_ukfrc5(
                 ),
             )
 
+
+@validation(
+    # using FINALLY hook to ensure that the ixdsReferences are fully populated before checking for the UKFRS target
+    hook=ValidationHook.FINALLY,
+)
+def rule_noESEFData(
+        pluginData: PluginValidationDataExtension,
+        val: ValidateXbrl,
+        *args: Any,
+        **kwargs: Any,
+) -> Iterable[Validation]:
+    """
+    UKFRC5: In a UKSEF report, there should be two ix:references containers – one should contain the
+    schemaRef for the issuer’s private extension as per ESEF requirements and MUST omit the target.
+    The other must contain a UKSEF schemaRef with the "UKFRS" target attribute.
+    """
+    if val.authority != AUTHORITY_UKFRC:
+        return
+
+    if ixdsReferences := getattr(val, "ixdsReferences", None):
         if not ixdsReferences.get(None, []):
             yield Validation.error(
                 codes="ESEF.UKFRC5.noESEFData",
@@ -186,19 +262,3 @@ def rule_ukfrc5(
                     "No matching ix:references element was found in the report."
                 ),
             )
-
-        if not pluginData.isUkfrsTarget(val.modelXbrl):
-            return
-
-        if (pluginData.isUkfrsTarget(val.modelXbrl)
-                and (foundTargets := ixdsReferences.get(TARGET_UKFRS, []))
-                and len(foundTargets) > 1):
-
-            yield Validation.error(
-                codes="ESEF.UKFRC5.multipleEntryPoints",
-                msg=_(
-                    'UKSEF reports MUST have a single targeted element with the "UKFRS" target. '
-                    'Multiple matching ix:references elements were found in the report.'
-                    ),
-                modelObject=foundTargets,
-                )
