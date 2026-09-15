@@ -361,6 +361,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             )
             # ModelDocument.load has None as a return type. For typing reasons, we need to guard against that here.
             assert modelXbrl.modelDocument is not None
+            ixdsTarget = getattr(modelXbrl, "ixdsTarget", None)
             for ixdsHtmlRootElt in (modelXbrl.ixdsHtmlElements if val.consolidated else # ix root elements for all ix docs in IXDS
                                     (modelXbrl.modelDocument.xmlRootElement,)): # plain xhtml filing
                 ixNStag = getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11)
@@ -504,7 +505,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             del continuationChain[:] # dereference elements
 
 
-                    if eltTag == ixTupleTag:
+                    if eltTag == ixTupleTag and not (val.authParam["otherTargetsPermitTuples"] and elt.get("target") != ixdsTarget):
                         modelXbrl.error("ESEF.2.4.1.tupleElementUsed",
                             _("The ix:tuple element MUST not be used in the Inline XBRL document: %(qname)s."),
                             modelObject=elt, qname=elt.qname)
@@ -524,7 +525,6 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         if elt.format is not None and elt.format.namespaceURI not in allowedTRnamespaces:
                             transformRegistryErrors.add(elt)
                 ixHiddenFacts = set()
-                ixdsTarget = getattr(modelXbrl, "ixdsTarget", None)
                 for ixHiddenElt in ixdsHtmlRootElt.iterdescendants(tag=ixNStag + "hidden"):
                     for tag in (ixNStag + "nonNumeric", ixNStag+"nonFraction"):
                         for ixElt in ixHiddenElt.iterdescendants(tag=tag):

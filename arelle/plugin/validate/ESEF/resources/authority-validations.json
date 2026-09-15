@@ -33,7 +33,8 @@
         "formulaMessagesAdditionalURLs: for base URL list of additional formula messages URLs to load out of DTS",
         "formulaRunIDs: if not null, regex of formula IDs to run (or with negative lookahead regex, to suppress)",
         "dtrNamespaces: the permitted DTR namespaces, each mapped to its corresponding XSD URL",
-        "permitOnlyTextBlockEscape: whether to allow the escape attribute only on text blocks (like ESEF 2024), as opposed to on other types such as strings (like ESEF 2025)"
+        "permitOnlyTextBlockEscape: whether to allow the escape attribute only on text blocks (like ESEF 2024), as opposed to on other types such as strings (like ESEF 2025)",
+        "otherTargetsPermitTuples: boolean"
     ],
     "default": {
         "name": "Default ESMA ESEF validations",
@@ -87,7 +88,8 @@
         },
         "formulaRunIDs": null,
         "minExternalResourceSizekB": 0,
-        "validate1_9_1": "false"
+        "validate1_9_1": "false",
+        "otherTargetsPermitTuples": false
     },
     "ESEF-2021": {
         "outdatedTaxonomyURLs": [
@@ -270,7 +272,8 @@
     "FI": {
         "name": "Finland",
         "ixTargetUsage": "allowed",
-        "ixdsMultiUsage": "allowed"
+        "ixdsMultiUsage": "allowed",
+        "otherTargetsPermitTuples": true
     },
     "FR": {
         "name": "France",
