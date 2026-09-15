@@ -174,7 +174,8 @@ def fn_dateTime(
     time = anytypeArg(xc, args, 1, "xs:time", missingArgFallback=())
     if date is None or time is None:
         return ()
-    return dateTime(date) + dayTimeDuration(time)  # type: ignore[operator]
+    dateValue: DateTime | None = dateTime(date)
+    return dateValue + dayTimeDuration(time)  # type: ignore[operator]
 
 
 def fn_abs(

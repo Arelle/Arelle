@@ -282,8 +282,8 @@ class QName:
         return bool(self.localName)
 
 def anyURI(value: str,
-           castException: Exception | None = None,
-) -> AnyURI | None:
+           castException: Exception | type[Exception] | None = None,
+) -> AnyURI:
     if castException is not None and (not value or not isValidUriReference(value)):
         raise castException
     return AnyURI(value)
@@ -319,6 +319,16 @@ def tzinfoStr(dt: datetime.datetime | datetime.date) -> str:
     if isinstance(dt, datetime.datetime):
         return _tzSuffix(dt.tzinfo)
     return ""
+
+
+@overload
+def dateTime(
+    value: datetime.date,
+    time: Any = ...,
+    addOneDay: bool = ...,
+    type: int | None = ...,
+    castException: type[Exception] | None = ...,
+) -> DateTime: ...
 
 
 @overload
@@ -490,12 +500,12 @@ def dateUnionEqual(
         if instantEndDate and dateUnion1.dateOnly:
             dateUnion1 += datetime.timedelta(1)
     elif isinstance(dateUnion1,datetime.date):
-        dateUnion1 = cast(DateTime, dateTime(dateUnion1, addOneDay=instantEndDate))
+        dateUnion1 = dateTime(dateUnion1, addOneDay=instantEndDate)
     if isinstance(dateUnion2, DateTime):
         if instantEndDate and dateUnion2.dateOnly:
             dateUnion2 += datetime.timedelta(1)
     elif isinstance(dateUnion2,datetime.date):
-        dateUnion2 = cast(DateTime, dateTime(dateUnion2, addOneDay=instantEndDate))
+        dateUnion2 = dateTime(dateUnion2, addOneDay=instantEndDate)
     return dateUnion1 == dateUnion2
 
 def dateunionDate(datetimeValue: datetime.date, subtractOneDay: bool = False) -> datetime.date:
@@ -1134,6 +1144,7 @@ TypeSValue = Union[
     str,
 ]
 TypeXValue = Union[
+    bool,
     datetime.datetime,
     datetime.time,
     Decimal,
@@ -1144,6 +1155,7 @@ TypeXValue = Union[
     gMonthDay,
     gYearMonth,
     gYear,
+    int,
     IsoDuration,
     Fraction,
     list[Optional[QName]],
