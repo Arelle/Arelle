@@ -94,11 +94,21 @@ class TestTransientRetrieval:
         assert result
         assert delays == [3.0]
 
-    def test_total_wait_is_bounded_by_budget(self, webCache: WebCache, filepath: str) -> None:
+    def test_retries_end_when_the_next_wait_exceeds_the_budget(self, webCache: WebCache, filepath: str) -> None:
+        # two waits of 15 seconds exceed the budget, and a wait is never shortened to fit it
         result, retrieve, delays = _download(webCache, filepath, _httpError(503, retryAfter="15"))
         assert not result
-        assert delays == [15.0, TRANSIENT_RETRY_WAIT_BUDGET_SECONDS - 15.0]
-        assert retrieve.call_count == 3
+        assert delays == [15.0]
+        assert retrieve.call_count == 2
+        assert _loggedCodes(webCache)[-1] == "webCache:retrievalError"
+
+    def test_retry_after_longer_than_the_budget_is_not_retried(self, webCache: WebCache, filepath: str) -> None:
+        retryAfter = str(int(TRANSIENT_RETRY_WAIT_BUDGET_SECONDS) + 5)
+        result, retrieve, delays = _download(webCache, filepath, _httpError(429, retryAfter=retryAfter))
+        assert not result
+        assert retrieve.call_count == 1
+        assert delays == []  # retrying before the server's delay risks its penalties
+        assert _loggedCodes(webCache) == ["webCache:retrievalError"]
 
     def test_dropped_connection_is_retried(self, webCache: WebCache, filepath: str) -> None:
         result, retrieve, _delays = _download(webCache, filepath, URLError(ConnectionResetError()), SUCCESS)
@@ -113,6 +123,7 @@ class TestTransientRetrieval:
     @pytest.mark.parametrize("err, expected", [
         (_httpError(503), True),
         (_httpError(429), True),
+        (_httpError(408), True),
         (_httpError(404), False),
         (_httpError(401), False),
         (URLError(TimeoutError()), True),

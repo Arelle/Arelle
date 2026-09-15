@@ -52,12 +52,14 @@ DIRECTORY_INDEX_FILE = "!~DirectoryIndex~!"
 FILE_LOCK_TIMEOUT = 30
 INF = float("inf")
 RETRIEVAL_RETRY_COUNT = 5
-# HTTP status codes of server conditions that a repeated request may not meet: too many requests, and server
-# errors such as 503 Service Unavailable, which a busy server returns during sustained retrieval of many files.
-TRANSIENT_HTTP_STATUS_CODES = frozenset({429, 500, 502, 503, 504})
+# HTTP status codes of server conditions that a repeated request may not meet: a request timed out, too many
+# requests, and server errors such as 503 Service Unavailable, which a busy server returns during sustained
+# retrieval of many files.
+TRANSIENT_HTTP_STATUS_CODES = frozenset({408, 429, 500, 502, 503, 504})
 TRANSIENT_RETRY_BASE_DELAY_SECONDS = 1.0
 # Total wait for the retries of one download.  A download holds the cache file lock, and another process waiting
-# on that lock gives up after FILE_LOCK_TIMEOUT, so the wait is kept well below it.
+# on that lock gives up after FILE_LOCK_TIMEOUT, so the wait is kept well below it.  A wait that would exceed the
+# budget is not shortened: retrying before the delay a server asked for risks its penalties, so the download fails.
 TRANSIENT_RETRY_WAIT_BUDGET_SECONDS = 20.0
 HTTP_USER_AGENT = "Mozilla/5.0 (Arelle/{}) Email/NotRegistered@arelle.org".format(__version__)
 
@@ -883,18 +885,19 @@ class WebCache:
                 if retrievingDueToRecheckInterval:
                     self.internetRecheckFailedRecovery(url, err, timeNowStr)
                     return True
-                if (retryCount > 1 and WebCache._isTransientRetrievalError(err) and
-                        transientRetryWaitSeconds < TRANSIENT_RETRY_WAIT_BUDGET_SECONDS):
-                    delay = min(WebCache._transientRetryDelay(err, initialRetryCount - retryCount),
-                                TRANSIENT_RETRY_WAIT_BUDGET_SECONDS - transientRetryWaitSeconds)
-                    self.cntlr.addToLog(_("%(error)s \nunsuccessful retrieval of %(URL)s \n%(retryCount)s retries remaining, retrying in %(delay)s seconds"),
-                                        messageCode="webCache:retryingOperation",
-                                        messageArgs={"error": err, "URL": url, "retryCount": retryCount - 1, "delay": f"{delay:g}"},
-                                        level=logging.ERROR)
-                    time.sleep(delay)
-                    transientRetryWaitSeconds += delay
-                    retryCount -= 1
-                    continue
+                if retryCount > 1 and WebCache._isTransientRetrievalError(err):
+                    delay = WebCache._transientRetryDelay(err, initialRetryCount - retryCount)
+                    # A delay the budget cannot accommodate ends the retries.  It is not shortened: a request
+                    # repeated before the delay a server asked for in Retry-After may draw its penalties.
+                    if transientRetryWaitSeconds + delay <= TRANSIENT_RETRY_WAIT_BUDGET_SECONDS:
+                        self.cntlr.addToLog(_("%(error)s \nunsuccessful retrieval of %(URL)s \n%(retryCount)s retries remaining, retrying in %(delay)s seconds"),
+                                            messageCode="webCache:retryingOperation",
+                                            messageArgs={"error": err, "URL": url, "retryCount": retryCount - 1, "delay": f"{delay:g}"},
+                                            level=logging.ERROR)
+                        time.sleep(delay)
+                        transientRetryWaitSeconds += delay
+                        retryCount -= 1
+                        continue
                 self.cntlr.addToLog(_("%(error)s \nretrieving %(URL)s"),
                                     messageCode="webCache:retrievalError",
                                     messageArgs={"error": err.reason if hasattr(err, "reason") else err,
