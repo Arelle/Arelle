@@ -280,6 +280,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
             contentOtherThanXHTMLGuidance = "ESEF.2.5.1" if val.consolidated else "ESEF.4.1.3"  # Different reference for iXBRL and stand-alone XHTML
             # ModelDocument.load has None as a return type. For typing reasons, we need to guard against that here.
             assert modelXbrl.modelDocument is not None
+            ixdsTarget = getattr(modelXbrl, "ixdsTarget", None)
             for ixdsHtmlRootElt in (modelXbrl.ixdsHtmlElements if val.consolidated else # ix root elements for all ix docs in IXDS
                                     (modelXbrl.modelDocument.xmlRootElement,)): # plain xhtml filing
                 ixNStag = getattr(ixdsHtmlRootElt.modelDocument, "ixNStag", ixbrl11)
@@ -406,7 +407,7 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                             _("Target attribute %(severityVerb)s not be used unless explicitly required by local jurisdictions: element %(localName)s, target attribute %(target)s."),
                             modelObject=elt, localName=elt.elementQname, target=elt.get("target"),
                             severityVerb={"warning":"SHOULD","error":"MUST"}[ixTargetUsage])
-                    if eltTag == ixTupleTag:
+                    if eltTag == ixTupleTag and not (val.authParam["otherTargetsPermitTuples"] and elt.get("target") != ixdsTarget):
                         modelXbrl.error("ESEF.2.4.1.tupleElementUsed",
                             _("The ix:tuple element MUST not be used in the Inline XBRL document: %(qname)s."),
                             modelObject=elt, qname=elt.qname)
@@ -426,7 +427,6 @@ def validateXbrlFinally(val: ValidateXbrl, *args: Any, **kwargs: Any) -> None:
                         if elt.format is not None and elt.format.namespaceURI not in IXT_NAMESPACES:
                             transformRegistryErrors.add(elt)
                 ixHiddenFacts = set()
-                ixdsTarget = getattr(modelXbrl, "ixdsTarget", None)
                 for ixHiddenElt in ixdsHtmlRootElt.iterdescendants(tag=ixNStag + "hidden"):
                     for tag in (ixNStag + "nonNumeric", ixNStag+"nonFraction"):
                         for ixElt in ixHiddenElt.iterdescendants(tag=tag):
