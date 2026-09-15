@@ -282,8 +282,8 @@ class QName:
         return bool(self.localName)
 
 def anyURI(value: str,
-           castException: Exception | None = None,
-) -> AnyURI | None:
+           castException: Exception | type[Exception] | None = None,
+) -> AnyURI:
     if castException is not None and (not value or not isValidUriReference(value)):
         raise castException
     return AnyURI(value)
