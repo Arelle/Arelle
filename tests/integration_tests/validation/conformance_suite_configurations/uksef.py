@@ -85,6 +85,10 @@ config = ConformanceSuiteConfig(
             "multipleIdentifiers": 1,
             "segmentUsed": 1,
         },
+        "FRC_02/index.xml:TC3_invalid": {
+            "info:duplicatedSchema": 1,
+            "xbrl:multipleTopLevelSchemasForNamespace": 1,
+        },
         "FRC_03/index.xml:TC2_invalid": {
             # rule_incorrectTarget covers the UKFRC1 and UKFRC3 incorrectTarget conditions.
             # UKFRC1 and UKFRC5 have the same conditions for the test case, but have different checks and fire different errors
