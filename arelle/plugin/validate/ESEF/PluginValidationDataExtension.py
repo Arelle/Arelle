@@ -12,7 +12,7 @@ from arelle.ModelObject import ModelObject
 from arelle.ModelXbrl import ModelXbrl
 from arelle.utils.PluginData import PluginData
 from arelle.utils.validate.ContextIssues import ContextIssues, getContextIssues, getContextsByEntityIdentifier
-from arelle.plugin.validate.ESEF.Const import TARGET_UKFRS, UKSEF_ENTRY_POINT_PATTERN
+from .Const import TARGET_UKFRS, UKSEF_ENTRY_POINT_PATTERN
 
 _LINK_SCHEMA_REF = f"{{{XbrlConst.link}}}schemaRef"
 _XLINK_HREF = f"{{{XbrlConst.xlink}}}href"
