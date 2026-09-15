@@ -1144,6 +1144,7 @@ TypeSValue = Union[
     str,
 ]
 TypeXValue = Union[
+    bool,
     datetime.datetime,
     datetime.time,
     Decimal,
@@ -1154,6 +1155,7 @@ TypeXValue = Union[
     gMonthDay,
     gYearMonth,
     gYear,
+    int,
     IsoDuration,
     Fraction,
     list[Optional[QName]],
