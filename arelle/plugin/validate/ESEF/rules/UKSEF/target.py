@@ -15,8 +15,8 @@ from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.XbrlConst import ixbrl, ixbrl11
-from arelle.plugin.validate.ESEF.Const import AUTHORITY_UKFRC, TARGET_UKFRS
-from arelle.plugin.validate.ESEF.PluginValidationDataExtension import PluginValidationDataExtension
+from ...Const import AUTHORITY_UKFRC, TARGET_UKFRS
+from ...PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
 
