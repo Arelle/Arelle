@@ -88,7 +88,7 @@ class NewFactItemOptions:
     - entityIdentValue
     - startDate
     - endDate
-    - monetaryUnit (str prefix:localName, e.g, iso4217:JPY)
+    - monetaryUnit (currency code without a prefix, e.g., JPY)
     - monetaryDecimals (decimals attribute for numeric monetary facts)
     - nonMonetaryDecimals (decimals attribute for numeric non-monetary facts, e.g., shares)
 
