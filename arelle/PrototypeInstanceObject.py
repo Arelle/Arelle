@@ -125,12 +125,12 @@ class ContextPrototype:  # behaves like a context
             elif aspect == Aspect.END:
                 self.isStartEndPeriod = True
                 if isinstance(aspectValue, DateTime) and aspectValue.dateOnly: # passed by reference, need a new datetime object
-                    aspectValue = dateTime(aspectValue, addOneDay=True, type=DATETIME)  # type: ignore[assignment]
+                    aspectValue = dateTime(aspectValue, addOneDay=True, type=DATETIME)
                 self.endDatetime = aspectValue  # type: ignore[assignment]
             elif aspect == Aspect.INSTANT:
                 self.isInstantPeriod = True
                 if isinstance(aspectValue, DateTime) and aspectValue.dateOnly: # passed by reference, need a new datetime object
-                    aspectValue = dateTime(aspectValue, addOneDay=True, type=DATETIME)  # type: ignore[assignment]
+                    aspectValue = dateTime(aspectValue, addOneDay=True, type=DATETIME)
                 self.endDatetime = self.instantDatetime = aspectValue  # type: ignore[assignment]
             elif aspect == Aspect.VALUE:
                 self.entityIdentifier = (self.entityIdentifier[0], aspectValue)  # type: ignore[assignment]

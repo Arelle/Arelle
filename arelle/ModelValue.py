@@ -323,6 +323,16 @@ def tzinfoStr(dt: datetime.datetime | datetime.date) -> str:
 
 @overload
 def dateTime(
+    value: datetime.date,
+    time: Any = ...,
+    addOneDay: bool = ...,
+    type: int | None = ...,
+    castException: type[Exception] | None = ...,
+) -> DateTime: ...
+
+
+@overload
+def dateTime(
     value: str | ModelObject | DateTime | datetime.datetime | datetime.date | None,
     time: Any = ...,
     addOneDay: bool = ...,
@@ -490,12 +500,12 @@ def dateUnionEqual(
         if instantEndDate and dateUnion1.dateOnly:
             dateUnion1 += datetime.timedelta(1)
     elif isinstance(dateUnion1,datetime.date):
-        dateUnion1 = cast(DateTime, dateTime(dateUnion1, addOneDay=instantEndDate))
+        dateUnion1 = dateTime(dateUnion1, addOneDay=instantEndDate)
     if isinstance(dateUnion2, DateTime):
         if instantEndDate and dateUnion2.dateOnly:
             dateUnion2 += datetime.timedelta(1)
     elif isinstance(dateUnion2,datetime.date):
-        dateUnion2 = cast(DateTime, dateTime(dateUnion2, addOneDay=instantEndDate))
+        dateUnion2 = dateTime(dateUnion2, addOneDay=instantEndDate)
     return dateUnion1 == dateUnion2
 
 def dateunionDate(datetimeValue: datetime.date, subtractOneDay: bool = False) -> datetime.date:
