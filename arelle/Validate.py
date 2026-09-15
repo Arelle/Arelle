@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import bisect
 import fnmatch
-import gc
 import logging
 import os
 import time
@@ -179,7 +178,12 @@ class Validate:
                 supplementalModelXbrl.close()
             except Exception:
                 pass
-        modelXbrl.close()
+        # ModelManager.close also collects garbage.  A closed filing's model objects and lxml trees remain in
+        # reference cycles, which only the cycle collector frees, and its automatic passes are triggered by
+        # allocation counts, not memory, so over a long feed several closed filings would otherwise stay alive
+        # between passes.  The item's modelXbrl is passed explicitly: it is not the modelManager's current
+        # modelXbrl (the feed), which close() would otherwise close.
+        self.modelXbrl.modelManager.close(modelXbrl)
 
     def validateRssFeed(self) -> None:
         self.modelXbrl.info("info", "RSS Feed", modelDocument=self.modelXbrl)
@@ -252,11 +256,6 @@ class Validate:
                 except Exception as err:
                     pass
             del modelXbrl  # completely dereference
-            # A closed filing's model objects and lxml trees remain in reference cycles, which only the cycle
-            # collector frees.  Its automatic passes are triggered by allocation counts, not memory, so over a
-            # long feed several closed filings stay alive between passes and resident memory grows with the
-            # largest of them.  Collecting once per item keeps memory to about one filing at a time.
-            gc.collect()
 
     def validateTestcase(self, testcase: ModelDocument) -> None:
         self.modelXbrl.info("info", "Testcase", modelDocument=testcase)

@@ -19,37 +19,48 @@ def _feedValidator(rssItems: list[MagicMock]) -> Validate:
     return validator
 
 
-def _rssItem(url: str) -> MagicMock:
-    return MagicMock(skipRssItem=False, status=None, doNotProcessRSSitem=False, zippedUrl=url)
+def _rssItem(url: str, doNotProcess: bool = False) -> MagicMock:
+    return MagicMock(skipRssItem=False, status=None, doNotProcessRSSitem=doNotProcess, zippedUrl=url)
 
 
-def _loadedModelXbrl(name: str, events: list[str]) -> MagicMock:
+def _loadedModelXbrl() -> MagicMock:
     modelXbrl = MagicMock(supplementalModelXbrls=())
     modelXbrl.modelManager.cntlr.plugins.hooks.return_value = []
-    modelXbrl.close.side_effect = lambda: events.append(f"close {name}")
     return modelXbrl
 
 
-def test_validateRssFeed_collects_garbage_after_each_item() -> None:
-    events: list[str] = []
-    loaded = [_loadedModelXbrl("a", events), _loadedModelXbrl("b", events)]
+def test_validateRssFeed_closes_each_item_through_model_manager() -> None:
+    loaded = [_loadedModelXbrl(), _loadedModelXbrl()]
     validator = _feedValidator([_rssItem("https://example.com/a.zip"), _rssItem("https://example.com/b.zip")])
     with (
         patch.object(ValidateModule, "openFileSource", return_value=MagicMock(selection="entry.htm")),
         patch.object(ValidateModule, "modelXbrlLoad", side_effect=loaded),
-        patch.object(ValidateModule.gc, "collect", side_effect=lambda: events.append("collect")),
     ):
         validator.validateRssFeed()
-    assert events == ["close a", "collect", "close b", "collect"]
+    closed = [c.args[0] for c in validator.modelXbrl.modelManager.close.call_args_list]
+    assert closed == loaded  # each item's own modelXbrl, never the feed's (close() without one)
 
 
-def test_validateRssFeed_collects_garbage_after_item_exception() -> None:
-    validator = _feedValidator([_rssItem("https://example.com/a.zip")])
+def test_validateRssFeed_closes_skipped_item_through_model_manager() -> None:
+    loaded = [_loadedModelXbrl()]
+    validator = _feedValidator([_rssItem("https://example.com/a.zip", doNotProcess=True)])
     with (
         patch.object(ValidateModule, "openFileSource", return_value=MagicMock(selection="entry.htm")),
-        patch.object(ValidateModule, "modelXbrlLoad", side_effect=OSError("unloadable")),
-        patch.object(ValidateModule.gc, "collect") as collect,
+        patch.object(ValidateModule, "modelXbrlLoad", side_effect=loaded),
+    ):
+        validator.validateRssFeed()
+    validator.instValidator.validate.assert_not_called()
+    validator.modelXbrl.modelManager.close.assert_called_once_with(loaded[0])
+
+
+def test_validateRssFeed_closes_item_after_validation_exception() -> None:
+    loaded = [_loadedModelXbrl()]
+    validator = _feedValidator([_rssItem("https://example.com/a.zip")])
+    validator.instValidator.validate.side_effect = RuntimeError("validation failed")
+    with (
+        patch.object(ValidateModule, "openFileSource", return_value=MagicMock(selection="entry.htm")),
+        patch.object(ValidateModule, "modelXbrlLoad", side_effect=loaded),
     ):
         validator.validateRssFeed()
     validator.modelXbrl.error.assert_called_once()
-    collect.assert_called_once_with()
+    validator.modelXbrl.modelManager.close.assert_called_once_with(loaded[0])
