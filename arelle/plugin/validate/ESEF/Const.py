@@ -60,6 +60,10 @@ esefTaxonomyNamespaceURIs = frozenset((
     "https://xbrl.ifrs.org/taxonomy/20",
 ))
 
+UKSEF_ENTRY_POINT_PATTERN = re.compile(
+    r"^https://xbrl\.frc\.org\.uk/(FRS-102|IFRS)/(2023|2024|2025)-01-01/UKSEF/\1-\2-01-01\.xsd$"
+)
+
 disallowedURIsPattern = re.compile(
     "http://xbrl.ifrs.org/taxonomy/[0-9-]{10}/full_ifrs/full_ifrs-cor_[0-9-]{10}[.]xsd|"
     "http://www.esma.europa.eu/taxonomy/[0-9-]{10}/esef_all.xsd"
