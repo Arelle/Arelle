@@ -9,6 +9,7 @@ without populating a model, so these types are parsed here without that limit.
 
 from __future__ import annotations
 
+import calendar
 import math
 from dataclasses import dataclass
 from decimal import Decimal
@@ -65,16 +66,6 @@ def _sign(value: Decimal) -> int:
     return 0
 
 
-def is_leap_year(year: int) -> bool:
-    return year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
-
-
-def days_in_month(year: int, month: int) -> int:
-    if month == 2:
-        return 29 if is_leap_year(year) else 28
-    return 30 if month in (4, 6, 9, 11) else 31
-
-
 def days_since_epoch(year: int, month: int, day: int) -> int:
     """Days from 1970-01-01 to the given Gregorian date, for any integer year.
 
@@ -125,7 +116,7 @@ def _parse(pattern: regex.Pattern[str], value: str) -> XsInstant | None:
     year = year_number(groups["year"])
     month = int(groups.get("month") or 1)
     day = int(groups.get("day") or 1)
-    if day > days_in_month(year, month):
+    if day > calendar.monthrange(year, month)[1]:
         return None
     hour = int(groups.get("hour") or 0)
     minute = int(groups.get("minute") or 0)
