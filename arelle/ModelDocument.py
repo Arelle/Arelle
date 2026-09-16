@@ -1570,7 +1570,7 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
             if isinstance(elt,ModelObject) and elt.id:
                 continuationElements[elt.id] = elt
         for elt in htmlElement.iterdescendants(tag=XbrlConst.qnIXbrl11Footnote.clarkNotation):
-            if isinstance(elt,ModelObject):
+            if isinstance(elt,ModelObject) and elt.footnoteID is not None:
                 modelInlineFootnotesById[elt.footnoteID] = elt
         for elt in htmlElement.iterdescendants(tag=ixNStag + "references"):
             if isinstance(elt,ModelObject):
@@ -1678,7 +1678,7 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
             arcrole = modelInlineFootnote.get("arcrole", XbrlConst.factFootnote)
             footnoteLinkRole = modelInlineFootnote.get("footnoteLinkRole", XbrlConst.defaultLinkRole)
             footnoteRole = modelInlineFootnote.get("footnoteRole")
-            for _target in targetsByFootnoteId[modelInlineFootnote.footnoteID]:
+            for _target in targetsByFootnoteId.get(modelInlineFootnote.footnoteID, ()):
                 targetRoleUris[_target].add(footnoteLinkRole)
                 targetArcroleUris[_target].add(arcrole)
                 if footnoteRole:

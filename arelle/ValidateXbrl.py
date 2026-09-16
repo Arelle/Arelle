@@ -532,11 +532,10 @@ class ValidateXbrl:
                 else:
                     if self.validateGFM:
                         elt = objs[0]
-                        id = elt.footnoteID
-                        if id and id not in factFootnoteRefs and elt.textValue:
+                        if _id not in factFootnoteRefs and elt.textValue:
                             self.modelXbrl.error(("EFM.N/A", "GFM:1.10.15"),
                                 _("Inline XBRL non-empty footnote %(footnoteID)s is not referenced by any fact"),
-                                modelObject=elt, footnoteID=id)
+                                modelObject=elt, footnoteID=_id)
             if not self.ixdsHeaderCount:
                 modelXbrl.error(ixMsgCode("headerMissing", ns=_ixNS, name="header", sect="validation"),
                     _("Inline XBRL document set must have at least one ix:header element"),
