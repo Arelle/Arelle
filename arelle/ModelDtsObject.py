@@ -1764,7 +1764,7 @@ class ModelLink(ModelObject, LinkRelationships):
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelLink, self).init(modelDocument)
         self.labeledResources = defaultdict(list)
-        self.role = self.get("{http://www.w3.org/1999/xlink}role")  # type: ignore[assignment]
+        self.role = self.get("{http://www.w3.org/1999/xlink}role")
         self.initRelationships()
 
 class ModelResource(ModelObject, ModelResourceBase):

@@ -163,7 +163,8 @@ def checkFilingDTS(
                             if (
                                 label.role not in standardLabelRoles
                                 and not (  # not in LRR
-                                    label.role in val.modelXbrl.roleTypes
+                                    label.role is not None
+                                    and label.role in val.modelXbrl.roleTypes
                                     and val.modelXbrl.roleTypes[label.role][
                                         0
                                     ].modelDocument.uri.startswith(

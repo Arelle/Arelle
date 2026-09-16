@@ -222,7 +222,7 @@ class ViewRelationshipSet(ViewFile.View):
             elif self.arcrole == "Table-rendering":
                 text = concept.localName
                 xmlRowElementName = "element"
-                attr = {"label": concept.xlinkLabel}
+                attr = {"label": concept.xlinkLabel or ""}
             elif isinstance(concept, ModelDtsObject.ModelResource):
                 if self.showReferences:
                     text = (concept.viewText().strip() or concept.localName)

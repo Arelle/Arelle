@@ -117,16 +117,16 @@ class ModelObject(etree.ElementBase, ModelObjectBase):
     xValue: TypeXValue
     xValueError: Exception | None
     xValid: int
-    xlinkLabel: str
+    xlinkLabel: str | None
     tag: str
     targetModelXbrl: ModelXbrl
-    typeQname: QName
-    balance: str
-    periodType: str
-    xmlLang: str
-    footnoteID: str
-    role: str
-    type: ModelType
+    typeQname: QName | None
+    balance: str | None
+    periodType: str | None
+    xmlLang: str | None
+    footnoteID: str | None
+    role: str | None
+    type: ModelType | None
     isAbstract: bool
     isQualifiedForm: bool
     isNumeric: bool
