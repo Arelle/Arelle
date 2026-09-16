@@ -83,6 +83,83 @@ class TestValidateDate:
         assert _validator(tc_types.DATE).validate(value) is expected
 
 
+class TestValidateWideYearDates:
+    @pytest.mark.parametrize(
+        "constraint_type, value, expected",
+        [
+            (tc_types.DATE, "12024-01-01", True),
+            (tc_types.DATE, "-12024-01-01", True),
+            (tc_types.DATE, " 2024-01-01 ", True),
+            (tc_types.DATE, "+12024-01-01", False),
+            (tc_types.DATE, "0000-01-01", False),
+            (tc_types.DATE_TIME, "-12024-01-01T00:00:00Z", True),
+            (tc_types.DATE_TIME, "2024-01-01T24:00:00", True),
+            (tc_types.DATE_TIME, "2024-01-01T24:00:01", False),
+            (tc_types.DATE_TIME, "2016-12-31T23:59:60Z", True),
+            (tc_types.DATE_TIME, "2016-12-31T23:59:61Z", False),
+            (tc_types.G_YEAR, "-12024", True),
+            (tc_types.G_YEAR, "12024Z", True),
+            (tc_types.G_YEAR_MONTH, "-12024-12", True),
+            (tc_types.G_YEAR_MONTH, "12024-13", False),
+        ],
+    )
+    def test_wide_year_validation(self, constraint_type: QName, value: str, expected: bool) -> None:
+        assert _validator(constraint_type).validate(value) is expected
+
+    @pytest.mark.parametrize(
+        "kwargs, value, expected",
+        [
+            ({"min_inclusive": "12024-01-01"}, "12024-01-01", True),
+            ({"min_inclusive": "12024-01-01"}, "12023-12-31", False),
+            ({"min_exclusive": "-12024-01-01"}, "-12024-01-01", False),
+            ({"min_exclusive": "-12024-01-01"}, "-12023-01-01", True),
+            ({"max_inclusive": "2024-01-01Z"}, "2024-01-01+01:00", True),
+            ({"max_inclusive": "2024-01-01Z"}, "2024-01-01-01:00", False),
+            ({"max_exclusive": "2024-01-01Z"}, "2024-01-01", False),
+        ],
+    )
+    def test_wide_year_bounds(self, kwargs: dict[str, str], value: str, expected: bool) -> None:
+        assert _validator(tc_types.DATE, **kwargs).validate(value) is expected
+
+    @pytest.mark.parametrize(
+        "constraint_type, members, value, expected",
+        [
+            (tc_types.DATE, {"12024-01-01", "-12024-01-01"}, "-12024-01-01", True),
+            (tc_types.DATE, {"12024-01-01"}, "12024-01-02", False),
+            (tc_types.DATE_TIME, {"2024-01-02T00:00:00"}, "2024-01-01T24:00:00", True),
+            (tc_types.DATE_TIME, {"2024-01-01T00:00:00Z"}, "2024-01-01T01:00:00+01:00", True),
+            (tc_types.DATE_TIME, {"2024-01-01T00:00:00Z"}, "2024-01-01T00:00:00", False),
+            (tc_types.G_YEAR, {"-12024"}, "-12024", True),
+            (tc_types.G_YEAR, {"-12024"}, "12024", False),
+        ],
+    )
+    def test_wide_year_enumeration(
+        self, constraint_type: QName, members: set[str], value: str, expected: bool
+    ) -> None:
+        assert _validator(constraint_type, enumeration_values=frozenset(members)).validate(value) is expected
+
+
+class TestValidateWhitespaceNormalisation:
+    @pytest.mark.parametrize(
+        "constraint_type, patterns, value, expected",
+        [
+            (tc_types.STRING, {" A"}, " A", True),
+            (tc_types.STRING, {" A"}, "A", False),
+            (tc_types.STRING, {"A"}, "\tA", False),
+            (tc_types.NORMALIZED_STRING, {" A"}, "\tA", True),
+            (tc_types.NORMALIZED_STRING, {"A"}, " A", False),
+            (tc_types.TOKEN, {"A"}, " \r\nA\t", True),
+            (tc_types.TOKEN, {"D D"}, "D  D", True),
+            (tc_types.TOKEN, {" A"}, "A", False),
+            (tc_types.INTEGER, {"1"}, " 1 ", True),
+        ],
+    )
+    def test_patterns_apply_to_the_normalised_value(
+        self, constraint_type: QName, patterns: set[str], value: str, expected: bool
+    ) -> None:
+        assert _validator(constraint_type, patterns=frozenset(patterns)).validate(value) is expected
+
+
 class TestValidateGMonthDay:
     @pytest.mark.parametrize(
         "value, expected",
@@ -317,6 +394,58 @@ class TestValidatePeriodType:
         assert _validator(tc_types.CORE_PERIOD, period_type=period_type).validate(value) is expected
 
 
+class TestValidateWideYearPeriods:
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ("12024", True),
+            ("-2024", True),
+            ("-12024H1@end", True),
+            ("12024Q4", True),
+            ("-0001W52", True),
+            ("-0001W53", False),
+            ("12024-02", True),
+            ("-12024-01-01", True),
+            ("12024-02-29", True),
+            ("12023-02-29", False),
+            ("-12024-01-01T00:00:00Z", True),
+            ("12024-01-01T00:00:00+01:00", True),
+            ("12024-01-01T00:00:00+00:00", False),
+            ("12024-01-01T00:00:00+0100", False),
+            ("12024-01-01T24:00:00", False),
+            ("-2024-01-01..-2023-01-01", True),
+            ("-2023-01-01..-2024-01-01", False),
+            ("-12024-01-01T00:00:00/12024-01-01T00:00:00", True),
+            ("-0001-12-31T23:00:00/0001-01-01T00:00:00", True),
+            ("0001-01-01T00:00:00/-0001-12-31T23:00:00", False),
+            ("0000", False),
+            ("-0000Q1", False),
+            ("+12024", False),
+        ],
+    )
+    def test_wide_year_period_validation(self, value: str, expected: bool) -> None:
+        assert _validator(tc_types.CORE_PERIOD).validate(value) is expected
+
+    @pytest.mark.parametrize(
+        "period_type, value, expected",
+        [
+            ("year", "-12024", True),
+            ("week", "12024W01", True),
+            ("day", "-12024-01-01", True),
+            ("instant", "12024-01-01T00:00:00", True),
+            ("instant", "-12024H1@start", True),
+            ("instant", "-12024H1", False),
+        ],
+    )
+    def test_wide_year_period_type_validation(self, period_type: str, value: str, expected: bool) -> None:
+        assert _validator(tc_types.CORE_PERIOD, period_type=period_type).validate(value) is expected
+
+    def test_wide_year_enumeration_members_are_accepted(self) -> None:
+        validator = _validator(tc_types.CORE_PERIOD, enumeration_values=("-12024H1", "12024-01-01"))
+        assert validator.validate("-12024H1") is True
+        assert validator.validate("12024H1") is False
+
+
 class TestValidateDurationType:
     @pytest.mark.parametrize(
         "duration_type, value, expected",
@@ -373,6 +502,14 @@ class TestValidateTimeZone:
             (tc_types.G_YEAR, False, "2024", True),
             (tc_types.G_YEAR, False, "2024Z", False),
             (tc_types.G_YEAR, False, "2024+00:00", False),
+            (tc_types.G_YEAR, False, "-2024", True),
+            (tc_types.G_YEAR, True, "-2024", False),
+            (tc_types.G_YEAR_MONTH, False, "-2024-12", True),
+            (tc_types.G_YEAR, False, "-12024", True),
+            (tc_types.G_YEAR, True, "-12024", False),
+            (tc_types.G_YEAR_MONTH, False, "-12024-12", True),
+            (tc_types.DATE, False, "-12024-01-01", True),
+            (tc_types.DATE, True, "-12024-01-01-05:00", True),
             # period instant with timeZone
             (tc_types.CORE_PERIOD, True, "2024-01-01T00:00:00Z", True),
             (tc_types.CORE_PERIOD, True, "2024-01-01T00:00:00", False),

@@ -8,11 +8,14 @@ import contextlib
 import math
 from collections.abc import Callable, Mapping
 from types import MappingProxyType
+from dataclasses import dataclass, replace
 from typing import Any, cast
 
 import regex
 
-from arelle.ModelValue import DateTime, QName, TypeXValue, dayTimeDuration, yearMonthDuration
+from arelle.ModelValue import QName, TypeXValue, dayTimeDuration, yearMonthDuration
+from arelle.oim._tc import xs_dates
+from arelle.oim._tc.xs_dates import XsInstant
 from arelle.oim._tc.const import (
     TCRE_INVALID_DURATION_TYPE,
     TCRE_INVALID_PERIOD_TYPE,
@@ -26,32 +29,77 @@ from arelle.oim._tc.metadata.types import (
     CORE_LANGUAGE,
     CORE_PERIOD,
     CORE_UNIT,
-    DATE,
-    DATE_TIME,
+    NORMALIZED_STRING,
     OPTIONALLY_TIME_ZONED_TYPES,
     QNAME,
+    STRING,
     resolve_effective_lexical_type,
 )
 from arelle.oim.const import (
-    PER_HALF_PATTERN,
-    PER_INCLUSIVE_DATES_PATTERN,
-    PER_ISO_PATTERN,
-    PER_MONTH_PATTERN,
-    PER_QTR_PATTERN,
-    PER_SINGLE_DAY_PATTERN,
-    PER_TZ_PATTERN,
-    PER_WEEK_PATTERN,
-    PER_YEAR_PATTERN,
     PREFIXED_QNAME_PATTERN,
     SQNAME_PATTERN,
     UNIT_PATTERN,
     UNIT_QNAME_SUBSTITUTION_CHAR,
+    XSD_TZ,
     XSD_TZ_PATTERN,
+    XSD_YEAR,
 )
+from arelle.XmlUtil import collapseWhitespace, replaceWhitespace
 from arelle.XmlValidate import XmlValidationResult, XsdPattern, validateFacetValueString, validateValueString
 
 # TC prohibits uppercase characters in core language.
 _TC_CORE_LANGUAGE_PATTERN = regex.compile(r"[a-z]{1,8}(-[a-z0-9]{1,8})*$")
+
+# The xBRL-CSV period representations with XML Schema years, which the OIM patterns
+# limit to four digits. OIM periods require canonical UTC (Z), so +00:00 is rejected.
+_PERIOD_YEAR = rf"(?!-?0000){XSD_YEAR}"
+_PERIOD_DATE = rf"{_PERIOD_YEAR}-[0-9]{{2}}-[0-9]{{2}}"
+_PERIOD_TIME = r"(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]"
+_PERIOD_TZ = rf"(?![+-]00:00){XSD_TZ}"
+_PERIOD_DATETIME = rf"{_PERIOD_DATE}T{_PERIOD_TIME}(?:{_PERIOD_TZ})?"
+_PERIOD_SUFFIX = r"@(?P<suffix>start|end)"
+
+_PERIOD_TZ_PATTERN = regex.compile(rf"{_PERIOD_TZ}$")
+_PERIOD_ISO_PATTERN = regex.compile(rf"(?P<start>{_PERIOD_DATETIME})(?:/(?P<end>{_PERIOD_DATETIME}))?$")
+_PERIOD_INCLUSIVE_DATES_PATTERN = regex.compile(rf"(?P<start>{_PERIOD_DATE})\.\.(?P<end>{_PERIOD_DATE})$")
+_PERIOD_SINGLE_DAY_PATTERN = regex.compile(rf"(?P<date>{_PERIOD_DATE})(?:{_PERIOD_SUFFIX})?$")
+_PERIOD_MONTH_PATTERN = regex.compile(rf"(?P<year>{_PERIOD_YEAR})-(?P<month>0[1-9]|1[0-2])(?:{_PERIOD_SUFFIX})?$")
+_PERIOD_YEAR_PATTERN = regex.compile(rf"(?P<year>{_PERIOD_YEAR})(?:{_PERIOD_SUFFIX})?$")
+_PERIOD_QTR_PATTERN = regex.compile(rf"(?P<year>{_PERIOD_YEAR})Q(?P<quarter>[1-4])(?:{_PERIOD_SUFFIX})?$")
+_PERIOD_HALF_PATTERN = regex.compile(rf"(?P<year>{_PERIOD_YEAR})H(?P<half>[12])(?:{_PERIOD_SUFFIX})?$")
+_PERIOD_WEEK_PATTERN = regex.compile(
+    rf"(?P<year>{_PERIOD_YEAR})W(?P<week>0[1-9]|[1-4][0-9]|5[0-3])(?:{_PERIOD_SUFFIX})?$"
+)
+
+
+
+@dataclass(frozen=True, slots=True)
+class _TypedValue:
+    is_valid: bool
+    value: TypeXValue | XsInstant = None
+
+
+_INVALID_TYPED_VALUE = _TypedValue(is_valid=False)
+
+_BOUNDS_FACET_ALLOWED_ORDERS: Mapping[str, frozenset[int]] = MappingProxyType(
+    {
+        "minInclusive": frozenset({0, 1}),
+        "maxInclusive": frozenset({-1, 0}),
+        "minExclusive": frozenset({1}),
+        "maxExclusive": frozenset({-1}),
+    }
+)
+
+
+# Types validated without the model, so their years are not limited to the datetime range.
+_WIDE_YEAR_PARSERS: Mapping[str, Callable[[str], XsInstant | None]] = MappingProxyType(
+    {
+        "date": xs_dates.parse_date,
+        "dateTime": xs_dates.parse_date_time,
+        "gYear": xs_dates.parse_g_year,
+        "gYearMonth": xs_dates.parse_g_year_month,
+    }
+)
 
 
 class ValueConstraintValidator:
@@ -59,7 +107,15 @@ class ValueConstraintValidator:
         self._constraint = constraint
         self._namespaces = namespaces
         self._effective_lexical_type = resolve_effective_lexical_type(constraint.type, namespaces)
-        self._facets = self._build_facets()
+        self._wide_year_parser = None
+        if self._effective_lexical_type is not None:
+            self._wide_year_parser = _WIDE_YEAR_PARSERS.get(self._effective_lexical_type.localName)
+        self._facets: Mapping[str, Any] = MappingProxyType({})
+        self._wide_year_bounds: tuple[tuple[str, XsInstant], ...] = ()
+        if self._wide_year_parser is None:
+            self._facets = self._build_facets()
+        else:
+            self._wide_year_bounds = self._build_wide_year_bounds()
         self._compiled_patterns = self._compile_patterns()
         self._enumeration_typed_values = self._typed_enumeration_values()
 
@@ -89,17 +145,35 @@ class ValueConstraintValidator:
                     facets[facet_name] = result.xValue
         return MappingProxyType(facets)
 
+    def _build_wide_year_bounds(self) -> tuple[tuple[str, XsInstant], ...]:
+        """Bounds facets as instants. Unparseable bounds are reported by metadata validation."""
+        bounds = []
+        for facet_name, raw_value in (
+            ("minInclusive", self._constraint.min_inclusive),
+            ("maxInclusive", self._constraint.max_inclusive),
+            ("minExclusive", self._constraint.min_exclusive),
+            ("maxExclusive", self._constraint.max_exclusive),
+        ):
+            if raw_value is None:
+                continue
+            bound = self._parse_wide_year(raw_value)
+            if bound is not None:
+                bounds.append((facet_name, bound))
+        return tuple(bounds)
+
+    def _parse_wide_year(self, value: str) -> XsInstant | None:
+        assert self._wide_year_parser is not None
+        return self._wide_year_parser(collapseWhitespace(value))
+
     def _typed_enumeration_values(self) -> frozenset[object] | None:
-        """Enumeration members in the value space of the effective type, so that lexically
-        different representations of one value match. Members that are not valid for the
-        type are reported by metadata validation and are ignored here."""
+        """Enumeration members in the value space, so lexically different forms of one value match."""
         if self._constraint.enumeration_values is None or self._effective_lexical_type is None:
             return None
         typed_values = set()
         for member in self._constraint.enumeration_values:
-            result = self._validate_base_type(self._effective_lexical_type, member)
-            if result.isXValid:
-                typed_values.add(result.xValue)
+            result = self._typed_value(member)
+            if result.is_valid:
+                typed_values.add(result.value)
         return frozenset(typed_values)
 
     def _compile_patterns(self) -> tuple[XsdPattern, ...]:
@@ -118,14 +192,15 @@ class ValueConstraintValidator:
         """Returns the tcre error code for the first constraint the value violates, or None if it satisfies all."""
         if self._effective_lexical_type is None:
             return TCRE_INVALID_VALUE
-        typed_value_result = self._validate_base_type(self._effective_lexical_type, value, self._facets)
-        if not typed_value_result.isXValid:
+        typed_value = self._typed_value(value, with_facets=True)
+        if not typed_value.is_valid:
             return TCRE_INVALID_VALUE
+        value = self._normalized_lexical_value(value)
         if not self._is_patterns_valid(value):
             return TCRE_INVALID_VALUE
-        if not self._is_enumeration_valid(typed_value_result.xValue):
+        if not self._is_enumeration_valid(typed_value.value):
             return TCRE_INVALID_VALUE
-        if self._effective_lexical_type == QNAME and not self._is_valid_qname(typed_value_result.xValue):
+        if self._effective_lexical_type == QNAME and not self._is_valid_qname(typed_value.value):
             return TCRE_INVALID_VALUE
         if self._constraint.type == CORE_ENTITY and not self._is_valid_sqname(value):
             return TCRE_INVALID_VALUE
@@ -146,6 +221,21 @@ class ValueConstraintValidator:
             return TCRE_MISSING_TIME_ZONE if self._constraint.time_zone else TCRE_UNEXPECTED_TIME_ZONE
         return None
 
+    def _typed_value(self, value: str, with_facets: bool = False) -> _TypedValue:
+        """Parses value in the effective type, applying the bounds and length facets when asked."""
+        assert self._effective_lexical_type is not None
+        if self._wide_year_parser is None:
+            result = self._validate_base_type(self._effective_lexical_type, value, self._facets if with_facets else None)
+            return _TypedValue(result.isXValid, result.xValue)
+        instant = self._parse_wide_year(value)
+        if instant is None:
+            return _INVALID_TYPED_VALUE
+        if with_facets:
+            for facet_name, bound in self._wide_year_bounds:
+                if instant.compare(bound) not in _BOUNDS_FACET_ALLOWED_ORDERS[facet_name]:
+                    return _INVALID_TYPED_VALUE
+        return _TypedValue(True, instant)
+
     def _validate_base_type(
         self,
         base_xsd_type: QName,
@@ -159,7 +249,14 @@ class ValueConstraintValidator:
             nsmap=cast(Mapping[str | None, str], self._namespaces),
         )
 
-    def _is_enumeration_valid(self, typed_value: TypeXValue) -> bool:
+    def _normalized_lexical_value(self, value: str) -> str:
+        if self._effective_lexical_type == STRING:
+            return value
+        if self._effective_lexical_type == NORMALIZED_STRING:
+            return replaceWhitespace(value)
+        return collapseWhitespace(value)
+
+    def _is_enumeration_valid(self, typed_value: TypeXValue | XsInstant) -> bool:
         if self._enumeration_typed_values is None:
             return True
         if typed_value in self._enumeration_typed_values:
@@ -176,7 +273,7 @@ class ValueConstraintValidator:
             return True
         return any(pattern.match(value) is not None for pattern in self._compiled_patterns)
 
-    def _is_valid_qname(self, typed_value: TypeXValue) -> bool:
+    def _is_valid_qname(self, typed_value: TypeXValue | XsInstant) -> bool:
         if not isinstance(typed_value, QName):
             return False
         if not typed_value.prefix:
@@ -218,12 +315,12 @@ class ValueConstraintValidator:
         return True
 
     def _period_timezone_matches(self, value: str) -> bool:
-        match = PER_ISO_PATTERN.fullmatch(value)
+        match = _PERIOD_ISO_PATTERN.fullmatch(value)
         if match is None:
             return not self._constraint.time_zone
-        has_start_tz = PER_TZ_PATTERN.search(match.group("start")) is not None
+        has_start_tz = _PERIOD_TZ_PATTERN.search(match.group("start")) is not None
         if end_val := match.group("end"):
-            has_end_tz = PER_TZ_PATTERN.search(end_val) is not None
+            has_end_tz = _PERIOD_TZ_PATTERN.search(end_val) is not None
             return has_start_tz == has_end_tz == self._constraint.time_zone
         return self._constraint.time_zone == has_start_tz
 
@@ -252,44 +349,37 @@ class ValueConstraintValidator:
         return qnames == sorted(qnames)
 
 
-def _parse_date(value: str) -> DateTime | None:
-    return _parse_date_or_datetime(value, DATE)
-
-
-def _parse_datetime(value: str) -> DateTime | None:
-    return _parse_date_or_datetime(value, DATE_TIME)
-
-
-def _parse_date_or_datetime(value: str, xsd_type: QName) -> DateTime | None:
-    stripped = PER_TZ_PATTERN.sub("", value)
-    result = validateValueString(xsd_type.localName, stripped)
-    if result.isXValid and isinstance(result.xValue, DateTime):
-        return result.xValue
-    return None
+def _period_order(start: XsInstant, end: XsInstant) -> int:
+    if start.zoned != end.zoned:
+        # Only one end has a time zone, so compare both on the timeline as given.
+        end = replace(end, zoned=start.zoned)
+    order = start.compare(end)
+    assert order is not None
+    return order
 
 
 def _is_valid_year_period(value: str) -> bool:
-    return PER_YEAR_PATTERN.fullmatch(value) is not None
+    return _PERIOD_YEAR_PATTERN.fullmatch(value) is not None
 
 
 def _is_valid_half_period(value: str) -> bool:
-    return PER_HALF_PATTERN.fullmatch(value) is not None
+    return _PERIOD_HALF_PATTERN.fullmatch(value) is not None
 
 
 def _is_valid_quarter_period(value: str) -> bool:
-    return PER_QTR_PATTERN.fullmatch(value) is not None
+    return _PERIOD_QTR_PATTERN.fullmatch(value) is not None
 
 
 def _is_valid_month_period(value: str) -> bool:
-    return PER_MONTH_PATTERN.fullmatch(value) is not None
+    return _PERIOD_MONTH_PATTERN.fullmatch(value) is not None
 
 
 def _is_valid_week_period(value: str) -> bool:
-    match = PER_WEEK_PATTERN.fullmatch(value)
+    match = _PERIOD_WEEK_PATTERN.fullmatch(value)
     if match is None:
         return False
     week = int(match.group("week"))
-    year = int(match.group("year"))
+    year = xs_dates.year_number(match.group("year"))
     return 1 <= week <= _iso_weeks_in_year(year)
 
 
@@ -301,42 +391,37 @@ def _iso_weeks_in_year(year: int) -> int:
 
 
 def _is_valid_day_period(value: str) -> bool:
-    match = PER_SINGLE_DAY_PATTERN.fullmatch(value)
+    match = _PERIOD_SINGLE_DAY_PATTERN.fullmatch(value)
     if match is None:
         return False
-    date_group = match.group("date")
-    return _parse_date(date_group) is not None
+    return xs_dates.parse_date(match.group("date")) is not None
 
 
 def _is_valid_instant_period(value: str) -> bool:
-    match = PER_ISO_PATTERN.fullmatch(value)
+    match = _PERIOD_ISO_PATTERN.fullmatch(value)
     if match is not None and match.group("end") is None:
-        return _parse_datetime(match.group("start")) is not None
+        return xs_dates.parse_date_time(match.group("start")) is not None
     if value.endswith(("@start", "@end")):
         return any(v(value) for v in _ABBREVIATED_PERIOD_VALIDATORS)
     return False
 
 
 def _is_valid_duration_period(value: str) -> bool:
-    match = PER_ISO_PATTERN.fullmatch(value)
-    if match is None:
+    match = _PERIOD_ISO_PATTERN.fullmatch(value)
+    if match is None or match.group("end") is None:
         return False
-    start_group = match.group("start")
-    end_group = match.group("end")
-    if start_group is None or end_group is None:
-        return False
-    start_dt = _parse_datetime(start_group)
-    end_dt = _parse_datetime(end_group)
-    return start_dt is not None and end_dt is not None and start_dt < end_dt
+    start = xs_dates.parse_date_time(match.group("start"))
+    end = xs_dates.parse_date_time(match.group("end"))
+    return start is not None and end is not None and _period_order(start, end) == -1
 
 
 def _is_valid_range_period(value: str) -> bool:
-    match = PER_INCLUSIVE_DATES_PATTERN.fullmatch(value)
+    match = _PERIOD_INCLUSIVE_DATES_PATTERN.fullmatch(value)
     if match is None:
         return False
-    start_dt = _parse_date(match.group("start"))
-    end_dt = _parse_date(match.group("end"))
-    return start_dt is not None and end_dt is not None and start_dt <= end_dt
+    start = xs_dates.parse_date(match.group("start"))
+    end = xs_dates.parse_date(match.group("end"))
+    return start is not None and end is not None and start.compare(end) != 1
 
 
 _ABBREVIATED_PERIOD_VALIDATORS: tuple[Callable[[str], bool], ...] = tuple(
