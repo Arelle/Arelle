@@ -970,6 +970,20 @@ class DefnMdlTable(ModelFormulaResource):
         return parentChildOrder(self)
 
     @property
+    def positionalDimensionsOnly(self) -> bool:
+        """Whether dimensions the table does not address constrain its cells.
+
+        When true, a dimension which none of the table's breakdowns identifies
+        places no constraint on a cell, and facts are selected irrespective of
+        whether they report it.  The dimensions the table does address -- its
+        positional dimensions -- are unaffected: they are constrained in every
+        cell already, either explicitly or by the inference drawn for aspects
+        participating in a breakdown, so relaxing this cannot weaken them.
+        """
+        return any(self.get(clarkName) in ("true", "1")
+                   for clarkName in XbrlConst.cnTablePositionalDimensionsOnly)
+
+    @property
     def descendantArcroles(self) -> tuple[str, ...]:  # type: ignore[override]
         return (XbrlConst.tableFilter, XbrlConst.tableFilterMMDD,
                 XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD,
