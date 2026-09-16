@@ -52,6 +52,15 @@ DIRECTORY_INDEX_FILE = "!~DirectoryIndex~!"
 FILE_LOCK_TIMEOUT = 30
 INF = float("inf")
 RETRIEVAL_RETRY_COUNT = 5
+# HTTP status codes of server conditions that a repeated request may not meet: a request timed out, too many
+# requests, and server errors such as 503 Service Unavailable, which a busy server returns during sustained
+# retrieval of many files.
+TRANSIENT_HTTP_STATUS_CODES = frozenset({408, 429, 500, 502, 503, 504})
+TRANSIENT_RETRY_BASE_DELAY_SECONDS = 1.0
+# Total wait for the retries of one download.  A download holds the cache file lock, and another process waiting
+# on that lock gives up after FILE_LOCK_TIMEOUT, so the wait is kept well below it.  A wait that would exceed the
+# budget is not shortened: retrying before the delay a server asked for risks its penalties, so the download fails.
+TRANSIENT_RETRY_WAIT_BUDGET_SECONDS = 20.0
 HTTP_USER_AGENT = "Mozilla/5.0 (Arelle/{}) Email/NotRegistered@arelle.org".format(__version__)
 
 # The xbrl.org server accepts requests for both http and https as well as with or without the WWW subdomain.
@@ -737,6 +746,8 @@ class WebCache:
         # self.modelManager.addToLog('web caching: {0}'.format(url))
 
         # download to a temporary name so it is not left readable corrupted if download fails
+        initialRetryCount = retryCount
+        transientRetryWaitSeconds = 0.0
         while retryCount > 0:
             try:
                 self.progressUrl = url
@@ -874,6 +885,19 @@ class WebCache:
                 if retrievingDueToRecheckInterval:
                     self.internetRecheckFailedRecovery(url, err, timeNowStr)
                     return True
+                if retryCount > 1 and WebCache._isTransientRetrievalError(err):
+                    delay = WebCache._transientRetryDelay(err, initialRetryCount - retryCount)
+                    # A delay the budget cannot accommodate ends the retries.  It is not shortened: a request
+                    # repeated before the delay a server asked for in Retry-After may draw its penalties.
+                    if transientRetryWaitSeconds + delay <= TRANSIENT_RETRY_WAIT_BUDGET_SECONDS:
+                        self.cntlr.addToLog(_("%(error)s \nunsuccessful retrieval of %(URL)s \n%(retryCount)s retries remaining, retrying in %(delay)s seconds"),
+                                            messageCode="webCache:retryingOperation",
+                                            messageArgs={"error": err, "URL": url, "retryCount": retryCount - 1, "delay": f"{delay:g}"},
+                                            level=logging.ERROR)
+                        time.sleep(delay)
+                        transientRetryWaitSeconds += delay
+                        retryCount -= 1
+                        continue
                 self.cntlr.addToLog(_("%(error)s \nretrieving %(URL)s"),
                                     messageCode="webCache:retrievalError",
                                     messageArgs={"error": err.reason if hasattr(err, "reason") else err,
@@ -941,6 +965,38 @@ class WebCache:
             self.cachedUrlCheckTimesModified = True
             return True
         return False
+
+    @staticmethod
+    def _isTransientRetrievalError(err: HTTPError | URLError) -> bool:
+        """
+        Whether a failed request may succeed if repeated.
+        :param err: Error raised by the request.
+        :return: True for an HTTP status of a transient server condition (TRANSIENT_HTTP_STATUS_CODES), or for a
+            timeout or dropped connection while connecting; False for other failures, such as 404 Not Found.
+        """
+        if isinstance(err, HTTPError):
+            return err.code in TRANSIENT_HTTP_STATUS_CODES
+        return isinstance(err.reason, (TimeoutError, ConnectionError))
+
+    @staticmethod
+    def _transientRetryDelay(err: HTTPError | URLError, retriesMade: int) -> float:
+        """
+        Seconds to wait before repeating a request that failed with a transient condition.
+        :param err: Error raised by the request.
+        :param retriesMade: Number of retries already made for this download.
+        :return: The server's Retry-After header, in seconds or as an HTTP date, when given; otherwise a delay
+            that doubles with each retry, starting from TRANSIENT_RETRY_BASE_DELAY_SECONDS.
+        """
+        headers = err.headers if isinstance(err, HTTPError) else None
+        retryAfter = headers.get("Retry-After") if headers is not None else None
+        if retryAfter:
+            retryAfter = retryAfter.strip()
+            if retryAfter.isdigit():
+                return float(retryAfter)
+            retryAfterTime = email_parsedate(retryAfter)
+            if retryAfterTime is not None:
+                return max(calendar.timegm(retryAfterTime) - time.time(), 0.0)
+        return TRANSIENT_RETRY_BASE_DELAY_SECONDS * 2.0 ** retriesMade
 
     def internetRecheckFailedRecovery(self, url: str, err: str | Exception, timeNowStr: str) -> None:
         self.cntlr.addToLog(_("During refresh of web file ignoring error: %(error)s for %(URL)s"),
