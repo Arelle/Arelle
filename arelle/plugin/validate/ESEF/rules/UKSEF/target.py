@@ -26,7 +26,7 @@ _TARGET_ALLOWED_LOCAL_NAMES = ("nonFraction", "nonNumeric", "footnote", "referen
 _TARGET_DISALLOWED_LOCAL_NAMES = ("resources", "continuation", "exclude")
 
 
-def _ix_tags_for_namespace(ns: str, local_names: Iterable[str]) -> tuple[str, ...]:
+def _ixTagsForNamespace(ns: str, local_names: Iterable[str]) -> tuple[str, ...]:
     """
     Build the fully qualified XML tag names for a given namespace and set of local names.
 
@@ -128,7 +128,7 @@ def rule_multipleEntryPoints(
             modelObject=foundTargets,
         )
 
-    if len(foundTargets) == 1:
+    elif len(foundTargets) == 1:
         uksefSchemaRefs = pluginData.getUksefSchemaRefs(foundTargets)
         if len(uksefSchemaRefs) > 1:
             yield Validation.error(
@@ -174,12 +174,12 @@ def rule_targetAttributeUsedForESEFContents(
 
     for ixdsHtmlRootElt in val.modelXbrl.ixdsHtmlElements or ():
         ns = getattr(ixdsHtmlRootElt.modelDocument, "ixNS", ixbrl11)
-        allowedTags = _ix_tags_for_namespace(ns, _TARGET_ALLOWED_LOCAL_NAMES)
-        disallowedTags = _ix_tags_for_namespace(ns, _TARGET_DISALLOWED_LOCAL_NAMES)
+        allowedTags = _ixTagsForNamespace(ns, _TARGET_ALLOWED_LOCAL_NAMES)
+        disallowedTags = _ixTagsForNamespace(ns, _TARGET_DISALLOWED_LOCAL_NAMES)
 
         otherNs = ixbrl if ns == ixbrl11 else ixbrl11
-        allowedTags += _ix_tags_for_namespace(otherNs, _TARGET_ALLOWED_LOCAL_NAMES)
-        disallowedTags += _ix_tags_for_namespace(otherNs, _TARGET_DISALLOWED_LOCAL_NAMES)
+        allowedTags += _ixTagsForNamespace(otherNs, _TARGET_ALLOWED_LOCAL_NAMES)
+        disallowedTags += _ixTagsForNamespace(otherNs, _TARGET_DISALLOWED_LOCAL_NAMES)
 
         for elt in ixdsHtmlRootElt.iter(*allowedTags, *disallowedTags):
             tag = getattr(elt, "tag", None)
@@ -190,7 +190,7 @@ def rule_targetAttributeUsedForESEFContents(
             if tag in allowedTags and targetValue == TARGET_UKFRS:
                 continue
 
-            if tag in allowedTags:
+            if tag in disallowedTags:
                 invalidTargetElts.append(elt)
                 invalidTargetValues.add(targetValue)
 

@@ -112,20 +112,17 @@ config = ConformanceSuiteConfig(
             "segmentUsed": 1,
         },
         "FRC_04/index.xml:TC2_invalid": {
-            "targetAttributeUsedForESEFContents": 1,
             # Data in this test case is invalid for the rule UKFRC5
             "noESEFData": 2,
-        },
-        "FRC_05/index.xml:TC2_valid": {
-            "targetAttributeUsedForESEFContents": 1,
-        },
-        "FRC_05/index.xml:TC3_valid": {
-            "targetAttributeUsedForESEFContents": 1,
         },
         "FRC_05/index.xml:TC4_invalid": {
             "incorrectTarget": 1,
         },
         "FRC_05/index.xml:TC5_invalid": {
+            # the `targetAttributeUsedForESEFContents` error appears because the test case
+            # has only one `ix:references` element with a target attribute "UKFRS"
+            # and has no `ix:references` element without a target attribute (default);
+            # it is similar to the rule UKFRC5, which fires `noESEFData` error.
             "targetAttributeUsedForESEFContents": 1,
         },
         "FRC_07/index.xml:TC2_invalid": {
