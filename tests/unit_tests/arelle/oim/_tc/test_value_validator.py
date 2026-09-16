@@ -394,6 +394,58 @@ class TestValidatePeriodType:
         assert _validator(tc_types.CORE_PERIOD, period_type=period_type).validate(value) is expected
 
 
+class TestValidateWideYearPeriods:
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ("12024", True),
+            ("-2024", True),
+            ("-12024H1@end", True),
+            ("12024Q4", True),
+            ("-0001W52", True),
+            ("-0001W53", False),
+            ("12024-02", True),
+            ("-12024-01-01", True),
+            ("12024-02-29", True),
+            ("12023-02-29", False),
+            ("-12024-01-01T00:00:00Z", True),
+            ("12024-01-01T00:00:00+01:00", True),
+            ("12024-01-01T00:00:00+00:00", False),
+            ("12024-01-01T00:00:00+0100", False),
+            ("12024-01-01T24:00:00", False),
+            ("-2024-01-01..-2023-01-01", True),
+            ("-2023-01-01..-2024-01-01", False),
+            ("-12024-01-01T00:00:00/12024-01-01T00:00:00", True),
+            ("-0001-12-31T23:00:00/0001-01-01T00:00:00", True),
+            ("0001-01-01T00:00:00/-0001-12-31T23:00:00", False),
+            ("0000", False),
+            ("-0000Q1", False),
+            ("+12024", False),
+        ],
+    )
+    def test_wide_year_period_validation(self, value: str, expected: bool) -> None:
+        assert _validator(tc_types.CORE_PERIOD).validate(value) is expected
+
+    @pytest.mark.parametrize(
+        "period_type, value, expected",
+        [
+            ("year", "-12024", True),
+            ("week", "12024W01", True),
+            ("day", "-12024-01-01", True),
+            ("instant", "12024-01-01T00:00:00", True),
+            ("instant", "-12024H1@start", True),
+            ("instant", "-12024H1", False),
+        ],
+    )
+    def test_wide_year_period_type_validation(self, period_type: str, value: str, expected: bool) -> None:
+        assert _validator(tc_types.CORE_PERIOD, period_type=period_type).validate(value) is expected
+
+    def test_wide_year_enumeration_members_are_accepted(self) -> None:
+        validator = _validator(tc_types.CORE_PERIOD, enumeration_values=("-12024H1", "12024-01-01"))
+        assert validator.validate("-12024H1") is True
+        assert validator.validate("12024H1") is False
+
+
 class TestValidateDurationType:
     @pytest.mark.parametrize(
         "duration_type, value, expected",

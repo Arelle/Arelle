@@ -46,10 +46,6 @@ config = ConformanceSuiteConfig(
         "720-tc-report-processor/index-tc-report-table.xml:V-61": {
             "tcme:illegalUniqueKeyOrder": 1,
         },
-        # Arelle's xBRL-CSV period patterns only allow four digit years.
-        "generated/facets-with-invalid-values/index-tc-facets-with-invalid-values.xml:V-GEN-facetValue-period-enumerationValues-valid": {
-            "tcme:illegalConstraint": 1,
-        },
     }.items()},
     expected_failure_ids=frozenset(f"table-constraints-conformance-{_VERSION}/{s}" for s in [
         "720-tc-report-processor/index-tc-report-table.xml:V-901-tp-unknown",
