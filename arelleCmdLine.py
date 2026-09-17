@@ -30,11 +30,9 @@ for arg in sys.argv[1:]:
         break
     prevArg = arg
 
-from arelle import CntlrCmdLine, CntlrComServer
+from arelle import CntlrCmdLine
 
-if "--COMserver" in sys.argv:
-    CntlrComServer.main()
-elif __name__.startswith("_mod_wsgi_") or os.getenv("wsgi.version"):
+if __name__.startswith("_mod_wsgi_") or os.getenv("wsgi.version"):
     application = CntlrCmdLine.wsgiApplication()
 elif __name__ in ("__main__", "arelleCmdLine__main__", "arellecmdline__main__"): #cx_Freeze 5 prepends module name to __main__
     CntlrCmdLine.main()
