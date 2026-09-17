@@ -7,13 +7,24 @@ from __future__ import annotations
 from collections.abc import Callable, Generator, Iterator, Mapping
 from dataclasses import dataclass
 
-from arelle.oim._tc.const import TCRE_INVALID_COLUMN_ORDER, TCRE_MISSING_COLUMN
+from arelle.oim._tc.const import (
+    TCRE_INVALID_COLUMN_ORDER,
+    TCRE_INVALID_VALUE,
+    TCRE_MISSING_COLUMN,
+    TCRE_MISSING_VALUE,
+)
 from arelle.oim._tc.metadata.model import (
     TCMetadata,
     TCTemplateConstraints,
     TCValueConstraint,
 )
+from arelle.oim._tc.report.cell import (
+    UnknownSpecialValue,
+    effective_value,
+    row_has_value,
+)
 from arelle.oim._tc.report.common import TCReportValidationError
+from arelle.oim.const import NIL_SPECIAL_VALUE, XBRLCE_UNKNOWN_SPECIAL_VALUE
 from arelle.oim.csv.metadata.model import XbrlCsvEffectiveMetadata, XbrlCsvTable
 from arelle.typing import TypeGetText
 
@@ -21,6 +32,8 @@ _: TypeGetText
 
 TableRows = Iterator[list[str]]
 TableOpener = Callable[[str, XbrlCsvTable], TableRows | None]
+
+_PROGRESS_ROW_INTERVAL = 1000
 
 
 @dataclass(frozen=True, slots=True)
@@ -33,6 +46,12 @@ class _ConstrainedColumn:
 class _Template:
     columns: tuple[_ConstrainedColumn, ...]
     column_order: tuple[str, ...] | None
+
+
+@dataclass(frozen=True, slots=True)
+class _CellViolation:
+    code: str
+    message: str
 
 
 class TCReportValidator:
@@ -91,6 +110,44 @@ class TCReportValidator:
             # The loader reports repeated identifiers, the first occurrence wins here.
             column_indexes.setdefault(name, index)
         yield from self._validate_header(table_id, table, template, column_indexes)
+        present_columns = [
+            (column, column_indexes[column.name])
+            for column in template.columns
+            if column.name in column_indexes
+        ]
+        for row_number, row in enumerate(rows, start=2):
+            if row_number % _PROGRESS_ROW_INTERVAL == 0:
+                self._report_progress(
+                    _("Validating table constraints of table {} row {}").format(
+                        table_id, row_number
+                    )
+                )
+            yield from self._validate_row(
+                table_id, table, present_columns, row_number, row
+            )
+
+    def _validate_row(
+        self,
+        table_id: str,
+        table: XbrlCsvTable,
+        present_columns: list[tuple[_ConstrainedColumn, int]],
+        row_number: int,
+        row: list[str],
+    ) -> Generator[TCReportValidationError, None, None]:
+        if not row_has_value(row):
+            return
+        for column, index in present_columns:
+            literal = row[index] if index < len(row) else ""
+            violation = self._validate_cell(column, literal)
+            if violation is not None:
+                yield TCReportValidationError(
+                    violation.message,
+                    code=violation.code,
+                    table_id=table_id,
+                    url=table.url,
+                    row=row_number,
+                    column=column.name,
+                )
 
     def _validate_header(
         self,
@@ -134,3 +191,26 @@ class TCReportValidator:
                 table_id=table_id,
                 url=table.url,
             )
+
+    @staticmethod
+    def _validate_cell(
+        column: _ConstrainedColumn, literal: str
+    ) -> _CellViolation | None:
+        constraint = column.constraint
+        if literal == NIL_SPECIAL_VALUE and not constraint.nillable:
+            return _CellViolation(
+                TCRE_INVALID_VALUE,
+                _("#nil is not permitted, the column is not nillable"),
+            )
+        try:
+            value = effective_value(literal)
+        except UnknownSpecialValue:
+            return _CellViolation(
+                XBRLCE_UNKNOWN_SPECIAL_VALUE,
+                _("unknown special value {!r}").format(literal),
+            )
+        if value is None and not constraint.optional:
+            return _CellViolation(
+                TCRE_MISSING_VALUE, _("the column is required and has no value")
+            )
+        return None

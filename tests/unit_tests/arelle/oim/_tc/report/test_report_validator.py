@@ -63,6 +63,69 @@ def _codes(errors: list[TCReportValidationError]) -> list[str]:
 _SINGLE_TABLE = _tables(t=XbrlCsvTable(url="t.csv"))
 
 
+class TestCells:
+    def test_required_column_without_value_is_missing(self) -> None:
+        tc = _tc(
+            t=_template(
+                n=TCValueConstraint("xs:integer"),
+                c=TCValueConstraint("xs:string", optional=True),
+            )
+        )
+        rows = [["c", "n"], ["x", ""], ["y", "#none"], ["z", "#nil"]]
+        errors = _run(_SINGLE_TABLE, tc, {"t.csv": rows})
+        assert _codes(errors) == [
+            "tcre:missingValue",
+            "tcre:missingValue",
+            "tcre:invalidValue",
+        ]
+        assert [error.row for error in errors] == [2, 3, 4]
+        assert (
+            str(errors[0])
+            == "table 't' row 2 column 'n': the column is required and has no value, url: t.csv"
+        )
+
+    def test_nil_is_allowed_when_nillable(self) -> None:
+        tc = _tc(
+            t=_template(n=TCValueConstraint("xs:integer", optional=True, nillable=True))
+        )
+        assert _run(_SINGLE_TABLE, tc, {"t.csv": [["n", "c"], ["#nil", "x"]]}) == []
+
+    def test_nil_in_required_column_is_invalid_not_missing(self) -> None:
+        tc = _tc(t=_template(n=TCValueConstraint("xs:integer")))
+        assert _codes(_run(_SINGLE_TABLE, tc, {"t.csv": [["n"], ["#nil"]]})) == [
+            "tcre:invalidValue"
+        ]
+
+    def test_unknown_special_value_is_reported(self) -> None:
+        tc = _tc(t=_template(n=TCValueConstraint("xs:string")))
+        errors = _run(
+            _SINGLE_TABLE, tc, {"t.csv": [["n"], ["#foo"], ["##foo"], ["#empty"]]}
+        )
+        assert _codes(errors) == ["xbrlce:unknownSpecialValue"]
+
+    def test_rows_without_any_value_are_skipped(self) -> None:
+        tc = _tc(t=_template(n=TCValueConstraint("xs:integer")))
+        rows = [["n", "c"], [], [""], ["", ""], ["", " "], ["1", ""]]
+        (error,) = _run(_SINGLE_TABLE, tc, {"t.csv": rows})
+        assert (error.code, error.row) == ("tcre:missingValue", 5)
+
+    def test_short_rows_are_treated_as_empty_cells(self) -> None:
+        tc = _tc(
+            t=_template(
+                n=TCValueConstraint("xs:integer", optional=True),
+                s=TCValueConstraint("xs:string"),
+            )
+        )
+        assert _codes(_run(_SINGLE_TABLE, tc, {"t.csv": [["s", "n"], ["a"]]})) == []
+        assert _codes(_run(_SINGLE_TABLE, tc, {"t.csv": [["n", "s"], ["1"]]})) == [
+            "tcre:missingValue"
+        ]
+
+    def test_repeated_header_uses_the_first_column(self) -> None:
+        tc = _tc(t=_template(n=TCValueConstraint("xs:integer")))
+        assert _codes(_run(_SINGLE_TABLE, tc, {"t.csv": [["n", "n"], ["1", ""]]})) == []
+
+
 class TestHeader:
     def test_required_column_missing_from_header(self) -> None:
         tc = _tc(
@@ -108,10 +171,6 @@ class TestHeader:
         tc = _tc(t=_template(column_order=("a", "b", "c")))
         errors = _run(_SINGLE_TABLE, tc, {"t.csv": [["b", "a"]]})
         assert _codes(errors) == ["tcre:missingColumn", "tcre:invalidColumnOrder"]
-
-    def test_repeated_header_uses_the_first_column(self) -> None:
-        tc = _tc(t=_template(column_order=("a", "b")))
-        assert _codes(_run(_SINGLE_TABLE, tc, {"t.csv": [["a", "b", "a"]]})) == []
 
 
 class TestTables:
