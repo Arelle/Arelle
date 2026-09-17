@@ -19,6 +19,7 @@ from arelle.XmlValidate import (
     EnumerationFacet,
     _EnumerationFacetMember,
     namePattern,
+    lexicalPatterns,
     predefinedAttributeTypes,
     validateFacetValueString,
     validateValue,
@@ -1488,6 +1489,12 @@ class TestValidateFacetValueString:
 
 
 class TestBase64BinaryValidation:
+    def test_large_base64_binary_is_validated_linearly(self):
+        value = "AAAAA" * (1024 * 1024)
+
+        assert lexicalPatterns["base64Binary"].match(value) is not None
+        assert validateValueString("base64Binary", value).xValid == VALID
+
     @pytest.mark.parametrize("value", [
         "",
         "AAAA",

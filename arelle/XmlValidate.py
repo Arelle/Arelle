@@ -140,6 +140,44 @@ decimalPattern = re_compile(r"^[+-]?([0-9]+(\.[0-9]*)?|\.[0-9]+)$")
 integerPattern = re_compile(r"^[+-]?([0-9]+)$")
 floatPattern = re_compile(r"^(\+|-)?([0-9]+(\.[0-9]*)?|\.[0-9]+)([Ee](\+|-)?[0-9]+)?$|^(\+|-)?INF$|^NaN$")
 
+
+class _Base64BinaryPattern:
+    """Linear matcher for the lexical space of xsd:base64Binary."""
+
+    def match(self, value: str) -> Match[str] | None:
+        dataLength = 0
+        paddingLength = 0
+        lastDataChar = ""
+
+        for char in value:
+            if char.isspace():
+                continue
+
+            if char in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/":
+                if paddingLength:
+                    return None
+                dataLength += 1
+                lastDataChar = char
+
+            elif char == "=":
+                paddingLength += 1
+                if paddingLength > 2:
+                    return None
+            else:
+                return None
+
+        if paddingLength == 0:
+            isValid = dataLength % 4 == 0
+        elif paddingLength == 1:
+            isValid = dataLength % 4 == 3 and lastDataChar in "AEIMQUYcgkosw048"
+        else:
+            isValid = dataLength % 4 == 2 and lastDataChar in "AQgw"
+
+        return _base64BinaryMatchPattern.match(value) if isValid else None
+
+
+_base64BinaryMatchPattern = re_compile(r"[\s\S]*")
+
 lexicalPatterns = {
     "duration": re_compile(r"-?P((([0-9]+Y([0-9]+M)?([0-9]+D)?|([0-9]+M)([0-9]+D)?|([0-9]+D))(T(([0-9]+H)([0-9]+M)?([0-9]+(\.[0-9]+)?S)?|([0-9]+M)([0-9]+(\.[0-9]+)?S)?|([0-9]+(\.[0-9]+)?S)))?)|(T(([0-9]+H)([0-9]+M)?([0-9]+(\.[0-9]+)?S)?|([0-9]+M)([0-9]+(\.[0-9]+)?S)?|([0-9]+(\.[0-9]+)?S))))$"),
     "gYearMonth": re_compile(r"-?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
@@ -147,7 +185,7 @@ lexicalPatterns = {
     "gMonthDay": re_compile(r"--(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
     "gDay": re_compile(r"---(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
     "gMonth": re_compile(r"--(0[1-9]|1[0-2])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
-    "base64Binary": re_compile(r"((([A-Za-z0-9+/]\s?){4})*(([A-Za-z0-9+/]\s?){3}[A-Za-z0-9+/]|([A-Za-z0-9+/]\s?){2}[AEIMQUYcgkosw048]\s?=|[A-Za-z0-9+/]\s?[AQgw]\s?=\s?=))?$"),
+    "base64Binary": _Base64BinaryPattern(),
     "hexBinary": re_compile(r"([0-9a-fA-F]{2})*$"),
     "language": re_compile(r"[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$"),
     "XBRLI_DATEUNION": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?)?(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?\s*$"),
