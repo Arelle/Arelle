@@ -150,7 +150,7 @@ class _Base64BinaryPattern:
         lastDataChar = ""
 
         for char in value:
-            if char.isspace():
+            if char in " \t\n\r":
                 continue
 
             if char in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/":
@@ -178,7 +178,7 @@ class _Base64BinaryPattern:
 
 _base64BinaryMatchPattern = re_compile(r"[\s\S]*")
 
-lexicalPatterns = {
+lexicalPatterns: dict[str, Pattern[str] | _Base64BinaryPattern] = {
     "duration": re_compile(r"-?P((([0-9]+Y([0-9]+M)?([0-9]+D)?|([0-9]+M)([0-9]+D)?|([0-9]+D))(T(([0-9]+H)([0-9]+M)?([0-9]+(\.[0-9]+)?S)?|([0-9]+M)([0-9]+(\.[0-9]+)?S)?|([0-9]+(\.[0-9]+)?S)))?)|(T(([0-9]+H)([0-9]+M)?([0-9]+(\.[0-9]+)?S)?|([0-9]+M)([0-9]+(\.[0-9]+)?S)?|([0-9]+(\.[0-9]+)?S))))$"),
     "gYearMonth": re_compile(r"-?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
     "gYear": re_compile(r"-?([1-9][0-9]{3,}|0[0-9]{3})(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
@@ -192,7 +192,7 @@ lexicalPatterns = {
     "dateTime": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
     "date": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
     "time": re_compile(r"\s*-?[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
-    }
+}
 
 # patterns difficult to compile into python
 xmlSchemaPatterns = {
