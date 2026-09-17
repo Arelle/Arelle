@@ -489,7 +489,7 @@ def buildDerivationObject(txmyMdl):
         microsecond=0).isoformat().replace("+00:00", "Z")
     derivation["processor"] = "Arelle {} / XbrlModel plugin".format(
         getattr(Version, "__version__", "unknown"))
-    derivation["ruleSets"] = ["oimte", "oimce", "oime", "oimtc"]
+    derivation["ruleSets"] = ["oimte", "oimce", "oime", "oimtce"]
     roundingMode = getattr(txmyMdl, "calcRoundingModeOverride", None)
     if roundingMode:
         derivation["parameters"] = OrderedDict((("roundingMode", roundingMode),))

@@ -27,7 +27,7 @@ testcaseFiles = {f for f in os.listdir(TESTDIR)
                  if f.endswith(".json") and f not in NON_TESTCASE_FILES}
 origCount = len(testcaseFiles)
 fileErrs = defaultdict(list)
-for oimErrFile in ("oimte.json", "oime.json", "oimce.json", "oimtc.json"):
+for oimErrFile in ("oimte.json", "oime.json", "oimce.json", "oimtce.json"):
     with open(os.path.join(ERRORDIR, oimErrFile), "r") as fp:
         errorsTxmy = json.load(fp)
     for refObj in errorsTxmy["xbrlModel"]["references"]:
@@ -38,7 +38,7 @@ for oimErrFile in ("oimte.json", "oime.json", "oimce.json", "oimtc.json"):
                                                     any(propObj2["property"] == "xbrl:conformanceStatus" and "Fail" in propObj2["value"]
                                                         for propObj2 in refObj.get("properties", ()))))
 # Error-code namespace prefixes that may be named in a test's documentInfo/description.
-ERROR_CODE_PREFIXES = ("oimte", "oime", "oimce", "oimtc", "calc11e")
+ERROR_CODE_PREFIXES = ("oimte", "oime", "oimce", "oimtce", "calc11e")
 errCodeRe = re.compile(r"\b(" + "|".join(ERROR_CODE_PREFIXES) + r"):([A-Za-z][\w-]*)")
 
 # Description leads (case-insensitive) that indicate a valid / permitted case, i.e.
@@ -108,7 +108,7 @@ fw.write(
     xmlns:oimte="https://xbrl.org/2026/oimtaxonomy/error"
     xmlns:oime="http://www.xbrl.org/2021/oim/error"
     xmlns:oimce="https://xbrl.org/2021/oim-common/error"
-    xmlns:oimtc="https://xbrl.org/2026/oimtaxonomy/calculation/error"
+    xmlns:oimtce="https://xbrl.org/2026/oimtaxonomy/calculation/error"
 >
   <creator>
     <name>Herm Fischer</name>

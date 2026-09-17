@@ -317,7 +317,7 @@ at. See [`ApplyTaggingJournal.py`](ApplyTaggingJournal.py).
 
 ### Diagnostics this plugin adds
 
-Alongside the specification's `oimte:` / `oimce:` / `oime:` / `oimtc:` codes, the
+Alongside the specification's `oimte:` / `oimce:` / `oime:` / `oimtce:` codes, the
 plugin reports its own processing conditions under `arelle:`. The ones worth
 recognising:
 
@@ -763,8 +763,8 @@ consistency-checking semantics are those of [Calculations 1.1][calc11]:
   generated all-facts cube so they bind against the whole report as they did under
   Calculations 1.1.
 
-Errors use the proposed `oimtc` namespace, registered in
-[`resources/oimtc.json`](resources/oimtc.json).
+Errors use the proposed `oimtce` namespace, registered in
+[`resources/oimtce.json`](resources/oimtce.json).
 
 ### Rounding mode, and overriding it at run time
 
@@ -799,7 +799,7 @@ arelleCmdLine --plugins XbrlModel --validate \
 ```
 
 Its `index.xml` carries the expected result and a `calc11conf:mode` of `round-to-nearest`
-or `truncate` per variation; map each expected `calc11e:`/`oime:` code to its `oimtc:`
+or `truncate` per variation; map each expected `calc11e:`/`oime:` code to its `oimtce:`
 counterpart using the "Origin" column of §10 of the proposal, and pass
 `--calcRoundingMode truncation` for the truncate variations.
 

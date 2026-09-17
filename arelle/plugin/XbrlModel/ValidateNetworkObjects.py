@@ -31,12 +31,12 @@ qnReconciliation = qname(xbrl, "xbrl:reconciliation")
 # Error codes for the summation-concept definition-time checks, from section 10 of the
 # proposal. They are kept in one table so the namespace can be changed in one place.
 _CALC_ERROR = {
-    "nonNumericConcept": "oimtc:nonNumericConcept",
-    "periodTypeMismatch": "oimtc:summationConceptPeriodTypeMismatch",
-    "balanceInconsistent": "oimtc:summationConceptBalanceInconsistent",
-    "duplicateRelationship": "oimtc:duplicateSummationConceptRelationship",
-    "conceptNotInCube": "oimtc:summationConceptNotInCube",
-    "greaterLesserPeriodTypeMismatch": "oimtc:greaterLesserPeriodTypeMismatch",
+    "nonNumericConcept": "oimtce:nonNumericConcept",
+    "periodTypeMismatch": "oimtce:summationConceptPeriodTypeMismatch",
+    "balanceInconsistent": "oimtce:summationConceptBalanceInconsistent",
+    "duplicateRelationship": "oimtce:duplicateSummationConceptRelationship",
+    "conceptNotInCube": "oimtce:summationConceptNotInCube",
+    "greaterLesserPeriodTypeMismatch": "oimtce:greaterLesserPeriodTypeMismatch",
 }
 
 # Section 5.1 admits only concepts whose datatype derives from xs:decimal. xs:float and

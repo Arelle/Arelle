@@ -504,7 +504,7 @@ def legacyTaxonomyToOimModule(modelXbrl, moduleName: Optional[str] = None,
     # network binds only against the facts of a cube it is listed in. The per-linkrole cubes
     # above constrain their concept domain to that role's line items, so associating the
     # calculations with them would both lose bindings and raise
-    # oimtc:summationConceptNotInCube. Appendix B.1 of the calculation proposal instead
+    # oimtce:summationConceptNotInCube. Appendix B.1 of the calculation proposal instead
     # requires a cube admitting every fact of the report, which the calculations are
     # associated with; see _legacyAccommodationCube.
     calcNetNames = _calculationNetworks(modelXbrl, pfx, emit, networks, groupContents,
@@ -630,7 +630,7 @@ def _calculationNetworks(modelXbrl, pfx, emit, networks, groupContents, roleGrou
                 weight = r.weight
                 if weight not in (1, -1):
                     if calcError is not None:
-                        calcError("oimtc:invalidWeight",
+                        calcError("oimtce:invalidWeight",
                                   _("The calculation arc %(source)s to %(target)s in link role %(role)s "
                                     "has a weight of %(weight)s, which cannot be represented: "
                                     "xbrl:weight must be 1 or -1."),
@@ -667,7 +667,7 @@ def _legacyAccommodationCubeConcepts(modelXbrl, pfx, concepts, calcNetNames, net
       * the concepts named by the calculation networks associated with the cube, whether or not
         they were reported -- section 5.6 requires every concept of an associated calculation to
         be in the cube's concept domain, so a calculation naming a concept this period did not
-        report would otherwise raise oimtc:summationConceptNotInCube.
+        report would otherwise raise oimtce:summationConceptNotInCube.
 
     The union matters even where the two coincide, as they do on a typical SEC filing: pruning
     to reported concepts alone would fail the first filing whose calculation names an unreported

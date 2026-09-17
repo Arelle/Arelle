@@ -37,12 +37,12 @@ qnRoundingMode = qname(xbrl, "xbrl:roundingMode")
 # Error codes for the consistency checks, from section 10 of the proposal. They are kept in
 # one table so the namespace can be changed in one place.
 _CALC_ERROR = {
-    "inconsistentRounding": "oimtc:inconsistentCalculationUsingRounding",
-    "inconsistentTruncation": "oimtc:inconsistentCalculationUsingTruncation",
-    "excessDigits": "oimtc:excessDigits",
-    "duplicatesRounding": "oimtc:disallowedDuplicateFactsUsingRounding",
-    "duplicatesTruncation": "oimtc:disallowedDuplicateFactsUsingTruncation",
-    "greaterLesserInconsistent": "oimtc:greaterLesserInconsistent",
+    "inconsistentRounding": "oimtce:inconsistentCalculationUsingRounding",
+    "inconsistentTruncation": "oimtce:inconsistentCalculationUsingTruncation",
+    "excessDigits": "oimtce:excessDigits",
+    "duplicatesRounding": "oimtce:disallowedDuplicateFactsUsingRounding",
+    "duplicatesTruncation": "oimtce:disallowedDuplicateFactsUsingTruncation",
+    "greaterLesserInconsistent": "oimtce:greaterLesserInconsistent",
 }
 
 _NIL = object()
