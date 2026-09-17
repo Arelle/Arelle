@@ -41,6 +41,10 @@ config = ConformanceSuiteConfig(
         "720-tc-report-processor/index-tc-report-table.xml:V-25": {
             "tcme:illegalKeyField": 2,
         },
+        # The header is also out of order.
+        "720-tc-report-processor/index-tc-report-table.xml:V-69": {
+            "tcre:invalidColumnOrder": 1,
+        },
         # paramThree (xs:duration without durationType) also triggers illegalUniqueKeyOrder because it follows
         # constrained column fields keyOne and keyTwo in the unique key fields list.
         "720-tc-report-processor/index-tc-report-table.xml:V-61": {
@@ -140,8 +144,6 @@ config = ConformanceSuiteConfig(
         "720-tc-report-processor/index-tc-report-table.xml:V-67",
         "720-tc-report-processor/index-tc-report-table.xml:V-68",
         "720-tc-report-processor/index-tc-report-table.xml:V-685",
-        "720-tc-report-processor/index-tc-report-table.xml:V-69",
-        "720-tc-report-processor/index-tc-report-table.xml:V-69a",
         "720-tc-report-processor/index-tc-report-table.xml:V-736-A-lead-crlf-normalizedStringEnum",
         "720-tc-report-processor/index-tc-report-table.xml:V-736-A-lead-crlf-stringEnum",
         "720-tc-report-processor/index-tc-report-table.xml:V-736-A-lead-tab-stringEnum",
@@ -242,7 +244,6 @@ config = ConformanceSuiteConfig(
         "720-tc-report-processor/index-tc-report-table.xml:V-774a",
         "720-tc-report-processor/index-tc-report-table.xml:V-774b",
         "720-tc-report-processor/index-tc-report-table.xml:V-774c",
-        "720-tc-report-processor/index-tc-report-table.xml:V-786",
         "720-tc-report-processor/index-tc-report-table.xml:V-806",
         "720-tc-report-processor/index-tc-report-table.xml:V-81",
         "720-tc-report-processor/index-tc-report-table.xml:V-812a",
