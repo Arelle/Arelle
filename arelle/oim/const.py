@@ -47,6 +47,7 @@ NIL_SPECIAL_VALUE = "#nil"
 NONE_SPECIAL_VALUE = "#none"
 
 XBRLCE_INVALID_IDENTIFIER = "xbrlce:invalidIdentifier"
+XBRLCE_UNKNOWN_SPECIAL_VALUE = "xbrlce:unknownSpecialValue"
 
 XSD_YEAR = r"-?(?:[1-9][0-9]{3,}|0[0-9]{3})"
 XSD_TZ = r"(?:Z|[+-](?:(?:0[0-9]|1[0-3]):[0-5][0-9]|14:00))"
