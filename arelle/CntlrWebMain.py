@@ -141,14 +141,6 @@ def startWebserver(cntlr: CntlrCmdLine, options: RuntimeOptions) -> Bottle | Non
         app.route("/rest/xbrl/diff", GET, diff)
         app.route("/rest/configure", GET, configure)
         app.route("/rest/stopWebServer", GET, stopWebServer)
-        app.route("/quickbooks/server.asmx", POST, quickbooksServer)
-        app.route("/rest/quickbooks/<qbReport>/xbrl-gl/<file:path>", GET, quickbooksGLrequest)
-        app.route("/rest/quickbooks/<qbReport>/xbrl-gl/<file:path>/view", GET, quickbooksGLrequest)
-        app.route("/rest/quickbooks/<qbReport>/xbrl-gl/view", GET, quickbooksGLrequest)
-        app.route("/rest/quickbooks/response", GET, quickbooksGLresponse)
-        app.route("/quickbooks/server.html", GET, quickbooksWebPage)
-        app.route("/quickbooks/localhost.crt", GET, localhostCertificate)
-        app.route("/localhost.crt", GET, localhostCertificate)
         app.route("/rest/test/test", GETorPOST, testTest)
         app.route("/help", GET, helpREST)
         app.route("/about", GET, about)
@@ -513,127 +505,6 @@ def testTest() -> str:
         ("file3", "text/plain", "test text 3"),
         ))
 
-def quickbooksServer() -> str:
-    """Interface to QuickBooks server responding to  *post* requests to */quickbooks/server.asmx*.
-
-    (Part of QuickBooks protocol, see module CntlrQuickBooks.)
-    """
-    from arelle import CntlrQuickBooks
-    response.content_type = "text/xml; charset=UTF-8"
-    cntlr = getCntlr()
-    return CntlrQuickBooks.server(cntlr, request.body, request.urlparts)
-
-
-def quickbooksGLrequest(qbReport: str | None = None, file: str | None = None) -> str:
-    """Initiate request to QuickBooks server for *get* requests to */rest/quickbooks/<qbReport>/xbrl-gl/...*.
-
-    :returns: html, xml, csv, text -- Return per media type argument and request arguments
-    """
-    from arelle.CntlrQuickBooks import qbRequest, supportedQbReports
-    from arelle.ModelValue import dateTime
-    errors = []
-    requestPathParts = request.urlparts[2].split("/")
-    viewRequested = "view" == requestPathParts[-1]
-    media = request.query.media or "html"
-    fromDate = request.query.fromDate
-    toDate = request.query.toDate
-    if qbReport not in supportedQbReports:
-        errors.append(_("QuickBooks report '{0}' is not supported (please select from: {1})").format(
-                          qbReport, ", ".join(supportedQbReports)))
-    if media not in ("xml", "xhtml", "html"):
-        errors.append(_("Media '{0}' is not supported for xbrl-gl (please select xhtml, html or xml)").format(media))
-    if not fromDate or dateTime(fromDate) is None:
-        errors.append(_("FromDate '{0}' missing or not valid").format(fromDate))
-    if not toDate or dateTime(toDate) is None:
-        errors.append(_("ToDate '{0}' missing or not valid").format(toDate))
-    if errors:
-        return errorReport(errors, media)
-    ticket = qbRequest(qbReport, fromDate, toDate, file)  # type: ignore[arg-type]
-    result = htmlBody(tableRows([_("Request queued for QuickBooks...")], header=_("Quickbooks Request")), script="""
-<script type="text/javascript">
-<!--
-var timer = setInterval("autoRefresh()", 1000 * 10);
-function autoRefresh(){{location.href = "/rest/quickbooks/response?ticket={0}&media={1}&view={2}";}}
-//-->
-</script>
-""".format(ticket, media, viewRequested))
-    return result
-
-def quickbooksGLresponse() -> str | bytes:
-    """Poll for QuickBooks protocol responses for *get* requests to */rest/quickbooks/response*.
-
-    :returns: html, xml, csv, text -- Return per media type argument and request arguments, if response is ready, otherwise javascript to requery this *get* request periodicially.
-    """
-    from arelle import CntlrQuickBooks
-    ticket = request.query.ticket
-    media = request.query.media
-    viewRequested = request.query.view
-    status = CntlrQuickBooks.qbRequestStatus.get(ticket)
-    if not status:
-        return htmlBody(tableRows([_("QuickBooks ticket not found, request canceled.")], header=_("Quickbooks Request")))
-    if status.startswith("ConnectionErrorMessage: "):
-        CntlrQuickBooks.qbRequestStatus.pop(ticket, None)
-        return errorReport([status[24:]], media)
-    if status != "Done" or ticket not in CntlrQuickBooks.xbrlInstances:
-        return htmlBody(tableRows([_("{0}, Waiting 20 seconds...").format(status)],
-                                  header=_("Quickbooks Request")),
-                                  script="""
-<script type="text/javascript">
-<!--
-var timer = setInterval("autoRefresh()", 1000 * 20);
-function autoRefresh(){{clearInterval(timer);self.location.reload(true);}}
-//-->
-</script>
-""")
-    CntlrQuickBooks.qbRequestStatus.pop(ticket)
-
-    instanceUuid = CntlrQuickBooks.xbrlInstances[ticket]
-    CntlrQuickBooks.xbrlInstances.pop(ticket)
-    options = getRuntimeOptions()
-    options.entrypointFile = instanceUuid
-    viewFile = FileNamedStringIO(media)
-    options.factsFile = viewFile
-    return runOptionsAndGetResult(options, media, viewFile)
-
-def quickbooksWebPage() -> str:
-    return htmlBody(_("""<table width="700p">
-<tr><th colspan="2">Arelle QuickBooks Global Ledger Interface</th></tr>
-<tr><td>checkbox</td><td>Trial Balance.</td></tr>
-<tr><td>close button</td><td>Done</td></tr>
-</table>"""))
-
-def localhostCertificate() -> str:
-    """Interface to QuickBooks server responding to  *get* requests for a host certificate */quickbooks/localhost.crt* or */localhost.crt*.
-
-    (Supports QuickBooks protocol.)
-
-    :returns: self-signed certificate
-    """
-    return """
------BEGIN CERTIFICATE-----
-MIIDljCCAn4CAQAwDQYJKoZIhvcNAQEEBQAwgZAxCzAJBgNVBAYTAlVTMRMwEQYD
-VQQIEwpDYWxpZm9ybmlhMQ8wDQYDVQQHEwZFbmNpbm8xEzARBgNVBAoTCmFyZWxs
-ZS5vcmcxDzANBgNVBAsTBmFyZWxsZTESMBAGA1UEAxMJbG9jYWxob3N0MSEwHwYJ
-KoZIhvcNAQkBFhJzdXBwb3J0QGFyZWxsZS5vcmcwHhcNMTIwMTIwMDg0NjM1WhcN
-MTQxMDE1MDg0NjM1WjCBkDELMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3Ju
-aWExDzANBgNVBAcTBkVuY2lubzETMBEGA1UEChMKYXJlbGxlLm9yZzEPMA0GA1UE
-CxMGYXJlbGxlMRIwEAYDVQQDEwlsb2NhbGhvc3QxITAfBgkqhkiG9w0BCQEWEnN1
-cHBvcnRAYXJlbGxlLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB
-AMJEq9zT4cdA2BII4TG4OJSlUP22xXqNAJdZZeB5rTIX4ePwIZ8KfFh/XWQ1/q5I
-c/rkZ5TyC+SbEmQa/unvv1CypMAWWMfuguU6adOsxt+zFFMJndlE1lr3A2SBjHbD
-vBGzGJJTivBzDPBIQ0SGcf32usOeotmE2PA11c5en8/IsRXm9+TA/W1xL60mfphW
-9PIaJ+WF9rRROjKXVdQZTRFsNRs/Ag8o3jWEyWYCwR97+XkorYsAJs2TE/4zV+8f
-8wKuhOrsy9KYFZz2piVWaEC0hbtDwX1CqN+1oDHq2bYqLygUSD/LbgK1lxM3ciVy
-ewracPVHBErPlcJFxiOxAw0CAwEAATANBgkqhkiG9w0BAQQFAAOCAQEAM2np3UVY
-6g14oeV0Z32Gn04+r6FV2D2bobxCVLIQDsWGEv1OkjVBJTu0bLsZQuNVZHEn5a+2
-I0+MGME3HK1rx1c8MrAsr5u7ZLMNj7cjjtFWAUp9GugJyOmGK136o4/j1umtBojB
-iVPvHsAvwZuommfME+AaBE/aJjPy5I3bSu8x65o1fuJPycrSeLAnLd/shCiZ31xF
-QnJ9IaIU1HOusplC13A0tKhmRMGNz9v+Vqdj7J/kpdTH7FNMulrJTv/0ezTPjaOB
-QhpLdqly7hWJ23blbQQv4ILT2CiPDotJslcKDT7GzvPoDu6rIs2MpsB/4RDYejYU
-+3cu//C8LvhjkQ==
------END CERTIFICATE-----
-"""
-
 def helpREST() -> str:
     """Help web page for *get* requests to */help*.
 
@@ -793,27 +664,6 @@ Review insertion cell, click ok on Import Data dialog.</td></tr>
    .WebDisableRedirections = False<br/>
    .Refresh BackgroundQuery:=False<br/>
 End With</code></td></tr>
-
-<tr><th colspan="2">QuickBooks interface</th></tr>
-<tr><td>Setup:</td><td>Install QuickBooks Web Connector by <a href="http://marketplace.intuit.com/webconnector/" target="installWBWC">clicking here</a>.<br/>
-Click on QuickBooks.qwc in the Program Files Arelle directory, to install web connector for Arelle.  (It specifies localhost:8080 in it.)<br/>
-Open your QuickBooks and desired company<br/>
-From start menu, programs, QuickBooks, start Web Connector (QBWC).  Web connector may want a password, use any string, such as "abcd", as it's not checked at this time.<br/>
-Start Arelle web server (if it wasn't already running)<br/>
-To request xbrl-gl, select report type (generalLedger, journal, or trialBalance) and specify file name for xbrl-gl output instance.<br/>
-QBWC polls once a minute, if impatient, in the QBWC window, click its Arelle checkbox and press the update button.<br/>
-(If you get the error [8004041A] from Quickbooks, enable the company file for Arelle access in
-Quickbooks: Edit->Preferences...->Integrated Applications->Company Preferences->click allow web access for ArelleWebService)<br/>
-</td></tr>
-<tr><td style="text-align=right;">Example:</td><td><code>http://localhost:8080/rest/quickbooks/generalLedger/xbrl-gl/C:/mystuff/xbrlGeneralLedger.xbrl/view?fromDate=2011-01-01&toDate=2011-12-31</code>
-(You may omit <code>/view</code>.)</td></tr>
-<tr><td></td><td>Parameters follow "?" character, and are separated by "&amp;" characters,
-as follows:</td></tr>
-<tr><td style="text-indent: 1em;">media</td><td><code>html</code> or <code>xhtml</code>: Html text results. (default)
-<br/><code>xml</code>: XML structured results.
-<br/><code>json</code>: JSON results.
-<br/><code>text</code>: Plain text results (no markup).</td></tr>
-<tr><td style="text-indent: 1em;">fromDate, toDate</td><td>From &amp to dates for GL transactions</td></tr>
 
 <tr><th colspan="2">Management</th></tr>
 <tr><td>/rest/configure</td><td>Configure settings:</td></tr>

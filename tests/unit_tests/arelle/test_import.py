@@ -7,9 +7,7 @@ import pytest
 from tests.unit_tests.common import THIRD_PARTY_PATH_PREFIXES
 
 KNOWN_FAILURES = frozenset([
-    "arelle.CntlrProfiler",
     "arelle.FunctionXfi",
-    "arelle.ViewCsvRelationshipSet",
     "arelle.archive.LoadSavePreLbCsv",
     "arelle.archive.SaveTableToExelle",
     "arelle.archive.TR3toTR4",

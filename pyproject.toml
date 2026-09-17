@@ -324,8 +324,6 @@ exclude = '''(?x)(
 # remove from list below as each module is updated with type hinting
 [[tool.mypy.overrides]]
 module = [
-    'arelle.CntlrComServer',
-    'arelle.CntlrProfiler',
     'arelle.DialogAbout',
     'arelle.DialogFind',
     'arelle.DialogLanguage',
