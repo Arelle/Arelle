@@ -160,8 +160,6 @@ elif sys.platform == WINDOWS_PLATFORM:
         icon="arelle\\images\\arelle.ico",
     )
     includeFiles.append(("arelle\\scripts-windows", "scripts"))
-    if "arelle.webserver" in packages:
-        includeFiles.append(("QuickBooks.qwc", "QuickBooks.qwc"))
     includeLibs.append("pyodbc")
     includeLibs.append("requests")
     includeLibs.append("requests_negotiate_sspi")

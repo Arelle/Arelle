@@ -97,7 +97,7 @@ class Cntlr:
 
     A controller subclass object is instantiated, CntlrWinMain for the GUI and CntlrCmdLine for command
     line batch operation.  (Other controller modules and/or objects may be subordinate to a CntlrCmdLine,
-    such as CntlrWebMain, and CntlrQuickBooks).
+    such as CntlrWebMain).
 
     This controller base class initialization sets up specifics such as directory paths,
     for its environment (Mac, Windows, or Unix), sets up a web file cache, and retrieves a
