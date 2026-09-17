@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections.abc import Iterator, Mapping
 from types import MappingProxyType
 
+import pytest
+
 from arelle import XbrlConst
 from arelle.oim._tc.metadata.model import (
     TCMetadata,
@@ -64,6 +66,70 @@ _SINGLE_TABLE = _tables(t=XbrlCsvTable(url="t.csv"))
 
 
 class TestCells:
+    def test_valid_rows_produce_no_errors(self) -> None:
+        tc = _tc(
+            t=_template(
+                n=TCValueConstraint("xs:integer"),
+                s=TCValueConstraint("xs:string", optional=True),
+            )
+        )
+        rows = [
+            ["n", "s", "other"],
+            ["1", "a", ""],
+            ["2", "", "x"],
+            ["3", "#empty", ""],
+        ]
+        assert _run(_SINGLE_TABLE, tc, {"t.csv": rows}) == []
+
+    def test_invalid_value_is_reported_with_its_location(self) -> None:
+        tc = _tc(t=_template(n=TCValueConstraint("xs:integer")))
+        (error,) = _run(_SINGLE_TABLE, tc, {"t.csv": [["n"], ["1"], ["x"]]})
+        assert error.code == "tcre:invalidValue"
+        assert (error.table_id, error.url, error.row, error.column) == (
+            "t",
+            "t.csv",
+            3,
+            "n",
+        )
+        assert (
+            str(error)
+            == "table 't' row 3 column 'n': value 'x' is not valid for the xs:integer constraint, url: t.csv"
+        )
+
+    @pytest.mark.parametrize(
+        "constraint, value, expected_code",
+        [
+            (
+                TCValueConstraint("xs:date", time_zone=True),
+                "2024-01-01",
+                "tcre:missingTimeZone",
+            ),
+            (
+                TCValueConstraint("xs:date", time_zone=False),
+                "2024-01-01Z",
+                "tcre:unexpectedTimeZone",
+            ),
+            (
+                TCValueConstraint("period", period_type="year"),
+                "2024Q1",
+                "tcre:invalidPeriodType",
+            ),
+            (
+                TCValueConstraint("xs:duration", duration_type="dayTime"),
+                "P1Y",
+                "tcre:invalidDurationType",
+            ),
+            (TCValueConstraint("xs:decimal"), "1d-2", "tcre:invalidValue"),
+        ],
+    )
+    def test_value_violations_use_the_validator_code(
+        self, constraint: TCValueConstraint, value: str, expected_code: str
+    ) -> None:
+        errors = _run(
+            _SINGLE_TABLE, _tc(t=_template(c=constraint)), {"t.csv": [["c"], [value]]}
+        )
+        assert _codes(errors) == [expected_code]
+
     def test_required_column_without_value_is_missing(self) -> None:
         tc = _tc(
             t=_template(
@@ -123,7 +189,9 @@ class TestCells:
 
     def test_repeated_header_uses_the_first_column(self) -> None:
         tc = _tc(t=_template(n=TCValueConstraint("xs:integer")))
-        assert _codes(_run(_SINGLE_TABLE, tc, {"t.csv": [["n", "n"], ["1", ""]]})) == []
+        assert (
+            _codes(_run(_SINGLE_TABLE, tc, {"t.csv": [["n", "n"], ["1", "x"]]})) == []
+        )
 
 
 class TestHeader:
