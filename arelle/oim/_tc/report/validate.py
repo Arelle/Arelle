@@ -9,9 +9,13 @@ from dataclasses import dataclass
 
 from arelle.oim._tc.const import (
     TCRE_INVALID_COLUMN_ORDER,
+    TCRE_INVALID_DURATION_TYPE,
+    TCRE_INVALID_PERIOD_TYPE,
     TCRE_INVALID_VALUE,
     TCRE_MISSING_COLUMN,
+    TCRE_MISSING_TIME_ZONE,
     TCRE_MISSING_VALUE,
+    TCRE_UNEXPECTED_TIME_ZONE,
 )
 from arelle.oim._tc.metadata.model import (
     TCMetadata,
@@ -24,6 +28,7 @@ from arelle.oim._tc.report.cell import (
     row_has_value,
 )
 from arelle.oim._tc.report.common import TCReportValidationError
+from arelle.oim._tc.value_validator import ValueConstraintValidator
 from arelle.oim.const import NIL_SPECIAL_VALUE, XBRLCE_UNKNOWN_SPECIAL_VALUE
 from arelle.oim.csv.metadata.model import XbrlCsvEffectiveMetadata, XbrlCsvTable
 from arelle.typing import TypeGetText
@@ -42,6 +47,7 @@ class _ConstraintSubject:
     name: str
     kind: str
     constraint: TCValueConstraint
+    validator: ValueConstraintValidator
 
 
 @dataclass(frozen=True, slots=True)
@@ -86,8 +92,11 @@ class TCReportValidator:
     def _compile_subjects(
         self, constraints: Mapping[str, TCValueConstraint], kind: str
     ) -> tuple[_ConstraintSubject, ...]:
+        namespaces = self._csv_metadata.document_info.namespaces
         return tuple(
-            _ConstraintSubject(name, kind, constraint)
+            _ConstraintSubject(
+                name, kind, constraint, ValueConstraintValidator(constraint, namespaces)
+            )
             for name, constraint in constraints.items()
         )
 
@@ -227,4 +236,25 @@ def _validate_value(
             TCRE_MISSING_VALUE,
             _("the {} is required and has no value").format(subject.kind),
         )
-    return None
+    code = subject.validator.first_violation(value)
+    if code is None:
+        return None
+    return _Violation(code, _describe_violation(code, value, constraint))
+
+
+def _describe_violation(code: str, value: str, constraint: TCValueConstraint) -> str:
+    if code == TCRE_MISSING_TIME_ZONE:
+        return _("value {!r} must have a time zone").format(value)
+    if code == TCRE_UNEXPECTED_TIME_ZONE:
+        return _("value {!r} must not have a time zone").format(value)
+    if code == TCRE_INVALID_PERIOD_TYPE:
+        return _("value {!r} is not a period of type {}").format(
+            value, constraint.period_type
+        )
+    if code == TCRE_INVALID_DURATION_TYPE:
+        return _("value {!r} is not a duration of type {}").format(
+            value, constraint.duration_type
+        )
+    return _("value {!r} is not valid for the {} constraint").format(
+        value, constraint.type
+    )
