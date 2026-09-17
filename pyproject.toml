@@ -325,7 +325,6 @@ exclude = '''(?x)(
 [[tool.mypy.overrides]]
 module = [
     'arelle.CntlrComServer',
-    'arelle.CntlrProfiler',
     'arelle.DialogAbout',
     'arelle.DialogFind',
     'arelle.DialogLanguage',
