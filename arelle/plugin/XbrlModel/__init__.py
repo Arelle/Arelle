@@ -126,7 +126,7 @@ from arelle import ModelDocument, PackageManager, UrlUtil, XmlValidate
 # XbrlObject modules contain nested XbrlOBjects and their type objects
 
 from .XbrlHeading import XbrlHeading
-from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlUnitType
+from .XbrlConcept import XbrlConcept, XbrlDataType
 from .XbrlConst import qnErrorQname, builtInPrefixTaxonomies
 from .XbrlCube import (XbrlCube, XbrlCubeDimension, XbrlPeriodConstraint, XbrlDateResolution,
                        XbrlCubeType, coreDimensionsByLocalname)
@@ -145,7 +145,7 @@ from .XbrlUnit import XbrlUnit
 from .XbrlModel import XbrlCompiledModel, castToXbrlCompiledModel
 from .XbrlModule import XbrlModule, xbrlObjectTypes
 from .XbrlObject import XbrlModelClass, XbrlObject, XbrlReferencableModelObject, XbrlTaxonomyTagObject, XbrlObjectType
-from .XbrlTypes import (XbrlTaxonomyModelAlias, XbrlModuleAlias, XbrlLayoutAlias, XbrlUnitTypeAlias,
+from .XbrlTypes import (XbrlTaxonomyModelAlias, XbrlModuleAlias, XbrlLayoutAlias,
                         QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse, DefaultZero, DefaultOne, OptionalList, OptionalDict, NonemptySet)
 from .ValidateXbrlModel import validateCompiledModel
 from .ValidateFacts import validateDateResolutionConceptFacts, validateCompleteReportCubes
@@ -180,8 +180,7 @@ xbrlTypeAliasClass = {
     XbrlLayoutAlias: XbrlLayout,
     XbrlPropertyType: XbrlProperty,
     XbrlTaxonomyModelAlias: XbrlCompiledModel,
-    XbrlModuleAlias: XbrlModule,
-    XbrlUnitTypeAlias: XbrlUnitType
+    XbrlModuleAlias: XbrlModule
     }
 
 EMPTY_SET = set()

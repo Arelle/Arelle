@@ -15,7 +15,7 @@ from ordered_set import OrderedSet
 from arelle.oim.Load import EMPTY_DICT, csvPeriod
 from .ValidateCubes import validateCompleteCube
 from .XbrlHeading import XbrlHeading
-from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlCollectionType, XbrlUnitType
+from .XbrlConcept import XbrlConcept, XbrlDataType, XbrlCollectionType
 from .XbrlConst import (xbrl, qnXbrlReferenceObj, qnXbrlLabelObj, qnXbrlHeadingObj, qnXbrlConceptObj,
                         qnXbrlMemberObj, qnXbrlEntityObj, qnXbrlUnitObj, qnXbrlImportTaxonomyObj,
                         reservedPrefixNamespaces, qnXbrlLabelObj, qnXbrlPropertyObj,
@@ -1866,6 +1866,16 @@ def validateXbrlModule(compMdl, module, mdlLvlChecks):
                         compMdl.error("oimce:invalidUnitStringRepresentation",
                                   _("The unit %(name)s measure %(measure)s must exist in the taxonomy model."),
                                   xbrlObject=unitObj, name=unitObj.name, measure=m)
+            # canonicalisation of a reported unit value requires the unit object of a composite
+            # representation to be unique (tavi.md "Unit object constraints")
+            if not hasattr(compMdl, "_compositeRepresentationUnit"):
+                compMdl._compositeRepresentationUnit = {}
+            uMeasKey = tuple(tuple(sorted(str(m) for m in md)) for md in uMeas)
+            otherUnitQn = compMdl._compositeRepresentationUnit.setdefault(uMeasKey, name)
+            if otherUnitQn != name:
+                compMdl.error("oimte:duplicateUnitStringRepresentation",
+                          _("The unit string representation of unit %(name)s is also a compositeUnitRepresentation of unit %(otherName)s."),
+                          xbrlObject=unitObj, name=unitObj.name, otherName=otherUnitQn)
 
     # ModelType Objects
     for mdlTpObj in module.modelTypes or ():

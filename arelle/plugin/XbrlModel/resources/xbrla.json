@@ -16,10 +16,10 @@
   "xbrlModel": {
     "name": "xbrla:accountingModule",
     "importedTaxonomies": [
-            {
-                "xbrlModelName": "xbrlm:base"
-            }
-            ],
+      {
+        "xbrlModelName": "xbrlm:base"
+      }
+    ],
     "dataTypes": [
       {
         "name": "xbrla:balanceType",
@@ -55,13 +55,17 @@
       {
         "name": "xbrla:MonetaryPerShare",
         "baseType": "xbrlr:perShare",
-        "unitType": {
-          "dataTypeNumerator": "xbrlr:monetary",
-          "dataTypeDenominator": "xbrla:sharesType"
-        },
         "allowedObjects": [
           "xbrl:conceptObject",
           "xbrl:unitObject"
+        ],
+        "unitComposition": [
+          [
+            "xbrlr:monetary"
+          ],
+          [
+            "xbrla:sharesType"
+          ]
         ]
       }
     ],

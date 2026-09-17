@@ -11,7 +11,7 @@ from .ModelValueMore import SQName
 from .XbrlImportTaxonomy import XbrlImportTaxonomy, XbrlFinalTaxonomy
 from .XbrlProperty import XbrlProperty
 from .XbrlHeading import XbrlHeading
-from .XbrlConcept import XbrlCollectionType, XbrlConcept, XbrlDataType, XbrlUnitType
+from .XbrlConcept import XbrlCollectionType, XbrlConcept, XbrlDataType
 from .XbrlConst import xbrl
 from .XbrlCube import XbrlCube, XbrlCubeType, XbrlCubeDimension, XbrlPeriodConstraint, XbrlDateResolution
 from .XbrlDimension import XbrlDimension, XbrlDomainNetwork, XbrlDomainClass, XbrlMember
@@ -142,7 +142,6 @@ referencableObjectTypes = {
         qname(xbrl, "xbrl:labelTypeObject"): XbrlLabelType,
         qname(xbrl, "xbrl:referenceTypeObject"): XbrlReferenceType,
         qname(xbrl, "xbrl:cubeTypeObject"): XbrlCubeType,
-        qname(xbrl, "xbrl:unitTypeObject"): XbrlUnitType,
         # qname(xbrl, "xbrl:taxonomyObject"): XbrlModule,  # xbrl:taxonomyObject is xbrl:modelObject
         qname(xbrl, "xbrl:modelTypeObject"): XbrlModelType,
         qname(xbrl, "xbrl:layoutObject"): XbrlLayout,

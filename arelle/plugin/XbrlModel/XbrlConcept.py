@@ -10,7 +10,7 @@ from arelle.ModelValue import QName
 from ordered_set import OrderedSet
 from arelle.XbrlConst import xsd, isNumericXsdType, xsdStringTypeNames, xsdNoLangTypeNames
 from .XbrlProperty import XbrlProperty
-from .XbrlTypes import XbrlModuleAlias, QNameKeyType, DefaultTrue, DefaultFalse, NonemptySet
+from .XbrlTypes import XbrlModuleAlias, QNameKeyType, DefaultTrue, DefaultFalse, NonemptySet, OptionalList
 from .XbrlObject import XbrlModelObject, XbrlReferencableModelObject
 from arelle.FunctionFn import true
 xbrlObjectQNames = None
@@ -48,14 +48,6 @@ class XbrlCollectionType(XbrlReferencableModelObject):
     minItems: Optional[int] # (optional) Defines an int value to indicate the minimum number of items in the collection.
 
 XbrlDataTypeAlias: TypeAlias = "XbrlDataType"
-class XbrlUnitType(XbrlModelObject):
-    """ Unit Type Object
-        Reference: oim-taxonomy.md#unittype-object
-    """
-    dataType: XbrlDataTypeAlias
-    dataTypeNumerator: Optional[QName] # (optional) Defines the numerator data type of the data type.
-    dataTypeDenominator: Optional[QName] # (optional) Defines the denominator data type used by a unit used to define a value of the data type.
-    dataTypeMultiplier: Optional[QName] # (optional) Defines a multiplier data type used by a unit used to define a value of the data type.
 
 class XbrlDataType(XbrlReferencableModelObject):
     """ Data Type Object
@@ -77,7 +69,7 @@ class XbrlDataType(XbrlReferencableModelObject):
     maxLength: Optional[int] # (optional) Defines an int used to define maximum length of a string value.
     whiteSpace: Optional[str] # (optional) Defines a string one of preserve, replace or collapse.
     patterns: Optional[NonemptySet[str]] # (optional) Defines a string as a single regex expressions. At least one of the regex patterns must match. (Uses XML regex)
-    unitType: Optional[XbrlUnitType] # (optional) Defines a unitType object For example xbrli:flow has unit datatypes of xbrli:volume and xbrli:time
+    unitComposition: OptionalList[list] # (optional) A list of two multisets of dataType QNames: the dataTypes whose units are multiplied together to form the units of this dataType, and the dataTypes whose units divide them. Loaded as raw JSON (arrays of QName strings) and resolved by UnitSignature.unitCompositionQNames. For example xbrlr:flow is [["xbrlr:volume"], ["xbrlr:time"]].
     allowedObjects: Optional[NonemptySet[QName]] # (optional) Set of object type QNames that the data type can be used with. If no value is provided the property can be used with any object. The value provided is a set of model component objects. MUST NOT be empty if provided.
     checksumAlgorithm: Optional[QName] # (optional) QName of a member object that defines checksum validation semantics for string/QName local-name values.
 

@@ -284,27 +284,27 @@
             },
             {
                 "dataType": "xbrlr:time",
-                "name": "utr:Y"
+                "name": "utr:yr"
             },
             {
                 "dataType": "xbrlr:time",
-                "name": "utr:M"
+                "name": "utr:mo"
             },
             {
                 "dataType": "xbrlr:time",
-                "name": "utr:D"
+                "name": "utr:d"
             },
             {
                 "dataType": "xbrlr:time",
-                "name": "utr:H"
+                "name": "utr:h"
             },
             {
                 "dataType": "xbrlr:time",
-                "name": "utr:MM"
+                "name": "utr:min"
             },
             {
                 "dataType": "xbrlr:time",
-                "name": "utr:S"
+                "name": "utr:s"
             },
             {
                 "dataType": "xbrlr:voltage",
@@ -332,11 +332,11 @@
             },
             {
                 "dataType": "xbrlr:time",
-                "name": "utr:Q"
+                "name": "utr:qtr"
             },
             {
                 "dataType": "xbrlr:time",
-                "name": "utr:WK"
+                "name": "utr:wk"
             },
             {
                 "dataType": "xbrlr:energy",
@@ -1659,109 +1659,109 @@
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "forObject": "utr:Y",
+                "forObject": "utr:yr",
                 "value": "Year"
             },
             {
                 "labelType": "xbrl:symbolLabel",
                 "language": "en",
-                "forObject": "utr:Y",
+                "forObject": "utr:yr",
                 "value": "yr"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "forObject": "utr:Y",
+                "forObject": "utr:yr",
                 "value": "Gregorian calendar year of 365 days. Use only as a denominator because durationItemType is not numeric and has no units."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "forObject": "utr:M",
+                "forObject": "utr:mo",
                 "value": "Month"
             },
             {
                 "labelType": "xbrl:symbolLabel",
                 "language": "en",
-                "forObject": "utr:M",
+                "forObject": "utr:mo",
                 "value": "mo"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "forObject": "utr:M",
+                "forObject": "utr:mo",
                 "value": "Gregorian calendar month of 30.41 days. Use only as a denominator because durationItemType is not numeric and has no units."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "forObject": "utr:D",
+                "forObject": "utr:d",
                 "value": "Day"
             },
             {
                 "labelType": "xbrl:symbolLabel",
                 "language": "en",
-                "forObject": "utr:D",
+                "forObject": "utr:d",
                 "value": "d"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "forObject": "utr:D",
+                "forObject": "utr:d",
                 "value": "Day of 24 hours. Use only as a denominator because durationItemType is not numeric and has no units."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "forObject": "utr:H",
+                "forObject": "utr:h",
                 "value": "Hour"
             },
             {
                 "labelType": "xbrl:symbolLabel",
                 "language": "en",
-                "forObject": "utr:H",
+                "forObject": "utr:h",
                 "value": "h"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "forObject": "utr:H",
+                "forObject": "utr:h",
                 "value": "Hour of 60 minutes. Use only as a denominator because durationItemType is not numeric and has no units."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "forObject": "utr:MM",
+                "forObject": "utr:min",
                 "value": "Minute"
             },
             {
                 "labelType": "xbrl:symbolLabel",
                 "language": "en",
-                "forObject": "utr:MM",
+                "forObject": "utr:min",
                 "value": "m"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "forObject": "utr:MM",
+                "forObject": "utr:min",
                 "value": "Minute of 60 seconds. Use only as a denominator because durationItemType is not numeric and has no units."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "forObject": "utr:S",
+                "forObject": "utr:s",
                 "value": "Second"
             },
             {
                 "labelType": "xbrl:symbolLabel",
                 "language": "en",
-                "forObject": "utr:S",
+                "forObject": "utr:s",
                 "value": "s"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "forObject": "utr:S",
+                "forObject": "utr:s",
                 "value": "Second. Use only as a denominator because durationItemType is not numeric and has no units."
             },
             {
@@ -1875,37 +1875,37 @@
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "forObject": "utr:Q",
+                "forObject": "utr:qtr",
                 "value": "Quarter"
             },
             {
                 "labelType": "xbrl:symbolLabel",
                 "language": "en",
-                "forObject": "utr:Q",
+                "forObject": "utr:qtr",
                 "value": "qtr"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "forObject": "utr:Q",
+                "forObject": "utr:qtr",
                 "value": "Gregorian Calendar Quarter (three months). Use only as a denominator because durationItemType is not numeric and has no units."
             },
             {
                 "labelType": "xbrl:label",
                 "language": "en",
-                "forObject": "utr:WK",
+                "forObject": "utr:wk",
                 "value": "Week"
             },
             {
                 "labelType": "xbrl:symbolLabel",
                 "language": "en",
-                "forObject": "utr:WK",
+                "forObject": "utr:wk",
                 "value": "wk"
             },
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
-                "forObject": "utr:WK",
+                "forObject": "utr:wk",
                 "value": "Gregorian Calendar Week. Use only as a denominator because durationItemType is not numeric and has no units."
             },
             {
@@ -2696,12 +2696,12 @@
                                     "utr:bu",
                                     "xbrlr:pure",
                                     "utr:Rate",
-                                    "utr:Y",
-                                    "utr:M",
-                                    "utr:D",
-                                    "utr:H",
-                                    "utr:MM",
-                                    "utr:S"
+                                    "utr:yr",
+                                    "utr:mo",
+                                    "utr:d",
+                                    "utr:h",
+                                    "utr:min",
+                                    "utr:s"
                             ],
                 "referenceType" : "utr:unitCreationDate",
                 "properties" : [{"property":"utr:dateUnitCreated", "value":"2012-10-03"}]
@@ -2735,7 +2735,7 @@
                                     "utr:kV",
                                     "utr:l",
                                     "utr:m3",
-                                    "utr:S",
+                                    "utr:s",
                                     "utr:MV",
                                     "utr:GV",
                                     "utr:GWh",
@@ -2789,15 +2789,15 @@
                                     "utr:MMcf",
                                     "utr:bu",
                                     "utr:aft",
-                                    "utr:Y",
-                                    "utr:M",
-                                    "utr:D",
-                                    "utr:H",
-                                    "utr:MM",
+                                    "utr:yr",
+                                    "utr:mo",
+                                    "utr:d",
+                                    "utr:h",
+                                    "utr:min",
                                     "utr:Bcf",
                                     "utr:Tcf",
-                                    "utr:Q",
-                                    "utr:WK",
+                                    "utr:qtr",
+                                    "utr:wk",
                                     "utr:MMcfe",
                                     "utr:Bcfe",
                                     "utr:Tcfe",

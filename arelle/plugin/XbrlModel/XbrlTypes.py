@@ -13,7 +13,6 @@ XbrlDataTableAlias: TypeAlias = "XbrlDataTable"
 XbrlPropertyAlias: TypeAlias = "XbrlProperty"
 XbrlTaxonomyModelAlias: TypeAlias = "XbrlCompiledModel"
 XbrlModuleAlias: TypeAlias = "XbrlModule"
-XbrlUnitTypeAlias: TypeAlias = "XbrlUnitType"
 
 class QNameKeyType(QName): # a QName which is also the primary key for parent collection object
     pass

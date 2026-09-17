@@ -27,6 +27,8 @@ from .XbrlDimension import XbrlDimension, XbrlDomainClass, XbrlMember
 from .XbrlEntity import XbrlEntity
 from .XbrlFact import XbrlFact, XbrlTableTemplate
 from .XbrlUnit import parseUnitString, XbrlUnit
+from .UnitSignature import (dataTypeSignature, isEmptySignature, signaturesEqual,
+                            signatureString, unitDimensionSignature)
 from .ValidateXbrlModel import validateValue
 from .ValidateCubes import validateCubes, isNegativeCube
 from .ErrorCatalog import emit_error
@@ -154,66 +156,42 @@ def resolveFact(txmyMdl, txmyObj, fact):
             else:
                 unitQnTuple = parseUnitString(uStr, fact, txmyObj, txmyMdl)
                 fact.factDimensions[unitCoreDim] = unitQnTuple
-                numMeasures, denMeasures = unitQnTuple
-                unitTypeObj = getattr(cDataType, "unitType", None)
-                if unitTypeObj is not None and denMeasures:
-                    # Ratio (composed) unit: the concept's dataType declares a unitType
-                    # with numerator / denominator dataTypes (e.g. xbrla:MonetaryPerShare
-                    # = xbrlr:monetary / xbrla:sharesType). Validate each numerator measure
-                    # against dataTypeNumerator and each denominator measure against
-                    # dataTypeDenominator, rather than the whole concept type (which is
-                    # neither a plain monetary nor a plain shares type).
-                    for measures, expectedType in (
-                            (numMeasures, getattr(unitTypeObj, "dataTypeNumerator", None)),
-                            (denMeasures, getattr(unitTypeObj, "dataTypeDenominator", None))):
-                        if expectedType is None:
-                            continue
-                        for unitQn in measures:
-                            unitObj = txmyMdl.namedObjects.get(unitQn)
-                            if not isinstance(unitObj, XbrlUnit):
-                                continue  # unresolved measure (e.g. xbrli:shares) -- cannot check
-                            unitDtObj = txmyMdl.namedObjects.get(unitObj.dataType)
-                            if isinstance(unitDtObj, XbrlDataType) and not unitDtObj.instanceOfType(expectedType, txmyMdl):
-                                txmyMdl.error("oimte:factUnitDatatypeMismatch",
-                                              _("Unit %(unit)s is not valid for concept %(concept)s with dataType %(dataType)s."),
-                                              xbrlObject=fact, name=fact.name,
-                                              unit=unitQn, concept=cQn, dataType=cObj.dataType)
-                                fact._xValid = INVALID
+                if unitQnTuple[0] == (qnPureUnit,) and not unitQnTuple[1]:
+                    # the pure unit is the value of an absent unit dimension; reporting it is an error
+                    txmyMdl.error("oime:illegalPureUnit",
+                                  _("Unit MUST NOT have single numerator measure %(unit)s with no denominators, the unit dimension is omitted instead."),
+                                  xbrlObject=fact, unit=uStr)
+                    fact._xValid = INVALID
                 else:
-                    # Simple unit: the concept's dataType must be the same as or derived
-                    # from each unit measure's declared dataType.
-                    for unitMeasures in unitQnTuple:
-                        for unitQn in unitMeasures:
-                            unitObj = txmyMdl.namedObjects.get(unitQn)
-                            if isinstance(unitObj, XbrlUnit) and not cDataType.instanceOfType(unitObj.dataType, txmyMdl):
-                                txmyMdl.error("oimte:factUnitDatatypeMismatch",
-                                              _("Unit %(unit)s is not valid for concept %(concept)s with dataType %(dataType)s."),
-                                              xbrlObject=fact, name=fact.name,
-                                              unit=unitQn, concept=cQn, dataType=cObj.dataType)
-                                fact._xValid = INVALID
+                    # The unit is valid where its signature -- the datatypes it measures, expanded
+                    # to base datatypes -- equals the signature of the fact's datatype.
+                    unitSignature = unitDimensionSignature(unitQnTuple, txmyMdl)
+                    dtSignature = dataTypeSignature(cObj.dataType, txmyMdl)
+                    if not signaturesEqual(unitSignature, dtSignature):
+                        txmyMdl.error("oimte:factUnitDatatypeMismatch",
+                                      _("Unit %(unit)s of signature %(unitSignature)s is not valid for concept %(concept)s "
+                                        "with dataType %(dataType)s of signature %(dataTypeSignature)s."),
+                                      xbrlObject=fact, name=fact.name,
+                                      unit=uStr, concept=cQn, dataType=cObj.dataType,
+                                      unitSignature=signatureString(unitSignature),
+                                      dataTypeSignature=signatureString(dtSignature))
+                        fact._xValid = INVALID
         else:
             txmyMdl.error("oime:misplacedUnitDimension",
                           _("The unit core dimension MUST NOT be present on non-numeric facts: %(concept)s, unit %(unit)s."),
                           xbrlObject=fact, concept=cQn, unit=uStr)
             fact._xValid = INVALID
     elif uStr is None and cDataType.isNumeric(txmyMdl):
-        # No unit present; check if the concept's dataType requires one.
-        # Build and cache the set of dataType QNames that have at least one unit defined,
-        # EXCLUDING the dataType of the pure unit: an absent xbrl:unit already *is* a unit
-        # of xbrlr:pure, so a concept whose dataType is derived from the pure unit's dataType
-        # (xbrlr:pureType -- pure, percent, rate, ...) is complete without one (see qnPureUnit).
-        # Other units sharing that dataType (e.g. utr:Rate) must not reinstate the requirement.
-        if not hasattr(txmyMdl, '_unitDataTypes'):
-            pureUnitObj = txmyMdl.namedObjects.get(qnPureUnit)
-            pureDataType = getattr(pureUnitObj, "dataType", None)
-            txmyMdl._unitDataTypes = frozenset(
-                obj.dataType for obj in txmyMdl.namedObjects.values()
-                if isinstance(obj, XbrlUnit) and obj.dataType != pureDataType
-            )
-        if any(cDataType.instanceOfType(unitDt, txmyMdl) for unitDt in txmyMdl._unitDataTypes):
+        # No unit dimension: its value is the pure unit, whose signature is empty.  Where the
+        # signature of the fact's datatype is not empty, a unit is required -- there is no
+        # separate test of whether the datatype "has a defined unit".
+        dtSignature = dataTypeSignature(cObj.dataType, txmyMdl)
+        if not isEmptySignature(dtSignature):
             txmyMdl.error("oimte:factMissingUnitDimension",
-                          _("Fact %(name)s requires a unit dimension for concept %(concept)s with dataType %(dataType)s."),
-                          xbrlObject=fact, name=fact.name, concept=cQn, dataType=cObj.dataType)
+                          _("Fact %(name)s requires a unit dimension of signature %(dataTypeSignature)s for concept "
+                            "%(concept)s with dataType %(dataType)s."),
+                          xbrlObject=fact, name=fact.name, concept=cQn, dataType=cObj.dataType,
+                          dataTypeSignature=signatureString(dtSignature))
             fact._xValid = INVALID
     updateDimVals = {} # compiled values
     for dimName, dimVal in fact.factDimensions.items():

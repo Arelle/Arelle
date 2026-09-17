@@ -5,7 +5,8 @@ See COPYRIGHT.md for copyright information.
 from arelle.ModelValue import qname
 from .ErrorCatalog import emit_error
 from .XbrlHeading import XbrlHeading
-from .XbrlConcept import XbrlCollectionType, XbrlConcept, XbrlDataType, XbrlUnitType
+from .XbrlConcept import XbrlCollectionType, XbrlConcept, XbrlDataType
+from .UnitSignature import XSD_NAMESPACE, compositionCycle, unitCompositionQNames
 from .XbrlConst import qnXbrlConceptObj, xbrl
 from .XbrlDimension import XbrlDomainNetwork
 
@@ -47,11 +48,34 @@ def validateConceptFamily(compMdl, module, oimFile, *, assertObjectType, validat
         btQn = dtObj.baseType
         if btQn and btQn.namespaceURI != "http://www.w3.org/2001/XMLSchema":
             validateQNameReference(compMdl, dtObj, "baseType", XbrlDataType)
-        if dtObj.unitType is not None:
-            utObj = dtObj.unitType
-            assertObjectType(compMdl, utObj, XbrlUnitType)
-            for utProp in ("dataTypeNumerator", "dataTypeDenominator", "dataTypeMultiplier"):
-                validateQNameReference(compMdl, utObj, utProp, XbrlDataType, isOptional=True)
+        # unitComposition: two multisets of dataType QNames, each of which must resolve to a
+        # numeric datatype, and which must not name this datatype itself (tavi.md "Unit composition")
+        composition = unitCompositionQNames(dtObj, compMdl)
+        if composition is not None:
+            prefixNamespaces = getattr(getattr(dtObj, "module", None), "_prefixNamespaces", None) or {}
+            for rawSide in list(getattr(dtObj, "unitComposition", None) or ())[:2]:
+                for dtQnStr in (rawSide or ()):
+                    if isinstance(dtQnStr, str) and qname(dtQnStr, prefixNamespaces) is None:
+                        emit_error(compMdl, "oimce:unboundPrefix",
+                                   _("The dataType %(name)s unitComposition QName has an undefined prefix: %(qname)s."),
+                                   xbrlObject=dtObj, name=dtObj.name, qname=dtQnStr)
+            for side in composition:
+                for compQn in side:
+                    if compQn.namespaceURI == XSD_NAMESPACE:
+                        continue # a built-in XML Schema datatype needs no datatype object
+                    compDtObj = compMdl.namedObjects.get(compQn)
+                    if not isinstance(compDtObj, XbrlDataType):
+                        emit_error(compMdl, "oimte:invalidQNameReference",
+                                   _("The dataType %(name)s unitComposition references %(dataType)s, which is not a dataType object."),
+                                   xbrlObject=dtObj, name=dtObj.name, dataType=compQn)
+                    elif not compDtObj.isNumeric(compMdl):
+                        emit_error(compMdl, "oimte:invalidUnitDataType",
+                                   _("The dataType %(name)s unitComposition references %(dataType)s, which is not a numeric dataType."),
+                                   xbrlObject=dtObj, name=dtObj.name, dataType=compQn)
+            if compositionCycle(dtObj, compMdl):
+                emit_error(compMdl, "oimte:circularUnitComposition",
+                           _("The dataType %(name)s appears in its own unitComposition, directly or through the unitComposition of a dataType it names."),
+                           xbrlObject=dtObj, name=dtObj.name)
         # allowedObjects MUST be limited to object types that carry a dataType property
         badAllowed = [ao for ao in (dtObj.allowedObjects or ()) if ao not in _DATATYPE_ALLOWED_OBJECT_TYPES]
         if badAllowed:

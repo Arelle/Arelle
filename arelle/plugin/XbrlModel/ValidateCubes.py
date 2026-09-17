@@ -7,6 +7,7 @@ from .XbrlConcept import XbrlConcept
 from .XbrlCube import XbrlCube, conceptCoreDim, periodCoreDim, entityCoreDim, unitCoreDim
 from .XbrlDimension import XbrlDimension, XbrlDomainNetwork
 from .XbrlFact import XbrlFact
+from .UnitSignature import canonicalUnitValue
 from .VectorSearch import buildXbrlVectors, searchXbrl, searchXbrlBatchTopk, SEARCH_CUBES, SEARCH_FACTPOSITIONS, SEARCH_BOTH
 from arelle.XmlValidateConst import VALID, INVALID
 
@@ -78,6 +79,14 @@ def matchFactToCube(compMdl, factspace, cubeObj):
                 resolved = qname(factDimVal, getattr(getattr(factspace, "module", None), "_prefixNamespaces", None))
                 if resolved is not None:
                     factDimVal = resolved
+            if dimName == unitCoreDim and isinstance(factDimVal, tuple):
+                # A reported unit dimension value is compared with the cube's unit members by its
+                # canonical value, so that utr:ft*utr:sqft matches a domain containing utr:ft3
+                # (tavi.md "Unit equivalence"). A value that does not reduce to a single unit
+                # matches no member, since a unit domain lists unit objects.
+                canonicalValue = canonicalUnitValue(factDimVal, compMdl)
+                if len(canonicalValue[0]) == 1 and not canonicalValue[1]:
+                    factDimVal = canonicalValue[0][0]
             if mems and factDimVal not in mems:
                 hasDims = False # skip this cube
                 break

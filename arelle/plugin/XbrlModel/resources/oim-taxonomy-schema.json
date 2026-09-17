@@ -2485,21 +2485,17 @@
                                 "minItems": 1,
                                 "uniqueItems": true
                             },
-                            "unitType": {
-                                "type": "object",
-                                "description": "UnitType object defining numerator, denominator, and multiplier datatypes.",
-                                "properties": {
-                                    "dataTypeNumerator": {
-                                        "$ref": "#/definitions/dataTypeQName"
-                                    },
-                                    "dataTypeDenominator": {
-                                        "$ref": "#/definitions/dataTypeQName"
-                                    },
-                                    "dataTypeMultiplier": {
+                            "unitComposition": {
+                                "type": "array",
+                                "description": "Unit composition: a list of two multisets of datatype QNames. The first names the datatypes whose units are multiplied together to form the units of this datatype, the second the datatypes whose units divide them. Either may be empty, and either may name a datatype more than once.",
+                                "minItems": 2,
+                                "maxItems": 2,
+                                "items": {
+                                    "type": "array",
+                                    "items": {
                                         "$ref": "#/definitions/dataTypeQName"
                                     }
-                                },
-                                "additionalProperties": false
+                                }
                             },
                             "allowedObjects": {
                                 "type": "array",
