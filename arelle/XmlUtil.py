@@ -283,7 +283,8 @@ def escapedNode(
         for n, v in sorted(elt.items(), key=lambda item: item[0]):
             if n in uriAttrs:
                 v = resolveHtmlUri(elt, n, v).replace(" ", "%20") # %20 replacement needed for conformance test passing
-            s.append(' {0}="{1}"'.format(qname(elt, n),
+            attrName = qname(elt, n) if n.startswith("{") else n
+            s.append(' {0}="{1}"'.format(attrName,
                 v.replace("&","&amp;").replace('"', "&quot;")))
     if not start and empty:
         if selfClosable(elt):
