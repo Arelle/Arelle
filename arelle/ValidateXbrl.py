@@ -4,6 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 import regex as re
 import math
+from functools import cache
 from typing import Any, TYPE_CHECKING, cast
 from arelle import (XmlUtil, XbrlUtil, XbrlConst,
                     ValidateXbrlCalcs, ValidateXbrlDimensions, ValidateXbrlDTS, ValidateUtr, ValidateDuplicateFacts)
@@ -745,6 +746,10 @@ class ValidateXbrl:
             )
 
     def checkFacts(self, facts: list[ModelFact], inTuple: dict[Any, Any] | None = None) -> None:  # do in document order
+        @cache
+        def instanceOfNoDecimalsType(concept: ModelConcept) -> bool:
+            return concept.instanceOfType(dtrNoDecimalsItemTypes)
+
         for f in facts:
             concept = f.concept
             if concept is not None:
@@ -844,7 +849,7 @@ class ValidateXbrl:
                                 self.modelXbrl.error("xbrl.4.6.3:missingPrecisionDecimals",
                                     _("Fact %(fact)s context %(contextID)s is a numeric concept and must have either precision or decimals"),
                                     modelObject=f, fact=f.qname, contextID=f.contextID)
-                            elif f.concept.instanceOfType(dtrNoDecimalsItemTypes):  # type: ignore[union-attr]
+                            elif instanceOfNoDecimalsType(concept):
                                 evaluatedDecimals = inferredDecimals(f)
                                 if evaluatedDecimals > 0 and not math.isinf(evaluatedDecimals):
                                     if hasDecimals:
