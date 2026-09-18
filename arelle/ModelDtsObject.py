@@ -968,12 +968,23 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         else:
             _labelProperty = ("label", _labelDefault)
 
-        _refT = tuple((self.modelXbrl.roleTypeDefinition(_ref.role, _lang), " ",  # type: ignore[union-attr]
-                       tuple((_refPart.localName, _refPart.stringValue.strip())
-                             for _refPart in _ref.iterchildren()))  # type: ignore[union-attr]
-                      for _refRel in sorted(self.modelXbrl.relationshipSet(XbrlConst.conceptReference).fromModelObject(self),
-                                            key=lambda r:r.toModelObject.roleRefPartSortKey())  # type: ignore[union-attr]
-                      for _ref in (_refRel.toModelObject,))
+        _refT = tuple(
+            (
+                self.modelXbrl.roleTypeDefinition(_ref.role or XbrlConst.standardReference, _lang),  # type: ignore[union-attr]
+                " ",
+                tuple(
+                    (_refPart.localName, _refPart.stringValue.strip())
+                    for _refPart in _ref.iterchildren()  # type: ignore[union-attr]
+                ),
+            )
+            for _refRel in sorted(
+                self.modelXbrl.relationshipSet(
+                    XbrlConst.conceptReference
+                ).fromModelObject(self),
+                key=lambda r: r.toModelObject.roleRefPartSortKey(),  # type: ignore[union-attr]
+            )
+            for _ref in (_refRel.toModelObject,)
+        )
         _refsStrung = " ".join(_refPart.stringValue.strip()
                                for _refRel in self.modelXbrl.relationshipSet(XbrlConst.conceptReference).fromModelObject(self)
                                for _refPart in _refRel.toModelObject.iterchildren())  # type: ignore[union-attr]
@@ -1753,7 +1764,7 @@ class ModelLink(ModelObject, LinkRelationships):
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelLink, self).init(modelDocument)
         self.labeledResources = defaultdict(list)
-        self.role = self.get("{http://www.w3.org/1999/xlink}role")  # type: ignore[assignment]
+        self.role = self.get("{http://www.w3.org/1999/xlink}role")
         self.initRelationships()
 
 class ModelResource(ModelObject, ModelResourceBase):

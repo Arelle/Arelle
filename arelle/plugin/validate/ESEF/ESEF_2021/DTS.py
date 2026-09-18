@@ -160,11 +160,27 @@ def checkFilingDTS(
 
                             assert label is not None, "labelRel.toModelObject is None"
                             langRoleLabels[(label.xmlLang,label.role)].append(label)
-                            if label.role not in standardLabelRoles and not ( #not in LRR
-                                label.role in val.modelXbrl.roleTypes and val.modelXbrl.roleTypes[label.role][0].modelDocument.uri.startswith("http://www.xbrl.org/lrr")):
-                                val.modelXbrl.warning("ESEF.3.4.5.extensionTaxonomyElementLabelCustomRole",
-                                    _("Extension taxonomy element label SHOULD not be custom: %(concept)s role %(labelrole)s"),
-                                    modelObject=(modelConcept,label), concept=modelConcept.qname, labelrole=label.role)
+                            if (
+                                label.role not in standardLabelRoles
+                                and not (  # not in LRR
+                                    label.role is not None
+                                    and label.role in val.modelXbrl.roleTypes
+                                    and val.modelXbrl.roleTypes[label.role][
+                                        0
+                                    ].modelDocument.uri.startswith(
+                                        "http://www.xbrl.org/lrr"
+                                    )
+                                )
+                            ):
+                                val.modelXbrl.warning(
+                                    "ESEF.3.4.5.extensionTaxonomyElementLabelCustomRole",
+                                    _(
+                                        "Extension taxonomy element label SHOULD not be custom: %(concept)s role %(labelrole)s"
+                                    ),
+                                    modelObject=(modelConcept, label),
+                                    concept=modelConcept.qname,
+                                    labelrole=label.role,
+                                )
                     if modelConcept.isItem or modelConcept.isTuple or modelConcept.isHypercubeItem or modelConcept.isDimensionItem:
                         if not hasStandardLabel:
                             if hasNonStandardLabel:

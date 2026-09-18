@@ -213,9 +213,9 @@ class ModelFormulaRules:
     valueProg: ExpressionStack | None
     hasPrecision: bool
     hasDecimals: bool
-    aspectValues: defaultdict[int | QName | None, list[QName | None] | QName | ModelObject | str | None]
-    aspectProgs: defaultdict[int | QName | None, list[ExpressionStack | None]]
-    typedDimProgAspects: set[QName | None]
+    aspectValues: defaultdict[int | QName, list[QName] | QName | ModelObject | str | None]
+    aspectProgs: defaultdict[int | QName, list[ExpressionStack | None]]
+    typedDimProgAspects: set[QName]
     modelXbrl: ModelXbrl
     aspectModel: str
 
@@ -243,35 +243,82 @@ class ModelFormulaRules:
             self.aspectProgs = defaultdict(list)
             self.typedDimProgAspects = set()
 
-            def compileRuleElement(ruleElt: ModelObject, exprs: list[tuple[int | QName | None, str | None]]) -> None:
+            def compileRuleElement(
+                ruleElt: ModelObject, exprs: list[tuple[int | QName, str | None]]
+            ) -> None:
                 if isinstance(ruleElt, ModelObject):
                     name = ruleElt.localName
                     if name == "qname":
                         value = qname(ruleElt, XmlUtil.text(ruleElt))
-                        if ruleElt.getparent().localName == "concept":  # type: ignore[union-attr]
-                            if Aspect.CONCEPT in self.aspectValues:
-                                self.modelXbrl.error("xbrlfe:conflictingAspectRules", _("Concept aspect has multiple rules in formula."), modelObject=self)
-                            self.aspectValues[Aspect.CONCEPT] = value
-                        elif ruleElt.getparent().getparent().get("dimension") is not None:  # type: ignore[union-attr]
-                            qnDim = qname(ruleElt.getparent().getparent(), ruleElt.getparent().getparent().get("dimension"))  # type: ignore[union-attr]
-                            if qnDim in self.aspectValues:
-                                self.modelXbrl.error("xbrlfe:conflictingAspectRules",
-                                                     _("Dimension %(dimension)s aspect has multiple rules in formula."),
-                                                     modelObject=self, dimension=qnDim)
-                            self.aspectValues[qnDim] = value
+                        if value is not None:
+                            if ruleElt.getparent().localName == "concept":  # type: ignore[union-attr]
+                                if Aspect.CONCEPT in self.aspectValues:
+                                    self.modelXbrl.error(
+                                        "xbrlfe:conflictingAspectRules",
+                                        _("Concept aspect has multiple rules in formula."),
+                                        modelObject=self,
+                                    )
+                                self.aspectValues[Aspect.CONCEPT] = value
+                            elif (
+                                ruleElt.getparent().getparent().get("dimension") is not None  # type: ignore[union-attr]
+                            ):
+                                qnDim = qname(
+                                    ruleElt.getparent().getparent(),  # type: ignore[union-attr]
+                                    ruleElt.getparent().getparent().get("dimension"),  # type: ignore[union-attr]
+                                )
+                                if qnDim is not None:
+                                    if qnDim in self.aspectValues:
+                                        self.modelXbrl.error(
+                                            "xbrlfe:conflictingAspectRules",
+                                            _(
+                                                "Dimension %(dimension)s aspect has multiple rules in formula."
+                                            ),
+                                            modelObject=self,
+                                            dimension=qnDim,
+                                        )
+                                    self.aspectValues[qnDim] = value
                     elif name == "qnameExpression":
                         if ruleElt.getparent().localName == "concept":  # type: ignore[union-attr]
                             exprs = [(Aspect.CONCEPT, XmlUtil.text(ruleElt))]
-                        elif ruleElt.getparent().getparent().get("dimension") is not None:  # type: ignore[union-attr]
-                            exprs = [(qname(ruleElt.getparent().getparent(), ruleElt.getparent().getparent().get("dimension")), XmlUtil.text(ruleElt))]  # type: ignore[union-attr]
-                    elif name == "omit" and ruleElt.getparent().get("dimension") is not None:  # type: ignore[union-attr]
-                        self.aspectValues[Aspect.OMIT_DIMENSIONS].append(qname(ruleElt.getparent(), ruleElt.getparent().get("dimension")))  # type: ignore[union-attr,arg-type]
-                    elif name == "value" and ruleElt.getparent().get("dimension") is not None:  # type: ignore[union-attr]
-                        self.aspectValues[qname(ruleElt.getparent(), ruleElt.getparent().get("dimension"))] = XmlUtil.child(ruleElt,"*","*")  # type: ignore[union-attr]
-                    elif name == "xpath" and ruleElt.getparent().get("dimension") is not None:  # type: ignore[union-attr]
-                        typedDimQname = qname(ruleElt.getparent(), ruleElt.getparent().get("dimension"))  # type: ignore[union-attr]
-                        self.typedDimProgAspects.add(typedDimQname)
-                        exprs = [(typedDimQname, XmlUtil.text(ruleElt))]
+                        elif (
+                            ruleElt.getparent().getparent().get("dimension") is not None  # type: ignore[union-attr]
+                        ):
+                            qnDim = qname(
+                                ruleElt.getparent().getparent(),  # type: ignore[union-attr]
+                                ruleElt.getparent().getparent().get("dimension"),  # type: ignore[union-attr]
+                            )
+                            if qnDim is not None:
+                                exprs = [(qnDim, XmlUtil.text(ruleElt))]
+                    elif (
+                        name == "omit"
+                        and ruleElt.getparent().get("dimension") is not None  # type: ignore[union-attr]
+                    ):
+                        qnDim = qname(
+                            ruleElt.getparent(),
+                            ruleElt.getparent().get("dimension"),  # type: ignore[union-attr]
+                        )
+                        if qnDim is not None:
+                            self.aspectValues[Aspect.OMIT_DIMENSIONS].append(qnDim)  # type: ignore[union-attr,arg-type]
+                    elif (
+                        name == "value"
+                        and ruleElt.getparent().get("dimension") is not None  # type: ignore[union-attr]
+                    ):
+                        qnDim = qname(
+                            ruleElt.getparent(),
+                            ruleElt.getparent().get("dimension"),  # type: ignore[union-attr]
+                        )
+                        if qnDim is not None:
+                            self.aspectValues[qnDim] = XmlUtil.child(ruleElt, "*", "*")
+                    elif (
+                        name == "xpath"
+                        and ruleElt.getparent().get("dimension") is not None  # type: ignore[union-attr]
+                    ):
+                        typedDimQname = qname(
+                            ruleElt.getparent(), ruleElt.getparent().get("dimension")  # type: ignore[union-attr]
+                        )
+                        if typedDimQname is not None:
+                            self.typedDimProgAspects.add(typedDimQname)
+                            exprs = [(typedDimQname, XmlUtil.text(ruleElt))]
                     elif name == "entityIdentifier":
                         if ruleElt.get("scheme") is not None:
                             exprs.append((Aspect.SCHEME, ruleElt.get("scheme")))
@@ -299,12 +346,24 @@ class ModelFormulaRules:
                         if ruleElt.get("measure") is not None:
                             exprs = [(Aspect.MULTIPLY_BY, ruleElt.get("measure"))]
                         if ruleElt.getparent().getparent().get("source") is not None:  # type: ignore[union-attr]
-                            self.aspectValues[Aspect.MULTIPLY_BY].append(qname(ruleElt, ruleElt.get("source"), noPrefixIsNoNamespace=True))  # type: ignore[union-attr,arg-type]
+                            qnSource = qname(
+                                ruleElt,
+                                ruleElt.get("source"),
+                                noPrefixIsNoNamespace=True,
+                            )
+                            if qnSource is not None:
+                                self.aspectValues[Aspect.MULTIPLY_BY].append(qnSource)  # type: ignore[union-attr,arg-type]
                     elif name == "divideBy":
                         if ruleElt.get("measure") is not None:
                             exprs = [(Aspect.DIVIDE_BY, ruleElt.get("measure"))]
                         if ruleElt.getparent().getparent().get("source") is not None:  # type: ignore[union-attr]
-                            self.aspectValues[Aspect.DIVIDE_BY].append(qname(ruleElt, ruleElt.get("source"), noPrefixIsNoNamespace=True))  # type: ignore[union-attr,arg-type]
+                            qnSource = qname(
+                                ruleElt,
+                                ruleElt.get("source"),
+                                noPrefixIsNoNamespace=True,
+                            )
+                            if qnSource is not None:
+                                self.aspectValues[Aspect.DIVIDE_BY].append(qnSource)  # type: ignore[union-attr,arg-type]
                     elif name in ("occEmpty", "occFragments", "occXpath"):
                         if ruleElt.get("occ") == "segment":
                             if self.aspectModel == "dimensional":
@@ -325,13 +384,23 @@ class ModelFormulaRules:
                             self.aspectValues[aspect].insert(0, XbrlConst.qnFormulaOccEmpty)  # type: ignore[union-attr,arg-type]
                     elif name in ("explicitDimension", "typedDimension") and ruleElt.get("dimension") is not None:
                         qnDim = qname(ruleElt, ruleElt.get("dimension"))
-                        self.aspectValues[Aspect.DIMENSIONS].append(qnDim)  # type: ignore[union-attr,arg-type]
-                        if not XmlUtil.hasChild(ruleElt, XbrlConst.formula, ("omit", "member", "value", "xpath")):
-                            if qnDim in self.aspectValues:
-                                self.modelXbrl.error("xbrlfe:conflictingAspectRules",
-                                                     _("Dimension %(dimension)s aspect has multiple rules in formula."),
-                                                     modelObject=self, dimension=qnDim)
-                            self.aspectValues[qnDim] = XbrlConst.qnFormulaDimensionSAV
+                        if qnDim is not None:
+                            self.aspectValues[Aspect.DIMENSIONS].append(qnDim)  # type: ignore[union-attr,arg-type]
+                            if not XmlUtil.hasChild(
+                                ruleElt,
+                                XbrlConst.formula,
+                                ("omit", "member", "value", "xpath"),
+                            ):
+                                if qnDim in self.aspectValues:
+                                    self.modelXbrl.error(
+                                        "xbrlfe:conflictingAspectRules",
+                                        _(
+                                            "Dimension %(dimension)s aspect has multiple rules in formula."
+                                        ),
+                                        modelObject=self,
+                                        dimension=qnDim,
+                                    )
+                                self.aspectValues[qnDim] = XbrlConst.qnFormulaDimensionSAV
                     elif name == "precision":
                         exprs = [(Aspect.PRECISION, XmlUtil.text(ruleElt))]
                         self.hasPrecision = True
@@ -349,7 +418,7 @@ class ModelFormulaRules:
                         for childElt in ruleElt.iterchildren():
                             compileRuleElement(childElt, exprs)
 
-            exprs: list[tuple[int | QName | None, str | None]] = []
+            exprs: list[tuple[int | QName, str | None]] = []
             for ruleElt in self.iterchildren():  # type: ignore[attr-defined]
                 compileRuleElement(ruleElt, exprs)
             super(ModelFormulaRules, self).compile()  # type: ignore[misc]
@@ -975,8 +1044,8 @@ class ModelPatternFilter(ModelFilter):
 
 
 class ModelAspectCover(ModelFilter):
-    _aspectsCovered: set[int | QName | None]
-    _dimsExcluded: set[QName | None]
+    _aspectsCovered: set[int | QName]
+    _dimsExcluded: set[QName]
     isAll: bool
     allDimensions: bool
     includedDimQnameProgs: list[ExpressionStack | None]
@@ -990,7 +1059,9 @@ class ModelAspectCover(ModelFilter):
         XPathParser.clearNamedProgs(self, "includedDimQnameProgs")
         super(ModelAspectCover, self).clear()
 
-    def aspectsCovered(self, varBinding: VariableBinding, xpCtx: XPathContextType = None) -> set[int | QName | None]:  # type: ignore[override,assignment]
+    def aspectsCovered(  # type: ignore[override]
+        self, varBinding: VariableBinding, xpCtx: XPathContextType = None  # type: ignore[assignment]
+    ) -> set[int | QName]:
         try:
             return self._aspectsCovered
         except AttributeError:
@@ -1013,18 +1084,20 @@ class ModelAspectCover(ModelFilter):
                     self._aspectsCovered.add( aspectFromToken[aspect] )
             for dimElt in XmlUtil.descendants(self, XbrlConst.acf, "qname"):
                 dimAspect = qname( dimElt, XmlUtil.text(dimElt) )
-                if dimElt.getparent().localName == "excludeDimension":  # type: ignore[union-attr]
-                    self._dimsExcluded.add(dimAspect)
-                else:
-                    self._aspectsCovered.add(dimAspect)
+                if dimAspect is not None:
+                    if dimElt.getparent().localName == "excludeDimension":  # type: ignore[union-attr]
+                        self._dimsExcluded.add(dimAspect)
+                    else:
+                        self._aspectsCovered.add(dimAspect)
             if xpCtx:   # provided during validate formula checking
                 for dimProgs, isExcluded in ((self.includedDimQnameProgs, False), (self.excludedDimQnameProgs, True)):
                     for dimProg in dimProgs:
                         dimAspect = xpCtx.evaluateAtomicValue(dimProg, "xs:QName")  # type: ignore[arg-type]
-                        if isExcluded:
-                            self._dimsExcluded.add(dimAspect)
-                        else:
-                            self._aspectsCovered.add(dimAspect)
+                        if isinstance(dimAspect, QName):
+                            if isExcluded:
+                                self._dimsExcluded.add(dimAspect)
+                            else:
+                                self._aspectsCovered.add(dimAspect)
             return self._aspectsCovered
 
     def dimAspectsCovered(self, varBinding: VariableBinding) -> set[QName]:
