@@ -6,8 +6,13 @@ from typing import Any
 
 import pytest
 
+from openpyxl import Workbook
+
+from arelle import ModelManager, ModelXbrl
 from arelle.api.Session import Session
-from arelle.ModelXbrl import ModelXbrl
+from arelle.CntlrCmdLine import CntlrCmdLine
+from arelle.ModelDocumentType import ModelDocumentType
+from arelle.oim.Load import oimLoader
 from arelle.RuntimeOptions import RuntimeOptions
 
 _TAXONOMY = """<?xml version="1.0" encoding="UTF-8"?>
@@ -68,9 +73,11 @@ _JSON_METADATA = {
 }
 
 
-def _run(tmp_path: Path, metadata: dict[str, Any], table_constraints_skip_loading: bool) -> ModelXbrl:
+def _run(
+    tmp_path: Path, metadata: dict[str, Any], table_constraints_skip_loading: bool, csv: str = _CSV
+) -> ModelXbrl.ModelXbrl:
     (tmp_path / "taxonomy.xsd").write_text(_TAXONOMY, encoding="utf-8")
-    (tmp_path / "data.csv").write_text(_CSV, encoding="utf-8")
+    (tmp_path / "data.csv").write_text(csv, encoding="utf-8")
     metadata_path = tmp_path / "report.json"
     metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
     with Session() as session:
@@ -108,6 +115,12 @@ def test_table_constraints_skip_loading_valid_report_has_no_errors(tmp_path: Pat
     assert model.errors == []
 
 
+@pytest.mark.parametrize("table_constraints_skip_loading", [False, True])
+def test_report_validation_runs_in_both_modes(tmp_path: Path, table_constraints_skip_loading: bool) -> None:
+    model = _run(tmp_path, _csv_metadata("xs:integer"), table_constraints_skip_loading, csv="value\nten\n")
+    assert "tcre:missingColumn" in model.errors
+
+
 @pytest.mark.parametrize(
     "metadata, expected_error",
     [
@@ -121,3 +134,45 @@ def test_table_constraints_skip_loading_rejects_unsuitable_reports(
     model = _run(tmp_path, metadata, table_constraints_skip_loading=True)
     assert expected_error in model.errors
     assert model.modelDocument is None
+
+
+def test_workbook_metadata_is_not_checked_for_table_constraints(tmp_path: Path) -> None:
+    (tmp_path / "taxonomy.xsd").write_text(_TAXONOMY, encoding="utf-8")
+    metadata = _csv_metadata("xs:integerish")
+    metadata["tables"] = {"t": {"url": "t"}}
+    workbook = Workbook()
+    workbook.active.title = "metadata"
+    workbook["metadata"]["A1"] = json.dumps(metadata)
+    sheet = workbook.create_sheet("t")
+    sheet.append(["id", "value"])
+    sheet.append(["1", "ten"])
+    workbook_path = str(tmp_path / "report.xlsx")
+    workbook.save(workbook_path)
+    cntlr = CntlrCmdLine(uiLang="en", logFileName="logToBuffer")
+    cntlr.webCache.workOffline = True
+    model = ModelXbrl.create(
+        ModelManager.initialize(cntlr), ModelDocumentType.INSTANCE, url=workbook_path, createModelDocument=False
+    )
+    model.entryLoadingUrl = workbook_path
+    try:
+        oimLoader(model, workbook_path, workbook_path)
+        assert len(model.facts) == 1
+        assert model.xbrlCsvLoadingContext is not None
+        assert model.xbrlCsvLoadingContext.tc_metadata is None
+    finally:
+        model.close()
+
+
+def test_workbook_tables_are_not_checked_for_table_constraints(tmp_path: Path) -> None:
+    metadata = _csv_metadata("xs:integerish")
+    metadata["tables"] = {"t": {"url": "data.xlsx#t"}}
+    workbook = Workbook()
+    workbook.active.title = "t"
+    workbook["t"].append(["id", "value"])
+    workbook["t"].append(["1", "ten"])
+    workbook.save(tmp_path / "data.xlsx")
+    model = _run(tmp_path, metadata, table_constraints_skip_loading=False)
+    assert "tcme:unknownType" not in model.errors
+    assert len(model.facts) == 1
+    assert model.xbrlCsvLoadingContext is not None
+    assert model.xbrlCsvLoadingContext.tc_metadata is None
