@@ -44,7 +44,7 @@ from arelle.oim.const import (
 from arelle.oim.csv.context import XbrlCsvLoadingContext
 from arelle.oim.csv.metadata.common import CSV_DOCUMENT_TYPES
 from arelle.oim.csv.metadata.parser import parse_xbrl_csv_metadata
-from arelle.oim._tc.metadata.parser import parse_tc_metadata
+from arelle.oim._tc.metadata.parser import TCParseResult, parse_tc_metadata
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import attrdict, isLegacyAbs, strTruncate
 from arelle.typing import TypeGetText
@@ -1222,7 +1222,13 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             reportProperties = {"documentInfo", "tableTemplates", "tables", "parameters", "parameterURL", "dimensions", "decimals", "links"}
             columnProperties = {"comment", "decimals", "dimensions", "propertyGroups", "parameterURL", "propertiesFrom"}
             csvMetadata = parse_xbrl_csv_metadata(oimObject)
-            tcMetadataResult = parse_tc_metadata(oimObject, namespaces)
+            hasWorkbookTables = any(
+                "#" in table.url or table.url.endswith(".xlsx") for table in csvMetadata.tables.values()
+            )
+            if isCSV and not hasWorkbookTables:
+                tcMetadataResult = parse_tc_metadata(oimObject, namespaces)
+            else:
+                tcMetadataResult = TCParseResult(None, ())
             for err in tcMetadataResult.errors:
                 error(
                     err.code,
