@@ -173,12 +173,13 @@ class _Base64BinaryPattern:
         else:
             isValid = dataLength % 4 == 2 and lastDataChar in "AQgw"
 
-        return _base64BinaryMatchPattern.match(value) if isValid else None
+        return _SENTINEL_MATCH if isValid else None
 
 
-# A trivial regex used strictly to synthesize a valid regex.Match object
-# on success, satisfying the Pattern[str].match interface without re-evaluating the payload.
-_base64BinaryMatchPattern = re_compile(r"[\s\S]*")
+# A stable sentinel for "valid match" so validators can return a truthy object
+# instead of a new match instance on every success, while still using None to
+# represent "not valid".
+_SENTINEL_MATCH = re_compile("").match("")
 
 lexicalPatterns: dict[str, Pattern[str] | _Base64BinaryPattern] = {
     "duration": re_compile(r"-?P((([0-9]+Y([0-9]+M)?([0-9]+D)?|([0-9]+M)([0-9]+D)?|([0-9]+D))(T(([0-9]+H)([0-9]+M)?([0-9]+(\.[0-9]+)?S)?|([0-9]+M)([0-9]+(\.[0-9]+)?S)?|([0-9]+(\.[0-9]+)?S)))?)|(T(([0-9]+H)([0-9]+M)?([0-9]+(\.[0-9]+)?S)?|([0-9]+M)([0-9]+(\.[0-9]+)?S)?|([0-9]+(\.[0-9]+)?S))))$"),
