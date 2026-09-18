@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 '''
 
 from arelle.ModelValue import qname
+from arelle.XbrlConst import isNumericXsdType
 from .ErrorCatalog import emit_error
 from .XbrlHeading import XbrlHeading
 from .XbrlConcept import XbrlCollectionType, XbrlConcept, XbrlDataType
@@ -62,7 +63,12 @@ def validateConceptFamily(compMdl, module, oimFile, *, assertObjectType, validat
             for side in composition:
                 for compQn in side:
                     if compQn.namespaceURI == XSD_NAMESPACE:
-                        continue # a built-in XML Schema datatype needs no datatype object
+                        # a built-in XML Schema datatype needs no datatype object, but must still be numeric
+                        if not isNumericXsdType(compQn.localName):
+                            emit_error(compMdl, "oimte:invalidUnitDataType",
+                                       _("The dataType %(name)s unitComposition references %(dataType)s, which is not a numeric dataType."),
+                                       xbrlObject=dtObj, name=dtObj.name, dataType=compQn)
+                        continue
                     compDtObj = compMdl.namedObjects.get(compQn)
                     if not isinstance(compDtObj, XbrlDataType):
                         emit_error(compMdl, "oimte:invalidQNameReference",
