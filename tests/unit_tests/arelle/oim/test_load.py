@@ -1,14 +1,19 @@
 from __future__ import annotations
 
+import io
+from typing import IO, Any
 from unittest.mock import Mock
 
 import pytest
 
 from arelle import ModelRelationshipSet, ModelXbrl
+from arelle.FileSource import FileSource
 from arelle.ModelDtsObject import ModelRelationship
 from arelle.oim.Load import (
+    CSV_FACTS_FILE,
     NONE_CELL,
     getTaxonomyContextElement,
+    openCsvReader,
     parseParameterValues,
 )
 
@@ -76,3 +81,23 @@ class TestLoadFromOIM:
         result = getTaxonomyContextElement(model_xbrl)
 
         assert result == expected_context_element
+
+
+def test_open_csv_reader_closes_the_file_after_iteration() -> None:
+    handles: list[IO[Any]] = []
+
+    def file(
+        filepath: str, binary: bool = False, encoding: str | None = None
+    ) -> tuple[IO[Any]]:
+        handle: IO[Any] = (
+            io.BytesIO(b"a,b\n1,2\n") if binary else io.StringIO("a,b\n1,2\n")
+        )
+        handles.append(handle)
+        return (handle,)
+
+    file_source = Mock(spec=FileSource, file=file)
+    assert list(openCsvReader(file_source, "t.csv", CSV_FACTS_FILE)) == [
+        ["a", "b"],
+        ["1", "2"],
+    ]
+    assert all(handle.closed for handle in handles)

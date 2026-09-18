@@ -15,7 +15,7 @@ from collections import defaultdict
 from collections.abc import Iterator
 from types import MappingProxyType
 from math import log10
-from typing import TYPE_CHECKING
+from typing import IO, TYPE_CHECKING, Any
 
 import isodate
 import regex as re
@@ -674,7 +674,12 @@ def openCsvReader(fileSource: FileSource, csvFilePath: str, fileType: int) -> It
     # Must increase the max supported CSV field size before opening the CSV reader.
     # Otherwise large HTML values will trigger csv.ERROR: field larger than field limit.
     increaseMaxFieldSize()
-    return csv.reader(_file, _dialect, doublequote=True)
+    return _csvRows(_file, _dialect)
+
+
+def _csvRows(file: IO[Any], dialect: str | type[csv.Dialect]) -> Iterator[list[str]]:
+    with file:
+        yield from csv.reader(file, dialect, doublequote=True)
 
 
 def idDeduped(modelXbrl, id):
