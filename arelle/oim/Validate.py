@@ -30,13 +30,15 @@ def validateTableConstraints(modelXbrl: ModelXbrl) -> None:
     csvContext = modelXbrl.xbrlCsvLoadingContext
     if csvContext is None or csvContext.tc_metadata is None:
         return
-    tcValidator = TCMetadataValidator(csvContext.metadata, csvContext.tc_metadata)
-    for tcError in tcValidator.validate():
+    tcMetadataValidator = TCMetadataValidator(
+        csvContext.metadata, csvContext.tc_metadata
+    )
+    for tcMetadataError in tcMetadataValidator.validate():
         modelXbrl.error(
-            tcError.code,
+            tcMetadataError.code,
             _("Invalid table constraints metadata: %(error)s"),
             modelObject=modelXbrl,
-            error=str(tcError),
+            error=str(tcMetadataError),
         )
 
 
