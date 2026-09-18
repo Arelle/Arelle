@@ -1089,9 +1089,10 @@ class ModelAttribute(ModelNamableTerm):
             if typeqname is None:   # anyType is default type
                 return "anyType"
             if typeqname.namespaceURI == XbrlConst.xsd:
-                return typeqname.localName
-            type = self.type
-            self._baseXsdType = type.baseXsdType if type is not None else None
+                self._baseXsdType = typeqname.localName
+            else:
+                type = self.type
+                self._baseXsdType = type.baseXsdType if type is not None else None
             return self._baseXsdType
 
     @property
