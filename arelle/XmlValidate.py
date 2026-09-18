@@ -140,21 +140,62 @@ decimalPattern = re_compile(r"^[+-]?([0-9]+(\.[0-9]*)?|\.[0-9]+)$")
 integerPattern = re_compile(r"^[+-]?([0-9]+)$")
 floatPattern = re_compile(r"^(\+|-)?([0-9]+(\.[0-9]*)?|\.[0-9]+)([Ee](\+|-)?[0-9]+)?$|^(\+|-)?INF$|^NaN$")
 
-lexicalPatterns = {
+
+class _Base64BinaryPattern:
+    """Linear matcher for the lexical space of xsd:base64Binary."""
+
+    def match(self, value: str) -> Match[str] | None:
+        dataLength = 0
+        paddingLength = 0
+        lastDataChar = ""
+
+        for char in value:
+            if char in " \t\n\r":
+                continue
+
+            if char in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/":
+                if paddingLength:
+                    return None
+                dataLength += 1
+                lastDataChar = char
+
+            elif char == "=":
+                paddingLength += 1
+                if paddingLength > 2:
+                    return None
+            else:
+                return None
+
+        if paddingLength == 0:
+            isValid = dataLength % 4 == 0
+        elif paddingLength == 1:
+            isValid = dataLength % 4 == 3 and lastDataChar in "AEIMQUYcgkosw048"
+        else:
+            isValid = dataLength % 4 == 2 and lastDataChar in "AQgw"
+
+        return _SENTINEL_MATCH if isValid else None
+
+
+# A stable sentinel for "valid match" so validators can return a truthy object
+# instead of a new match instance on every success, while still using None to
+# represent "not valid".
+_SENTINEL_MATCH = re_compile("").match("")
+
+lexicalPatterns: dict[str, Pattern[str] | _Base64BinaryPattern] = {
     "duration": re_compile(r"-?P((([0-9]+Y([0-9]+M)?([0-9]+D)?|([0-9]+M)([0-9]+D)?|([0-9]+D))(T(([0-9]+H)([0-9]+M)?([0-9]+(\.[0-9]+)?S)?|([0-9]+M)([0-9]+(\.[0-9]+)?S)?|([0-9]+(\.[0-9]+)?S)))?)|(T(([0-9]+H)([0-9]+M)?([0-9]+(\.[0-9]+)?S)?|([0-9]+M)([0-9]+(\.[0-9]+)?S)?|([0-9]+(\.[0-9]+)?S))))$"),
     "gYearMonth": re_compile(r"-?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
     "gYear": re_compile(r"-?([1-9][0-9]{3,}|0[0-9]{3})(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
     "gMonthDay": re_compile(r"--(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
     "gDay": re_compile(r"---(0[1-9]|[12][0-9]|3[01])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
     "gMonth": re_compile(r"--(0[1-9]|1[0-2])(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
-    "base64Binary": re_compile(r"((([A-Za-z0-9+/]\s?){4})*(([A-Za-z0-9+/]\s?){3}[A-Za-z0-9+/]|([A-Za-z0-9+/]\s?){2}[AEIMQUYcgkosw048]\s?=|[A-Za-z0-9+/]\s?[AQgw]\s?=\s?=))?$"),
+    "base64Binary": _Base64BinaryPattern(),
     "hexBinary": re_compile(r"([0-9a-fA-F]{2})*$"),
     "language": re_compile(r"[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$"),
     "XBRLI_DATEUNION": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?)?(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?\s*$"),
     "dateTime": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
     "date": re_compile(r"\s*-?[0-9]{4}-[0-9]{2}-[0-9]{2}(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
     "time": re_compile(r"\s*-?[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?$"),
-    }
+}
 
 # patterns difficult to compile into python
 xmlSchemaPatterns = {
