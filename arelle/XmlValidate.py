@@ -176,6 +176,8 @@ class _Base64BinaryPattern:
         return _base64BinaryMatchPattern.match(value) if isValid else None
 
 
+# A trivial regex used strictly to synthesize a valid regex.Match object
+# on success, satisfying the Pattern[str].match interface without re-evaluating the payload.
 _base64BinaryMatchPattern = re_compile(r"[\s\S]*")
 
 lexicalPatterns: dict[str, Pattern[str] | _Base64BinaryPattern] = {
