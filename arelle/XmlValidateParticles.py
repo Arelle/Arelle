@@ -41,7 +41,8 @@ def validateElementSequence(
     iStartingChild = iNextChild
     errDesc: tuple[str, str] | None = None
     errArgs: dict[str, Any] | None = None
-    if isinstance(compositor, ModelAll):
+    isAll = isinstance(compositor, ModelAll)
+    if isAll:
         allParticles: set[ModelParticle] = set()  # elements required
     elif isinstance(compositor, ModelChoice):
         anyChoiceHasMinOccurs0 = False
@@ -49,6 +50,8 @@ def validateElementSequence(
     while moreParticlesPasses:
         moreParticlesPasses = False
         for particle in particles:
+            if isAll and particle in allParticles:
+                continue
             iStartingParticle = iNextChild
             # A skipped optional group must not leave an error on the next particle.
             errDesc = errArgs = None
@@ -94,8 +97,8 @@ def validateElementSequence(
                     if particle.minOccurs == 0:
                         anyChoiceHasMinOccurs0 = True
                     iNextChild = iStartingChild
-            elif isinstance(compositor, ModelAll):
-                if particle.minOccurs <= occurrences <= particle.maxOccurs:
+            elif isAll:
+                if occurrences > 0 and particle.minOccurs <= occurrences <= particle.maxOccurs:
                     allParticles.add(particle)  # particle found
                     moreParticlesPasses = True
                     break  # advance to next all particle
@@ -109,8 +112,9 @@ def validateElementSequence(
                          _("%(compositor)s(%(particles)s) content occurred %(occurrences)s times, minOccurs=%(minOccurs)s, maxOccurs=%(maxOccurs)s, within %(parentElement)s")
                          ),
                         dict(compositor=compositor, particles=particles, occurrences=occurrences, minOccurs=particle.minOccursStr, maxOccurs=particle.maxOccursStr))
-    if isinstance(compositor, ModelAll):
-        missingParticles = set(particles) - allParticles
+    if isAll:
+        requiredParticles = {particle for particle in particles if particle.minOccurs > 0}
+        missingParticles = requiredParticles - allParticles
         if missingParticles:
             return (iNextChild, False,
                     ("xmlSchema:missingParticlesError",
