@@ -2,10 +2,13 @@ from io import BytesIO
 from zipfile import ZipFile
 
 import pytest
+from lxml import etree
 
 from arelle import ModelDocument, XmlValidate
 from arelle.Cntlr import Cntlr
 from arelle.FileSource import openFileSource
+from arelle.ModelDtsObject import ModelAll, ModelChoice, ModelSequence
+from arelle.ModelObjectFactory import KnownNamespacesModelObjectClassLookup
 
 
 def build_schema(compositor, member_min_occurs=(1, 1), group_optional=False, following_element=None):
@@ -43,6 +46,16 @@ def load_test_document(cntlr, schema_xml, instance_xml):
     return model, document
 
 
+@pytest.mark.parametrize("name, expected", [
+    ("all", ModelAll), ("choice", ModelChoice), ("sequence", ModelSequence),
+])
+def test_compositor_class_lookup(name, expected):
+    parser = etree.XMLParser()
+    parser.set_element_class_lookup(KnownNamespacesModelObjectClassLookup(None))
+    element = etree.fromstring(f'<xs:{name} xmlns:xs="http://www.w3.org/2001/XMLSchema"/>', parser)
+    assert type(element) is expected
+
+
 @pytest.fixture
 def cntlr():
     cntlr = Cntlr(logFileName="logToBuffer", disable_persistent_config=True)
@@ -50,6 +63,27 @@ def cntlr():
     yield cntlr
     cntlr.modelManager.close()
     cntlr.close()
+
+
+@pytest.mark.parametrize("instance_xml, errors", [
+    pytest.param(
+        '<root xmlns="urn:test"><a>First child</a><b>Second child</b></root>',
+        [], id="valid-order",
+    ),
+    pytest.param(
+        '<root xmlns="urn:test"><b>Second child</b><a>First child</a></root>',
+        [], id="valid-reverse",
+    ),
+    pytest.param(
+        '<root xmlns="urn:test"><a>First child</a></root>',
+        ["xmlSchema:missingParticlesError"], id="missing-required",
+    ),
+])
+def test_all_document(cntlr, instance_xml, errors):
+    schema_xml = build_schema("all")
+    model, document = load_test_document(cntlr, schema_xml, instance_xml)
+    XmlValidate.validate(model, document.xmlRootElement)
+    assert model.errors == errors
 
 
 def test_skipped_optional_sequence_before_required_member(cntlr):
@@ -61,6 +95,25 @@ def test_skipped_optional_sequence_before_required_member(cntlr):
 
 
 @pytest.mark.parametrize("compositor, member_min_occurs, group_optional, children, expected_valid", [
+    ("all", (1, 1), False, ("a", "b"), True),
+    ("all", (1, 1), False, ("b", "a"), True),
+    ("all", (1, 1), False, ("a",), False),
+    ("all", (1, 1), False, (), False),
+    ("all", (1, 1), False, ("a", "b", "a"), False),
+    ("all", (1, 1), False, ("a", "a", "b"), False),
+    ("all", (1, 1), False, ("a", "b", "c"), False),
+    ("all", (0, 1), False, ("b",), True),
+    ("all", (0, 1), False, ("b", "a"), True),
+    ("all", (0, 1), False, (), False),
+    ("all", (1, 1), True, (), True),
+    ("all", (1, 1), True, ("a",), False),
+    ("all", (1, 1), True, ("b", "a"), True),
+    ("all", (0, 0), False, (), True),
+    ("all", (0, 0), False, ("a",), True),
+    ("all", (0, 0), False, ("b",), True),
+    ("all", (0, 0), False, ("a", "b"), True),
+    ("all", (0, 0), False, ("b", "a"), True),
+    ("all", (0, 0), False, ("a", "a"), False),
     ("choice", (1, 1), False, ("a", "b"), False),
     ("choice", (1, 1), False, ("b", "a"), False),
     ("choice", (1, 1), False, ("a",), True),
