@@ -49,6 +49,8 @@ def validateElementSequence(
     while moreParticlesPasses:
         moreParticlesPasses = False
         for particle in particles:
+            # A skipped optional group must not leave an error on the next particle.
+            errDesc = errArgs = None
             occurrences = 0
             if isinstance(particle, (ModelConcept, ModelAny)):
                 elementDeclaration = particle.dereference()  # note that types in structures may share quames with other structures
