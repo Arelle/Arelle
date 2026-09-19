@@ -52,7 +52,6 @@ config = ConformanceSuiteConfig(
         },
     }.items()},
     expected_failure_ids=frozenset(f"table-constraints-conformance-{_VERSION}/{s}" for s in [
-        "720-tc-report-processor/index-tc-report-table.xml:V-901-tp-unknown",
         "720-tc-report-processor/index-tc-report-table.xml:V-100",
         "720-tc-report-processor/index-tc-report-table.xml:V-26",
         "720-tc-report-processor/index-tc-report-table.xml:V-34a",
