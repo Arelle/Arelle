@@ -49,6 +49,7 @@ def validateElementSequence(
     while moreParticlesPasses:
         moreParticlesPasses = False
         for particle in particles:
+            iStartingParticle = iNextChild
             # A skipped optional group must not leave an error on the next particle.
             errDesc = errArgs = None
             occurrences = 0
@@ -98,7 +99,7 @@ def validateElementSequence(
                     allParticles.add(particle)  # particle found
                     moreParticlesPasses = True
                     break  # advance to next all particle
-            elif particle.minOccurs > 0 and errDesc:
+            elif (particle.minOccurs > 0 or iNextChild > iStartingParticle) and errDesc:
                 return iNextChild, False, errDesc, errArgs
             elif not particle.minOccurs <= occurrences <= particle.maxOccurs:
                 return (iNextChild, False,
