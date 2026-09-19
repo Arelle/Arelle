@@ -8,6 +8,7 @@ from collections.abc import Callable, Generator, Iterator, Mapping
 from dataclasses import dataclass
 
 from arelle.oim._tc.const import (
+    TCRE_COLUMN_PARAMETER_CONFLICT,
     TCRE_INVALID_COLUMN_ORDER,
     TCRE_INVALID_DURATION_TYPE,
     TCRE_INVALID_PERIOD_TYPE,
@@ -70,11 +71,13 @@ class TCReportValidator:
         self,
         csv_metadata: XbrlCsvEffectiveMetadata,
         tc_metadata: TCMetadata,
+        report_parameters: Mapping[str, str | None],
         open_table: TableOpener,
         report_progress: Callable[[str], None] | None = None,
     ) -> None:
         self._csv_metadata = csv_metadata
         self._tc_metadata = tc_metadata
+        self._report_parameters = report_parameters
         self._open_table = open_table
         self._report_progress = report_progress or (lambda message: None)
         self._templates = self._compile_templates()
@@ -109,6 +112,7 @@ class TCReportValidator:
             template = self._templates.get(table.template or table_id)
             if template is None:
                 continue
+            yield from self._validate_parameter_conflicts(table_id, table, template)
             rows = self._open_table(table_id, table)
             if rows is None:
                 continue
@@ -116,6 +120,28 @@ class TCReportValidator:
                 _("Validating table constraints of table {}").format(table_id)
             )
             yield from self._validate_table(table_id, table, template, rows)
+
+    def _validate_parameter_conflicts(
+        self, table_id: str, table: XbrlCsvTable, template: _Template
+    ) -> Generator[TCReportValidationError, None, None]:
+        for column in template.columns:
+            if column.name in table.parameters:
+                message = _(
+                    "table parameter '{}' has the same name as a constrained column"
+                )
+            elif column.name in self._report_parameters:
+                message = _(
+                    "report parameter '{}' has the same name as a constrained column"
+                )
+            else:
+                continue
+            yield TCReportValidationError(
+                message.format(column.name),
+                code=TCRE_COLUMN_PARAMETER_CONFLICT,
+                table_id=table_id,
+                url=table.url,
+                parameter=column.name,
+            )
 
     def _validate_table(
         self, table_id: str, table: XbrlCsvTable, template: _Template, rows: TableRows

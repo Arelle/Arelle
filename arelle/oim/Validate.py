@@ -54,6 +54,7 @@ def validateTableConstraints(modelXbrl: ModelXbrl) -> None:
     tcReportValidator = TCReportValidator(
         csvContext.metadata,
         csvContext.tc_metadata,
+        csvContext.report_parameters,
         lambda tableId, table: _tableConstraintsTableRows(
             modelXbrl, csvContext, tableId, table
         ),

@@ -48,6 +48,7 @@ def _run(
     tc_metadata: TCMetadata,
     files: Mapping[str, list[list[str]]],
     opened: list[str] | None = None,
+    report_parameters: Mapping[str, str | None] | None = None,
 ) -> list[TCReportValidationError]:
     def open_table(table_id: str, table: XbrlCsvTable) -> Iterator[list[str]] | None:
         if opened is not None:
@@ -55,7 +56,11 @@ def _run(
         rows = files.get(table.url)
         return iter(rows) if rows is not None else None
 
-    return list(TCReportValidator(csv_metadata, tc_metadata, open_table).validate())
+    return list(
+        TCReportValidator(
+            csv_metadata, tc_metadata, report_parameters or {}, open_table
+        ).validate()
+    )
 
 
 def _codes(errors: list[TCReportValidationError]) -> list[str]:
@@ -273,8 +278,52 @@ class TestTables:
         validator = TCReportValidator(
             _SINGLE_TABLE,
             tc,
+            {},
             lambda table_id, table: iter([["n"], ["1"]]),
             messages.append,
         )
         assert list(validator.validate()) == []
         assert messages == ["Validating table constraints of table t"]
+
+
+class TestColumnParameterConflicts:
+    _TC = _tc(
+        t=_template(n=TCValueConstraint("xs:integer"), s=TCValueConstraint("xs:string"))
+    )
+    _ROWS = {"t.csv": [["n", "s", "u"], ["1", "a", "b"]]}
+
+    def test_report_parameter_named_like_a_constrained_column(self) -> None:
+        (error,) = _run(
+            _SINGLE_TABLE, self._TC, self._ROWS, report_parameters={"n": "1"}
+        )
+        assert error.code == "tcre:columnParameterConflict"
+        assert (
+            str(error)
+            == "table 't' parameter 'n': report parameter 'n' has the same name as a constrained column, url: t.csv"
+        )
+
+    def test_table_parameter_named_like_a_constrained_column(self) -> None:
+        tables = _tables(
+            t=XbrlCsvTable(url="t.csv", parameters=MappingProxyType({"s": "x"}))
+        )
+        errors = _run(tables, self._TC, self._ROWS)
+        assert _codes(errors) == ["tcre:columnParameterConflict"]
+        assert errors[0].parameter == "s"
+        assert "table parameter 's' has the same name" in str(errors[0])
+
+    def test_conflict_is_reported_once_per_table_and_name(self) -> None:
+        tables = _tables(
+            t=XbrlCsvTable(url="t.csv", parameters=MappingProxyType({"n": "1"})),
+            u=XbrlCsvTable(url="t.csv", template="t"),
+        )
+        errors = _run(tables, self._TC, self._ROWS, report_parameters={"n": "2"})
+        assert [(error.table_id, error.parameter) for error in errors] == [
+            ("t", "n"),
+            ("u", "n"),
+        ]
+
+    def test_unconstrained_column_names_do_not_conflict(self) -> None:
+        tables = _tables(
+            t=XbrlCsvTable(url="t.csv", parameters=MappingProxyType({"u": "x"}))
+        )
+        assert _run(tables, self._TC, self._ROWS, report_parameters={"u": "y"}) == []
