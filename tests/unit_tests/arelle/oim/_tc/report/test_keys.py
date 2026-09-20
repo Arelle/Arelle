@@ -67,3 +67,9 @@ class TestMemoryKeyStore:
         store = MemoryKeyStore()
         assert store.add(first)
         assert store.add(second)
+
+    def test_contains_equal_key_values(self) -> None:
+        store = MemoryKeyStore()
+        store.add((_typed(Decimal("1.0")),))
+        assert (_typed(Decimal("1")),) in store
+        assert (_typed(Decimal("2")),) not in store
