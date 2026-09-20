@@ -11,6 +11,7 @@ from arelle.oim._tc.metadata.model import (
     TCKeys,
     TCMetadata,
     TCReferenceKey,
+    TCTableConstraints,
     TCTemplateConstraints,
     TCUniqueKey,
     TCValueConstraint,
@@ -44,6 +45,7 @@ def _template(
     column_order: tuple[str, ...] | None = None,
     parameters: Mapping[str, TCValueConstraint] | None = None,
     keys: TCKeys | None = None,
+    table_constraints: TCTableConstraints | None = None,
     **constraints: TCValueConstraint,
 ) -> TCTemplateConstraints:
     return TCTemplateConstraints(
@@ -51,6 +53,7 @@ def _template(
         parameters=MappingProxyType(parameters or {}),
         keys=keys,
         column_order=column_order,
+        table_constraints=table_constraints,
     )
 
 
@@ -976,3 +979,54 @@ class TestReferenceKeys:
         assert [error.row for error in errors] == [2, 3]
         # A table without rows has no row to check.
         assert _run(tables, tc, {"t.csv": [["n"], ["1"]], "r.csv": [["n"]]}) == []
+
+
+class TestTableCounts:
+    _ROWS = [["n"], ["1"]]
+
+    @staticmethod
+    def _tc(**kwargs: int) -> TCMetadata:
+        return _tc(
+            t=_template(
+                table_constraints=TCTableConstraints(**kwargs),
+                n=TCValueConstraint("xs:integer"),
+            )
+        )
+
+    def test_counts_within_bounds_produce_no_errors(self) -> None:
+        tables = _tables(
+            t1=XbrlCsvTable(url="a.csv", template="t"),
+            t2=XbrlCsvTable(url="a.csv", template="t"),
+        )
+        tc = self._tc(min_tables=2, max_tables=2)
+        assert _run(tables, tc, {"a.csv": self._ROWS}) == []
+
+    def test_too_few_tables_is_reported_on_the_template(self) -> None:
+        (error,) = _run(_tables(), self._tc(min_tables=1), {})
+        assert (error.code, error.template_id, error.table_id) == (
+            "tcre:minTablesViolation",
+            "t",
+            None,
+        )
+        assert (
+            str(error)
+            == "template 't': 0 data tables were provided, at least 1 are required"
+        )
+
+    def test_too_many_tables_is_reported_once(self) -> None:
+        tables = _tables(
+            t1=XbrlCsvTable(url="a.csv", template="t"),
+            t2=XbrlCsvTable(url="a.csv", template="t"),
+            t3=XbrlCsvTable(url="a.csv", template="t"),
+        )
+        (error,) = _run(tables, self._tc(max_tables=1), {"a.csv": self._ROWS})
+        assert error.code == "tcre:maxTablesViolation"
+        assert "3 data tables were provided, at most 1 are allowed" in str(error)
+
+    def test_tables_that_could_not_be_opened_are_not_counted(self) -> None:
+        tables = _tables(
+            t1=XbrlCsvTable(url="a.csv", template="t", optional=True),
+            t2=XbrlCsvTable(url="b.csv", template="t", optional=True),
+        )
+        tc = self._tc(min_tables=1, max_tables=1)
+        assert _run(tables, tc, {"a.csv": self._ROWS}) == []
