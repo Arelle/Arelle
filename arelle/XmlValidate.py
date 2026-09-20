@@ -352,6 +352,8 @@ def validate(
                 elt.sValue = elt.xValue = text = INVALIDixVALUE
                 elt.xValid = INVALID
             if text is not INVALIDixVALUE:
+                if type(text) is str:  # str subclasses from plugins (XULE) cannot be interned
+                    text = sys.intern(text)
                 validateValue(modelXbrl, elt, None, baseXsdType, text, isNillable, isNil, facets)
                 # note that elt.sValue and elt.xValue are not innerText but only text elements on specific element (or attribute)
             if modelType is not None:
