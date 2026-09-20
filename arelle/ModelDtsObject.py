@@ -1146,7 +1146,7 @@ class ModelAttribute(ModelNamableTerm):
         """(str) -- fixed attribute or None"""
         return self.get("fixed")
 
-    def dereference(self) -> Self | None:
+    def dereference(self) -> ModelAttribute | None:
         """(ModelAttribute) -- If element is a ref (instead of name), provides referenced modelAttribute object, else self"""
         ref = self.get("ref")
         if ref:
@@ -1210,7 +1210,7 @@ class ModelAttributeGroup(ModelNamableTerm):
             self.attributes # loads attrWildcards
             return self._attributeWildcards
 
-    def dereference(self) -> Self | None:
+    def dereference(self) -> ModelAttributeGroup | None:
         """(ModelAttributeGroup) -- If element is a ref (instead of name), provides referenced modelAttributeGroup object, else self"""
         ref = self.get("ref")
         if ref:

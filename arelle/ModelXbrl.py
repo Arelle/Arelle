@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from arelle.CntlrWinMain import CntlrWinMain
     from arelle.FileSource import FileSource as FileSourceClass
     from arelle.ModelDocument import ModelDocument as ModelDocumentClass
-    from arelle.ModelDtsObject import ModelConcept, ModelType, ModelRoleType, ModelLink
+    from arelle.ModelDtsObject import ModelAttribute, ModelAttributeGroup, ModelConcept, ModelGroupDefinition, ModelType, ModelRoleType, ModelLink
     from arelle.ModelFormulaObject import ModelConsistencyAssertion, ModelCustomFunctionImplementation, ModelCustomFunctionSignature, ModelVariableSet
     from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit, ModelDimensionValue
     from arelle.ModelManager import ModelManager
@@ -328,10 +328,10 @@ class ModelXbrl:
         self.roleTypes: defaultdict[str, list[ModelRoleType]] = defaultdict(list)
         self.qnameConcepts: dict[QName, ModelConcept] = {}  # indexed by qname of element
         self.nameConcepts: defaultdict[str, list[ModelConcept]] = defaultdict(list)  # contains ModelConcepts by name
-        self.qnameAttributes: dict[QName, Any] = {}
+        self.qnameAttributes: dict[QName, ModelAttribute] = {}
         self._anyUriValues: dict[str, AnyURI] = {}
-        self.qnameAttributeGroups: dict[QName, Any] = {}
-        self.qnameGroupDefinitions: dict[QName, Any] = {}
+        self.qnameAttributeGroups: dict[QName, ModelAttributeGroup] = {}
+        self.qnameGroupDefinitions: dict[QName, ModelGroupDefinition] = {}
         self.qnameTypes: dict[QName, ModelType] = {}  # contains ModelTypes by qname key of type
         self.baseSets: defaultdict[tuple[str, str | None, QName | None, QName | None], list[ModelLink | LinkPrototype]] = defaultdict(list)  # contains ModelLinks for keys arcrole, arcrole#linkrole
         self.relationshipSets: dict[tuple[str] | tuple[tuple[str, ...] | str, tuple[str, ...] | str | None, QName | None, QName | None, bool], ModelRelationshipSetClass] = {}  # contains ModelRelationshipSets by bas set keys
