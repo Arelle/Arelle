@@ -17,6 +17,7 @@ from arelle.oim._tc.const import (
     TCRE_MISSING_COLUMN,
     TCRE_MISSING_TIME_ZONE,
     TCRE_MISSING_VALUE,
+    TCRE_SORT_KEY_VIOLATION,
     TCRE_UNEXPECTED_TIME_ZONE,
     TCRE_UNIQUE_KEY_VIOLATION,
 )
@@ -33,7 +34,7 @@ from arelle.oim._tc.report.cell import (
     row_has_value,
 )
 from arelle.oim._tc.report.common import TCReportValidationError
-from arelle.oim._tc.report.key_values import KeyFieldType, KeyValues
+from arelle.oim._tc.report.key_values import KeyFieldType, KeyValues, SortTracker
 from arelle.oim._tc.report.keys import KeyStore, MemoryKeyStore
 from arelle.oim._tc.value_validator import ValueConstraintValidator
 from arelle.oim.const import NIL_SPECIAL_VALUE, XBRLCE_UNKNOWN_SPECIAL_VALUE
@@ -79,6 +80,7 @@ class _Template:
     parameters: tuple[_ConstraintSubject, ...]
     column_order: tuple[str, ...] | None
     unique_keys: tuple[_UniqueKey, ...]
+    sort_key: str | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -121,6 +123,7 @@ class _ConstantField(_FieldSource):
 class _TableKey:
     key: _UniqueKey
     sources: tuple[_FieldSource, ...]
+    sort: SortTracker | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -158,6 +161,7 @@ class TCReportValidator:
                 parameters=self._compile_subjects(tc.parameters, _PARAMETER),
                 column_order=tc.column_order,
                 unique_keys=self._compile_unique_keys(tc),
+                sort_key=tc.keys.sort_key if tc.keys is not None else None,
             )
             for template_id, tc in self._tc_metadata.template_constraints.items()
             if self._template_has_report_checks(tc)
@@ -229,7 +233,8 @@ class TCReportValidator:
             if rows is None:
                 continue
             self._report_progress(_("Validating table constraints of table {}").format(table_id))
-            yield from self._validate_table(table_id, table, template, rows)
+            sort = SortTracker() if template.sort_key is not None else None
+            yield from self._validate_table(table_id, table, template, rows, sort)
 
     def _validate_uninstantiated_template(self, template_id: str) -> Generator[TCReportValidationError, None, None]:
         for parameter in self._templates[template_id].parameters:
@@ -294,7 +299,12 @@ class TCReportValidator:
                 )
 
     def _validate_table(
-        self, table_id: str, table: XbrlCsvTable, template: _Template, rows: TableRows
+        self,
+        table_id: str,
+        table: XbrlCsvTable,
+        template: _Template,
+        rows: TableRows,
+        sort: SortTracker | None,
     ) -> Generator[TCReportValidationError, None, None]:
         header = next(rows, [])
         column_indexes: dict[str, int] = {}
@@ -308,7 +318,11 @@ class TCReportValidator:
             if column.name in column_indexes
         ]
         table_keys = tuple(
-            _TableKey(key, self._field_sources(table, key.fields, column_indexes))
+            _TableKey(
+                key,
+                self._field_sources(table, key.fields, column_indexes),
+                sort if key.name == template.sort_key else None,
+            )
             for key in template.unique_keys
         )
         for row_number, row in enumerate(rows, start=2):
@@ -384,6 +398,16 @@ class TCReportValidator:
                     table_id=table_id,
                     url=table.url,
                     severity=table_key.key.severity,
+                    row=row_number,
+                )
+            if table_key.sort is not None and not table_key.sort.add(key_values):
+                yield TCReportValidationError(
+                    _("sort key '{}' value {} does not follow the preceding rows").format(
+                        table_key.key.name, _describe_values(values)
+                    ),
+                    code=TCRE_SORT_KEY_VIOLATION,
+                    table_id=table_id,
+                    url=table.url,
                     row=row_number,
                 )
 
