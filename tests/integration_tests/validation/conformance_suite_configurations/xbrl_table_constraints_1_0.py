@@ -159,11 +159,6 @@ config = ConformanceSuiteConfig(
         },
     }.items()},
     expected_failure_ids=frozenset(f"table-constraints-conformance-{_VERSION}/{s}" for s in [
-        "720-tc-report-processor/index-tc-report-table.xml:V-548-14",
-        "720-tc-report-processor/index-tc-report-table.xml:V-548-17",
-        "720-tc-report-processor/index-tc-report-table.xml:V-548-2",
-        "720-tc-report-processor/index-tc-report-table.xml:V-548-4",
-        "720-tc-report-processor/index-tc-report-table.xml:V-548-9",
         "720-tc-report-processor/index-tc-report-table.xml:V-736-A-lead-crlf-normalizedStringEnum",
         "720-tc-report-processor/index-tc-report-table.xml:V-736-B-trail-crlf-normalizedStringEnum",
         "720-tc-report-processor/index-tc-report-table.xml:V-736-D-mid-crlf-normalizedStringEnum",
