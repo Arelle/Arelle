@@ -36,6 +36,7 @@ if TYPE_CHECKING:
     from arelle.ModelFormulaObject import ModelConsistencyAssertion, ModelCustomFunctionImplementation, ModelCustomFunctionSignature, ModelVariableSet
     from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit, ModelDimensionValue
     from arelle.ModelManager import ModelManager
+    from arelle.ModelRenderingObject import DefnMdlTable
     from arelle.ModelRelationshipSet import ModelRelationshipSet as ModelRelationshipSetClass
     from arelle.ModelValue import AnyURI, QName
     from arelle.PrototypeDtsObject import LinkPrototype
@@ -351,7 +352,7 @@ class ModelXbrl:
         self.modelConsistencyAssertions: set[ModelConsistencyAssertion] = set()
         self.modelCustomFunctionSignatures: dict[QName | tuple[QName | None, int], ModelCustomFunctionSignature] = {}
         self.modelCustomFunctionImplementations: set[ModelCustomFunctionImplementation] = set()
-        self.modelRenderingTables: set[Any] = set()
+        self.modelRenderingTables: set[DefnMdlTable] = set()
         if not keepViews:
             self.views: list[Any] = []
         self.langs: set[str] = {self.modelManager.defaultLang}
