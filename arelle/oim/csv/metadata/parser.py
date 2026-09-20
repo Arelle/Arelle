@@ -144,10 +144,13 @@ def _parse_column(col_dict: dict[str, Any]) -> XbrlCsvColumn:
             if isinstance(property_group, dict)
         }
     )
-    raw_properties_from = col_dict.get("propertiesFrom")
-    if not isinstance(raw_properties_from, list):
-        raw_properties_from = []
-    properties_from = tuple(prop for prop in raw_properties_from if isinstance(prop, str))
+    # An empty propertiesFrom array still marks a fact column, so absence is kept apart.
+    properties_from: tuple[str, ...] | None = None
+    if "propertiesFrom" in col_dict:
+        raw_properties_from = col_dict["propertiesFrom"]
+        if not isinstance(raw_properties_from, list):
+            raw_properties_from = []
+        properties_from = tuple(prop for prop in raw_properties_from if isinstance(prop, str))
 
     return XbrlCsvColumn(
         comment=_as_bool(col_dict.get("comment")),

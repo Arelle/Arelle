@@ -184,7 +184,7 @@ class TestParseColumn:
         assert result.decimals is None
         assert result.dimensions is None
         assert result.property_groups == {}
-        assert result.properties_from == ()
+        assert result.properties_from is None
 
     def test_comment_true(self) -> None:
         result = _parse_column({"comment": True})

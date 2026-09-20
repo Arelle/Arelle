@@ -59,7 +59,7 @@ class XbrlCsvColumn:
     decimals: int | str | None = None
     dimensions: XbrlCsvDimensions | None = None
     property_groups: Mapping[str, XbrlCsvPropertyGroup] = field(default_factory=lambda: MappingProxyType({}))
-    properties_from: tuple[str, ...] = ()
+    properties_from: tuple[str, ...] | None = None
 
 
 @dataclass(frozen=True, slots=True)
