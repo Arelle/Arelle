@@ -1115,3 +1115,23 @@ class TestFactRowCounts:
             self._TABLES, self._tc(min_table_rows=1), {"t.csv": [["id", "f"]]}
         )
         assert error.code == "tcre:minTableRowsViolation"
+
+
+class TestStreaming:
+    def test_rows_are_consumed_lazily_and_errors_yielded_as_found(self) -> None:
+        produced = 0
+
+        def rows(table_id: str, table: XbrlCsvTable) -> Iterator[list[str]]:
+            nonlocal produced
+            yield ["n"]
+            for number in range(200_000):
+                produced += 1
+                yield ["x" if number == 0 else str(number)]
+
+        tc = _tc(t=_template(keys=_unique("n"), n=TCValueConstraint("xs:integer")))
+        errors = TCReportValidator(_SINGLE_TABLE, tc, {}, rows).validate()
+        first = next(errors)
+        assert (first.code, first.row) == ("tcre:invalidValue", 2)
+        assert produced == 1
+        assert list(errors) == []
+        assert produced == 200_000
