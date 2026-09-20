@@ -6,6 +6,7 @@ from __future__ import annotations
 import datetime
 from dataclasses import dataclass
 import logging
+import sys
 from collections.abc import Callable, Mapping
 from typing import TYPE_CHECKING, Any, cast
 from lxml import etree
@@ -361,6 +362,8 @@ def validate(
         # validate attributes
         # find missing attributes for default values
         for attrTag, attrValue in elt.items():
+            attrTag = sys.intern(attrTag)
+            attrValue = sys.intern(attrValue)
             qn = qnameClarkName(attrTag)
             #qn = qname(attrTag, noPrefixIsNoNamespace=True)
             baseXsdAttrType = None
