@@ -740,6 +740,7 @@ reverseStep = (reverseAxis + nodeTest) | abbrevReverseStep
 step = forwardStep | reverseStep
 
 expr = Forward()
+expr.set_name("expr")
 atom = (
     (
         forOp
@@ -771,18 +772,22 @@ atom = (
         Suppress(lParen) - Opt(expr) - ZeroOrMore(commaOp.set_parse_action(pushOp) - expr) - Suppress(rParen)
     ).set_parse_action(pushSequence)
 )
+atom.set_name("atom")
 # stepExpr = ( ( atom + ZeroOrMore( (lPred.set_parse_action( pushOp ) - expr - Suppress(rPred)).set_parse_action(pushPredicate) ) ) |
 #             ( (reverseStep | forwardStep) + ZeroOrMore( (lPred.set_parse_action( pushOp ) - expr - Suppress(rPred)).set_parse_action(pushPredicate) ) ) )
 stepExpr = (
     atom + ZeroOrMore((lPred.set_parse_action(pushOp) - expr - Suppress(rPred)).set_parse_action(pushPredicate))
 ) | (step + ZeroOrMore((lPred.set_parse_action(pushOp) - expr - Suppress(rPred)).set_parse_action(pushPredicate)))
+stepExpr.set_name("stepExpr")
 relativePathExpr = stepExpr + ZeroOrMore(((pathDescOp | pathStepOp) + stepExpr).set_parse_action(pushOperation))
+relativePathExpr.set_name("relativePathExpr")
 pathExpr = (
     (pathDescOp + relativePathExpr).set_parse_action(pushRootStep)
     | (pathStepOp + relativePathExpr).set_parse_action(pushRootStep)
     | (relativePathExpr)
     | ((pathRootOp).set_parse_action(pushRootStep))
 )
+pathExpr.set_name("pathExpr")
 
 
 valueExpr = pathExpr
@@ -797,18 +802,31 @@ valueExpr = pathExpr
 #             ( pathStepOp ) )
 # valueExpr = pathExpr
 unaryExpr = (plusMinusOp + valueExpr).set_parse_action(pushUnaryOperation) | valueExpr
+unaryExpr.set_name("unaryExpr")
 castExpr = unaryExpr + ZeroOrMore((castOp + asOp + singleType).set_parse_action(pushOperation))
+castExpr.set_name("castExpr")
 castableExpr = castExpr + ZeroOrMore((castableOp + asOp + singleType).set_parse_action(pushOperation))
+castableExpr.set_name("castableExpr")
 treatExpr = castableExpr + ZeroOrMore((treatOp + asOp + sequenceType).set_parse_action(pushOperation))
+treatExpr.set_name("treatExpr")
 instanceOfExpr = treatExpr + ZeroOrMore((instanceOp + Suppress(ofOp) + sequenceType).set_parse_action(pushOperation))
+instanceOfExpr.set_name("instanceOfExpr")
 intersectExceptExpr = instanceOfExpr + ZeroOrMore((intersectExceptOp + instanceOfExpr).set_parse_action(pushOperation))
+intersectExceptExpr.set_name("intersectExceptExpr")
 unionExpr = intersectExceptExpr + ZeroOrMore((unionOp + intersectExceptExpr).set_parse_action(pushOperation))
+unionExpr.set_name("unionExpr")
 multiplicitaveExpr = unionExpr + ZeroOrMore((multDivOp + unionExpr).set_parse_action(pushOperation))
+multiplicitaveExpr.set_name("multiplicativeExpr")
 additiveExpr = multiplicitaveExpr + ZeroOrMore((plusMinusOp + multiplicitaveExpr).set_parse_action(pushOperation))
+additiveExpr.set_name("additiveExpr")
 rangeExpr = additiveExpr + ZeroOrMore((toOp + additiveExpr).set_parse_action(pushOperation))
+rangeExpr.set_name("rangeExpr")
 comparisonExpr = rangeExpr + ZeroOrMore((comparisonOp + rangeExpr).set_parse_action(pushOperation))
+comparisonExpr.set_name("comparisonExpr")
 andExpr = comparisonExpr + ZeroOrMore((andOp + comparisonExpr).set_parse_action(pushOperation))
+andExpr.set_name("andExpr")
 orExpr = andExpr + ZeroOrMore((orOp + andExpr).set_parse_action(pushOperation))
+orExpr.set_name("orExpr")
 
 expr <<= orExpr
 # The Forward expression streamline implementation (expr.streamline())
