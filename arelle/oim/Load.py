@@ -631,7 +631,8 @@ def openCsvReader(fileSource: FileSource, csvFilePath: str, fileType: int) -> It
         raise OIMException("xbrlce:invalidCSVFileFormat",
               _("CSV file MUST use utf-8 encoding: %(file)s, appears to be %(encoding)s"),
               file=csvFilePath, encoding=m.lastgroup)
-    _file = fileSource.file(csvFilePath, encoding="utf-8-sig")[0]
+    # Line breaks inside quoted cells are part of the value, so no newline translation.
+    _file = io.TextIOWrapper(fileSource.file(csvFilePath, binary=True)[0], encoding="utf-8-sig", newline="")
     if CSV_HAS_HEADER_ROW:
         try:
             chars = _file.read(1024)

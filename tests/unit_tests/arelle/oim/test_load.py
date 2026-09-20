@@ -101,3 +101,13 @@ def test_open_csv_reader_closes_the_file_after_iteration() -> None:
         ["1", "2"],
     ]
     assert all(handle.closed for handle in handles)
+
+
+def test_open_csv_reader_keeps_line_breaks_inside_quoted_cells() -> None:
+    def file(
+        filepath: str, binary: bool = False, encoding: str | None = None
+    ) -> tuple[IO[Any]]:
+        return (io.BytesIO(b'a,b\r\n"x\r\ny",2\r\n'),)
+
+    file_source = Mock(spec=FileSource, file=file)
+    assert list(openCsvReader(file_source, "t.csv", CSV_FACTS_FILE)) == [["a", "b"], ["x\r\ny", "2"]]
