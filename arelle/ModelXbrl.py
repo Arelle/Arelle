@@ -305,7 +305,7 @@ class ModelXbrl:
     rssItemResults: dict[str | None, dict[str, Any]]
     _factsByDimQname: dict[QName, dict[QName | str | None, set[ModelFact]]]
     _factsByQname: dict[QName, set[ModelFact]]
-    _factsByDatatype: dict[bool | tuple[bool, QName], set[ModelFact]]
+    _factsByDatatype: dict[tuple[bool, QName], set[ModelFact]]
     _factsByLocalName: dict[str, set[ModelFact]]
     _factsByPeriodType: dict[str, set[ModelFact]]
     _nonNilFactsInInstance: set[ModelFact]
@@ -831,7 +831,7 @@ class ModelXbrl:
                     fbln[f.qname.localName].add(f)
             return fbln
 
-    def factsByDatatype(self, notStrict: bool, typeQname: QName) -> set[ModelFact] | None:  # indexed by fact (concept) qname
+    def factsByDatatype(self, notStrict: bool, typeQname: QName) -> set[ModelFact]:  # indexed by fact (concept) qname
         """Facts in the instance indexed by data type QName, cached as types are requested
 
         :param notSctrict: if True, fact may be derived
