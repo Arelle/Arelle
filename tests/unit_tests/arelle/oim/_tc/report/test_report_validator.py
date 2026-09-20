@@ -731,3 +731,56 @@ class TestSortKeys:
         tc = _tc(t=_template(keys=_unique("a", sort=True), a=self._INTEGER))
         files = {"a.csv": [["a"], ["3"]], "b.csv": [["a"], ["1"]]}
         assert _run(tables, tc, files) == []
+
+
+class TestSortKeyRanges:
+    _INTEGER = TCValueConstraint("xs:integer")
+    _TABLES = _tables(
+        t1=XbrlCsvTable(url="a.csv", template="t"),
+        t2=XbrlCsvTable(url="b.csv", template="t"),
+    )
+    _TC = _tc(t=_template(keys=_unique("a", sort=True), a=_INTEGER))
+
+    def test_overlapping_ranges_are_reported_on_the_later_table(self) -> None:
+        files = {"a.csv": [["a"], ["1"], ["3"]], "b.csv": [["a"], ["2"], ["4"]]}
+        (error,) = _run(self._TABLES, self._TC, files)
+        assert (error.code, error.table_id, error.row) == (
+            "tcre:sortKeyViolation",
+            "t2",
+            None,
+        )
+        assert (
+            str(error)
+            == "table 't2': sort key 'k' rows overlap with those of table 't1', url: b.csv"
+        )
+
+    def test_disjoint_ranges_in_any_table_order_are_fine(self) -> None:
+        forward = {"a.csv": [["a"], ["1"], ["2"]], "b.csv": [["a"], ["3"], ["4"]]}
+        assert _run(self._TABLES, self._TC, forward) == []
+        reverse = {"a.csv": [["a"], ["3"], ["4"]], "b.csv": [["a"], ["1"], ["2"]]}
+        assert _run(self._TABLES, self._TC, reverse) == []
+
+    def test_touching_ranges_overlap(self) -> None:
+        files = {"a.csv": [["a"], ["1"], ["2"]], "b.csv": [["a"], ["2"], ["3"]]}
+        assert _codes(_run(self._TABLES, self._TC, files)) == [
+            "tcre:uniqueKeyViolation",
+            "tcre:sortKeyViolation",
+        ]
+
+    def test_tables_without_rows_have_no_range(self) -> None:
+        files = {"a.csv": [["a"], ["1"], ["3"]], "b.csv": [["a"], [""]]}
+        assert _run(self._TABLES, self._TC, files) == []
+
+    def test_no_sort_key_means_no_range_check(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a"), a=self._INTEGER))
+        files = {"a.csv": [["a"], ["1"], ["3"]], "b.csv": [["a"], ["2"], ["4"]]}
+        assert _run(self._TABLES, tc, files) == []
+
+    def test_templates_sharing_a_key_are_not_compared(self) -> None:
+        tables = _tables(t=XbrlCsvTable(url="a.csv"), u=XbrlCsvTable(url="b.csv"))
+        tc = _tc(
+            t=_template(keys=_unique("a", shared=True, sort=True), a=self._INTEGER),
+            u=_template(keys=_unique("a", shared=True, sort=True), a=self._INTEGER),
+        )
+        files = {"a.csv": [["a"], ["1"], ["3"]], "b.csv": [["a"], ["2"], ["4"]]}
+        assert _run(tables, tc, files) == []

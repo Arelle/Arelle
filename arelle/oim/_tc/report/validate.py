@@ -7,6 +7,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Generator, Iterator, Mapping
 from dataclasses import dataclass
+from itertools import combinations
 
 from arelle.oim._tc.const import (
     TCRE_COLUMN_PARAMETER_CONFLICT,
@@ -127,6 +128,14 @@ class _TableKey:
 
 
 @dataclass(frozen=True, slots=True)
+class _TableRange:
+    table_id: str
+    table: XbrlCsvTable
+    first: KeyValues
+    last: KeyValues
+
+
+@dataclass(frozen=True, slots=True)
 class _Violation:
     code: str
     message: str
@@ -222,6 +231,7 @@ class TCReportValidator:
             if template_id not in instantiated:
                 yield from self._validate_uninstantiated_template(template_id)
         checked_report_params: set[tuple[str, str]] = set()
+        sort_ranges: dict[str, list[_TableRange]] = {}
         for table_id, table in tables.items():
             template_id = table.template or table_id
             template = self._templates.get(template_id)
@@ -235,6 +245,12 @@ class TCReportValidator:
             self._report_progress(_("Validating table constraints of table {}").format(table_id))
             sort = SortTracker() if template.sort_key is not None else None
             yield from self._validate_table(table_id, table, template, rows, sort)
+            if sort is not None and sort.first is not None and sort.last is not None:
+                sort_ranges.setdefault(template_id, []).append(
+                    _TableRange(table_id, table, sort.first, sort.last)
+                )
+        for template_id, ranges in sort_ranges.items():
+            yield from self._validate_sort_ranges(self._templates[template_id], ranges)
 
     def _validate_uninstantiated_template(self, template_id: str) -> Generator[TCReportValidationError, None, None]:
         for parameter in self._templates[template_id].parameters:
@@ -335,6 +351,21 @@ class TCReportValidator:
             yield from self._validate_row(
                 table_id, table, present_columns, table_keys, row_number, row
             )
+
+    @staticmethod
+    def _validate_sort_ranges(
+        template: _Template, ranges: list[_TableRange]
+    ) -> Generator[TCReportValidationError, None, None]:
+        for earlier, later in combinations(ranges, 2):
+            if earlier.last >= later.first and later.last >= earlier.first:
+                yield TCReportValidationError(
+                    _("sort key '{}' rows overlap with those of table '{}'").format(
+                        template.sort_key, earlier.table_id
+                    ),
+                    code=TCRE_SORT_KEY_VIOLATION,
+                    table_id=later.table_id,
+                    url=later.table.url,
+                )
 
     def _field_sources(
         self,

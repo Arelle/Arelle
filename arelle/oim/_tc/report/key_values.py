@@ -83,6 +83,7 @@ class SortTracker:
     """
 
     def __init__(self) -> None:
+        self.first: KeyValues | None = None
         self.last: KeyValues | None = None
         self._reported = False
 
@@ -92,6 +93,8 @@ class SortTracker:
             # An invalid literal has no place in the order of its type, and its cell
             # is already reported.
             return True
+        if self.first is None:
+            self.first = key
         in_order = self.last is None or key > self.last
         self.last = key
         if in_order or self._reported:
