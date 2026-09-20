@@ -3183,7 +3183,7 @@ class ModelCustomFunctionImplementation(ModelFormulaResource):
 
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelCustomFunctionImplementation, self).init(modelDocument)
-        self.modelXbrl.modelCustomFunctionImplementations.add(self)  # type: ignore[arg-type, union-attr]
+        self.modelXbrl.modelCustomFunctionImplementations.add(self)  # type: ignore[union-attr]
 
     def clear(self) -> None:  # type: ignore[override]
         XPathParser.clearNamedProg(self, "outputProg")

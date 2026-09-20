@@ -33,7 +33,7 @@ if TYPE_CHECKING:
     from arelle.FileSource import FileSource as FileSourceClass
     from arelle.ModelDocument import ModelDocument as ModelDocumentClass
     from arelle.ModelDtsObject import ModelConcept, ModelType, ModelRoleType, ModelLink
-    from arelle.ModelFormulaObject import ModelConsistencyAssertion, ModelCustomFunctionSignature, ModelVariableSet
+    from arelle.ModelFormulaObject import ModelConsistencyAssertion, ModelCustomFunctionImplementation, ModelCustomFunctionSignature, ModelVariableSet
     from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit, ModelDimensionValue
     from arelle.ModelManager import ModelManager
     from arelle.ModelRelationshipSet import ModelRelationshipSet as ModelRelationshipSetClass
@@ -350,7 +350,7 @@ class ModelXbrl:
         self.modelVariableSets: set[ModelVariableSet] = set()
         self.modelConsistencyAssertions: set[ModelConsistencyAssertion] = set()
         self.modelCustomFunctionSignatures: dict[QName | tuple[QName | None, int], ModelCustomFunctionSignature] = {}
-        self.modelCustomFunctionImplementations: set[ModelDocumentClass] = set()
+        self.modelCustomFunctionImplementations: set[ModelCustomFunctionImplementation] = set()
         self.modelRenderingTables: set[Any] = set()
         if not keepViews:
             self.views: list[Any] = []
