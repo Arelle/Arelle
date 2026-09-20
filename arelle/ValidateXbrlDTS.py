@@ -568,9 +568,14 @@ def checkElements(val: ValidateXbrl, modelDocument: ModelDocument, parent: _Elem
                     if localName in {"attribute", "element", "attributeGroup"}:
                         ref = elt.get("ref")
                         if ref is not None:
-                            if qname(elt, ref) not in {"attribute":val.modelXbrl.qnameAttributes,
-                                                       "element":val.modelXbrl.qnameConcepts,
-                                                       "attributeGroup":val.modelXbrl.qnameAttributeGroups}[localName]:
+                            if (
+                                qname(elt, ref)
+                                not in {
+                                    "attribute": val.modelXbrl.qnameAttributes,
+                                    "element": val.modelXbrl.qnameConcepts,
+                                    "attributeGroup": val.modelXbrl.qnameAttributeGroups,
+                                }[localName]
+                            ):
                                 val.modelXbrl.error("xmlSchema:refNotFound",
                                     _("%(element)s ref %(ref)s not found"),
                                     modelObject=elt, element=localName, ref=ref)
