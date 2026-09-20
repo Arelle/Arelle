@@ -37,7 +37,7 @@ if TYPE_CHECKING:
     from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit, ModelDimensionValue
     from arelle.ModelManager import ModelManager
     from arelle.ModelRelationshipSet import ModelRelationshipSet as ModelRelationshipSetClass
-    from arelle.ModelValue import QName
+    from arelle.ModelValue import AnyURI, QName
     from arelle.PrototypeDtsObject import LinkPrototype
     from arelle.oim.csv.context import XbrlCsvLoadingContext
     from arelle.typing import TypeGetText, LocaleDict
@@ -329,6 +329,7 @@ class ModelXbrl:
         self.qnameConcepts: dict[QName, ModelConcept] = {}  # indexed by qname of element
         self.nameConcepts: defaultdict[str, list[ModelConcept]] = defaultdict(list)  # contains ModelConcepts by name
         self.qnameAttributes: dict[QName, Any] = {}
+        self._anyUriValues: dict[str, AnyURI] = {}
         self.qnameAttributeGroups: dict[QName, Any] = {}
         self.qnameGroupDefinitions: dict[QName, Any] = {}
         self.qnameTypes: dict[QName, ModelType] = {}  # contains ModelTypes by qname key of type
@@ -374,6 +375,9 @@ class ModelXbrl:
         self.arelleUnitTests: dict[str, str] = {}  # unit test entries (usually from processing instructions
         for pluginXbrlMethod in self.modelManager.cntlr.plugins.hooks("ModelXbrl.Init"):
             pluginXbrlMethod(self)
+
+    def internAnyUri(self, value: AnyURI) -> AnyURI:
+        return self._anyUriValues.setdefault(value, value)
 
     def close(self) -> None:
         """Closes any views, formula output instances, modelDocument(s), and dereferences all memory used

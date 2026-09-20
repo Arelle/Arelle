@@ -16,7 +16,7 @@ from fractions import Fraction
 from arelle import UrlUtil, XbrlConst, XmlUtil, XmlValidateConst
 from arelle.ModelValue import (qname, qnameFromNsmap, qnameClarkName, qnameHref,
                                dateTime, DATE, DATETIME, DATEUNION, time,
-                               anyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay, isoDuration,
+                               anyURI, AnyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay, isoDuration,
                                tzinfo as _parseTzinfo, GTYPE_ANCHOR_YEAR, GTYPE_ANCHOR_MONTH, GTYPE_ANCHOR_DAY)
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.PythonUtil import strTruncate
@@ -908,6 +908,8 @@ def validateValue(
     else:
         xValue = sValue = None
         xValid = UNKNOWN
+    if isinstance(xValue, AnyURI) and modelXbrl is not None:
+        xValue = modelXbrl.internAnyUri(xValue)
     if attrTag:
         try:  # dynamically allocate attributes (otherwise given shared empty set)
             xAttributes = elt.xAttributes
