@@ -4,6 +4,7 @@ See COPYRIGHT.md for copyright information.
 
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from collections.abc import Callable, Generator, Iterator, Mapping
 from dataclasses import dataclass
 
@@ -17,10 +18,12 @@ from arelle.oim._tc.const import (
     TCRE_MISSING_TIME_ZONE,
     TCRE_MISSING_VALUE,
     TCRE_UNEXPECTED_TIME_ZONE,
+    TCRE_UNIQUE_KEY_VIOLATION,
 )
 from arelle.oim._tc.metadata.model import (
     TCMetadata,
     TCTemplateConstraints,
+    TCUniqueKey,
     TCValueConstraint,
 )
 from arelle.oim._tc.report.cell import (
@@ -30,6 +33,8 @@ from arelle.oim._tc.report.cell import (
     row_has_value,
 )
 from arelle.oim._tc.report.common import TCReportValidationError
+from arelle.oim._tc.report.key_values import KeyFieldType, KeyValues
+from arelle.oim._tc.report.keys import KeyStore, MemoryKeyStore
 from arelle.oim._tc.value_validator import ValueConstraintValidator
 from arelle.oim.const import NIL_SPECIAL_VALUE, XBRLCE_UNKNOWN_SPECIAL_VALUE
 from arelle.oim.csv.metadata.model import XbrlCsvEffectiveMetadata, XbrlCsvTable
@@ -54,10 +59,68 @@ class _ConstraintSubject:
 
 
 @dataclass(frozen=True, slots=True)
+class _KeyField:
+    name: str
+    is_parameter: bool
+    field_type: KeyFieldType
+
+
+@dataclass(frozen=True, slots=True)
+class _UniqueKey:
+    name: str
+    fields: tuple[_KeyField, ...]
+    severity: str
+    store: KeyStore
+
+
+@dataclass(frozen=True, slots=True)
 class _Template:
     columns: tuple[_ConstraintSubject, ...]
     parameters: tuple[_ConstraintSubject, ...]
     column_order: tuple[str, ...] | None
+    unique_keys: tuple[_UniqueKey, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class _FieldSource(ABC):
+    """Where a key field of one table takes its value from."""
+
+    field_type: KeyFieldType
+
+    @abstractmethod
+    def value(self, row: list[str]) -> str | None:
+        """The effective value of the field in a row."""
+
+
+@dataclass(frozen=True, slots=True)
+class _ColumnField(_FieldSource):
+    """A key field read from a column of the table."""
+
+    column_index: int
+
+    def value(self, row: list[str]) -> str | None:
+        literal = row[self.column_index] if self.column_index < len(row) else ""
+        try:
+            return effective_column_value(literal)
+        except UnknownSpecialValue:
+            # Reported as a cell error, the literal still takes part in the key.
+            return literal
+
+
+@dataclass(frozen=True, slots=True)
+class _ConstantField(_FieldSource):
+    """A key field with the same value in every row, a parameter or a missing column."""
+
+    constant: str | None
+
+    def value(self, row: list[str]) -> str | None:
+        return self.constant
+
+
+@dataclass(frozen=True, slots=True)
+class _TableKey:
+    key: _UniqueKey
+    sources: tuple[_FieldSource, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -83,6 +146,9 @@ class TCReportValidator:
         self._report_parameters = report_parameters
         self._open_table = open_table
         self._report_progress = report_progress or (lambda message: None)
+        # Metadata validation requires keys that share a name to be marked shared, so
+        # one store serves them all.
+        self._key_stores: dict[str, KeyStore] = {}
         self._templates = self._compile_templates()
 
     def _compile_templates(self) -> Mapping[str, _Template]:
@@ -91,10 +157,37 @@ class TCReportValidator:
                 columns=self._compile_subjects(tc.constraints, _COLUMN),
                 parameters=self._compile_subjects(tc.parameters, _PARAMETER),
                 column_order=tc.column_order,
+                unique_keys=self._compile_unique_keys(tc),
             )
             for template_id, tc in self._tc_metadata.template_constraints.items()
             if self._template_has_report_checks(tc)
         }
+
+    def _compile_unique_keys(self, tc: TCTemplateConstraints) -> tuple[_UniqueKey, ...]:
+        if tc.keys is None or tc.keys.unique is None:
+            return ()
+        return tuple(
+            _UniqueKey(
+                key.name,
+                self._compile_key_fields(tc, key),
+                key.severity,
+                self._key_stores.setdefault(key.name, MemoryKeyStore()),
+            )
+            for key in tc.keys.unique
+        )
+
+    def _compile_key_fields(
+        self, tc: TCTemplateConstraints, key: TCUniqueKey
+    ) -> tuple[_KeyField, ...]:
+        namespaces = self._csv_metadata.document_info.namespaces
+        fields = []
+        for name in key.fields:
+            is_parameter = name in tc.parameters
+            constraint = tc.parameters[name] if is_parameter else tc.constraints[name]
+            fields.append(
+                _KeyField(name, is_parameter, KeyFieldType(constraint, namespaces))
+            )
+        return tuple(fields)
 
     def _compile_subjects(
         self, constraints: Mapping[str, TCValueConstraint], kind: str
@@ -110,7 +203,10 @@ class TCReportValidator:
     @staticmethod
     def _template_has_report_checks(tc: TCTemplateConstraints) -> bool:
         return (
-            bool(tc.constraints) or bool(tc.parameters) or tc.column_order is not None
+            bool(tc.constraints)
+            or bool(tc.parameters)
+            or tc.column_order is not None
+            or tc.keys is not None
         )
 
     def validate(self) -> Generator[TCReportValidationError, None, None]:
@@ -211,6 +307,10 @@ class TCReportValidator:
             for column in template.columns
             if column.name in column_indexes
         ]
+        table_keys = tuple(
+            _TableKey(key, self._field_sources(table, key.fields, column_indexes))
+            for key in template.unique_keys
+        )
         for row_number, row in enumerate(rows, start=2):
             if row_number % _PROGRESS_ROW_INTERVAL == 0:
                 self._report_progress(
@@ -219,14 +319,42 @@ class TCReportValidator:
                     )
                 )
             yield from self._validate_row(
-                table_id, table, present_columns, row_number, row
+                table_id, table, present_columns, table_keys, row_number, row
             )
+
+    def _field_sources(
+        self,
+        table: XbrlCsvTable,
+        fields: tuple[_KeyField, ...],
+        column_indexes: Mapping[str, int],
+    ) -> tuple[_FieldSource, ...]:
+        sources: list[_FieldSource] = []
+        for field in fields:
+            if field.is_parameter:
+                constant = self._effective_parameter_value(table, field.name)
+                sources.append(_ConstantField(field.field_type, constant))
+            elif field.name in column_indexes:
+                sources.append(_ColumnField(field.field_type, column_indexes[field.name]))
+            else:
+                # A missing column is reported once and its field is null in every row.
+                sources.append(_ConstantField(field.field_type, None))
+        return tuple(sources)
+
+    def _effective_parameter_value(self, table: XbrlCsvTable, name: str) -> str | None:
+        literal = table.parameters.get(name)
+        if literal is None:
+            literal = self._report_parameters.get(name)
+        try:
+            return effective_parameter_value(literal)
+        except UnknownSpecialValue:
+            return literal
 
     def _validate_row(
         self,
         table_id: str,
         table: XbrlCsvTable,
         present_columns: list[tuple[_ConstraintSubject, int]],
+        table_keys: tuple[_TableKey, ...],
         row_number: int,
         row: list[str],
     ) -> Generator[TCReportValidationError, None, None]:
@@ -243,6 +371,20 @@ class TCReportValidator:
                     url=table.url,
                     row=row_number,
                     column=column.name,
+                )
+        for table_key in table_keys:
+            values = _field_values(table_key.sources, row)
+            key_values = _key_values(table_key.sources, values)
+            if not table_key.key.store.add(key_values):
+                yield TCReportValidationError(
+                    _("unique key '{}' value {} appears in more than one row").format(
+                        table_key.key.name, _describe_values(values)
+                    ),
+                    code=TCRE_UNIQUE_KEY_VIOLATION,
+                    table_id=table_id,
+                    url=table.url,
+                    severity=table_key.key.severity,
+                    row=row_number,
                 )
 
     def _validate_header(
@@ -329,6 +471,26 @@ def _validate_value(
     if code is None:
         return None
     return _Violation(code, _describe_violation(code, value, constraint))
+
+
+def _field_values(
+    sources: tuple[_FieldSource, ...], row: list[str]
+) -> tuple[str | None, ...]:
+    return tuple(source.value(row) for source in sources)
+
+
+def _key_values(
+    sources: tuple[_FieldSource, ...], values: tuple[str | None, ...]
+) -> KeyValues:
+    return tuple(
+        source.field_type.key_value(value) for source, value in zip(sources, values)
+    )
+
+
+def _describe_values(values: tuple[str | None, ...]) -> str:
+    return "({})".format(
+        ", ".join("null" if value is None else repr(value) for value in values)
+    )
 
 
 def _describe_violation(code: str, value: str, constraint: TCValueConstraint) -> str:
