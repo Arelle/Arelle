@@ -418,6 +418,7 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
         if not self.isGlobalDeclaration:
             self.addToParticles()
         self._baseXsdAttrType: dict[str, str] = {}
+        self._instanceOfTypeCache: dict[QName, bool] = {}
 
     @property
     def abstract(self) -> str:
@@ -547,6 +548,15 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
 
     def instanceOfType(self, typeqname: QName | Collection[QName]) -> bool:
         """(bool) -- True if element is declared by, or derived from type of given qname or collection of qnames"""
+        if isinstance(typeqname, Collection):
+            return any(self.instanceOfType(qn) for qn in typeqname)
+        try:
+            return self._instanceOfTypeCache[typeqname]
+        except KeyError:
+            result = self._instanceOfTypeCache[typeqname] = self._instanceOfTypeUncached(typeqname)
+            return result
+
+    def _instanceOfTypeUncached(self, typeqname: QName | Collection[QName]) -> bool:
         if isinstance(typeqname, Collection): # union
             if self.typeQname in typeqname:
                 return True
