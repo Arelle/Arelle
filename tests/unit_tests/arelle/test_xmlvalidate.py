@@ -1488,6 +1488,18 @@ class TestValidateFacetValueString:
 
 
 class TestBase64BinaryValidation:
+    @pytest.mark.parametrize("value,expected_result", [
+        ("ABAb", VALID),
+        ("AAAAAAAA", VALID),
+        ("A A A A", VALID),
+        ("AA=A", INVALID),
+        ("====", INVALID),
+        ("\u00a0B", INVALID),
+        ])
+    def test_large_base64_binary_is_validated_linearly(self, value: str, expected_result: int):
+        value *= (1024 * 1024)
+        assert validateValueString("base64Binary", value).xValid == expected_result
+
     @pytest.mark.parametrize("value", [
         "",
         "AAAA",
