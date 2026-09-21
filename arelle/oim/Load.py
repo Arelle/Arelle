@@ -12,8 +12,10 @@ import sys
 import time
 import traceback
 from collections import defaultdict
+from collections.abc import Iterator
 from types import MappingProxyType
 from math import log10
+from typing import IO, TYPE_CHECKING, Any
 
 import isodate
 import regex as re
@@ -44,12 +46,15 @@ from arelle.oim.const import (
 from arelle.oim.csv.context import XbrlCsvLoadingContext
 from arelle.oim.csv.metadata.common import CSV_DOCUMENT_TYPES
 from arelle.oim.csv.metadata.parser import parse_xbrl_csv_metadata
-from arelle.oim._tc.metadata.parser import parse_tc_metadata
+from arelle.oim._tc.metadata.parser import TCParseResult, parse_tc_metadata
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import attrdict, isLegacyAbs, strTruncate
 from arelle.typing import TypeGetText
 from arelle.ValidateDuplicateFacts import (DuplicateTypeArg,
                                            getDuplicateFactSetsWithType)
+
+if TYPE_CHECKING:
+    from arelle.FileSource import FileSource
 
 _: TypeGetText
 
@@ -607,7 +612,7 @@ def increaseMaxFieldSize():
         except OverflowError:
             maxInt = int(maxInt/10)
 
-def openCsvReader(fileSource, csvFilePath, fileType):
+def openCsvReader(fileSource: FileSource, csvFilePath: str, fileType: int) -> Iterator[list[str]]:
     _file = fileSource.file(csvFilePath, binary=True)[0]
     bytes = _file.read(16) # test encoding
     try:
@@ -669,7 +674,12 @@ def openCsvReader(fileSource, csvFilePath, fileType):
     # Must increase the max supported CSV field size before opening the CSV reader.
     # Otherwise large HTML values will trigger csv.ERROR: field larger than field limit.
     increaseMaxFieldSize()
-    return csv.reader(_file, _dialect, doublequote=True)
+    return _csvRows(_file, _dialect)
+
+
+def _csvRows(file: IO[Any], dialect: str | type[csv.Dialect]) -> Iterator[list[str]]:
+    with file:
+        yield from csv.reader(file, dialect, doublequote=True)
 
 
 def idDeduped(modelXbrl, id):
@@ -1222,7 +1232,10 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
             reportProperties = {"documentInfo", "tableTemplates", "tables", "parameters", "parameterURL", "dimensions", "decimals", "links"}
             columnProperties = {"comment", "decimals", "dimensions", "propertyGroups", "parameterURL", "propertiesFrom"}
             csvMetadata = parse_xbrl_csv_metadata(oimObject)
-            tcMetadataResult = parse_tc_metadata(oimObject, namespaces)
+            if isCSV:
+                tcMetadataResult = parse_tc_metadata(oimObject, namespaces)
+            else:
+                tcMetadataResult = TCParseResult(None, ())
             for err in tcMetadataResult.errors:
                 error(
                     err.code,
