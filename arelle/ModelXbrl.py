@@ -927,9 +927,11 @@ class ModelXbrl:
         try:
             return cast(set[Any], self._dimensionsInUse)
         except AttributeError:
-            self._dimensionsInUse = set(dim.dimension
-                                        for cntx in self.contexts.values()  # use contextsInUse?  slower?
-                                        for dim in cntx.qnameDims.values())
+            self._dimensionsInUse = set(
+                dim.dimension
+                for cntx in self.contexts.values()  # use contextsInUse?  slower?
+                for dim in cntx.qnameDims.values()
+            )
             return self._dimensionsInUse
 
     def matchFact(self, otherFact: ModelFact, unmatchedFactsStack: list[ModelFact] | None = None, deemP0inf: bool = False, matchId: bool = False, matchLang: bool = True) -> ModelFact | None:
