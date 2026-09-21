@@ -561,7 +561,7 @@ class ModelXbrl:
                 if isinstance(view, ViewWinDTS.ViewDTS):
                     cast("CntlrWinMain", self.modelManager.cntlr).uiThreadQueue.put((view.view, []))
 
-    def saveInstance(self, **kwargs: Any) -> Any:
+    def saveInstance(self, **kwargs: Any) -> None:
         """Saves current instance document file.
 
         :param overrideFilepath: specify to override saving in instance's modelDocument.filepath
