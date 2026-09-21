@@ -457,7 +457,7 @@ class ModelXbrl:
             ModelRelationshipSet.create(self, arcrole, linkrole, linkqname, arcqname, includeProhibits)
         return self.relationshipSets[key]
 
-    def baseSetModelLink(self, linkElement: Any) -> Any:
+    def baseSetModelLink(self, linkElement: Any) -> ModelLink | LinkPrototype | None:
         for modelLink in self.baseSets[("XBRL-footnotes", None, None, None)]:
             if modelLink == linkElement:
                 return modelLink
