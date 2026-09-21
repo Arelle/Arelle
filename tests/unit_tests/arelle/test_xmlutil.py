@@ -55,6 +55,10 @@ def test_replaceWhitespace(value, expected):
 
 
 COLLAPSE_WHITESPACE_TESTS = [
+    ("", ""),
+    ("plain", "plain"),
+    ("\talpha\u00a0beta \n gamma\u0085delta\r", "alpha\u00a0beta gamma\u0085delta"),
+    ("\t\u2003\n\u2028\r\u2029 ", "\u2003 \u2028 \u2029"),
     ("\n", ""),
     ("\r", ""),
     ("\t", ""),

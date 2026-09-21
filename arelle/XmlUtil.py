@@ -31,7 +31,7 @@ xmlEncodingPattern = re.compile(r"\s*<\?xml\s.*encoding=['\"]([^'\"]*)['\"].*\?>
 xpointerFragmentIdentifierPattern = re.compile(r"([\w.]+)(\(([^)]*)\))?")
 xmlnsStripPattern = re.compile(r'\s*xmlns(:[\w.-]+)?="[^"]*"')
 
-_consecutiveSpacePattern = re.compile(r" {2,}")
+_collapseWhitespacePattern = re.compile(r"[ \t\r\n]+")
 _replaceWhitespaceTable = str.maketrans("\t\n\r", " " * 3)
 _ESCAPE_TEXT_TABLE = str.maketrans({"&": "&amp;", "<": "&lt;", ">": "&gt;"})
 
@@ -283,7 +283,8 @@ def escapedNode(
         for n, v in sorted(elt.items(), key=lambda item: item[0]):
             if n in uriAttrs:
                 v = resolveHtmlUri(elt, n, v).replace(" ", "%20") # %20 replacement needed for conformance test passing
-            s.append(' {0}="{1}"'.format(qname(elt, n),
+            attrName = qname(elt, n) if n.startswith("{") else n
+            s.append(' {0}="{1}"'.format(attrName,
                 v.replace("&","&amp;").replace('"', "&quot;")))
     if not start and empty:
         if selfClosable(elt):
@@ -304,7 +305,7 @@ def replaceWhitespace(s: str) -> str:
 
 def collapseWhitespace(s: str) -> str:
     # https://www.w3.org/TR/xmlschema-1/#d0e1654
-    return " ".join(_consecutiveSpacePattern.split(replaceWhitespace(s))).strip(" ")
+    return _collapseWhitespacePattern.sub(" ", s).strip(" ")
 
 
 def parentId(

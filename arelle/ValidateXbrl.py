@@ -844,7 +844,7 @@ class ValidateXbrl:
                                 self.modelXbrl.error("xbrl.4.6.3:missingPrecisionDecimals",
                                     _("Fact %(fact)s context %(contextID)s is a numeric concept and must have either precision or decimals"),
                                     modelObject=f, fact=f.qname, contextID=f.contextID)
-                            elif f.concept.instanceOfType(dtrNoDecimalsItemTypes):  # type: ignore[union-attr]
+                            elif concept.instanceOfType(dtrNoDecimalsItemTypes):
                                 evaluatedDecimals = inferredDecimals(f)
                                 if evaluatedDecimals > 0 and not math.isinf(evaluatedDecimals):
                                     if hasDecimals:
