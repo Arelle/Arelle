@@ -287,6 +287,7 @@ class ModelXbrl:
 
     """
 
+    _dimensionsInUse: set[ModelConcept]
     closeFileSource: bool
     dimensionDefaultConcepts: dict[ModelConcept, ModelConcept]
     entryLoadingUrl: str | None
@@ -746,7 +747,8 @@ class ModelXbrl:
         self.modelDocument.contextDiscover(newCntxElt)
         if hasattr(self, "_dimensionsInUse"):
             for dim in newCntxElt.qnameDims.values():
-                self._dimensionsInUse.add(dim.dimension)
+                if dim.dimension is not None:
+                    self._dimensionsInUse.add(dim.dimension)
         return newCntxElt
 
     def matchUnit(self, multiplyBy: list[QName], divideBy: list[QName]) -> ModelUnit | None:
@@ -922,15 +924,15 @@ class ModelXbrl:
         return (unit for unit in self.units.values() if getattr(unit, "_inUse", False))
 
     @property
-    def dimensionsInUse(self) -> set[Any]:
-        self._dimensionsInUse: set[Any]
+    def dimensionsInUse(self) -> set[ModelConcept]:
         try:
-            return cast(set[Any], self._dimensionsInUse)
+            return self._dimensionsInUse
         except AttributeError:
             self._dimensionsInUse = set(
                 dim.dimension
                 for cntx in self.contexts.values()  # use contextsInUse?  slower?
                 for dim in cntx.qnameDims.values()
+                if dim.dimension is not None
             )
             return self._dimensionsInUse
 
