@@ -110,7 +110,7 @@ class KnownNamespacesModelObjectClassLookup(etree.CustomElementClassLookup):
                     return ModelGroupDefinition
                 elif ln == "sequence":
                     return ModelSequence
-                elif ln == "choice" or ln == "all":
+                elif ln == "choice":
                     return ModelChoice
                 elif ln == "all":
                     return ModelAll
