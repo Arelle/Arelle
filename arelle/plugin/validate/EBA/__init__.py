@@ -52,6 +52,9 @@ s_2_18_c_a_met = {
     "s2md_met:mi1112", "s2md_met:mi1115", "s2md_met:mi1117", "s2md_met:mi1126",
     "s2md_met:mi1127", "s2md_met:mi1128", "s2md_met:mi1131"}
 
+# lxml keys a default namespace declaration (xmlns="...") with None in nsmap.
+DEFAULT_NAMESPACE_PREFIX = None
+
 CANONICAL_PREFIXES = {
     "http://www.xbrl.org/2003/iso4217": "iso4217",
     "http://www.xbrl.org/2003/linkbase": "link",
@@ -158,6 +161,21 @@ def validateSetup(val, parameters=None, *args, **kwargs):
     for unit in val.modelXbrl.units.values():
         if hasattr(unit, "_batchChecked"):
             unit._batchChecked = False
+
+def canonicalPrefixes(modelXbrl, ns):
+    """Return the prefixes the schema author(s) bind to ns, or the well known prefix when none do.
+
+    Some standard schemas, such as xbrldi-2006.xsd, never bind their own target namespace
+    to a prefix.
+    """
+    prefixes = set()
+    for nsDoc in modelXbrl.namespaceDocs.get(ns, ()):
+        nsDocPrefix = XmlUtil.xmlnsprefix(nsDoc.xmlRootElement, ns)
+        if nsDocPrefix:
+            prefixes.add(nsDocPrefix)
+    if not prefixes and ns in CANONICAL_PREFIXES:
+        prefixes.add(CANONICAL_PREFIXES[ns])
+    return prefixes
 
 def prefixUsed(val, ns, prefix):
     val.namespacePrefixesUsed[ns].add(prefix)
@@ -718,18 +736,15 @@ def final(val):
                 _("There SHOULD be no unused prefixes but these were declared: %(unusedPrefixes)s.'"),
                 modelObject=modelDocument, unusedPrefixes=", ".join(sorted(val.prefixesUnused)))
         for ns, prefixes in val.namespacePrefixesUsed.items():
-            nsDocs = modelXbrl.namespaceDocs.get(ns)
-            if nsDocs:
-                for nsDoc in nsDocs:
-                    nsDocPrefix = XmlUtil.xmlnsprefix(nsDoc.xmlRootElement, ns)
-                    if any(prefix != nsDocPrefix for prefix in prefixes if prefix is not None):
-                        modelXbrl.warning(("EBA.3.5", "EIOPA.3.5"),
-                            _("Prefix for namespace %(namespace)s is %(declaredPrefix)s but these were found %(foundPrefixes)s"),
-                            modelObject=modelDocument, namespace=ns, declaredPrefix=nsDocPrefix, foundPrefixes=", ".join(sorted(prefixes - {None})))
-            elif ns in CANONICAL_PREFIXES and any(prefix != CANONICAL_PREFIXES[ns] for prefix in prefixes if prefix is not None):
+            expectedPrefixes = canonicalPrefixes(modelXbrl, ns)
+            if not expectedPrefixes:
+                continue
+            usedPrefixes = prefixes - {DEFAULT_NAMESPACE_PREFIX}
+            unexpectedPrefixes = usedPrefixes - expectedPrefixes
+            if unexpectedPrefixes:
                 modelXbrl.warning(("EBA.3.5", "EIOPA.3.5"),
                     _("Prefix for namespace %(namespace)s is %(declaredPrefix)s but these were found %(foundPrefixes)s"),
-                    modelObject=modelDocument, namespace=ns, declaredPrefix=CANONICAL_PREFIXES[ns], foundPrefixes=", ".join(sorted(prefixes - {None})))
+                    modelObject=modelDocument, namespace=ns, declaredPrefix=", ".join(sorted(expectedPrefixes)), foundPrefixes=", ".join(sorted(usedPrefixes)))
 
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
