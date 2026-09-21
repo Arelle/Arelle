@@ -6,6 +6,7 @@ from __future__ import annotations
 import datetime
 from dataclasses import dataclass
 import logging
+import sys
 from collections.abc import Callable, Mapping
 from typing import TYPE_CHECKING, Any, cast
 from lxml import etree
@@ -15,7 +16,7 @@ from fractions import Fraction
 from arelle import UrlUtil, XbrlConst, XmlUtil, XmlValidateConst
 from arelle.ModelValue import (qname, qnameFromNsmap, qnameClarkName, qnameHref,
                                dateTime, DATE, DATETIME, DATEUNION, time,
-                               anyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay, isoDuration,
+                               anyURI, AnyURI, INVALIDixVALUE, gYearMonth, gMonthDay, gYear, gMonth, gDay, isoDuration,
                                tzinfo as _parseTzinfo, GTYPE_ANCHOR_YEAR, GTYPE_ANCHOR_MONTH, GTYPE_ANCHOR_DAY)
 from arelle.ModelObject import ModelObject, ModelAttribute
 from arelle.PythonUtil import strTruncate
@@ -392,6 +393,8 @@ def validate(
                 elt.sValue = elt.xValue = text = INVALIDixVALUE
                 elt.xValid = INVALID
             if text is not INVALIDixVALUE:
+                if type(text) is str:  # str subclasses from plugins (XULE) cannot be interned
+                    text = sys.intern(text)
                 validateValue(modelXbrl, elt, None, baseXsdType, text, isNillable, isNil, facets)
                 # note that elt.sValue and elt.xValue are not innerText but only text elements on specific element (or attribute)
             if modelType is not None:
@@ -402,6 +405,8 @@ def validate(
         # validate attributes
         # find missing attributes for default values
         for attrTag, attrValue in elt.items():
+            attrTag = sys.intern(attrTag)
+            attrValue = sys.intern(attrValue)
             qn = qnameClarkName(attrTag)
             #qn = qname(attrTag, noPrefixIsNoNamespace=True)
             baseXsdAttrType = None
@@ -944,6 +949,8 @@ def validateValue(
     else:
         xValue = sValue = None
         xValid = UNKNOWN
+    if isinstance(xValue, AnyURI) and modelXbrl is not None:
+        xValue = modelXbrl.internAnyUri(xValue)
     if attrTag:
         try:  # dynamically allocate attributes (otherwise given shared empty set)
             xAttributes = elt.xAttributes

@@ -523,7 +523,7 @@ def _assertExpected(value: str, attrTag: str | None, elt: Any, expected: tuple, 
 def test_validateValue(attrTag: str, baseXsdType: str, value: str, isNillable: bool, isNil: bool, facets: dict, expected: tuple):
     elt = Mock(xAttributes={}, nsmap={"prefix": "namespaceURI"}, fractionValue=tuple(value.split("/")))
     validateValue(
-        modelXbrl=Mock(),
+        modelXbrl=Mock(internAnyUri=lambda value: value),
         elt=elt,
         attrTag=attrTag,
         baseXsdType=baseXsdType,
@@ -557,7 +557,7 @@ def test_validateValue_facets_enumeration(value: str, expected: tuple):
             "valid3": _EnumerationFacetMember(),
         })
     }
-    validateValue(modelXbrl=Mock(), elt=elt, attrTag=None, baseXsdType="string", value=value, facets=facets)
+    validateValue(modelXbrl=Mock(internAnyUri=lambda value: value), elt=elt, attrTag=None, baseXsdType="string", value=value, facets=facets)
     _assertExpected(value, attrTag=None, elt=elt, expected=expected)
 
 
@@ -754,7 +754,7 @@ def test_validateValue_facets_length(value: str, expected: tuple):
     facets = {
         "length": 3
     }
-    validateValue(modelXbrl=Mock(), elt=elt, attrTag=None, baseXsdType="string", value=value, facets=facets)
+    validateValue(modelXbrl=Mock(internAnyUri=lambda value: value), elt=elt, attrTag=None, baseXsdType="string", value=value, facets=facets)
     _assertExpected(value, attrTag=None, elt=elt, expected=expected)
 
 
@@ -770,7 +770,7 @@ def test_validateValue_facets_minLength(value: str, expected: tuple):
     facets = {
         "minLength": 3
     }
-    validateValue(modelXbrl=Mock(), elt=elt, attrTag=None, baseXsdType="string", value=value, facets=facets)
+    validateValue(modelXbrl=Mock(internAnyUri=lambda value: value), elt=elt, attrTag=None, baseXsdType="string", value=value, facets=facets)
     _assertExpected(value, attrTag=None, elt=elt, expected=expected)
 
 
@@ -786,7 +786,7 @@ def test_validateValue_facets_maxLength(value: str, expected: tuple):
     facets = {
         "maxLength": 3
     }
-    validateValue(modelXbrl=Mock(), elt=elt, attrTag=None, baseXsdType="string", value=value, facets=facets)
+    validateValue(modelXbrl=Mock(internAnyUri=lambda value: value), elt=elt, attrTag=None, baseXsdType="string", value=value, facets=facets)
     _assertExpected(value, attrTag=None, elt=elt, expected=expected)
 
 
@@ -827,7 +827,7 @@ def test_validateValue_facets_pattern(value: str, expected: tuple):
     facets = {
         "pattern": regex.compile(r"^([A-Z])*$")
     }
-    validateValue(modelXbrl=Mock(), elt=elt, attrTag=None, baseXsdType="string", value=value, facets=facets)
+    validateValue(modelXbrl=Mock(internAnyUri=lambda value: value), elt=elt, attrTag=None, baseXsdType="string", value=value, facets=facets)
     _assertExpected(value, attrTag=None, elt=elt, expected=expected)
 
 
@@ -854,7 +854,7 @@ def test_validateValue_facets_totalDigits(value: str, expected: tuple):
     }
     # totalDigits only applies to xs:decimal (and its derived types); it isn't a valid
     # constraining facet for xs:float/xs:double.
-    validateValue(modelXbrl=Mock(), elt=elt, attrTag=None, baseXsdType="decimal", value=value, facets=facets)
+    validateValue(modelXbrl=Mock(internAnyUri=lambda value: value), elt=elt, attrTag=None, baseXsdType="decimal", value=value, facets=facets)
     _assertExpected(value, attrTag=None, elt=elt, expected=expected)
 
 
@@ -866,7 +866,7 @@ def test_validateValue_facets_totalDigits_not_applicable_to_float(base_xsd_type:
     facets = {
         "totalDigits": 1
     }
-    validateValue(modelXbrl=Mock(), elt=elt, attrTag=None, baseXsdType=base_xsd_type, value="123.456", facets=facets)
+    validateValue(modelXbrl=Mock(internAnyUri=lambda value: value), elt=elt, attrTag=None, baseXsdType=base_xsd_type, value="123.456", facets=facets)
     assert elt.xValid == VALID
     assert elt.xValue == float("123.456")
 
@@ -913,7 +913,7 @@ def test_validateValue_facets_fractionDigits(value: str, expected: tuple):
     facets = {
         "fractionDigits": 3
     }
-    validateValue(modelXbrl=Mock(), elt=elt, attrTag=None, baseXsdType="float", value=value, facets=facets)
+    validateValue(modelXbrl=Mock(internAnyUri=lambda value: value), elt=elt, attrTag=None, baseXsdType="float", value=value, facets=facets)
     _assertExpected(value, attrTag=None, elt=elt, expected=expected)
 
 
@@ -933,7 +933,7 @@ def test_validateValue_facets_minMaxInclusive(value: str, expected: tuple):
         "minInclusive": 0,
         "maxInclusive": 2
     }
-    validateValue(modelXbrl=Mock(), elt=elt, attrTag=None, baseXsdType="float", value=value, facets=facets)
+    validateValue(modelXbrl=Mock(internAnyUri=lambda value: value), elt=elt, attrTag=None, baseXsdType="float", value=value, facets=facets)
     _assertExpected(value, attrTag=None, elt=elt, expected=expected)
 
 
@@ -953,7 +953,7 @@ def test_validateValue_facets_minMaxExclusive(value: str, expected: tuple):
         "minExclusive": 0,
         "maxExclusive": 2
     }
-    validateValue(modelXbrl=Mock(), elt=elt, attrTag=None, baseXsdType="float", value=value, facets=facets)
+    validateValue(modelXbrl=Mock(internAnyUri=lambda value: value), elt=elt, attrTag=None, baseXsdType="float", value=value, facets=facets)
     _assertExpected(value, attrTag=None, elt=elt, expected=expected)
 
 
@@ -1108,7 +1108,7 @@ def test_validateValue_facets_whitespace(whitespace: str, value: str, expected: 
     facets = {
         "whiteSpace": whitespace
     }
-    validateValue(modelXbrl=Mock(), elt=elt, attrTag=None, baseXsdType="string", value=value, facets=facets)
+    validateValue(modelXbrl=Mock(internAnyUri=lambda value: value), elt=elt, attrTag=None, baseXsdType="string", value=value, facets=facets)
     _assertExpected(value, attrTag=None, elt=elt, expected=expected)
 
 

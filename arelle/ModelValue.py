@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 import datetime, isodate
+import sys
 from collections.abc import Mapping
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, cast, overload, Literal, Optional, Union
@@ -212,9 +213,10 @@ class QName:
     __slots__ = ("prefix", "namespaceURI", "localName", "qnameValueHash")
 
     def __init__(self, prefix: str | None, namespaceURI: str | None, localName: str) -> None:
-        self.prefix = prefix
-        self.namespaceURI = namespaceURI
-        self.localName = localName
+        # only exact str can be interned, plugins pass str subclasses such as XuleString
+        self.prefix = sys.intern(prefix) if type(prefix) is str else prefix
+        self.namespaceURI = sys.intern(namespaceURI) if type(namespaceURI) is str else namespaceURI
+        self.localName = sys.intern(localName) if type(localName) is str else localName
         self.qnameValueHash = hash((self.namespaceURI, self.localName))
 
     @classmethod

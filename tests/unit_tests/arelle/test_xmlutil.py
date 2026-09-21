@@ -21,6 +21,7 @@ def test_opaque_uris_not_path_normed():
         namespaceURI="http://www.w3.org/1999/xhtml",
         modelDocument=Mock(htmlBase=None),
         prefix=None,
+        nsmap={},
 
         get=elt_attrs.get,
         items=elt_attrs.items,
