@@ -160,13 +160,17 @@ def validateSetup(val, parameters=None, *args, **kwargs):
             unit._batchChecked = False
 
 def canonicalPrefixes(modelXbrl, ns):
-    """Return the prefixes the loaded schemas bind to ns, or the well known prefix when none is loaded."""
+    """Return the prefixes the schema author(s) bind to ns, or the well known prefix when none do.
+
+    Some standard schemas, such as xbrldi-2006.xsd, never bind their own target namespace
+    to a prefix.
+    """
     prefixes = set()
-    nsDocs = modelXbrl.namespaceDocs.get(ns)
-    if nsDocs:
-        for nsDoc in nsDocs:
-            prefixes.add(XmlUtil.xmlnsprefix(nsDoc.xmlRootElement, ns))
-    elif ns in CANONICAL_PREFIXES:
+    for nsDoc in modelXbrl.namespaceDocs.get(ns, ()):
+        nsDocPrefix = XmlUtil.xmlnsprefix(nsDoc.xmlRootElement, ns)
+        if nsDocPrefix:
+            prefixes.add(nsDocPrefix)
+    if not prefixes and ns in CANONICAL_PREFIXES:
         prefixes.add(CANONICAL_PREFIXES[ns])
     return prefixes
 
