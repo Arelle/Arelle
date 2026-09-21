@@ -26,6 +26,7 @@ from arelle.oim._tc.metadata.model import (
 from arelle.oim._tc.report.cell import (
     UnknownSpecialValue,
     effective_column_value,
+    effective_parameter_value,
     row_has_value,
 )
 from arelle.oim._tc.report.common import TCReportValidationError
@@ -41,6 +42,7 @@ TableOpener = Callable[[str, XbrlCsvTable], TableRows | None]
 
 _PROGRESS_ROW_INTERVAL = 1000
 _COLUMN = "column"
+_PARAMETER = "parameter"
 
 
 @dataclass(frozen=True, slots=True)
@@ -54,6 +56,7 @@ class _ConstraintSubject:
 @dataclass(frozen=True, slots=True)
 class _Template:
     columns: tuple[_ConstraintSubject, ...]
+    parameters: tuple[_ConstraintSubject, ...]
     column_order: tuple[str, ...] | None
 
 
@@ -86,6 +89,7 @@ class TCReportValidator:
         return {
             template_id: _Template(
                 columns=self._compile_subjects(tc.constraints, _COLUMN),
+                parameters=self._compile_subjects(tc.parameters, _PARAMETER),
                 column_order=tc.column_order,
             )
             for template_id, tc in self._tc_metadata.template_constraints.items()
@@ -105,21 +109,44 @@ class TCReportValidator:
 
     @staticmethod
     def _template_has_report_checks(tc: TCTemplateConstraints) -> bool:
-        return bool(tc.constraints) or tc.column_order is not None
+        return (
+            bool(tc.constraints) or bool(tc.parameters) or tc.column_order is not None
+        )
 
     def validate(self) -> Generator[TCReportValidationError, None, None]:
-        for table_id, table in self._csv_metadata.tables.items():
-            template = self._templates.get(table.template or table_id)
+        tables = self._csv_metadata.tables
+        instantiated = {
+            table.template or table_id for table_id, table in tables.items()
+        }
+        for template_id in self._templates:
+            if template_id not in instantiated:
+                yield from self._validate_uninstantiated_template(template_id)
+        checked_report_params: set[tuple[str, str]] = set()
+        for table_id, table in tables.items():
+            template_id = table.template or table_id
+            template = self._templates.get(template_id)
             if template is None:
                 continue
             yield from self._validate_parameter_conflicts(table_id, table, template)
+            yield from self._validate_defined_parameters(table_id, table, template_id, template, checked_report_params)
             rows = self._open_table(table_id, table)
             if rows is None:
                 continue
-            self._report_progress(
-                _("Validating table constraints of table {}").format(table_id)
-            )
+            self._report_progress(_("Validating table constraints of table {}").format(table_id))
             yield from self._validate_table(table_id, table, template, rows)
+
+    def _validate_uninstantiated_template(self, template_id: str) -> Generator[TCReportValidationError, None, None]:
+        for parameter in self._templates[template_id].parameters:
+            literal = self._report_parameters.get(parameter.name)
+            if literal is None:
+                continue
+            if violation := self._validate_parameter(parameter, literal, required=False):
+                yield TCReportValidationError(
+                    violation.message,
+                    code=violation.code,
+                    template_id=template_id,
+                    parameter=parameter.name,
+                )
 
     def _validate_parameter_conflicts(
         self, table_id: str, table: XbrlCsvTable, template: _Template
@@ -142,6 +169,33 @@ class TCReportValidator:
                 url=table.url,
                 parameter=column.name,
             )
+
+    def _validate_defined_parameters(
+        self,
+        table_id: str,
+        table: XbrlCsvTable,
+        template_id: str,
+        template: _Template,
+        checked_report_params: set[tuple[str, str]],
+    ) -> Generator[TCReportValidationError, None, None]:
+        for parameter in template.parameters:
+            if parameter.name in table.parameters:
+                literal: str | None = table.parameters[parameter.name]
+            else:
+                report_parameter_key = (template_id, parameter.name)
+                if report_parameter_key in checked_report_params:
+                    continue
+                checked_report_params.add(report_parameter_key)
+                literal = self._report_parameters.get(parameter.name)
+            param_required = not parameter.constraint.optional
+            if violation := self._validate_parameter(parameter, literal, param_required):
+                yield TCReportValidationError(
+                    violation.message,
+                    code=violation.code,
+                    table_id=table_id,
+                    url=table.url,
+                    parameter=parameter.name,
+                )
 
     def _validate_table(
         self, table_id: str, table: XbrlCsvTable, template: _Template, rows: TableRows
@@ -233,6 +287,15 @@ class TCReportValidator:
                 table_id=table_id,
                 url=table.url,
             )
+
+    @staticmethod
+    def _validate_parameter(parameter: _ConstraintSubject, literal: str | None, required: bool) -> _Violation | None:
+        try:
+            value = effective_parameter_value(literal)
+        except UnknownSpecialValue:
+            # The loader reports unknown special values in parameters.
+            return None
+        return _validate_value(parameter, literal, value, required)
 
     @staticmethod
     def _validate_cell(column: _ConstraintSubject, literal: str) -> _Violation | None:
