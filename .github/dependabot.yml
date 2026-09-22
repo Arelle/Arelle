@@ -2,7 +2,7 @@ version: 2
 updates:
   - package-ecosystem: docker
     directories:
-      - /**
+      - "**/*"
     schedule:
       interval: weekly
     groups:
@@ -14,7 +14,7 @@ updates:
           - patch
   - package-ecosystem: github-actions
     directories:
-      - /**
+      - "**/*"
     schedule:
       interval: weekly
     groups:
@@ -28,7 +28,7 @@ updates:
     cooldown:
       default-days: 3
     directories:
-      - /**
+      - "**/*"
     schedule:
       interval: weekly
     groups:
@@ -42,7 +42,7 @@ updates:
     cooldown:
       default-days: 3
     directories:
-      - /**
+      - "**/*"
     schedule:
       interval: weekly
     groups:
@@ -58,7 +58,7 @@ updates:
       exclude:
         - ixbrl-viewer
     directories:
-      - /**
+      - "**/*"
     schedule:
       interval: weekly
     groups:
