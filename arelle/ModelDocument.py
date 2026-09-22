@@ -1784,7 +1784,7 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
             except KeyError:
                 modelFact._ixFactParent = modelXbrl.ixTargetRootElements[None]  # type: ignore[attr-defined]
 
-    def locateContinuation(element: ModelInlineFact) -> None:
+    def locateContinuation(element: ModelObject) -> None:
         contAt = element.get("continuedAt")
         if contAt: # has continuation
             chain = [element] # implement non-recursively for very long continuaion chains
@@ -1811,9 +1811,9 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
                                         modelObject=chain, continuationCycle=cycle)
                         break
                     else:
-                        chain.append(contElt)  # type: ignore[arg-type]
+                        chain.append(contElt)
                         element._continuationElement = contElt  # type: ignore[attr-defined]
-                        element = contElt  # type: ignore[assignment] # loop to continuation element
+                        element = contElt # loop to continuation element
                         contAt = element.get("continuedAt")
             # check if any chain element is descendant of another
             chainSet = set(chain)
@@ -1828,7 +1828,7 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
                                         ancestorElement=chainEltAncestor.id or chainEltAncestor.get("name",chainEltAncestor.get("continuedAt")),
                                         descendantElement=chainElt.id or chainElt.get("name",chainElt.get("continuedAt")))
 
-    def checkTupleIxDescendants(tupleFact: ModelInlineFact, parentElt: ModelInlineFact) -> None:
+    def checkTupleIxDescendants(tupleFact: ModelInlineFact, parentElt: ModelObject) -> None:
         for childElt in parentElt.iterchildren():
             if isinstance(childElt,ModelObject) and childElt.namespaceURI in XbrlConst.ixbrlAll:
                 if childElt.localName in ("numerator", "denominator"):
@@ -1964,7 +1964,7 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
 
         for modelInlineFootnote in htmlElement.iterdescendants(tag=XbrlConst.qnIXbrl11Footnote.clarkNotation):
             if isinstance(modelInlineFootnote,ModelObject):
-                locateContinuation(modelInlineFootnote)  # type: ignore[arg-type]
+                locateContinuation(modelInlineFootnote)
 
         for elt in htmlElement.iterdescendants(ixNStag + "exclude"):
             if not any(True for ancestor in elt.iterancestors(ixNStag + "continuation", ixNStag + "footnote", ixNStag + "nonNumeric")):
