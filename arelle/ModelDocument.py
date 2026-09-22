@@ -1303,7 +1303,7 @@ class ModelDocument(ModelDocumentBase):
                 elif ns in XbrlConst.ixbrlAll and ln=="relationship":
                     pass
                 else: # concept elements
-                    self.factDiscover(instElement, self.modelXbrl.facts)  # type: ignore[arg-type]
+                    self.factDiscover(instElement, self.modelXbrl.facts)
         if len(self.modelXbrl.undefinedFacts) > nextUndefinedFact:
             undefFacts = self.modelXbrl.undefinedFacts[nextUndefinedFact:]
             self.modelXbrl.error("xbrl:schemaImportMissing",
@@ -1401,7 +1401,7 @@ class ModelDocument(ModelDocumentBase):
 
     def factDiscover(
         self,
-        modelFact: ModelFact,
+        modelFact: ModelObject,
         parentModelFacts: list[ModelFact] | None = None,
         parentElement: ModelObject | None = None,
     ) -> None:

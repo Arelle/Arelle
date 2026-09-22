@@ -340,7 +340,7 @@ class ModelXbrl:
         self.qnameDimensionDefaults: dict[QName, QName] = {}  # contains qname of dimension (index) and default member(value)
         self.facts: list[ModelFact] = []
         self.factsInInstance: set[ModelFact] = set()
-        self.undefinedFacts: list[ModelFact] = []  # elements presumed to be facts but not defined
+        self.undefinedFacts: list[ModelObject] = []  # elements presumed to be facts but not defined
         self.contexts: dict[str, ModelContext] = {}
         self.ixdsUnmappedContexts: dict[str, ModelContext] = {}
         self._contextsInUseMarked = False
