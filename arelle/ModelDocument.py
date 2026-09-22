@@ -1484,7 +1484,12 @@ class ModelDocument(ModelDocumentBase):
         # no child documents to reference
         pass
 
-    def addDocumentReference(self, doc: ModelDocument, referenceType: str, referringModelObject: ModelObject | None = None) -> None:
+    def addDocumentReference(
+        self,
+        doc: ModelDocument,
+        referenceType: str,
+        referringModelObject: ModelObject | None = None,
+    ) -> None:
         if doc is not None:
             if doc not in self.referencesDocument:
                 self.referencesDocument[doc] = ModelDocumentReference(referenceType, referringModelObject)
