@@ -1249,6 +1249,8 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                 report_parameters=MappingProxyType(rawReportParameters),
                 metadata_path=oimFile,
             )
+            for table in tables.values():
+                parseParameterValues(table.get("parameters", EMPTY_DICT), error)
 
         entityNaQName = qname(re.sub("/xbrl-(json|csv)$","/entities",documentType), "NA")
         allowedDuplicatesFeature = ALL
@@ -1342,7 +1344,6 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                         parseMetadataCellValues(tableDimensions)
                         tableIsOptional = table.get("optional", False)
                         tableParameters = table.get("parameters", EMPTY_DICT)
-                        parseParameterValues(tableParameters, error)
                         rowIdColName = tableTemplate.get("rowIdColumn")
                         tableUrl = table["url"]
                         tableParameterColNames = set()

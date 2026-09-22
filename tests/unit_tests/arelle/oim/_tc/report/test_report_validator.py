@@ -36,10 +36,14 @@ def _tc(**templates: TCTemplateConstraints) -> TCMetadata:
 
 
 def _template(
-    column_order: tuple[str, ...] | None = None, **constraints: TCValueConstraint
+    column_order: tuple[str, ...] | None = None,
+    parameters: Mapping[str, TCValueConstraint] | None = None,
+    **constraints: TCValueConstraint,
 ) -> TCTemplateConstraints:
     return TCTemplateConstraints(
-        constraints=MappingProxyType(constraints), column_order=column_order
+        constraints=MappingProxyType(constraints),
+        parameters=MappingProxyType(parameters or {}),
+        column_order=column_order,
     )
 
 
@@ -48,6 +52,7 @@ def _run(
     tc_metadata: TCMetadata,
     files: Mapping[str, list[list[str]]],
     opened: list[str] | None = None,
+    report_parameters: Mapping[str, str | None] | None = None,
 ) -> list[TCReportValidationError]:
     def open_table(table_id: str, table: XbrlCsvTable) -> Iterator[list[str]] | None:
         if opened is not None:
@@ -55,7 +60,11 @@ def _run(
         rows = files.get(table.url)
         return iter(rows) if rows is not None else None
 
-    return list(TCReportValidator(csv_metadata, tc_metadata, open_table).validate())
+    return list(
+        TCReportValidator(
+            csv_metadata, tc_metadata, report_parameters or {}, open_table
+        ).validate()
+    )
 
 
 def _codes(errors: list[TCReportValidationError]) -> list[str]:
@@ -273,8 +282,201 @@ class TestTables:
         validator = TCReportValidator(
             _SINGLE_TABLE,
             tc,
+            {},
             lambda table_id, table: iter([["n"], ["1"]]),
             messages.append,
         )
         assert list(validator.validate()) == []
         assert messages == ["Validating table constraints of table t"]
+
+
+class TestColumnParameterConflicts:
+    _TC = _tc(
+        t=_template(n=TCValueConstraint("xs:integer"), s=TCValueConstraint("xs:string"))
+    )
+    _ROWS = {"t.csv": [["n", "s", "u"], ["1", "a", "b"]]}
+
+    def test_report_parameter_named_like_a_constrained_column(self) -> None:
+        (error,) = _run(
+            _SINGLE_TABLE, self._TC, self._ROWS, report_parameters={"n": "1"}
+        )
+        assert error.code == "tcre:columnParameterConflict"
+        assert (
+            str(error)
+            == "table 't' parameter 'n': report parameter 'n' has the same name as a constrained column, url: t.csv"
+        )
+
+    def test_table_parameter_named_like_a_constrained_column(self) -> None:
+        tables = _tables(
+            t=XbrlCsvTable(url="t.csv", parameters=MappingProxyType({"s": "x"}))
+        )
+        errors = _run(tables, self._TC, self._ROWS)
+        assert _codes(errors) == ["tcre:columnParameterConflict"]
+        assert errors[0].parameter == "s"
+        assert "table parameter 's' has the same name" in str(errors[0])
+
+    def test_conflict_is_reported_once_per_table_and_name(self) -> None:
+        tables = _tables(
+            t=XbrlCsvTable(url="t.csv", parameters=MappingProxyType({"n": "1"})),
+            u=XbrlCsvTable(url="t.csv", template="t"),
+        )
+        errors = _run(tables, self._TC, self._ROWS, report_parameters={"n": "2"})
+        assert [(error.table_id, error.parameter) for error in errors] == [
+            ("t", "n"),
+            ("u", "n"),
+        ]
+
+    def test_unconstrained_column_names_do_not_conflict(self) -> None:
+        tables = _tables(
+            t=XbrlCsvTable(url="t.csv", parameters=MappingProxyType({"u": "x"}))
+        )
+        assert _run(tables, self._TC, self._ROWS, report_parameters={"u": "y"}) == []
+
+
+def _parameter_table(**parameters: str) -> XbrlCsvEffectiveMetadata:
+    return _tables(t=XbrlCsvTable(url="t.csv", parameters=MappingProxyType(parameters)))
+
+
+class TestDefinedParameters:
+    _ROWS = {"t.csv": [["n"], ["1"]]}
+
+    @staticmethod
+    def _tc(**parameters: TCValueConstraint) -> TCMetadata:
+        return _tc(
+            t=_template(parameters=parameters, n=TCValueConstraint("xs:integer"))
+        )
+
+    def test_valid_parameters_produce_no_errors(self) -> None:
+        tc = self._tc(
+            p=TCValueConstraint("xs:integer"), q=TCValueConstraint("xs:string")
+        )
+        tables = _parameter_table(p="1")
+        assert _run(tables, tc, self._ROWS, report_parameters={"q": "a"}) == []
+
+    def test_invalid_table_parameter_is_reported_with_its_location(self) -> None:
+        tc = self._tc(p=TCValueConstraint("xs:integer"))
+        (error,) = _run(_parameter_table(p="x"), tc, self._ROWS)
+        assert (
+            error.code,
+            error.table_id,
+            error.row,
+            error.column,
+            error.parameter,
+        ) == (
+            "tcre:invalidValue",
+            "t",
+            None,
+            None,
+            "p",
+        )
+        assert (
+            str(error)
+            == "table 't' parameter 'p': value 'x' is not valid for the xs:integer constraint, url: t.csv"
+        )
+
+    def test_invalid_report_parameter_is_reported(self) -> None:
+        tc = self._tc(p=TCValueConstraint("xs:integer"))
+        errors = _run(_SINGLE_TABLE, tc, self._ROWS, report_parameters={"p": "x"})
+        assert _codes(errors) == ["tcre:invalidValue"]
+
+    def test_table_parameter_shadows_the_report_parameter(self) -> None:
+        tc = self._tc(p=TCValueConstraint("xs:integer"))
+        tables = _parameter_table(p="1")
+        assert _run(tables, tc, self._ROWS, report_parameters={"p": "x"}) == []
+        errors = _run(
+            _parameter_table(p="x"), tc, self._ROWS, report_parameters={"p": "1"}
+        )
+        assert _codes(errors) == ["tcre:invalidValue"]
+
+    def test_required_parameter_without_a_value_is_missing(self) -> None:
+        tc = self._tc(p=TCValueConstraint("xs:integer"))
+        (error,) = _run(_SINGLE_TABLE, tc, self._ROWS)
+        assert error.code == "tcre:missingValue"
+        assert (
+            str(error)
+            == "table 't' parameter 'p': the parameter is required and has no value, url: t.csv"
+        )
+
+    @pytest.mark.parametrize("literal", ["#none", "#nil"])
+    def test_null_special_values_leave_a_required_parameter_missing(
+        self, literal: str
+    ) -> None:
+        tc = self._tc(p=TCValueConstraint("xs:integer", nillable=True))
+        errors = _run(
+            _parameter_table(p=literal), tc, self._ROWS, report_parameters={"p": "1"}
+        )
+        assert _codes(errors) == ["tcre:missingValue"]
+
+    def test_optional_parameter_without_a_value_is_fine(self) -> None:
+        tc = self._tc(p=TCValueConstraint("xs:integer", optional=True))
+        assert _run(_SINGLE_TABLE, tc, self._ROWS) == []
+
+    def test_nil_in_a_parameter_that_is_not_nillable_is_invalid(self) -> None:
+        tc = self._tc(p=TCValueConstraint("xs:integer", optional=True))
+        errors = _run(_parameter_table(p="#nil"), tc, self._ROWS)
+        assert _codes(errors) == ["tcre:invalidValue"]
+
+    def test_empty_string_is_a_value(self) -> None:
+        tc = self._tc(p=TCValueConstraint("xs:string"))
+        assert _run(_parameter_table(p=""), tc, self._ROWS) == []
+        tc = self._tc(p=TCValueConstraint("xs:integer", optional=True))
+        errors = _run(_SINGLE_TABLE, tc, self._ROWS, report_parameters={"p": ""})
+        assert _codes(errors) == ["tcre:invalidValue"]
+
+    def test_empty_special_value_is_validated_as_an_empty_string(self) -> None:
+        tc = self._tc(p=TCValueConstraint("xs:string", min_length=1))
+        errors = _run(_parameter_table(p="#empty"), tc, self._ROWS)
+        assert _codes(errors) == ["tcre:invalidValue"]
+
+    def test_unknown_special_values_are_left_to_the_loader(self) -> None:
+        tc = self._tc(p=TCValueConstraint("xs:integer"))
+        assert _run(_parameter_table(p="#bogus"), tc, self._ROWS) == []
+
+    def test_report_parameter_is_checked_once_per_template(self) -> None:
+        tc = _tc(
+            a=_template(parameters={"p": TCValueConstraint("xs:integer")}),
+            b=_template(parameters={"p": TCValueConstraint("xs:integer")}),
+        )
+        tables = _tables(
+            a1=XbrlCsvTable(url="a1.csv", template="a"),
+            a2=XbrlCsvTable(url="a2.csv", template="a"),
+            a3=XbrlCsvTable(
+                url="a3.csv", template="a", parameters=MappingProxyType({"p": "y"})
+            ),
+            b1=XbrlCsvTable(url="b1.csv", template="b"),
+        )
+        errors = _run(tables, tc, {}, report_parameters={"p": "x"})
+        assert [error.table_id for error in errors] == ["a1", "a3", "b1"]
+
+    def test_parameters_are_checked_when_the_table_file_is_missing(self) -> None:
+        tc = self._tc(p=TCValueConstraint("xs:integer"))
+        assert _codes(_run(_SINGLE_TABLE, tc, {})) == ["tcre:missingValue"]
+
+
+class TestUninstantiatedTemplates:
+    _TC = _tc(
+        t=_template(n=TCValueConstraint("xs:integer")),
+        u=_template(parameters={"p": TCValueConstraint("xs:integer")}),
+    )
+    _ROWS = {"t.csv": [["n"], ["1"]]}
+
+    def test_supplied_report_parameter_is_checked(self) -> None:
+        (error,) = _run(
+            _SINGLE_TABLE, self._TC, self._ROWS, report_parameters={"p": "x"}
+        )
+        assert error.code == "tcre:invalidValue"
+        assert (
+            str(error)
+            == "template 'u' parameter 'p': value 'x' is not valid for the xs:integer constraint"
+        )
+
+    def test_nil_is_checked_but_null_is_not_missing(self) -> None:
+        errors = _run(
+            _SINGLE_TABLE, self._TC, self._ROWS, report_parameters={"p": "#nil"}
+        )
+        assert _codes(errors) == ["tcre:invalidValue"]
+        assert (
+            _run(_SINGLE_TABLE, self._TC, self._ROWS, report_parameters={"p": "#none"})
+            == []
+        )
+        assert _run(_SINGLE_TABLE, self._TC, self._ROWS) == []
