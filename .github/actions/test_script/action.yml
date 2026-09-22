@@ -33,7 +33,7 @@ runs:
         pytest -s --disable-warnings --name="${{ inputs.name }}" --download-cache --offline --arelle="python arelleCmdLine.py" tests/integration_tests/scripts/test_scripts.py
     - name: Upload log artifacts
       if: always()
-      uses: actions/upload-artifact@v6.0.0
+      uses: actions/upload-artifact@v7.0.1
       with:
         name: ${{ inputs.artifact_name }}
         if-no-files-found: error
