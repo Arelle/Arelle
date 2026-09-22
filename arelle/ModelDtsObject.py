@@ -876,20 +876,12 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     @property
     def isEnumeration(self) -> bool:
         """(bool) -- True if derived from enum:enumerationItemType or enum:enumerationsItemType or enum2:setValueDimensionType"""
-        try:
-            return self._isEnum
-        except AttributeError:
-            self._isEnum = self.instanceOfType(XbrlConst.qnEnumerationTypes)
-            return self._isEnum
+        return self.instanceOfType(XbrlConst.qnEnumerationTypes)
 
     @property
     def isEnumeration2Item(self) -> bool:
         """(bool) -- True if derived from enum2 item types"""
-        try:
-            return self._isEnum2
-        except AttributeError:
-            self._isEnum2 = self.instanceOfType(XbrlConst.qnEnumeration2ItemTypes)
-            return self._isEnum2
+        return self.instanceOfType(XbrlConst.qnEnumeration2ItemTypes)
 
     @property
     def enumDomainQname(self) -> QName | None:
