@@ -59,6 +59,8 @@ updates:
         - ixbrl-viewer
     directories:
       - "**/*"
+    exclude-paths:
+      - "**/*-command.txt"
     schedule:
       interval: weekly
     groups:
