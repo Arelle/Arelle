@@ -1434,12 +1434,12 @@ class ModelDocument(ModelDocumentBase):
                         uriAttr = testcaseElement.get("uri") or testcaseElement.get("file") or testcaseElement.get("{http://www.w3.org/1999/xlink}href")
                         if uriAttr:
                             doc = load(self.modelXbrl, uriAttr, base=base, referringElement=testcaseElement)
-                            self.addDocumentReference(cast(ModelDocument, doc), "testcaseIndex", testcaseElement)
+                            self.addDocumentReference(doc, "testcaseIndex", testcaseElement)
                     elif isinstance(testcaseElement,ModelObject) and testcaseElement.localName in ("testcases", "registries"):
                         uriAttr = testcaseElement.get("uri") or testcaseElement.get("{http://www.w3.org/1999/xlink}href")
                         if uriAttr:
                             doc = load(self.modelXbrl, uriAttr, base=base, referringElement=testcaseElement)
-                            self.addDocumentReference(cast(ModelDocument, doc), "testcaseIndex", testcaseElement)
+                            self.addDocumentReference(doc, "testcaseIndex", testcaseElement)
 
     def testcaseDiscover(self, testcaseElement: ModelObject, validateTestcaseSchema: bool) -> None:
         if validateTestcaseSchema:
@@ -1478,7 +1478,7 @@ class ModelDocument(ModelDocumentBase):
                         testbase = functionDoc.filepath
                         if testuri is not None:
                             testcaseDoc = load(self.modelXbrl, testuri, base=testbase, referringElement=testUriElt)
-                            self.addDocumentReference(cast(ModelDocument, testcaseDoc), "registryIndex", testUriElt)
+                            self.addDocumentReference(testcaseDoc, "registryIndex", testUriElt)
 
     def xPathTestSuiteDiscover(self, rootNode: ModelObject) -> None:
         # no child documents to reference
@@ -1486,7 +1486,7 @@ class ModelDocument(ModelDocumentBase):
 
     def addDocumentReference(
         self,
-        doc: ModelDocument,
+        doc: ModelDocument | None,
         referenceType: str,
         referringModelObject: ModelObject | None = None,
     ) -> None:
