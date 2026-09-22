@@ -1399,8 +1399,12 @@ class ModelDocument(ModelDocumentBase):
             self.modelXbrl.ixdsHtmlElements = []
         self.modelXbrl.ixdsHtmlElements.append(htmlElement)
 
-
-    def factDiscover(self, modelFact: ModelFact, parentModelFacts: list[ModelFact] | None = None, parentElement: ModelObject | None = None) -> None:
+    def factDiscover(
+        self,
+        modelFact: ModelFact,
+        parentModelFacts: list[ModelFact] | None = None,
+        parentElement: ModelObject | None = None,
+    ) -> None:
         if parentModelFacts is None: # may be called with parentElement instead of parentModelFacts list
             if isinstance(parentElement, ModelFact) and parentElement.isTuple:
                 parentModelFacts = parentElement.modelTupleFacts
