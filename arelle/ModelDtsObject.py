@@ -402,8 +402,6 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     _isDimensionItem: bool
     _isTypedDimension: bool
     _typedDomainElement: ModelObject | None
-    _isEnum: bool
-    _isEnum2: bool
     _enumDomain: ModelConcept | None
     _isEnumDomainUsable: bool
 
