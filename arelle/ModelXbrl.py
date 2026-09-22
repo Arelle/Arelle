@@ -32,10 +32,11 @@ if TYPE_CHECKING:
     from arelle.CntlrWinMain import CntlrWinMain
     from arelle.FileSource import FileSource as FileSourceClass
     from arelle.ModelDocument import ModelDocument as ModelDocumentClass
-    from arelle.ModelDtsObject import ModelConcept, ModelType, ModelRoleType, ModelLink
-    from arelle.ModelFormulaObject import ModelConsistencyAssertion, ModelCustomFunctionSignature, ModelVariableSet
+    from arelle.ModelDtsObject import ModelAttribute, ModelAttributeGroup, ModelConcept, ModelGroupDefinition, ModelType, ModelRoleType, ModelLink
+    from arelle.ModelFormulaObject import ModelConsistencyAssertion, ModelCustomFunctionImplementation, ModelCustomFunctionSignature, ModelVariableSet
     from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit, ModelDimensionValue
     from arelle.ModelManager import ModelManager
+    from arelle.ModelRenderingObject import DefnMdlTable
     from arelle.ModelRelationshipSet import ModelRelationshipSet as ModelRelationshipSetClass
     from arelle.ModelValue import AnyURI, QName
     from arelle.PrototypeDtsObject import LinkPrototype
@@ -286,6 +287,7 @@ class ModelXbrl:
 
     """
 
+    _dimensionsInUse: set[ModelConcept]
     closeFileSource: bool
     dimensionDefaultConcepts: dict[ModelConcept, ModelConcept]
     entryLoadingUrl: str | None
@@ -304,7 +306,7 @@ class ModelXbrl:
     rssItemResults: dict[str | None, dict[str, Any]]
     _factsByDimQname: dict[QName, dict[QName | str | None, set[ModelFact]]]
     _factsByQname: dict[QName, set[ModelFact]]
-    _factsByDatatype: dict[bool | tuple[bool, QName], set[ModelFact]]
+    _factsByDatatype: dict[tuple[bool, QName], set[ModelFact]]
     _factsByLocalName: dict[str, set[ModelFact]]
     _factsByPeriodType: dict[str, set[ModelFact]]
     _nonNilFactsInInstance: set[ModelFact]
@@ -328,10 +330,10 @@ class ModelXbrl:
         self.roleTypes: defaultdict[str, list[ModelRoleType]] = defaultdict(list)
         self.qnameConcepts: dict[QName, ModelConcept] = {}  # indexed by qname of element
         self.nameConcepts: defaultdict[str, list[ModelConcept]] = defaultdict(list)  # contains ModelConcepts by name
-        self.qnameAttributes: dict[QName, Any] = {}
+        self.qnameAttributes: dict[QName, ModelAttribute] = {}
         self._anyUriValues: dict[str, AnyURI] = {}
-        self.qnameAttributeGroups: dict[QName, Any] = {}
-        self.qnameGroupDefinitions: dict[QName, Any] = {}
+        self.qnameAttributeGroups: dict[QName, ModelAttributeGroup] = {}
+        self.qnameGroupDefinitions: dict[QName, ModelGroupDefinition] = {}
         self.qnameTypes: dict[QName, ModelType] = {}  # contains ModelTypes by qname key of type
         self.baseSets: defaultdict[tuple[str, str | None, QName | None, QName | None], list[ModelLink | LinkPrototype]] = defaultdict(list)  # contains ModelLinks for keys arcrole, arcrole#linkrole
         self.relationshipSets: dict[tuple[str] | tuple[tuple[str, ...] | str, tuple[str, ...] | str | None, QName | None, QName | None, bool], ModelRelationshipSetClass] = {}  # contains ModelRelationshipSets by bas set keys
@@ -350,8 +352,8 @@ class ModelXbrl:
         self.modelVariableSets: set[ModelVariableSet] = set()
         self.modelConsistencyAssertions: set[ModelConsistencyAssertion] = set()
         self.modelCustomFunctionSignatures: dict[QName | tuple[QName | None, int], ModelCustomFunctionSignature] = {}
-        self.modelCustomFunctionImplementations: set[ModelDocumentClass] = set()
-        self.modelRenderingTables: set[Any] = set()
+        self.modelCustomFunctionImplementations: set[ModelCustomFunctionImplementation] = set()
+        self.modelRenderingTables: set[DefnMdlTable] = set()
         if not keepViews:
             self.views: list[Any] = []
         self.langs: set[str] = {self.modelManager.defaultLang}
@@ -456,7 +458,7 @@ class ModelXbrl:
             ModelRelationshipSet.create(self, arcrole, linkrole, linkqname, arcqname, includeProhibits)
         return self.relationshipSets[key]
 
-    def baseSetModelLink(self, linkElement: Any) -> Any:
+    def baseSetModelLink(self, linkElement: Any) -> ModelLink | LinkPrototype | None:
         for modelLink in self.baseSets[("XBRL-footnotes", None, None, None)]:
             if modelLink == linkElement:
                 return modelLink
@@ -560,7 +562,7 @@ class ModelXbrl:
                 if isinstance(view, ViewWinDTS.ViewDTS):
                     cast("CntlrWinMain", self.modelManager.cntlr).uiThreadQueue.put((view.view, []))
 
-    def saveInstance(self, **kwargs: Any) -> Any:
+    def saveInstance(self, **kwargs: Any) -> None:
         """Saves current instance document file.
 
         :param overrideFilepath: specify to override saving in instance's modelDocument.filepath
@@ -745,7 +747,8 @@ class ModelXbrl:
         self.modelDocument.contextDiscover(newCntxElt)
         if hasattr(self, "_dimensionsInUse"):
             for dim in newCntxElt.qnameDims.values():
-                self._dimensionsInUse.add(dim.dimension)
+                if dim.dimension is not None:
+                    self._dimensionsInUse.add(dim.dimension)
         return newCntxElt
 
     def matchUnit(self, multiplyBy: list[QName], divideBy: list[QName]) -> ModelUnit | None:
@@ -830,7 +833,7 @@ class ModelXbrl:
                     fbln[f.qname.localName].add(f)
             return fbln
 
-    def factsByDatatype(self, notStrict: bool, typeQname: QName) -> set[ModelFact] | None:  # indexed by fact (concept) qname
+    def factsByDatatype(self, notStrict: bool, typeQname: QName) -> set[ModelFact]:  # indexed by fact (concept) qname
         """Facts in the instance indexed by data type QName, cached as types are requested
 
         :param notSctrict: if True, fact may be derived
@@ -921,14 +924,16 @@ class ModelXbrl:
         return (unit for unit in self.units.values() if getattr(unit, "_inUse", False))
 
     @property
-    def dimensionsInUse(self) -> set[Any]:
-        self._dimensionsInUse: set[Any]
+    def dimensionsInUse(self) -> set[ModelConcept]:
         try:
-            return cast(set[Any], self._dimensionsInUse)
+            return self._dimensionsInUse
         except AttributeError:
-            self._dimensionsInUse = set(dim.dimension
-                                        for cntx in self.contexts.values()  # use contextsInUse?  slower?
-                                        for dim in cntx.qnameDims.values())
+            self._dimensionsInUse = set(
+                dim.dimension
+                for cntx in self.contexts.values()  # use contextsInUse?  slower?
+                for dim in cntx.qnameDims.values()
+                if dim.dimension is not None
+            )
             return self._dimensionsInUse
 
     def matchFact(self, otherFact: ModelFact, unmatchedFactsStack: list[ModelFact] | None = None, deemP0inf: bool = False, matchId: bool = False, matchLang: bool = True) -> ModelFact | None:

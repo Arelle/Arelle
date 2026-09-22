@@ -402,8 +402,6 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     _isDimensionItem: bool
     _isTypedDimension: bool
     _typedDomainElement: ModelObject | None
-    _isEnum: bool
-    _isEnum2: bool
     _enumDomain: ModelConcept | None
     _isEnumDomainUsable: bool
 
@@ -876,20 +874,12 @@ class ModelConcept(ModelNamableTerm, ModelParticle):
     @property
     def isEnumeration(self) -> bool:
         """(bool) -- True if derived from enum:enumerationItemType or enum:enumerationsItemType or enum2:setValueDimensionType"""
-        try:
-            return self._isEnum
-        except AttributeError:
-            self._isEnum = self.instanceOfType(XbrlConst.qnEnumerationTypes)
-            return self._isEnum
+        return self.instanceOfType(XbrlConst.qnEnumerationTypes)
 
     @property
     def isEnumeration2Item(self) -> bool:
         """(bool) -- True if derived from enum2 item types"""
-        try:
-            return self._isEnum2
-        except AttributeError:
-            self._isEnum2 = self.instanceOfType(XbrlConst.qnEnumeration2ItemTypes)
-            return self._isEnum2
+        return self.instanceOfType(XbrlConst.qnEnumeration2ItemTypes)
 
     @property
     def enumDomainQname(self) -> QName | None:
@@ -1146,7 +1136,7 @@ class ModelAttribute(ModelNamableTerm):
         """(str) -- fixed attribute or None"""
         return self.get("fixed")
 
-    def dereference(self) -> Self | None:
+    def dereference(self) -> ModelAttribute | None:
         """(ModelAttribute) -- If element is a ref (instead of name), provides referenced modelAttribute object, else self"""
         ref = self.get("ref")
         if ref:
@@ -1210,7 +1200,7 @@ class ModelAttributeGroup(ModelNamableTerm):
             self.attributes # loads attrWildcards
             return self._attributeWildcards
 
-    def dereference(self) -> Self | None:
+    def dereference(self) -> ModelAttributeGroup | None:
         """(ModelAttributeGroup) -- If element is a ref (instead of name), provides referenced modelAttributeGroup object, else self"""
         ref = self.get("ref")
         if ref:

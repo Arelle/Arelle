@@ -404,6 +404,11 @@ def checkElements(val: ValidateXbrl, modelDocument: ModelDocument, parent: _Elem
                        ("name","xbrl.5.1.1:conceptName", val.conceptNames))
     else:
         ncnameTests = (("id","xml.3.3.1:idMustBeUnique", val.elementIDs),)
+    schemaReferenceQnames = {
+        "attribute": val.modelXbrl.qnameAttributes.keys(),
+        "element": val.modelXbrl.qnameConcepts.keys(),
+        "attributeGroup": val.modelXbrl.qnameAttributeGroups.keys(),
+    }
     for elt in childrenIter:
         if isinstance(elt,ModelObject):
             for name, errCode, _valueItems in ncnameTests:
@@ -565,12 +570,10 @@ def checkElements(val: ValidateXbrl, modelDocument: ModelDocument, parent: _Elem
                         val.modelXbrl.error("xbrl.5.6.1:Redefine",
                             "Redefine is not allowed",
                             modelObject=elt)
-                    if localName in {"attribute", "element", "attributeGroup"}:
+                    if (referenceQnames := schemaReferenceQnames.get(localName)) is not None:
                         ref = elt.get("ref")
                         if ref is not None:
-                            if qname(elt, ref) not in {"attribute":val.modelXbrl.qnameAttributes,
-                                                       "element":val.modelXbrl.qnameConcepts,
-                                                       "attributeGroup":val.modelXbrl.qnameAttributeGroups}[localName]:
+                            if qname(elt, ref) not in referenceQnames:
                                 val.modelXbrl.error("xmlSchema:refNotFound",
                                     _("%(element)s ref %(ref)s not found"),
                                     modelObject=elt, element=localName, ref=ref)
