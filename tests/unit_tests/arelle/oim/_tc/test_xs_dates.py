@@ -97,6 +97,11 @@ class TestParseDateTime:
         assert parse_date_time("2024-01-01T12:00:00.5") == parse_date_time("2024-01-01T12:00:00.50")
         assert parse_date_time("2024-01-01T12:00:00.1") != parse_date_time("2024-01-01T12:00:00.10000001")
 
+    def test_fractional_seconds_beyond_28_digits_stay_distinct(self) -> None:
+        first = parse_date_time("2024-01-01T00:00:01.0000000000000000000000000001Z")
+        second = parse_date_time("2024-01-01T00:00:01.0000000000000000000000000002Z")
+        assert first != second
+
     def test_end_of_day_rolls_over(self) -> None:
         assert parse_date_time("2024-01-01T24:00:00") == parse_date_time("2024-01-02T00:00:00")
         assert parse_date_time("2024-12-31T24:00:00Z") == parse_date_time("2025-01-01T00:00:00Z")

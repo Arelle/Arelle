@@ -10,12 +10,12 @@ without populating a model, so these types are parsed here without that limit.
 from __future__ import annotations
 
 import calendar
-import math
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import Decimal, localcontext
 
 import regex
 
+from arelle.oim._tc.common import EXACT_CONTEXT
 from arelle.oim.const import XSD_TZ, XSD_YEAR
 
 _YEAR = rf"(?P<year>{XSD_YEAR})"
@@ -97,10 +97,14 @@ def _instant(year: int, month: int, day: int, hour: int, minute: int, second: De
 
 def _seconds_into_day(hour: int, minute: int, second: Decimal, tz: str | None) -> tuple[int, Decimal]:
     """The UTC seconds into the day and the whole days carried into neighbouring days."""
-    seconds = hour * 3600 + minute * 60 + second - _tz_offset_seconds(tz)
-    # Decimal divmod truncates towards zero, so floor the carry into neighbouring days.
-    carry = math.floor(seconds / _SECONDS_PER_DAY)
-    return carry, seconds - carry * _SECONDS_PER_DAY
+    with localcontext(EXACT_CONTEXT):
+        seconds = hour * 3600 + minute * 60 + second - _tz_offset_seconds(tz)
+        # Time zone offsets are at most 14 hours, so the carry is at most one day.
+        if seconds < 0:
+            return -1, seconds + _SECONDS_PER_DAY
+        if seconds >= _SECONDS_PER_DAY:
+            return 1, seconds - _SECONDS_PER_DAY
+        return 0, seconds
 
 
 def year_number(lexical_year: str) -> int:
