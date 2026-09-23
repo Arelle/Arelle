@@ -13,7 +13,7 @@ from typing import Any, cast
 
 import regex
 
-from arelle.ModelValue import QName, TypeXValue, dayTimeDuration, yearMonthDuration
+from arelle.ModelValue import QName, TypeXValue
 from arelle.oim._tc import xs_dates
 from arelle.oim._tc.xs_dates import XsInstant
 from arelle.oim._tc.const import (
@@ -271,16 +271,11 @@ class ValueConstraintValidator:
         return _TC_CORE_LANGUAGE_PATTERN.fullmatch(value) is not None
 
     def _is_duration_type_valid(self, value: str) -> bool:
-        if self._constraint.duration_type is None:
-            return True
-        try:
-            match self._constraint.duration_type:
-                case "yearMonth":
-                    yearMonthDuration(value)
-                case "dayTime":
-                    dayTimeDuration(value)
-        except ValueError:
-            return False
+        match self._constraint.duration_type:
+            case "yearMonth":
+                return xs_dates.parse_year_month_duration(value) is not None
+            case "dayTime":
+                return xs_dates.parse_day_time_duration(value) is not None
         return True
 
     def _is_time_zone_valid(self, value: str) -> bool:
