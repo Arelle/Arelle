@@ -300,6 +300,16 @@ class TCReportValidator:
                 )
         for template_id, ranges in sort_ranges.items():
             yield from self._validate_sort_ranges(self._templates[template_id], ranges)
+        # Only deferred reference keys read the stores from here on, so the rest can
+        # free their memory.
+        targets = {
+            key.target
+            for _, _, template in deferred_tables
+            for key in template.reference_keys
+        }
+        for store in self._key_stores.values():
+            if store not in targets:
+                store.clear()
         for table_id, table, template in deferred_tables:
             rows = self._open_table(table_id, table)
             if rows is None:

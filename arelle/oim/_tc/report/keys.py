@@ -26,6 +26,10 @@ class KeyStore(ABC):
     def __contains__(self, key_values: KeyValues) -> bool:
         """Whether the key values were added."""
 
+    @abstractmethod
+    def clear(self) -> None:
+        """Forgets every key value, once no check needs them."""
+
 
 class MemoryKeyStore(KeyStore):
     """Keeps every distinct key value in memory."""
@@ -42,6 +46,9 @@ class MemoryKeyStore(KeyStore):
 
     def __contains__(self, key_values: KeyValues) -> bool:
         return encode_key_values(key_values) in self._keys
+
+    def clear(self) -> None:
+        self._keys.clear()
 
 
 def encode_key_values(key_values: KeyValues) -> bytes:

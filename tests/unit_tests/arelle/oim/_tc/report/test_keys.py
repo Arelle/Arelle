@@ -73,3 +73,9 @@ class TestMemoryKeyStore:
         store.add((_typed(Decimal("1.0")),))
         assert (_typed(Decimal("1")),) in store
         assert (_typed(Decimal("2")),) not in store
+
+    def test_clear_forgets_every_key(self) -> None:
+        store = MemoryKeyStore()
+        store.add((_typed("a"),))
+        store.clear()
+        assert (_typed("a"),) not in store

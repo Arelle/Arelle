@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator, Mapping
+from decimal import Decimal
 from types import MappingProxyType
 
 import pytest
@@ -15,6 +16,7 @@ from arelle.oim._tc.metadata.model import (
     TCValueConstraint,
 )
 from arelle.oim._tc.report.common import TCReportValidationError
+from arelle.oim._tc.report.key_values import KeyValue
 from arelle.oim._tc.report.validate import TCReportValidator
 from arelle.oim.csv.metadata.model import (
     XbrlCsvDocumentInfo,
@@ -908,6 +910,38 @@ class TestReferenceKeys:
         opened: list[str] = []
         assert _run(self._TABLES, self._tc(), {"t.csv": self._TARGET}, opened) == []
         assert opened == ["t.csv", "r.csv"]
+
+    def test_stores_no_second_pass_reads_are_cleared(self) -> None:
+        tc = _tc(
+            t=_template(keys=_unique("a"), a=self._INTEGER),
+            u=_template(keys=_unique("a", name="u"), a=self._INTEGER),
+            r=_template(keys=_reference("x"), x=self._INTEGER),
+        )
+        files = {"t.csv": [["a"], ["1"]], "u.csv": [["a"], ["1"]], "r.csv": [["x"], ["1"]]}
+
+        def open_table(table_id: str, table: XbrlCsvTable) -> Iterator[list[str]]:
+            return iter(files[table.url])
+
+        one = (KeyValue(1, Decimal(1)),)
+        # r comes before its target, so the second pass still reads k.
+        tables = _tables(
+            r=XbrlCsvTable(url="r.csv"),
+            t=XbrlCsvTable(url="t.csv"),
+            u=XbrlCsvTable(url="u.csv"),
+        )
+        validator = TCReportValidator(tables, tc, {}, open_table)
+        assert list(validator.validate()) == []
+        assert one in validator._key_stores["k"]
+        assert one not in validator._key_stores["u"]
+        # r comes after its target, so it was checked in the first pass.
+        tables = _tables(
+            t=XbrlCsvTable(url="t.csv"),
+            u=XbrlCsvTable(url="u.csv"),
+            r=XbrlCsvTable(url="r.csv"),
+        )
+        validator = TCReportValidator(tables, tc, {}, open_table)
+        assert list(validator.validate()) == []
+        assert one not in validator._key_stores["k"]
 
     def test_target_index_spans_templates_sharing_the_key(self) -> None:
         tables = _tables(
