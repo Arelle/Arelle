@@ -9,6 +9,7 @@ import pytest
 from arelle.oim._tc.xs_dates import (
     XsInstant,
     days_since_epoch,
+    parse_day_time_duration,
     parse_date,
     parse_date_time,
     parse_g_year,
@@ -17,6 +18,7 @@ from arelle.oim._tc.xs_dates import (
     parse_g_month_day,
     parse_g_year_month,
     parse_time,
+    parse_year_month_duration,
     year_number,
 )
 
@@ -280,3 +282,37 @@ class TestParseRecurring:
     )
     def test_rejects_invalid_lexical_values(self, parser: Callable[[str], Decimal | None], value: str) -> None:
         assert parser(value) is None
+
+
+class TestParseDurations:
+    @pytest.mark.parametrize(
+        "value, months",
+        [("P1Y", 12), ("P12M", 12), ("P1Y2M", 14), ("-P1Y", -12), ("P0M", 0)],
+    )
+    def test_year_month_length(self, value: str, months: int) -> None:
+        assert parse_year_month_duration(value) == months
+
+    @pytest.mark.parametrize(
+        "value, seconds",
+        [("P1D", 86400), ("PT24H", 86400), ("PT1M", 60), ("PT1.5S", Decimal("1.5")), ("-PT1H", -3600)],
+    )
+    def test_day_time_length(self, value: str, seconds: Decimal) -> None:
+        assert parse_day_time_duration(value) == seconds
+
+    @pytest.mark.parametrize("value", ["P1D", "PT1H", "P", "PT", "P-1Y", "1Y"])
+    def test_year_month_rejects(self, value: str) -> None:
+        assert parse_year_month_duration(value) is None
+
+    @pytest.mark.parametrize("value", ["P1Y", "P1M", "P", "PT", "P-1D", "PT1.S"])
+    def test_day_time_rejects(self, value: str) -> None:
+        assert parse_day_time_duration(value) is None
+
+    def test_oversized_parts_are_parsed(self) -> None:
+        digits = "1" * 5000
+        assert parse_year_month_duration(f"P{digits}M") == Decimal(digits)
+        assert parse_day_time_duration(f"PT{digits}S") == Decimal(digits)
+
+    def test_fractional_seconds_beyond_28_digits_stay_distinct(self) -> None:
+        first = parse_day_time_duration("PT1.0000000000000000000000000001S")
+        second = parse_day_time_duration("PT1.0000000000000000000000000002S")
+        assert first != second

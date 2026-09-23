@@ -1,8 +1,9 @@
 """
 See COPYRIGHT.md for copyright information.
 
-XML Schema date, dateTime, gYear and gYearMonth values with any year, and the
-recurring time, gMonthDay, gDay and gMonth values as positions in their cycle in UTC.
+XML Schema date, dateTime, gYear and gYearMonth values with any year, the
+recurring time, gMonthDay, gDay and gMonth values as positions in their cycle in UTC,
+and yearMonth and dayTime durations.
 
 Arelle models limit years to the datetime range. Table constraints can be validated
 without populating a model, so these types are parsed here without that limit.
@@ -33,6 +34,19 @@ _TIME_PATTERN = regex.compile(rf"{_TIME}{_TZ}$")
 _G_MONTH_DAY_PATTERN = regex.compile(rf"--{_MONTH}-{_DAY}{_TZ}$")
 _G_DAY_PATTERN = regex.compile(rf"---{_DAY}{_TZ}$")
 _G_MONTH_PATTERN = regex.compile(rf"--{_MONTH}{_TZ}$")
+
+_SIGN = r"(?P<sign>-)?"
+_YEARS = r"(?:(?P<years>[0-9]+)Y)?"
+_MONTHS = r"(?:(?P<months>[0-9]+)M)?"
+_DAYS = r"(?:(?P<days>[0-9]+)D)?"
+_HOURS = r"(?:(?P<hours>[0-9]+)H)?"
+_MINUTES = r"(?:(?P<minutes>[0-9]+)M)?"
+_SECONDS = r"(?:(?P<seconds>[0-9]+(?:\.[0-9]+)?)S)?"
+
+_YEAR_MONTH_DURATION_PATTERN = regex.compile(rf"{_SIGN}P(?!$){_YEARS}{_MONTHS}$")
+_DAY_TIME_DURATION_PATTERN = regex.compile(
+    rf"{_SIGN}P(?!$){_DAYS}(?:T(?!$){_HOURS}{_MINUTES}{_SECONDS})?$"
+)
 
 _SECONDS_PER_DAY = 86400
 _MAX_TZ_OFFSET_SECONDS = 14 * 3600
@@ -201,3 +215,30 @@ def _parse_recurring(pattern: regex.Pattern[str], value: str) -> Decimal | None:
         return None
     instant = _instant(year, month, day, 0, 0, Decimal(0), match.group("tz"))
     return (instant.day - days_since_epoch(year, 1, 1)) * _SECONDS_PER_DAY + instant.second
+
+
+def parse_year_month_duration(value: str) -> Decimal | None:
+    """The length in months of a duration with only year and month parts."""
+    match = _YEAR_MONTH_DURATION_PATTERN.match(value)
+    if match is None:
+        return None
+    # Decimal parts have no digit limit, and the exact context keeps every digit.
+    with localcontext(EXACT_CONTEXT):
+        months = Decimal(match.group("years") or 0) * 12 + Decimal(match.group("months") or 0)
+        return -months if match.group("sign") else months
+
+
+def parse_day_time_duration(value: str) -> Decimal | None:
+    """The length in seconds of a duration with only day and time parts."""
+    match = _DAY_TIME_DURATION_PATTERN.match(value)
+    if match is None:
+        return None
+    # Decimal parts have no digit limit, and the exact context keeps every digit.
+    with localcontext(EXACT_CONTEXT):
+        seconds = (
+            Decimal(match.group("days") or 0) * _SECONDS_PER_DAY
+            + Decimal(match.group("hours") or 0) * 3600
+            + Decimal(match.group("minutes") or 0) * 60
+            + Decimal(match.group("seconds") or 0)
+        )
+        return -seconds if match.group("sign") else seconds
