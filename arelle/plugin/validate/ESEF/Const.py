@@ -17,6 +17,7 @@ datetimePattern = lexicalPatterns["XBRLI_DATEUNION"]
 docTypeXhtmlPattern = re.compile(r"^<!(?:DOCTYPE\s+)\s*html(?:PUBLIC\s+)?(?:.*-//W3C//DTD\s+(X?HTML)\s)?.*>$", re.IGNORECASE)
 
 
+AUTHORITY_FI_PRH = "FI-PRH"
 AUTHORITY_UKFRC = "UKFRC"
 
 TARGET_UKFRS = "UKFRS"
