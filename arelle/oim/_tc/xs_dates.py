@@ -1,7 +1,8 @@
 """
 See COPYRIGHT.md for copyright information.
 
-XML Schema date, dateTime, gYear and gYearMonth values with any year.
+XML Schema date, dateTime, gYear and gYearMonth values with any year, and the
+recurring time, gMonthDay, gDay and gMonth values as positions in their cycle in UTC.
 
 Arelle models limit years to the datetime range. Table constraints can be validated
 without populating a model, so these types are parsed here without that limit.
@@ -28,6 +29,10 @@ _DATE_PATTERN = regex.compile(rf"{_YEAR}-{_MONTH}-{_DAY}{_TZ}$")
 _DATE_TIME_PATTERN = regex.compile(rf"{_YEAR}-{_MONTH}-{_DAY}T{_TIME}{_TZ}$")
 _G_YEAR_PATTERN = regex.compile(rf"{_YEAR}{_TZ}$")
 _G_YEAR_MONTH_PATTERN = regex.compile(rf"{_YEAR}-{_MONTH}{_TZ}$")
+_TIME_PATTERN = regex.compile(rf"{_TIME}{_TZ}$")
+_G_MONTH_DAY_PATTERN = regex.compile(rf"--{_MONTH}-{_DAY}{_TZ}$")
+_G_DAY_PATTERN = regex.compile(rf"---{_DAY}{_TZ}$")
+_G_MONTH_PATTERN = regex.compile(rf"--{_MONTH}{_TZ}$")
 
 _SECONDS_PER_DAY = 86400
 _MAX_TZ_OFFSET_SECONDS = 14 * 3600
@@ -157,3 +162,42 @@ def parse_g_year(value: str) -> XsInstant | None:
 
 def parse_g_year_month(value: str) -> XsInstant | None:
     return _parse(_G_YEAR_MONTH_PATTERN, value)
+
+
+def parse_time(value: str) -> Decimal | None:
+    """Seconds into the day in UTC, so lexical variants of one time compare equal."""
+    match = _TIME_PATTERN.match(value)
+    if match is None:
+        return None
+    time = _parse_time_groups(match.groupdict())
+    if time is None:
+        return None
+    return _seconds_into_day(*time, match.group("tz"))[1]
+
+
+def parse_g_month_day(value: str) -> Decimal | None:
+    return _parse_recurring(_G_MONTH_DAY_PATTERN, value)
+
+
+def parse_g_day(value: str) -> Decimal | None:
+    return _parse_recurring(_G_DAY_PATTERN, value)
+
+
+def parse_g_month(value: str) -> Decimal | None:
+    return _parse_recurring(_G_MONTH_PATTERN, value)
+
+
+def _parse_recurring(pattern: regex.Pattern[str], value: str) -> Decimal | None:
+    """Seconds from the start of a fixed year in UTC, so values of one type compare."""
+    match = pattern.match(value)
+    if match is None:
+        return None
+    # XML Schema compares recurring dates in an arbitrary leap year, so February 29th exists.
+    year = 2000
+    groups = match.groupdict()
+    month = int(groups.get("month") or 1)
+    day = int(groups.get("day") or 1)
+    if day > calendar.monthrange(year, month)[1]:
+        return None
+    instant = _instant(year, month, day, 0, 0, Decimal(0), match.group("tz"))
+    return (instant.day - days_since_epoch(year, 1, 1)) * _SECONDS_PER_DAY + instant.second

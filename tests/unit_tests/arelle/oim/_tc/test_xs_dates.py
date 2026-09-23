@@ -12,7 +12,11 @@ from arelle.oim._tc.xs_dates import (
     parse_date,
     parse_date_time,
     parse_g_year,
+    parse_g_day,
+    parse_g_month,
+    parse_g_month_day,
     parse_g_year_month,
+    parse_time,
     year_number,
 )
 
@@ -215,3 +219,64 @@ class TestCompare:
         assert self._instant("2024-01-01T00:00:00Z").compare(self._instant("2024-01-01T14:00:00")) is None
         assert self._instant("2024-01-01T00:00:00Z").compare(self._instant("2024-01-01T14:00:01")) == -1
         assert self._instant("2024-01-01T14:00:01").compare(self._instant("2024-01-01T00:00:00Z")) == 1
+
+
+class TestParseTime:
+    def test_seconds_into_the_day(self) -> None:
+        assert parse_time("01:02:03.5") == Decimal("3723.5")
+
+    @pytest.mark.parametrize(
+        "first, second",
+        [
+            ("24:00:00", "00:00:00"),
+            ("12:00:00Z", "13:00:00+01:00"),
+            ("00:00:00+01:00", "23:00:00Z"),
+            ("23:30:00-01:00", "00:30:00Z"),
+            ("12:00:00.0", "12:00:00"),
+        ],
+    )
+    def test_lexical_forms_of_one_time_are_equal(self, first: str, second: str) -> None:
+        assert parse_time(first) == parse_time(second)
+
+    @pytest.mark.parametrize("value", ["24:00:01", "12:60:00", "12:00", "T12:00:00", "12:00:00+15:00"])
+    def test_rejects_invalid_lexical_values(self, value: str) -> None:
+        assert parse_time(value) is None
+
+
+class TestParseRecurring:
+    def test_leap_day_exists(self) -> None:
+        assert parse_g_month_day("--02-29") is not None
+
+    def test_values_order_through_the_year(self) -> None:
+        values = ["--01-01", "--02-29", "--12-31"]
+        positions = [parse_g_month_day(value) for value in values]
+        assert positions == sorted(positions)
+
+    def test_time_zone_moves_the_value_into_the_previous_day(self) -> None:
+        assert parse_g_month_day("--12-31+14:00") == parse_g_month_day("--12-30-10:00")
+
+    @pytest.mark.parametrize(
+        "parser, first, second",
+        [
+            (parse_g_month_day, "--12-25Z", "--12-25+00:00"),
+            (parse_g_day, "---05Z", "---05+00:00"),
+            (parse_g_month, "--06Z", "--06+00:00"),
+        ],
+    )
+    def test_lexical_forms_of_one_value_are_equal(
+        self, parser: Callable[[str], Decimal | None], first: str, second: str
+    ) -> None:
+        assert parser(first) == parser(second)
+
+    @pytest.mark.parametrize(
+        "parser, value",
+        [
+            (parse_g_month_day, "--02-30"),
+            (parse_g_month_day, "--13-01"),
+            (parse_g_day, "---32"),
+            (parse_g_month, "--00"),
+            (parse_g_month, "2024-06"),
+        ],
+    )
+    def test_rejects_invalid_lexical_values(self, parser: Callable[[str], Decimal | None], value: str) -> None:
+        assert parser(value) is None
