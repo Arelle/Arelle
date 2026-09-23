@@ -31,21 +31,17 @@ def rule_finland_prh_duplicate_fact_check(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    Standard inconsistent duplicate fact check
+    Standard duplicate fact check for inconsistencies
     """
     for duplicateFactSet in getDuplicateFactSets(val.modelXbrl.facts, includeSingles=False):
-        if duplicateFactSet.areNumeric and duplicateFactSet.areAnyInconsistent:
-            fList = duplicateFactSet.facts
-            f0: ModelFact = fList[0]
-            if not any(f.isNil for f in fList) and f0.xValue is None:
-                continue
+        if duplicateFactSet.areAnyInconsistent:
             yield Validation.error(
                 codes="FINLAND-PRH.duplicateFact",
                 msg=_("Inconsistent duplicate numeric facts MUST NOT appear in the content of an inline XBRL "
                       "document. %(fact)s that was used more than once in contexts equivalent to %(contextID)s: "
                       "values %(values)s."),
-                modelObject=fList,
-                fact=f0.qname,
-                contextID=f0.contextID,
-                values=", ".join(f.value for f in fList)
+                modelObject=duplicateFactSet.facts,
+                fact=duplicateFactSet.facts[0].qname,
+                contextID=duplicateFactSet.facts[0].contextID,
+                values=", ".join(f.value for f in duplicateFactSet.facts)
             )
