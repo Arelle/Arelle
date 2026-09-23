@@ -23,7 +23,8 @@ from arelle.oim._tc.metadata.restrictions import (
     permitted_restrictions,
 )
 from arelle.oim._tc.metadata.types import resolve_effective_lexical_type
-from arelle.oim._tc.value_validator import PERIOD_TYPE_VALIDATORS, ValueConstraintValidator
+from arelle.oim._tc.periods import PERIOD_TYPE_VALIDATORS
+from arelle.oim._tc.value_validator import ValueConstraintValidator
 from arelle.typing import TypeGetText
 from arelle.XmlValidate import XmlValidationResult, validateFacetValueString
 
