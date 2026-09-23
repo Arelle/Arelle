@@ -24,7 +24,7 @@ from arelle.oim._tc.const import (
     TCRE_UNEXPECTED_TIME_ZONE,
 )
 from arelle.oim._tc.metadata.model import TCValueConstraint
-from arelle.oim._tc.periods import PERIOD_TYPE_VALIDATORS, is_valid_period, period_time_zone_matches
+from arelle.oim._tc.periods import PERIOD_TYPE_PARSERS, parse_period, period_time_zone_matches
 from arelle.oim._tc.metadata.types import (
     CORE_ENTITY,
     CORE_LANGUAGE,
@@ -188,11 +188,11 @@ class ValueConstraintValidator:
         if self._constraint.type == CORE_UNIT and not self._is_valid_unit(value):
             return TCRE_INVALID_VALUE
         if self._constraint.type == CORE_PERIOD:
-            if not is_valid_period(value):
+            if parse_period(value) is None:
                 return TCRE_INVALID_VALUE
             if self._constraint.period_type is not None:
-                validator = PERIOD_TYPE_VALIDATORS.get(self._constraint.period_type)
-                if validator is None or not validator(value):
+                parse = PERIOD_TYPE_PARSERS.get(self._constraint.period_type)
+                if parse is None or parse(value) is None:
                     return TCRE_INVALID_PERIOD_TYPE
         if not self._is_duration_type_valid(value):
             return TCRE_INVALID_DURATION_TYPE

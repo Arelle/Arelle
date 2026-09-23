@@ -6,9 +6,12 @@ The xBRL-CSV period representations accepted by table constraints.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import replace
 from types import MappingProxyType
+
+import calendar
+from decimal import Decimal
 
 import regex
 
@@ -49,6 +52,13 @@ def period_time_zone_matches(value: str, time_zone: bool) -> bool:
     return time_zone == has_start_tz
 
 
+_PeriodBounds = tuple[XsInstant, XsInstant]
+_DAYS_PER_WEEK = 7
+_MONTHS_PER_YEAR = 12
+_MONTHS_PER_HALF = 6
+_MONTHS_PER_QUARTER = 3
+
+
 def _period_order(start: XsInstant, end: XsInstant) -> int:
     if start.zoned != end.zoned:
         # Only one end has a time zone, so compare both on the timeline as given.
@@ -58,104 +68,184 @@ def _period_order(start: XsInstant, end: XsInstant) -> int:
     return order
 
 
-def _is_valid_year_period(value: str) -> bool:
-    return _PERIOD_YEAR_PATTERN.fullmatch(value) is not None
+def _parse_year_period(value: str) -> _PeriodBounds | None:
+    match = _PERIOD_YEAR_PATTERN.fullmatch(value)
+    if match is None:
+        return None
+    return _month_span_bounds(match, 1, _MONTHS_PER_YEAR)
 
 
-def _is_valid_half_period(value: str) -> bool:
-    return _PERIOD_HALF_PATTERN.fullmatch(value) is not None
+def _parse_half_period(value: str) -> _PeriodBounds | None:
+    match = _PERIOD_HALF_PATTERN.fullmatch(value)
+    if match is None:
+        return None
+    half = int(match.group("half"))
+    first_month = (half - 1) * _MONTHS_PER_HALF + 1
+    return _month_span_bounds(match, first_month, _MONTHS_PER_HALF)
 
 
-def _is_valid_quarter_period(value: str) -> bool:
-    return _PERIOD_QTR_PATTERN.fullmatch(value) is not None
+def _parse_quarter_period(value: str) -> _PeriodBounds | None:
+    match = _PERIOD_QTR_PATTERN.fullmatch(value)
+    if match is None:
+        return None
+    quarter = int(match.group("quarter"))
+    first_month = (quarter - 1) * _MONTHS_PER_QUARTER + 1
+    return _month_span_bounds(match, first_month, _MONTHS_PER_QUARTER)
 
 
-def _is_valid_month_period(value: str) -> bool:
-    return _PERIOD_MONTH_PATTERN.fullmatch(value) is not None
+def _parse_month_period(value: str) -> _PeriodBounds | None:
+    match = _PERIOD_MONTH_PATTERN.fullmatch(value)
+    if match is None:
+        return None
+    month = int(match.group("month"))
+    return _month_span_bounds(match, month, 1)
 
 
-def _is_valid_week_period(value: str) -> bool:
+def _month_span_bounds(match: regex.Match[str], first_month: int, months: int) -> _PeriodBounds:
+    """Bounds of a span of whole months, which ends when the month after it starts."""
+    year = xs_dates.year_number(match.group("year"))
+    last_month = first_month + months - 1
+    start = _month_start_instant(year, first_month)
+    if last_month == 12:
+        end = _month_start_instant(year + 1, 1)
+    else:
+        end = _month_start_instant(year, last_month + 1)
+    return _bounds_for_suffix(match.group("suffix"), start, end)
+
+
+def _parse_week_period(value: str) -> _PeriodBounds | None:
     match = _PERIOD_WEEK_PATTERN.fullmatch(value)
     if match is None:
-        return False
-    week = int(match.group("week"))
+        return None
     year = xs_dates.year_number(match.group("year"))
-    return 1 <= week <= _iso_weeks_in_year(year)
+    start_day = _iso_week_one_monday(year) + (int(match.group("week")) - 1) * _DAYS_PER_WEEK
+    # December 28th is always in the last ISO week of its year.
+    if start_day > xs_dates.days_since_epoch(year, 12, 28):
+        return None
+    start = _day_instant(start_day)
+    end = _day_instant(start_day + _DAYS_PER_WEEK)
+    return _bounds_for_suffix(match.group("suffix"), start, end)
 
 
-def _iso_weeks_in_year(year: int) -> int:
-    year_minus_1 = year - 1
-    jan1_week_day = (year_minus_1 + year_minus_1 // 4 - year_minus_1 // 100 + year_minus_1 // 400) % 7
-    is_leap_year = year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
-    return 53 if (jan1_week_day == 3 or (is_leap_year and jan1_week_day == 2)) else 52
+def _iso_week_one_monday(year: int) -> int:
+    """Day number of the Monday starting ISO week 1, the week containing January 4th."""
+    january_fourth = xs_dates.days_since_epoch(year, 1, 4)
+    return january_fourth - calendar.weekday(year, 1, 4)
 
 
-def _is_valid_day_period(value: str) -> bool:
+def _parse_day_period(value: str) -> _PeriodBounds | None:
     match = _PERIOD_SINGLE_DAY_PATTERN.fullmatch(value)
     if match is None:
-        return False
-    return xs_dates.parse_date(match.group("date")) is not None
+        return None
+    start = xs_dates.parse_date(match.group("date"))
+    if start is None:
+        return None
+    return _bounds_for_suffix(match.group("suffix"), start, _day_instant(start.day + 1))
 
 
-def _is_valid_instant_period(value: str) -> bool:
+def _parse_instant_period(value: str) -> _PeriodBounds | None:
+    """An explicit instant, or an abbreviated period with a start or end suffix."""
+    bounds = _parse_iso_instant(value)
+    if bounds is not None:
+        return bounds
+    if not value.endswith(("@start", "@end")):
+        return None
+    for parse in _ABBREVIATED_PERIOD_PARSERS:
+        bounds = parse(value)
+        if bounds is not None:
+            return bounds
+    return None
+
+
+def _parse_iso_instant(value: str) -> _PeriodBounds | None:
     match = _PERIOD_ISO_PATTERN.fullmatch(value)
-    if match is not None and match.group("end") is None:
-        return xs_dates.parse_date_time(match.group("start")) is not None
-    if value.endswith(("@start", "@end")):
-        return any(v(value) for v in _ABBREVIATED_PERIOD_VALIDATORS)
-    return False
+    if match is None or match.group("end") is not None:
+        return None
+    start = xs_dates.parse_date_time(match.group("start"))
+    if start is None:
+        return None
+    return start, start
 
 
-def _is_valid_duration_period(value: str) -> bool:
+def _parse_iso_range(value: str) -> _PeriodBounds | None:
     match = _PERIOD_ISO_PATTERN.fullmatch(value)
     if match is None or match.group("end") is None:
-        return False
+        return None
     start = xs_dates.parse_date_time(match.group("start"))
     end = xs_dates.parse_date_time(match.group("end"))
-    return start is not None and end is not None and _period_order(start, end) == -1
+    if start is None or end is None or _period_order(start, end) != -1:
+        return None
+    return start, end
 
 
-def _is_valid_range_period(value: str) -> bool:
+def _parse_inclusive_dates(value: str) -> _PeriodBounds | None:
     match = _PERIOD_INCLUSIVE_DATES_PATTERN.fullmatch(value)
     if match is None:
-        return False
+        return None
     start = xs_dates.parse_date(match.group("start"))
     end = xs_dates.parse_date(match.group("end"))
-    return start is not None and end is not None and start.compare(end) != 1
+    if start is None or end is None or start.compare(end) == 1:
+        return None
+    return start, _day_instant(end.day + 1)
 
 
-_ABBREVIATED_PERIOD_VALIDATORS: tuple[Callable[[str], bool], ...] = tuple(
-    [
-        _is_valid_year_period,
-        _is_valid_half_period,
-        _is_valid_quarter_period,
-        _is_valid_week_period,
-        _is_valid_month_period,
-        _is_valid_day_period,
-    ]
+def _bounds_for_suffix(suffix: str | None, start: XsInstant, end: XsInstant) -> _PeriodBounds:
+    if suffix == "start":
+        return start, start
+    if suffix == "end":
+        return end, end
+    return start, end
+
+
+def _month_start_instant(year: int, month: int) -> XsInstant:
+    return _day_instant(xs_dates.days_since_epoch(year, month, 1))
+
+
+def _day_instant(day: int) -> XsInstant:
+    return XsInstant(day=day, second=Decimal(0), zoned=False)
+
+
+_PeriodParser = Callable[[str], _PeriodBounds | None]
+
+_ABBREVIATED_PERIOD_PARSERS: tuple[_PeriodParser, ...] = (
+    _parse_year_period,
+    _parse_half_period,
+    _parse_quarter_period,
+    _parse_week_period,
+    _parse_month_period,
+    _parse_day_period,
 )
 
-
-PERIOD_TYPE_VALIDATORS = MappingProxyType(
+PERIOD_TYPE_PARSERS: Mapping[str, _PeriodParser] = MappingProxyType(
     {
-        "year": _is_valid_year_period,
-        "half": _is_valid_half_period,
-        "quarter": _is_valid_quarter_period,
-        "week": _is_valid_week_period,
-        "month": _is_valid_month_period,
-        "day": _is_valid_day_period,
-        "instant": _is_valid_instant_period,
+        "year": _parse_year_period,
+        "half": _parse_half_period,
+        "quarter": _parse_quarter_period,
+        "week": _parse_week_period,
+        "month": _parse_month_period,
+        "day": _parse_day_period,
+        "instant": _parse_instant_period,
     }
 )
 
-_ALL_PERIOD_VALIDATORS = tuple(
-    [
-        *PERIOD_TYPE_VALIDATORS.values(),
-        _is_valid_duration_period,
-        _is_valid_range_period,
-    ]
+PERIOD_TYPES = frozenset(PERIOD_TYPE_PARSERS)
+
+_ALL_PERIOD_PARSERS: tuple[_PeriodParser, ...] = (
+    *PERIOD_TYPE_PARSERS.values(),
+    _parse_iso_range,
+    _parse_inclusive_dates,
 )
 
 
-def is_valid_period(value: str) -> bool:
-    return any(validator(value) for validator in _ALL_PERIOD_VALIDATORS)
+def parse_period(value: str) -> _PeriodBounds | None:
+    """Returns the start and end instants of a valid xBRL-CSV period, or None.
+
+    An instant period has the same start and end. Abbreviated periods and inclusive
+    date ranges end at the start of the following day, so 2024-01-01..2024-01-31
+    ends at 2024-02-01T00:00:00.
+    """
+    for parse in _ALL_PERIOD_PARSERS:
+        bounds = parse(value)
+        if bounds is not None:
+            return bounds
+    return None
