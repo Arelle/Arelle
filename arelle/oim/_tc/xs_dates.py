@@ -91,10 +91,16 @@ def _tz_offset_seconds(tz: str | None) -> int:
 
 def _instant(year: int, month: int, day: int, hour: int, minute: int, second: Decimal, tz: str | None) -> XsInstant:
     day_number = days_since_epoch(year, month, day)
+    carry, seconds = _seconds_into_day(hour, minute, second, tz)
+    return XsInstant(day=day_number + carry, second=seconds, zoned=tz is not None)
+
+
+def _seconds_into_day(hour: int, minute: int, second: Decimal, tz: str | None) -> tuple[int, Decimal]:
+    """The UTC seconds into the day and the whole days carried into neighbouring days."""
     seconds = hour * 3600 + minute * 60 + second - _tz_offset_seconds(tz)
     # Decimal divmod truncates towards zero, so floor the carry into neighbouring days.
     carry = math.floor(seconds / _SECONDS_PER_DAY)
-    return XsInstant(day=day_number + carry, second=seconds - carry * _SECONDS_PER_DAY, zoned=tz is not None)
+    return carry, seconds - carry * _SECONDS_PER_DAY
 
 
 def year_number(lexical_year: str) -> int:
@@ -118,12 +124,19 @@ def _parse(pattern: regex.Pattern[str], value: str) -> XsInstant | None:
     day = int(groups.get("day") or 1)
     if day > calendar.monthrange(year, month)[1]:
         return None
+    time = _parse_time_groups(groups)
+    if time is None:
+        return None
+    return _instant(year, month, day, *time, groups["tz"])
+
+
+def _parse_time_groups(groups: dict[str, str | None]) -> tuple[int, int, Decimal] | None:
     hour = int(groups.get("hour") or 0)
     minute = int(groups.get("minute") or 0)
     second = Decimal(groups.get("second") or 0)
     if hour == 24 and (minute != 0 or second != 0):
         return None
-    return _instant(year, month, day, hour, minute, second, groups["tz"])
+    return hour, minute, second
 
 
 def parse_date(value: str) -> XsInstant | None:
