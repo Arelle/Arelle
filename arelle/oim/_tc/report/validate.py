@@ -269,8 +269,9 @@ class TCReportValidator:
                 yield from self._validate_uninstantiated_template(template_id)
         checked_report_params: set[tuple[str, str]] = set()
         sort_ranges: dict[str, list[_TableRange]] = {}
-        opened_tables: list[tuple[str, XbrlCsvTable, _Template]] = []
-        for table_id, table in tables.items():
+        last_writers = self._last_writers()
+        deferred_tables: list[tuple[str, XbrlCsvTable, _Template]] = []
+        for position, (table_id, table) in enumerate(tables.items()):
             template_id = table.template or table_id
             template = self._templates.get(template_id)
             if template is None:
@@ -280,19 +281,26 @@ class TCReportValidator:
             rows = self._open_table(table_id, table)
             if rows is None:
                 continue
-            opened_tables.append((table_id, table, template))
             self._report_progress(_("Validating table constraints of table {}").format(table_id))
             sort = SortTracker() if template.sort_key is not None else None
-            yield from self._validate_table(table_id, table, template, rows, sort)
+            # Reference keys are checked while the table is read when every table
+            # that fills their target stores came before it.
+            references_ready = all(
+                last_writers.get(key.target, -1) < position
+                for key in template.reference_keys
+            )
+            if not references_ready:
+                deferred_tables.append((table_id, table, template))
+            yield from self._validate_table(
+                table_id, table, template, rows, sort, references_ready
+            )
             if sort is not None and sort.first is not None and sort.last is not None:
                 sort_ranges.setdefault(template_id, []).append(
                     _TableRange(table_id, table, sort.first, sort.last)
                 )
         for template_id, ranges in sort_ranges.items():
             yield from self._validate_sort_ranges(self._templates[template_id], ranges)
-        for table_id, table, template in opened_tables:
-            if not template.reference_keys:
-                continue
+        for table_id, table, template in deferred_tables:
             rows = self._open_table(table_id, table)
             if rows is None:
                 continue
@@ -300,6 +308,16 @@ class TCReportValidator:
                 _("Validating reference keys of table {}").format(table_id)
             )
             yield from self._validate_reference_keys(table_id, table, template, rows)
+
+    def _last_writers(self) -> dict[KeyStore, int]:
+        """The position of the last table that adds values to each key store."""
+        last_writers: dict[KeyStore, int] = {}
+        for position, (table_id, table) in enumerate(self._csv_metadata.tables.items()):
+            template = self._templates.get(table.template or table_id)
+            if template is not None:
+                for key in template.unique_keys:
+                    last_writers[key.store] = position
+        return last_writers
 
     def _validate_uninstantiated_template(self, template_id: str) -> Generator[TCReportValidationError, None, None]:
         for parameter in self._templates[template_id].parameters:
@@ -370,6 +388,7 @@ class TCReportValidator:
         template: _Template,
         rows: TableRows,
         sort: SortTracker | None,
+        references_ready: bool,
     ) -> Generator[TCReportValidationError, None, None]:
         column_indexes = _column_indexes(next(rows, []))
         yield from self._validate_header(table_id, table, template, column_indexes)
@@ -386,6 +405,11 @@ class TCReportValidator:
             )
             for key in template.unique_keys
         )
+        reference_keys = (
+            self._reference_sources(table, template, column_indexes)
+            if references_ready
+            else []
+        )
         for row_number, row in enumerate(rows, start=2):
             if row_number % _PROGRESS_ROW_INTERVAL == 0:
                 self._report_progress(
@@ -394,7 +418,13 @@ class TCReportValidator:
                     )
                 )
             yield from self._validate_row(
-                table_id, table, present_columns, table_keys, row_number, row
+                table_id,
+                table,
+                present_columns,
+                table_keys,
+                reference_keys,
+                row_number,
+                row,
             )
 
     def _validate_reference_keys(
@@ -504,6 +534,7 @@ class TCReportValidator:
         table: XbrlCsvTable,
         present_columns: list[tuple[_ConstraintSubject, int]],
         table_keys: tuple[_TableKey, ...],
+        reference_keys: _ReferenceSources,
         row_number: int,
         row: list[str],
     ) -> Generator[TCReportValidationError, None, None]:
@@ -545,6 +576,9 @@ class TCReportValidator:
                     url=table.url,
                     row=row_number,
                 )
+        yield from self._validate_references(
+            table_id, table, reference_keys, row_number, row
+        )
 
     def _validate_header(
         self,

@@ -801,6 +801,7 @@ class TestReferenceKeys:
     _INTEGER = TCValueConstraint("xs:integer")
     _STRING = TCValueConstraint("xs:string", optional=True, nillable=True)
     _TABLES = _tables(t=XbrlCsvTable(url="t.csv"), r=XbrlCsvTable(url="r.csv"))
+    _REFERENCE_FIRST = _tables(r=XbrlCsvTable(url="r.csv"), t=XbrlCsvTable(url="t.csv"))
 
     def _tc(self, negate: bool = False, severity: str = "error") -> TCMetadata:
         return _tc(
@@ -821,9 +822,14 @@ class TestReferenceKeys:
         }
         assert _run(self._TABLES, self._tc(), files) == []
 
-    def test_unmatched_row_is_reported_with_its_location(self) -> None:
+    @pytest.mark.parametrize(
+        "tables", [_TABLES, _REFERENCE_FIRST], ids=["first_pass", "second_pass"]
+    )
+    def test_unmatched_row_is_reported_with_its_location(
+        self, tables: XbrlCsvEffectiveMetadata
+    ) -> None:
         files = {"t.csv": self._TARGET, "r.csv": [["x", "y"], ["1", "b"]]}
-        (error,) = _run(self._TABLES, self._tc(), files)
+        (error,) = _run(tables, self._tc(), files)
         assert (error.code, error.severity, error.table_id, error.row) == (
             "tcre:referenceKeyViolation",
             "error",
@@ -835,9 +841,12 @@ class TestReferenceKeys:
             == "table 'r' row 2: reference key 'r' value ('1', 'b') has no match in the referenced key, url: r.csv"
         )
 
-    def test_negate_inverts_the_check(self) -> None:
+    @pytest.mark.parametrize(
+        "tables", [_TABLES, _REFERENCE_FIRST], ids=["first_pass", "second_pass"]
+    )
+    def test_negate_inverts_the_check(self, tables: XbrlCsvEffectiveMetadata) -> None:
         files = {"t.csv": self._TARGET, "r.csv": [["x", "y"], ["1", "a"], ["1", "b"]]}
-        (error,) = _run(self._TABLES, self._tc(negate=True), files)
+        (error,) = _run(tables, self._tc(negate=True), files)
         assert error.row == 2
         assert "has a match in the referenced key" in str(error)
 
@@ -875,6 +884,25 @@ class TestReferenceKeys:
         opened: list[str] = []
         assert _run(tables, self._tc(), files, opened) == []
         assert opened == ["r.csv", "t.csv", "r.csv"]
+
+    def test_target_before_reference_is_checked_in_one_read(self) -> None:
+        files = {"t.csv": self._TARGET, "r.csv": [["x", "y"], ["1", "b"]]}
+        opened: list[str] = []
+        assert _codes(_run(self._TABLES, self._tc(), files, opened)) == [
+            "tcre:referenceKeyViolation"
+        ]
+        assert opened == ["t.csv", "r.csv"]
+
+    def test_self_reference_waits_for_the_second_pass(self) -> None:
+        keys = TCKeys(
+            unique=(TCUniqueKey("k", ("a",), "error", False),),
+            reference=(TCReferenceKey("r", ("b",), "k", False, "error"),),
+        )
+        tc = _tc(t=_template(keys=keys, a=self._INTEGER, b=self._INTEGER))
+        rows = [["a", "b"], ["1", "2"], ["2", "1"]]
+        opened: list[str] = []
+        assert _run(_SINGLE_TABLE, tc, {"t.csv": rows}, opened) == []
+        assert opened == ["t.csv", "t.csv"]
 
     def test_missing_tables_are_not_opened_again(self) -> None:
         opened: list[str] = []
