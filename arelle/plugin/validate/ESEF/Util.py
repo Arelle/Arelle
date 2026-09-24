@@ -34,7 +34,7 @@ DISCLOSURE_SYSTEM_YEAR_PATTERN = re.compile(rf"esef-(?:unconsolidated-)?(?P<{YEA
 
 AUTHORITY_CODES: frozenset[str] = frozenset({
     "AT", "BE", "BG", "CY", "CZ", "DBA", "DE", "DK", "EE", "EL", "ES",
-    "FI", "FR", "GB", "HR", "HU", "IE", "IS", "IT", "LI", "LT", "LU",
+    "FI", "FI-PRH", "FR", "GB", "HR", "HU", "IE", "IS", "IT", "LI", "LT", "LU",
     "LV", "MT", "NL", "NO", "PL", "PT", "RO", "SE", "SI", "SK",
     AUTHORITY_UKFRC, "UKFRC-2022", "UKFRC-2023",
 })

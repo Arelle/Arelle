@@ -16,6 +16,7 @@ Authority-specific configuration:
 The --esefAuthority option configures jurisdiction-specific behavior within the ESEF Filer Manual
 rules (e.g. target attribute handling). Valid authority codes are defined in resources/authority-validations.json.
 - `--esefAuthority DK`
+- `--esefAuthority FI-PRH`
 - `--esefAuthority UKFRC`
 
 Python API:
@@ -82,6 +83,7 @@ from .Util import (
 )
 from .ValidationPluginExtension import ValidationPluginExtension
 from .rules import base
+from .rules.PRH import facts as prh_facts
 from .rules.UKSEF import (
     context as uksef_context,
     document as uksef_document,
@@ -450,6 +452,7 @@ validationPlugin = ValidationPluginExtension(
     validationTypes=[DISCLOSURE_SYSTEM_VALIDATION_TYPE],
     validationRuleModules=[
         base,
+        prh_facts,
         uksef_context,
         uksef_document,
         uksef_entity,
