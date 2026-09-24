@@ -614,10 +614,14 @@ def increaseMaxFieldSize():
 
 def openCsvReader(fileSource: FileSource, csvFilePath: str, fileType: int) -> Iterator[list[str]]:
     stream = fileSource.stream(csvFilePath)
-    _checkCsvEncoding(stream, csvFilePath)
-    # Line breaks inside quoted cells are part of the value, so no newline translation.
-    _file = io.TextIOWrapper(stream, encoding="utf-8-sig", newline="")
-    _dialect = _csvDialect(_file, csvFilePath, fileType)
+    try:
+        _checkCsvEncoding(stream, csvFilePath)
+        # Line breaks inside quoted cells are part of the value, so no newline translation.
+        _file = io.TextIOWrapper(stream, encoding="utf-8-sig", newline="")
+        _dialect = _csvDialect(_file, csvFilePath, fileType)
+    except BaseException:
+        stream.close()
+        raise
     # Must increase the max supported CSV field size before opening the CSV reader.
     # Otherwise large HTML values will trigger csv.ERROR: field larger than field limit.
     increaseMaxFieldSize()

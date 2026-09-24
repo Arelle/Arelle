@@ -11,6 +11,7 @@ from arelle.ModelDtsObject import ModelRelationship
 from arelle.oim.Load import (
     CSV_FACTS_FILE,
     NONE_CELL,
+    OIMException,
     getTaxonomyContextElement,
     openCsvReader,
     parseParameterValues,
@@ -98,6 +99,15 @@ def test_open_csv_reader_opens_the_file_once_and_closes_it() -> None:
         ["a", "b"],
         ["1", "2"],
     ]
+    (stream,) = streams
+    assert stream.closed
+
+
+def test_open_csv_reader_closes_the_file_when_a_check_fails() -> None:
+    streams: list[io.BytesIO] = []
+    file_source = _stream_file_source("a,b\n".encode("utf-16"), streams)
+    with pytest.raises(OIMException):
+        openCsvReader(file_source, "t.csv", CSV_FACTS_FILE)
     (stream,) = streams
     assert stream.closed
 
