@@ -614,6 +614,18 @@ def increaseMaxFieldSize():
 
 def openCsvReader(fileSource: FileSource, csvFilePath: str, fileType: int) -> Iterator[list[str]]:
     stream = fileSource.stream(csvFilePath)
+    _checkCsvEncoding(stream, csvFilePath)
+    # Line breaks inside quoted cells are part of the value, so no newline translation.
+    _file = io.TextIOWrapper(stream, encoding="utf-8-sig", newline="")
+    _dialect = _csvDialect(_file, csvFilePath, fileType)
+    # Must increase the max supported CSV field size before opening the CSV reader.
+    # Otherwise large HTML values will trigger csv.ERROR: field larger than field limit.
+    increaseMaxFieldSize()
+    return _csvRows(_file, _dialect)
+
+
+def _checkCsvEncoding(stream: IO[bytes], csvFilePath: str) -> None:
+    """Raise if a CSV file is not UTF-8, leaving the file at its start."""
     bytes = stream.read(16) # test encoding
     try:
         m = EBCDIC_Bytes_Pattern.match(bytes)
@@ -631,8 +643,10 @@ def openCsvReader(fileSource: FileSource, csvFilePath: str, fileType: int) -> It
         raise OIMException("xbrlce:invalidCSVFileFormat",
               _("CSV file MUST use utf-8 encoding: %(file)s, appears to be %(encoding)s"),
               file=csvFilePath, encoding=m.lastgroup)
-    # Line breaks inside quoted cells are part of the value, so no newline translation.
-    _file = io.TextIOWrapper(stream, encoding="utf-8-sig", newline="")
+
+
+def _csvDialect(_file: IO[str], csvFilePath: str, fileType: int) -> str | type[csv.Dialect]:
+    """The dialect of a CSV file, leaving the file at its start."""
     if CSV_HAS_HEADER_ROW:
         try:
             chars = _file.read(1024)
@@ -671,11 +685,7 @@ def openCsvReader(fileSource: FileSource, csvFilePath: str, fileType: int) -> It
                 _dialect = "excel-tab"
                 break
         _file.seek(0)
-
-    # Must increase the max supported CSV field size before opening the CSV reader.
-    # Otherwise large HTML values will trigger csv.ERROR: field larger than field limit.
-    increaseMaxFieldSize()
-    return _csvRows(_file, _dialect)
+    return _dialect
 
 
 def _csvRows(file: IO[Any], dialect: str | type[csv.Dialect]) -> Iterator[list[str]]:
