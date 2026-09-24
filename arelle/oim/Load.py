@@ -46,7 +46,7 @@ from arelle.oim.const import (
 from arelle.oim.csv.context import XbrlCsvLoadingContext
 from arelle.oim.csv.metadata.common import CSV_DOCUMENT_TYPES
 from arelle.oim.csv.metadata.parser import parse_xbrl_csv_metadata
-from arelle.oim._tc.metadata.parser import TCParseResult, parse_tc_metadata
+from arelle.oim.tc.metadata.parser import TCParseResult, parse_tc_metadata
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.PythonUtil import attrdict, isLegacyAbs, strTruncate
 from arelle.typing import TypeGetText

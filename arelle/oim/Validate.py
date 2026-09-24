@@ -15,9 +15,9 @@ from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelDtsObject import ModelResource
 from arelle.ModelObject import ModelObject
 from arelle.ModelXbrl import ModelXbrl
-from arelle.oim._tc.metadata.validate import TCMetadataValidator
-from arelle.oim._tc.report.common import SEVERITY_WARNING
-from arelle.oim._tc.report.validate import TCReportValidator
+from arelle.oim.tc.metadata.validate import TCMetadataValidator
+from arelle.oim.tc.report.common import SEVERITY_WARNING
+from arelle.oim.tc.report.validate import TCReportValidator
 from arelle.oim.csv.context import XbrlCsvLoadingContext
 from arelle.oim.csv.metadata.model import XbrlCsvTable
 from arelle.oim.Load import CSV_FACTS_FILE, OIMException, openCsvReader
