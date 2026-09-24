@@ -22,6 +22,7 @@ groups:
       - Inline XBRL 1.0
       - Inline XBRL 1.1
       - xBRL-CSV 1.0
+      - xBRL-CSV Table Constraints 1.0
       - xBRL-JSON 1.0
       - Taxonomy Packages 1.0
       - Report Packages 1.0
