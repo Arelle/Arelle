@@ -1032,7 +1032,7 @@ class ValidateUK:
         """
         result = self._evaluateCode(CO_AUDIT)
         if not result.success:
-            self._errorOnMissingFactText(CO_AUDIT, result)
+            self._yieldErrorOrWarning(CO_AUDIT, result)
         result = self._evaluateCode(CO_DIR_REP)
         if not result.success:
             self._yieldErrorOrWarning(CO_DIR_REP, result)
@@ -1050,7 +1050,7 @@ class ValidateUK:
         """
         result = self._evaluateCode(LP_AUDIT)
         if not result.success:
-            self._errorOnMissingFactText(LP_AUDIT, result)
+            self._yieldErrorOrWarning(LP_AUDIT, result)
         result = self._evaluateCode(LP_QUAL_AUDIT)
         if not result.success:
             self._yieldErrorOrWarning(LP_QUAL_AUDIT, result)
