@@ -1081,17 +1081,12 @@ class ModelDocument(ModelDocumentBase):
                         modelObject=element, namespace=importNamespace, schemaLocation=importSchemaLocation, url=importSchemaLocation,
                         messageCodes=("EFM.6.22.02", "GFM.1.1.3", "SBR.NL.2.1.0.06", "SBR.NL.2.2.0.17"))
                 return
-            doc = None
-            importSchemaLocationBasename = os.path.basename(importNamespace)
             # is there an exact match for importNamespace and uri?
-            for otherDoc in self.modelXbrl.namespaceDocs[importNamespace]:
-                doc = otherDoc
-                if otherDoc.uri == importSchemaLocation:
-                    break
-                elif isIncluded:
-                    doc = None  # don't allow matching namespace lookup on include (NS is already loaded!)
-                elif doc.basename != importSchemaLocationBasename:
-                    doc = None  # different file (may have imported a file now being included)
+            doc = next((
+                otherDoc
+                for otherDoc in self.modelXbrl.namespaceDocs[importNamespace]
+                if otherDoc.uri == importSchemaLocation
+            ), None)
             # if no uri match, doc will be some other that matched targetNamespace
             if doc is not None:
                 if self.inDTS and not doc.inDTS:
