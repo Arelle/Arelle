@@ -661,6 +661,22 @@ class FileSource:
         else:
             return openXmlFileStream(self.cntlr, filepath, stripDeclaration)
 
+    def stream(self, filepath: str) -> IO[bytes]:
+        """Opens a file for binary reading.
+
+        Unlike file, a zip member is decompressed as it is read instead of being read whole
+        into memory first, so large files in report packages can be streamed.
+        """
+        archiveFileSource = self.fileSourceContainingFilepath(filepath)
+        if archiveFileSource is not None and archiveFileSource.isZip:
+            archiveFileName = _archiveFileName(archiveFileSource, filepath)
+            assert isinstance(archiveFileSource.fs, zipfile.ZipFile)
+            try:
+                return archiveFileSource.fs.open(_zipMemberName(archiveFileSource, archiveFileName))
+            except KeyError as err:
+                raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName) from err
+        return cast(IO[bytes], self.file(filepath, binary=True)[0])
+
     def getBytesSize(self) -> int | None:
         """
         Get the size of the zip file in bytes.
