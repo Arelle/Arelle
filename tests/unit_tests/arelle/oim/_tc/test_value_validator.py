@@ -473,6 +473,11 @@ class TestValidateDurationType:
         assert _validator(tc_types.DURATION, duration_type=duration_type).validate(value) is expected
 
 
+    def test_oversized_parts_are_valid(self) -> None:
+        validator = _validator(tc_types.DURATION, duration_type="yearMonth")
+        assert validator.first_violation("P" + "1" * 5000 + "M") is None
+
+
 class TestValidateTimeZone:
     @pytest.mark.parametrize(
         "constraint_type, time_zone, value, expected",

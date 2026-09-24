@@ -8,12 +8,12 @@ import contextlib
 import math
 from collections.abc import Callable, Mapping
 from types import MappingProxyType
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from typing import Any, cast
 
 import regex
 
-from arelle.ModelValue import QName, TypeXValue, dayTimeDuration, yearMonthDuration
+from arelle.ModelValue import QName, TypeXValue
 from arelle.oim._tc import xs_dates
 from arelle.oim._tc.xs_dates import XsInstant
 from arelle.oim._tc.const import (
@@ -24,6 +24,7 @@ from arelle.oim._tc.const import (
     TCRE_UNEXPECTED_TIME_ZONE,
 )
 from arelle.oim._tc.metadata.model import TCValueConstraint
+from arelle.oim._tc.periods import PERIOD_TYPE_PARSERS, parse_period, period_time_zone_matches
 from arelle.oim._tc.metadata.types import (
     CORE_ENTITY,
     CORE_LANGUAGE,
@@ -40,9 +41,7 @@ from arelle.oim.const import (
     SQNAME_PATTERN,
     UNIT_PATTERN,
     UNIT_QNAME_SUBSTITUTION_CHAR,
-    XSD_TZ,
     XSD_TZ_PATTERN,
-    XSD_YEAR,
 )
 from arelle.XmlUtil import collapseWhitespace, replaceWhitespace
 from arelle.XmlValidate import XmlValidationResult, XsdPattern, validateFacetValueString, validateValueString
@@ -50,26 +49,6 @@ from arelle.XmlValidate import XmlValidationResult, XsdPattern, validateFacetVal
 # TC prohibits uppercase characters in core language.
 _TC_CORE_LANGUAGE_PATTERN = regex.compile(r"[a-z]{1,8}(-[a-z0-9]{1,8})*$")
 
-# The xBRL-CSV period representations with XML Schema years, which the OIM patterns
-# limit to four digits. OIM periods require canonical UTC (Z), so +00:00 is rejected.
-_PERIOD_YEAR = rf"(?!-?0000){XSD_YEAR}"
-_PERIOD_DATE = rf"{_PERIOD_YEAR}-[0-9]{{2}}-[0-9]{{2}}"
-_PERIOD_TIME = r"(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]"
-_PERIOD_TZ = rf"(?![+-]00:00){XSD_TZ}"
-_PERIOD_DATETIME = rf"{_PERIOD_DATE}T{_PERIOD_TIME}(?:{_PERIOD_TZ})?"
-_PERIOD_SUFFIX = r"@(?P<suffix>start|end)"
-
-_PERIOD_TZ_PATTERN = regex.compile(rf"{_PERIOD_TZ}$")
-_PERIOD_ISO_PATTERN = regex.compile(rf"(?P<start>{_PERIOD_DATETIME})(?:/(?P<end>{_PERIOD_DATETIME}))?$")
-_PERIOD_INCLUSIVE_DATES_PATTERN = regex.compile(rf"(?P<start>{_PERIOD_DATE})\.\.(?P<end>{_PERIOD_DATE})$")
-_PERIOD_SINGLE_DAY_PATTERN = regex.compile(rf"(?P<date>{_PERIOD_DATE})(?:{_PERIOD_SUFFIX})?$")
-_PERIOD_MONTH_PATTERN = regex.compile(rf"(?P<year>{_PERIOD_YEAR})-(?P<month>0[1-9]|1[0-2])(?:{_PERIOD_SUFFIX})?$")
-_PERIOD_YEAR_PATTERN = regex.compile(rf"(?P<year>{_PERIOD_YEAR})(?:{_PERIOD_SUFFIX})?$")
-_PERIOD_QTR_PATTERN = regex.compile(rf"(?P<year>{_PERIOD_YEAR})Q(?P<quarter>[1-4])(?:{_PERIOD_SUFFIX})?$")
-_PERIOD_HALF_PATTERN = regex.compile(rf"(?P<year>{_PERIOD_YEAR})H(?P<half>[12])(?:{_PERIOD_SUFFIX})?$")
-_PERIOD_WEEK_PATTERN = regex.compile(
-    rf"(?P<year>{_PERIOD_YEAR})W(?P<week>0[1-9]|[1-4][0-9]|5[0-3])(?:{_PERIOD_SUFFIX})?$"
-)
 
 
 
@@ -209,11 +188,11 @@ class ValueConstraintValidator:
         if self._constraint.type == CORE_UNIT and not self._is_valid_unit(value):
             return TCRE_INVALID_VALUE
         if self._constraint.type == CORE_PERIOD:
-            if not any(validator(value) for validator in _ALL_PERIOD_VALIDATORS):
+            if parse_period(value) is None:
                 return TCRE_INVALID_VALUE
             if self._constraint.period_type is not None:
-                validator = PERIOD_TYPE_VALIDATORS.get(self._constraint.period_type)
-                if validator is None or not validator(value):
+                parse = PERIOD_TYPE_PARSERS.get(self._constraint.period_type)
+                if parse is None or parse(value) is None:
                     return TCRE_INVALID_PERIOD_TYPE
         if not self._is_duration_type_valid(value):
             return TCRE_INVALID_DURATION_TYPE
@@ -292,37 +271,23 @@ class ValueConstraintValidator:
         return _TC_CORE_LANGUAGE_PATTERN.fullmatch(value) is not None
 
     def _is_duration_type_valid(self, value: str) -> bool:
-        if self._constraint.duration_type is None:
-            return True
-        try:
-            match self._constraint.duration_type:
-                case "yearMonth":
-                    yearMonthDuration(value)
-                case "dayTime":
-                    dayTimeDuration(value)
-        except ValueError:
-            return False
+        match self._constraint.duration_type:
+            case "yearMonth":
+                return xs_dates.parse_year_month_duration(value) is not None
+            case "dayTime":
+                return xs_dates.parse_day_time_duration(value) is not None
         return True
 
     def _is_time_zone_valid(self, value: str) -> bool:
-        if self._constraint.time_zone is None:
+        time_zone = self._constraint.time_zone
+        if time_zone is None:
             return True
         if self._constraint.type == CORE_PERIOD:
-            return self._period_timezone_matches(value)
+            return period_time_zone_matches(value, time_zone)
         if self._effective_lexical_type in OPTIONALLY_TIME_ZONED_TYPES:
             has_tz = XSD_TZ_PATTERN.search(value) is not None
             return self._constraint.time_zone == has_tz
         return True
-
-    def _period_timezone_matches(self, value: str) -> bool:
-        match = _PERIOD_ISO_PATTERN.fullmatch(value)
-        if match is None:
-            return not self._constraint.time_zone
-        has_start_tz = _PERIOD_TZ_PATTERN.search(match.group("start")) is not None
-        if end_val := match.group("end"):
-            has_end_tz = _PERIOD_TZ_PATTERN.search(end_val) is not None
-            return has_start_tz == has_end_tz == self._constraint.time_zone
-        return self._constraint.time_zone == has_start_tz
 
     def _is_valid_unit(self, value: str) -> bool:
         unit_qnames = PREFIXED_QNAME_PATTERN.findall(value)
@@ -347,111 +312,3 @@ class ValueConstraintValidator:
             product = product[1:-1]
         qnames = product.split("*")
         return qnames == sorted(qnames)
-
-
-def _period_order(start: XsInstant, end: XsInstant) -> int:
-    if start.zoned != end.zoned:
-        # Only one end has a time zone, so compare both on the timeline as given.
-        end = replace(end, zoned=start.zoned)
-    order = start.compare(end)
-    assert order is not None
-    return order
-
-
-def _is_valid_year_period(value: str) -> bool:
-    return _PERIOD_YEAR_PATTERN.fullmatch(value) is not None
-
-
-def _is_valid_half_period(value: str) -> bool:
-    return _PERIOD_HALF_PATTERN.fullmatch(value) is not None
-
-
-def _is_valid_quarter_period(value: str) -> bool:
-    return _PERIOD_QTR_PATTERN.fullmatch(value) is not None
-
-
-def _is_valid_month_period(value: str) -> bool:
-    return _PERIOD_MONTH_PATTERN.fullmatch(value) is not None
-
-
-def _is_valid_week_period(value: str) -> bool:
-    match = _PERIOD_WEEK_PATTERN.fullmatch(value)
-    if match is None:
-        return False
-    week = int(match.group("week"))
-    year = xs_dates.year_number(match.group("year"))
-    return 1 <= week <= _iso_weeks_in_year(year)
-
-
-def _iso_weeks_in_year(year: int) -> int:
-    year_minus_1 = year - 1
-    jan1_week_day = (year_minus_1 + year_minus_1 // 4 - year_minus_1 // 100 + year_minus_1 // 400) % 7
-    is_leap_year = year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
-    return 53 if (jan1_week_day == 3 or (is_leap_year and jan1_week_day == 2)) else 52
-
-
-def _is_valid_day_period(value: str) -> bool:
-    match = _PERIOD_SINGLE_DAY_PATTERN.fullmatch(value)
-    if match is None:
-        return False
-    return xs_dates.parse_date(match.group("date")) is not None
-
-
-def _is_valid_instant_period(value: str) -> bool:
-    match = _PERIOD_ISO_PATTERN.fullmatch(value)
-    if match is not None and match.group("end") is None:
-        return xs_dates.parse_date_time(match.group("start")) is not None
-    if value.endswith(("@start", "@end")):
-        return any(v(value) for v in _ABBREVIATED_PERIOD_VALIDATORS)
-    return False
-
-
-def _is_valid_duration_period(value: str) -> bool:
-    match = _PERIOD_ISO_PATTERN.fullmatch(value)
-    if match is None or match.group("end") is None:
-        return False
-    start = xs_dates.parse_date_time(match.group("start"))
-    end = xs_dates.parse_date_time(match.group("end"))
-    return start is not None and end is not None and _period_order(start, end) == -1
-
-
-def _is_valid_range_period(value: str) -> bool:
-    match = _PERIOD_INCLUSIVE_DATES_PATTERN.fullmatch(value)
-    if match is None:
-        return False
-    start = xs_dates.parse_date(match.group("start"))
-    end = xs_dates.parse_date(match.group("end"))
-    return start is not None and end is not None and start.compare(end) != 1
-
-
-_ABBREVIATED_PERIOD_VALIDATORS: tuple[Callable[[str], bool], ...] = tuple(
-    [
-        _is_valid_year_period,
-        _is_valid_half_period,
-        _is_valid_quarter_period,
-        _is_valid_week_period,
-        _is_valid_month_period,
-        _is_valid_day_period,
-    ]
-)
-
-
-PERIOD_TYPE_VALIDATORS = MappingProxyType(
-    {
-        "year": _is_valid_year_period,
-        "half": _is_valid_half_period,
-        "quarter": _is_valid_quarter_period,
-        "week": _is_valid_week_period,
-        "month": _is_valid_month_period,
-        "day": _is_valid_day_period,
-        "instant": _is_valid_instant_period,
-    }
-)
-
-_ALL_PERIOD_VALIDATORS = tuple(
-    [
-        *PERIOD_TYPE_VALIDATORS.values(),
-        _is_valid_duration_period,
-        _is_valid_range_period,
-    ]
-)

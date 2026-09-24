@@ -7,8 +7,10 @@ import pytest
 
 from arelle import XbrlConst
 from arelle.oim._tc.metadata.model import (
+    TCKeys,
     TCMetadata,
     TCTemplateConstraints,
+    TCUniqueKey,
     TCValueConstraint,
 )
 from arelle.oim._tc.report.common import TCReportValidationError
@@ -38,11 +40,13 @@ def _tc(**templates: TCTemplateConstraints) -> TCMetadata:
 def _template(
     column_order: tuple[str, ...] | None = None,
     parameters: Mapping[str, TCValueConstraint] | None = None,
+    keys: TCKeys | None = None,
     **constraints: TCValueConstraint,
 ) -> TCTemplateConstraints:
     return TCTemplateConstraints(
         constraints=MappingProxyType(constraints),
         parameters=MappingProxyType(parameters or {}),
+        keys=keys,
         column_order=column_order,
     )
 
@@ -480,3 +484,132 @@ class TestUninstantiatedTemplates:
             == []
         )
         assert _run(_SINGLE_TABLE, self._TC, self._ROWS) == []
+
+
+def _unique(
+    *fields: str, name: str = "k", severity: str = "error", shared: bool = False
+) -> TCKeys:
+    return TCKeys(unique=(TCUniqueKey(name, fields, severity, shared),))
+
+
+class TestUniqueKeys:
+    _INTEGER = TCValueConstraint("xs:integer")
+    _STRING = TCValueConstraint("xs:string", optional=True, nillable=True)
+
+    def test_duplicate_key_value_is_reported_on_the_later_row(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a", "b"), a=self._INTEGER, b=self._STRING))
+        rows = [["a", "b"], ["1", "x"], ["1", "y"], ["1", "x"]]
+        (error,) = _run(_SINGLE_TABLE, tc, {"t.csv": rows})
+        assert (
+            error.code,
+            error.severity,
+            error.table_id,
+            error.row,
+            error.column,
+        ) == (
+            "tcre:uniqueKeyViolation",
+            "error",
+            "t",
+            4,
+            None,
+        )
+        assert (
+            str(error)
+            == "table 't' row 4: unique key 'k' value ('1', 'x') appears in more than one row, url: t.csv"
+        )
+
+    def test_warning_severity_is_kept(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a", severity="warning"), a=self._INTEGER))
+        (error,) = _run(_SINGLE_TABLE, tc, {"t.csv": [["a"], ["1"], ["1"]]})
+        assert (error.code, error.severity) == ("tcre:uniqueKeyViolation", "warning")
+
+    def test_values_compare_in_the_value_space(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a"), a=self._INTEGER))
+        errors = _run(_SINGLE_TABLE, tc, {"t.csv": [["a"], ["1"], ["01"], ["+1"]]})
+        assert [error.row for error in errors] == [3, 4]
+
+    def test_nulls_are_equal_and_distinct_from_the_empty_string(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a"), a=self._STRING, b=self._STRING))
+        rows = [["a", "b"], ["", "x"], ["#nil", "x"], ["#none", "x"], ["#empty", "x"]]
+        errors = _run(_SINGLE_TABLE, tc, {"t.csv": rows})
+        assert [error.row for error in errors] == [3, 4]
+
+    def test_rows_without_a_value_are_skipped(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a"), a=self._STRING))
+        assert _run(_SINGLE_TABLE, tc, {"t.csv": [["a"], [""], [""]]}) == []
+
+    def test_key_spans_tables_of_one_template(self) -> None:
+        tables = _tables(
+            t1=XbrlCsvTable(url="a.csv", template="t"),
+            t2=XbrlCsvTable(url="b.csv", template="t"),
+        )
+        tc = _tc(t=_template(keys=_unique("a"), a=self._INTEGER))
+        files = {"a.csv": [["a"], ["1"]], "b.csv": [["a"], ["2"], ["1"]]}
+        (error,) = _run(tables, tc, files)
+        assert (error.table_id, error.row) == ("t2", 3)
+
+    def test_shared_key_spans_templates(self) -> None:
+        tables = _tables(t=XbrlCsvTable(url="t.csv"), u=XbrlCsvTable(url="u.csv"))
+        tc = _tc(
+            t=_template(keys=_unique("a", shared=True), a=self._INTEGER),
+            u=_template(keys=_unique("b", shared=True), b=self._INTEGER),
+        )
+        files = {"t.csv": [["a"], ["1"]], "u.csv": [["b"], ["1"]]}
+        (error,) = _run(tables, tc, files)
+        assert (error.table_id, error.row) == ("u", 2)
+
+    def test_keys_with_different_names_are_independent(self) -> None:
+        tables = _tables(t=XbrlCsvTable(url="t.csv"), u=XbrlCsvTable(url="u.csv"))
+        tc = _tc(
+            t=_template(keys=_unique("a", name="k1"), a=self._INTEGER),
+            u=_template(keys=_unique("b", name="k2"), b=self._INTEGER),
+        )
+        files = {"t.csv": [["a"], ["1"]], "u.csv": [["b"], ["1"]]}
+        assert _run(tables, tc, files) == []
+
+    def test_parameter_fields_are_constant_per_table(self) -> None:
+        tables = _tables(
+            t1=XbrlCsvTable(url="a.csv", template="t", parameters={"p": "x"}),
+            t2=XbrlCsvTable(url="b.csv", template="t", parameters={"p": "y"}),
+            t3=XbrlCsvTable(url="b.csv", template="t", parameters={"p": "x"}),
+        )
+        tc = _tc(
+            t=_template(
+                keys=_unique("p", "a"),
+                parameters={"p": self._STRING},
+                a=self._INTEGER,
+            )
+        )
+        files = {"a.csv": [["a"], ["1"]], "b.csv": [["a"], ["1"]]}
+        (error,) = _run(tables, tc, files)
+        assert (error.table_id, error.row) == ("t3", 2)
+        assert "('x', '1')" in str(error)
+
+    def test_report_parameter_field_falls_back_to_the_report(self) -> None:
+        tc = _tc(
+            t=_template(
+                keys=_unique("p", "a"),
+                parameters={"p": self._STRING},
+                a=self._INTEGER,
+            )
+        )
+        rows = [["a"], ["1"], ["1"]]
+        (error,) = _run(
+            _SINGLE_TABLE, tc, {"t.csv": rows}, report_parameters={"p": "#nil"}
+        )
+        assert "(null, '1')" in str(error)
+
+    def test_missing_column_field_is_null(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a", "b"), a=self._INTEGER, b=self._STRING))
+        errors = _run(_SINGLE_TABLE, tc, {"t.csv": [["a"], ["1"], ["1"]]})
+        assert _codes(errors) == ["tcre:uniqueKeyViolation"]
+        assert "('1', null)" in str(errors[0])
+
+    def test_unknown_special_value_keeps_its_literal(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a"), a=self._STRING))
+        errors = _run(_SINGLE_TABLE, tc, {"t.csv": [["a"], ["#bogus"], ["#bogus"]]})
+        assert _codes(errors) == [
+            "xbrlce:unknownSpecialValue",
+            "xbrlce:unknownSpecialValue",
+            "tcre:uniqueKeyViolation",
+        ]

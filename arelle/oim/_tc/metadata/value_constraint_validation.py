@@ -23,13 +23,14 @@ from arelle.oim._tc.metadata.restrictions import (
     permitted_restrictions,
 )
 from arelle.oim._tc.metadata.types import resolve_effective_lexical_type
-from arelle.oim._tc.value_validator import PERIOD_TYPE_VALIDATORS, ValueConstraintValidator
+from arelle.oim._tc.periods import PERIOD_TYPES
+from arelle.oim._tc.value_validator import ValueConstraintValidator
 from arelle.typing import TypeGetText
 from arelle.XmlValidate import XmlValidationResult, validateFacetValueString
 
 _: TypeGetText
 
-_VALID_PERIOD_TYPES = frozenset(PERIOD_TYPE_VALIDATORS.keys())
+_VALID_PERIOD_TYPES = PERIOD_TYPES
 
 _VALID_DURATION_TYPES = frozenset(
     {
