@@ -75,6 +75,34 @@ class KeyFieldType:
         return KeyValue(_TYPED_RANK, typed_value)
 
 
+class SortTracker:
+    """Checks that the key values of consecutive rows of one table strictly increase.
+
+    A table is either sorted or not, so only the first row that breaks the order is
+    reported.
+    """
+
+    def __init__(self) -> None:
+        self.first: KeyValues | None = None
+        self.last: KeyValues | None = None
+        self._reported = False
+
+    def add(self, key: KeyValues) -> bool:
+        """Records a row's key value and returns False for the first row out of order."""
+        if any(key_value.rank == _INVALID_RANK for key_value in key):
+            # An invalid literal has no place in the order of its type, and its cell
+            # is already reported.
+            return True
+        if self.first is None:
+            self.first = key
+        in_order = self.last is None or key > self.last
+        self.last = key
+        if in_order or self._reported:
+            return True
+        self._reported = True
+        return False
+
+
 def _whitespace_normaliser(
     constraint: TCValueConstraint,
     lexical_type: QName | None,

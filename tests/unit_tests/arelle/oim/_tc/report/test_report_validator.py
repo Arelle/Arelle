@@ -487,9 +487,16 @@ class TestUninstantiatedTemplates:
 
 
 def _unique(
-    *fields: str, name: str = "k", severity: str = "error", shared: bool = False
+    *fields: str,
+    name: str = "k",
+    severity: str = "error",
+    shared: bool = False,
+    sort: bool = False,
 ) -> TCKeys:
-    return TCKeys(unique=(TCUniqueKey(name, fields, severity, shared),))
+    return TCKeys(
+        unique=(TCUniqueKey(name, fields, severity, shared),),
+        sort_key=name if sort else None,
+    )
 
 
 class TestUniqueKeys:
@@ -613,3 +620,167 @@ class TestUniqueKeys:
             "xbrlce:unknownSpecialValue",
             "tcre:uniqueKeyViolation",
         ]
+
+
+class TestSortKeys:
+    _INTEGER = TCValueConstraint("xs:integer")
+    _STRING = TCValueConstraint("xs:string", optional=True, nillable=True)
+
+    def test_sorted_rows_produce_no_errors(self) -> None:
+        tc = _tc(
+            t=_template(
+                keys=_unique("a", "b", sort=True), a=self._INTEGER, b=self._STRING
+            )
+        )
+        rows = [["a", "b"], ["1", ""], ["1", "a"], ["2", ""], ["10", "b"]]
+        assert _run(_SINGLE_TABLE, tc, {"t.csv": rows}) == []
+
+    def test_first_row_out_of_order_is_reported_once(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a", sort=True), a=self._INTEGER))
+        rows = [["a"], ["3"], ["2"], ["1"], ["4"]]
+        (error,) = _run(_SINGLE_TABLE, tc, {"t.csv": rows})
+        assert (error.code, error.table_id, error.row, error.column) == (
+            "tcre:sortKeyViolation",
+            "t",
+            3,
+            None,
+        )
+        assert (
+            str(error)
+            == "table 't' row 3: sort key 'k' value ('2') does not follow the preceding rows, url: t.csv"
+        )
+
+    def test_equal_rows_violate_both_sort_and_unique_keys(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a", sort=True), a=self._INTEGER))
+        errors = _run(_SINGLE_TABLE, tc, {"t.csv": [["a"], ["1"], ["01"]]})
+        assert _codes(errors) == ["tcre:uniqueKeyViolation", "tcre:sortKeyViolation"]
+
+    def test_tie_is_resolved_by_the_next_field(self) -> None:
+        tc = _tc(
+            t=_template(
+                keys=_unique("a", "b", sort=True), a=self._INTEGER, b=self._STRING
+            )
+        )
+        rows = [["a", "b"], ["1", "b"], ["1", "a"]]
+        assert _codes(_run(_SINGLE_TABLE, tc, {"t.csv": rows})) == [
+            "tcre:sortKeyViolation"
+        ]
+
+    def test_null_sorts_first(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a", sort=True), a=self._STRING))
+        assert _run(_SINGLE_TABLE, tc, {"t.csv": [["a"], ["#nil"], ["a"]]}) == []
+        assert _codes(_run(_SINGLE_TABLE, tc, {"t.csv": [["a"], ["a"], ["#nil"]]})) == [
+            "tcre:sortKeyViolation"
+        ]
+
+    def test_invalid_values_are_left_out_of_the_order(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a", sort=True), a=self._INTEGER))
+        sorted_rows = [["a"], ["2"], ["x"], ["3"]]
+        assert _codes(_run(_SINGLE_TABLE, tc, {"t.csv": sorted_rows})) == [
+            "tcre:invalidValue"
+        ]
+        unsorted_rows = [["a"], ["2"], ["x"], ["1"]]
+        assert _codes(_run(_SINGLE_TABLE, tc, {"t.csv": unsorted_rows})) == [
+            "tcre:invalidValue",
+            "tcre:sortKeyViolation",
+        ]
+
+    def test_invalid_later_field_leaves_the_row_out_of_the_order(self) -> None:
+        tc = _tc(
+            t=_template(
+                keys=_unique("a", "b", sort=True), a=self._INTEGER, b=self._INTEGER
+            )
+        )
+        rows = [["a", "b"], ["2", "1"], ["1", "x"]]
+        assert _codes(_run(_SINGLE_TABLE, tc, {"t.csv": rows})) == [
+            "tcre:invalidValue"
+        ]
+
+    def test_only_the_sort_key_is_checked_for_order(self) -> None:
+        keys = TCKeys(
+            unique=(
+                TCUniqueKey("u", ("a",), "error", False),
+                TCUniqueKey("s", ("b",), "error", False),
+            ),
+            sort_key="s",
+        )
+        tc = _tc(t=_template(keys=keys, a=self._INTEGER, b=self._INTEGER))
+        other_key_unsorted = [["a", "b"], ["2", "1"], ["1", "2"]]
+        assert _run(_SINGLE_TABLE, tc, {"t.csv": other_key_unsorted}) == []
+        sort_key_unsorted = [["a", "b"], ["1", "2"], ["2", "1"]]
+        (error,) = _run(_SINGLE_TABLE, tc, {"t.csv": sort_key_unsorted})
+        assert "sort key 's'" in str(error)
+
+    def test_parameter_field_precedes_column_fields(self) -> None:
+        tc = _tc(
+            t=_template(
+                keys=_unique("p", "a", sort=True),
+                parameters={"p": self._INTEGER},
+                a=self._INTEGER,
+            )
+        )
+        rows = [["a"], ["2"], ["1"]]
+        (error,) = _run(_parameter_table(p="4"), tc, {"t.csv": rows})
+        assert "('4', '1')" in str(error)
+
+    def test_tables_are_sorted_independently(self) -> None:
+        tables = _tables(
+            t1=XbrlCsvTable(url="a.csv", template="t"),
+            t2=XbrlCsvTable(url="b.csv", template="t"),
+        )
+        tc = _tc(t=_template(keys=_unique("a", sort=True), a=self._INTEGER))
+        files = {"a.csv": [["a"], ["3"]], "b.csv": [["a"], ["1"]]}
+        assert _run(tables, tc, files) == []
+
+
+class TestSortKeyRanges:
+    _INTEGER = TCValueConstraint("xs:integer")
+    _TABLES = _tables(
+        t1=XbrlCsvTable(url="a.csv", template="t"),
+        t2=XbrlCsvTable(url="b.csv", template="t"),
+    )
+    _TC = _tc(t=_template(keys=_unique("a", sort=True), a=_INTEGER))
+
+    def test_overlapping_ranges_are_reported_on_the_later_table(self) -> None:
+        files = {"a.csv": [["a"], ["1"], ["3"]], "b.csv": [["a"], ["2"], ["4"]]}
+        (error,) = _run(self._TABLES, self._TC, files)
+        assert (error.code, error.table_id, error.row) == (
+            "tcre:sortKeyViolation",
+            "t2",
+            None,
+        )
+        assert (
+            str(error)
+            == "table 't2': sort key 'k' rows overlap with those of table 't1', url: b.csv"
+        )
+
+    def test_disjoint_ranges_in_any_table_order_are_fine(self) -> None:
+        forward = {"a.csv": [["a"], ["1"], ["2"]], "b.csv": [["a"], ["3"], ["4"]]}
+        assert _run(self._TABLES, self._TC, forward) == []
+        reverse = {"a.csv": [["a"], ["3"], ["4"]], "b.csv": [["a"], ["1"], ["2"]]}
+        assert _run(self._TABLES, self._TC, reverse) == []
+
+    def test_touching_ranges_overlap(self) -> None:
+        files = {"a.csv": [["a"], ["1"], ["2"]], "b.csv": [["a"], ["2"], ["3"]]}
+        assert _codes(_run(self._TABLES, self._TC, files)) == [
+            "tcre:uniqueKeyViolation",
+            "tcre:sortKeyViolation",
+        ]
+
+    def test_tables_without_rows_have_no_range(self) -> None:
+        files = {"a.csv": [["a"], ["1"], ["3"]], "b.csv": [["a"], [""]]}
+        assert _run(self._TABLES, self._TC, files) == []
+
+    def test_no_sort_key_means_no_range_check(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a"), a=self._INTEGER))
+        files = {"a.csv": [["a"], ["1"], ["3"]], "b.csv": [["a"], ["2"], ["4"]]}
+        assert _run(self._TABLES, tc, files) == []
+
+    def test_templates_sharing_a_key_are_not_compared(self) -> None:
+        tables = _tables(t=XbrlCsvTable(url="a.csv"), u=XbrlCsvTable(url="b.csv"))
+        tc = _tc(
+            t=_template(keys=_unique("a", shared=True, sort=True), a=self._INTEGER),
+            u=_template(keys=_unique("a", shared=True, sort=True), a=self._INTEGER),
+        )
+        files = {"a.csv": [["a"], ["1"], ["3"]], "b.csv": [["a"], ["2"], ["4"]]}
+        assert _run(tables, tc, files) == []
