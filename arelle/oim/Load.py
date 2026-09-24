@@ -613,8 +613,8 @@ def increaseMaxFieldSize():
             maxInt = int(maxInt/10)
 
 def openCsvReader(fileSource: FileSource, csvFilePath: str, fileType: int) -> Iterator[list[str]]:
-    _file = fileSource.file(csvFilePath, binary=True)[0]
-    bytes = _file.read(16) # test encoding
+    stream = fileSource.file(csvFilePath, binary=True)[0]
+    bytes = stream.read(16) # test encoding
     try:
         m = EBCDIC_Bytes_Pattern.match(bytes)
         if m and not NEVER_EBCDIC_Bytes_Pattern.findall(bytes):
@@ -626,13 +626,13 @@ def openCsvReader(fileSource: FileSource, csvFilePath: str, fileType: int) -> It
             raise OIMException("xbrlce:invalidCSVFileFormat",
                   _("CSV file MUST use utf-8 encoding: %(file)s, appears to be %(encoding)s"),
                   file=csvFilePath, encoding=m.lastgroup)
-        _file.close()
+        stream.seek(0)
     except UnicodeDecodeError as ex:
         raise OIMException("xbrlce:invalidCSVFileFormat",
               _("CSV file MUST use utf-8 encoding: %(file)s, appears to be %(encoding)s"),
               file=csvFilePath, encoding=m.lastgroup)
     # Line breaks inside quoted cells are part of the value, so no newline translation.
-    _file = io.TextIOWrapper(fileSource.file(csvFilePath, binary=True)[0], encoding="utf-8-sig", newline="")
+    _file = io.TextIOWrapper(stream, encoding="utf-8-sig", newline="")
     if CSV_HAS_HEADER_ROW:
         try:
             chars = _file.read(1024)

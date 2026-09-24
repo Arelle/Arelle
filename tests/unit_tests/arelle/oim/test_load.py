@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import io
-from typing import IO, Any
 from unittest.mock import Mock
 
 import pytest
@@ -83,31 +82,26 @@ class TestLoadFromOIM:
         assert result == expected_context_element
 
 
-def test_open_csv_reader_closes_the_file_after_iteration() -> None:
-    handles: list[IO[Any]] = []
-
-    def file(
-        filepath: str, binary: bool = False, encoding: str | None = None
-    ) -> tuple[IO[Any]]:
-        handle: IO[Any] = (
-            io.BytesIO(b"a,b\n1,2\n") if binary else io.StringIO("a,b\n1,2\n")
-        )
+def _file_source(data: bytes, handles: list[io.BytesIO]) -> Mock:
+    def file(filepath: str, binary: bool = False) -> tuple[io.BytesIO]:
+        handle = io.BytesIO(data)
         handles.append(handle)
         return (handle,)
 
-    file_source = Mock(spec=FileSource, file=file)
+    return Mock(spec=FileSource, file=file)
+
+
+def test_open_csv_reader_opens_the_file_once_and_closes_it() -> None:
+    handles: list[io.BytesIO] = []
+    file_source = _file_source(b"a,b\n1,2\n", handles)
     assert list(openCsvReader(file_source, "t.csv", CSV_FACTS_FILE)) == [
         ["a", "b"],
         ["1", "2"],
     ]
-    assert all(handle.closed for handle in handles)
+    (handle,) = handles
+    assert handle.closed
 
 
 def test_open_csv_reader_keeps_line_breaks_inside_quoted_cells() -> None:
-    def file(
-        filepath: str, binary: bool = False, encoding: str | None = None
-    ) -> tuple[IO[Any]]:
-        return (io.BytesIO(b'a,b\r\n"x\r\ny",2\r\n'),)
-
-    file_source = Mock(spec=FileSource, file=file)
+    file_source = _file_source(b'a,b\r\n"x\r\ny",2\r\n', [])
     assert list(openCsvReader(file_source, "t.csv", CSV_FACTS_FILE)) == [["a", "b"], ["x\r\ny", "2"]]
