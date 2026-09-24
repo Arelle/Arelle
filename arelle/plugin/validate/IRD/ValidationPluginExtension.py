@@ -234,6 +234,12 @@ class ValidationPluginExtension(ValidationPlugin):
             basisPeriodStartDateQn=tcQn("BasisPeriodStartDate"),
             basisPeriodEndDateQn=tcQn("BasisPeriodEndDate"),
 
+            # accounting period
+            accountingDateDifferentQn=tcQn("AccountingDateDifferentFromThatOfLastYear"),
+            reasonsForChangeOfAccountingDateQn=tcQn("ReasonsForTheChangeOfAccountingDate"),
+            accountingPeriodStartDateQn=tcQn("AccountingPeriodStartDate"),
+            accountingPeriodEndDateQn=tcQn("AccountingPeriodEndDate"),
+
             # HKSIC
             hksicCodeQn=tcQn("HongKongStandardIndustrialClassificationCode"),
             hksicCodeRegex=re.compile(r"^\d{6}$"),
