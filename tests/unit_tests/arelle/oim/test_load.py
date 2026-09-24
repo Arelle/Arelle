@@ -82,26 +82,26 @@ class TestLoadFromOIM:
         assert result == expected_context_element
 
 
-def _file_source(data: bytes, handles: list[io.BytesIO]) -> Mock:
-    def file(filepath: str, binary: bool = False) -> tuple[io.BytesIO]:
+def _stream_file_source(data: bytes, streams: list[io.BytesIO]) -> Mock:
+    def stream(filepath: str) -> io.BytesIO:
         handle = io.BytesIO(data)
-        handles.append(handle)
-        return (handle,)
+        streams.append(handle)
+        return handle
 
-    return Mock(spec=FileSource, file=file)
+    return Mock(spec=FileSource, stream=stream)
 
 
 def test_open_csv_reader_opens_the_file_once_and_closes_it() -> None:
-    handles: list[io.BytesIO] = []
-    file_source = _file_source(b"a,b\n1,2\n", handles)
+    streams: list[io.BytesIO] = []
+    file_source = _stream_file_source(b"a,b\n1,2\n", streams)
     assert list(openCsvReader(file_source, "t.csv", CSV_FACTS_FILE)) == [
         ["a", "b"],
         ["1", "2"],
     ]
-    (handle,) = handles
-    assert handle.closed
+    (stream,) = streams
+    assert stream.closed
 
 
 def test_open_csv_reader_keeps_line_breaks_inside_quoted_cells() -> None:
-    file_source = _file_source(b'a,b\r\n"x\r\ny",2\r\n', [])
+    file_source = _stream_file_source(b'a,b\r\n"x\r\ny",2\r\n', [])
     assert list(openCsvReader(file_source, "t.csv", CSV_FACTS_FILE)) == [["a", "b"], ["x\r\ny", "2"]]

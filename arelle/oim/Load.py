@@ -613,7 +613,7 @@ def increaseMaxFieldSize():
             maxInt = int(maxInt/10)
 
 def openCsvReader(fileSource: FileSource, csvFilePath: str, fileType: int) -> Iterator[list[str]]:
-    stream = fileSource.file(csvFilePath, binary=True)[0]
+    stream = fileSource.stream(csvFilePath)
     bytes = stream.read(16) # test encoding
     try:
         m = EBCDIC_Bytes_Pattern.match(bytes)
