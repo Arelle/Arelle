@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator, Mapping
+from decimal import Decimal
 from types import MappingProxyType
 
 import pytest
@@ -9,11 +10,13 @@ from arelle import XbrlConst
 from arelle.oim._tc.metadata.model import (
     TCKeys,
     TCMetadata,
+    TCReferenceKey,
     TCTemplateConstraints,
     TCUniqueKey,
     TCValueConstraint,
 )
 from arelle.oim._tc.report.common import TCReportValidationError
+from arelle.oim._tc.report.key_values import KeyValue
 from arelle.oim._tc.report.validate import TCReportValidator
 from arelle.oim.csv.metadata.model import (
     XbrlCsvDocumentInfo,
@@ -784,3 +787,192 @@ class TestSortKeyRanges:
         )
         files = {"a.csv": [["a"], ["1"], ["3"]], "b.csv": [["a"], ["2"], ["4"]]}
         assert _run(tables, tc, files) == []
+
+
+def _reference(
+    *fields: str,
+    target: str = "k",
+    name: str = "r",
+    negate: bool = False,
+    severity: str = "error",
+) -> TCKeys:
+    return TCKeys(reference=(TCReferenceKey(name, fields, target, negate, severity),))
+
+
+class TestReferenceKeys:
+    _INTEGER = TCValueConstraint("xs:integer")
+    _STRING = TCValueConstraint("xs:string", optional=True, nillable=True)
+    _TABLES = _tables(t=XbrlCsvTable(url="t.csv"), r=XbrlCsvTable(url="r.csv"))
+    _REFERENCE_FIRST = _tables(r=XbrlCsvTable(url="r.csv"), t=XbrlCsvTable(url="t.csv"))
+
+    def _tc(self, negate: bool = False, severity: str = "error") -> TCMetadata:
+        return _tc(
+            t=_template(keys=_unique("a", "b"), a=self._INTEGER, b=self._STRING),
+            r=_template(
+                keys=_reference("x", "y", negate=negate, severity=severity),
+                x=TCValueConstraint("xs:integer", optional=True, nillable=True),
+                y=self._STRING,
+            ),
+        )
+
+    _TARGET = [["a", "b"], ["1", "a"], ["2", ""]]
+
+    def test_matching_rows_produce_no_errors(self) -> None:
+        files = {
+            "t.csv": self._TARGET,
+            "r.csv": [["x", "y"], ["01", "a"], ["2", "#nil"]],
+        }
+        assert _run(self._TABLES, self._tc(), files) == []
+
+    @pytest.mark.parametrize(
+        "tables", [_TABLES, _REFERENCE_FIRST], ids=["first_pass", "second_pass"]
+    )
+    def test_unmatched_row_is_reported_with_its_location(
+        self, tables: XbrlCsvEffectiveMetadata
+    ) -> None:
+        files = {"t.csv": self._TARGET, "r.csv": [["x", "y"], ["1", "b"]]}
+        (error,) = _run(tables, self._tc(), files)
+        assert (error.code, error.severity, error.table_id, error.row) == (
+            "tcre:referenceKeyViolation",
+            "error",
+            "r",
+            2,
+        )
+        assert (
+            str(error)
+            == "table 'r' row 2: reference key 'r' value ('1', 'b') has no match in the referenced key, url: r.csv"
+        )
+
+    @pytest.mark.parametrize(
+        "tables", [_TABLES, _REFERENCE_FIRST], ids=["first_pass", "second_pass"]
+    )
+    def test_negate_inverts_the_check(self, tables: XbrlCsvEffectiveMetadata) -> None:
+        files = {"t.csv": self._TARGET, "r.csv": [["x", "y"], ["1", "a"], ["1", "b"]]}
+        (error,) = _run(tables, self._tc(negate=True), files)
+        assert error.row == 2
+        assert "has a match in the referenced key" in str(error)
+
+    def test_warning_severity_is_kept(self) -> None:
+        files = {"t.csv": self._TARGET, "r.csv": [["x", "y"], ["1", "b"]]}
+        (error,) = _run(self._TABLES, self._tc(severity="warning"), files)
+        assert error.severity == "warning"
+
+    def test_rows_with_null_local_key_are_exempt(self) -> None:
+        rows = [["x", "y", "z"], ["", "#nil", "content"], ["#none", "", "content"]]
+        files = {"t.csv": self._TARGET, "r.csv": rows}
+        assert _run(self._TABLES, self._tc(), files) == []
+
+    def test_invalid_local_values_are_not_looked_up(self) -> None:
+        files = {"t.csv": self._TARGET, "r.csv": [["x", "y"], ["x", "a"]]}
+        assert _codes(_run(self._TABLES, self._tc(), files)) == ["tcre:invalidValue"]
+
+    def test_partial_nulls_are_matched_field_by_field(self) -> None:
+        files = {
+            "t.csv": self._TARGET,
+            "r.csv": [["x", "y"], ["2", "#none"], ["1", ""]],
+        }
+        errors = _run(self._TABLES, self._tc(), files)
+        assert [error.row for error in errors] == [3]
+
+    def test_empty_string_has_content(self) -> None:
+        files = {"t.csv": self._TARGET, "r.csv": [["x", "y"], ["", "#empty"]]}
+        assert _codes(_run(self._TABLES, self._tc(), files)) == [
+            "tcre:referenceKeyViolation"
+        ]
+
+    def test_target_index_is_complete_before_references_are_checked(self) -> None:
+        tables = _tables(r=XbrlCsvTable(url="r.csv"), t=XbrlCsvTable(url="t.csv"))
+        files = {"t.csv": self._TARGET, "r.csv": [["x", "y"], ["2", ""]]}
+        opened: list[str] = []
+        assert _run(tables, self._tc(), files, opened) == []
+        assert opened == ["r.csv", "t.csv", "r.csv"]
+
+    def test_target_before_reference_is_checked_in_one_read(self) -> None:
+        files = {"t.csv": self._TARGET, "r.csv": [["x", "y"], ["1", "b"]]}
+        opened: list[str] = []
+        assert _codes(_run(self._TABLES, self._tc(), files, opened)) == [
+            "tcre:referenceKeyViolation"
+        ]
+        assert opened == ["t.csv", "r.csv"]
+
+    def test_self_reference_waits_for_the_second_pass(self) -> None:
+        keys = TCKeys(
+            unique=(TCUniqueKey("k", ("a",), "error", False),),
+            reference=(TCReferenceKey("r", ("b",), "k", False, "error"),),
+        )
+        tc = _tc(t=_template(keys=keys, a=self._INTEGER, b=self._INTEGER))
+        rows = [["a", "b"], ["1", "2"], ["2", "1"]]
+        opened: list[str] = []
+        assert _run(_SINGLE_TABLE, tc, {"t.csv": rows}, opened) == []
+        assert opened == ["t.csv", "t.csv"]
+
+    def test_missing_tables_are_not_opened_again(self) -> None:
+        opened: list[str] = []
+        assert _run(self._TABLES, self._tc(), {"t.csv": self._TARGET}, opened) == []
+        assert opened == ["t.csv", "r.csv"]
+
+    def test_stores_no_second_pass_reads_are_cleared(self) -> None:
+        tc = _tc(
+            t=_template(keys=_unique("a"), a=self._INTEGER),
+            u=_template(keys=_unique("a", name="u"), a=self._INTEGER),
+            r=_template(keys=_reference("x"), x=self._INTEGER),
+        )
+        files = {"t.csv": [["a"], ["1"]], "u.csv": [["a"], ["1"]], "r.csv": [["x"], ["1"]]}
+
+        def open_table(table_id: str, table: XbrlCsvTable) -> Iterator[list[str]]:
+            return iter(files[table.url])
+
+        one = (KeyValue(1, Decimal(1)),)
+        # r comes before its target, so the second pass still reads k.
+        tables = _tables(
+            r=XbrlCsvTable(url="r.csv"),
+            t=XbrlCsvTable(url="t.csv"),
+            u=XbrlCsvTable(url="u.csv"),
+        )
+        validator = TCReportValidator(tables, tc, {}, open_table)
+        assert list(validator.validate()) == []
+        assert one in validator._key_stores["k"]
+        assert one not in validator._key_stores["u"]
+        # r comes after its target, so it was checked in the first pass.
+        tables = _tables(
+            t=XbrlCsvTable(url="t.csv"),
+            u=XbrlCsvTable(url="u.csv"),
+            r=XbrlCsvTable(url="r.csv"),
+        )
+        validator = TCReportValidator(tables, tc, {}, open_table)
+        assert list(validator.validate()) == []
+        assert one not in validator._key_stores["k"]
+
+    def test_target_index_spans_templates_sharing_the_key(self) -> None:
+        tables = _tables(
+            t=XbrlCsvTable(url="t.csv"),
+            u=XbrlCsvTable(url="u.csv"),
+            r=XbrlCsvTable(url="r.csv"),
+        )
+        tc = _tc(
+            t=_template(keys=_unique("a", shared=True), a=self._INTEGER),
+            u=_template(keys=_unique("a", shared=True), a=self._INTEGER),
+            r=_template(keys=_reference("x"), x=self._INTEGER),
+        )
+        files = {
+            "t.csv": [["a"], ["1"]],
+            "u.csv": [["a"], ["2"]],
+            "r.csv": [["x"], ["1"], ["2"], ["3"]],
+        }
+        errors = _run(tables, tc, files)
+        assert [error.row for error in errors] == [4]
+
+    def test_parameter_fields_take_the_effective_parameter_value(self) -> None:
+        tables = _tables(
+            t=XbrlCsvTable(url="t.csv", parameters={"p": "A"}),
+            r=XbrlCsvTable(url="r.csv", parameters={"q": "Z"}),
+        )
+        tc = _tc(
+            t=_template(keys=_unique("p"), parameters={"p": self._STRING}),
+            r=_template(keys=_reference("q"), parameters={"q": self._STRING}),
+        )
+        files = {"t.csv": [["n"], ["1"]], "r.csv": [["n"], ["1"], ["2"]]}
+        errors = _run(tables, tc, files, report_parameters={"q": "A"})
+        assert [error.row for error in errors] == [2, 3]
+        # A table without rows has no row to check.
+        assert _run(tables, tc, {"t.csv": [["n"], ["1"]], "r.csv": [["n"]]}) == []

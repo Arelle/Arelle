@@ -18,12 +18,14 @@ from arelle.oim._tc.const import (
     TCRE_MISSING_COLUMN,
     TCRE_MISSING_TIME_ZONE,
     TCRE_MISSING_VALUE,
+    TCRE_REFERENCE_KEY_VIOLATION,
     TCRE_SORT_KEY_VIOLATION,
     TCRE_UNEXPECTED_TIME_ZONE,
     TCRE_UNIQUE_KEY_VIOLATION,
 )
 from arelle.oim._tc.metadata.model import (
     TCMetadata,
+    TCReferenceKey,
     TCTemplateConstraints,
     TCUniqueKey,
     TCValueConstraint,
@@ -35,7 +37,12 @@ from arelle.oim._tc.report.cell import (
     row_has_value,
 )
 from arelle.oim._tc.report.common import TCReportValidationError
-from arelle.oim._tc.report.key_values import KeyFieldType, KeyValues, SortTracker
+from arelle.oim._tc.report.key_values import (
+    KeyFieldType,
+    KeyValues,
+    SortTracker,
+    has_invalid_value,
+)
 from arelle.oim._tc.report.keys import KeyStore, MemoryKeyStore
 from arelle.oim._tc.value_validator import ValueConstraintValidator
 from arelle.oim.const import NIL_SPECIAL_VALUE, XBRLCE_UNKNOWN_SPECIAL_VALUE
@@ -76,12 +83,22 @@ class _UniqueKey:
 
 
 @dataclass(frozen=True, slots=True)
+class _ReferenceKey:
+    name: str
+    fields: tuple[_KeyField, ...]
+    negate: bool
+    severity: str
+    target: KeyStore
+
+
+@dataclass(frozen=True, slots=True)
 class _Template:
     columns: tuple[_ConstraintSubject, ...]
     parameters: tuple[_ConstraintSubject, ...]
     column_order: tuple[str, ...] | None
     unique_keys: tuple[_UniqueKey, ...]
     sort_key: str | None
+    reference_keys: tuple[_ReferenceKey, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -125,6 +142,9 @@ class _TableKey:
     key: _UniqueKey
     sources: tuple[_FieldSource, ...]
     sort: SortTracker | None = None
+
+
+_ReferenceSources = list[tuple[_ReferenceKey, tuple[_FieldSource, ...]]]
 
 
 @dataclass(frozen=True, slots=True)
@@ -171,10 +191,27 @@ class TCReportValidator:
                 column_order=tc.column_order,
                 unique_keys=self._compile_unique_keys(tc),
                 sort_key=tc.keys.sort_key if tc.keys is not None else None,
+                reference_keys=self._compile_reference_keys(tc),
             )
             for template_id, tc in self._tc_metadata.template_constraints.items()
             if self._template_has_report_checks(tc)
         }
+
+    def _compile_reference_keys(
+        self, tc: TCTemplateConstraints
+    ) -> tuple[_ReferenceKey, ...]:
+        if tc.keys is None or tc.keys.reference is None:
+            return ()
+        return tuple(
+            _ReferenceKey(
+                key.name,
+                self._compile_key_fields(tc, key),
+                key.negate,
+                key.severity,
+                self._key_stores.setdefault(key.referenced_key_name, MemoryKeyStore()),
+            )
+            for key in tc.keys.reference
+        )
 
     def _compile_unique_keys(self, tc: TCTemplateConstraints) -> tuple[_UniqueKey, ...]:
         if tc.keys is None or tc.keys.unique is None:
@@ -190,7 +227,7 @@ class TCReportValidator:
         )
 
     def _compile_key_fields(
-        self, tc: TCTemplateConstraints, key: TCUniqueKey
+        self, tc: TCTemplateConstraints, key: TCUniqueKey | TCReferenceKey
     ) -> tuple[_KeyField, ...]:
         namespaces = self._csv_metadata.document_info.namespaces
         fields = []
@@ -232,7 +269,9 @@ class TCReportValidator:
                 yield from self._validate_uninstantiated_template(template_id)
         checked_report_params: set[tuple[str, str]] = set()
         sort_ranges: dict[str, list[_TableRange]] = {}
-        for table_id, table in tables.items():
+        last_writers = self._last_writers()
+        deferred_tables: list[tuple[str, XbrlCsvTable, _Template]] = []
+        for position, (table_id, table) in enumerate(tables.items()):
             template_id = table.template or table_id
             template = self._templates.get(template_id)
             if template is None:
@@ -244,13 +283,51 @@ class TCReportValidator:
                 continue
             self._report_progress(_("Validating table constraints of table {}").format(table_id))
             sort = SortTracker() if template.sort_key is not None else None
-            yield from self._validate_table(table_id, table, template, rows, sort)
+            # Reference keys are checked while the table is read when every table
+            # that fills their target stores came before it.
+            references_ready = all(
+                last_writers.get(key.target, -1) < position
+                for key in template.reference_keys
+            )
+            if not references_ready:
+                deferred_tables.append((table_id, table, template))
+            yield from self._validate_table(
+                table_id, table, template, rows, sort, references_ready
+            )
             if sort is not None and sort.first is not None and sort.last is not None:
                 sort_ranges.setdefault(template_id, []).append(
                     _TableRange(table_id, table, sort.first, sort.last)
                 )
         for template_id, ranges in sort_ranges.items():
             yield from self._validate_sort_ranges(self._templates[template_id], ranges)
+        # Only deferred reference keys read the stores from here on, so the rest can
+        # free their memory.
+        targets = {
+            key.target
+            for _, _, template in deferred_tables
+            for key in template.reference_keys
+        }
+        for store in self._key_stores.values():
+            if store not in targets:
+                store.clear()
+        for table_id, table, template in deferred_tables:
+            rows = self._open_table(table_id, table)
+            if rows is None:
+                continue
+            self._report_progress(
+                _("Validating reference keys of table {}").format(table_id)
+            )
+            yield from self._validate_reference_keys(table_id, table, template, rows)
+
+    def _last_writers(self) -> dict[KeyStore, int]:
+        """The position of the last table that adds values to each key store."""
+        last_writers: dict[KeyStore, int] = {}
+        for position, (table_id, table) in enumerate(self._csv_metadata.tables.items()):
+            template = self._templates.get(table.template or table_id)
+            if template is not None:
+                for key in template.unique_keys:
+                    last_writers[key.store] = position
+        return last_writers
 
     def _validate_uninstantiated_template(self, template_id: str) -> Generator[TCReportValidationError, None, None]:
         for parameter in self._templates[template_id].parameters:
@@ -321,12 +398,9 @@ class TCReportValidator:
         template: _Template,
         rows: TableRows,
         sort: SortTracker | None,
+        references_ready: bool,
     ) -> Generator[TCReportValidationError, None, None]:
-        header = next(rows, [])
-        column_indexes: dict[str, int] = {}
-        for index, name in enumerate(header):
-            # The loader reports repeated identifiers, the first occurrence wins here.
-            column_indexes.setdefault(name, index)
+        column_indexes = _column_indexes(next(rows, []))
         yield from self._validate_header(table_id, table, template, column_indexes)
         present_columns = [
             (column, column_indexes[column.name])
@@ -341,6 +415,11 @@ class TCReportValidator:
             )
             for key in template.unique_keys
         )
+        reference_keys = (
+            self._reference_sources(table, template, column_indexes)
+            if references_ready
+            else []
+        )
         for row_number, row in enumerate(rows, start=2):
             if row_number % _PROGRESS_ROW_INTERVAL == 0:
                 self._report_progress(
@@ -349,7 +428,72 @@ class TCReportValidator:
                     )
                 )
             yield from self._validate_row(
-                table_id, table, present_columns, table_keys, row_number, row
+                table_id,
+                table,
+                present_columns,
+                table_keys,
+                reference_keys,
+                row_number,
+                row,
+            )
+
+    def _validate_reference_keys(
+        self, table_id: str, table: XbrlCsvTable, template: _Template, rows: TableRows
+    ) -> Generator[TCReportValidationError, None, None]:
+        column_indexes = _column_indexes(next(rows, []))
+        reference_keys = self._reference_sources(table, template, column_indexes)
+        for row_number, row in enumerate(rows, start=2):
+            if row_number % _PROGRESS_ROW_INTERVAL == 0:
+                self._report_progress(
+                    _("Validating reference keys of table {} row {}").format(
+                        table_id, row_number
+                    )
+                )
+            if row_has_value(row):
+                yield from self._validate_references(
+                    table_id, table, reference_keys, row_number, row
+                )
+
+    def _reference_sources(
+        self, table: XbrlCsvTable, template: _Template, column_indexes: Mapping[str, int]
+    ) -> _ReferenceSources:
+        return [
+            (key, self._field_sources(table, key.fields, column_indexes))
+            for key in template.reference_keys
+        ]
+
+    @staticmethod
+    def _validate_references(
+        table_id: str,
+        table: XbrlCsvTable,
+        reference_keys: _ReferenceSources,
+        row_number: int,
+        row: list[str],
+    ) -> Generator[TCReportValidationError, None, None]:
+        for key, sources in reference_keys:
+            values = _field_values(sources, row)
+            if all(value is None for value in values):
+                continue
+            key_values = _key_values(sources, values)
+            if has_invalid_value(key_values):
+                # An invalid literal has no value to look up, and its cell is
+                # already reported.
+                continue
+            found = key_values in key.target
+            must_match = not key.negate
+            if found == must_match:
+                continue
+            if found:
+                message = _("reference key '{}' value {} has a match in the referenced key")
+            else:
+                message = _("reference key '{}' value {} has no match in the referenced key")
+            yield TCReportValidationError(
+                message.format(key.name, _describe_values(values)),
+                code=TCRE_REFERENCE_KEY_VIOLATION,
+                table_id=table_id,
+                url=table.url,
+                severity=key.severity,
+                row=row_number,
             )
 
     @staticmethod
@@ -400,6 +544,7 @@ class TCReportValidator:
         table: XbrlCsvTable,
         present_columns: list[tuple[_ConstraintSubject, int]],
         table_keys: tuple[_TableKey, ...],
+        reference_keys: _ReferenceSources,
         row_number: int,
         row: list[str],
     ) -> Generator[TCReportValidationError, None, None]:
@@ -441,6 +586,9 @@ class TCReportValidator:
                     url=table.url,
                     row=row_number,
                 )
+        yield from self._validate_references(
+            table_id, table, reference_keys, row_number, row
+        )
 
     def _validate_header(
         self,
@@ -526,6 +674,14 @@ def _validate_value(
     if code is None:
         return None
     return _Violation(code, _describe_violation(code, value, constraint))
+
+
+def _column_indexes(header: list[str]) -> dict[str, int]:
+    column_indexes: dict[str, int] = {}
+    for index, name in enumerate(header):
+        # The loader reports repeated identifiers, the first occurrence wins here.
+        column_indexes.setdefault(name, index)
+    return column_indexes
 
 
 def _field_values(

@@ -75,6 +75,11 @@ class KeyFieldType:
         return KeyValue(_TYPED_RANK, typed_value)
 
 
+def has_invalid_value(key_values: KeyValues) -> bool:
+    """Whether any field literal is outside the value space of its type."""
+    return any(key_value.rank == _INVALID_RANK for key_value in key_values)
+
+
 class SortTracker:
     """Checks that the key values of consecutive rows of one table strictly increase.
 
@@ -89,7 +94,7 @@ class SortTracker:
 
     def add(self, key: KeyValues) -> bool:
         """Records a row's key value and returns False for the first row out of order."""
-        if any(key_value.rank == _INVALID_RANK for key_value in key):
+        if has_invalid_value(key):
             # An invalid literal has no place in the order of its type, and its cell
             # is already reported.
             return True
