@@ -169,7 +169,8 @@ def _parse_property_group(pg_dict: dict[str, Any]) -> XbrlCsvPropertyGroup:
 
 
 def _parse_dimensions(dims: Any) -> XbrlCsvDimensions | None:
-    if not isinstance(dims, dict) or not dims:
+    # An empty dimensions object still makes a column a fact column, so absence is kept apart.
+    if not isinstance(dims, dict):
         return None
     return XbrlCsvDimensions(
         concept=_as_str_or_none(dims.get("concept")),
