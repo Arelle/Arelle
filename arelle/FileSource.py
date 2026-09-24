@@ -555,19 +555,10 @@ class FileSource:
         archiveFileSource = self.fileSourceContainingFilepath(filepath)
         if archiveFileSource is not None:
             assert isinstance(archiveFileSource.basefile, str)
-
-            if filepath.startswith(archiveFileSource.basefile):
-                archiveFileName = filepath[len(archiveFileSource.basefile) + 1:]
-            else: # filepath.startswith(self.baseurl)
-                assert isinstance(archiveFileSource.baseurl, str)
-                archiveFileName = filepath[len(archiveFileSource.baseurl) + 1:]
+            archiveFileName = _archiveFileName(archiveFileSource, filepath)
             if archiveFileSource.isZip:
                 try:
-                    if archiveFileSource.isZipBackslashed:
-                        f = archiveFileName.replace("/", "\\")
-                    else:
-                        f = archiveFileName.replace("\\","/")
-
+                    f = _zipMemberName(archiveFileSource, archiveFileName)
                     assert isinstance(archiveFileSource.fs, zipfile.ZipFile)
                     b = archiveFileSource.fs.read(f)
                     if binary:
@@ -851,6 +842,23 @@ class FileSource:
             yield from self.cntlr.plugins.hooks(className)
             return
         yield from iter(())
+
+
+def _archiveFileName(archiveFileSource: FileSource, filepath: str) -> str:
+    """The path of a file inside an archive."""
+    assert isinstance(archiveFileSource.basefile, str)
+    if filepath.startswith(archiveFileSource.basefile):
+        return filepath[len(archiveFileSource.basefile) + 1:]
+    # filepath.startswith(archiveFileSource.baseurl)
+    assert isinstance(archiveFileSource.baseurl, str)
+    return filepath[len(archiveFileSource.baseurl) + 1:]
+
+
+def _zipMemberName(archiveFileSource: FileSource, archiveFileName: str) -> str:
+    """The name of a zip member, with the separators that zip uses."""
+    if archiveFileSource.isZipBackslashed:
+        return archiveFileName.replace("/", "\\")
+    return archiveFileName.replace("\\", "/")
 
 
 def openFileStream(
