@@ -322,11 +322,7 @@ class TCReportValidator:
         rows: TableRows,
         sort: SortTracker | None,
     ) -> Generator[TCReportValidationError, None, None]:
-        header = next(rows, [])
-        column_indexes: dict[str, int] = {}
-        for index, name in enumerate(header):
-            # The loader reports repeated identifiers, the first occurrence wins here.
-            column_indexes.setdefault(name, index)
+        column_indexes = _column_indexes(next(rows, []))
         yield from self._validate_header(table_id, table, template, column_indexes)
         present_columns = [
             (column, column_indexes[column.name])
@@ -526,6 +522,14 @@ def _validate_value(
     if code is None:
         return None
     return _Violation(code, _describe_violation(code, value, constraint))
+
+
+def _column_indexes(header: list[str]) -> dict[str, int]:
+    column_indexes: dict[str, int] = {}
+    for index, name in enumerate(header):
+        # The loader reports repeated identifiers, the first occurrence wins here.
+        column_indexes.setdefault(name, index)
+    return column_indexes
 
 
 def _field_values(
