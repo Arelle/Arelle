@@ -9,10 +9,16 @@ import pytest
 from arelle.oim._tc.xs_dates import (
     XsInstant,
     days_since_epoch,
+    parse_day_time_duration,
     parse_date,
     parse_date_time,
     parse_g_year,
+    parse_g_day,
+    parse_g_month,
+    parse_g_month_day,
     parse_g_year_month,
+    parse_time,
+    parse_year_month_duration,
     year_number,
 )
 
@@ -96,6 +102,11 @@ class TestParseDateTime:
     def test_fractional_seconds_are_exact(self) -> None:
         assert parse_date_time("2024-01-01T12:00:00.5") == parse_date_time("2024-01-01T12:00:00.50")
         assert parse_date_time("2024-01-01T12:00:00.1") != parse_date_time("2024-01-01T12:00:00.10000001")
+
+    def test_fractional_seconds_beyond_28_digits_stay_distinct(self) -> None:
+        first = parse_date_time("2024-01-01T00:00:01.0000000000000000000000000001Z")
+        second = parse_date_time("2024-01-01T00:00:01.0000000000000000000000000002Z")
+        assert first != second
 
     def test_end_of_day_rolls_over(self) -> None:
         assert parse_date_time("2024-01-01T24:00:00") == parse_date_time("2024-01-02T00:00:00")
@@ -210,3 +221,98 @@ class TestCompare:
         assert self._instant("2024-01-01T00:00:00Z").compare(self._instant("2024-01-01T14:00:00")) is None
         assert self._instant("2024-01-01T00:00:00Z").compare(self._instant("2024-01-01T14:00:01")) == -1
         assert self._instant("2024-01-01T14:00:01").compare(self._instant("2024-01-01T00:00:00Z")) == 1
+
+
+class TestParseTime:
+    def test_seconds_into_the_day(self) -> None:
+        assert parse_time("01:02:03.5") == Decimal("3723.5")
+
+    @pytest.mark.parametrize(
+        "first, second",
+        [
+            ("24:00:00", "00:00:00"),
+            ("12:00:00Z", "13:00:00+01:00"),
+            ("00:00:00+01:00", "23:00:00Z"),
+            ("23:30:00-01:00", "00:30:00Z"),
+            ("12:00:00.0", "12:00:00"),
+        ],
+    )
+    def test_lexical_forms_of_one_time_are_equal(self, first: str, second: str) -> None:
+        assert parse_time(first) == parse_time(second)
+
+    @pytest.mark.parametrize("value", ["24:00:01", "12:60:00", "12:00", "T12:00:00", "12:00:00+15:00"])
+    def test_rejects_invalid_lexical_values(self, value: str) -> None:
+        assert parse_time(value) is None
+
+
+class TestParseRecurring:
+    def test_leap_day_exists(self) -> None:
+        assert parse_g_month_day("--02-29") is not None
+
+    def test_values_order_through_the_year(self) -> None:
+        values = ["--01-01", "--02-29", "--12-31"]
+        positions = [parse_g_month_day(value) for value in values]
+        assert positions == sorted(positions)
+
+    def test_time_zone_moves_the_value_into_the_previous_day(self) -> None:
+        assert parse_g_month_day("--12-31+14:00") == parse_g_month_day("--12-30-10:00")
+
+    @pytest.mark.parametrize(
+        "parser, first, second",
+        [
+            (parse_g_month_day, "--12-25Z", "--12-25+00:00"),
+            (parse_g_day, "---05Z", "---05+00:00"),
+            (parse_g_month, "--06Z", "--06+00:00"),
+        ],
+    )
+    def test_lexical_forms_of_one_value_are_equal(
+        self, parser: Callable[[str], Decimal | None], first: str, second: str
+    ) -> None:
+        assert parser(first) == parser(second)
+
+    @pytest.mark.parametrize(
+        "parser, value",
+        [
+            (parse_g_month_day, "--02-30"),
+            (parse_g_month_day, "--13-01"),
+            (parse_g_day, "---32"),
+            (parse_g_month, "--00"),
+            (parse_g_month, "2024-06"),
+        ],
+    )
+    def test_rejects_invalid_lexical_values(self, parser: Callable[[str], Decimal | None], value: str) -> None:
+        assert parser(value) is None
+
+
+class TestParseDurations:
+    @pytest.mark.parametrize(
+        "value, months",
+        [("P1Y", 12), ("P12M", 12), ("P1Y2M", 14), ("-P1Y", -12), ("P0M", 0)],
+    )
+    def test_year_month_length(self, value: str, months: int) -> None:
+        assert parse_year_month_duration(value) == months
+
+    @pytest.mark.parametrize(
+        "value, seconds",
+        [("P1D", 86400), ("PT24H", 86400), ("PT1M", 60), ("PT1.5S", Decimal("1.5")), ("-PT1H", -3600)],
+    )
+    def test_day_time_length(self, value: str, seconds: Decimal) -> None:
+        assert parse_day_time_duration(value) == seconds
+
+    @pytest.mark.parametrize("value", ["P1D", "PT1H", "P", "PT", "P-1Y", "1Y"])
+    def test_year_month_rejects(self, value: str) -> None:
+        assert parse_year_month_duration(value) is None
+
+    @pytest.mark.parametrize("value", ["P1Y", "P1M", "P", "PT", "P-1D", "PT1.S"])
+    def test_day_time_rejects(self, value: str) -> None:
+        assert parse_day_time_duration(value) is None
+
+    def test_oversized_parts_are_parsed(self) -> None:
+        digits = "1" * 5000
+        assert parse_year_month_duration(f"P{digits}M") == Decimal(digits)
+        assert parse_day_time_duration(f"PT{digits}S") == Decimal(digits)
+
+    def test_fractional_seconds_beyond_28_digits_stay_distinct(self) -> None:
+        first = parse_day_time_duration("PT1.0000000000000000000000000001S")
+        second = parse_day_time_duration("PT1.0000000000000000000000000002S")
+        assert first != second

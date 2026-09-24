@@ -270,7 +270,10 @@
         "name": "Spain"
     },
     "FI": {
-        "name": "Finland",
+        "name": "Finland"
+    },
+    "FI-PRH": {
+        "name": "Finland PRH",
         "ixTargetUsage": "allowed",
         "ixdsMultiUsage": "allowed",
         "otherTargetsPermitTuples": true

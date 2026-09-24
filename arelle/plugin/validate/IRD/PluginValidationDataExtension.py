@@ -44,6 +44,12 @@ class PluginValidationDataExtension(PluginData):
     basisPeriodStartDateQn: QName
     basisPeriodEndDateQn: QName
 
+    # Accounting period (nvad_accounting_period)
+    accountingDateDifferentQn: QName
+    reasonsForChangeOfAccountingDateQn: QName
+    accountingPeriodStartDateQn: QName
+    accountingPeriodEndDateQn: QName
+
     # HKSIC code (nvad_structural, NVAD-E-0170/0180/0190)
     hksicCodeQn: QName
     hksicCodeRegex: re.Pattern[str]     # r'^\d{6}$'

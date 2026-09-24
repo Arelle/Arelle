@@ -7,8 +7,10 @@ import pytest
 
 from arelle import XbrlConst
 from arelle.oim._tc.metadata.model import (
+    TCKeys,
     TCMetadata,
     TCTemplateConstraints,
+    TCUniqueKey,
     TCValueConstraint,
 )
 from arelle.oim._tc.report.common import TCReportValidationError
@@ -36,10 +38,16 @@ def _tc(**templates: TCTemplateConstraints) -> TCMetadata:
 
 
 def _template(
-    column_order: tuple[str, ...] | None = None, **constraints: TCValueConstraint
+    column_order: tuple[str, ...] | None = None,
+    parameters: Mapping[str, TCValueConstraint] | None = None,
+    keys: TCKeys | None = None,
+    **constraints: TCValueConstraint,
 ) -> TCTemplateConstraints:
     return TCTemplateConstraints(
-        constraints=MappingProxyType(constraints), column_order=column_order
+        constraints=MappingProxyType(constraints),
+        parameters=MappingProxyType(parameters or {}),
+        keys=keys,
+        column_order=column_order,
     )
 
 
@@ -48,6 +56,7 @@ def _run(
     tc_metadata: TCMetadata,
     files: Mapping[str, list[list[str]]],
     opened: list[str] | None = None,
+    report_parameters: Mapping[str, str | None] | None = None,
 ) -> list[TCReportValidationError]:
     def open_table(table_id: str, table: XbrlCsvTable) -> Iterator[list[str]] | None:
         if opened is not None:
@@ -55,7 +64,11 @@ def _run(
         rows = files.get(table.url)
         return iter(rows) if rows is not None else None
 
-    return list(TCReportValidator(csv_metadata, tc_metadata, open_table).validate())
+    return list(
+        TCReportValidator(
+            csv_metadata, tc_metadata, report_parameters or {}, open_table
+        ).validate()
+    )
 
 
 def _codes(errors: list[TCReportValidationError]) -> list[str]:
@@ -273,8 +286,501 @@ class TestTables:
         validator = TCReportValidator(
             _SINGLE_TABLE,
             tc,
+            {},
             lambda table_id, table: iter([["n"], ["1"]]),
             messages.append,
         )
         assert list(validator.validate()) == []
         assert messages == ["Validating table constraints of table t"]
+
+
+class TestColumnParameterConflicts:
+    _TC = _tc(
+        t=_template(n=TCValueConstraint("xs:integer"), s=TCValueConstraint("xs:string"))
+    )
+    _ROWS = {"t.csv": [["n", "s", "u"], ["1", "a", "b"]]}
+
+    def test_report_parameter_named_like_a_constrained_column(self) -> None:
+        (error,) = _run(
+            _SINGLE_TABLE, self._TC, self._ROWS, report_parameters={"n": "1"}
+        )
+        assert error.code == "tcre:columnParameterConflict"
+        assert (
+            str(error)
+            == "table 't' parameter 'n': report parameter 'n' has the same name as a constrained column, url: t.csv"
+        )
+
+    def test_table_parameter_named_like_a_constrained_column(self) -> None:
+        tables = _tables(
+            t=XbrlCsvTable(url="t.csv", parameters=MappingProxyType({"s": "x"}))
+        )
+        errors = _run(tables, self._TC, self._ROWS)
+        assert _codes(errors) == ["tcre:columnParameterConflict"]
+        assert errors[0].parameter == "s"
+        assert "table parameter 's' has the same name" in str(errors[0])
+
+    def test_conflict_is_reported_once_per_table_and_name(self) -> None:
+        tables = _tables(
+            t=XbrlCsvTable(url="t.csv", parameters=MappingProxyType({"n": "1"})),
+            u=XbrlCsvTable(url="t.csv", template="t"),
+        )
+        errors = _run(tables, self._TC, self._ROWS, report_parameters={"n": "2"})
+        assert [(error.table_id, error.parameter) for error in errors] == [
+            ("t", "n"),
+            ("u", "n"),
+        ]
+
+    def test_unconstrained_column_names_do_not_conflict(self) -> None:
+        tables = _tables(
+            t=XbrlCsvTable(url="t.csv", parameters=MappingProxyType({"u": "x"}))
+        )
+        assert _run(tables, self._TC, self._ROWS, report_parameters={"u": "y"}) == []
+
+
+def _parameter_table(**parameters: str) -> XbrlCsvEffectiveMetadata:
+    return _tables(t=XbrlCsvTable(url="t.csv", parameters=MappingProxyType(parameters)))
+
+
+class TestDefinedParameters:
+    _ROWS = {"t.csv": [["n"], ["1"]]}
+
+    @staticmethod
+    def _tc(**parameters: TCValueConstraint) -> TCMetadata:
+        return _tc(
+            t=_template(parameters=parameters, n=TCValueConstraint("xs:integer"))
+        )
+
+    def test_valid_parameters_produce_no_errors(self) -> None:
+        tc = self._tc(
+            p=TCValueConstraint("xs:integer"), q=TCValueConstraint("xs:string")
+        )
+        tables = _parameter_table(p="1")
+        assert _run(tables, tc, self._ROWS, report_parameters={"q": "a"}) == []
+
+    def test_invalid_table_parameter_is_reported_with_its_location(self) -> None:
+        tc = self._tc(p=TCValueConstraint("xs:integer"))
+        (error,) = _run(_parameter_table(p="x"), tc, self._ROWS)
+        assert (
+            error.code,
+            error.table_id,
+            error.row,
+            error.column,
+            error.parameter,
+        ) == (
+            "tcre:invalidValue",
+            "t",
+            None,
+            None,
+            "p",
+        )
+        assert (
+            str(error)
+            == "table 't' parameter 'p': value 'x' is not valid for the xs:integer constraint, url: t.csv"
+        )
+
+    def test_invalid_report_parameter_is_reported(self) -> None:
+        tc = self._tc(p=TCValueConstraint("xs:integer"))
+        errors = _run(_SINGLE_TABLE, tc, self._ROWS, report_parameters={"p": "x"})
+        assert _codes(errors) == ["tcre:invalidValue"]
+
+    def test_table_parameter_shadows_the_report_parameter(self) -> None:
+        tc = self._tc(p=TCValueConstraint("xs:integer"))
+        tables = _parameter_table(p="1")
+        assert _run(tables, tc, self._ROWS, report_parameters={"p": "x"}) == []
+        errors = _run(
+            _parameter_table(p="x"), tc, self._ROWS, report_parameters={"p": "1"}
+        )
+        assert _codes(errors) == ["tcre:invalidValue"]
+
+    def test_required_parameter_without_a_value_is_missing(self) -> None:
+        tc = self._tc(p=TCValueConstraint("xs:integer"))
+        (error,) = _run(_SINGLE_TABLE, tc, self._ROWS)
+        assert error.code == "tcre:missingValue"
+        assert (
+            str(error)
+            == "table 't' parameter 'p': the parameter is required and has no value, url: t.csv"
+        )
+
+    @pytest.mark.parametrize("literal", ["#none", "#nil"])
+    def test_null_special_values_leave_a_required_parameter_missing(
+        self, literal: str
+    ) -> None:
+        tc = self._tc(p=TCValueConstraint("xs:integer", nillable=True))
+        errors = _run(
+            _parameter_table(p=literal), tc, self._ROWS, report_parameters={"p": "1"}
+        )
+        assert _codes(errors) == ["tcre:missingValue"]
+
+    def test_optional_parameter_without_a_value_is_fine(self) -> None:
+        tc = self._tc(p=TCValueConstraint("xs:integer", optional=True))
+        assert _run(_SINGLE_TABLE, tc, self._ROWS) == []
+
+    def test_nil_in_a_parameter_that_is_not_nillable_is_invalid(self) -> None:
+        tc = self._tc(p=TCValueConstraint("xs:integer", optional=True))
+        errors = _run(_parameter_table(p="#nil"), tc, self._ROWS)
+        assert _codes(errors) == ["tcre:invalidValue"]
+
+    def test_empty_string_is_a_value(self) -> None:
+        tc = self._tc(p=TCValueConstraint("xs:string"))
+        assert _run(_parameter_table(p=""), tc, self._ROWS) == []
+        tc = self._tc(p=TCValueConstraint("xs:integer", optional=True))
+        errors = _run(_SINGLE_TABLE, tc, self._ROWS, report_parameters={"p": ""})
+        assert _codes(errors) == ["tcre:invalidValue"]
+
+    def test_empty_special_value_is_validated_as_an_empty_string(self) -> None:
+        tc = self._tc(p=TCValueConstraint("xs:string", min_length=1))
+        errors = _run(_parameter_table(p="#empty"), tc, self._ROWS)
+        assert _codes(errors) == ["tcre:invalidValue"]
+
+    def test_unknown_special_values_are_left_to_the_loader(self) -> None:
+        tc = self._tc(p=TCValueConstraint("xs:integer"))
+        assert _run(_parameter_table(p="#bogus"), tc, self._ROWS) == []
+
+    def test_report_parameter_is_checked_once_per_template(self) -> None:
+        tc = _tc(
+            a=_template(parameters={"p": TCValueConstraint("xs:integer")}),
+            b=_template(parameters={"p": TCValueConstraint("xs:integer")}),
+        )
+        tables = _tables(
+            a1=XbrlCsvTable(url="a1.csv", template="a"),
+            a2=XbrlCsvTable(url="a2.csv", template="a"),
+            a3=XbrlCsvTable(
+                url="a3.csv", template="a", parameters=MappingProxyType({"p": "y"})
+            ),
+            b1=XbrlCsvTable(url="b1.csv", template="b"),
+        )
+        errors = _run(tables, tc, {}, report_parameters={"p": "x"})
+        assert [error.table_id for error in errors] == ["a1", "a3", "b1"]
+
+    def test_parameters_are_checked_when_the_table_file_is_missing(self) -> None:
+        tc = self._tc(p=TCValueConstraint("xs:integer"))
+        assert _codes(_run(_SINGLE_TABLE, tc, {})) == ["tcre:missingValue"]
+
+
+class TestUninstantiatedTemplates:
+    _TC = _tc(
+        t=_template(n=TCValueConstraint("xs:integer")),
+        u=_template(parameters={"p": TCValueConstraint("xs:integer")}),
+    )
+    _ROWS = {"t.csv": [["n"], ["1"]]}
+
+    def test_supplied_report_parameter_is_checked(self) -> None:
+        (error,) = _run(
+            _SINGLE_TABLE, self._TC, self._ROWS, report_parameters={"p": "x"}
+        )
+        assert error.code == "tcre:invalidValue"
+        assert (
+            str(error)
+            == "template 'u' parameter 'p': value 'x' is not valid for the xs:integer constraint"
+        )
+
+    def test_nil_is_checked_but_null_is_not_missing(self) -> None:
+        errors = _run(
+            _SINGLE_TABLE, self._TC, self._ROWS, report_parameters={"p": "#nil"}
+        )
+        assert _codes(errors) == ["tcre:invalidValue"]
+        assert (
+            _run(_SINGLE_TABLE, self._TC, self._ROWS, report_parameters={"p": "#none"})
+            == []
+        )
+        assert _run(_SINGLE_TABLE, self._TC, self._ROWS) == []
+
+
+def _unique(
+    *fields: str,
+    name: str = "k",
+    severity: str = "error",
+    shared: bool = False,
+    sort: bool = False,
+) -> TCKeys:
+    return TCKeys(
+        unique=(TCUniqueKey(name, fields, severity, shared),),
+        sort_key=name if sort else None,
+    )
+
+
+class TestUniqueKeys:
+    _INTEGER = TCValueConstraint("xs:integer")
+    _STRING = TCValueConstraint("xs:string", optional=True, nillable=True)
+
+    def test_duplicate_key_value_is_reported_on_the_later_row(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a", "b"), a=self._INTEGER, b=self._STRING))
+        rows = [["a", "b"], ["1", "x"], ["1", "y"], ["1", "x"]]
+        (error,) = _run(_SINGLE_TABLE, tc, {"t.csv": rows})
+        assert (
+            error.code,
+            error.severity,
+            error.table_id,
+            error.row,
+            error.column,
+        ) == (
+            "tcre:uniqueKeyViolation",
+            "error",
+            "t",
+            4,
+            None,
+        )
+        assert (
+            str(error)
+            == "table 't' row 4: unique key 'k' value ('1', 'x') appears in more than one row, url: t.csv"
+        )
+
+    def test_warning_severity_is_kept(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a", severity="warning"), a=self._INTEGER))
+        (error,) = _run(_SINGLE_TABLE, tc, {"t.csv": [["a"], ["1"], ["1"]]})
+        assert (error.code, error.severity) == ("tcre:uniqueKeyViolation", "warning")
+
+    def test_values_compare_in_the_value_space(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a"), a=self._INTEGER))
+        errors = _run(_SINGLE_TABLE, tc, {"t.csv": [["a"], ["1"], ["01"], ["+1"]]})
+        assert [error.row for error in errors] == [3, 4]
+
+    def test_nulls_are_equal_and_distinct_from_the_empty_string(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a"), a=self._STRING, b=self._STRING))
+        rows = [["a", "b"], ["", "x"], ["#nil", "x"], ["#none", "x"], ["#empty", "x"]]
+        errors = _run(_SINGLE_TABLE, tc, {"t.csv": rows})
+        assert [error.row for error in errors] == [3, 4]
+
+    def test_rows_without_a_value_are_skipped(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a"), a=self._STRING))
+        assert _run(_SINGLE_TABLE, tc, {"t.csv": [["a"], [""], [""]]}) == []
+
+    def test_key_spans_tables_of_one_template(self) -> None:
+        tables = _tables(
+            t1=XbrlCsvTable(url="a.csv", template="t"),
+            t2=XbrlCsvTable(url="b.csv", template="t"),
+        )
+        tc = _tc(t=_template(keys=_unique("a"), a=self._INTEGER))
+        files = {"a.csv": [["a"], ["1"]], "b.csv": [["a"], ["2"], ["1"]]}
+        (error,) = _run(tables, tc, files)
+        assert (error.table_id, error.row) == ("t2", 3)
+
+    def test_shared_key_spans_templates(self) -> None:
+        tables = _tables(t=XbrlCsvTable(url="t.csv"), u=XbrlCsvTable(url="u.csv"))
+        tc = _tc(
+            t=_template(keys=_unique("a", shared=True), a=self._INTEGER),
+            u=_template(keys=_unique("b", shared=True), b=self._INTEGER),
+        )
+        files = {"t.csv": [["a"], ["1"]], "u.csv": [["b"], ["1"]]}
+        (error,) = _run(tables, tc, files)
+        assert (error.table_id, error.row) == ("u", 2)
+
+    def test_keys_with_different_names_are_independent(self) -> None:
+        tables = _tables(t=XbrlCsvTable(url="t.csv"), u=XbrlCsvTable(url="u.csv"))
+        tc = _tc(
+            t=_template(keys=_unique("a", name="k1"), a=self._INTEGER),
+            u=_template(keys=_unique("b", name="k2"), b=self._INTEGER),
+        )
+        files = {"t.csv": [["a"], ["1"]], "u.csv": [["b"], ["1"]]}
+        assert _run(tables, tc, files) == []
+
+    def test_parameter_fields_are_constant_per_table(self) -> None:
+        tables = _tables(
+            t1=XbrlCsvTable(url="a.csv", template="t", parameters={"p": "x"}),
+            t2=XbrlCsvTable(url="b.csv", template="t", parameters={"p": "y"}),
+            t3=XbrlCsvTable(url="b.csv", template="t", parameters={"p": "x"}),
+        )
+        tc = _tc(
+            t=_template(
+                keys=_unique("p", "a"),
+                parameters={"p": self._STRING},
+                a=self._INTEGER,
+            )
+        )
+        files = {"a.csv": [["a"], ["1"]], "b.csv": [["a"], ["1"]]}
+        (error,) = _run(tables, tc, files)
+        assert (error.table_id, error.row) == ("t3", 2)
+        assert "('x', '1')" in str(error)
+
+    def test_report_parameter_field_falls_back_to_the_report(self) -> None:
+        tc = _tc(
+            t=_template(
+                keys=_unique("p", "a"),
+                parameters={"p": self._STRING},
+                a=self._INTEGER,
+            )
+        )
+        rows = [["a"], ["1"], ["1"]]
+        (error,) = _run(
+            _SINGLE_TABLE, tc, {"t.csv": rows}, report_parameters={"p": "#nil"}
+        )
+        assert "(null, '1')" in str(error)
+
+    def test_missing_column_field_is_null(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a", "b"), a=self._INTEGER, b=self._STRING))
+        errors = _run(_SINGLE_TABLE, tc, {"t.csv": [["a"], ["1"], ["1"]]})
+        assert _codes(errors) == ["tcre:uniqueKeyViolation"]
+        assert "('1', null)" in str(errors[0])
+
+    def test_unknown_special_value_keeps_its_literal(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a"), a=self._STRING))
+        errors = _run(_SINGLE_TABLE, tc, {"t.csv": [["a"], ["#bogus"], ["#bogus"]]})
+        assert _codes(errors) == [
+            "xbrlce:unknownSpecialValue",
+            "xbrlce:unknownSpecialValue",
+            "tcre:uniqueKeyViolation",
+        ]
+
+
+class TestSortKeys:
+    _INTEGER = TCValueConstraint("xs:integer")
+    _STRING = TCValueConstraint("xs:string", optional=True, nillable=True)
+
+    def test_sorted_rows_produce_no_errors(self) -> None:
+        tc = _tc(
+            t=_template(
+                keys=_unique("a", "b", sort=True), a=self._INTEGER, b=self._STRING
+            )
+        )
+        rows = [["a", "b"], ["1", ""], ["1", "a"], ["2", ""], ["10", "b"]]
+        assert _run(_SINGLE_TABLE, tc, {"t.csv": rows}) == []
+
+    def test_first_row_out_of_order_is_reported_once(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a", sort=True), a=self._INTEGER))
+        rows = [["a"], ["3"], ["2"], ["1"], ["4"]]
+        (error,) = _run(_SINGLE_TABLE, tc, {"t.csv": rows})
+        assert (error.code, error.table_id, error.row, error.column) == (
+            "tcre:sortKeyViolation",
+            "t",
+            3,
+            None,
+        )
+        assert (
+            str(error)
+            == "table 't' row 3: sort key 'k' value ('2') does not follow the preceding rows, url: t.csv"
+        )
+
+    def test_equal_rows_violate_both_sort_and_unique_keys(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a", sort=True), a=self._INTEGER))
+        errors = _run(_SINGLE_TABLE, tc, {"t.csv": [["a"], ["1"], ["01"]]})
+        assert _codes(errors) == ["tcre:uniqueKeyViolation", "tcre:sortKeyViolation"]
+
+    def test_tie_is_resolved_by_the_next_field(self) -> None:
+        tc = _tc(
+            t=_template(
+                keys=_unique("a", "b", sort=True), a=self._INTEGER, b=self._STRING
+            )
+        )
+        rows = [["a", "b"], ["1", "b"], ["1", "a"]]
+        assert _codes(_run(_SINGLE_TABLE, tc, {"t.csv": rows})) == [
+            "tcre:sortKeyViolation"
+        ]
+
+    def test_null_sorts_first(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a", sort=True), a=self._STRING))
+        assert _run(_SINGLE_TABLE, tc, {"t.csv": [["a"], ["#nil"], ["a"]]}) == []
+        assert _codes(_run(_SINGLE_TABLE, tc, {"t.csv": [["a"], ["a"], ["#nil"]]})) == [
+            "tcre:sortKeyViolation"
+        ]
+
+    def test_invalid_values_are_left_out_of_the_order(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a", sort=True), a=self._INTEGER))
+        sorted_rows = [["a"], ["2"], ["x"], ["3"]]
+        assert _codes(_run(_SINGLE_TABLE, tc, {"t.csv": sorted_rows})) == [
+            "tcre:invalidValue"
+        ]
+        unsorted_rows = [["a"], ["2"], ["x"], ["1"]]
+        assert _codes(_run(_SINGLE_TABLE, tc, {"t.csv": unsorted_rows})) == [
+            "tcre:invalidValue",
+            "tcre:sortKeyViolation",
+        ]
+
+    def test_invalid_later_field_leaves_the_row_out_of_the_order(self) -> None:
+        tc = _tc(
+            t=_template(
+                keys=_unique("a", "b", sort=True), a=self._INTEGER, b=self._INTEGER
+            )
+        )
+        rows = [["a", "b"], ["2", "1"], ["1", "x"]]
+        assert _codes(_run(_SINGLE_TABLE, tc, {"t.csv": rows})) == [
+            "tcre:invalidValue"
+        ]
+
+    def test_only_the_sort_key_is_checked_for_order(self) -> None:
+        keys = TCKeys(
+            unique=(
+                TCUniqueKey("u", ("a",), "error", False),
+                TCUniqueKey("s", ("b",), "error", False),
+            ),
+            sort_key="s",
+        )
+        tc = _tc(t=_template(keys=keys, a=self._INTEGER, b=self._INTEGER))
+        other_key_unsorted = [["a", "b"], ["2", "1"], ["1", "2"]]
+        assert _run(_SINGLE_TABLE, tc, {"t.csv": other_key_unsorted}) == []
+        sort_key_unsorted = [["a", "b"], ["1", "2"], ["2", "1"]]
+        (error,) = _run(_SINGLE_TABLE, tc, {"t.csv": sort_key_unsorted})
+        assert "sort key 's'" in str(error)
+
+    def test_parameter_field_precedes_column_fields(self) -> None:
+        tc = _tc(
+            t=_template(
+                keys=_unique("p", "a", sort=True),
+                parameters={"p": self._INTEGER},
+                a=self._INTEGER,
+            )
+        )
+        rows = [["a"], ["2"], ["1"]]
+        (error,) = _run(_parameter_table(p="4"), tc, {"t.csv": rows})
+        assert "('4', '1')" in str(error)
+
+    def test_tables_are_sorted_independently(self) -> None:
+        tables = _tables(
+            t1=XbrlCsvTable(url="a.csv", template="t"),
+            t2=XbrlCsvTable(url="b.csv", template="t"),
+        )
+        tc = _tc(t=_template(keys=_unique("a", sort=True), a=self._INTEGER))
+        files = {"a.csv": [["a"], ["3"]], "b.csv": [["a"], ["1"]]}
+        assert _run(tables, tc, files) == []
+
+
+class TestSortKeyRanges:
+    _INTEGER = TCValueConstraint("xs:integer")
+    _TABLES = _tables(
+        t1=XbrlCsvTable(url="a.csv", template="t"),
+        t2=XbrlCsvTable(url="b.csv", template="t"),
+    )
+    _TC = _tc(t=_template(keys=_unique("a", sort=True), a=_INTEGER))
+
+    def test_overlapping_ranges_are_reported_on_the_later_table(self) -> None:
+        files = {"a.csv": [["a"], ["1"], ["3"]], "b.csv": [["a"], ["2"], ["4"]]}
+        (error,) = _run(self._TABLES, self._TC, files)
+        assert (error.code, error.table_id, error.row) == (
+            "tcre:sortKeyViolation",
+            "t2",
+            None,
+        )
+        assert (
+            str(error)
+            == "table 't2': sort key 'k' rows overlap with those of table 't1', url: b.csv"
+        )
+
+    def test_disjoint_ranges_in_any_table_order_are_fine(self) -> None:
+        forward = {"a.csv": [["a"], ["1"], ["2"]], "b.csv": [["a"], ["3"], ["4"]]}
+        assert _run(self._TABLES, self._TC, forward) == []
+        reverse = {"a.csv": [["a"], ["3"], ["4"]], "b.csv": [["a"], ["1"], ["2"]]}
+        assert _run(self._TABLES, self._TC, reverse) == []
+
+    def test_touching_ranges_overlap(self) -> None:
+        files = {"a.csv": [["a"], ["1"], ["2"]], "b.csv": [["a"], ["2"], ["3"]]}
+        assert _codes(_run(self._TABLES, self._TC, files)) == [
+            "tcre:uniqueKeyViolation",
+            "tcre:sortKeyViolation",
+        ]
+
+    def test_tables_without_rows_have_no_range(self) -> None:
+        files = {"a.csv": [["a"], ["1"], ["3"]], "b.csv": [["a"], [""]]}
+        assert _run(self._TABLES, self._TC, files) == []
+
+    def test_no_sort_key_means_no_range_check(self) -> None:
+        tc = _tc(t=_template(keys=_unique("a"), a=self._INTEGER))
+        files = {"a.csv": [["a"], ["1"], ["3"]], "b.csv": [["a"], ["2"], ["4"]]}
+        assert _run(self._TABLES, tc, files) == []
+
+    def test_templates_sharing_a_key_are_not_compared(self) -> None:
+        tables = _tables(t=XbrlCsvTable(url="a.csv"), u=XbrlCsvTable(url="b.csv"))
+        tc = _tc(
+            t=_template(keys=_unique("a", shared=True, sort=True), a=self._INTEGER),
+            u=_template(keys=_unique("a", shared=True, sort=True), a=self._INTEGER),
+        )
+        files = {"a.csv": [["a"], ["1"], ["3"]], "b.csv": [["a"], ["2"], ["4"]]}
+        assert _run(tables, tc, files) == []

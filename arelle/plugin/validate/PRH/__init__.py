@@ -7,8 +7,9 @@ from pathlib import Path
 from typing import Any
 
 from arelle.Version import authorLabel, copyrightLabel
-from .ValidationPluginExtension import ValidationPluginExtension
+
 from .rules import prh_rules
+from .ValidationPluginExtension import ValidationPluginExtension
 
 PLUGIN_NAME = "Validate Finland-PRH"
 DISCLOSURE_SYSTEM_VALIDATION_TYPE = "PRH"
@@ -25,8 +26,10 @@ validationPlugin = ValidationPluginExtension(
 def disclosureSystemConfigURL(*args: Any, **kwargs: Any) -> str:
     return validationPlugin.disclosureSystemConfigURL
 
+
 def disclosureSystemTypes(*args: Any, **kwargs: Any) -> tuple[tuple[str, str], ...]:
     return validationPlugin.disclosureSystemTypes
+
 
 def validateXbrlFinally(*args: Any, **kwargs: Any) -> None:
     return validationPlugin.validateXbrlFinally(*args, **kwargs)
@@ -39,6 +42,7 @@ __pluginInfo__ = {
     "license": "Apache-2",
     "author": authorLabel,
     "copyright": copyrightLabel,
+    "import": ("inlineXbrlDocumentSet",),
     "DisclosureSystem.Types": disclosureSystemTypes,
     "DisclosureSystem.ConfigURL": disclosureSystemConfigURL,
     "Validate.XBRL.Finally": validateXbrlFinally,
