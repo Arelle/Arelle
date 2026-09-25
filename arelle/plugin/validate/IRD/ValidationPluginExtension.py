@@ -15,6 +15,8 @@ from arelle.utils.validate.ValidationPlugin import ValidationPlugin
 from .PluginValidationDataExtension import PluginValidationDataExtension
 
 TC_NAMESPACE = "http://xbrl.ird.gov.hk/taxonomy/2026-04-01/ird_tc"
+FS_NAMESPACE = "http://xbrl.ird.gov.hk/taxonomy/2026-04-01/ird_fs"
+FS_PE_NAMESPACE = "http://xbrl.ird.gov.hk/taxonomy/2026-04-01/ird_fs_pe"
 
 
 def tcQn(local: str) -> QName:
@@ -216,6 +218,11 @@ class ValidationPluginExtension(ValidationPlugin):
         return PluginValidationDataExtension(
             name=self.name,
 
+            # namespaces
+            tcNamespace=TC_NAMESPACE,
+            fsNamespace=FS_NAMESPACE,
+            fspeNamespace=FS_PE_NAMESPACE,
+
             # entry points
             validTcEntryPoints=validTc,
 
@@ -239,6 +246,11 @@ class ValidationPluginExtension(ValidationPlugin):
             reasonsForChangeOfAccountingDateQn=tcQn("ReasonsForTheChangeOfAccountingDate"),
             accountingPeriodStartDateQn=tcQn("AccountingPeriodStartDate"),
             accountingPeriodEndDateQn=tcQn("AccountingPeriodEndDate"),
+
+            # currency
+            currencyUsedQn=tcQn("CurrencyUsed"),
+            conversionRateQn=tcQn("ConversionRate"),
+            assessableProfitsQn=tcQn("AssessableProfitsAdjustedLossOfThePeriodHKD"),
 
             # HKSIC
             hksicCodeQn=tcQn("HongKongStandardIndustrialClassificationCode"),
