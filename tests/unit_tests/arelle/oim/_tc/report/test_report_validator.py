@@ -11,6 +11,7 @@ from arelle.oim._tc.metadata.model import (
     TCKeys,
     TCMetadata,
     TCReferenceKey,
+    TCTableConstraints,
     TCTemplateConstraints,
     TCUniqueKey,
     TCValueConstraint,
@@ -18,10 +19,14 @@ from arelle.oim._tc.metadata.model import (
 from arelle.oim._tc.report.common import TCReportValidationError
 from arelle.oim._tc.report.key_values import KeyValue
 from arelle.oim._tc.report.validate import TCReportValidator
+from arelle.oim.csv.metadata.parser import parse_xbrl_csv_metadata
 from arelle.oim.csv.metadata.model import (
+    XbrlCsvColumn,
+    XbrlCsvDimensions,
     XbrlCsvDocumentInfo,
     XbrlCsvEffectiveMetadata,
     XbrlCsvTable,
+    XbrlCsvTableTemplate,
 )
 
 _DOCUMENT_INFO = XbrlCsvDocumentInfo(
@@ -44,6 +49,7 @@ def _template(
     column_order: tuple[str, ...] | None = None,
     parameters: Mapping[str, TCValueConstraint] | None = None,
     keys: TCKeys | None = None,
+    table_constraints: TCTableConstraints | None = None,
     **constraints: TCValueConstraint,
 ) -> TCTemplateConstraints:
     return TCTemplateConstraints(
@@ -51,6 +57,7 @@ def _template(
         parameters=MappingProxyType(parameters or {}),
         keys=keys,
         column_order=column_order,
+        table_constraints=table_constraints,
     )
 
 
@@ -976,3 +983,135 @@ class TestReferenceKeys:
         assert [error.row for error in errors] == [2, 3]
         # A table without rows has no row to check.
         assert _run(tables, tc, {"t.csv": [["n"], ["1"]], "r.csv": [["n"]]}) == []
+
+
+class TestTableCounts:
+    _ROWS = [["n"], ["1"]]
+
+    @staticmethod
+    def _tc(**kwargs: int) -> TCMetadata:
+        return _tc(
+            t=_template(
+                table_constraints=TCTableConstraints(**kwargs),
+                n=TCValueConstraint("xs:integer"),
+            )
+        )
+
+    def test_counts_within_bounds_produce_no_errors(self) -> None:
+        tables = _tables(
+            t1=XbrlCsvTable(url="a.csv", template="t"),
+            t2=XbrlCsvTable(url="a.csv", template="t"),
+        )
+        tc = self._tc(min_tables=2, max_tables=2)
+        assert _run(tables, tc, {"a.csv": self._ROWS}) == []
+
+    def test_too_few_tables_is_reported_on_the_template(self) -> None:
+        (error,) = _run(_tables(), self._tc(min_tables=1), {})
+        assert (error.code, error.template_id, error.table_id) == (
+            "tcre:minTablesViolation",
+            "t",
+            None,
+        )
+        assert (
+            str(error)
+            == "template 't': 0 data tables were provided, at least 1 are required"
+        )
+
+    def test_too_many_tables_is_reported_once(self) -> None:
+        tables = _tables(
+            t1=XbrlCsvTable(url="a.csv", template="t"),
+            t2=XbrlCsvTable(url="a.csv", template="t"),
+            t3=XbrlCsvTable(url="a.csv", template="t"),
+        )
+        (error,) = _run(tables, self._tc(max_tables=1), {"a.csv": self._ROWS})
+        assert error.code == "tcre:maxTablesViolation"
+        assert "3 data tables were provided, at most 1 are allowed" in str(error)
+
+    def test_tables_that_could_not_be_opened_are_not_counted(self) -> None:
+        tables = _tables(
+            t1=XbrlCsvTable(url="a.csv", template="t", optional=True),
+            t2=XbrlCsvTable(url="b.csv", template="t", optional=True),
+        )
+        tc = self._tc(min_tables=1, max_tables=1)
+        assert _run(tables, tc, {"a.csv": self._ROWS}) == []
+
+
+class TestFactRowCounts:
+    _COLUMNS = MappingProxyType(
+        {
+            "id": XbrlCsvColumn(),
+            "f": XbrlCsvColumn(dimensions=XbrlCsvDimensions(concept="eg:F")),
+            "g": XbrlCsvColumn(properties_from=("id",)),
+        }
+    )
+    _TABLES = XbrlCsvEffectiveMetadata(
+        document_info=_DOCUMENT_INFO,
+        table_templates=MappingProxyType({"t": XbrlCsvTableTemplate(columns=_COLUMNS)}),
+        tables=MappingProxyType({"t": XbrlCsvTable(url="t.csv")}),
+    )
+
+    @staticmethod
+    def _tc(**kwargs: int) -> TCMetadata:
+        return _tc(
+            t=_template(
+                table_constraints=TCTableConstraints(**kwargs),
+                id=TCValueConstraint("xs:string"),
+            )
+        )
+
+    def test_only_rows_with_a_fact_column_value_count(self) -> None:
+        rows = [["id", "f", "g"], ["a", "1", ""], ["b", "", " "], ["c", "", ""]]
+        tc = self._tc(min_table_rows=2, max_table_rows=2)
+        assert _run(self._TABLES, tc, {"t.csv": rows}) == []
+
+    def test_too_few_fact_rows_is_reported_on_the_table(self) -> None:
+        rows = [["id", "f", "g"], ["a", "", ""]]
+        (error,) = _run(self._TABLES, self._tc(min_table_rows=1), {"t.csv": rows})
+        assert (error.code, error.table_id, error.row) == (
+            "tcre:minTableRowsViolation",
+            "t",
+            None,
+        )
+        assert (
+            str(error)
+            == "table 't': the table has 0 fact rows, at least 1 are required, url: t.csv"
+        )
+
+    def test_too_many_fact_rows_is_reported_once(self) -> None:
+        rows = [["id", "f"], ["a", "1"], ["b", "2"], ["c", "3"]]
+        (error,) = _run(self._TABLES, self._tc(max_table_rows=1), {"t.csv": rows})
+        assert error.code == "tcre:maxTableRowsViolation"
+        assert "3 fact rows, at most 1" in str(error)
+
+    @pytest.mark.parametrize(
+        "fact_column",
+        [{"propertiesFrom": []}, {"dimensions": {}}],
+        ids=["properties_from", "dimensions"],
+    )
+    def test_empty_fact_column_properties_mark_a_fact_column(
+        self, fact_column: dict[str, object]
+    ) -> None:
+        # The parser must keep an empty property apart from an absent one.
+        tables = parse_xbrl_csv_metadata(
+            {
+                "documentInfo": {
+                    "documentType": "https://xbrl.org/2021/xbrl-csv",
+                    "namespaces": {"xs": XbrlConst.xsd},
+                },
+                "tableTemplates": {
+                    "t": {"columns": {"id": {}, "f": fact_column}}
+                },
+                "tables": {"t": {"url": "t.csv"}},
+            }
+        )
+        rows = [["id", "f"], ["a", "1"], ["b", "2"]]
+        tc = self._tc(min_table_rows=2, max_table_rows=2)
+        assert _run(tables, tc, {"t.csv": rows}) == []
+        (error,) = _run(tables, self._tc(max_table_rows=1), {"t.csv": rows})
+        assert error.code == "tcre:maxTableRowsViolation"
+
+    def test_header_only_table_violates_min_rows(self) -> None:
+        (error,) = _run(
+            self._TABLES, self._tc(min_table_rows=1), {"t.csv": [["id", "f"]]}
+        )
+        assert error.code == "tcre:minTableRowsViolation"

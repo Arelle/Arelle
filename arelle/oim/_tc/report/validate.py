@@ -5,6 +5,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections import Counter
 from collections.abc import Callable, Generator, Iterator, Mapping
 from dataclasses import dataclass
 from itertools import combinations
@@ -15,6 +16,10 @@ from arelle.oim._tc.const import (
     TCRE_INVALID_DURATION_TYPE,
     TCRE_INVALID_PERIOD_TYPE,
     TCRE_INVALID_VALUE,
+    TCRE_MAX_TABLE_ROWS_VIOLATION,
+    TCRE_MAX_TABLES_VIOLATION,
+    TCRE_MIN_TABLE_ROWS_VIOLATION,
+    TCRE_MIN_TABLES_VIOLATION,
     TCRE_MISSING_COLUMN,
     TCRE_MISSING_TIME_ZONE,
     TCRE_MISSING_VALUE,
@@ -26,6 +31,7 @@ from arelle.oim._tc.const import (
 from arelle.oim._tc.metadata.model import (
     TCMetadata,
     TCReferenceKey,
+    TCTableConstraints,
     TCTemplateConstraints,
     TCUniqueKey,
     TCValueConstraint,
@@ -99,6 +105,8 @@ class _Template:
     unique_keys: tuple[_UniqueKey, ...]
     sort_key: str | None
     reference_keys: tuple[_ReferenceKey, ...]
+    table_constraints: TCTableConstraints | None
+    fact_columns: frozenset[str]
 
 
 @dataclass(frozen=True, slots=True)
@@ -192,10 +200,22 @@ class TCReportValidator:
                 unique_keys=self._compile_unique_keys(tc),
                 sort_key=tc.keys.sort_key if tc.keys is not None else None,
                 reference_keys=self._compile_reference_keys(tc),
+                table_constraints=tc.table_constraints,
+                fact_columns=self._fact_columns(template_id),
             )
             for template_id, tc in self._tc_metadata.template_constraints.items()
             if self._template_has_report_checks(tc)
         }
+
+    def _fact_columns(self, template_id: str) -> frozenset[str]:
+        template = self._csv_metadata.table_templates.get(template_id)
+        if template is None:
+            return frozenset()
+        return frozenset(
+            name
+            for name, column in template.columns.items()
+            if column.dimensions is not None or column.properties_from is not None
+        )
 
     def _compile_reference_keys(
         self, tc: TCTemplateConstraints
@@ -257,6 +277,7 @@ class TCReportValidator:
             or bool(tc.parameters)
             or tc.column_order is not None
             or tc.keys is not None
+            or tc.table_constraints is not None
         )
 
     def validate(self) -> Generator[TCReportValidationError, None, None]:
@@ -269,6 +290,7 @@ class TCReportValidator:
                 yield from self._validate_uninstantiated_template(template_id)
         checked_report_params: set[tuple[str, str]] = set()
         sort_ranges: dict[str, list[_TableRange]] = {}
+        table_counts: Counter[str] = Counter()
         last_writers = self._last_writers()
         deferred_tables: list[tuple[str, XbrlCsvTable, _Template]] = []
         for position, (table_id, table) in enumerate(tables.items()):
@@ -281,6 +303,7 @@ class TCReportValidator:
             rows = self._open_table(table_id, table)
             if rows is None:
                 continue
+            table_counts[template_id] += 1
             self._report_progress(_("Validating table constraints of table {}").format(table_id))
             sort = SortTracker() if template.sort_key is not None else None
             # Reference keys are checked while the table is read when every table
@@ -300,6 +323,7 @@ class TCReportValidator:
                 )
         for template_id, ranges in sort_ranges.items():
             yield from self._validate_sort_ranges(self._templates[template_id], ranges)
+        yield from self._validate_table_counts(table_counts)
         # Only deferred reference keys read the stores from here on, so the rest can
         # free their memory.
         targets = {
@@ -420,6 +444,12 @@ class TCReportValidator:
             if references_ready
             else []
         )
+        fact_indexes = [
+            index
+            for name, index in column_indexes.items()
+            if name in template.fact_columns
+        ]
+        fact_rows = 0
         for row_number, row in enumerate(rows, start=2):
             if row_number % _PROGRESS_ROW_INTERVAL == 0:
                 self._report_progress(
@@ -427,6 +457,8 @@ class TCReportValidator:
                         table_id, row_number
                     )
                 )
+            if any(index < len(row) and row[index] != "" for index in fact_indexes):
+                fact_rows += 1
             yield from self._validate_row(
                 table_id,
                 table,
@@ -436,6 +468,64 @@ class TCReportValidator:
                 row_number,
                 row,
             )
+        yield from self._validate_row_count(table_id, table, template, fact_rows)
+
+    @staticmethod
+    def _validate_row_count(
+        table_id: str, table: XbrlCsvTable, template: _Template, fact_rows: int
+    ) -> Generator[TCReportValidationError, None, None]:
+        constraints = template.table_constraints
+        if constraints is None:
+            return
+        if (
+            constraints.min_table_rows is not None
+            and fact_rows < constraints.min_table_rows
+        ):
+            yield TCReportValidationError(
+                _("the table has {} fact rows, at least {} are required").format(
+                    fact_rows, constraints.min_table_rows
+                ),
+                code=TCRE_MIN_TABLE_ROWS_VIOLATION,
+                table_id=table_id,
+                url=table.url,
+            )
+        if (
+            constraints.max_table_rows is not None
+            and fact_rows > constraints.max_table_rows
+        ):
+            yield TCReportValidationError(
+                _("the table has {} fact rows, at most {} are allowed").format(
+                    fact_rows, constraints.max_table_rows
+                ),
+                code=TCRE_MAX_TABLE_ROWS_VIOLATION,
+                table_id=table_id,
+                url=table.url,
+            )
+
+    def _validate_table_counts(
+        self, table_counts: Counter[str]
+    ) -> Generator[TCReportValidationError, None, None]:
+        for template_id, template in self._templates.items():
+            constraints = template.table_constraints
+            if constraints is None:
+                continue
+            count = table_counts[template_id]
+            if constraints.min_tables is not None and count < constraints.min_tables:
+                yield TCReportValidationError(
+                    _("{} data tables were provided, at least {} are required").format(
+                        count, constraints.min_tables
+                    ),
+                    code=TCRE_MIN_TABLES_VIOLATION,
+                    template_id=template_id,
+                )
+            if constraints.max_tables is not None and count > constraints.max_tables:
+                yield TCReportValidationError(
+                    _("{} data tables were provided, at most {} are allowed").format(
+                        count, constraints.max_tables
+                    ),
+                    code=TCRE_MAX_TABLES_VIOLATION,
+                    template_id=template_id,
+                )
 
     def _validate_reference_keys(
         self, table_id: str, table: XbrlCsvTable, template: _Template, rows: TableRows

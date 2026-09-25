@@ -144,10 +144,12 @@ def _parse_column(col_dict: dict[str, Any]) -> XbrlCsvColumn:
             if isinstance(property_group, dict)
         }
     )
-    raw_properties_from = col_dict.get("propertiesFrom")
-    if not isinstance(raw_properties_from, list):
-        raw_properties_from = []
-    properties_from = tuple(prop for prop in raw_properties_from if isinstance(prop, str))
+    # An empty propertiesFrom array still marks a fact column, so absence is kept apart.
+    properties_from: tuple[str, ...] | None = None
+    if (raw_properties_from := col_dict.get("propertiesFrom")) is not None:
+        if not isinstance(raw_properties_from, list):
+            raw_properties_from = []
+        properties_from = tuple(prop for prop in raw_properties_from if isinstance(prop, str))
 
     return XbrlCsvColumn(
         comment=_as_bool(col_dict.get("comment")),
@@ -166,7 +168,8 @@ def _parse_property_group(pg_dict: dict[str, Any]) -> XbrlCsvPropertyGroup:
 
 
 def _parse_dimensions(dims: Any) -> XbrlCsvDimensions | None:
-    if not isinstance(dims, dict) or not dims:
+    # An empty dimensions object still makes a column a fact column, so absence is kept apart.
+    if not isinstance(dims, dict):
         return None
     return XbrlCsvDimensions(
         concept=_as_str_or_none(dims.get("concept")),

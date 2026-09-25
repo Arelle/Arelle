@@ -47,8 +47,8 @@ class TestParseDimensions:
     def test_none_returns_none(self) -> None:
         assert _parse_dimensions(None) is None
 
-    def test_empty_returns_none(self) -> None:
-        assert _parse_dimensions({}) is None
+    def test_empty_is_present(self) -> None:
+        assert _parse_dimensions({}) == XbrlCsvDimensions()
 
     def test_non_dict_returns_none(self) -> None:
         assert _parse_dimensions("not a dict") is None
@@ -184,7 +184,7 @@ class TestParseColumn:
         assert result.decimals is None
         assert result.dimensions is None
         assert result.property_groups == {}
-        assert result.properties_from == ()
+        assert result.properties_from is None
 
     def test_comment_true(self) -> None:
         result = _parse_column({"comment": True})
