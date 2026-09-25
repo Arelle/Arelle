@@ -1,0 +1,718 @@
+from __future__ import annotations
+
+from collections.abc import Mapping
+from types import MappingProxyType
+
+import pytest
+
+from arelle import XbrlConst
+from arelle.ModelValue import QName
+from arelle.oim.tc.metadata import types as tc_types
+from arelle.oim.tc.metadata.model import TCValueConstraint
+from arelle.oim.tc.value_validator import ValueConstraintValidator
+
+_NAMESPACES = MappingProxyType({"xs": XbrlConst.xsd})
+_UNIT_NAMESPACES = MappingProxyType(
+    {
+        **_NAMESPACES,
+        "iso4217": "http://www.xbrl.org/2003/iso4217",
+        "scheme": "http://example.com/scheme",
+    }
+)
+
+
+def _validator(
+    constraint_type: QName | str,
+    namespaces: Mapping[str, str] = _NAMESPACES,
+    **kwargs: object,
+) -> ValueConstraintValidator:
+    return ValueConstraintValidator(TCValueConstraint(str(constraint_type), **kwargs), namespaces)
+
+
+class TestValidateUnknownType:
+    def test_unknown_type_validation(self) -> None:
+        assert _validator("unknown:type").validate("anything") is False
+
+
+class TestValidateString:
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ("hello", True),
+            ("", True),
+        ],
+    )
+    def test_string_validation(self, value: str, expected: bool) -> None:
+        assert _validator(tc_types.STRING).validate(value) is expected
+
+
+class TestValidateDecimal:
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ("1", True),
+            ("2.5", True),
+            ("abc", False),
+        ],
+    )
+    def test_decimal_validation(self, value: str, expected: bool) -> None:
+        assert _validator(tc_types.DECIMAL).validate(value) is expected
+
+
+class TestValidateInteger:
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ("1", True),
+            ("1.5", False),
+        ],
+    )
+    def test_integer_validation(self, value: str, expected: bool) -> None:
+        assert _validator(tc_types.INTEGER).validate(value) is expected
+
+
+class TestValidateDate:
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ("2020-01-01", True),
+            ("not-a-date", False),
+        ],
+    )
+    def test_date_validation(self, value: str, expected: bool) -> None:
+        assert _validator(tc_types.DATE).validate(value) is expected
+
+
+class TestValidateWideYearDates:
+    @pytest.mark.parametrize(
+        "constraint_type, value, expected",
+        [
+            (tc_types.DATE, "12024-01-01", True),
+            (tc_types.DATE, "-12024-01-01", True),
+            (tc_types.DATE, " 2024-01-01 ", True),
+            (tc_types.DATE, "+12024-01-01", False),
+            (tc_types.DATE, "0000-01-01", False),
+            (tc_types.DATE_TIME, "-12024-01-01T00:00:00Z", True),
+            (tc_types.DATE_TIME, "2024-01-01T24:00:00", True),
+            (tc_types.DATE_TIME, "2024-01-01T24:00:01", False),
+            (tc_types.DATE_TIME, "2016-12-31T23:59:60Z", True),
+            (tc_types.DATE_TIME, "2016-12-31T23:59:61Z", False),
+            (tc_types.G_YEAR, "-12024", True),
+            (tc_types.G_YEAR, "12024Z", True),
+            (tc_types.G_YEAR_MONTH, "-12024-12", True),
+            (tc_types.G_YEAR_MONTH, "12024-13", False),
+        ],
+    )
+    def test_wide_year_validation(self, constraint_type: QName, value: str, expected: bool) -> None:
+        assert _validator(constraint_type).validate(value) is expected
+
+    @pytest.mark.parametrize(
+        "kwargs, value, expected",
+        [
+            ({"min_inclusive": "12024-01-01"}, "12024-01-01", True),
+            ({"min_inclusive": "12024-01-01"}, "12023-12-31", False),
+            ({"min_exclusive": "-12024-01-01"}, "-12024-01-01", False),
+            ({"min_exclusive": "-12024-01-01"}, "-12023-01-01", True),
+            ({"max_inclusive": "2024-01-01Z"}, "2024-01-01+01:00", True),
+            ({"max_inclusive": "2024-01-01Z"}, "2024-01-01-01:00", False),
+            ({"max_exclusive": "2024-01-01Z"}, "2024-01-01", False),
+        ],
+    )
+    def test_wide_year_bounds(self, kwargs: dict[str, str], value: str, expected: bool) -> None:
+        assert _validator(tc_types.DATE, **kwargs).validate(value) is expected
+
+    @pytest.mark.parametrize(
+        "constraint_type, members, value, expected",
+        [
+            (tc_types.DATE, {"12024-01-01", "-12024-01-01"}, "-12024-01-01", True),
+            (tc_types.DATE, {"12024-01-01"}, "12024-01-02", False),
+            (tc_types.DATE_TIME, {"2024-01-02T00:00:00"}, "2024-01-01T24:00:00", True),
+            (tc_types.DATE_TIME, {"2024-01-01T00:00:00Z"}, "2024-01-01T01:00:00+01:00", True),
+            (tc_types.DATE_TIME, {"2024-01-01T00:00:00Z"}, "2024-01-01T00:00:00", False),
+            (tc_types.G_YEAR, {"-12024"}, "-12024", True),
+            (tc_types.G_YEAR, {"-12024"}, "12024", False),
+        ],
+    )
+    def test_wide_year_enumeration(
+        self, constraint_type: QName, members: set[str], value: str, expected: bool
+    ) -> None:
+        assert _validator(constraint_type, enumeration_values=frozenset(members)).validate(value) is expected
+
+
+class TestValidateWhitespaceNormalisation:
+    @pytest.mark.parametrize(
+        "constraint_type, patterns, value, expected",
+        [
+            (tc_types.STRING, {" A"}, " A", True),
+            (tc_types.STRING, {" A"}, "A", False),
+            (tc_types.STRING, {"A"}, "\tA", False),
+            (tc_types.NORMALIZED_STRING, {" A"}, "\tA", True),
+            (tc_types.NORMALIZED_STRING, {"A"}, " A", False),
+            (tc_types.TOKEN, {"A"}, " \r\nA\t", True),
+            (tc_types.TOKEN, {"D D"}, "D  D", True),
+            (tc_types.TOKEN, {" A"}, "A", False),
+            (tc_types.INTEGER, {"1"}, " 1 ", True),
+        ],
+    )
+    def test_patterns_apply_to_the_normalised_value(
+        self, constraint_type: QName, patterns: set[str], value: str, expected: bool
+    ) -> None:
+        assert _validator(constraint_type, patterns=frozenset(patterns)).validate(value) is expected
+
+
+class TestValidateGMonthDay:
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ("--01-01", True),
+            ("--07-04", True),
+            ("01-01", False),
+        ],
+    )
+    def test_g_month_day_validation(self, value: str, expected: bool) -> None:
+        assert _validator(tc_types.G_MONTH_DAY).validate(value) is expected
+
+
+class TestValidateBoolean:
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ("true", True),
+            ("false", True),
+            ("1", True),
+            ("0", True),
+            ("yes", False),
+        ],
+    )
+    def test_boolean_validation(self, value: str, expected: bool) -> None:
+        assert _validator(tc_types.BOOLEAN).validate(value) is expected
+
+
+class TestValidateQName:
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ("xs:string", True),
+            ("not a qname!", False),
+        ],
+    )
+    def test_qname_validation(self, value: str, expected: bool) -> None:
+        assert _validator(tc_types.QNAME).validate(value) is expected
+
+
+class TestValidateConcept:
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ("xs:string", True),
+            ("localName", False),
+            ("bad:not a qname!", False),
+            ("", False),
+        ],
+    )
+    def test_concept_validation(self, value: str, expected: bool) -> None:
+        assert _validator(tc_types.CORE_CONCEPT).validate(value) is expected
+
+
+class TestValidateLanguage:
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ("en", True),
+            ("en-us", True),
+            ("en-x-twain", True),
+            ("he-il-u-ca-hebrew-tz-jeruslm", True),
+            ("zh-hans", True),
+            ("x-private", True),
+            ("i-klingon", True),
+            ("abcdefgh", True),
+            ("en-US", False),
+            ("EN", False),
+            ("EN-US", False),
+            ("he-IL-u-ca-hebrew-tz-jeruslm", False),
+            ("zh-Hant", False),
+            (" hello", False),
+            ("hello ", False),
+            ("", False),
+        ],
+    )
+    def test_language_validation(self, value: str, expected: bool) -> None:
+        assert _validator(tc_types.CORE_LANGUAGE).validate(value) is expected
+
+
+class TestValidateEntity:
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ("xs:entity", True),
+            ("xs:entity with space", False),
+            ("unprefixed", False),
+            ("unknown:entity", False),
+            ("", False),
+        ],
+    )
+    def test_entity_validation(self, value: str, expected: bool) -> None:
+        assert _validator(tc_types.CORE_ENTITY).validate(value) is expected
+
+
+class TestValidatePeriod:
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            # Valid: years
+            ("2024", True),
+            ("2024@end", True),
+            # Valid: year-months
+            ("2024-12", True),
+            # Valid: quarters
+            ("2024Q1", True),
+            ("2024Q4", True),
+            ("2024Q1@start", True),
+            # Valid: halves
+            ("2024H1", True),
+            ("2024H2", True),
+            # Valid: weeks
+            ("2024W01", True),
+            ("2020W53", True),
+            ("2026W53", True),
+            ("2024W29@end", True),
+            # Valid: single dates
+            ("2024-01-01", True),
+            ("2024-02-29", True),
+            # Valid: datetime instants
+            ("2024-01-02T00:00:00", True),
+            ("2024-06-15T12:00:00Z", True),
+            ("2024-01-01T00:00:00+05:00", True),
+            # Valid: date ranges
+            ("2024-01-01..2024-12-31", True),
+            ("2024-01-01..2024-01-01", True),
+            # Valid: explicit durations
+            ("2024-01-01T00:00:00/2025-01-01T00:00:00", True),
+            # Invalid: empty
+            ("", False),
+            # Invalid: year zero
+            ("0000", False),
+            ("0000-01-01", False),
+            ("0000-01-01T00:00:00", False),
+            ("0000H1", False),
+            ("0000Q1", False),
+            ("0000W01", False),
+            ("0000-01", False),
+            ("0000-01-01..0000-12-31", False),
+            ("0000-01-01T00:00:00/0001-01-01T00:00:00", False),
+            # Invalid: plus sign
+            ("+12024", False),
+            ("+12024-01", False),
+            ("+12024-01-01", False),
+            ("+12024-01-01T00:00:00", False),
+            ("+12024H1", False),
+            ("+12024Q1", False),
+            ("+12024W01", False),
+            # Invalid: T24 hour
+            ("2024-01-01T24:00:00", False),
+            ("2024-02-29T24:00:00", False),
+            ("2024-02-28T24:00:00", False),
+            ("2024-01-01T24:00:01", False),
+            # Invalid: fractional seconds
+            ("2024-01-01T00:00:00.0", False),
+            ("2024-01-01T00:00:00.000", False),
+            ("2024-06-15T12:00:00.000Z", False),
+            # Invalid: timezone offset (TC only allows Z)
+            ("2024-01-01T00:00:00+00:00", False),
+            # Invalid: timezone on non-datetime
+            ("2024-02-29Z", False),
+            ("2024Z", False),
+            # Invalid: leap day in non-leap year
+            ("2025-02-29", False),
+            # Invalid: bare time
+            ("00:00:00", False),
+            # Invalid: missing leading zeros
+            ("2024-01-1", False),
+            ("2024-1-01", False),
+            # Invalid: out of range
+            ("2024-13-01", False),
+            ("2024-00", False),
+            ("2024-13", False),
+            ("2024-1", False),
+            # Invalid: duration format
+            ("P1Y2M3DT4H5M6S", False),
+            # Invalid: bare suffix
+            ("@end", False),
+            # Invalid: date range violations
+            ("2024-12-31..2024-01-01", False),
+            ("2024-01-01..2024-12-31@end", False),
+            ("2024-01-01..2024-12", False),
+            ("2024-01..2024-12", False),
+            ("2024..2025", False),
+            ("2024-01-01..2024-12-1", False),
+            ("2024-1-01..2024-12-31", False),
+            # Invalid: explicit duration violations
+            ("2025-01-01T00:00:00/2024-01-01T00:00:00", False),
+            ("2024-01-01T00:00:00/2024-01-01T00:00:00", False),
+            ("2024-01-01T00:00:00/2025-01-01T00:00:00@end", False),
+            ("2024-06-15T12:00:00Z@end", False),
+            # Invalid: half/quarter/week values
+            ("2024H0", False),
+            ("2024H3", False),
+            ("2024Q0", False),
+            ("2024Q5", False),
+            ("2024W00", False),
+            ("2024W54", False),
+            ("2024W53", False),
+            ("2025W53", False),
+            ("2024W1", False),
+        ],
+    )
+    def test_period_validation(self, value: str, expected: bool) -> None:
+        assert _validator(tc_types.CORE_PERIOD).validate(value) is expected
+
+
+class TestValidatePeriodType:
+    @pytest.mark.parametrize(
+        "period_type, value, expected",
+        [
+            ("year", "2024", True),
+            ("year", "2024@end", True),
+            ("year", "2024Q1", False),
+            ("year", "2024-01", False),
+            ("half", "2024H1", True),
+            ("half", "2024", False),
+            ("quarter", "2024Q1", True),
+            ("quarter", "2024", False),
+            ("week", "2024W29", True),
+            ("week", "2024", False),
+            ("month", "2024-01", True),
+            ("month", "2024", False),
+            ("day", "2024-01-01", True),
+            ("day", "2024", False),
+            ("instant", "2024-01-01T00:00:00", True),
+            ("instant", "2024Q1@end", True),
+            ("instant", "2024Q1", False),
+        ],
+    )
+    def test_period_type_validation(self, period_type: str, value: str, expected: bool) -> None:
+        assert _validator(tc_types.CORE_PERIOD, period_type=period_type).validate(value) is expected
+
+
+class TestValidateWideYearPeriods:
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ("12024", True),
+            ("-2024", True),
+            ("-12024H1@end", True),
+            ("12024Q4", True),
+            ("-0001W52", True),
+            ("-0001W53", False),
+            ("12024-02", True),
+            ("-12024-01-01", True),
+            ("12024-02-29", True),
+            ("12023-02-29", False),
+            ("-12024-01-01T00:00:00Z", True),
+            ("12024-01-01T00:00:00+01:00", True),
+            ("12024-01-01T00:00:00+00:00", False),
+            ("12024-01-01T00:00:00+0100", False),
+            ("12024-01-01T24:00:00", False),
+            ("-2024-01-01..-2023-01-01", True),
+            ("-2023-01-01..-2024-01-01", False),
+            ("-12024-01-01T00:00:00/12024-01-01T00:00:00", True),
+            ("-0001-12-31T23:00:00/0001-01-01T00:00:00", True),
+            ("0001-01-01T00:00:00/-0001-12-31T23:00:00", False),
+            ("0000", False),
+            ("-0000Q1", False),
+            ("+12024", False),
+        ],
+    )
+    def test_wide_year_period_validation(self, value: str, expected: bool) -> None:
+        assert _validator(tc_types.CORE_PERIOD).validate(value) is expected
+
+    @pytest.mark.parametrize(
+        "period_type, value, expected",
+        [
+            ("year", "-12024", True),
+            ("week", "12024W01", True),
+            ("day", "-12024-01-01", True),
+            ("instant", "12024-01-01T00:00:00", True),
+            ("instant", "-12024H1@start", True),
+            ("instant", "-12024H1", False),
+        ],
+    )
+    def test_wide_year_period_type_validation(self, period_type: str, value: str, expected: bool) -> None:
+        assert _validator(tc_types.CORE_PERIOD, period_type=period_type).validate(value) is expected
+
+    def test_wide_year_enumeration_members_are_accepted(self) -> None:
+        validator = _validator(tc_types.CORE_PERIOD, enumeration_values=("-12024H1", "12024-01-01"))
+        assert validator.validate("-12024H1") is True
+        assert validator.validate("12024H1") is False
+
+
+class TestValidateDurationType:
+    @pytest.mark.parametrize(
+        "duration_type, value, expected",
+        [
+            # yearMonth: only year and month components
+            ("yearMonth", "P1Y", True),
+            ("yearMonth", "P1M", True),
+            ("yearMonth", "P1Y2M", True),
+            ("yearMonth", "P1Y2M3D", False),
+            ("yearMonth", "P1Y2M3DT4H5M6S", False),
+            ("yearMonth", "PT1H", False),
+            ("yearMonth", "P1D", False),
+            # dayTime: only day, hour, minute, second components
+            ("dayTime", "P1D", True),
+            ("dayTime", "PT1H", True),
+            ("dayTime", "PT1M", True),
+            ("dayTime", "PT1S", True),
+            ("dayTime", "P1DT2H3M4S", True),
+            ("dayTime", "P1Y", False),
+            ("dayTime", "P1M", False),
+            ("dayTime", "P1Y2M3DT4H5M6S", False),
+        ],
+    )
+    def test_duration_type_validation(self, duration_type: str, value: str, expected: bool) -> None:
+        assert _validator(tc_types.DURATION, duration_type=duration_type).validate(value) is expected
+
+
+    def test_oversized_parts_are_valid(self) -> None:
+        validator = _validator(tc_types.DURATION, duration_type="yearMonth")
+        assert validator.first_violation("P" + "1" * 5000 + "M") is None
+
+
+class TestValidateTimeZone:
+    @pytest.mark.parametrize(
+        "constraint_type, time_zone, value, expected",
+        [
+            # xs:dateTime with timeZone=true
+            (tc_types.DATE_TIME, True, "2024-01-01T00:00:00Z", True),
+            (tc_types.DATE_TIME, True, "2024-01-01T00:00:00+05:00", True),
+            (tc_types.DATE_TIME, True, "2024-01-01T00:00:00+00:00", True),
+            (tc_types.DATE_TIME, True, "2024-01-01T00:00:00-00:00", True),
+            (tc_types.DATE_TIME, True, "2024-01-01T00:00:00", False),
+            # xs:dateTime with timeZone=false
+            (tc_types.DATE_TIME, False, "2024-01-01T00:00:00", True),
+            (tc_types.DATE_TIME, False, "2024-01-01T00:00:00Z", False),
+            (tc_types.DATE_TIME, False, "2024-01-01T00:00:00+00:00", False),
+            (tc_types.DATE_TIME, False, "2024-01-01T00:00:00-00:00", False),
+            # xs:date
+            (tc_types.DATE, True, "2024-01-01Z", True),
+            (tc_types.DATE, True, "2024-01-01+00:00", True),
+            (tc_types.DATE, True, "2024-01-01", False),
+            (tc_types.DATE, False, "2024-01-01", True),
+            (tc_types.DATE, False, "2024-01-01Z", False),
+            (tc_types.DATE, False, "2024-01-01+00:00", False),
+            # xs:gYear
+            (tc_types.G_YEAR, True, "2024Z", True),
+            (tc_types.G_YEAR, True, "2024+00:00", True),
+            (tc_types.G_YEAR, True, "2024", False),
+            (tc_types.G_YEAR, False, "2024", True),
+            (tc_types.G_YEAR, False, "2024Z", False),
+            (tc_types.G_YEAR, False, "2024+00:00", False),
+            (tc_types.G_YEAR, False, "-2024", True),
+            (tc_types.G_YEAR, True, "-2024", False),
+            (tc_types.G_YEAR_MONTH, False, "-2024-12", True),
+            (tc_types.G_YEAR, False, "-12024", True),
+            (tc_types.G_YEAR, True, "-12024", False),
+            (tc_types.G_YEAR_MONTH, False, "-12024-12", True),
+            (tc_types.DATE, False, "-12024-01-01", True),
+            (tc_types.DATE, True, "-12024-01-01-05:00", True),
+            # period instant with timeZone
+            (tc_types.CORE_PERIOD, True, "2024-01-01T00:00:00Z", True),
+            (tc_types.CORE_PERIOD, True, "2024-01-01T00:00:00", False),
+            (tc_types.CORE_PERIOD, True, "2024", False),
+            (tc_types.CORE_PERIOD, False, "2024-01-01T00:00:00", True),
+            (tc_types.CORE_PERIOD, False, "2024", True),
+            (tc_types.CORE_PERIOD, False, "2024-01-01T00:00:00Z", False),
+            # period duration with timeZone
+            (tc_types.CORE_PERIOD, True, "2024-01-01T00:00:00Z/2025-01-01T00:00:00Z", True),
+            (tc_types.CORE_PERIOD, True, "2024-01-01T00:00:00/2025-01-01T00:00:00", False),
+            (tc_types.CORE_PERIOD, True, "2024-01-01T00:00:00Z/2025-01-01T00:00:00", False),
+            (tc_types.CORE_PERIOD, False, "2024-01-01T00:00:00/2025-01-01T00:00:00", True),
+            (tc_types.CORE_PERIOD, False, "2024-01-01T00:00:00Z/2025-01-01T00:00:00Z", False),
+        ],
+    )
+    def test_time_zone_validation(self, constraint_type: str, time_zone: bool, value: str, expected: bool) -> None:
+        assert _validator(constraint_type, time_zone=time_zone).validate(value) is expected
+
+
+class TestValidateUnit:
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ("iso4217:USD", True),
+            ("iso4217:EUR*iso4217:USD", True),
+            ("iso4217:USD/scheme:m", True),
+            ("(iso4217:EUR*iso4217:USD)/scheme:m", True),
+            ("iso4217:USD/(scheme:m*scheme:s)", True),
+            ("(iso4217:EUR*iso4217:USD)/(scheme:m*scheme:s)", True),
+            ("iso4217:USD*iso4217:USD", True),
+            ("", False),
+            ("localOnly", False),
+            ("undef:foo", False),
+            ("scheme:m*iso4217:USD", False),
+            ("iso4217:USD/(scheme:s*iso4217:m)", False),
+            ("*iso4217:USD", False),
+            ("iso4217:USD*", False),
+            ("iso4217:USD/scheme:m/scheme:s", False),
+            ("iso4217:USD / scheme:m", False),
+            ("iso4217:EUR*iso4217:USD/scheme:m", False),
+            ("iso4217:USD/scheme:m*scheme:s", False),
+            ("/scheme:m", False),
+            ("(iso4217:USD)/scheme:m", False),
+            ("iso4217:USD ", False),
+        ],
+    )
+    def test_unit_validation(self, value: str, expected: bool) -> None:
+        assert _validator(tc_types.CORE_UNIT, _UNIT_NAMESPACES).validate(value) is expected
+
+    def test_unit_facets_not_applied_to_qname_parts(self) -> None:
+        assert _validator(tc_types.CORE_UNIT, _UNIT_NAMESPACES, length=11).validate("iso4217:USD") is True
+        assert _validator(tc_types.CORE_UNIT, _UNIT_NAMESPACES, length=20).validate("iso4217:USD") is False
+
+
+class TestValidateWithFacets:
+    def test_length_valid(self) -> None:
+        assert _validator(tc_types.STRING, length=3).validate("abc") is True
+
+    def test_length_invalid(self) -> None:
+        assert _validator(tc_types.STRING, length=3).validate("abcd") is False
+
+    def test_max_length_valid(self) -> None:
+        assert _validator(tc_types.STRING, max_length=3).validate("abc") is True
+
+    def test_max_length_invalid(self) -> None:
+        assert _validator(tc_types.STRING, max_length=3).validate("abcde") is False
+
+    def test_min_length_valid(self) -> None:
+        assert _validator(tc_types.STRING, min_length=2).validate("ab") is True
+
+    def test_min_length_invalid(self) -> None:
+        assert _validator(tc_types.STRING, min_length=2).validate("a") is False
+
+    def test_min_inclusive_valid(self) -> None:
+        assert _validator(tc_types.DECIMAL, min_inclusive="100").validate("100") is True
+
+    def test_min_inclusive_invalid(self) -> None:
+        assert _validator(tc_types.DECIMAL, min_inclusive="100").validate("50") is False
+
+    def test_max_inclusive_valid(self) -> None:
+        assert _validator(tc_types.DECIMAL, max_inclusive="100").validate("100") is True
+
+    def test_max_inclusive_invalid(self) -> None:
+        assert _validator(tc_types.DECIMAL, max_inclusive="100").validate("150") is False
+
+    def test_fraction_digits_valid(self) -> None:
+        assert _validator(tc_types.DECIMAL, fraction_digits=2).validate("1.23") is True
+
+    def test_fraction_digits_invalid(self) -> None:
+        assert _validator(tc_types.DECIMAL, fraction_digits=2).validate("1.234") is False
+
+    def test_pattern_valid(self) -> None:
+        assert _validator(tc_types.STRING, patterns=frozenset({"[a-z]+"})).validate("abc") is True
+
+    def test_pattern_invalid(self) -> None:
+        assert _validator(tc_types.STRING, patterns=frozenset({"[a-z]+"})).validate("ABC") is False
+
+    def test_multiple_patterns_any_match(self) -> None:
+        assert _validator(tc_types.STRING, patterns=frozenset({"[a-z]+", "[A-Z]+"})).validate("ABC") is True
+
+    def test_multiple_facets_all_satisfied(self) -> None:
+        assert _validator(tc_types.STRING, length=3, patterns=frozenset({"[a-z]+"})).validate("abc") is True
+
+    def test_min_exclusive_valid(self) -> None:
+        assert _validator(tc_types.DECIMAL, min_exclusive="100").validate("101") is True
+
+    def test_min_exclusive_invalid(self) -> None:
+        assert _validator(tc_types.DECIMAL, min_exclusive="100").validate("100") is False
+
+    def test_max_exclusive_valid(self) -> None:
+        assert _validator(tc_types.DECIMAL, max_exclusive="100").validate("99") is True
+
+    def test_max_exclusive_invalid(self) -> None:
+        assert _validator(tc_types.DECIMAL, max_exclusive="100").validate("100") is False
+
+    def test_total_digits_valid(self) -> None:
+        assert _validator(tc_types.DECIMAL, total_digits=3).validate("123") is True
+
+    def test_total_digits_invalid(self) -> None:
+        assert _validator(tc_types.DECIMAL, total_digits=3).validate("1234") is False
+
+    def test_multiple_facets_one_violated(self) -> None:
+        assert _validator(tc_types.STRING, length=3, patterns=frozenset({"[a-z]+"})).validate("abcd") is False
+
+
+class TestValidateEnumeration:
+    @pytest.mark.parametrize(
+        "constraint_type, enumeration_values, value, expected",
+        [
+            # Members are matched in the value space of the effective type.
+            (tc_types.DECIMAL, {"1", "2"}, "1.00", True),
+            (tc_types.DECIMAL, {"1", "2"}, "3", False),
+            (tc_types.INTEGER, {"1"}, "01", True),
+            (tc_types.BOOLEAN, {"false"}, "0", True),
+            (tc_types.BOOLEAN, {"false"}, "true", False),
+            (tc_types.DATE, {"2024-01-01Z"}, "2024-01-01+00:00", True),
+            (tc_types.DOUBLE, {"NaN", "1"}, "NaN", True),
+            (tc_types.FLOAT, {"1"}, "NaN", False),
+            # Whitespace is normalised according to the whiteSpace facet of the type.
+            (tc_types.STRING, {" A", "B "}, " A", True),
+            (tc_types.STRING, {" A", "B "}, "\tA", False),
+            (tc_types.NORMALIZED_STRING, {" A"}, "\tA", True),
+            (tc_types.NORMALIZED_STRING, {" A"}, "\r\nA", False),
+            (tc_types.TOKEN, {" A", "D D"}, "\r\nA", True),
+            (tc_types.TOKEN, {" A", "D D"}, "D  D", True),
+            (tc_types.TOKEN, {" A", "D D"}, "C", False),
+            # Core period values are compared as strings.
+            (tc_types.CORE_PERIOD, {"2021"}, "2021", True),
+            (tc_types.CORE_PERIOD, {"2021"}, "2021-01-01T00:00:00/2022-01-01T00:00:00", False),
+            # Members that are not valid for the type never match.
+            (tc_types.INTEGER, {"abc", "1"}, "1", True),
+            (tc_types.INTEGER, {"abc", "1"}, "abc", False),
+        ],
+    )
+    def test_enumeration_validation(
+        self, constraint_type: QName | str, enumeration_values: set[str], value: str, expected: bool
+    ) -> None:
+        validator = _validator(constraint_type, enumeration_values=frozenset(enumeration_values))
+        assert validator.validate(value) is expected
+
+
+class TestFirstViolation:
+    def test_valid_value_has_no_violation(self) -> None:
+        assert _validator(tc_types.DATE, time_zone=True).first_violation("2024-01-01Z") is None
+
+    def test_unknown_type_is_invalid_value(self) -> None:
+        assert _validator("unknown:type").first_violation("1") == "tcre:invalidValue"
+
+    @pytest.mark.parametrize(
+        "kwargs, value",
+        [
+            ({}, "not-a-date"),
+            ({"patterns": frozenset({"[0-9]{4}-01-01"})}, "2024-02-01"),
+            ({"enumeration_values": frozenset({"2024-01-01"})}, "2024-02-01"),
+            # A lexically invalid value is reported before the time zone is considered.
+            ({"time_zone": True}, "2024-13-01"),
+        ],
+    )
+    def test_type_pattern_and_enumeration_violations_are_invalid_value(self, kwargs: dict[str, object], value: str) -> None:
+        assert _validator(tc_types.DATE, **kwargs).first_violation(value) == "tcre:invalidValue"
+
+    @pytest.mark.parametrize(
+        "constraint_type, kwargs, value, expected",
+        [
+            (tc_types.DATE, {"time_zone": True}, "2024-01-01", "tcre:missingTimeZone"),
+            (tc_types.DATE, {"time_zone": False}, "2024-01-01Z", "tcre:unexpectedTimeZone"),
+            (tc_types.CORE_PERIOD, {"time_zone": True}, "2024Q1", "tcre:missingTimeZone"),
+            (tc_types.CORE_PERIOD, {"time_zone": False}, "2024-01-01T00:00:00Z/2025-01-01T00:00:00Z", "tcre:unexpectedTimeZone"),
+            (tc_types.CORE_PERIOD, {"period_type": "year"}, "2024Q1", "tcre:invalidPeriodType"),
+            (tc_types.CORE_PERIOD, {"period_type": "year"}, "2019-13-32", "tcre:invalidValue"),
+            (tc_types.DURATION, {"duration_type": "yearMonth"}, "P1D", "tcre:invalidDurationType"),
+            (tc_types.DURATION, {"duration_type": "dayTime"}, "P1Y", "tcre:invalidDurationType"),
+            (tc_types.DURATION, {"duration_type": "dayTime"}, "one day", "tcre:invalidValue"),
+            # Period and duration type checks come before the time zone check.
+            (tc_types.CORE_PERIOD, {"period_type": "year", "time_zone": True}, "2024Q1", "tcre:invalidPeriodType"),
+        ],
+    )
+    def test_specific_violation_codes(
+        self, constraint_type: QName | str, kwargs: dict[str, object], value: str, expected: str
+    ) -> None:
+        assert _validator(constraint_type, **kwargs).first_violation(value) == expected

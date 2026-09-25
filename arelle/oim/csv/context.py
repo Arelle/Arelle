@@ -10,7 +10,7 @@ from types import MappingProxyType
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from arelle.oim._tc.metadata.model import TCMetadata
+    from arelle.oim.tc.metadata.model import TCMetadata
     from arelle.oim.csv.metadata.model import XbrlCsvEffectiveMetadata
 
 
