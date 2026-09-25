@@ -23,4 +23,21 @@
             <warning>EDINET.EC8069W</warning> <!-- from base sample filing -->
         </result>
     </variation>
+    <variation id="invalid02" name="invalid02">
+        <description>
+            Negative 'nonFraction' facts nested as the first child of a 'nonNumeric' element.
+            <!-- valid05.zip with two negative facts relocated to be the first child of a
+                 'nonNumeric' text block: one preceded by '△' in the text block's text
+                 (no warning expected), one not (warning expected). -->
+        </description>
+        <data>
+            <instance readMeFirst="true">invalid02.zip</instance>
+        </data>
+        <result>
+            <warning>EDINET.EC8023W</warning>
+            <warning>EDINET.EC8043W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8045W</warning> <!-- from base sample filing -->
+            <warning>EDINET.EC8069W</warning> <!-- from base sample filing -->
+        </result>
+    </variation>
 </testcase>
