@@ -555,19 +555,10 @@ class FileSource:
         archiveFileSource = self.fileSourceContainingFilepath(filepath)
         if archiveFileSource is not None:
             assert isinstance(archiveFileSource.basefile, str)
-
-            if filepath.startswith(archiveFileSource.basefile):
-                archiveFileName = filepath[len(archiveFileSource.basefile) + 1:]
-            else: # filepath.startswith(self.baseurl)
-                assert isinstance(archiveFileSource.baseurl, str)
-                archiveFileName = filepath[len(archiveFileSource.baseurl) + 1:]
+            archiveFileName = _archiveFileName(archiveFileSource, filepath)
             if archiveFileSource.isZip:
                 try:
-                    if archiveFileSource.isZipBackslashed:
-                        f = archiveFileName.replace("/", "\\")
-                    else:
-                        f = archiveFileName.replace("\\","/")
-
+                    f = _zipMemberName(archiveFileSource, archiveFileName)
                     assert isinstance(archiveFileSource.fs, zipfile.ZipFile)
                     b = archiveFileSource.fs.read(f)
                     if binary:
@@ -669,6 +660,22 @@ class FileSource:
             return (openFileStream(self.cntlr, filepath, "rt", encoding=encoding), )
         else:
             return openXmlFileStream(self.cntlr, filepath, stripDeclaration)
+
+    def stream(self, filepath: str) -> IO[bytes]:
+        """Opens a file for binary reading.
+
+        Unlike file, a zip member is decompressed as it is read instead of being read whole
+        into memory first, so large files in report packages can be streamed.
+        """
+        archiveFileSource = self.fileSourceContainingFilepath(filepath)
+        if archiveFileSource is not None and archiveFileSource.isZip:
+            archiveFileName = _archiveFileName(archiveFileSource, filepath)
+            assert isinstance(archiveFileSource.fs, zipfile.ZipFile)
+            try:
+                return archiveFileSource.fs.open(_zipMemberName(archiveFileSource, archiveFileName))
+            except KeyError as err:
+                raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName) from err
+        return cast(IO[bytes], self.file(filepath, binary=True)[0])
 
     def getBytesSize(self) -> int | None:
         """
@@ -851,6 +858,23 @@ class FileSource:
             yield from self.cntlr.plugins.hooks(className)
             return
         yield from iter(())
+
+
+def _archiveFileName(archiveFileSource: FileSource, filepath: str) -> str:
+    """The path of a file inside an archive."""
+    assert isinstance(archiveFileSource.basefile, str)
+    if filepath.startswith(archiveFileSource.basefile):
+        return filepath[len(archiveFileSource.basefile) + 1:]
+    # filepath.startswith(archiveFileSource.baseurl)
+    assert isinstance(archiveFileSource.baseurl, str)
+    return filepath[len(archiveFileSource.baseurl) + 1:]
+
+
+def _zipMemberName(archiveFileSource: FileSource, archiveFileName: str) -> str:
+    """The name of a zip member, with the separators that zip uses."""
+    if archiveFileSource.isZipBackslashed:
+        return archiveFileName.replace("/", "\\")
+    return archiveFileName.replace("\\", "/")
 
 
 def openFileStream(

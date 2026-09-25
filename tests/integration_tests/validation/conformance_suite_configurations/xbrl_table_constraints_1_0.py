@@ -158,15 +158,6 @@ config = ConformanceSuiteConfig(
             )
         },
     }.items()},
-    expected_failure_ids=frozenset(f"table-constraints-conformance-{_VERSION}/{s}" for s in [
-        "720-tc-report-processor/index-tc-report-table.xml:V-736-A-lead-crlf-normalizedStringEnum",
-        "720-tc-report-processor/index-tc-report-table.xml:V-736-B-trail-crlf-normalizedStringEnum",
-        "720-tc-report-processor/index-tc-report-table.xml:V-736-D-mid-crlf-normalizedStringEnum",
-        "720-tc-report-processor/index-tc-report-table.xml:V-736p-A-lead-crlf-normalizedStringPattern",
-        "720-tc-report-processor/index-tc-report-table.xml:V-736p-B-trail-crlf-normalizedStringPattern",
-        "720-tc-report-processor/index-tc-report-table.xml:V-736p-C-trail-crlf-stringPattern",
-        "720-tc-report-processor/index-tc-report-table.xml:V-736p-D-mid-crlf-normalizedStringPattern",
-    ]),
     info_url="https://www.xbrl.org/Specification/table-constraints/REC-2026-09-10/table-constraints-REC-2026-09-10.html",
     membership_url="https://www.xbrl.org/join",
     name=PurePath(__file__).stem,

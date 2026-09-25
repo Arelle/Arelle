@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import io
-from typing import IO, Any
 from unittest.mock import Mock
 
 import pytest
@@ -12,6 +11,7 @@ from arelle.ModelDtsObject import ModelRelationship
 from arelle.oim.Load import (
     CSV_FACTS_FILE,
     NONE_CELL,
+    OIMException,
     getTaxonomyContextElement,
     openCsvReader,
     parseParameterValues,
@@ -83,21 +83,35 @@ class TestLoadFromOIM:
         assert result == expected_context_element
 
 
-def test_open_csv_reader_closes_the_file_after_iteration() -> None:
-    handles: list[IO[Any]] = []
+def _stream_file_source(data: bytes, streams: list[io.BytesIO]) -> Mock:
+    def stream(filepath: str) -> io.BytesIO:
+        handle = io.BytesIO(data)
+        streams.append(handle)
+        return handle
 
-    def file(
-        filepath: str, binary: bool = False, encoding: str | None = None
-    ) -> tuple[IO[Any]]:
-        handle: IO[Any] = (
-            io.BytesIO(b"a,b\n1,2\n") if binary else io.StringIO("a,b\n1,2\n")
-        )
-        handles.append(handle)
-        return (handle,)
+    return Mock(spec=FileSource, stream=stream)
 
-    file_source = Mock(spec=FileSource, file=file)
+
+def test_open_csv_reader_opens_the_file_once_and_closes_it() -> None:
+    streams: list[io.BytesIO] = []
+    file_source = _stream_file_source(b"a,b\n1,2\n", streams)
     assert list(openCsvReader(file_source, "t.csv", CSV_FACTS_FILE)) == [
         ["a", "b"],
         ["1", "2"],
     ]
-    assert all(handle.closed for handle in handles)
+    (stream,) = streams
+    assert stream.closed
+
+
+def test_open_csv_reader_closes_the_file_when_a_check_fails() -> None:
+    streams: list[io.BytesIO] = []
+    file_source = _stream_file_source("a,b\n".encode("utf-16"), streams)
+    with pytest.raises(OIMException):
+        openCsvReader(file_source, "t.csv", CSV_FACTS_FILE)
+    (stream,) = streams
+    assert stream.closed
+
+
+def test_open_csv_reader_keeps_line_breaks_inside_quoted_cells() -> None:
+    file_source = _stream_file_source(b'a,b\r\n"x\r\ny",2\r\n', [])
+    assert list(openCsvReader(file_source, "t.csv", CSV_FACTS_FILE)) == [["a", "b"], ["x\r\ny", "2"]]
