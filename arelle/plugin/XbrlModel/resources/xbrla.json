@@ -59,14 +59,14 @@
           "xbrl:conceptObject",
           "xbrl:unitObject"
         ],
-        "unitComposition": [
-          [
+        "unitComposition": {
+          "numerator": [
             "xbrlr:monetary"
           ],
-          [
+          "denominator": [
             "xbrla:sharesType"
           ]
-        ]
+        }
       }
     ],
     "units": [

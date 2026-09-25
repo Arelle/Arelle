@@ -48,6 +48,16 @@ class XbrlCollectionType(XbrlReferencableModelObject):
     minItems: Optional[int] # (optional) Defines an int value to indicate the minimum number of items in the collection.
 
 XbrlDataTypeAlias: TypeAlias = "XbrlDataType"
+class XbrlUnitComposition(XbrlModelObject):
+    """ Unit Composition
+        The dataTypes whose units are multiplied together to form the units of the owning
+        dataType, and those whose units divide them.  Each is a multiset: a dataType may be
+        named more than once, and either may be absent, which is the empty multiset.
+        Reference: tavi.md#sec-fact-unit-validation"""
+    dataType: XbrlDataTypeAlias
+    numerator: OptionalList[QName] # (optional) The dataTypes whose units are multiplied together.
+    denominator: OptionalList[QName] # (optional) The dataTypes whose units divide them.
+
 
 class XbrlDataType(XbrlReferencableModelObject):
     """ Data Type Object
@@ -69,7 +79,7 @@ class XbrlDataType(XbrlReferencableModelObject):
     maxLength: Optional[int] # (optional) Defines an int used to define maximum length of a string value.
     whiteSpace: Optional[str] # (optional) Defines a string one of preserve, replace or collapse.
     patterns: Optional[NonemptySet[str]] # (optional) Defines a string as a single regex expressions. At least one of the regex patterns must match. (Uses XML regex)
-    unitComposition: OptionalList[list] # (optional) A list of two multisets of dataType QNames: the dataTypes whose units are multiplied together to form the units of this dataType, and the dataTypes whose units divide them. Loaded as raw JSON (arrays of QName strings) and resolved by UnitSignature.unitCompositionQNames. For example xbrlr:flow is [["xbrlr:volume"], ["xbrlr:time"]].
+    unitComposition: Optional[XbrlUnitComposition] # (optional) The unit composition of this dataType: the dataTypes whose units are multiplied together to form its units (numerator) and those whose units divide them (denominator). For example xbrlr:flow has a numerator of xbrlr:volume and a denominator of xbrlr:time.
     allowedObjects: Optional[NonemptySet[QName]] # (optional) Set of object type QNames that the data type can be used with. If no value is provided the property can be used with any object. The value provided is a set of model component objects. MUST NOT be empty if provided.
     checksumAlgorithm: Optional[QName] # (optional) QName of a member object that defines checksum validation semantics for string/QName local-name values.
 

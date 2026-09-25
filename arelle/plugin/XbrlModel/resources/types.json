@@ -113,13 +113,12 @@
           "xbrl:conceptObject",
           "xbrl:unitObject"
         ],
-        "unitComposition": [
-          [
+        "unitComposition": {
+          "numerator": [
             "xbrlr:length",
             "xbrlr:length"
-          ],
-          []
-        ]
+          ]
+        }
       },
       {
         "name": "xbrlr:volume",
@@ -128,14 +127,13 @@
           "xbrl:conceptObject",
           "xbrl:unitObject"
         ],
-        "unitComposition": [
-          [
+        "unitComposition": {
+          "numerator": [
             "xbrlr:length",
             "xbrlr:length",
             "xbrlr:length"
-          ],
-          []
-        ]
+          ]
+        }
       },
       {
         "name": "xbrlr:mass",
@@ -160,13 +158,12 @@
           "xbrl:conceptObject",
           "xbrl:unitObject"
         ],
-        "unitComposition": [
-          [
+        "unitComposition": {
+          "numerator": [
             "xbrlr:power",
             "xbrlr:time"
-          ],
-          []
-        ]
+          ]
+        }
       },
       {
         "name": "xbrlr:power",
@@ -243,15 +240,14 @@
           "xbrl:conceptObject",
           "xbrl:unitObject"
         ],
-        "unitComposition": [
-          [
+        "unitComposition": {
+          "numerator": [
             "xbrlr:force"
           ],
-          [
-            "xbrlr:length",
-            "xbrlr:length"
+          "denominator": [
+            "xbrlr:area"
           ]
-        ]
+        }
       },
       {
         "name": "xbrlr:frequency",
@@ -272,14 +268,14 @@
           "xbrl:conceptObject",
           "xbrl:unitObject"
         ],
-        "unitComposition": [
-          [
+        "unitComposition": {
+          "numerator": [
             "xbrlr:length"
           ],
-          [
+          "denominator": [
             "xbrlr:time"
           ]
-        ]
+        }
       },
       {
         "name": "xbrlr:planeAngle",
@@ -340,14 +336,14 @@
           "xbrl:conceptObject",
           "xbrl:unitObject"
         ],
-        "unitComposition": [
-          [
+        "unitComposition": {
+          "numerator": [
             "xbrlr:volume"
           ],
-          [
+          "denominator": [
             "xbrlr:time"
           ]
-        ]
+        }
       },
       {
         "name": "xbrlr:massFlow",
@@ -364,14 +360,14 @@
           "xbrl:conceptObject",
           "xbrl:unitObject"
         ],
-        "unitComposition": [
-          [
+        "unitComposition": {
+          "numerator": [
             "xbrlr:monetary"
           ],
-          [
+          "denominator": [
             "xbrlr:length"
           ]
-        ]
+        }
       },
       {
         "name": "xbrlr:Monetary_per_Monetary",
@@ -380,14 +376,14 @@
           "xbrl:conceptObject",
           "xbrl:unitObject"
         ],
-        "unitComposition": [
-          [
+        "unitComposition": {
+          "numerator": [
             "xbrlr:monetary"
           ],
-          [
+          "denominator": [
             "xbrlr:monetary"
           ]
-        ]
+        }
       },
       {
         "name": "xbrlr:monetaryPerArea",
@@ -396,14 +392,14 @@
           "xbrl:conceptObject",
           "xbrl:unitObject"
         ],
-        "unitComposition": [
-          [
+        "unitComposition": {
+          "numerator": [
             "xbrlr:monetary"
           ],
-          [
+          "denominator": [
             "xbrlr:area"
           ]
-        ]
+        }
       },
       {
         "name": "xbrlr:monetaryPerDecimal",
@@ -412,14 +408,14 @@
           "xbrl:conceptObject",
           "xbrl:unitObject"
         ],
-        "unitComposition": [
-          [
+        "unitComposition": {
+          "numerator": [
             "xbrlr:monetary"
           ],
-          [
+          "denominator": [
             "xs:decimal"
           ]
-        ]
+        }
       },
       {
         "name": "xbrlr:monetaryPerVolume",
@@ -428,14 +424,14 @@
           "xbrl:conceptObject",
           "xbrl:unitObject"
         ],
-        "unitComposition": [
-          [
+        "unitComposition": {
+          "numerator": [
             "xbrlr:monetary"
           ],
-          [
+          "denominator": [
             "xbrlr:volume"
           ]
-        ]
+        }
       },
       {
         "name": "xbrlr:monetaryPerDuration",
@@ -444,14 +440,14 @@
           "xbrl:conceptObject",
           "xbrl:unitObject"
         ],
-        "unitComposition": [
-          [
+        "unitComposition": {
+          "numerator": [
             "xbrlr:monetary"
           ],
-          [
+          "denominator": [
             "xbrlr:time"
           ]
-        ]
+        }
       },
       {
         "name": "xbrlr:monetaryPerEnergy",
@@ -460,14 +456,14 @@
           "xbrl:conceptObject",
           "xbrl:unitObject"
         ],
-        "unitComposition": [
-          [
+        "unitComposition": {
+          "numerator": [
             "xbrlr:monetary"
           ],
-          [
+          "denominator": [
             "xbrlr:energy"
           ]
-        ]
+        }
       },
       {
         "name": "xbrlr:monetaryPerMass",
@@ -476,14 +472,14 @@
           "xbrl:conceptObject",
           "xbrl:unitObject"
         ],
-        "unitComposition": [
-          [
+        "unitComposition": {
+          "numerator": [
             "xbrlr:monetary"
           ],
-          [
+          "denominator": [
             "xbrlr:mass"
           ]
-        ]
+        }
       },
       {
         "name": "xbrlr:dateTime",
@@ -517,14 +513,14 @@
           "xbrl:conceptObject",
           "xbrl:unitObject"
         ],
-        "unitComposition": [
-          [
+        "unitComposition": {
+          "numerator": [
             "xbrlr:energy"
           ],
-          [
+          "denominator": [
             "xbrlr:monetary"
           ]
-        ]
+        }
       },
       {
         "name": "xbrlr:ghgEmissionsPerMonetary",
@@ -533,14 +529,14 @@
           "xbrl:conceptObject",
           "xbrl:unitObject"
         ],
-        "unitComposition": [
-          [
+        "unitComposition": {
+          "numerator": [
             "xbrlr:ghgEmissions"
           ],
-          [
+          "denominator": [
             "xbrlr:monetary"
           ]
-        ]
+        }
       },
       {
         "name": "xbrlr:volumePerMonetary",
@@ -549,14 +545,14 @@
           "xbrl:conceptObject",
           "xbrl:unitObject"
         ],
-        "unitComposition": [
-          [
+        "unitComposition": {
+          "numerator": [
             "xbrlr:volume"
           ],
-          [
+          "denominator": [
             "xbrlr:monetary"
           ]
-        ]
+        }
       },
       {
         "name": "xbrlr:perUnit",

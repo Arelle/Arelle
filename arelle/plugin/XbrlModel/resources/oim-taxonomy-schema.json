@@ -2486,16 +2486,13 @@
                                 "uniqueItems": true
                             },
                             "unitComposition": {
-                                "type": "array",
-                                "description": "Unit composition: a list of two multisets of datatype QNames. The first names the datatypes whose units are multiplied together to form the units of this datatype, the second the datatypes whose units divide them. Either may be empty, and either may name a datatype more than once.",
-                                "minItems": 2,
-                                "maxItems": 2,
-                                "items": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/definitions/dataTypeQName"
-                                    }
-                                }
+                                "type": "object",
+                                "description": "Unit composition: the datatypes whose units are multiplied together to form the units of this datatype, and the datatypes whose units divide them. Each is a multiset: a datatype may be named more than once, and either may be absent, which is the empty multiset.",
+                                "properties": {
+                                    "numerator": { "type": "array", "items": { "$ref": "#/definitions/dataTypeQName" } },
+                                    "denominator": { "type": "array", "items": { "$ref": "#/definitions/dataTypeQName" } }
+                                },
+                                "additionalProperties": false
                             },
                             "allowedObjects": {
                                 "type": "array",

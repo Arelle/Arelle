@@ -3,9 +3,9 @@ See COPYRIGHT.md for copyright information.
 
 Unit signatures.
 
-A datatype's `unitComposition` is a list of two multisets of datatype QNames: the
-datatypes whose units are multiplied together to form the units of that datatype, and
-the datatypes whose units divide them.  Expanding a composition recursively gives the
+A datatype's `unitComposition` is an object of two multisets of datatype QNames: a
+numerator naming the datatypes whose units are multiplied together to form the units of
+that datatype, and a denominator naming the datatypes whose units divide them.  Expanding a composition recursively gives the
 datatype's unit signature, a pair of multisets of base datatypes.
 
 A fact's unit dimension is valid where the signature of its unit dimension value equals
@@ -44,12 +44,10 @@ def signatureString(signature):
     return f"( {side(signature[0])} ; {side(signature[1])} )"
 
 def unitCompositionQNames(dtObj, compMdl):
-    """((QName,...), (QName,...)) -- the resolved unitComposition of a datatype, or None where it declares none.
+    """((QName,...), (QName,...)) -- the numerator and denominator of a datatype's unitComposition, or None where it declares none.
 
-    The property is loaded as raw JSON (a list of two arrays of QName strings), like the
-    unit string representations of compositeUnitRepresentation, and is resolved here
-    against the prefixes of the module that declares the datatype.  Measures that do not
-    resolve are dropped; they are reported by ValidateConceptObjects.
+    A QName that did not resolve is dropped here, having been reported by the loader as
+    oimce:unboundPrefix.
     """
     try:
         return dtObj._unitCompositionQNames
@@ -57,19 +55,9 @@ def unitCompositionQNames(dtObj, compMdl):
         pass
     result = None
     composition = getattr(dtObj, "unitComposition", None)
-    if composition:
-        prefixNamespaces = getattr(getattr(dtObj, "module", None), "_prefixNamespaces", None) or {}
-        sides = []
-        for side in list(composition)[:2]:
-            qns = []
-            for dtQnStr in (side or ()):
-                dtQn = dtQnStr if isinstance(dtQnStr, QName) else qname(dtQnStr, prefixNamespaces)
-                if dtQn is not None:
-                    qns.append(dtQn)
-            sides.append(tuple(qns))
-        while len(sides) < 2:
-            sides.append(())
-        result = (sides[0], sides[1])
+    if composition is not None:
+        result = (tuple(qn for qn in (getattr(composition, "numerator", None) or ()) if qn is not None),
+                  tuple(qn for qn in (getattr(composition, "denominator", None) or ()) if qn is not None))
     dtObj._unitCompositionQNames = result
     return result
 

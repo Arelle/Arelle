@@ -53,13 +53,6 @@ def validateConceptFamily(compMdl, module, oimFile, *, assertObjectType, validat
         # numeric datatype, and which must not name this datatype itself (tavi.md "Unit composition")
         composition = unitCompositionQNames(dtObj, compMdl)
         if composition is not None:
-            prefixNamespaces = getattr(getattr(dtObj, "module", None), "_prefixNamespaces", None) or {}
-            for rawSide in list(getattr(dtObj, "unitComposition", None) or ())[:2]:
-                for dtQnStr in (rawSide or ()):
-                    if isinstance(dtQnStr, str) and qname(dtQnStr, prefixNamespaces) is None:
-                        emit_error(compMdl, "oimce:unboundPrefix",
-                                   _("The dataType %(name)s unitComposition QName has an undefined prefix: %(qname)s."),
-                                   xbrlObject=dtObj, name=dtObj.name, qname=dtQnStr)
             for side in composition:
                 for compQn in side:
                     if compQn.namespaceURI == XSD_NAMESPACE:
