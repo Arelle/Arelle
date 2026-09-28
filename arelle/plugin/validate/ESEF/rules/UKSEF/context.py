@@ -32,7 +32,7 @@ def rule_ukfrc8(
     UKFRC8: xbrli:segment elements MUST be used in the contexts of UKFRS target FRC-tagged data.
     xbrli:scenario elements MUST be used in the contexts of default target ESEF-tagged data.
     """
-    if val.authority != AUTHORITY_UKFRC:
+    if val.authority != AUTHORITY_UKFRC or not pluginData.isUkfrsCorrectExtention(val.modelXbrl.fileSource.type):
         return
     modelXbrl = val.modelXbrl
     contextIssues = pluginData.getContextIssues(modelXbrl)
