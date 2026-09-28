@@ -75,6 +75,24 @@ config = ConformanceSuiteConfig(
     ],
     base_taxonomy_validation="none",
     expected_additional_testcase_errors={f"*tests/FRC/{s}": val for s, val in {
+        "FRC_01/index.xml:TC1_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_01/index.xml:TC2_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_01/index.xml:TC3_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_01/index.xml:TC4_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_01/index.xml:TC5_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_01/index.xml:TC6_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
         "FRC_01/index.xml:TC7_invalid": {
             # UKFRC6 fire invalidIdentifier error because `FRC_01:TC7` doesn't have a second `ix:references` element with a target attribute,
             # and we can't separate schemas iso17442 and ENTITY_IDENTIFIER_SCHEME_CRN
@@ -84,10 +102,25 @@ config = ConformanceSuiteConfig(
             # same explanation as invalidIdentifier error above
             "multipleIdentifiers": 1,
             "segmentUsed": 1,
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_01/index.xml:TC8_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_01/index.xml:TC9_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_02/index.xml:TC1_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_02/index.xml:TC2_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
         },
         "FRC_02/index.xml:TC3_invalid": {
-            "info:duplicatedSchema": 1,
-            "xbrl:multipleTopLevelSchemasForNamespace": 1,
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_03/index.xml:TC1_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
         },
         "FRC_03/index.xml:TC2_invalid": {
             # rule_incorrectTarget covers the UKFRC1 and UKFRC3 incorrectTarget conditions.
@@ -99,24 +132,40 @@ config = ConformanceSuiteConfig(
             # same explanation as invalidIdentifier error above
             "multipleIdentifiers": 1,
             "segmentUsed": 1,
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
         },
         "FRC_03/index.xml:TC3_invalid": {
             # rule_incorrectTarget covers the UKFRC1 and UKFRC3 incorrectTarget conditions.
             # UKFRC1 and UKFRC5 have the same conditions for the test case, but have different checks and fire different errors
             "noUKFRSData": 2,
             "segmentUsed": 1,
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
         },
         "FRC_03/index.xml:TC4_invalid": {
             # UKFRC3 and UKFRC5 have the same conditions for the test case, but have different checks and fire different errors
             "noUKFRSData": 2,
             "segmentUsed": 1,
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_04/index.xml:TC1_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
         },
         "FRC_04/index.xml:TC2_invalid": {
             # Data in this test case is invalid for the rule UKFRC5
             "noESEFData": 2,
         },
+        "FRC_05/index.xml:TC1_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_05/index.xml:TC2_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_05/index.xml:TC3_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
         "FRC_05/index.xml:TC4_invalid": {
             "incorrectTarget": 1,
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
         },
         "FRC_05/index.xml:TC5_invalid": {
             # the `targetAttributeUsedForESEFContents` error appears because the test case
@@ -125,45 +174,186 @@ config = ConformanceSuiteConfig(
             # it is similar to the rule UKFRC5, which fires `noESEFData` error.
             "targetAttributeUsedForESEFContents": 1,
         },
+        "FRC_05/index.xml:TC6_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_06/index.xml:TC1_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_06/index.xml:TC2_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_06/index.xml:TC3_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_07/index.xml:TC1_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
         "FRC_07/index.xml:TC2_invalid": {
             # By the same logic that FRC_06:TC2 fires multipleIdentifiers, so should FRC_07:TC2
             "multipleIdentifiers": 1,
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_07/index.xml:TC3_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_07/index.xml:TC4_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_08/index.xml:TC1_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
         },
         "FRC_08/index.xml:TC2_invalid": {
             # Unexpected segment also triggers lxml error
             "lxml.SCHEMAV_ELEMENT_CONTENT": 20,
             # Testcase does not specify count (1 is default), so 19 additional occurrences
             "xmlSchema:elementUnexpected": 19,
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_08/index.xml:TC3_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
         },
         # Report package uses CR document type URI instead of rec URI.
+        "FRC_09/index.xml:TC1_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
         "FRC_09/index.xml:TC2_valid": {"rpe:unsupportedReportPackageVersion": 1},
+        "FRC_09/index.xml:TC3_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
         "FRC_09/index.xml:TC4_valid": {"rpe:unsupportedReportPackageVersion": 1},
+        "FRC_09/index.xml:TC5_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_10/index.xml:TC1_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_10/index.xml:TC2_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_10/index.xml:TC3_invalid": {
+            "spaceInFilePath": 2,
+            "multipleReports": 1,
+            "reportPackageNameDoesNotFollowNamingConvention": 2,
+        },
+        "FRC_10/index.xml:TC4_invalid": {
+            "noReportsPresent": 1,
+            "IOerror": 1,
+            "arelle:nonIxdsDocument": 1,
+
+        },
+        "FRC_10/index.xml:TC5_invalid": {
+            "noReportsPresent": 1,
+            "IOerror": 1,
+            "arelle:nonIxdsDocument": 1,
+
+        },
+        "FRC_11/index.xml:TC1_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_11/index.xml:TC2_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+            "reportFileNameDoesNotFollowNamingConvention": 1,
+            "ix11.10.1.2:contextReference": 2,
+            "ix11.11.1.2:contextReference": 19,
+            "ix11.10.1.2:unitReference": 47,
+            "lxml.SCHEMAV_ELEMENT_CONTENT": 2,
+            "xbrl.4.6.1:itemContextRef": 21,
+            "xbrl.4.6.2:numericUnit": 47,
+            "xmlSchema:syntax": 4,
+        },
+        "FRC_11/index.xml:TC3_invalid": {
+            "spaceInFilePath": 2,
+            "multipleReports": 1,
+            "reportPackageNameDoesNotFollowNamingConvention": 2,
+        },
+        "FRC_12/index.xml:TC1_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_12/index.xml:TC2_valid":{
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_12/index.xml:TC3_invalid": {
+            # `FRC_10:TC5` checks the report file extension, same as `FRC_12:TC3` but fires a different error code
+            "noReportsPresent": 2,
+            "segmentUsed": 1,
+        },
+        "FRC_13/index.xml:TC1_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_13/index.xml:TC2_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_13/index.xml:TC3_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_14/index.xml:TC1_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_14/index.xml:TC2_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_14/index.xml:TC3_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_14/index.xml:TC4_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_14/index.xml:TC5_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_14/index.xml:TC6_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_14/index.xml:TC7_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_15/index.xml:TC1_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_15/index.xml:TC2_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_15/index.xml:TC3_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_15/index.xml:TC4_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_16/index.xml:TC1_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_16/index.xml:TC2_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_17/index.xml:TC2_invalid": {
+            "reportFileNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_17/index.xml:TC3_invalid": {
+            "reportFileNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_18/index.xml:TC1_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_18/index.xml:TC2_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_18/index.xml:TC3_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_18/index.xml:TC4_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_19/index.xml:TC1_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_19/index.xml:TC2_invalid": {
+            "executableCodePresent": 1,
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
     }.items()},
     expected_failure_ids=frozenset({f"tests/FRC/{s}" for s in [
         # FRC XBRL Tagging Guide not yet implemented.
-        "FRC_09/index.xml:TC6_invalid",
-        "FRC_10/index.xml:TC3_invalid",
-        "FRC_10/index.xml:TC4_invalid",
-        "FRC_10/index.xml:TC5_invalid",
-        "FRC_10/index.xml:TC6_invalid",
-        "FRC_11/index.xml:TC2_invalid",
-        "FRC_11/index.xml:TC3_invalid",
-        "FRC_12/index.xml:TC3_invalid",
-        "FRC_13/index.xml:TC2_invalid",
-        "FRC_13/index.xml:TC3_invalid",
-        "FRC_14/index.xml:TC4_invalid",
-        "FRC_14/index.xml:TC5_invalid",
-        "FRC_14/index.xml:TC6_invalid",
-        "FRC_14/index.xml:TC7_invalid",
-        "FRC_15/index.xml:TC2_invalid",
-        "FRC_15/index.xml:TC3_invalid",
-        "FRC_15/index.xml:TC4_invalid",
-        "FRC_16/index.xml:TC2_invalid",
-        "FRC_17/index.xml:TC2_invalid",
-        "FRC_17/index.xml:TC3_invalid",
-        "FRC_18/index.xml:TC3_invalid",
-        "FRC_18/index.xml:TC4_invalid",
-        "FRC_19/index.xml:TC2_invalid",
         "FRC_20/index.xml:TC3_invalid",
         "FRC_21/index.xml:TC2_invalid",
         "FRC_21/index.xml:TC3_invalid",
