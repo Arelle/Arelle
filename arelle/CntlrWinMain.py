@@ -203,7 +203,7 @@ class CntlrWinMain(Cntlr.Cntlr):
         self.modelManager.validateDisclosureSystem = self.config.setdefault("validateDisclosureSystem",False)
         self.validateDisclosureSystem = BooleanVar(value=self.modelManager.validateDisclosureSystem)
         self.validateDisclosureSystem.trace_add("write", self.setValidateDisclosureSystem)
-        validateMenu.add_checkbutton(label=_("Disclosure system checks"), underline=0, variable=self.validateDisclosureSystem, onvalue=True, offvalue=False)
+        validateMenu.add_checkbutton(label=_("Disclosure system checks"), underline=0, variable=self.validateDisclosureSystem, onvalue=True, offvalue=False, command=self.promptForDisclosureSystemIfUnset)
         validateMenu.add_command(label=_("Select disclosure system..."), underline=0, command=self.selectDisclosureSystem)
         calcMenu = Menu(self.menubar, tearoff=0)
         self.modelManager.validateCalcs = self.config.setdefault("validateCalcsEnum", CalcsMode.NONE)
@@ -1452,10 +1452,12 @@ class CntlrWinMain(Cntlr.Cntlr):
         self.modelManager.validateDisclosureSystem = self.validateDisclosureSystem.get()
         self.config["validateDisclosureSystem"] = self.modelManager.validateDisclosureSystem
         self.saveConfig()
+        self.setValidateTooltipText()
+
+    def promptForDisclosureSystemIfUnset(self) -> None:
         if self.modelManager.validateDisclosureSystem:
             if not self.modelManager.disclosureSystem or not self.modelManager.disclosureSystem.selection:
                 self.selectDisclosureSystem()
-        self.setValidateTooltipText()
 
     def selectDisclosureSystem(self, *args: Any) -> None:
         from arelle import DialogOpenArchive
