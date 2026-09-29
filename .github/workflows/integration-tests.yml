@@ -67,6 +67,8 @@ jobs:
       matrix:
         test: ${{ fromJson(needs.find-conformance-suites.outputs.matrix) }}
     environment: ${{ matrix.test.environment == 'integration-tests' && 'integration-tests' || 'none' }}
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -78,7 +80,13 @@ jobs:
           commit_sha: ${{ github.event.pull_request.head.sha }}
           repository_full_name: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Configure AWS Credentials
-        if: ${{ matrix.test.environment == 'integration-tests' }}
+        if: ${{ matrix.test.environment == 'integration-tests' && github.repository == 'Arelle/Arelle' }}
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: arn:aws:iam::663511558366:role/w-arelle-oidc-role
+          aws-region: us-east-1
+      - name: Configure AWS Credentials (Fork)
+        if: ${{ matrix.test.environment == 'integration-tests' && github.repository != 'Arelle/Arelle' }}
         uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
@@ -101,6 +109,8 @@ jobs:
       matrix:
         test: ${{ fromJson(needs.find-test-scripts.outputs.matrix) }}
     environment: ${{ matrix.test.environment == 'integration-tests' && 'integration-tests' || 'none' }}
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -112,7 +122,13 @@ jobs:
           commit_sha: ${{ github.event.pull_request.head.sha }}
           repository_full_name: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Configure AWS Credentials
-        if: ${{ matrix.test.environment == 'integration-tests' }}
+        if: ${{ matrix.test.environment == 'integration-tests' && github.repository == 'Arelle/Arelle' }}
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: arn:aws:iam::663511558366:role/w-arelle-oidc-role
+          aws-region: us-east-1
+      - name: Configure AWS Credentials (Fork)
+        if: ${{ matrix.test.environment == 'integration-tests' && github.repository != 'Arelle/Arelle' }}
         uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
