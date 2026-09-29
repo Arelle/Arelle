@@ -252,6 +252,14 @@ class ValidationPluginExtension(ValidationPlugin):
             conversionRateQn=tcQn("ConversionRate"),
             assessableProfitsQn=tcQn("AssessableProfitsAdjustedLossOfThePeriodHKD"),
 
+            # income paired
+            serviceFeeIncomeQn=tcQn("ServiceFeeIncome"),
+            serviceFeeReceivedDetailsQn=tcQn("ServiceFeeReceivedDetails"),
+            managementFeeIncomeQn=tcQn("ManagementFeeIncome"),
+            managementFeeReceivedDetailsQn=tcQn("ManagementFeeReceivedDetails"),
+            offshoreProfitsExcludedQn=tcQn("OffshoreProfitsExcluded"),
+            reasonsForOffshoreClaimQn=tcQn("ReasonsForTheOffshoreClaim"),
+
             # HKSIC
             hksicCodeQn=tcQn("HongKongStandardIndustrialClassificationCode"),
             hksicCodeRegex=re.compile(r"^\d{6}$"),
