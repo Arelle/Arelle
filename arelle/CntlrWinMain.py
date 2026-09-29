@@ -203,7 +203,7 @@ class CntlrWinMain(Cntlr.Cntlr):
         self.modelManager.validateDisclosureSystem = self.config.setdefault("validateDisclosureSystem",False)
         self.validateDisclosureSystem = BooleanVar(value=self.modelManager.validateDisclosureSystem)
         self.validateDisclosureSystem.trace_add("write", self.setValidateDisclosureSystem)
-        validateMenu.add_checkbutton(label=_("Disclosure system checks"), underline=0, variable=self.validateDisclosureSystem, onvalue=True, offvalue=False)
+        validateMenu.add_checkbutton(label=_("Disclosure system checks"), underline=0, variable=self.validateDisclosureSystem, onvalue=True, offvalue=False, command=self.promptForDisclosureSystemIfUnset)
         validateMenu.add_command(label=_("Select disclosure system..."), underline=0, command=self.selectDisclosureSystem)
         calcMenu = Menu(self.menubar, tearoff=0)
         self.modelManager.validateCalcs = self.config.setdefault("validateCalcsEnum", CalcsMode.NONE)
@@ -1452,10 +1452,12 @@ class CntlrWinMain(Cntlr.Cntlr):
         self.modelManager.validateDisclosureSystem = self.validateDisclosureSystem.get()
         self.config["validateDisclosureSystem"] = self.modelManager.validateDisclosureSystem
         self.saveConfig()
+        self.setValidateTooltipText()
+
+    def promptForDisclosureSystemIfUnset(self) -> None:
         if self.modelManager.validateDisclosureSystem:
             if not self.modelManager.disclosureSystem or not self.modelManager.disclosureSystem.selection:
                 self.selectDisclosureSystem()
-        self.setValidateTooltipText()
 
     def selectDisclosureSystem(self, *args: Any) -> None:
         from arelle import DialogOpenArchive
@@ -1869,6 +1871,32 @@ class TkinterCallWrapper:
                                          _("{0}\n").format(traceback.format_exc(limit=30)))
 
 
+def deferMenuCommands() -> None:
+    """Make every Tk menu command run after the native menu action that invoked it has returned.
+
+    On macOS 27, a Tk modal dialog opened while the menu bar's action is still on the stack stops
+    receiving events and hangs the app (https://core.tcl-lang.org/tk/tktview/33b3af1cea).
+    Remove once a Tk release with the fix is in use.
+    """
+    menuAdd = tkinter.Menu.add
+    menuInsert = tkinter.Menu.insert
+
+    def deferred(menu: tkinter.Menu, cnf: dict[str, Any], kw: dict[str, Any]) -> dict[str, Any]:
+        options = {**cnf, **kw}
+        command = options.get("command")
+        if callable(command):
+            options["command"] = lambda: menu.after_idle(command)
+        return options
+
+    def add(self: tkinter.Menu, itemType: str, cnf: dict[str, Any] = {}, **kw: Any) -> None:
+        menuAdd(self, itemType, deferred(self, cnf, kw))
+
+    def insert(self: tkinter.Menu, index: str | int, itemType: str, cnf: dict[str, Any] = {}, **kw: Any) -> None:
+        menuInsert(self, index, itemType, deferred(self, cnf, kw))
+
+    tkinter.Menu.add = add  # type: ignore[method-assign]
+    tkinter.Menu.insert = insert  # type: ignore[method-assign]
+
 
 def main() -> None:
     # this is the entry called by arelleGUI.pyw for windows
@@ -1883,6 +1911,9 @@ def main() -> None:
         sys.stdout = dummyFrozenStream()
         sys.stderr = dummyFrozenStream()
         sys.stdin = dummyFrozenStream()
+
+    if sys.platform == "darwin":
+        deferMenuCommands()
 
     global restartMain
     while restartMain:
