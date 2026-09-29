@@ -87,7 +87,7 @@ def validate(val: ValidateXbrl, modelXbrl: ModelXbrl, infosetModelXbrl: ModelXbr
                             modelObject=(instFact, infosetFact),
                                         factNumber=(i + 1),
                                         concept=instFact.qname,
-                                        expectedPrecisions=ptvPrecision,
+                                        expectedPrecision=ptvPrecision,
                                         inferredPrecision=str(inferredPrecision(fact)))
 
     elif infoset.type == Type.ARCSINFOSET:  # type: ignore[union-attr]
@@ -157,7 +157,7 @@ def validate(val: ValidateXbrl, modelXbrl: ModelXbrl, infosetModelXbrl: ModelXbr
                         found = True
                 if not found:
                     modelXbrl.error("arelle:infosetTest",
-                        _("Arc not found: from %(fromPath)s, to %(toPath)s, role %(arcRole)s, linkRole $(extRole)s"),
+                        _("Arc not found: from %(fromPath)s, to %(toPath)s, role %(arcRole)s, linkRole %(linkRole)s"),
                         modelObject=arcElt, fromPath=arcElt.get("fromPath"), toPath=arcElt.get("toPath"), arcRole=arcRole, linkRole=extRole)
                     continue
     elif infoset.type == Type.FACTDIMSINFOSET:  # type: ignore[union-attr]
@@ -191,11 +191,11 @@ def validate(val: ValidateXbrl, modelXbrl: ModelXbrl, infosetModelXbrl: ModelXbr
                         if not ((qnDim in context.qnameDims and not isDefault) or
                                 (qnDim in factElt.modelXbrl.qnameDimensionDefaults and isDefault)):  # type: ignore[union-attr]
                             modelXbrl.error("arelle:infosetTest",
-                                _("Fact %(sPointer)s (qnElt)s dimension mismatch %(qnDim)s"),
+                                _("Fact %(sPointer)s %(qnElt)s dimension mismatch %(qnDim)s"),
                                 modelObject=(itemElt, factElt, context), sPointer=sPointer, qnElt=factQname, qnDim=qnDim)
                     if numNonDefaults != len(context.qnameDims):
                         modelXbrl.error("arelle:infosetTest",
-                            _("Fact %(sPointer)s (qnElt)s dimensions count mismatch"),
+                            _("Fact %(sPointer)s %(qnElt)s dimensions count mismatch"),
                             modelObject=(itemElt, factElt, context), sPointer=sPointer, qnElt=factQname)
             except (IndexError, ValueError, AttributeError) as err:
                 modelXbrl.error("arelle:infosetTest",
