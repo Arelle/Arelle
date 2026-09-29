@@ -14,8 +14,6 @@ jobs:
       - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
-          ref: ${{ github.event.pull_request.head.sha }}
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
       - id: build-test-script-matrix
         uses: ./.github/actions/get_test_scripts_matrix
 
@@ -32,8 +30,6 @@ jobs:
       - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
-          ref: ${{ github.event.pull_request.head.sha }}
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Configure AWS Credentials
         if: ${{ matrix.test.environment == 'integration-tests' }}
         uses: aws-actions/configure-aws-credentials@v6.3.0
