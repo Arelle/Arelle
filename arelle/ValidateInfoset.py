@@ -160,14 +160,16 @@ def validate(val: ValidateXbrl, modelXbrl: ModelXbrl, infosetModelXbrl: ModelXbr
                         _("Arc not found: from %(fromPath)s, to %(toPath)s, role %(arcRole)s, linkRole $(extRole)s"),
                         modelObject=arcElt, fromPath=arcElt.get("fromPath"), toPath=arcElt.get("toPath"), arcRole=arcRole, linkRole=extRole)
                     continue
+    elif infoset.type == Type.FACTDIMSINFOSET:  # type: ignore[union-attr]
         # validate dimensions of each fact
-        factElts = XmlUtil.children(modelXbrl.modelDocument.xmlRootElement, None, "*")  # type: ignore[union-attr]
         for itemElt in XmlUtil.children(infoset.xmlRootElement, None, "item"):  # type: ignore[union-attr]
             try:
                 qnElt = XmlUtil.child(itemElt, None, "qnElement")
                 factQname = qname(qnElt, XmlUtil.text(qnElt))  # type: ignore[arg-type]
-                sPointer = int(XmlUtil.child(itemElt, None, "sPointer").text)  # type: ignore[arg-type,union-attr]
-                factElt = factElts[sPointer - 1]  # 1-based xpath indexing
+                sPointer = XmlUtil.text(XmlUtil.child(itemElt, None, "sPointer"))  # type: ignore[arg-type]
+                factElt: ModelObject = modelXbrl.modelDocument.xmlRootElement  # type: ignore[union-attr]
+                for step in sPointer.split("/"):  # xpointer child sequence, 1-based, nested for tuple facts
+                    factElt = XmlUtil.children(factElt, None, "*")[int(step) - 1]
                 if factElt.qname != factQname:
                     modelXbrl.error("arelle:infosetTest",
                         _("Fact %(sPointer)s mismatch Qname, expected %(qnElt)s, observed %(factQname)s"),
