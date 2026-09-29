@@ -28,7 +28,7 @@ from .XbrlEntity import XbrlEntity
 from .XbrlFact import XbrlFact, XbrlTableTemplate
 from .XbrlUnit import parseUnitString, XbrlUnit
 from .UnitSignature import (dataTypeSignature, isEmptySignature, signaturesEqual,
-                            signatureString, unitDimensionSignature)
+                            signatureString, unitDimensionSignature, unitNamespacesFor)
 from .ValidateXbrlModel import validateValue
 from .ValidateCubes import validateCubes, isNegativeCube
 from .ErrorCatalog import emit_error
@@ -165,6 +165,24 @@ def resolveFact(txmyMdl, txmyObj, fact):
                 else:
                     # The unit is valid where its signature -- the datatypes it measures, expanded
                     # to base datatypes -- equals the signature of the fact's datatype.
+                    # Each measure must also be defined in a namespace its datatype authorises.
+                    # The two checks are independent and a unit dimension value must satisfy both,
+                    # so this runs whatever the signature comparison finds (tavi.md "Unit validity").
+                    for measures in unitQnTuple[:2]:
+                        for measureQn in measures:
+                            if measureQn == qnPureUnit:
+                                continue # the pure unit belongs to no namespace authority
+                            measureUnitObj = txmyMdl.namedObjects.get(measureQn)
+                            if not isinstance(measureUnitObj, XbrlUnit):
+                                continue # unresolved measure, reported as an invalid unit string
+                            allowedNamespaces = unitNamespacesFor(measureUnitObj.dataType, txmyMdl)
+                            if allowedNamespaces is not None and measureQn.namespaceURI not in allowedNamespaces:
+                                txmyMdl.error("oimte:factUnitNamespaceNotAllowed",
+                                              _("Unit %(unit)s is not defined in a namespace allowed for dataType %(unitDataType)s: %(allowedNamespaces)s."),
+                                              xbrlObject=fact, name=fact.name, unit=measureQn,
+                                              unitDataType=measureUnitObj.dataType,
+                                              allowedNamespaces=", ".join(sorted(allowedNamespaces)))
+                                fact._xValid = INVALID
                     unitSignature = unitDimensionSignature(unitQnTuple, txmyMdl)
                     dtSignature = dataTypeSignature(cObj.dataType, txmyMdl)
                     if not signaturesEqual(unitSignature, dtSignature):

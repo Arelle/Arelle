@@ -80,6 +80,7 @@ class XbrlDataType(XbrlReferencableModelObject):
     whiteSpace: Optional[str] # (optional) Defines a string one of preserve, replace or collapse.
     patterns: Optional[NonemptySet[str]] # (optional) Defines a string as a single regex expressions. At least one of the regex patterns must match. (Uses XML regex)
     unitComposition: Optional[XbrlUnitComposition] # (optional) The unit composition of this dataType: the dataTypes whose units are multiplied together to form its units (numerator) and those whose units divide them (denominator). For example xbrlr:flow has a numerator of xbrlr:volume and a denominator of xbrlr:time.
+    unitNamespaces: Optional[NonemptySet[str]] # (optional) The namespaces from which the unit objects used with this dataType may be taken. Each entry is a reserved prefix or an absolute namespace URI. Constrains where a unit is defined, independently of what the unit signature says it measures.
     allowedObjects: Optional[NonemptySet[QName]] # (optional) Set of object type QNames that the data type can be used with. If no value is provided the property can be used with any object. The value provided is a set of model component objects. MUST NOT be empty if provided.
     checksumAlgorithm: Optional[QName] # (optional) QName of a member object that defines checksum validation semantics for string/QName local-name values.
 

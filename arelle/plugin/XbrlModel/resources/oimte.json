@@ -543,6 +543,23 @@
                         "source": "oimte:OIMErrorClassDomain",
                         "target": "oimte:missingBundleModuleReferenceModel",
                         "order": 68.2
+                    },
+                    {
+                        "source": "oimte:OIMErrorClassDomain",
+                        "target": "oimte:factUnitNamespaceNotAllowed",
+                        "order": 28.56
+                    },
+                    {
+                        "source": "oimte:OIMErrorClassDomain",
+                        "target": "oimte:circularUnitComposition"
+                    },
+                    {
+                        "source": "oimte:OIMErrorClassDomain",
+                        "target": "oimte:invalidUnitNamespace"
+                    },
+                    {
+                        "source": "oimte:OIMErrorClassDomain",
+                        "target": "oimte:duplicateUnitStringRepresentation"
                     }
                 ]
             }
@@ -2459,6 +2476,54 @@
                         "value": "error"
                     }
                 ]
+            },
+            {
+                "name": "oimte:factUnitNamespaceNotAllowed",
+                "domainClasses": [
+                    "oimte:OIMErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:invalidUnitNamespace",
+                "domainClasses": [
+                    "oimte:OIMErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:circularUnitComposition",
+                "domainClasses": [
+                    "oimte:OIMErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "name": "oimte:duplicateUnitStringRepresentation",
+                "domainClasses": [
+                    "oimte:OIMErrorClassDomain"
+                ],
+                "properties": [
+                    {
+                        "property": "xbrl:severity",
+                        "value": "error"
+                    }
+                ]
             }
         ],
         "headings": [
@@ -3074,6 +3139,14 @@
                         "source": "oimte:NetworkErrors",
                         "target": "oimte:invalidRootSourceReference",
                         "order": 3
+                    },
+                    {
+                        "source": "oimte:DataTypeErrors",
+                        "target": "oimte:circularUnitComposition"
+                    },
+                    {
+                        "source": "oimte:DataTypeErrors",
+                        "target": "oimte:invalidUnitNamespace"
                     }
                 ]
             },
@@ -3770,6 +3843,23 @@
                     {
                         "source": "xbrl:relationshipObject",
                         "target": "oimte:conceptPropertiesInconsistentWithSummationItemRelationship"
+                    },
+                    {
+                        "source": "xbrl:factObject",
+                        "target": "oimte:factUnitNamespaceNotAllowed",
+                        "order": 2.6
+                    },
+                    {
+                        "source": "xbrl:dataTypeObject",
+                        "target": "oimte:circularUnitComposition"
+                    },
+                    {
+                        "source": "xbrl:dataTypeObject",
+                        "target": "oimte:invalidUnitNamespace"
+                    },
+                    {
+                        "source": "xbrl:unitObject",
+                        "target": "oimte:duplicateUnitStringRepresentation"
                     }
                 ]
             }
@@ -6510,6 +6600,102 @@
                 "language": "en",
                 "labelType": "xbrl:documentation",
                 "value": "Raised when a bundle module (documentType 'https://xbrl.org/2026/labelBundle' or 'https://xbrl.org/2026/referenceBundle') does not define the referenceModel property. Bundle modules must define a referenceModel property that references the target XBRL model."
+            },
+            {
+                "forObject": "oimte:factUnitNamespaceNotAllowed",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Fact Unit Namespace Not Allowed"
+            },
+            {
+                "forObject": "oimte:factUnitNamespaceNotAllowed",
+                "language": "en",
+                "labelType": "xbrl:errorMessage",
+                "value": "Fact '{factName}' uses unit '{unit}', which is defined in namespace '{unitNamespace}'. The datatype '{unitDataType}' restricts its units to the namespaces '{unitNamespaces}'."
+            },
+            {
+                "forObject": "oimte:factUnitNamespaceNotAllowed",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "Raised when a measure of a fact's unit dimension names a unit object that is defined outside the namespaces permitted by the unitNamespaces property of the datatype that the unit measures. The check is independent of the comparison of unit signatures: it constrains which authority may define a unit for the datatype, not what the unit measures. Each measure of a composite unit is checked against the datatype of that measure."
+            },
+            {
+                "forObject": "oimte:factUnitNamespaceNotAllowed",
+                "language": "en",
+                "labelType": "xbrl:iconLabel",
+                "value": "🚫"
+            },
+            {
+                "forObject": "oimte:invalidUnitNamespace",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Invalid Unit Namespace"
+            },
+            {
+                "forObject": "oimte:invalidUnitNamespace",
+                "language": "en",
+                "labelType": "xbrl:errorMessage",
+                "value": "Datatype '{dataType}' declares a unitNamespaces entry '{unitNamespace}' that is neither a reserved prefix nor an absolute URI, or declares unitNamespaces on a non-numeric datatype."
+            },
+            {
+                "forObject": "oimte:invalidUnitNamespace",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "Raised when the unitNamespaces property of a datatype object is invalid. Each entry must be either a reserved prefix, which this specification binds to exactly one namespace URI, or an absolute URI. The property must not be declared on a datatype that is not a numeric datatype, because only numeric facts carry a unit dimension."
+            },
+            {
+                "forObject": "oimte:invalidUnitNamespace",
+                "language": "en",
+                "labelType": "xbrl:iconLabel",
+                "value": "🚫"
+            },
+            {
+                "forObject": "oimte:circularUnitComposition",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Circular Unit Composition"
+            },
+            {
+                "forObject": "oimte:circularUnitComposition",
+                "language": "en",
+                "labelType": "xbrl:errorMessage",
+                "value": "Datatype '{dataType}' appears in its own unitComposition '{unitComposition}'."
+            },
+            {
+                "forObject": "oimte:circularUnitComposition",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "Raised when the unitComposition of a datatype object names that datatype, either directly or through the unitComposition of a datatype that the composition names. A unit composition MUST resolve to base datatypes in a finite number of steps."
+            },
+            {
+                "forObject": "oimte:circularUnitComposition",
+                "language": "en",
+                "labelType": "xbrl:iconLabel",
+                "value": "🚫"
+            },
+            {
+                "forObject": "oimte:duplicateUnitStringRepresentation",
+                "language": "en",
+                "labelType": "xbrl:label",
+                "value": "Duplicate Unit String Representation"
+            },
+            {
+                "forObject": "oimte:duplicateUnitStringRepresentation",
+                "language": "en",
+                "labelType": "xbrl:errorMessage",
+                "value": "Unit string representation '{value}' is declared as a compositeUnitRepresentation of both '{unitName}' and '{otherUnitName}'."
+            },
+            {
+                "forObject": "oimte:duplicateUnitStringRepresentation",
+                "language": "en",
+                "labelType": "xbrl:documentation",
+                "value": "Raised when one unit string representation is declared as a compositeUnitRepresentation of more than one unit object. A reported unit dimension value is canonicalised by replacing a collection of measures with the unit object whose compositeUnitRepresentation it is, which requires that unit object to be unique."
+            },
+            {
+                "forObject": "oimte:duplicateUnitStringRepresentation",
+                "language": "en",
+                "labelType": "xbrl:iconLabel",
+                "value": "🚫"
             }
         ],
         "references": [

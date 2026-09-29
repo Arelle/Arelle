@@ -2485,6 +2485,16 @@
                                 "minItems": 1,
                                 "uniqueItems": true
                             },
+                            "unitNamespaces": {
+                                "type": "array",
+                                "description": "The namespaces from which the units used with this datatype may be taken. Each entry is either a reserved prefix, which this specification binds to exactly one namespace URI, or an absolute namespace URI.",
+                                "items": {
+                                    "type": "string",
+                                    "minLength": 1
+                                },
+                                "minItems": 1,
+                                "uniqueItems": true
+                            },
                             "unitComposition": {
                                 "type": "object",
                                 "description": "Unit composition: the datatypes whose units are multiplied together to form the units of this datatype, and the datatypes whose units divide them. Each is a multiset: a datatype may be named more than once, and either may be absent, which is the empty multiset.",

@@ -20,6 +20,7 @@ from collections import Counter
 
 from arelle.ModelValue import QName, qname
 
+from .XbrlConst import reservedPrefixNamespaces
 from .XbrlConcept import XbrlDataType
 from .XbrlUnit import XbrlUnit
 
@@ -150,6 +151,35 @@ def unitDimensionSignature(unitMeasures, compMdl):
             numerators += num
             denominators += den
     return (+Counter(numerators), +Counter(denominators))
+
+def unitNamespacesFor(dtQn, compMdl, visiting=None):
+    """(frozenset or None) -- the namespace URIs a unit of this datatype may be defined in.
+
+    The most specific declaration in the datatype's derivation chain governs, matching how
+    unit signatures resolve; None where no datatype in the chain declares unitNamespaces, which
+    places no restriction.  A reserved prefix is resolved through the specification's reserved
+    prefix table and not through the prefixes a module declares.
+    Reference: tavi.md "Unit validity" and the dataType object's unitNamespaces property.
+    """
+    if not hasattr(compMdl, "_unitNamespaces"):
+        compMdl._unitNamespaces = {}
+    if dtQn in compMdl._unitNamespaces:
+        return compMdl._unitNamespaces[dtQn]
+    if visiting is None:
+        visiting = set()
+    result = None
+    if dtQn not in visiting:
+        visiting.add(dtQn)
+        dtObj = compMdl.namedObjects.get(dtQn)
+        if isinstance(dtObj, XbrlDataType):
+            declared = getattr(dtObj, "unitNamespaces", None)
+            if declared:
+                result = frozenset(reservedPrefixNamespaces.get(entry, entry) for entry in declared)
+            elif isinstance(compMdl.namedObjects.get(dtObj.baseType), XbrlDataType):
+                result = unitNamespacesFor(dtObj.baseType, compMdl, visiting)
+        visiting.discard(dtQn)
+    compMdl._unitNamespaces[dtQn] = result
+    return result
 
 def compositionCycle(dtObj, compMdl, visiting=None):
     """(bool) -- True where a datatype appears in its own unitComposition, directly or transitively."""

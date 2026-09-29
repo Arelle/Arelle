@@ -8,6 +8,8 @@ from .ErrorCatalog import emit_error
 from .XbrlHeading import XbrlHeading
 from .XbrlConcept import XbrlCollectionType, XbrlConcept, XbrlDataType
 from .UnitSignature import XSD_NAMESPACE, compositionCycle, unitCompositionQNames
+from .XbrlConst import reservedPrefixNamespaces
+from arelle import UrlUtil
 from .XbrlConst import qnXbrlConceptObj, xbrl
 from .XbrlDimension import XbrlDomainNetwork
 
@@ -75,6 +77,20 @@ def validateConceptFamily(compMdl, module, oimFile, *, assertObjectType, validat
                 emit_error(compMdl, "oimte:circularUnitComposition",
                            _("The dataType %(name)s appears in its own unitComposition, directly or through the unitComposition of a dataType it names."),
                            xbrlObject=dtObj, name=dtObj.name)
+        # unitNamespaces: each entry is a reserved prefix or an absolute URI, and the property
+        # is meaningless on a datatype that has no units (tavi.md dataType object constraints)
+        unitNamespaces = getattr(dtObj, "unitNamespaces", None)
+        if unitNamespaces:
+            if not dtObj.isNumeric(compMdl):
+                emit_error(compMdl, "oimte:invalidUnitNamespace",
+                           _("The dataType %(name)s is not numeric and MUST NOT declare unitNamespaces."),
+                           xbrlObject=dtObj, name=dtObj.name)
+            for entry in unitNamespaces:
+                if entry not in reservedPrefixNamespaces and not UrlUtil.isAbsolute(entry):
+                    emit_error(compMdl, "oimte:invalidUnitNamespace",
+                               _("The dataType %(name)s unitNamespaces entry %(namespace)s is neither a reserved prefix nor an absolute URI."),
+                               xbrlObject=dtObj, name=dtObj.name, namespace=entry)
+
         # allowedObjects MUST be limited to object types that carry a dataType property
         badAllowed = [ao for ao in (dtObj.allowedObjects or ()) if ao not in _DATATYPE_ALLOWED_OBJECT_TYPES]
         if badAllowed:

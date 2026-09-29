@@ -59,6 +59,9 @@
         "allowedObjects": [
           "xbrl:conceptObject",
           "xbrl:unitObject"
+        ],
+        "unitNamespaces": [
+          "iso4217"
         ]
       },
       {
