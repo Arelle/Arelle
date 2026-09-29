@@ -47,8 +47,6 @@ def validate(val: ValidateXbrl, modelXbrl: ModelXbrl, infosetModelXbrl: ModelXbr
                         infosetFact = fact
                         break
                 if infosetFact is None:  # takes precision/decimals into account
-                    if fact is not None:
-                        fact.isVEqualTo(instFact, deemP0Equal=True)
                     modelXbrl.error("arelle:infosetTest",
                         _("Fact %(factNumber)s mismatch %(concept)s"),
                         modelObject=instFact,
