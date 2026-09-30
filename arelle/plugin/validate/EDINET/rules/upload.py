@@ -1237,8 +1237,10 @@ def rule_EC8023W(
                 if strippedText:
                     precedingChar = strippedText[-1]
         # If nothing found, check the parent element if this is the first child.
+        # Note: iterchildren() is used instead of indexing the parent directly because
+        # ModelInlineFact overrides __iter__ to iterate tuple facts, not XML children.
         elif (parent := fact.getparent()) is not None:
-            if fact == list(parent)[0] and parent.text:
+            if fact == next(parent.iterchildren(), None) and parent.text:
                 strippedText = parent.text.strip()
                 if strippedText:
                     precedingChar = strippedText[-1]
