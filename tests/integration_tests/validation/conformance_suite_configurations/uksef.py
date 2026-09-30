@@ -225,6 +225,9 @@ config = ConformanceSuiteConfig(
         "FRC_09/index.xml:TC5_valid": {
             "reportPackageNameDoesNotFollowNamingConvention": 1,
         },
+        "FRC_09/index.xml:TC6_invalid": {
+            "segmentUsed": 1,
+        },
         "FRC_10/index.xml:TC1_valid": {
             "reportPackageNameDoesNotFollowNamingConvention": 1,
         },

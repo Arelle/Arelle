@@ -17,6 +17,7 @@ from arelle import XbrlConst
 from arelle.Cntlr import Cntlr
 from arelle.typing import TypeGetText
 from arelle.utils.validate.DetectScriptsInXhtml import containsScriptMarkers
+from arelle.utils.validate.ESEFImage import iterCssUrls
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
@@ -52,39 +53,6 @@ def _isCorrectExtension(report: ReportEntry) -> bool:
     return PurePosixPath(report.primary).suffix in (".html", ".xhtml")
 
 
-def _cssImageUrls(tokens: Iterable[Any]) -> Iterable[str]:
-    """
-    Extracts and yields URLs from a collection of CSS tokens.
-
-    This function processes a sequence of CSS tokens to extract URLs that are
-    defined within `url()` functions or as direct URL values. It handles nested
-    structures by recursively parsing child tokens or arguments if available.
-
-    Args:
-        tokens: An iterable sequence of CSS tokens, which may include URL tokens,
-            function blocks, or other token types.
-
-    Yields:
-        Extracted URL strings from the provided CSS tokens.
-    """
-    for token in tokens:
-        if isinstance(token, tinycss2.ast.URLToken):
-            yield token.value.strip()
-
-        elif isinstance(token, tinycss2.ast.FunctionBlock) and token.lower_name == "url":
-            if token.arguments:
-                yield "".join(
-                    argument.value for argument in token.arguments
-                    if hasattr(argument, "value")
-                ).strip().strip("\"'")
-
-        elif hasattr(token, "content"):
-            yield from _cssImageUrls(token.content)
-
-        elif hasattr(token, "arguments"):
-            yield from _cssImageUrls(token.arguments)
-
-
 def _cssDeclarationImageUrls(css: str, *, stylesheet: bool) -> Iterable[str]:
     """
     Extracts image URLs from CSS declarations or rules.
@@ -114,12 +82,12 @@ def _cssDeclarationImageUrls(css: str, *, stylesheet: bool) -> Iterable[str]:
             for declaration in declarations:
                 if (isinstance(declaration, tinycss2.ast.Declaration)
                         and ("image" in declaration.lower_name or declaration.lower_name == "background")):
-                    yield from _cssImageUrls(declaration.value)
+                    yield from iterCssUrls(declaration.value)
     else:
         for declaration in tinycss2.parse_declaration_list(css, skip_comments=True, skip_whitespace=True):
             if (isinstance(declaration, tinycss2.ast.Declaration)
                     and ("image" in declaration.lower_name or declaration.lower_name == "background")):
-                yield from _cssImageUrls(declaration.value)
+                yield from iterCssUrls(declaration.value)
 
 
 def _iterImageUrls(modelXbrl: ModelXbrl) -> Iterable[tuple[ModelObject, str]]:
@@ -269,7 +237,7 @@ def rule_disallowedReportPackageFileExtension(
         return
 
     fileSourceType = val.modelXbrl.fileSource.type
-    if not pluginData.isUkfrsCorrectExtention(fileSourceType):
+    if not pluginData.isUkfrsCorrectExtension(fileSourceType):
         yield Validation.error(
             codes="ESEF.UKFRC9.disallowedReportPackageFileExtension",
             msg=_("A UKSEF report package MUST be a zip archive with a .zip or .xbri extension."),
@@ -278,13 +246,11 @@ def rule_disallowedReportPackageFileExtension(
 
 
 @validation(
-    hook=ValidationHook.FILESOURCE,
-    disclosureSystems=UKSEF_ONLY_2025
+    hook=ValidationHook.XBRL_FINALLY,
 )
 def rule_multipleReports(
         pluginData: PluginValidationDataExtension,
-        cntlr: Cntlr,
-        fileSource: FileSource,
+        val: ValidateXbrl,
         *args: Any,
         **kwargs: Any,
 ) -> Iterable[Validation]:
@@ -292,8 +258,11 @@ def rule_multipleReports(
     UKFRC10 and UKFRC11: A UKSEF report package MUST contain only one report
     in the "reports" directory.
     """
-    reportPackage = fileSource.reportPackage
-    if reportPackage is None or not reportPackage.reports:
+    reportPackage = val.modelXbrl.fileSource.reportPackage
+    if (val.authority != AUTHORITY_UKFRC
+            or not pluginData.isEsefTarget(val.modelXbrl)
+            or reportPackage is None
+            or not reportPackage.reports):
         return
 
     if len(reportPackage.reports) > 1:
@@ -304,7 +273,9 @@ def rule_multipleReports(
 
 
 @validation(
+    # Using the FILESOURCE hook to be able to run a rule when no report is present
     hook=ValidationHook.FILESOURCE,
+    # Using disclosure systems because the authority is not set yet when the FILESOURCE hook is called
     disclosureSystems=UKSEF_ONLY_2025
 )
 def rule_noReportsPresent(
@@ -315,19 +286,25 @@ def rule_noReportsPresent(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    UKFRC10: The report package MUST include only one report in the “reports” directory.
+    UKFRC10: The report package MUST include a report in the “reports” directory.
     """
     reportPackage = fileSource.reportPackage
-    if reportPackage is None or not pluginData.isUkfrsCorrectExtention(fileSource.type):
+    if reportPackage is None or not pluginData.isUkfrsCorrectExtension(fileSource.type):
         return
 
-    if (not reportPackage.reports
-            or not _isCorrectExtension(reportPackage.reports[0])
-            or not _isInlineXbrlReport(fileSource, reportPackage.reports[0])):
-        yield Validation.error(
-            codes="ESEF.UKFRC10.noReportsPresent",
-            msg=_('A UKSEF report package MUST include one report in the "reports" directory.'),
-        )
+    for report in reportPackage.reports:
+        if (not _isCorrectExtension(report)
+                or not _isInlineXbrlReport(fileSource, report)):
+            yield Validation.error(
+                codes="ESEF.UKFRC10.noReportsPresent",
+                msg=_('A UKSEF report package MUST include one report in the "reports" directory.'),
+            )
+    else:
+        if not reportPackage.reports:
+            yield Validation.error(
+                codes="ESEF.UKFRC10.noReportsPresent",
+                msg=_('A UKSEF report package MUST include one report in the "reports" directory.'),
+            )
 
 
 @validation(
@@ -340,8 +317,7 @@ def rule_reportsSubdirectory(
         **kwargs: Any,
 ) -> Iterable[Validation]:
     """
-    UKFRC11: Subdirectories MUST NOT be used in the “reports” directory and
-    MUST NOT contain more than one iXBRL document.
+    UKFRC11: Subdirectories MUST NOT be used in the “reports” directory.
     """
     reportPackage = val.modelXbrl.fileSource.reportPackage
     if (val.authority != AUTHORITY_UKFRC
@@ -350,12 +326,12 @@ def rule_reportsSubdirectory(
             or not reportPackage.reports):
         return
 
-    report = reportPackage.reports[0]
-    if report and not report.isTopLevel:
-        yield Validation.error(
-            codes="ESEF.UKFRC11.reportsSubdirectory",
-            msg=_('A UKSEF report package MUST NOT use subdirectories in the "reports" directory.'),
-        )
+    for report in reportPackage.reports:
+        if report and not report.isTopLevel:
+            yield Validation.error(
+                codes="ESEF.UKFRC11.reportsSubdirectory",
+                msg=_('A UKSEF report package MUST NOT use subdirectories in the "reports" directory.'),
+            )
 
 
 @validation(
@@ -374,16 +350,16 @@ def rule_reportNotInline(
     fileSource = val.modelXbrl.fileSource
     reportPackage = fileSource.reportPackage
     if (val.authority != AUTHORITY_UKFRC
-            or not pluginData.isUkfrsCorrectExtention(fileSource.type)
+            or not pluginData.isUkfrsCorrectExtension(fileSource.type)
             or reportPackage is None
             or not reportPackage.reports):
         return
 
-    report = reportPackage.reports[0]
-    if report and not _isCorrectExtension(report):
-        yield Validation.error(
-            codes="ESEF.UKFRC12.reportNotInline",
-            msg=_(
+    for report in reportPackage.reports:
+        if report and not _isCorrectExtension(report):
+            yield Validation.error(
+                codes="ESEF.UKFRC12.reportNotInline",
+                msg=_(
                     "A UKSEF report MUST be XHTML tagged using the iXBRL format with "
                     "a .html or .xhtml file extension only: %(fileName)s"
                 ),
@@ -406,7 +382,7 @@ def rule_executableCodePresent(
     """
     fileSource = val.modelXbrl.fileSource
     if (val.authority != AUTHORITY_UKFRC
-            or not pluginData.isUkfrsCorrectExtention(fileSource.type)
+            or not pluginData.isUkfrsCorrectExtension(fileSource.type)
             or not pluginData.isEsefTarget(val.modelXbrl)):
         return
 
@@ -448,7 +424,7 @@ def rule_ukfrc14(
     """
     if (val.authority != AUTHORITY_UKFRC
             or not pluginData.isEsefTarget(val.modelXbrl)
-            or not pluginData.isUkfrsCorrectExtention(val.modelXbrl.fileSource.type)):
+            or not pluginData.isUkfrsCorrectExtension(val.modelXbrl.fileSource.type)):
         return
 
     fileSource = val.modelXbrl.fileSource
@@ -510,7 +486,7 @@ def rule_ukfrc15(
     """
     fileSource = val.modelXbrl.fileSource
     if (val.authority != AUTHORITY_UKFRC
-            or not pluginData.isUkfrsCorrectExtention(fileSource.type)
+            or not pluginData.isUkfrsCorrectExtension(fileSource.type)
             or not pluginData.isEsefTarget(val.modelXbrl)):
         return
 
@@ -584,7 +560,7 @@ def rule_externalCssFileForSingleIXbrlDocument(
     """
     fileSource = val.modelXbrl.fileSource
     if (val.authority != AUTHORITY_UKFRC
-            or not pluginData.isUkfrsCorrectExtention(fileSource.type)
+            or not pluginData.isUkfrsCorrectExtension(fileSource.type)
             or not pluginData.isEsefTarget(val.modelXbrl)):
         return
 
@@ -642,7 +618,7 @@ def rule_reportPackageNameDoesNotFollowNamingConvention(
 
     parts = packageStem.rsplit("-", 3)
     if (
-            not pluginData.isUkfrsCorrectExtention(packageExtension)
+            not pluginData.isUkfrsCorrectExtension(packageExtension)
             or len(parts) != 4
             or LeiUtil.checkLei(parts[0]) != LeiUtil.LEI_VALID
             or not reportDate
@@ -680,7 +656,7 @@ def rule_reportFileNameDoesNotFollowNamingConvention(
     """
     fileSource = val.modelXbrl.fileSource
     if (val.authority != AUTHORITY_UKFRC
-            or not pluginData.isUkfrsCorrectExtention(fileSource.type)
+            or not pluginData.isUkfrsCorrectExtension(fileSource.type)
             or not pluginData.isEsefTarget(val.modelXbrl)):
         return
 
@@ -735,19 +711,19 @@ def rule_spaceInFilePath(
     """
     fileSource = val.modelXbrl.fileSource
     if (val.authority != AUTHORITY_UKFRC
-            or not pluginData.isUkfrsCorrectExtention(fileSource.type)
+            or not pluginData.isUkfrsCorrectExtension(fileSource.type)
             or not pluginData.isEsefTarget(val.modelXbrl)
             or not fileSource.dir):
         return
 
-    curruptedFileNames = [fileName for fileName in fileSource.dir if " " in fileName]
+    invalidFileNames = [fileName for fileName in fileSource.dir if " " in fileName]
 
-    if curruptedFileNames:
+    if invalidFileNames:
         yield Validation.error(
             codes="ESEF.UKFRC19.spaceInFilePath",
             msg=_(
                 "Any other file present in a UKSEF report package MUST NOT include spaces in the filename: "
                 "%(fileName)s"
                 ),
-            fileName=", ".join(curruptedFileNames),
+            fileName=", ".join(invalidFileNames),
         )
