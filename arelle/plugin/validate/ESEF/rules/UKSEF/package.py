@@ -292,7 +292,7 @@ def rule_noReportsPresent(
     if reportPackage is None or not pluginData.isUkfrsCorrectExtension(fileSource.type):
         return
 
-    for report in reportPackage.reports:
+    for report in reportPackage.reports or ():
         if (not _isCorrectExtension(report)
                 or not _isInlineXbrlReport(fileSource, report)):
             yield Validation.error(
