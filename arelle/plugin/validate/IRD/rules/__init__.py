@@ -31,14 +31,10 @@ def isZeroOrAbsent(modelXbrl: ModelXbrl, qn: QName) -> bool:
     Non-numeric facts (e.g. string or boolean) are treated as *present* (not
     zero/absent) because the caller is checking for a non-zero amount.
     """
-    for fact in iterValidNonNilFactsByQname(modelXbrl, qn):
-        try:
-            if isinstance(fact.xValue, bool) or fact.xValue != 0:
-                return False
-        except Exception:
-            # xValue unavailable or non-numeric; treat as present
-            return False
-    return True
+    return all(
+        getNumericValue(fact) == 0
+        for fact in  iterValidNonNilFactsByQname(modelXbrl, qn)
+    )
 
 
 def getNumericValue(fact: ModelFact) -> Decimal | None:

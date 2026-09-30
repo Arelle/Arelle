@@ -260,6 +260,25 @@ class ValidationPluginExtension(ValidationPlugin):
             offshoreProfitsExcludedQn=tcQn("OffshoreProfitsExcluded"),
             reasonsForOffshoreClaimQn=tcQn("ReasonsForTheOffshoreClaim"),
 
+            # expense deductions
+            commissionQn=tcQn("Commission"),
+            commissionPaymentsDetailsQn=tcQn("CommissionPaymentsDetails"),
+            approvedCharitableDonationsTaxAdjQn=tcQn("ApprovedCharitableDonationsTaxAdjustment"),
+            approvedCharitableDonationsDetailsQn=tcQn("ApprovedCharitableDonationsDetails"),
+            interestExpensesQn=tcQn("InterestExpenses"),
+            interestPaidOrPayableDetailsQn=tcQn("InterestPaidOrPayableDetails"),
+            legalAndProfessionalFeeQn=tcQn("LegalAndProfessionalFee"),
+            legalAndProfessionalFeeDetailsQn=tcQn("LegalAndOtherProfessionalFeePaymentsDetails"),
+
+            # expense misc
+            managementFeeQn=tcQn("ManagementFee"),
+            managementFeePaymentsDetailsQn=tcQn("ManagementFeePaymentsDetails"),
+            contractorChargesQn=tcQn("ContractorCharges"),
+            subContractorChargesQn=tcQn("SubContractorCharges"),
+            contractorAndSubcontractorChargesDetailsQn=tcQn("ContractorAndSubcontractorChargesDetails"),
+            provisionSpecificBadDebtQn=tcQn("ProvisionSpecificBadDebt"),
+            badDebtProvisionDetailsQn=tcQn("BadDebtProvisionDetails"),
+
             # HKSIC
             hksicCodeQn=tcQn("HongKongStandardIndustrialClassificationCode"),
             hksicCodeRegex=re.compile(r"^\d{6}$"),

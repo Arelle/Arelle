@@ -19,6 +19,8 @@ from .ValidationPluginExtension import ValidationPluginExtension
 from .rules import (
     nvad_accounting_period,
     nvad_currency,
+    nvad_expense_deductions,
+    nvad_expense_misc,
     nvad_form_type,
     nvad_identifiers,
     nvad_income_paired,
@@ -36,6 +38,8 @@ validationPlugin = ValidationPluginExtension(
     validationRuleModules=[
         nvad_accounting_period,
         nvad_currency,
+        nvad_expense_deductions,
+        nvad_expense_misc,
         nvad_form_type,
         nvad_identifiers,
         nvad_income_paired,
