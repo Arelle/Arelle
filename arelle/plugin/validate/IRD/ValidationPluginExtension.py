@@ -279,6 +279,23 @@ class ValidationPluginExtension(ValidationPlugin):
             provisionSpecificBadDebtQn=tcQn("ProvisionSpecificBadDebt"),
             badDebtProvisionDetailsQn=tcQn("BadDebtProvisionDetails"),
 
+            # BIR51 SBP
+            shareBasedPaymentDetailsQn=tcQn("ShareBasedPaymentDetails"),
+            shareBasedPaymentCashSettledQn=tcQn("ShareBasedPaymentCashSettled"),
+            shareBasedPaymentEquitySettledCompanyQn=tcQn("ShareBasedPaymentEquitySettledCompany"),
+            shareBasedPaymentEquitySettledGroupNoRechargeQn=tcQn("ShareBasedPaymentEquitySettledGroupCoNoRecharge"),
+            shareBasedPaymentEquitySettledGroupRechargeQn=tcQn("ShareBasedPaymentEquitySettledGroupCoRecharge"),
+
+            # BIR51 corporate
+            privateCompanyQn=tcQn("PrivateCompany"),
+            shareholderChangeQn=tcQn("ShareholderChange"),
+            insuranceRbcFlagQn=tcQn("InsuranceCorporationCommencingToImplementRiskBasedCapitalRegimeToDetermineCapitalRequirements"),
+            incomeRbcAmountQn=tcQn("IncomeAmountOfOneOffAdjustmentArisingFromImplementationOfRBCRegime"),
+            lossRbcAmountQn=tcQn("LossAmountOfOneOffAdjustmentArisingFromImplementationOfRBCRegime"),
+            electToTreatOneOffAdjustmentQn=tcQn("ElectToTreatOneOffAdjustmentAsYourIncomeOrLossBy5EqualAmounts"),
+            familyOwnedSpeQn=tcQn("FamilyOwnedSpecialPurposeEntityInWhichAnEligibleFamilyOwnedInvestmentHoldingVehicleHasBeneficialInterest"),
+            profitsEarnedByFamilyOwnedSpeQn=tcQn("ProfitsEarnedByAFamilyOwnedSpecialPurposeEntityFromTransactionsSpecified"),
+
             # HKSIC
             hksicCodeQn=tcQn("HongKongStandardIndustrialClassificationCode"),
             hksicCodeRegex=re.compile(r"^\d{6}$"),
