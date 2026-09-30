@@ -27,7 +27,7 @@ from arelle.ModelValue import qname
 from arelle.ModelXbrl import ModelXbrl
 
 from arelle.utils.validate.ContextIssues import getContextIssues, getContextsByEntityIdentifier
-from arelle.utils.validate.ESEFImage import ImageValidationParameters, checkSVGContentElt, validateImageAndLog
+from arelle.utils.validate.ESEFImage import ImageValidationParameters, checkSVGContentElt, iterCssUrls, validateImageAndLog
 from arelle.utils.validate.ValidationUtil import etreeIterWithDepth
 from arelle.PythonUtil import isLegacyAbs, normalizeSpace
 from arelle.PythonUtil import strTruncate
@@ -1163,14 +1163,6 @@ def validateCssUrlContent(
         params: ImageValidationParameters,
         prelude: list[Any] | None = None,
 ) -> None:
-    for css_rule in cssRules:
-        if isinstance(css_rule, tinycss2.ast.FunctionBlock):
-            if css_rule.lower_name == "url":
-                if len(css_rule.arguments):
-                    css_rule_url = css_rule.arguments[0].value  # url or base64
-                    evaluatedMsg = _("On line {line}").format(line=1) #css_element.source_line)
-                    validateImageAndLog(normalizedUri, css_rule_url, modelXbrl, val, elt, evaluatedMsg, params, prelude)
-        elif isinstance(css_rule, tinycss2.ast.URLToken):
-            value = css_rule.value
-            evaluatedMsg = _("On line {line}").format(line=1) #css_element.source_line)
-            validateImageAndLog(normalizedUri, value, modelXbrl, val, elt, evaluatedMsg, params, prelude)
+    for css_rule_url in iterCssUrls(cssRules):
+        evaluatedMsg = _("On line {line}").format(line=1) #css_element.source_line)
+        validateImageAndLog(normalizedUri, css_rule_url, modelXbrl, val, elt, evaluatedMsg, params, prelude)
