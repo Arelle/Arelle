@@ -262,7 +262,11 @@
       },
       {
         "name": "xbrlr:irradiance",
-        "baseType": "xs:decimal"
+        "baseType": "xs:decimal",
+        "allowedObjects": [
+          "xbrl:conceptObject",
+          "xbrl:unitObject"
+        ]
       },
       {
         "name": "xbrlr:speed",
@@ -559,7 +563,10 @@
       },
       {
         "name": "xbrlr:perUnit",
-        "baseType": "xs:decimal"
+        "baseType": "xs:decimal",
+        "allowedObjects": [
+          "xbrl:unitObject"
+        ]
       },
       {
         "name": "xbrlr:reportAttributeType",
