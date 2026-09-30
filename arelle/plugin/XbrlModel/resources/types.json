@@ -226,7 +226,15 @@
         "allowedObjects": [
           "xbrl:conceptObject",
           "xbrl:unitObject"
-        ]
+        ],
+        "unitComposition": {
+          "numerator": [
+            "xbrlr:energy"
+          ],
+          "denominator": [
+            "xbrlr:area"
+          ]
+        }
       },
       {
         "name": "xbrlr:temperature",
@@ -266,7 +274,15 @@
         "allowedObjects": [
           "xbrl:conceptObject",
           "xbrl:unitObject"
-        ]
+        ],
+        "unitComposition": {
+          "numerator": [
+            "xbrlr:power"
+          ],
+          "denominator": [
+            "xbrlr:area"
+          ]
+        }
       },
       {
         "name": "xbrlr:speed",
@@ -358,7 +374,15 @@
         "allowedObjects": [
           "xbrl:conceptObject",
           "xbrl:unitObject"
-        ]
+        ],
+        "unitComposition": {
+          "numerator": [
+            "xbrlr:mass"
+          ],
+          "denominator": [
+            "xbrlr:time"
+          ]
+        }
       },
       {
         "name": "xbrlr:monetaryPerLength",
