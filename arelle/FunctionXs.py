@@ -345,7 +345,7 @@ def gYearMonth(xc: XPathContext.XPathContext, p: FormulaToken | None, source: An
         match = lexicalPatterns["gYearMonth"].match(source)
         if match:
             year, month, zSign, zHrMin, zHr, zMin = match.groups()
-            return ModelValue.gYearMonth(year, month)
+            return ModelValue.gYearMonth(year, month, tzinfo=ModelValue.tzinfo(zSign))
     except (ValueError, TypeError):
         pass
     raise FORG0001
@@ -356,7 +356,7 @@ def gYear(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) ->
         match = lexicalPatterns["gYear"].match(source)
         if match:
             year, zSign, zHrMin, zHr, zMin = match.groups()
-            return ModelValue.gYear(year)
+            return ModelValue.gYear(year, tzinfo=ModelValue.tzinfo(zSign))
     except (ValueError, TypeError):
         pass
     raise FORG0001
@@ -384,7 +384,7 @@ def gMonthDay(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any
                     12: 31,
                 }[int(month)]
             ):
-                return ModelValue.gMonthDay(month, day)
+                return ModelValue.gMonthDay(month, day, tzinfo=ModelValue.tzinfo(zSign))
     except (ValueError, TypeError):
         pass
     raise FORG0001
@@ -395,7 +395,7 @@ def gDay(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -> 
         match = lexicalPatterns["gDay"].match(source)
         if match:
             day, zSign, zHrMin, zHr, zMin = match.groups()
-            return ModelValue.gDay(day)
+            return ModelValue.gDay(day, tzinfo=ModelValue.tzinfo(zSign))
     except (ValueError, TypeError):
         pass
     raise FORG0001
@@ -406,7 +406,7 @@ def gMonth(xc: XPathContext.XPathContext, p: FormulaToken | None, source: Any) -
         match = lexicalPatterns["gMonth"].match(source)
         if match:
             month, zSign, zHrMin, zHr, zMin = match.groups()
-            return ModelValue.gMonth(month)
+            return ModelValue.gMonth(month, tzinfo=ModelValue.tzinfo(zSign))
     except (ValueError, TypeError):
         pass
     raise FORG0001
