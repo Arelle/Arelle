@@ -1387,8 +1387,12 @@ class ModelDocument(ModelDocumentBase):
             for inlineElement in htmlElement.iterdescendants(tag=ixNStag + "resources"):
                 xmlValidate(self.modelXbrl, inlineElement) # validate instance elements
         # with DTS loaded, now validate inline HTML (so schema definition of facts is available)
-        if htmlElement.namespaceURI == XbrlConst.xhtml:  # must validate xhtml
+        if htmlElement.namespaceURI == XbrlConst.xhtml and htmlElement.localName == "html":  # must validate xhtml
             XhtmlValidate.xhtmlValidate(self.modelXbrl, htmlElement)  # fails on prefixed content
+        else:
+            self.modelXbrl.error(ixMsgCode("rootElement", ns=ixNS, name="html"),
+                _("Inline XBRL document root element must be html in the XHTML namespace %(xhtmlNamespace)s, found %(element)s"),
+                modelObject=htmlElement, xhtmlNamespace=XbrlConst.xhtml, element=htmlElement.tag)
 
         # subsequent inline elements have to be processed after all of the document set is loaded
         if not hasattr(self.modelXbrl, "ixdsHtmlElements"):

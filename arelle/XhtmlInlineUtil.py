@@ -29,6 +29,7 @@ htmlEltUriAttrs: dict[str, set[str]] = { # attributes with URI content (for rela
 }
 
 _IX10_ENTRIES: tuple[tuple[str, dict[str, str]], ...] = (
+    ("html",        {"constraint": "ix10.3.3.1",  "validation": "ix10.3.3.1"}),
     ("footnote",    {"constraint": "ix10.5.1.1",  "validation": "ix10.5.1.2"}),
     ("fraction",    {"constraint": "ix10.6.1.1",  "validation": "ix10.6.1.2"}),
     ("denominator", {"constraint": "ix10.6.1.1",  "validation": "ix10.6.1.2"}),
@@ -44,6 +45,7 @@ _IX10_ENTRIES: tuple[tuple[str, dict[str, str]], ...] = (
 )
 
 _IX11_ENTRIES: tuple[tuple[str, dict[str, str]], ...] = (
+    ("html",          {"constraint": "ix11.3.3.1",  "validation": "ix11.3.3.1"}),
     ("continuation",  {"constraint": "ix11.4.1.1",  "validation": "ix11.4.1.2"}),
     ("exclude",       {"constraint": "ix11.5.1.1",  "validation": "ix11.5.1.2"}),
     ("footnote",      {"constraint": "ix11.6.1.1",  "validation": "ix11.6.1.2"}),
