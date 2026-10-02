@@ -146,7 +146,7 @@ to your message.
 Interested in contributing to Arelle? Awesome! Make sure to review our
 [contribution guidelines][contribution guidelines].
 
-[contribution guidelines]: https://arelle.readthedocs.io/en/latest/contributing.html
+[contribution guidelines]: https://arelle.readthedocs.io/en/latest/contributor_guides/contributing.html
 
 ## 👥 Contributors
 
