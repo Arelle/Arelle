@@ -117,6 +117,8 @@ config = ConformanceSuiteConfig(
             "reportPackageNameDoesNotFollowNamingConvention": 1,
         },
         "FRC_02/index.xml:TC3_invalid": {
+            "info:duplicatedSchema": 1,
+            "xbrl:multipleTopLevelSchemasForNamespace": 1,
             "reportPackageNameDoesNotFollowNamingConvention": 1,
         },
         "FRC_03/index.xml:TC1_valid": {
