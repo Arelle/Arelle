@@ -132,21 +132,17 @@ def test_function_loadModule():
     the function.
     """
 
-    PluginManager.loadModule(
-        moduleInfo={
-            "name": "mock",
-            "moduleURL": "functionsMath",
-            "path": "arelle/plugin/functionsMath.py",
-        }
-    )
+    PluginManager.init(Mock(pluginDir="some_dir"), loadPluginConfig=False)
+    moduleInfo = {
+        "name": "Formula Math Functions",
+        "moduleURL": "functionsMath",
+        "path": "arelle/plugin/functionsMath.py",
+    }
+    PluginManager.loadModule(moduleInfo=moduleInfo)
 
-    all_modules_list = {m.__name__ for m in sys.modules.values() if m}
-
-    assert "arelle.formula.XPathContext" in all_modules_list
-    assert "arelle.FunctionUtil" in all_modules_list
-    assert "arelle.FunctionXs" in all_modules_list
-    assert "isodate.isoduration" in all_modules_list
-    assert "functionsMath" in all_modules_list
+    assert "functionsMath" in sys.modules
+    assert PluginManager.modulePluginInfos["Formula Math Functions"]["moduleURL"] == "functionsMath"
+    assert PluginManager.pluginConfig["modules"]["Formula Math Functions"] == moduleInfo
 
     PluginManager.close()
 

@@ -197,3 +197,29 @@ Review any automatic fixes before committing, since not every change is safe
 to apply blindly.
 
 [ruff]: https://docs.astral.sh/ruff/
+
+#### Type Checking with mypy
+
+Arelle uses [mypy][mypy] in strict mode to check type annotations. With the
+development dependencies installed, run the following from the root of the
+repository:
+
+```
+mypy arelle tests --namespace-packages
+```
+
+[mypy]: https://mypy.readthedocs.io/
+
+#### Running Unit Tests
+
+The unit tests use [pytest][pytest] and are installed with the development
+dependencies. Run them from the root of the repository, spread across all CPU
+cores:
+
+```
+pytest tests/unit_tests -n auto --dist worksteal
+```
+
+Add `-m fast` to run only the fast tests, skipping those marked slow.
+
+[pytest]: https://docs.pytest.org/

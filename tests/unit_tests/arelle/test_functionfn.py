@@ -67,7 +67,7 @@ def test_normalize_whitespace(test, expected):
     assert result == expected
 
 
-XPATH_NORMALIZE_SPACE_EXAMPLES = {
+XPATH_NORMALIZE_SPACE_EXAMPLES = [
     (
         (
             " The    wealthy curled darlings                                         of    our    nation. ",
@@ -75,7 +75,7 @@ XPATH_NORMALIZE_SPACE_EXAMPLES = {
         "The wealthy curled darlings of our nation.",
     ),
     (((),), ""),
-}
+]
 
 
 @pytest.mark.parametrize("args,expected", XPATH_NORMALIZE_SPACE_EXAMPLES)
