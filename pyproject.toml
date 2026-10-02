@@ -118,6 +118,7 @@ markers = [
 ]
 
 [tool.ruff]
+extend-include = ["*.pyw"]
 extend-exclude = [
     "arelle/plugin/EDGAR",
     "arelle/plugin/FERC",
