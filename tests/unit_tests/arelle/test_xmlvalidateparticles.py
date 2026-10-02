@@ -1,4 +1,5 @@
 from io import BytesIO
+from unittest.mock import patch
 from zipfile import ZipFile
 
 import pytest
@@ -61,7 +62,8 @@ def cntlr():
     cntlr = Cntlr(logFileName="logToBuffer", disable_persistent_config=True)
     cntlr.webCache.workOffline = True
     yield cntlr
-    cntlr.modelManager.close()
+    with patch("arelle.ModelManager.gc"):
+        cntlr.modelManager.close()
     cntlr.close()
 
 
