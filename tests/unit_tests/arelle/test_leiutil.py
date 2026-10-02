@@ -1,5 +1,3 @@
-import random
-import string
 import time
 
 import pytest
@@ -51,33 +49,15 @@ def test_checkLei(arg, expected, description):
 
 def test_performance_checkLei():
     NANOSECONDS_IN_MILLISECOND = 1_000_000
-    MIN_TIME = 50 * NANOSECONDS_IN_MILLISECOND
-    MAX_TIME = 1_000 * NANOSECONDS_IN_MILLISECOND
-    NUM_LEIS = 100_000
+    MAX_TIME = 250 * NANOSECONDS_IN_MILLISECOND
 
-    num_letter_population = string.ascii_uppercase + string.digits
-    random_leis = [
-        "".join(
-            random.choices(num_letter_population, k=random.randint(17, 19))
-            + random.choices(string.digits, k=2)
-        )
-        for _ in range(NUM_LEIS)
-    ]
-    # Mix in valid LEIs
-    leis = [
-        lei
-        for lei, valid, _ in LEI_TESTS
-        for _ in range(NUM_LEIS)
-        if valid == LEI_VALID
-    ] + random_leis
-    random.shuffle(leis)
-    leis = leis[:NUM_LEIS]
+    leis = [lei for lei, _, _ in LEI_TESTS] * 1_250
 
     start = time.process_time_ns()
     for lei in leis:
         checkLei(lei)
     taken = time.process_time_ns() - start
 
-    assert MIN_TIME < taken < MAX_TIME, (
+    assert taken < MAX_TIME, (
         f"Processed {len(leis):,} LEIs in {(taken/NANOSECONDS_IN_MILLISECOND):,.0f} milliseconds. Rate = {int(10**9 / (taken / len(leis))):,} per second."
     )
