@@ -354,6 +354,15 @@ config = ConformanceSuiteConfig(
             "executableCodePresent": 1,
             "reportPackageNameDoesNotFollowNamingConvention": 1,
         },
+        "FRC_20/index.xml:TC1_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_20/index.xml:TC2_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_21/index.xml:TC1_valid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
     }.items()},
     expected_failure_ids=frozenset({f"tests/FRC/{s}" for s in [
         # FRC XBRL Tagging Guide not yet implemented.
