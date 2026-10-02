@@ -78,6 +78,10 @@ def getFactsByDateValue(modelXbrl: ModelXbrl, qnames: tuple[QName, ...]) -> dict
     return _getFactsByValue(modelXbrl, qnames, getDateValue)
 
 
+def getFactsByNumericValue(modelXbrl: ModelXbrl, qnames: tuple[QName, ...]) -> dict[Decimal, list[ModelFact]]:
+    return _getFactsByValue(modelXbrl, qnames, getNumericValue)
+
+
 # ── Currency / Unit Helpers ──────────────────────────────────────────────────
 
 ISO4217_NAMESPACE = "http://www.xbrl.org/2003/iso4217"
