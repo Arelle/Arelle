@@ -149,9 +149,10 @@ extend-exclude = [
 [tool.ruff.lint]
 # Mirrors the previous flake8 configuration (pycodestyle E/W, Pyflakes F) so
 # that migrating off flake8 does not change what gets flagged. "Q"
-# (flake8-quotes) is additionally enabled to enforce double quotes.
+# (flake8-quotes) is additionally enabled to enforce double quotes, and "CPY"
+# (flake8-copyright, a preview rule) to require the copyright notice.
 preview = true
-select = ["E", "W", "F", "Q"]
+select = ["E", "W", "F", "Q", "CPY"]
 ignore = [
     # indentation contains mixed spaces and tabs
     "E101",
@@ -289,6 +290,20 @@ ignore = [
     # W503: line break before binary operator
     # W504: line break after binary operator
 ]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests and third party code bundled verbatim don't carry the Arelle copyright notice.
+"tests/**" = ["CPY001"]
+"arelle/TkTableWrapper.py" = ["CPY001"]
+"arelle/archive/plugin/sakaCalendar.py" = ["CPY001"]
+"arelle/archive/plugin/validate/XFsyntax/xf.py" = ["CPY001"]
+"arelle/plugin/internet/**" = ["CPY001"]
+"arelle/webserver/bottle.py" = ["CPY001"]
+
+[tool.ruff.lint.flake8-copyright]
+notice-rgx = "See COPYRIGHT\\.md for copyright information\\."
+# Empty files such as bare __init__.py don't need the notice.
+min-file-size = 1
 
 [tool.ruff.lint.flake8-quotes]
 inline-quotes = "double"
