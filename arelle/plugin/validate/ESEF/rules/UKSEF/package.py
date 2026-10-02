@@ -607,7 +607,8 @@ def rule_reportPackageNameDoesNotFollowNamingConvention(
         return
 
     packagePath = fileSource.basefile or fileSource.url
-    packageName = PurePosixPath(str(packagePath)).name
+    # Normalize Windows separators; PurePosixPath doesn't split on backslashes.
+    packageName = PurePosixPath(str(packagePath).replace("\\", "/")).name
     packageStem = PurePosixPath(packageName).stem
     packageExtension = PurePosixPath(packageName).suffix
 
