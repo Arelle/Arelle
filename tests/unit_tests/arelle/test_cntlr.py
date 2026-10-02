@@ -1,6 +1,14 @@
 from unittest.mock import patch
 
-from arelle import Cntlr
+import pytest
+
+from arelle import Cntlr, Version
+
+
+@pytest.fixture(autouse=True)
+def resolve_version_before_mocks() -> None:
+    # Finding the version may run git, whose pipes would be opened through the mocked io.open.
+    assert Version.__version__
 
 
 @patch("os.makedirs")

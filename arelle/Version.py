@@ -35,7 +35,16 @@ def getVersion() -> str:
     raise ValueError("Version not set")
 
 
-__version__ = getVersion()
-version = __version__
+__version__: str
+version: str
 authorLabel = "Workiva, Inc."
 copyrightLabel = "(c) Copyright 2011-present Workiva, Inc., All rights reserved."
+
+
+def __getattr__(name: str) -> str:
+    # Resolved on first use because finding the version may run git.
+    if name in ("__version__", "version"):
+        resolvedVersion = getVersion()
+        globals().update(__version__=resolvedVersion, version=resolvedVersion)
+        return resolvedVersion
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
