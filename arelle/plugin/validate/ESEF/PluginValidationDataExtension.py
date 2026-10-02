@@ -21,6 +21,20 @@ _XLINK_HREF = f"{{{XbrlConst.xlink}}}href"
 
 @dataclass
 class PluginValidationDataExtension(PluginData):
+    def isUkfrsCorrectExtension(self, fileSourceType: str) -> bool:
+        """
+        Determines if the file source type has a valid extension for UKFRS.
+
+        This method checks whether the provided file source type is among the valid
+        file extensions for UKFRS, specifically ".zip" or ".xbri".
+
+        Args:
+            fileSourceType: The file source type to validate.
+
+        Returns:
+            bool: True if the file source type is valid, otherwise False.
+        """
+        return fileSourceType in (".zip", ".xbri")
 
     def getContextIssues(self, modelXbrl: ModelXbrl) -> ContextIssues:
         return getContextIssues(modelXbrl)

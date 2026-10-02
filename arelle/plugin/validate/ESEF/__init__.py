@@ -374,6 +374,15 @@ class ESEFPlugin(PluginHooks):
         return validationPlugin.validateXbrlFinally(val, *args, **kwargs)
 
     @staticmethod
+    def validateFileSource(
+        cntlr: Cntlr,
+        fileSource: FileSource,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        return validationPlugin.validateFileSource(cntlr, fileSource, *args, **kwargs)
+
+    @staticmethod
     def validateFinally(
         val: ValidateXbrl,
         *args: Any,
@@ -488,6 +497,7 @@ __pluginInfo__ = {
     "ModelTestcaseVariation.ReportPackageIxdsOptions": ESEFPlugin.modelTestcaseVariationReportPackageIxdsOptions,
     "ModelXbrl.LoadComplete": ESEFPlugin.modelXbrlLoadComplete,
     "Validate.Complete": ESEFPlugin.validateComplete,
+    "Validate.FileSource": ESEFPlugin.validateFileSource,
     "Validate.Finally": ESEFPlugin.validateFinally,  # run *after* formula processing
     "Validate.XBRL.Finally": ESEFPlugin.validateXbrlFinally,  # before formula processing
     "Validate.XBRL.Start": ESEFPlugin.validateXbrlStart,

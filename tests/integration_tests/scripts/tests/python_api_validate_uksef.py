@@ -23,7 +23,8 @@ arelle_offline = args.offline
 working_directory = Path(args.working_directory)
 test_directory = Path(args.test_directory)
 arelle_log_file = prepare_logfile(test_directory, this_file)
-report_zip_path = test_directory / "report.zip"
+# Following package name requirements to avoid ESEF.UKFRC17.reportPackageNameDoesNotFollowNamingConvention
+report_zip_path = test_directory / "254900ARU0VC1WY6GJ71-2022-12-31.zip"
 target_path = report_zip_path
 print(f"Downloading report: {report_zip_path}")
 # Based on FRC_06:TC2 testcase from UKSEF conformance suite
@@ -79,6 +80,6 @@ assert_result(errors)
 
 print("Cleaning up")
 try:
-    os.unlink(working_directory / "python_api_validate_uksef" / "report.zip")
+    os.unlink(working_directory / "python_api_validate_uksef" / "254900ARU0VC1WY6GJ71-2022-12-31.zip")
 except PermissionError as exc:
     print(f"Failed to cleanup test files: {exc}")
