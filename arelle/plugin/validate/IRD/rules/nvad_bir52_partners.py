@@ -40,6 +40,7 @@ from typing import Any
 from arelle.ModelInstanceObject import ModelFact
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
+from arelle.ValidateDuplicateFacts import getDuplicateFactSets
 from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
@@ -65,23 +66,42 @@ def _decimalPlaces(value: Decimal) -> int:
     return max(-exponent, 0)
 
 
+def _representativeFacts(facts: list[ModelFact]) -> list[ModelFact]:
+    """Keep one fact from each numeric set that is fully consistent.
+
+    Complete duplicates and consistent duplicates (overlapping intervals)
+    contribute the highest-precision fact once. An inconsistent set drops
+    identical ``(decimals, value)`` copies and keeps the remaining values.
+    Facts that are not s-equal stay separate.
+    """
+    kept: list[ModelFact] = []
+    for duplicateSet in getDuplicateFactSets(facts, includeSingles=True):
+        selected, _message = duplicateSet.deduplicateConsistentSet()
+        kept.extend(selected)
+    return kept
+
+
 def _getPartnerFactSum(
         pluginData: PluginValidationDataExtension,
         modelXbrl: ModelXbrl,
         qname: QName
 ) -> tuple[list[ModelFact], Decimal]:
     partnerFacts = []
-    partnerSum = Decimal(0)
     for facts in pluginData.factsByPartnerContext(modelXbrl).values():
         for fact in facts:
             if fact.qname != qname:
                 continue
-            value = getNumericValue(fact)
-            if value is None:
+            if getNumericValue(fact) is None:
                 continue
             partnerFacts.append(fact)
-            partnerSum += value
-    return partnerFacts, partnerSum
+    representativeFacts = _representativeFacts(partnerFacts)
+    partnerSum = Decimal(0)
+    for fact in representativeFacts:
+        value = getNumericValue(fact)
+        if value is None:
+            continue
+        partnerSum += value
+    return representativeFacts, partnerSum
 
 
 @validation(
@@ -469,8 +489,15 @@ def rule_nvad_e_1260(
     if not pluginData.isBir52(modelXbrl):
         return
 
-    profitFactsByValue = getFactsByNumericValue(modelXbrl, (pluginData.assessableProfitsQn,))
-    if not profitFactsByValue:
+    profitFacts = [
+        fact
+        for factsForValue in getFactsByNumericValue(
+            modelXbrl, (pluginData.assessableProfitsQn,)
+        ).values()
+        for fact in factsForValue
+    ]
+    representativeProfitFacts = _representativeFacts(profitFacts)
+    if not representativeProfitFacts:
         return
 
     allocationFacts, allocationSum = _getPartnerFactSum(
@@ -480,6 +507,13 @@ def rule_nvad_e_1260(
     )
     if not allocationFacts:
         return
+
+    profitFactsByValue: dict[Decimal, list[ModelFact]] = {}
+    for fact in representativeProfitFacts:
+        profitValue = getNumericValue(fact)
+        if profitValue is None:
+            continue
+        profitFactsByValue.setdefault(profitValue, []).append(fact)
 
     for profitValue, profitFacts in profitFactsByValue.items():
         if allocationSum != profitValue:
