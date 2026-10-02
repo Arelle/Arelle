@@ -73,10 +73,10 @@ def test_performance_checkLei():
     random.shuffle(leis)
     leis = leis[:NUM_LEIS]
 
-    start = time.perf_counter_ns()
+    start = time.process_time_ns()
     for lei in leis:
         checkLei(lei)
-    taken = time.perf_counter_ns() - start
+    taken = time.process_time_ns() - start
 
     assert MIN_TIME < taken < MAX_TIME, (
         f"Processed {len(leis):,} LEIs in {(taken/NANOSECONDS_IN_MILLISECOND):,.0f} milliseconds. Rate = {int(10**9 / (taken / len(leis))):,} per second."
