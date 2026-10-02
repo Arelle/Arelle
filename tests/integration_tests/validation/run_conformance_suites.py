@@ -4,7 +4,7 @@ import multiprocessing
 import sys
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import Any, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING, cast
 
 from tests.integration_tests.validation.conformance_suite_config import (
     ConformanceSuiteConfig, ConformanceSuiteAssetConfig
@@ -237,6 +237,18 @@ def get_select_option(options: Namespace) -> str:
     return options.name
 
 
+def get_failed_test_ids(results: list[ParameterSet]) -> list[str]:
+    failed_ids = []
+    for result in results:
+        status = cast(dict[str, Any], result.values[0]).get("status")
+        if status == "skip":
+            continue
+        expected_failure = any(mark.name == "xfail" for mark in result.marks)
+        if (status == "pass") == expected_failure:
+            failed_ids.append(str(result.id))
+    return failed_ids
+
+
 def run() -> None:
     parser = ArgumentParser(prog=sys.argv[0])
     for arg in ARGUMENTS:
@@ -250,7 +262,13 @@ def run() -> None:
                   f"\tDownload:   {config.entry_point_asset.public_download_url or config.membership_url}\n"
                   f"\tEntry Point: {config.entry_point_path}")
     else:
-        run_conformance_suites_options(options)
+        results = run_conformance_suites_options(options)
+        failed_ids = get_failed_test_ids(results)
+        if failed_ids:
+            print(f"\n{len(failed_ids)} of {len(results)} conformance suite tests failed:")
+            for failed_id in failed_ids:
+                print(failed_id)
+            sys.exit(1)
 
 
 if __name__ == "__main__":
