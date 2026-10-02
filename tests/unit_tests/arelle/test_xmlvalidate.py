@@ -4,6 +4,7 @@ import datetime
 from _decimal import Decimal
 from fractions import Fraction
 from math import inf, isnan, nan
+import tracemalloc
 from typing import Any
 from unittest import TestCase
 from unittest.mock import Mock
@@ -1497,8 +1498,15 @@ class TestBase64BinaryValidation:
         ("\u00a0B", INVALID),
         ])
     def test_large_base64_binary_is_validated_linearly(self, value: str, expected_result: int):
-        value *= (1024 * 1024)
-        assert validateValueString("base64Binary", value).xValid == expected_result
+        value *= 16 * 1024
+        tracemalloc.start()
+        try:
+            result = validateValueString("base64Binary", value)
+            _, peakMemory = tracemalloc.get_traced_memory()
+        finally:
+            tracemalloc.stop()
+        assert result.xValid == expected_result
+        assert peakMemory < 32 * len(value)
 
     @pytest.mark.parametrize("value", [
         "",
