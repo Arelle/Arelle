@@ -1458,6 +1458,7 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict[str, Any]]:
         parser.error(f"{e}, please try\n python CntlrCmdLine.py --help")
     if (
             runtimeOptions.entrypointFile is None and
+            not runtimeOptions.showEnvironment and
             not runtimeOptions.proxy and
             not runtimeOptions.plugins and
             not pluginOptions and
