@@ -537,11 +537,12 @@ def test_validateValue(attrTag: str, baseXsdType: str, value: str, facets: dict,
     ("1", (1, 1, VALID)),
     ("x", ("=", None, INVALID)),
 ])
-def test_validateValue_stores_result(attrTag: str | None, value: str, expected: tuple):
+def test_validateValue_stores_result_and_logs_errors(attrTag: str | None, value: str, expected: tuple):
     modelXbrl = Mock(internAnyUri=lambda value: value)
     elt = Mock(xAttributes={}, nsmap={"prefix": "namespaceURI"})
     validateValue(modelXbrl=modelXbrl, elt=elt, attrTag=attrTag, baseXsdType="integer", value=value)
     _assertExpected(value, attrTag, elt, expected)
+    assert modelXbrl.error.called == (expected[2] == INVALID)
 
 
 @pytest.mark.parametrize(
