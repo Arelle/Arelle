@@ -791,7 +791,7 @@ class Validate:
                 expected = []
             elif isinstance(expected, list):
                 expected = expected.copy()
-            expected.extend(userExpectedErrors)  # type: ignore[union-attr, arg-type]
+            expected.extend(userExpectedErrors)  # type: ignore[union-attr]
             if expectedCount is not None:
                 expectedCount += len(userExpectedErrors)
         if matchAllExpected:
