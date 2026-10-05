@@ -69,6 +69,7 @@ class ModelTestcaseVariation(ModelObject):
         self.status: str = ""
         self.duration: float | None = None
         self.actual: ErrorsType = []
+        self.actualCounts: dict[str, int] = {}
         self.assertions: dict[str, tuple[int, int, int, int, int]] | None = None
         self.ixdsTarget: str | None = None
         self.userExpectedErrors = []

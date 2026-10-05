@@ -910,6 +910,7 @@ class Validate:
                     modelTestcaseVariation.assertions = error
                 else:   # error code results
                     _actual[error] = _actual.get(error, 0) + 1
+            modelTestcaseVariation.actualCounts = _actual
             modelTestcaseVariation.actual = [error if qty == 1 else "{} ({})".format(error,qty)
                                              for error, qty in sorted(_actual.items(), key=lambda i:i[0])]
             for error in _errors:
