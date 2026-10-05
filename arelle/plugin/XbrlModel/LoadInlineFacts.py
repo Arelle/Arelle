@@ -215,6 +215,19 @@ def _loadInlineModel(compMdl, url):
     _legacy._pocInLegacyDiscovery = True
     try:
         fs = _FileSource.openFileSource(url, cntlr)
+        # An EDINET package holds several independent inline document sets (PublicDoc and one or
+        # more AuditDoc instances), each defined by a manifest; generic entry point detection does
+        # not read manifests and would load one document, or merge the sets. One report is
+        # imported: the instance holding the document the entry point named, else PublicDoc.
+        edinetFiles = _edinetInstanceFiles(compMdl, fs, url)
+        if edinetFiles:
+            if len(edinetFiles) == 1:
+                return _ModelXbrl.load(compMdl.modelManager, edinetFiles[0], nextAction, useFileSource=fs)
+            # Headed by the documents' own folder, as inlineXbrlDocumentSet does for an 'ixds'
+            # entry point, so relative schemaRefs resolve there and not at the archive root.
+            surrogateUrl = (os.path.join(os.path.dirname(edinetFiles[0]), IXDS_SURROGATE)
+                            + IXDS_DOC_SEPARATOR.join(edinetFiles))
+            return _ModelXbrl.load(compMdl.modelManager, surrogateUrl, nextAction, useFileSource=fs)
         # Discover the inline document(s). For a report package this also loads the
         # META-INF catalog remappings (http://www.abc.com/... -> packaged path). The
         # returned entries are {"file": ...} and/or {"ixds": [{"file": ...}, ...]};
@@ -245,6 +258,68 @@ def _loadInlineModel(compMdl, url):
         return None
     finally:
         _legacy._pocInLegacyDiscovery = False
+
+
+#: EDINET manifest (manifest_PublicDoc.xml, manifest_AuditDoc.xml). Its 2013 date is unrelated
+#: to the inline version: EDINET documents are Inline XBRL 1.0.
+_EDINET_MANIFEST_NS = "http://disclosure.edinet-fsa.go.jp/2013/manifest"
+
+
+def _edinetManifestInstances(fs, url):
+    """The instances an EDINET package's manifests define, as dicts of id, type (PublicDoc,
+    AuditDoc), preferredFilename and files (inline documents, as FileSource paths), or []."""
+    import os
+    from lxml import etree
+    instances = []
+    manifests = []  # (path for joining, bytes)
+    try:
+        if fs.isArchive:
+            for member in (fs.dir or ()):
+                if os.path.basename(member).startswith("manifest") and member.endswith(".xml"):
+                    with fs.fs.open(member) as fh:
+                        manifests.append((os.path.join(url, os.path.dirname(member)), fh.read()))
+        elif os.path.isdir(url):
+            for dirpath, _dirs, files in os.walk(url):
+                for f in files:
+                    if f.startswith("manifest") and f.endswith(".xml"):
+                        with open(os.path.join(dirpath, f), "rb") as fh:
+                            manifests.append((dirpath, fh.read()))
+    except Exception:
+        return []
+    for base, content in manifests:
+        try:
+            root = etree.fromstring(content)
+        except Exception:
+            continue
+        if root.tag != "{%s}manifest" % _EDINET_MANIFEST_NS:
+            continue
+        for inst in root.iter("{%s}instance" % _EDINET_MANIFEST_NS):
+            files = [os.path.join(base, (e.text or "").strip())
+                     for e in inst.iter("{%s}ixbrl" % _EDINET_MANIFEST_NS) if (e.text or "").strip()]
+            if files:
+                instances.append({"id": inst.get("id"), "type": inst.get("type"),
+                                  "preferredFilename": inst.get("preferredFilename"), "files": files})
+    return instances
+
+
+def _edinetInstanceFiles(compMdl, fs, url):
+    """Choose the EDINET manifest instance to import and return its inline documents, or None
+    when the source is not an EDINET package. Records the chosen instance on the model
+    (``_reportInstance``: id, type, preferredFilename -- the filing format EDINET's rules are
+    keyed on) and reports the instances not imported."""
+    instances = _edinetManifestInstances(fs, url)
+    if not instances:
+        return None
+    entryUrl = getattr(compMdl, "_xbrlModelReportEntryUrl", None) or ""
+    chosen = (next((i for i in instances if any(f == entryUrl or entryUrl.endswith(f) for f in i["files"])), None)
+              or next((i for i in instances if i["type"] == "PublicDoc"), None)
+              or instances[0])
+    compMdl._reportInstance = {k: chosen[k] for k in ("id", "type", "preferredFilename")}
+    compMdl.info("arelle:edinetManifestInstance",
+                 _("EDINET package with %(count)s instance(s) (%(all)s); importing %(id)s (%(type)s, %(file)s)."),
+                 count=len(instances), all=", ".join(f"{i['id']} {i['type']}" for i in instances),
+                 id=chosen["id"], type=chosen["type"], file=chosen["preferredFilename"])
+    return chosen["files"]
 
 
 def _compileInlineDts(compMdl, inlineMx, url):
@@ -482,8 +557,11 @@ def _htmlValueSource(imf, fv) -> Optional["XbrlFactValueSource"]:
     ``xbrl:inline-XBRL-1.0`` and ``-1.1`` factMaps declare ``xbrl:xhtmlElementLocatorType`` as their
     factLocatorType, which requires this property (resources/core.json).
 
-    Returns None when the ix element has no ``@id`` (no durable locator); the caller
-    then keeps the literal ``fv.value`` instead.
+    An ix element without an ``@id`` is located by ``xbrl:htmlElementPointer`` (tavi-import:
+    "otherwise by the xbrl:htmlElementPointer property") -- but only in a single-document
+    report. In a multi-document IXDS a pointer such as ``/1/2/14`` resolves in every document,
+    and which document a value source names (``reportSource``) is not yet settled in the spec,
+    so there None is returned and the caller keeps the literal ``fv.value``.
 
     TODO(multi-doc): the caller must also register a sourceMappings entry binding
     ``fv.reportSource`` to ``imf.modelDocument.uri`` when the IXDS spans multiple
@@ -492,7 +570,7 @@ def _htmlValueSource(imf, fv) -> Optional["XbrlFactValueSource"]:
     """
     elementId = imf.get("id")
     if not elementId:
-        return None
+        return _pointerValueSource(imf, fv)
     prop = XbrlProperty()
     prop.property = qnHtmlElementId
     # xbrl:htmlElementId is declared xbrlr:stringCollection (resources/core.json), so its value
@@ -500,6 +578,29 @@ def _htmlValueSource(imf, fv) -> Optional["XbrlFactValueSource"]:
     # collection gets one "id" per character and matches nothing, which is what an unbound
     # viewer looks like -- the document renders, the facts load, and no fact is located.
     prop.value = [elementId]
+    source = XbrlFactValueSource()
+    source.factValue = fv
+    source.properties = [prop]
+    return source
+
+
+def _pointerValueSource(imf, fv) -> Optional["XbrlFactValueSource"]:
+    """A value source locating an id-less ix element by element pointer, in a single-document
+    report only (see _htmlValueSource); None otherwise."""
+    from .HtmlElementPointer import buildIdIndex, elementPointer
+    mx = getattr(imf, "modelXbrl", None)
+    if mx is None or len(getattr(mx, "ixdsHtmlElements", None) or ()) != 1:
+        return None
+    root = mx.ixdsHtmlElements[0]
+    idIndex = getattr(mx, "_xbrlModelIdIndex", None)
+    if idIndex is None:
+        idIndex = mx._xbrlModelIdIndex = buildIdIndex(root)
+    pointer = elementPointer(imf, root, idIndex)
+    if not pointer:
+        return None
+    prop = XbrlProperty()
+    prop.property = qnHtmlElementPointer
+    prop.value = [pointer]
     source = XbrlFactValueSource()
     source.factValue = fv
     source.properties = [prop]
