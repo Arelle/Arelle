@@ -82,6 +82,37 @@ def validateImageAndLog(
             args["cssSelectors"] = cssSelectors
         modelXbrl.log(level=validation.level.value, codes=validation.codes, msg=validation.msg, **args)
 
+
+def iterCssUrls(tokens: Iterable[Any]) -> Iterable[str]:
+    """
+    Extracts and yields URLs from a collection of CSS tokens.
+
+    This function processes a sequence of CSS tokens to extract URLs that are
+    defined within `url()` functions or as direct URL values. It handles nested
+    structures by recursively parsing child tokens or arguments if available.
+
+    Args:
+        tokens: An iterable sequence of CSS tokens, which may include URL tokens,
+            function blocks, or other token types.
+
+    Yields:
+        Extracted URL strings from the provided CSS tokens.
+    """
+    for token in tokens:
+        if isinstance(token, tinycss2.ast.URLToken):
+            yield token.value.strip()
+        elif isinstance(token, tinycss2.ast.FunctionBlock) and token.lower_name == "url":
+            if token.arguments:
+                yield "".join(
+                    argument.value for argument in token.arguments
+                    if hasattr(argument, "value")
+                ).strip().strip("\"'")
+        elif hasattr(token, "content"):
+            yield from iterCssUrls(token.content)
+        elif hasattr(token, "arguments"):
+            yield from iterCssUrls(token.arguments)
+
+
 # check image contents against mime/file ext and for Steganography
 def validateImage(
     baseUrl: str | None,

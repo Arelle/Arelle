@@ -21,7 +21,6 @@ _XLINK_HREF = f"{{{XbrlConst.xlink}}}href"
 
 @dataclass
 class PluginValidationDataExtension(PluginData):
-
     def getContextIssues(self, modelXbrl: ModelXbrl) -> ContextIssues:
         return getContextIssues(modelXbrl)
 
