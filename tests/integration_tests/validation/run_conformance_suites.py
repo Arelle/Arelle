@@ -6,6 +6,7 @@ from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from typing import Any, TYPE_CHECKING, cast
 
+from tests.integration_tests.integration_test_util import VariationResult
 from tests.integration_tests.validation.conformance_suite_config import (
     ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 )
@@ -240,7 +241,7 @@ def get_select_option(options: Namespace) -> str:
 def get_failed_test_ids(results: list[ParameterSet]) -> list[str]:
     failed_ids = []
     for result in results:
-        status = cast(dict[str, Any], result.values[0]).get("status")
+        status = cast(VariationResult, result.values[0]).status
         if status == "skip":
             continue
         expected_failure = any(mark.name == "xfail" for mark in result.marks)

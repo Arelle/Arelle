@@ -4,6 +4,7 @@ import json
 import locale
 import os
 from collections import Counter, defaultdict
+from dataclasses import dataclass
 from pathlib import PurePath
 from typing import TYPE_CHECKING, Any, cast
 
@@ -24,6 +25,15 @@ if TYPE_CHECKING:
     from types_boto3_s3 import S3Client
 
     from arelle.ModelDocument import ModelDocument
+
+
+@dataclass(frozen=True)
+class VariationResult:
+    """The outcome of running one testcase variation, passed to pytest as a parameter."""
+    status: str
+    expected: str
+    actual: list[str]
+    duration: float | None
 
 
 def get_document_id(doc: ModelDocument) -> str:
@@ -197,12 +207,12 @@ def get_test_data(
                     # Skip assertion results dictionaries.
                     actual = [regex.sub(r" \(\d+\)$", "", code) for code in mv.actual if not isinstance(code, dict)]
                     param = pytest.param(
-                        {
-                            "status": mv.status,
-                            "expected": json.dumps(expected_results),
-                            "actual": actual,
-                            "duration": mv.duration,
-                        },
+                        VariationResult(
+                            status=mv.status,
+                            expected=json.dumps(expected_results),
+                            actual=actual,
+                            duration=mv.duration,
+                        ),
                         id=test_id,
                         marks=marks,
                     )

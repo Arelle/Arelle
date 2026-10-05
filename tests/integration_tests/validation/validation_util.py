@@ -18,7 +18,7 @@ from typing import Any, TYPE_CHECKING, cast
 from lxml import etree
 
 from arelle.conformance.Constants import CONFORMANCE_SUITE_ID_OVERRIDES
-from tests.integration_tests.integration_test_util import get_test_data
+from tests.integration_tests.integration_test_util import VariationResult, get_test_data
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
 
 if TYPE_CHECKING:
@@ -469,7 +469,7 @@ def save_actual_results_file(config: ConformanceSuiteConfig, results: list[Param
     rows = []
     for result in results:
         testcase_id = result.id
-        actual_codes = result.values[0].get("actual")  # type: ignore[union-attr]
+        actual_codes = cast(VariationResult, result.values[0]).actual
         for code in actual_codes:
             rows.append((testcase_id, code))
     output_filepath = Path(f"conf-{config.name}-actual.csv")
@@ -497,13 +497,13 @@ def save_timing_file(config: ConformanceSuiteConfig, results: list[ParameterSet]
     for result in results:
         testcase_id = result.id
         assert isinstance(testcase_id, str)
-        values = cast(dict[str, Any], result.values[0])
-        status = values.get("status")
+        variation_result = cast(VariationResult, result.values[0])
+        status = variation_result.status
         assert status, f"Test result has no status: {testcase_id}"
         if status == "skip":
             continue
         assert testcase_id and testcase_id not in durations
-        duration = values.get("duration")
+        duration = variation_result.duration
         if duration:
             durations[testcase_id] = duration
     if durations:
