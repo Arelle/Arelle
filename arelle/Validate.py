@@ -767,6 +767,7 @@ class Validate:
         testcaseResultOptions = self.modelXbrl.modelManager.formulaOptions.testcaseResultOptions
         testcaseExpectedErrors = self.modelXbrl.modelManager.formulaOptions.testcaseExpectedErrors or {}
         matchAllExpected = testcaseResultOptions == "match-all" or modelTestcaseVariation.match == "all"
+        modelTestcaseVariation.matchAll = matchAllExpected
         expectedReportCount = modelTestcaseVariation.expectedReportCount
         expectedWarnings = modelTestcaseVariation.expectedWarnings if self.modelXbrl.modelManager.formulaOptions.testcaseResultsCaptureWarnings else []
         if expectedReportCount is not None and validateModelCount is not None and expectedReportCount != validateModelCount:
