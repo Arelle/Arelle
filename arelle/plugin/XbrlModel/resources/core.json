@@ -1418,6 +1418,12 @@
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
+                "forObject": "xbrl:htmlElementPointer",
+                "value": "An XPointer element() scheme child sequence identifying an element of the source document that has no id attribute, counted against the tree of the document's media type (the XML infoset for application/xhtml+xml), written without the element(...) wrapper: \"/1/14\" is the 14th element child of the root element, and \"currentAssets/2/1\" starts from the element with id currentAssets and walks down. Integers are 1-based and count element children only."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
                 "forObject": "xbrl:htmlEscape",
                 "value": "If true, the value is the escaped markup representation; otherwise the concatenated descendant text content is used. Defaults to false."
             },
@@ -1855,6 +1861,15 @@
                 ]
             },
             {
+                "name": "xbrl:htmlElementPointer",
+                "dataType": "xbrlr:stringCollection",
+                "definitional": false,
+                "allowedObjects": [
+                    "xbrl:factValueSourceObject",
+                    "xbrl:factValueAnchorObject"
+                ]
+            },
+            {
                 "name": "xbrl:htmlEscape",
                 "dataType": "xs:boolean",
                 "definitional": false,
@@ -1936,6 +1951,14 @@
                 ],
                 "allowedProperties": [
                     "xbrl:htmlElementId"
+                ]
+            },
+            {
+                "name": "xbrl:xhtmlElementLocatorType",
+                "sourceMediaType": "application/xhtml+xml",
+                "allowedProperties": [
+                    "xbrl:htmlElementId",
+                    "xbrl:htmlElementPointer"
                 ]
             },
             {
@@ -2355,8 +2378,12 @@
                 "name": "xbrl:xBRL-XML"
             },
             {
+                "name": "xbrl:inline-XBRL-1.0",
+                "factLocatorType": "xbrl:xhtmlElementLocatorType"
+            },
+            {
                 "name": "xbrl:inline-XBRL-1.1",
-                "factLocatorType": "xbrl:htmlElementLocatorType"
+                "factLocatorType": "xbrl:xhtmlElementLocatorType"
             }
         ],
         "networks": [

@@ -56,7 +56,10 @@ def buildIdIndex(root) -> Dict[str, List[Any]]:
 
 
 def _elementChildren(el) -> List[Any]:
-    return [c for c in el if isinstance(c.tag, str)]
+    # iterchildren(), not iteration: identical on a plain lxml element, but iterating an
+    # Arelle ModelInlineFact (an ix:nonNumeric can be an ancestor of the element a pointer
+    # addresses) yields its tuple facts, not its XML children.
+    return [c for c in el.iterchildren() if isinstance(c.tag, str)]
 
 
 def _isUsableAnchor(el, idIndex: Dict[str, List[Any]]) -> bool:
@@ -78,7 +81,7 @@ def _childIndex(el) -> int:
     if parent is None:
         return 1
     n = 0
-    for c in parent:
+    for c in parent.iterchildren():  # see _elementChildren
         if isinstance(c.tag, str):
             n += 1
             if c is el:

@@ -45,6 +45,14 @@ Design (see the session design notes / project memory ``project-factmap`` and
     - No durable ``@id``: a fact whose ix element has no ``@id`` has no locator to
       re-derive from, so it keeps its literal (already ix-transformed) ``fv.value`` and
       is carried as an ordinary model fact (no valueSources).
+    - Hidden facts (tavi-import, "Hidden facts"): a fact in ``ix:hidden`` is not
+      displayed, so it carries its literal ``fv.value`` and NO valueSources -- a value
+      source tells a viewer there is displayed text behind the fact. The exception is a
+      hidden fact a displayed element refers to through a hidden-style property
+      (``-sec-ix-hidden``, ``-esef-ix-hidden``, ``-ix-hidden``): it is a displayed fact,
+      carrying the hidden element's value together with a value source locating the
+      displayed element -- by ``xbrl:htmlElementId`` if that element has an id, else by
+      ``xbrl:htmlElementPointer``. Nothing locates the hidden element itself.
     - Transient: ``fact._sourceInlineFact = imf`` -- an in-memory, non-serialized
       back-ref to the live ``ModelInlineFact`` for Xule / rich error messages, giving
       lossless access to the already-parsed tree without a file re-parse. Never
@@ -58,7 +66,7 @@ under "Inline XBRL 1.1 fact map". ``TODO`` markers flag the parts still to fill 
 NOTE (wiring): a factValue with ``valueSources`` requires the factMap to define a
 ``factLocatorType`` (oim-taxonomy.md, oimte:factValueLocatorRequiredForValueSources).
 The built-in ``xbrl:inline-XBRL-1.1`` factMap is registered in resources/core.json
-with ``factLocatorType: xbrl:htmlElementLocatorType`` (whose required property
+with ``factLocatorType: xbrl:xhtmlElementLocatorType`` (whose locator property
 ``xbrl:htmlElementId`` the value source carries), so ``ValidateFacts`` ->
 ``validateAndResolveValueSources`` validates the locator chain and required/allowed
 properties and, when the source document is available, resolves and re-derives the
@@ -67,6 +75,7 @@ value for data-type validation. Resolution parses the source document once per U
 """
 from __future__ import annotations
 
+import re
 from typing import Optional
 
 from arelle.ModelValue import QName
@@ -87,9 +96,22 @@ from .LoadFactsCommon import (
 
 #: Locator property QName written into each factValue's valueSources. This is the
 #: spec-defined html-element-id property required by the built-in
-#: xbrl:htmlElementLocatorType, which the built-in xbrl:inline-XBRL-1.1 factMap
+#: xbrl:xhtmlElementLocatorType, which the built-in inline factMaps
 #: references as its factLocatorType (see resources/core.json).
 qnHtmlElementId = QName("xbrl", xbrlNs, "htmlElementId")
+#: Locator for a displayed element without an id (an XPointer element() child sequence),
+#: used for the element that displays a hidden fact through a hidden-style property.
+qnHtmlElementPointer = QName("xbrl", xbrlNs, "htmlElementPointer")
+
+#: ix:hidden in Inline XBRL 1.0 and 1.1.
+_IX_HIDDEN_TAGS = frozenset((
+    "{http://www.xbrl.org/2008/inlineXBRL}hidden",
+    "{http://www.xbrl.org/2013/inlineXBRL}hidden",
+))
+#: A hidden-style property naming the id of the hidden fact a displayed element shows:
+#: EDGAR -sec-ix-hidden, ESEF -esef-ix-hidden, and the -ix-hidden of the Dutch filing rules.
+#: Which of these a processor recognises is open in tavi-import ("Hidden facts").
+_HIDDEN_STYLE_RE = re.compile(r"(?:^|[\s;])-(?:sec-|esef-)?ix-hidden\s*:\s*([^\s;]+)")
 
 
 def parseInlineFacts(compMdl, module, factSource, url):
@@ -119,6 +141,7 @@ def parseInlineFacts(compMdl, module, factSource, url):
         factPrefix, factNs, redirect = factIdentity(module, factSource)
 
         # 4. Transform each ModelInlineFact -> XbrlFact / XbrlFactValue.
+        hiddenDisplays = _hiddenFactDisplays(inlineMx)
         position = 0
         for imf in _iterTargetFacts(inlineMx):
             conceptQn = redirect(imf.qname)
@@ -129,7 +152,7 @@ def parseInlineFacts(compMdl, module, factSource, url):
                 continue  # not a taxonomy-defined fact element
             position += 1
             facts.append(_emitFact(compMdl, module, imf, conceptQn, conceptObj,
-                                   factPrefix, factNs, redirect, position))
+                                   factPrefix, factNs, redirect, position, hiddenDisplays))
 
         # 5. Footnotes: ModelInlineFootnote + ix:relationship arcs -> XbrlFootnote.
         #    TODO: read the already-resolved footnote relationships from inlineMx and
@@ -243,7 +266,7 @@ def _iterTargetFacts(inlineMx):
 # --------------------------------------------------------------------------
 
 def _emitFact(compMdl, module, imf, conceptQn, conceptObj,
-              factPrefix, factNs, redirect, position):
+              factPrefix, factNs, redirect, position, hiddenDisplays=None):
     """Build one XbrlFact + XbrlFactValue from a ModelInlineFact.
 
     ``imf`` is a ModelInlineFact (subclass of ModelFact AND ModelObject): it exposes
@@ -319,7 +342,18 @@ def _emitFact(compMdl, module, imf, conceptQn, conceptObj,
                 # does. The {decimals} property is then inferred from it (XBRL 2.1 4.6.6).
                 from .LoadFactsCommon import decimalsValue as _inferDecimals
                 fv.decimals = _inferDecimals(imf, error=compMdl.error)
-        source = _htmlValueSource(imf, fv)
+        if _isInIxHidden(imf):
+            # Not displayed: the literal (already ix-transformed) value, and a value source
+            # only for the element that displays it through a hidden-style property.
+            fv.value = imf.value
+            displays = (hiddenDisplays or {}).get(imf.get("id")) if imf.get("id") else None
+            if displays:
+                source = _displayValueSource(displays, fv)
+                if source is not None:
+                    fv.valueSources = [source]
+            source = None
+        else:
+            source = _htmlValueSource(imf, fv)
         if source is not None:
             # Faithful inline form: the value is re-derivable from the document, so the
             # model fact carries the locator + transform metadata and NO literal value;
@@ -330,7 +364,7 @@ def _emitFact(compMdl, module, imf, conceptQn, conceptObj,
             fv.sign = imf.sign or None              # "-" negates; None otherwise
             fv.scale = imf.scaleInt                  # power-of-10 int (or None)
             fv.escape = bool(getattr(imf, "isEscaped", False))
-        else:
+        elif fv.value is None:
             # No durable @id to point at -- keep the literal (already ix-transformed)
             # value; this fact stays an ordinary model fact, nothing to derive.
             fv.value = imf.value
@@ -346,6 +380,62 @@ def _emitFact(compMdl, module, imf, conceptQn, conceptObj,
     fact._sourceInlineFact = imf
 
     return fact
+
+
+def _isInIxHidden(imf) -> bool:
+    """True if the ix element sits inside ix:hidden (Inline XBRL 1.0 or 1.1)."""
+    return any(a.tag in _IX_HIDDEN_TAGS for a in imf.iterancestors())
+
+
+def _hiddenFactDisplays(inlineMx) -> dict:
+    """Map a hidden fact's id -> locators of the displayed elements whose hidden-style
+    property names it, over every document of the IXDS, in document order. Each locator is
+    ``(qnHtmlElementId, id)`` where the element has an id, else ``(qnHtmlElementPointer,
+    pointer)`` built on the tree the inline document was read into."""
+    from .HtmlElementPointer import buildIdIndex, elementPointer
+    displays: dict = {}
+    for root in getattr(inlineMx, "ixdsHtmlElements", None) or ():
+        idIndex = None
+        for el in root.iter():
+            if not isinstance(el.tag, str):
+                continue
+            style = el.get("style")
+            if not style or "ix-hidden" not in style:
+                continue
+            m = _HIDDEN_STYLE_RE.search(style)
+            if not m:
+                continue
+            elementId = el.get("id")
+            if elementId:
+                locator = (qnHtmlElementId, elementId)
+            else:
+                if idIndex is None:
+                    idIndex = buildIdIndex(root)
+                pointer = elementPointer(el, root, idIndex)
+                if not pointer:
+                    continue
+                locator = (qnHtmlElementPointer, pointer)
+            displays.setdefault(m.group(1), []).append(locator)
+    return displays
+
+
+def _displayValueSource(displays, fv) -> Optional["XbrlFactValueSource"]:
+    """A value source locating the element(s) that display a hidden fact.
+
+    TODO(multi-doc): elements in different documents of an IXDS need their own reportSource.
+    """
+    byProperty: dict = {}
+    for qn, value in displays:
+        byProperty.setdefault(qn, []).append(value)
+    source = XbrlFactValueSource()
+    source.factValue = fv
+    source.properties = []
+    for qn, values in byProperty.items():
+        prop = XbrlProperty()
+        prop.property = qn
+        prop.value = values
+        source.properties.append(prop)
+    return source
 
 
 def _decimalsValue(decimals):
@@ -367,7 +457,7 @@ def _htmlValueSource(imf, fv) -> Optional["XbrlFactValueSource"]:
     """Build the factValue.valueSources entry: an ``xbrl:htmlElementId`` property = the
     ix element's ``@id``, the durable point of truth from which the value is re-derived
     (element text -> transformation -> scale -> sign). The built-in
-    ``xbrl:inline-XBRL-1.1`` factMap declares ``xbrl:htmlElementLocatorType`` as its
+    ``xbrl:inline-XBRL-1.0`` and ``-1.1`` factMaps declare ``xbrl:xhtmlElementLocatorType`` as their
     factLocatorType, which requires this property (resources/core.json).
 
     Returns None when the ix element has no ``@id`` (no durable locator); the caller

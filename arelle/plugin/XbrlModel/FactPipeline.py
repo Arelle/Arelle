@@ -46,6 +46,10 @@ qnXbrlCsvFactMap = QName("xbrl", xbrlNs, "xBRL-CSV")
 # oim-taxonomy.md uses "inline-XBRL-1.1" (fact-source enumeration) in one place and
 # "inline-xbrl-1.1" (fact map section heading) in another; reconcile before finalizing.
 qnInlineFactMap = QName("xbrl", xbrlNs, "inline-XBRL-1.1")
+# Inline XBRL 1.0 (EDINET's version) is imported by the same loader; the two versions differ
+# in how a document is read, not in what is imported from it.
+qnInline10FactMap = QName("xbrl", xbrlNs, "inline-XBRL-1.0")
+qnInlineFactMaps = frozenset((qnInlineFactMap, qnInline10FactMap))
 
 
 # --------------------------------------------------------------------
@@ -366,6 +370,7 @@ def _builtinFactMapParsers() -> dict[Any, Callable[..., Any]]:
         _BUILTIN_FACT_MAP_PARSERS[qnXbrlXmlFactMap] = parseXbrlXmlFacts
         _BUILTIN_FACT_MAP_PARSERS[qnXbrlJsonFactMap] = parseOimJsonFacts
         _BUILTIN_FACT_MAP_PARSERS[qnInlineFactMap] = parseInlineFacts  # POC-INLINE
+        _BUILTIN_FACT_MAP_PARSERS[qnInline10FactMap] = parseInlineFacts
         _BUILTIN_FACT_MAP_PARSERS[qnXbrlCsvFactMap] = parseXbrlCsvFacts
     return _BUILTIN_FACT_MAP_PARSERS
 
@@ -511,7 +516,7 @@ def materializeFactSourceFacts(compMdl: "XbrlCompiledModel", module: "XbrlModule
         # POC-INLINE: the inline map does its OWN single-pass load (facts + DTS) inside
         # parseInlineFacts, so skip this pre-step for it to avoid loading the report twice.
         factMapName = getattr(factSource, "factMapName", None)
-        if factMapName != qnInlineFactMap:
+        if factMapName not in qnInlineFactMaps:
             # Discover the taxonomy the report names (schemaRef, or documentInfo.taxonomy)
             # rather than the report document itself: an xBRL-JSON or xBRL-CSV report is not
             # a DTS entry point, so handing its own URL to discovery finds no taxonomy at
@@ -555,6 +560,33 @@ def _registerGeneratedObject(compMdl: "XbrlCompiledModel", module: "XbrlModule",
 # (Hook 3). Remove this section with the POC.
 
 _INLINE_XBRL_NS = "http://www.xbrl.org/2013/inlineXBRL"
+_INLINE_XBRL_10_NS = "http://www.xbrl.org/2008/inlineXBRL"
+
+
+def _archiveMemberInlineFactMap(filepath) -> Optional[str]:
+    """Sniff the inline version of a document inside an archive, or None if unreadable."""
+    try:
+        from arelle import FileSource as _FileSource
+        fs = _FileSource.openFileSource(filepath)
+        try:
+            fh = fs.file(filepath, binary=True)[0]
+            try:
+                return _inlineFactMapForText(fh.read(16384).decode("utf-8", errors="replace"))
+            finally:
+                fh.close()
+        finally:
+            fs.close()
+    except Exception:
+        return None
+
+
+def _inlineFactMapForText(head: str) -> Optional[str]:
+    """The built-in inline fact map for a document whose leading text is ``head``."""
+    if _INLINE_XBRL_NS in head:
+        return "xbrl:inline-XBRL-1.1"
+    if _INLINE_XBRL_10_NS in head:
+        return "xbrl:inline-XBRL-1.0"
+    return None
 _XBRLI_XBRL_CLARK = "{http://www.xbrl.org/2003/instance}xbrl"
 
 
@@ -589,21 +621,21 @@ def pocReportEntryFactMap(filepath) -> Optional[str]:
     stem = str(filepath).split("?", 1)[0].split("#", 1)[0]
     ext = stem.rsplit(".", 1)[-1].lower() if "." in stem else ""
     # An inline document inside an archive (report package .xbri / .zip resolves to an
-    # archive-member .xhtml path) can't be read with io.open; claim it by extension --
-    # an inline doc in a report package is inline XBRL. _loadInlineModel opens the
-    # archive (report package) and handles catalog remappings + multi-doc IXDS.
+    # archive-member .xhtml path) can't be read with io.open; it is read through a FileSource
+    # to tell Inline XBRL 1.0 (EDINET packages) from 1.1, and claimed as 1.1 by extension if
+    # it cannot be read. _loadInlineModel opens the archive (report package) and handles
+    # catalog remappings + multi-doc IXDS.
     from arelle.FileSource import archiveFilenameParts
     _parts = archiveFilenameParts(filepath)
     if _parts is not None:
         innerExt = _parts[1].rsplit(".", 1)[-1].lower() if "." in _parts[1] else ""
         if innerExt in ("htm", "html", "xhtml"):
-            return "xbrl:inline-XBRL-1.1"
+            return _archiveMemberInlineFactMap(filepath) or "xbrl:inline-XBRL-1.1"
         return None
     try:
         if ext in ("htm", "html", "xhtml"):
             with io.open(filepath, "rt", encoding="utf-8", errors="replace") as f:
-                if _INLINE_XBRL_NS in f.read(16384):
-                    return "xbrl:inline-XBRL-1.1"
+                return _inlineFactMapForText(f.read(16384))
         elif ext == "xml":
             if _xmlRootClarkName(filepath) == _XBRLI_XBRL_CLARK:
                 return "xbrl:xBRL-XML"

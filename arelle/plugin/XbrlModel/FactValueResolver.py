@@ -587,6 +587,9 @@ def _resolveHtmlValueSource(source, locatorType, factValue, fact, compMdl) -> Op
     Supports the standard locator properties:
 
       * ``xbrl:htmlElementId`` -- element by ``id``
+      * ``xbrl:htmlElementPointer`` -- element by XPointer element() child sequence, for
+        an element without an id (e.g. one displaying a hidden fact through a
+        hidden-style property)
       * ``xbrl:htmlDataAttribute`` -- element by ``data-*`` attribute lookup
         (value may be ``"attrName"`` or ``"attrName=attrValue"``)
 
@@ -622,6 +625,12 @@ def _resolveHtmlValueSource(source, locatorType, factValue, fact, compMdl) -> Op
             el = idMap.get(v)
             if el is not None:
                 return el.text_content()
+        # element-pointer lookup
+        pointer = _firstValue(props.get("htmlElementPointer"))
+        if pointer:
+            el = _resolveElementPointer(compMdl, docUrl, pointer)
+            if el is not None:
+                return "".join(el.itertext())
         # data-attribute lookup
         dataAttr = _firstValue(props.get("htmlDataAttribute"))
         if dataAttr:
@@ -637,6 +646,41 @@ def _resolveHtmlValueSource(source, locatorType, factValue, fact, compMdl) -> Op
             if matches:
                 return matches[0].text_content()
     return None
+
+
+def _resolveElementPointer(compMdl, url, pointer):
+    """Resolve an ``xbrl:htmlElementPointer`` against ``url``, or None.
+
+    A child sequence counts element children, so it must be resolved against the same
+    tree structure it was built on. An inline document is XHTML and the importer builds
+    pointers on its XML tree; an HTML parser may restructure the markup (libxml2 closes a
+    ``<p>`` at a block element) and silently resolve to a different element. So the
+    document is parsed as XML here, falling back to the HTML parse only when it is not
+    well-formed XML. Parsed once per URL.
+    """
+    from .HtmlElementPointer import buildIdIndex, resolvePointer
+    cache = getattr(compMdl, "_xmlDocCache", None)
+    if cache is None:
+        cache = compMdl._xmlDocCache = {}
+    if url not in cache:
+        parsed = None
+        try:
+            from lxml import etree
+            f = compMdl.fileSource.file(url, binary=True)[0]
+            try:
+                root = etree.fromstring(f.read())
+            finally:
+                f.close()
+            parsed = (root, buildIdIndex(root))
+        except Exception:
+            htmlParsed = _htmlDocFor(compMdl, url)
+            if htmlParsed is not None:
+                parsed = (htmlParsed[0], buildIdIndex(htmlParsed[0]))
+        cache[url] = parsed
+    parsed = cache[url]
+    if parsed is None:
+        return None
+    return resolvePointer(pointer, parsed[0], parsed[1])
 
 
 def _xpathLiteral(s: str) -> str:
@@ -659,6 +703,9 @@ def _fileSourceCanRead(compMdl, url: str) -> bool:
 
 registerValueSourceResolver("text/html", _resolveHtmlValueSource)
 registerValueSourceResolver("html", _resolveHtmlValueSource)
+# xbrl:xhtmlElementLocatorType (the inline fact maps): ids resolve the same way; element
+# pointers are resolved against the XML parse (_resolveElementPointer).
+registerValueSourceResolver("application/xhtml+xml", _resolveHtmlValueSource)
 
 
 _pdfExtractorCache: Dict[str, Any] = {}
