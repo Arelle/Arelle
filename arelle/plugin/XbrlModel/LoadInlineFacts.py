@@ -45,6 +45,11 @@ Design (see the session design notes / project memory ``project-factmap`` and
     - No durable ``@id``: a fact whose ix element has no ``@id`` has no locator to
       re-derive from, so it keeps its literal (already ix-transformed) ``fv.value`` and
       is carried as an ordinary model fact (no valueSources).
+    - Nil facts carry the ``xbrl:nil`` property. A displayed nil fact also keeps a fact value
+      that only locates it: valueSources on where it is displayed (its own element, or the
+      element showing it through a hidden-style property) and ``xbrltt:fixed-empty`` as its
+      transformation, so the displayed text -- often the row label -- is never read as a value.
+      An undisplayed nil fact has no fact value.
     - Hidden facts (tavi-import, "Hidden facts"): a fact in ``ix:hidden`` is not
       displayed, so it carries its literal ``fv.value`` and NO valueSources -- a value
       source tells a viewer there is displayed text behind the fact. The exception is a
@@ -102,6 +107,9 @@ qnHtmlElementId = QName("xbrl", xbrlNs, "htmlElementId")
 #: Locator for a displayed element without an id (an XPointer element() child sequence),
 #: used for the element that displays a hidden fact through a hidden-style property.
 qnHtmlElementPointer = QName("xbrl", xbrlNs, "htmlElementPointer")
+
+#: The transformation of a displayed nil fact's fact value: its displayed text yields no value.
+qnFixedEmpty = QName("xbrltt", xbrlNs + "/transform-types", "fixed-empty")
 
 #: ix:hidden in Inline XBRL 1.0 and 1.1.
 _IX_HIDDEN_TAGS = frozenset((
@@ -326,11 +334,25 @@ def _emitFact(compMdl, module, imf, conceptQn, conceptObj,
     fv.escape = False
     fv.reportSource = None  # single-document default target; TODO(multi-doc): set the
     #                   per-document sourceMapping QName for imf.modelDocument.uri.
+    nilDisplayed = False
     if isNil:
         nilProp = XbrlProperty()
         nilProp.property = qnNil
         nilProp.value = qnUnknownNilReason
         fact.properties = [nilProp]
+        # A displayed nil fact keeps a fact value that only locates it (tavi-import, "Nil
+        # facts"): valueSources on where it is displayed, and xbrltt:fixed-empty saying that
+        # text yields no value. A nil element in ix:hidden is displayed only through a
+        # hidden-style property; one in the body is located at its own (empty) element.
+        if _isInIxHidden(imf):
+            displays = (hiddenDisplays or {}).get(imf.get("id")) if imf.get("id") else None
+            source = _displayValueSource(displays, fv) if displays else None
+        else:
+            source = _htmlValueSource(imf, fv)
+        if source is not None:
+            fv.valueSources = [source]
+            fv.transformation = qnFixedEmpty
+            nilDisplayed = True
     else:
         if isNumeric:
             # decimals is a NUMBER in the model (or the string "INF"); Arelle's inline fact
@@ -374,7 +396,7 @@ def _emitFact(compMdl, module, imf, conceptQn, conceptObj,
     # emitted {"name": "..._fv"} with neither a value nor value sources, which the schema
     # rightly rejects -- a fact value must have one or the other. Every nil fact in the OIM
     # taxonomy conformance suite carries the property and no factValues.
-    fact.factValues = None if isNil else [fv]
+    fact.factValues = None if isNil and not nilDisplayed else [fv]
 
     # Transient, non-serialized back-ref for Xule / error messages (see module docstring).
     fact._sourceInlineFact = imf

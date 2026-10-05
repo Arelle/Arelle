@@ -326,9 +326,8 @@ def _fn_isNil(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaVal
         raise FormulaRuntimeError("is-nil() requires exactly one argument")
     arg = args[0]
     if arg.type == FormulaValueType.FACT:
-        if arg.value.factValues:
-            fv = next(iter(arg.value.factValues))
-            return FormulaValue(FormulaValueType.BOOLEAN, fv.value is None)
+        from .FormulaInterpreter import _isNil
+        return FormulaValue(FormulaValueType.BOOLEAN, _isNil(arg.value))
     return FALSE_VALUE
 
 

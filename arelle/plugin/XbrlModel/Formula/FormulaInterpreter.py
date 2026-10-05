@@ -1717,10 +1717,23 @@ def _compareValues(actual: Any, op: str, expected: Any) -> bool:
     return False
 
 
+_qnNilProperty = None
+
+
 def _isNil(fact) -> bool:
+    """A fact is nil by its xbrl:nil property. A nil fact may have no fact value, or one that
+    only locates where it is displayed, so neither the presence of fact values nor their
+    value decides it. (A fact value with no value and no source is also taken as nil, for
+    models built before the property was carried.)"""
+    global _qnNilProperty
+    if _qnNilProperty is None:
+        from ..ValidateFacts import qnFactNilProperty
+        _qnNilProperty = qnFactNilProperty
+    if any(getattr(p, "property", None) == _qnNilProperty for p in (getattr(fact, "properties", None) or ())):
+        return True
     if getattr(fact, "factValues", None):
         fv = next(iter(fact.factValues))
-        return fv.value is None
+        return fv.value is None and not getattr(fv, "valueSources", None)
     return False
 
 

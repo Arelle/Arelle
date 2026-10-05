@@ -89,9 +89,14 @@ def resolveFact(txmyMdl, txmyObj, fact):
     factIsNil = any(getattr(p, "property", None) == qnFactNilProperty
                     for p in (fact.properties or ()))
     for factValue in fact.factValues or ():
-        # A nil fact carries no value in its factValue object; there is nothing to
-        # type-validate. (An explicit value or valueSource still validates below.)
-        if factIsNil and factValue.value is None and not factValue.valueSources:
+        # A nil fact carries no value; there is nothing to type-validate. A displayed nil fact's
+        # factValue only locates it (valueSources + xbrltt:fixed-empty), so its locator structure
+        # is checked but the resolved text is neither validated nor taken as a value -- nil-ness
+        # comes from the xbrl:nil property, and calculations and duplicates rely on value None.
+        if factIsNil and factValue.value is None:
+            if factValue.valueSources:
+                from .FactValueResolver import validateAndResolveValueSources
+                validateAndResolveValueSources(txmyMdl, fact, factValue)
             factValue._xValid = VALID
             factValue._xValue = None
             continue
@@ -436,16 +441,16 @@ def validateFactPosition(txmyMdl, fact):
                 for cubeDimObj in cubeObj.cubeDimensions or ()
             )
             bucket = cellFacts.setdefault(cellKey, [])
-            if fact.factValues:
+            if any(getattr(p, "property", None) == qnFactNilProperty
+                   for p in (fact.properties or ())):
+                # A nil fact is nil by its xbrl:nil property, whether it has no factValue (native OIM)
+                # or a factValue that only locates where it is displayed. Represent it in the cell as
+                # a None factValue -> value None, so duplicate-fact validation and calculations see a
+                # nil: a nil fact and a valued fact at the same cell are inconsistent duplicates.
+                bucket.append((fact, None))
+            elif fact.factValues:
                 for fv in fact.factValues:
                     bucket.append((fact, fv))
-            elif any(getattr(p, "property", None) == qnFactNilProperty
-                     for p in (fact.properties or ())):
-                # A native-OIM nil fact carries the xbrl:nil property and NO factValue. Represent it in
-                # the cell (as a None factValue -> value None) so duplicate-fact validation sees it: a nil
-                # fact and a valued fact at the same cell are inconsistent duplicates. (Legacy loaders map
-                # nil facts to a factValue with value=None, so they are already covered by the loop above.)
-                bucket.append((fact, None))
 
 
 def validateCompleteReportCubes(txmyMdl):
