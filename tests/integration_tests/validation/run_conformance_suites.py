@@ -4,7 +4,7 @@ import multiprocessing
 import sys
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import Any, TYPE_CHECKING, cast
+from typing import Any
 
 from tests.integration_tests.integration_test_util import VariationResult
 from tests.integration_tests.validation.conformance_suite_config import (
@@ -20,9 +20,6 @@ from tests.integration_tests.validation.validation_util import (
     save_actual_results_file,
     CONFORMANCE_SUITE_EXPECTED_RESOURCES_DIRECTORY, save_diff_html_file
 )
-
-if TYPE_CHECKING:
-    from _pytest.mark import ParameterSet
 
 
 ARGUMENTS: list[dict[str, Any]] = [
@@ -160,7 +157,7 @@ def run_conformance_suites(
         offline_option: bool = False,
         series_option: bool = False,
         testcase_filters: list[str] | None = None,
-) -> list[ParameterSet]:
+) -> list[VariationResult]:
     conformance_suite_configs = _get_conformance_suite_names(select_option)
     unique_assets = set()
     for config in conformance_suite_configs:
@@ -199,7 +196,7 @@ def run_conformance_suites(
     return all_results
 
 
-def run_conformance_suites_options(options: Namespace) -> list[ParameterSet]:
+def run_conformance_suites_options(options: Namespace) -> list[VariationResult]:
     select_option = get_select_option(options)
     download_option = get_download_option(options)
     assert download_option or options.test, \
@@ -238,15 +235,13 @@ def get_select_option(options: Namespace) -> str:
     return options.name
 
 
-def get_failed_test_ids(results: list[ParameterSet]) -> list[str]:
+def get_failed_test_ids(results: list[VariationResult]) -> list[str]:
     failed_ids = []
     for result in results:
-        status = cast(VariationResult, result.values[0]).status
-        if status == "skip":
+        if result.status == "skip":
             continue
-        expected_failure = any(mark.name == "xfail" for mark in result.marks)
-        if (status == "pass") == expected_failure:
-            failed_ids.append(str(result.id))
+        if (result.status == "pass") == result.expected_failure:
+            failed_ids.append(result.test_id)
     return failed_ids
 
 

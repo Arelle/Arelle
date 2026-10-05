@@ -9,7 +9,6 @@ from pathlib import PurePath
 from typing import TYPE_CHECKING, Any, cast
 
 import boto3
-import pytest
 import regex
 from botocore import UNSIGNED
 from botocore.config import Config as BotocoreConfig
@@ -21,7 +20,6 @@ from arelle.FileSource import archiveFilenameParts
 from arelle.ModelDocumentType import ModelDocumentType
 
 if TYPE_CHECKING:
-    from _pytest.mark import ParameterSet
     from types_boto3_s3 import S3Client
 
     from arelle.ModelDocument import ModelDocument
@@ -29,7 +27,9 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class VariationResult:
-    """The outcome of running one testcase variation, passed to pytest as a parameter."""
+    """The outcome of running one testcase variation."""
+    test_id: str
+    expected_failure: bool
     status: str
     match_all: bool
     expected: str
@@ -148,22 +148,22 @@ def get_test_data(
         expected_failure_ids: frozenset[str] = frozenset(),
         required_locale_by_ids: dict[str, regex.Pattern[str]] | None = None,
         strict_testcase_index: bool = True,
-) -> list[ParameterSet]:
+) -> list[VariationResult]:
     """
-    Produces a list of Pytest Params that can be fed into a parameterized pytest function
+    Runs the testcase variations and produces a result for each one
 
     :param args: The args to be parsed by arelle in order to correctly produce the desired result set
     :param expected_failure_ids: The set of string test IDs that are expected to fail
     :param required_locale_by_ids: The dict of IDs for tests which require a system locale matching a regex pattern.
     :param strict_testcase_index: Don't allow IOerrors when loading the testcase index
-    :return: A list of PyTest Params that can be used to run a parameterized pytest function
+    :return: A result for each variation that was not skipped
     """
     if required_locale_by_ids is None:
         required_locale_by_ids = {}
     cntlr = parseAndRun(args)
     try:
         system_locale = locale.setlocale(locale.LC_CTYPE)
-        results: list[ParameterSet] = []
+        results: list[VariationResult] = []
         test_cases_with_no_variations = set()
         test_cases_with_unrecognized_type = {}
         skipped_test_cases = set()
@@ -193,9 +193,6 @@ def get_test_data(
                     if mv.status == "skip":
                         skipped_test_cases.add(test_id)
                         continue  # don't report variations skipped due to shards
-                    marks = []
-                    if isExpectedFailure(test_id, expected_failure_ids, required_locale_by_ids, system_locale):
-                        marks.append(pytest.mark.xfail())
                     expected_results: Any
                     if isinstance(mv.expected, str):
                         expected_results = mv.expected
@@ -210,24 +207,21 @@ def get_test_data(
                         expected_warnings = dict(Counter(str(warning) for warning in mv.expectedWarnings or []))
                     configured_errors = dict(Counter(str(error) for error in mv.userExpectedErrors))
                     actual_codes = dict(sorted(mv.actualCounts.items()))
-                    param = pytest.param(
-                        VariationResult(
-                            status=mv.status,
-                            match_all=mv.matchAll,
-                            expected=json.dumps(expected_results),
-                            expected_warnings=expected_warnings,
-                            configured_errors=configured_errors,
-                            actual_codes=actual_codes,
-                            actual_assertions=get_actual_assertion_results(mv.actual),
-                            duration=mv.duration,
-                        ),
-                        id=test_id,
-                        marks=marks,
-                    )
-                    results.append(param)
+                    results.append(VariationResult(
+                        test_id=test_id,
+                        expected_failure=isExpectedFailure(test_id, expected_failure_ids, required_locale_by_ids, system_locale),
+                        status=mv.status,
+                        match_all=mv.matchAll,
+                        expected=json.dumps(expected_results),
+                        expected_warnings=expected_warnings,
+                        configured_errors=configured_errors,
+                        actual_codes=actual_codes,
+                        actual_assertions=get_actual_assertion_results(mv.actual),
+                        duration=mv.duration,
+                    ))
         if test_cases_with_unrecognized_type:
             raise Exception(f"Some test cases have an unrecognized document type: {sorted(test_cases_with_unrecognized_type.items())}.")
-        test_id_frequencies = Counter(cast(str, p.id) for p in results)
+        test_id_frequencies = Counter(r.test_id for r in results)
         nonunique_test_ids = {test_id: count for test_id, count in test_id_frequencies.items() if count > 1}
         if nonunique_test_ids:
             raise Exception(f"Some test IDs are not unique.  Frequencies of nonunique test IDs: {nonunique_test_ids}.")
@@ -282,7 +276,7 @@ def collect_test_data(
         expected_failure_ids: frozenset[str],
         required_locale_by_ids: dict[str, regex.Pattern[str]],
         system_locale: str,
-        results: list[ParameterSet],
+        results: list[VariationResult],
         model_document: ModelDocument,
         test_cases: list[ModelDocument],
 ) -> None:

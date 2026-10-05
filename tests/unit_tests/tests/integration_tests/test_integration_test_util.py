@@ -14,6 +14,8 @@ def test_get_actual_assertion_results() -> None:
 
 def test_format_failure_message() -> None:
     result = VariationResult(
+        test_id="index.xml:V-01",
+        expected_failure=False,
         status="fail",
         match_all=True,
         expected='{"ERROR": {"xbrl.4.9": 1}}',

@@ -20,4 +20,7 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     options = config.option
     options.test = True
     results = run_conformance_suites_options(options)
-    metafunc.parametrize("conformance_suite_results", results)
+    metafunc.parametrize("conformance_suite_results", [
+        pytest.param(result, id=result.test_id, marks=[pytest.mark.xfail()] if result.expected_failure else [])
+        for result in results
+    ])
