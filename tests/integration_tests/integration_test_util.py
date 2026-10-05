@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import locale
 import os
-from collections import Counter, defaultdict
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import PurePath
 from typing import TYPE_CHECKING, Any, cast
@@ -31,8 +31,12 @@ if TYPE_CHECKING:
 class VariationResult:
     """The outcome of running one testcase variation, passed to pytest as a parameter."""
     status: str
+    match_all: bool
     expected: str
-    actual: list[str]
+    expected_warnings: dict[str, int]
+    configured_errors: dict[str, int]
+    actual_codes: dict[str, int]
+    actual_assertions: dict[str, dict[str, int]]
     duration: float | None
 
 
@@ -192,25 +196,29 @@ def get_test_data(
                     marks = []
                     if isExpectedFailure(test_id, expected_failure_ids, required_locale_by_ids, system_locale):
                         marks.append(pytest.mark.xfail())
-                    expected_results: Any = defaultdict(lambda: defaultdict(int))
+                    expected_results: Any
                     if isinstance(mv.expected, str):
                         expected_results = mv.expected
+                    elif isinstance(mv.expected, dict):
+                        expected_results = {"ASSERTIONS": {assertionId: name_assertion_counts(counts) for assertionId, counts in mv.expected.items()}}
+                    elif mv.expected:
+                        expected_results = {"ERROR": Counter(str(error) for error in mv.expected)}
                     else:
-                        for error in mv.expected or []:
-                            expected_results["ERROR"][str(error)] += 1
-                        for error in mv.userExpectedErrors:
-                            expected_results["ERROR"][str(error)] += 1
-                        if mv.modelXbrl is not None and mv.modelXbrl.modelManager.formulaOptions.testcaseResultsCaptureWarnings:
-                            for warning in mv.expectedWarnings or []:
-                                expected_results["WARNING"][str(warning)] += 1
-                    # Arelle adds message code frequencies to the end, but conformance suites usually don't.
-                    # Skip assertion results dictionaries.
-                    actual = [regex.sub(r" \(\d+\)$", "", code) for code in mv.actual if not isinstance(code, dict)]
+                        expected_results = {}
+                    expected_warnings: dict[str, int] = {}
+                    if mv.modelXbrl is not None and mv.modelXbrl.modelManager.formulaOptions.testcaseResultsCaptureWarnings:
+                        expected_warnings = dict(Counter(str(warning) for warning in mv.expectedWarnings or []))
+                    configured_errors = dict(Counter(str(error) for error in mv.userExpectedErrors))
+                    actual_codes = dict(sorted(mv.actualCounts.items()))
                     param = pytest.param(
                         VariationResult(
                             status=mv.status,
+                            match_all=mv.matchAll,
                             expected=json.dumps(expected_results),
-                            actual=actual,
+                            expected_warnings=expected_warnings,
+                            configured_errors=configured_errors,
+                            actual_codes=actual_codes,
+                            actual_assertions=get_actual_assertion_results(mv.actual),
                             duration=mv.duration,
                         ),
                         id=test_id,
@@ -234,6 +242,39 @@ def get_test_data(
         cntlr.modelManager.close()
         PackageManager.close()
         PluginManager.getInstance().close()
+
+
+def name_assertion_counts(counts: tuple[int, ...]) -> dict[str, int]:
+    """Labels the satisfied and not satisfied counts of a formula assertion result."""
+    # Actual results add three counts that split the unsatisfied evaluations by OK, warning and error
+    # severity, which testcases don't state.
+    return {"satisfied": counts[0], "not satisfied": counts[1]}
+
+
+def get_actual_assertion_results(actual: list[Any]) -> dict[str, dict[str, int]]:
+    """
+    Collects formula assertion results from a variation's actual results, as labeled
+    satisfied and not satisfied counts per assertion ID.
+    """
+    return {
+        assertionId: name_assertion_counts(counts)
+        for result in actual
+        if isinstance(result, dict)
+        for assertionId, counts in result.items()
+    }
+
+
+def format_failure_message(result: VariationResult) -> str:
+    match_mode = "match-all" if result.match_all else "match-any"
+    lines = [f"Testcase variation failed ({match_mode})", f"Expected by the suite: {result.expected}"]
+    if result.expected_warnings:
+        lines.append(f"Expected warnings: {result.expected_warnings}")
+    if result.configured_errors:
+        lines.append(f"Configured additional errors: {result.configured_errors}")
+    lines.append(f"Actual codes: {result.actual_codes}")
+    if result.actual_assertions:
+        lines.append(f"Actual assertion results: {result.actual_assertions}")
+    return "\n".join(lines)
 
 
 def collect_test_data(

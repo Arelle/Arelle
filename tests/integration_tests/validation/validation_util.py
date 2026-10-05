@@ -469,7 +469,7 @@ def save_actual_results_file(config: ConformanceSuiteConfig, results: list[Param
     rows = []
     for result in results:
         testcase_id = result.id
-        actual_codes = cast(VariationResult, result.values[0]).actual
+        actual_codes = cast(VariationResult, result.values[0]).actual_codes
         for code in actual_codes:
             rows.append((testcase_id, code))
     output_filepath = Path(f"conf-{config.name}-actual.csv")
