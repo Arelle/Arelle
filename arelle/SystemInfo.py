@@ -2,7 +2,7 @@
 See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
-from arelle.Version import __version__
+from arelle import Version
 from enum import Enum, auto
 from typing import Any
 import math
@@ -62,7 +62,7 @@ def hasVirtualEnv() -> bool:
 def getSystemInfo() -> dict[str, Any]:
     """Return info about the system."""
     info_object = {
-        "arelle_version": __version__,
+        "arelle_version": Version.__version__,
         "arch": platform.machine(),
         "args": sys.argv,
         "cgi": isCGI(),

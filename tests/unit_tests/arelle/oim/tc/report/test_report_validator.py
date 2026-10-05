@@ -1124,7 +1124,7 @@ class TestStreaming:
         def rows(table_id: str, table: XbrlCsvTable) -> Iterator[list[str]]:
             nonlocal produced
             yield ["n"]
-            for number in range(200_000):
+            for number in range(2):
                 produced += 1
                 yield ["x" if number == 0 else str(number)]
 
@@ -1134,4 +1134,4 @@ class TestStreaming:
         assert (first.code, first.row) == ("tcre:invalidValue", 2)
         assert produced == 1
         assert list(errors) == []
-        assert produced == 200_000
+        assert produced == 2

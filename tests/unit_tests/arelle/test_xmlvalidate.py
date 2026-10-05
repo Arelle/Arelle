@@ -4,6 +4,7 @@ import datetime
 from _decimal import Decimal
 from fractions import Fraction
 from math import inf, isnan, nan
+import tracemalloc
 from typing import Any
 from unittest import TestCase
 from unittest.mock import Mock
@@ -465,23 +466,24 @@ BASE_XSD_TYPES = {
 }
 
 
+# Every other type goes through the same validation as validateValueString.
+_VALIDATE_VALUE_ONLY_TYPES = {None, "fraction"}
+
+
 def _generate_test_cases():
     test_cases = []
     for attrTag in [None, "attrTag"]:
-        for isNillable in [False, True]:
-            for isNil in [False, True]:
-                for baseXsdType, cases in BASE_XSD_TYPES.items():
-                    for case in cases:
-                        expected = case.get("expected")
-                        test_cases.append((
-                            attrTag,
-                            baseXsdType,
-                            case.get("value"),
-                            isNillable,
-                            isNil,
-                            case.get("facets"),
-                            expected
-                        ))
+        for baseXsdType, cases in BASE_XSD_TYPES.items():
+            if baseXsdType not in _VALIDATE_VALUE_ONLY_TYPES:
+                continue
+            for case in cases:
+                test_cases.append((
+                    attrTag,
+                    baseXsdType,
+                    case.get("value"),
+                    case.get("facets"),
+                    case.get("expected"),
+                ))
     return test_cases
 
 
@@ -492,14 +494,12 @@ def _assertValidateValue(actual, expected):
         assert actual == expected
 
 
-def _assertExpected(value: str, attrTag: str | None, elt: Any, expected: tuple, isNil: bool = False, isNillable: bool = False):
+def _assertExpected(value: str, attrTag: str | None, elt: Any, expected: tuple):
     expected = (
         value if expected[0] == "=" else expected[0],
         value if expected[1] == "=" else expected[1],
         expected[2]
     )
-    if not value and isNil and isNillable:
-        expected = (None, None, expected[2])
     if attrTag:
         attr = elt.xAttributes[attrTag]
         sValue = attr.sValue
@@ -517,10 +517,10 @@ def _assertExpected(value: str, attrTag: str | None, elt: Any, expected: tuple, 
 
 
 @pytest.mark.parametrize(
-    "attrTag,baseXsdType,value,isNillable,isNil,facets,expected",
+    "attrTag,baseXsdType,value,facets,expected",
     [pytest.param(*testcase) for testcase in _generate_test_cases()],
 )
-def test_validateValue(attrTag: str, baseXsdType: str, value: str, isNillable: bool, isNil: bool, facets: dict, expected: tuple):
+def test_validateValue(attrTag: str, baseXsdType: str, value: str, facets: dict, expected: tuple):
     elt = Mock(xAttributes={}, nsmap={"prefix": "namespaceURI"}, fractionValue=tuple(value.split("/")))
     validateValue(
         modelXbrl=Mock(internAnyUri=lambda value: value),
@@ -528,17 +528,21 @@ def test_validateValue(attrTag: str, baseXsdType: str, value: str, isNillable: b
         attrTag=attrTag,
         baseXsdType=baseXsdType,
         value=value,
-        isNillable=isNillable,
-        isNil=isNil,
         facets=facets)
-    _assertExpected(
-        value,
-        attrTag,
-        elt,
-        expected,
-        isNil,
-        isNillable
-    )
+    _assertExpected(value, attrTag, elt, expected)
+
+
+@pytest.mark.parametrize("attrTag", [None, "attrTag"])
+@pytest.mark.parametrize("value,expected", [
+    ("1", (1, 1, VALID)),
+    ("x", ("=", None, INVALID)),
+])
+def test_validateValue_stores_result_and_logs_errors(attrTag: str | None, value: str, expected: tuple):
+    modelXbrl = Mock(internAnyUri=lambda value: value)
+    elt = Mock(xAttributes={}, nsmap={"prefix": "namespaceURI"})
+    validateValue(modelXbrl=modelXbrl, elt=elt, attrTag=attrTag, baseXsdType="integer", value=value)
+    _assertExpected(value, attrTag, elt, expected)
+    assert modelXbrl.error.called == (expected[2] == INVALID)
 
 
 @pytest.mark.parametrize(
@@ -1113,43 +1117,34 @@ def test_validateValue_facets_whitespace(whitespace: str, value: str, expected: 
 
 
 NSMAP = {"prefix": "namespaceURI"}
-_SKIP_TYPES_FOR_VALUE_STRING = {None, "fraction"}
 
 
 def _generate_value_string_test_cases():
     test_cases = []
-    for isNillable in [False, True]:
-        for isNil in [False, True]:
-            for baseXsdType, cases in BASE_XSD_TYPES.items():
-                if baseXsdType in _SKIP_TYPES_FOR_VALUE_STRING:
-                    continue
-                for case in cases:
-                    test_cases.append(
-                        (
-                            baseXsdType,
-                            case.get("value"),
-                            isNillable,
-                            isNil,
-                            case.get("facets"),
-                            case.get("expected"),
-                        )
-                    )
+    for baseXsdType, cases in BASE_XSD_TYPES.items():
+        if baseXsdType in _VALIDATE_VALUE_ONLY_TYPES:
+            continue
+        for case in cases:
+            test_cases.append(
+                (
+                    baseXsdType,
+                    case.get("value"),
+                    case.get("facets"),
+                    case.get("expected"),
+                )
+            )
     return test_cases
 
 
 @pytest.mark.parametrize(
-    "baseXsdType,value,isNillable,isNil,facets,expected",
+    "baseXsdType,value,facets,expected",
     [pytest.param(*testcase) for testcase in _generate_value_string_test_cases()],
 )
-def test_validateValueString(
-    baseXsdType: str, value: str, isNillable: bool, isNil: bool, facets: dict, expected: tuple
-):
+def test_validateValueString(baseXsdType: str, value: str, facets: dict, expected: tuple):
     expectedXValid = expected[2]
     result = validateValueString(
         baseXsdType=baseXsdType,
         value=value,
-        isNillable=isNillable,
-        isNil=isNil,
         facets=facets,
         nsmap=NSMAP,
     )
@@ -1159,9 +1154,6 @@ def test_validateValueString(
         return
     expectedSValue = value if expected[0] == "=" else expected[0]
     expectedXValue = value if expected[1] == "=" else expected[1]
-    if not value and isNil and isNillable:
-        expectedSValue = None
-        expectedXValue = None
     if expectedSValue == nan:
         assert isnan(result.sValue)
     else:
@@ -1169,6 +1161,37 @@ def test_validateValueString(
     _assertValidateValue(result.xValue, expectedXValue)
     assert result.xValid == expectedXValid
     assert result.isXValid == (expectedXValid >= VALID)
+
+
+@pytest.mark.parametrize("isNillable,isNil", [(False, True), (True, False), (True, True)])
+def test_validateValueString_nil_flags_only_affect_empty_nil_values(isNillable: bool, isNil: bool):
+    for baseXsdType, cases in BASE_XSD_TYPES.items():
+        if baseXsdType in _VALIDATE_VALUE_ONLY_TYPES:
+            continue
+        for case in cases:
+            value = case["value"]
+            if not value and isNillable and isNil:
+                continue
+            flagged = validateValueString(
+                baseXsdType=baseXsdType, value=value, isNillable=isNillable, isNil=isNil, facets=case.get("facets"), nsmap=NSMAP
+            )
+            plain = validateValueString(baseXsdType=baseXsdType, value=value, facets=case.get("facets"), nsmap=NSMAP)
+            assert flagged.xValid == plain.xValid, (baseXsdType, value)
+            _assertValidateValue(flagged.sValue, plain.sValue)
+            _assertValidateValue(flagged.xValue, plain.xValue)
+
+
+@pytest.mark.parametrize("isNillable,isNil,expectedValue", [
+    (False, False, ""),
+    (False, True, ""),
+    (True, False, ""),
+    (True, True, None),
+])
+def test_validateValueString_empty_value_is_none_when_nil(isNillable: bool, isNil: bool, expectedValue: str | None):
+    result = validateValueString(baseXsdType="languageOrEmpty", value="", isNillable=isNillable, isNil=isNil, nsmap=NSMAP)
+    assert result.xValid == VALID
+    assert result.sValue == expectedValue
+    assert result.xValue == expectedValue
 
 
 class TestXsdPatternNameEscapes:
@@ -1497,8 +1520,15 @@ class TestBase64BinaryValidation:
         ("\u00a0B", INVALID),
         ])
     def test_large_base64_binary_is_validated_linearly(self, value: str, expected_result: int):
-        value *= (1024 * 1024)
-        assert validateValueString("base64Binary", value).xValid == expected_result
+        value *= 16 * 1024
+        tracemalloc.start()
+        try:
+            result = validateValueString("base64Binary", value)
+            _, peakMemory = tracemalloc.get_traced_memory()
+        finally:
+            tracemalloc.stop()
+        assert result.xValid == expected_result
+        assert peakMemory < 32 * len(value)
 
     @pytest.mark.parametrize("value", [
         "",

@@ -19,11 +19,11 @@ KNOWN_FAILURES = frozenset([
 
 # Don't test common third party plugins which may be copied into a developer's workspace.
 IGNORE_MODULE_PREFIXES = tuple(p.replace("/", ".") for p in THIRD_PARTY_PATH_PREFIXES)
-MODULE_NAMES = [
+MODULE_NAMES = sorted(
     module_name
     for g in glob.glob("arelle/**/*.py", recursive=True)
     if not (module_name := g.replace("/", ".").replace("\\", ".").replace(".py", "")).startswith(IGNORE_MODULE_PREFIXES)
-]
+)
 TEST_PARAMS = [
     pytest.param(
         module_name,

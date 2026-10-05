@@ -35,11 +35,11 @@ try:
 except ImportError:
     ssl = None  # type: ignore[assignment]
 
+from arelle import Version
 from arelle.FileSource import SERVER_WEB_CACHE, archiveFilenameParts
 from arelle.PythonUtil import isLegacyAbs
 from arelle.typing import TypeGetText
 from arelle.UrlUtil import isHttpUrl
-from arelle.Version import __version__
 
 if TYPE_CHECKING:
     from arelle.Cntlr import Cntlr
@@ -61,7 +61,11 @@ TRANSIENT_RETRY_BASE_DELAY_SECONDS = 1.0
 # on that lock gives up after FILE_LOCK_TIMEOUT, so the wait is kept well below it.  A wait that would exceed the
 # budget is not shortened: retrying before the delay a server asked for risks its penalties, so the download fails.
 TRANSIENT_RETRY_WAIT_BUDGET_SECONDS = 20.0
-HTTP_USER_AGENT = "Mozilla/5.0 (Arelle/{}) Email/NotRegistered@arelle.org".format(__version__)
+
+
+def getDefaultHttpUserAgent() -> str:
+    return f"Mozilla/5.0 (Arelle/{Version.__version__}) Email/NotRegistered@arelle.org"
+
 
 # The xbrl.org server accepts requests for both http and https as well as with or without the WWW subdomain.
 # Don't require duplicating these files in the cache.
@@ -162,7 +166,7 @@ class WebCache:
         self._timeout: float | int | None = None
 
         self._noCertificateCheck: bool = False
-        self._httpUserAgent: str = HTTP_USER_AGENT # default user agent for product
+        self._httpUserAgent: str = getDefaultHttpUserAgent()
         self._httpsRedirect: bool = False
         self._redirectFallbackMap: dict[re.Pattern[str], str] = {}
         self._baseProxyHandlers: list[proxyhandlers.BaseHandler] = []
@@ -263,7 +267,7 @@ class WebCache:
     @httpUserAgent.setter
     def httpUserAgent(self, userAgent: str | None) -> None:
         if not userAgent: # None or blank sets to default
-            userAgent = HTTP_USER_AGENT
+            userAgent = getDefaultHttpUserAgent()
         priorValue = self._httpUserAgent
         self._httpUserAgent = userAgent
         if priorValue != userAgent:
