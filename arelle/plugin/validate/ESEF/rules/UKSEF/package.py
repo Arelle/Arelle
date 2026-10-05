@@ -36,6 +36,22 @@ if TYPE_CHECKING:
 _: TypeGetText
 
 
+def _isUkfrsCorrectExtension(fileSourceType: str) -> bool:
+    """
+    Determines if the file source type has a valid extension for UKFRS.
+
+    This method checks whether the provided file source type is among the valid
+    file extensions for UKFRS, specifically ".zip" or ".xbri".
+
+    Args:
+        fileSourceType: The file source type to validate.
+
+    Returns:
+        bool: True if the file source type is valid, otherwise False.
+    """
+    return fileSourceType in (".zip", ".xbri")
+
+
 def _isCorrectExtension(report: ReportEntry) -> bool:
     """
     Determines if the file extension of the report's primary path is correct.
@@ -237,7 +253,7 @@ def rule_disallowedReportPackageFileExtension(
         return
 
     fileSourceType = val.modelXbrl.fileSource.type
-    if not pluginData.isUkfrsCorrectExtension(fileSourceType):
+    if not _isUkfrsCorrectExtension(fileSourceType):
         yield Validation.error(
             codes="ESEF.UKFRC9.disallowedReportPackageFileExtension",
             msg=_("A UKSEF report package MUST be a zip archive with a .zip or .xbri extension."),
@@ -289,7 +305,7 @@ def rule_noReportsPresent(
     UKFRC10: The report package MUST include a report in the “reports” directory.
     """
     reportPackage = fileSource.reportPackage
-    if reportPackage is None or not pluginData.isUkfrsCorrectExtension(fileSource.type):
+    if reportPackage is None or not _isUkfrsCorrectExtension(fileSource.type):
         return
 
     for report in reportPackage.reports or ():
@@ -350,7 +366,7 @@ def rule_reportNotInline(
     fileSource = val.modelXbrl.fileSource
     reportPackage = fileSource.reportPackage
     if (val.authority != AUTHORITY_UKFRC
-            or not pluginData.isUkfrsCorrectExtension(fileSource.type)
+            or not _isUkfrsCorrectExtension(fileSource.type)
             or reportPackage is None
             or not reportPackage.reports):
         return
@@ -382,7 +398,7 @@ def rule_executableCodePresent(
     """
     fileSource = val.modelXbrl.fileSource
     if (val.authority != AUTHORITY_UKFRC
-            or not pluginData.isUkfrsCorrectExtension(fileSource.type)
+            or not _isUkfrsCorrectExtension(fileSource.type)
             or not pluginData.isEsefTarget(val.modelXbrl)):
         return
 
@@ -424,7 +440,7 @@ def rule_ukfrc14(
     """
     if (val.authority != AUTHORITY_UKFRC
             or not pluginData.isEsefTarget(val.modelXbrl)
-            or not pluginData.isUkfrsCorrectExtension(val.modelXbrl.fileSource.type)):
+            or not _isUkfrsCorrectExtension(val.modelXbrl.fileSource.type)):
         return
 
     fileSource = val.modelXbrl.fileSource
@@ -486,7 +502,7 @@ def rule_ukfrc15(
     """
     fileSource = val.modelXbrl.fileSource
     if (val.authority != AUTHORITY_UKFRC
-            or not pluginData.isUkfrsCorrectExtension(fileSource.type)
+            or not _isUkfrsCorrectExtension(fileSource.type)
             or not pluginData.isEsefTarget(val.modelXbrl)):
         return
 
@@ -560,7 +576,7 @@ def rule_externalCssFileForSingleIXbrlDocument(
     """
     fileSource = val.modelXbrl.fileSource
     if (val.authority != AUTHORITY_UKFRC
-            or not pluginData.isUkfrsCorrectExtension(fileSource.type)
+            or not _isUkfrsCorrectExtension(fileSource.type)
             or not pluginData.isEsefTarget(val.modelXbrl)):
         return
 
@@ -619,7 +635,7 @@ def rule_reportPackageNameDoesNotFollowNamingConvention(
 
     parts = packageStem.rsplit("-", 3)
     if (
-            not pluginData.isUkfrsCorrectExtension(packageExtension)
+            not _isUkfrsCorrectExtension(packageExtension)
             or len(parts) != 4
             or LeiUtil.checkLei(parts[0]) != LeiUtil.LEI_VALID
             or not reportDate
@@ -657,7 +673,7 @@ def rule_reportFileNameDoesNotFollowNamingConvention(
     """
     fileSource = val.modelXbrl.fileSource
     if (val.authority != AUTHORITY_UKFRC
-            or not pluginData.isUkfrsCorrectExtension(fileSource.type)
+            or not _isUkfrsCorrectExtension(fileSource.type)
             or not pluginData.isEsefTarget(val.modelXbrl)):
         return
 
@@ -712,7 +728,7 @@ def rule_spaceInFilePath(
     """
     fileSource = val.modelXbrl.fileSource
     if (val.authority != AUTHORITY_UKFRC
-            or not pluginData.isUkfrsCorrectExtension(fileSource.type)
+            or not _isUkfrsCorrectExtension(fileSource.type)
             or not pluginData.isEsefTarget(val.modelXbrl)
             or not fileSource.dir):
         return
