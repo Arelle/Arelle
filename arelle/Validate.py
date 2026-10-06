@@ -831,8 +831,6 @@ class Validate:
                 _expectedList.extend(expectedWarnings)
                 if expectedCount is not None:
                     expectedCount += len(expectedWarnings)
-                else:
-                    expectedCount = len(expectedWarnings)
             if not isinstance(expected, list):
                 expected = [expected]  # type: ignore[list-item]
             for testErr in _errors:
