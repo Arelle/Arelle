@@ -40,7 +40,7 @@ def rule_nonUtf8Instance(
     for ixdsHtmlRootElt in getattr(modelXbrl, "ixdsHtmlElements", ()):
         modelDocument = ixdsHtmlRootElt.modelDocument
         encoding = modelDocument.documentEncoding
-        if not encoding or encoding.lower() not in ("utf-8", "utf8"):
+        if not encoding or encoding.lower() not in ("utf-8", "utf8", "utf-8-sig"):
             yield Validation.error(
                 "ESEF.UKFRC20.nonUtf8Instance",
                 _("UKSEF instance documents MUST use the UTF-8 character encoding: %(file)s uses %(encoding)s."),
