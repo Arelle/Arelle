@@ -7,17 +7,8 @@ It also provides an error code when a testcase variation does not load any iXBRL
 See COPYRIGHT.md for copyright information.
 '''
 import regex as re
-from arelle.ModelDocument import Type
 from arelle.Version import authorLabel, copyrightLabel
 from arelle.XhtmlInlineUtil import htmlEltUriAttrs, resolveHtmlUri
-
-def variationInstanceLoaded(testcaseInstance, variationInstance, extraErrors, inputDTSes, *args, **kwargs):
-    # test case variations which have xhtml documents which are not inline blissfully load as unrecognized plain xml
-    # provide an error code that no iXBRL document was loaded so test case script can honor variation's expectation that this is an error
-    for inputDTS in inputDTSes.values():
-        for ixds in inputDTS:
-            if ixds.modelDocument.type not in (Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET):
-                extraErrors.append( "NotAnIxbrlDocument" )
 
 def compareInstanceLoaded(expectedInstance, outputInstanceToCompare):
     for f in expectedInstance.facts:
@@ -41,5 +32,4 @@ __pluginInfo__ = {
     "copyright": copyrightLabel,
     # classes of mount points (required)
     "CompareInstance.Loaded": compareInstanceLoaded,
-    "TestcaseVariation.Validated": variationInstanceLoaded,
 }
