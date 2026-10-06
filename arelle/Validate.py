@@ -767,6 +767,7 @@ class Validate:
         testcaseResultOptions = self.modelXbrl.modelManager.formulaOptions.testcaseResultOptions
         testcaseExpectedErrors = self.modelXbrl.modelManager.formulaOptions.testcaseExpectedErrors or {}
         matchAllExpected = testcaseResultOptions == "match-all" or modelTestcaseVariation.match == "all"
+        modelTestcaseVariation.matchAll = matchAllExpected
         expectedReportCount = modelTestcaseVariation.expectedReportCount
         expectedWarnings = modelTestcaseVariation.expectedWarnings if self.modelXbrl.modelManager.formulaOptions.testcaseResultsCaptureWarnings else []
         if expectedReportCount is not None and validateModelCount is not None and expectedReportCount != validateModelCount:
@@ -791,7 +792,7 @@ class Validate:
                 expected = []
             elif isinstance(expected, list):
                 expected = expected.copy()
-            expected.extend(userExpectedErrors)  # type: ignore[union-attr, arg-type]
+            expected.extend(userExpectedErrors)  # type: ignore[union-attr]
             if expectedCount is not None:
                 expectedCount += len(userExpectedErrors)
         if matchAllExpected:
@@ -910,6 +911,7 @@ class Validate:
                     modelTestcaseVariation.assertions = error
                 else:   # error code results
                     _actual[error] = _actual.get(error, 0) + 1
+            modelTestcaseVariation.actualCounts = _actual
             modelTestcaseVariation.actual = [error if qty == 1 else "{} ({})".format(error,qty)
                                              for error, qty in sorted(_actual.items(), key=lambda i:i[0])]
             for error in _errors:

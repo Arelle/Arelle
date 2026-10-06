@@ -3,12 +3,12 @@ from __future__ import annotations
 import json
 import locale
 import os
-from collections import Counter, defaultdict
+from collections import Counter
+from dataclasses import dataclass
 from pathlib import PurePath
 from typing import TYPE_CHECKING, Any, cast
 
 import boto3
-import pytest
 import regex
 from botocore import UNSIGNED
 from botocore.config import Config as BotocoreConfig
@@ -20,10 +20,24 @@ from arelle.FileSource import archiveFilenameParts
 from arelle.ModelDocumentType import ModelDocumentType
 
 if TYPE_CHECKING:
-    from _pytest.mark import ParameterSet
     from types_boto3_s3 import S3Client
 
     from arelle.ModelDocument import ModelDocument
+
+
+@dataclass(frozen=True)
+class VariationResult:
+    """The outcome of running one testcase variation."""
+    test_id: str
+    expected_failure: bool
+    status: str
+    match_all: bool
+    expected: str
+    expected_warnings: dict[str, int]
+    configured_errors: dict[str, int]
+    actual_codes: dict[str, int]
+    actual_assertions: dict[str, dict[str, int]]
+    duration: float | None
 
 
 def get_document_id(doc: ModelDocument) -> str:
@@ -134,22 +148,22 @@ def get_test_data(
         expected_failure_ids: frozenset[str] = frozenset(),
         required_locale_by_ids: dict[str, regex.Pattern[str]] | None = None,
         strict_testcase_index: bool = True,
-) -> list[ParameterSet]:
+) -> list[VariationResult]:
     """
-    Produces a list of Pytest Params that can be fed into a parameterized pytest function
+    Runs the testcase variations and produces a result for each one
 
     :param args: The args to be parsed by arelle in order to correctly produce the desired result set
     :param expected_failure_ids: The set of string test IDs that are expected to fail
     :param required_locale_by_ids: The dict of IDs for tests which require a system locale matching a regex pattern.
     :param strict_testcase_index: Don't allow IOerrors when loading the testcase index
-    :return: A list of PyTest Params that can be used to run a parameterized pytest function
+    :return: A result for each variation that was not skipped
     """
     if required_locale_by_ids is None:
         required_locale_by_ids = {}
     cntlr = parseAndRun(args)
     try:
         system_locale = locale.setlocale(locale.LC_CTYPE)
-        results: list[ParameterSet] = []
+        results: list[VariationResult] = []
         test_cases_with_no_variations = set()
         test_cases_with_unrecognized_type = {}
         skipped_test_cases = set()
@@ -179,37 +193,35 @@ def get_test_data(
                     if mv.status == "skip":
                         skipped_test_cases.add(test_id)
                         continue  # don't report variations skipped due to shards
-                    marks = []
-                    if isExpectedFailure(test_id, expected_failure_ids, required_locale_by_ids, system_locale):
-                        marks.append(pytest.mark.xfail())
-                    expected_results: Any = defaultdict(lambda: defaultdict(int))
+                    expected_results: Any
                     if isinstance(mv.expected, str):
                         expected_results = mv.expected
+                    elif isinstance(mv.expected, dict):
+                        expected_results = {"ASSERTIONS": {assertionId: name_assertion_counts(counts) for assertionId, counts in mv.expected.items()}}
+                    elif mv.expected:
+                        expected_results = {"ERROR": Counter(str(error) for error in mv.expected)}
                     else:
-                        for error in mv.expected or []:
-                            expected_results["ERROR"][str(error)] += 1
-                        for error in mv.userExpectedErrors:  # type: ignore[assignment]
-                            expected_results["ERROR"][str(error)] += 1
-                        if mv.modelXbrl is not None and mv.modelXbrl.modelManager.formulaOptions.testcaseResultsCaptureWarnings:
-                            for warning in mv.expectedWarnings or []:
-                                expected_results["WARNING"][str(warning)] += 1
-                    # Arelle adds message code frequencies to the end, but conformance suites usually don't.
-                    # Skip assertion results dictionaries.
-                    actual = [regex.sub(r" \(\d+\)$", "", code) for code in mv.actual if not isinstance(code, dict)]
-                    param = pytest.param(
-                        {
-                            "status": mv.status,
-                            "expected": json.dumps(expected_results),
-                            "actual": actual,
-                            "duration": mv.duration,
-                        },
-                        id=test_id,
-                        marks=marks,
-                    )
-                    results.append(param)
+                        expected_results = {}
+                    expected_warnings: dict[str, int] = {}
+                    if mv.modelXbrl is not None and mv.modelXbrl.modelManager.formulaOptions.testcaseResultsCaptureWarnings:
+                        expected_warnings = dict(Counter(str(warning) for warning in mv.expectedWarnings or []))
+                    configured_errors = dict(Counter(str(error) for error in mv.userExpectedErrors))
+                    actual_codes = dict(sorted(mv.actualCounts.items()))
+                    results.append(VariationResult(
+                        test_id=test_id,
+                        expected_failure=isExpectedFailure(test_id, expected_failure_ids, required_locale_by_ids, system_locale),
+                        status=mv.status,
+                        match_all=mv.matchAll,
+                        expected=json.dumps(expected_results),
+                        expected_warnings=expected_warnings,
+                        configured_errors=configured_errors,
+                        actual_codes=actual_codes,
+                        actual_assertions=get_actual_assertion_results(mv.actual),
+                        duration=mv.duration,
+                    ))
         if test_cases_with_unrecognized_type:
             raise Exception(f"Some test cases have an unrecognized document type: {sorted(test_cases_with_unrecognized_type.items())}.")
-        test_id_frequencies = Counter(cast(str, p.id) for p in results)
+        test_id_frequencies = Counter(r.test_id for r in results)
         nonunique_test_ids = {test_id: count for test_id, count in test_id_frequencies.items() if count > 1}
         if nonunique_test_ids:
             raise Exception(f"Some test IDs are not unique.  Frequencies of nonunique test IDs: {nonunique_test_ids}.")
@@ -226,12 +238,45 @@ def get_test_data(
         PluginManager.getInstance().close()
 
 
+def name_assertion_counts(counts: tuple[int, ...]) -> dict[str, int]:
+    """Labels the satisfied and not satisfied counts of a formula assertion result."""
+    # Actual results add three counts that split the unsatisfied evaluations by OK, warning and error
+    # severity, which testcases don't state.
+    return {"satisfied": counts[0], "not satisfied": counts[1]}
+
+
+def get_actual_assertion_results(actual: list[Any]) -> dict[str, dict[str, int]]:
+    """
+    Collects formula assertion results from a variation's actual results, as labeled
+    satisfied and not satisfied counts per assertion ID.
+    """
+    return {
+        assertionId: name_assertion_counts(counts)
+        for result in actual
+        if isinstance(result, dict)
+        for assertionId, counts in result.items()
+    }
+
+
+def format_failure_message(result: VariationResult) -> str:
+    match_mode = "match-all" if result.match_all else "match-any"
+    lines = [f"Testcase variation failed ({match_mode})", f"Expected by the suite: {result.expected}"]
+    if result.expected_warnings:
+        lines.append(f"Expected warnings: {result.expected_warnings}")
+    if result.configured_errors:
+        lines.append(f"Configured additional errors: {result.configured_errors}")
+    lines.append(f"Actual codes: {result.actual_codes}")
+    if result.actual_assertions:
+        lines.append(f"Actual assertion results: {result.actual_assertions}")
+    return "\n".join(lines)
+
+
 def collect_test_data(
         cntlr: Cntlr,
         expected_failure_ids: frozenset[str],
         required_locale_by_ids: dict[str, regex.Pattern[str]],
         system_locale: str,
-        results: list[ParameterSet],
+        results: list[VariationResult],
         model_document: ModelDocument,
         test_cases: list[ModelDocument],
 ) -> None:

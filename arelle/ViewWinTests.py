@@ -145,7 +145,7 @@ class ViewTests(ViewWinTree.ViewTree):
         _exp = sortCountExpected(modelTestcaseVariation.expected)
         self.treeView.set(node, "expected",
                           ", ".join(str(e) for e in _exp) if isinstance(_exp, list) else _exp)
-        self.treeView.set(node, "actual", ", ".join(modelTestcaseVariation.actual))
+        self.treeView.set(node, "actual", ", ".join(str(code) for code in modelTestcaseVariation.actual))
         self.id += 1;
 
     def treeviewEnter(self, *args):

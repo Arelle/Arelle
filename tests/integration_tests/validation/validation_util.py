@@ -13,16 +13,13 @@ from collections.abc import Generator
 from dataclasses import dataclass
 from heapq import heapreplace
 from pathlib import PurePosixPath, Path
-from typing import Any, TYPE_CHECKING, cast
+from typing import Any, cast
 
 from lxml import etree
 
 from arelle.conformance.Constants import CONFORMANCE_SUITE_ID_OVERRIDES
-from tests.integration_tests.integration_test_util import get_test_data
+from tests.integration_tests.integration_test_util import VariationResult, get_test_data
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig
-
-if TYPE_CHECKING:
-    from _pytest.mark import ParameterSet
 
 
 CONFORMANCE_SUITE_EXPECTED_RESOURCES_DIRECTORY = Path("tests/resources/conformance_suites_expected")
@@ -36,7 +33,7 @@ class Shard:
     plugins: frozenset[str]
 
 
-def get_test_data_mp_wrapper(args_kws: tuple[list[Any], dict[str, Any]]) -> list[ParameterSet]:
+def get_test_data_mp_wrapper(args_kws: tuple[list[Any], dict[str, Any]]) -> list[VariationResult]:
     args, kws = args_kws
     return get_test_data(args, **kws)
 
@@ -330,7 +327,7 @@ def get_conformance_suite_test_results(
         offline: bool = False,
         series: bool = False,
         testcase_filters: list[str] | None = None,
-) -> list[ParameterSet]:
+) -> list[VariationResult]:
     if shards:
         assert shard_count > 0, "Shard count must be a positive integer."
         assert all(0 <= s < shard_count for s in shards), \
@@ -366,7 +363,7 @@ def get_conformance_suite_test_results_with_shards(
         build_cache: bool,
         log_to_file: bool,
         offline: bool,
-        series: bool) -> list[ParameterSet]:
+        series: bool) -> list[VariationResult]:
     tasks = []
     all_testcase_filters = []
     test_shards = get_test_shards(config, shard_count)
@@ -428,7 +425,7 @@ def get_conformance_suite_test_results_without_shards(
         log_to_file: bool = False,
         offline: bool = False,
         testcase_filters: list[str] | None = None,
-) -> list[ParameterSet]:
+) -> list[VariationResult]:
     assert not config.disclosure_system_by_prefix
     disclosure_system = config.disclosure_system
     additional_plugins = frozenset().union(*(plugins for _, plugins in config.additional_plugins_by_prefix))
@@ -455,7 +452,7 @@ def load_timing_file(name: str) -> dict[str, float]:
         }
 
 
-def save_actual_results_file(config: ConformanceSuiteConfig, results: list[ParameterSet]) -> Path:
+def save_actual_results_file(config: ConformanceSuiteConfig, results: list[VariationResult]) -> Path:
     """
     Saves a CSV file with format "(Full testcase variation ID),(Code)".
     Each row represents a unique code actually triggered by a variation.
@@ -468,10 +465,8 @@ def save_actual_results_file(config: ConformanceSuiteConfig, results: list[Param
     """
     rows = []
     for result in results:
-        testcase_id = result.id
-        actual_codes = result.values[0].get("actual")  # type: ignore[union-attr]
-        for code in actual_codes:
-            rows.append((testcase_id, code))
+        for code in result.actual_codes:
+            rows.append((result.test_id, code))
     output_filepath = Path(f"conf-{config.name}-actual.csv")
     with open(output_filepath, "w") as file:
         writer = csv.writer(file)
@@ -492,20 +487,16 @@ def save_diff_html_file(expected_results_path: Path, actual_results_path: Path, 
         file.write(html)
 
 
-def save_timing_file(config: ConformanceSuiteConfig, results: list[ParameterSet]) -> None:
+def save_timing_file(config: ConformanceSuiteConfig, results: list[VariationResult]) -> None:
     durations: dict[str, float] = defaultdict(float)
     for result in results:
-        testcase_id = result.id
-        assert isinstance(testcase_id, str)
-        values = cast(dict[str, Any], result.values[0])
-        status = values.get("status")
-        assert status, f"Test result has no status: {testcase_id}"
-        if status == "skip":
+        testcase_id = result.test_id
+        assert result.status, f"Test result has no status: {testcase_id}"
+        if result.status == "skip":
             continue
         assert testcase_id and testcase_id not in durations
-        duration = values.get("duration")
-        if duration:
-            durations[testcase_id] = duration
+        if result.duration:
+            durations[testcase_id] = result.duration
     if durations:
         duration_values = durations.values()
         duration_mean = statistics.mean(duration_values)
