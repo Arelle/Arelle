@@ -417,6 +417,14 @@ class ModelTestcaseVariation(ModelObject):
         return resultElement.get("match")
 
     @property
+    def calcMode(self) -> str | None:
+        """The Calculations 1.1 mode from the result element's `mode` attribute."""
+        resultElement = XmlUtil.descendant(self, None, "result")
+        if resultElement is None:
+            return None
+        return resultElement.get("{https://xbrl.org/2023/conformance}mode")
+
+    @property
     def expectedCount(self) -> Any:
         for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.plugins.hooks("ModelTestcaseVariation.ExpectedCount"):  # type: ignore[union-attr]
             _count = pluginXbrlMethod(self)

@@ -14,6 +14,5 @@ config = ConformanceSuiteConfig(
     info_url="https://specifications.xbrl.org/work-product-index-calculations-2-calculations-1-1.html",
     membership_url="https://www.xbrl.org/join",
     name=PurePath(__file__).stem,
-    plugins=frozenset({"../../tests/plugin/testcaseCalc11ValidateSetup.py"}),
     test_case_result_options="match-any",
 )
