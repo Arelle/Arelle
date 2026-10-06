@@ -362,16 +362,23 @@ config = ConformanceSuiteConfig(
         "FRC_20/index.xml:TC2_valid": {
             "reportPackageNameDoesNotFollowNamingConvention": 1,
         },
+        "FRC_20/index.xml:TC3_invalid": {
+            # The testcase ignores these schema errors as cvc-complex-type_3_2_2 and cvc-complex-type_4,
+            # but Arelle reports them with lxml error codes (the charset attribute on xhtml:meta).
+            "lxml.SCHEMAV_CVC_COMPLEX_TYPE_3_2_1": 1,
+            "lxml.SCHEMAV_CVC_COMPLEX_TYPE_4": 1,
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
         "FRC_21/index.xml:TC1_valid": {
             "reportPackageNameDoesNotFollowNamingConvention": 1,
         },
+        "FRC_21/index.xml:TC2_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
+        "FRC_21/index.xml:TC3_invalid": {
+            "reportPackageNameDoesNotFollowNamingConvention": 1,
+        },
     }.items()},
-    expected_failure_ids=frozenset({f"tests/FRC/{s}" for s in [
-        # FRC XBRL Tagging Guide not yet implemented.
-        "FRC_20/index.xml:TC3_invalid",
-        "FRC_21/index.xml:TC2_invalid",
-        "FRC_21/index.xml:TC3_invalid",
-    ]}),
     info_url="https://www.frc.org.uk/library/standards-codes-policy/accounting-and-reporting/frc-taxonomies/frc-taxonomies-documentation-and-guidance/",
     name=PurePath(__file__).stem,
     disclosure_system="uksef-only-2025",
