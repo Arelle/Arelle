@@ -30,6 +30,6 @@ config = ConformanceSuiteConfig(
     }.items()},
     info_url="https://specifications.xbrl.org/work-product-index-inline-xbrl-inline-xbrl-1.1.html",
     name=PurePath(__file__).stem,
-    plugins=frozenset({"inlineXbrlDocumentSet", "../../tests/plugin/testcaseIxExpectedHtmlFixup.py"}),
+    plugins=frozenset({"inlineXbrlDocumentSet"}),
     shards=4,
 )
