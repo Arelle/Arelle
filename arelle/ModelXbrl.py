@@ -959,7 +959,14 @@ class ModelXbrl:
             )
             return self._dimensionsInUse
 
-    def matchFact(self, otherFact: ModelFact, unmatchedFactsStack: list[ModelFact] | None = None, deemP0inf: bool = False, matchId: bool = False, matchLang: bool = True) -> ModelFact | None:
+    def matchFact(
+        self,
+        otherFact: ModelFact,
+        unmatchedFactsStack: list[ModelFact] | None = None,
+        deemP0inf: bool = False,
+        matchId: bool = False,
+        matchLang: bool = True,
+    ) -> ModelFact | None:
         """Finds matching fact, by XBRL 2.1 duplicate definition (if tuple), or by
         QName and VEquality (if an item), lang and accuracy equality, as in formula and test case usage
 
