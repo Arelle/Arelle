@@ -7,8 +7,8 @@ config = ConformanceSuiteConfig(
     ],
     assets=[
         ConformanceSuiteAssetConfig.conformance_suite(
-            Path("calculation-1.1-conformance-2023-12-20.zip"),
-            entry_point=Path("calculation-1.1-conformance-2023-12-20/index.xml"),
+            Path("calculation-1.1-conformance-2024-02-14.zip"),
+            entry_point=Path("calculation-1.1-conformance-2024-02-14/index.xml"),
         ),
     ],
     info_url="https://specifications.xbrl.org/work-product-index-calculations-2-calculations-1-1.html",
