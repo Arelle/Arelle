@@ -1303,7 +1303,7 @@ class ModelDocument(ModelDocumentBase):
                 elif ns in XbrlConst.ixbrlAll and ln=="relationship":
                     pass
                 else: # concept elements
-                    self.factDiscover(instElement, self.modelXbrl.facts)  # type: ignore[arg-type]
+                    self.factDiscover(instElement, self.modelXbrl.facts)
         if len(self.modelXbrl.undefinedFacts) > nextUndefinedFact:
             undefFacts = self.modelXbrl.undefinedFacts[nextUndefinedFact:]
             self.modelXbrl.error("xbrl:schemaImportMissing",
@@ -1399,8 +1399,12 @@ class ModelDocument(ModelDocumentBase):
             self.modelXbrl.ixdsHtmlElements = []
         self.modelXbrl.ixdsHtmlElements.append(htmlElement)
 
-
-    def factDiscover(self, modelFact: ModelFact, parentModelFacts: list[ModelFact] | None = None, parentElement: ModelObject | None = None) -> None:
+    def factDiscover(
+        self,
+        modelFact: ModelObject,
+        parentModelFacts: list[ModelFact] | None = None,
+        parentElement: ModelObject | None = None,
+    ) -> None:
         if parentModelFacts is None: # may be called with parentElement instead of parentModelFacts list
             if isinstance(parentElement, ModelFact) and parentElement.isTuple:
                 parentModelFacts = parentElement.modelTupleFacts
@@ -1434,12 +1438,12 @@ class ModelDocument(ModelDocumentBase):
                         uriAttr = testcaseElement.get("uri") or testcaseElement.get("file") or testcaseElement.get("{http://www.w3.org/1999/xlink}href")
                         if uriAttr:
                             doc = load(self.modelXbrl, uriAttr, base=base, referringElement=testcaseElement)
-                            self.addDocumentReference(cast(ModelDocument, doc), "testcaseIndex", testcaseElement)
+                            self.addDocumentReference(doc, "testcaseIndex", testcaseElement)
                     elif isinstance(testcaseElement,ModelObject) and testcaseElement.localName in ("testcases", "registries"):
                         uriAttr = testcaseElement.get("uri") or testcaseElement.get("{http://www.w3.org/1999/xlink}href")
                         if uriAttr:
                             doc = load(self.modelXbrl, uriAttr, base=base, referringElement=testcaseElement)
-                            self.addDocumentReference(cast(ModelDocument, doc), "testcaseIndex", testcaseElement)
+                            self.addDocumentReference(doc, "testcaseIndex", testcaseElement)
 
     def testcaseDiscover(self, testcaseElement: ModelObject, validateTestcaseSchema: bool) -> None:
         if validateTestcaseSchema:
@@ -1478,13 +1482,18 @@ class ModelDocument(ModelDocumentBase):
                         testbase = functionDoc.filepath
                         if testuri is not None:
                             testcaseDoc = load(self.modelXbrl, testuri, base=testbase, referringElement=testUriElt)
-                            self.addDocumentReference(cast(ModelDocument, testcaseDoc), "registryIndex", testUriElt)
+                            self.addDocumentReference(testcaseDoc, "registryIndex", testUriElt)
 
     def xPathTestSuiteDiscover(self, rootNode: ModelObject) -> None:
         # no child documents to reference
         pass
 
-    def addDocumentReference(self, doc: ModelDocument, referenceType: str, referringModelObject: ModelObject | None = None) -> None:
+    def addDocumentReference(
+        self,
+        doc: ModelDocument | None,
+        referenceType: str,
+        referringModelObject: ModelObject | None = None,
+    ) -> None:
         if doc is not None:
             if doc not in self.referencesDocument:
                 self.referencesDocument[doc] = ModelDocumentReference(referenceType, referringModelObject)
@@ -1775,7 +1784,7 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
             except KeyError:
                 modelFact._ixFactParent = modelXbrl.ixTargetRootElements[None]  # type: ignore[attr-defined]
 
-    def locateContinuation(element: ModelInlineFact) -> None:
+    def locateContinuation(element: ModelObject) -> None:
         contAt = element.get("continuedAt")
         if contAt: # has continuation
             chain = [element] # implement non-recursively for very long continuaion chains
@@ -1802,9 +1811,9 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
                                         modelObject=chain, continuationCycle=cycle)
                         break
                     else:
-                        chain.append(contElt)  # type: ignore[arg-type]
+                        chain.append(contElt)
                         element._continuationElement = contElt  # type: ignore[attr-defined]
-                        element = contElt  # type: ignore[assignment] # loop to continuation element
+                        element = contElt # loop to continuation element
                         contAt = element.get("continuedAt")
             # check if any chain element is descendant of another
             chainSet = set(chain)
@@ -1819,7 +1828,7 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
                                         ancestorElement=chainEltAncestor.id or chainEltAncestor.get("name",chainEltAncestor.get("continuedAt")),
                                         descendantElement=chainElt.id or chainElt.get("name",chainElt.get("continuedAt")))
 
-    def checkTupleIxDescendants(tupleFact: ModelInlineFact, parentElt: ModelInlineFact) -> None:
+    def checkTupleIxDescendants(tupleFact: ModelInlineFact, parentElt: ModelObject) -> None:
         for childElt in parentElt.iterchildren():
             if isinstance(childElt,ModelObject) and childElt.namespaceURI in XbrlConst.ixbrlAll:
                 if childElt.localName in ("numerator", "denominator"):
@@ -1955,7 +1964,7 @@ def inlineIxdsDiscover(modelXbrl: ModelXbrl, modelIxdsDocument: ModelDocument, s
 
         for modelInlineFootnote in htmlElement.iterdescendants(tag=XbrlConst.qnIXbrl11Footnote.clarkNotation):
             if isinstance(modelInlineFootnote,ModelObject):
-                locateContinuation(modelInlineFootnote)  # type: ignore[arg-type]
+                locateContinuation(modelInlineFootnote)
 
         for elt in htmlElement.iterdescendants(ixNStag + "exclude"):
             if not any(True for ancestor in elt.iterancestors(ixNStag + "continuation", ixNStag + "footnote", ixNStag + "nonNumeric")):
