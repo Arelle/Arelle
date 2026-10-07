@@ -304,6 +304,36 @@ def collapseWhitespace(s: str) -> str:
     return _collapseWhitespacePattern.sub(" ", s).strip(" ")
 
 
+def _canonicalXhtmlFragment(fragment: str, parser: etree.XMLParser) -> str | None:
+    wrapped = f'<div xmlns="{xhtml}">{fragment}</div>'
+    try:
+        element = etree.fromstring(wrapped, parser)
+    except etree.XMLSyntaxError:
+        return None
+    return etree.canonicalize(element)
+
+
+def xhtmlFragmentsEqual(a: str, b: str, normalizeSpace: bool = True) -> bool:
+    """Whether two strings are the same XHTML fragment when parsed with XHTML as the default namespace.
+
+    Quote style, attribute order, character references, empty element syntax and
+    redundant namespace declarations are ignored. If normalizeSpace is true, leading
+    and trailing whitespace is ignored and other runs of whitespace compare as a
+    single space. Strings that aren't well formed XML fragments are never equal.
+    """
+    if normalizeSpace:
+        a = a.strip()
+        b = b.strip()
+    parser = etree.XMLParser(resolve_entities=False, no_network=True)
+    canonicalA = _canonicalXhtmlFragment(a, parser)
+    canonicalB = _canonicalXhtmlFragment(b, parser)
+    if canonicalA is None or canonicalB is None:
+        return False
+    if normalizeSpace:
+        return canonicalA.split() == canonicalB.split()
+    return canonicalA == canonicalB
+
+
 def parentId(
     element: ModelObject,
     parentNamespaceURI: str,

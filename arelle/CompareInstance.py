@@ -64,7 +64,7 @@ def _compareInstance(originalInstance: ModelXbrl, expectedInstance: ModelXbrl, t
     expectedFootnotesRelSet = ModelRelationshipSet(expectedInstance, "XBRL-footnotes")
     for expectedInstanceFact in expectedInstance.facts:
         unmatchedFactsStack: list[ModelFact] = []
-        compareFact = targetInstance.matchFact(expectedInstanceFact, unmatchedFactsStack, deemP0inf=True, matchId=matchById, matchLang=False)
+        compareFact = targetInstance.matchFact(expectedInstanceFact, unmatchedFactsStack, deemP0inf=True, matchId=matchById, matchLang=False, normalizeXhtml=True)
         if compareFact is None:
             if unmatchedFactsStack: # get missing nested tuple fact, if possible
                 missingFact = unmatchedFactsStack[-1]

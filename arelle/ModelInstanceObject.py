@@ -42,7 +42,7 @@ from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals, roundValue, rangeValue, ValidateCalcsMode
 from arelle.XmlValidateConst import UNVALIDATED, INVALID, VALID
 from arelle.XmlValidate import validate as xmlValidate
-from arelle.XmlUtil import collapseWhitespace
+from arelle.XmlUtil import collapseWhitespace, xhtmlFragmentsEqual
 from arelle.ModelValue import QName
 from arelle.PrototypeInstanceObject import DimValuePrototype
 from arelle.ModelDtsObject import ModelResource
@@ -468,7 +468,8 @@ class ModelFact(ModelObject, ModelFactBase):
             deemP0Equal: bool = False,
             deemP0inf: bool = False,
             normalizeSpace: bool = True,
-            numericIntervalConsistency: bool = False
+            numericIntervalConsistency: bool = False,
+            normalizeXhtml: bool = False
         ) -> bool:
         """(bool) -- v-equality of two facts
 
@@ -520,17 +521,21 @@ class ModelFact(ModelObject, ModelFactBase):
                     self.xValue == other.xValue)
         selfValue = self.value
         otherValue = other.value
-        if normalizeSpace and isinstance(selfValue, str) and isinstance(otherValue, str): # normalized space comparison
-            return " ".join(selfValue.split()) == " ".join(otherValue.split())
-        else:
-            return selfValue == otherValue
+        if selfValue == otherValue:
+            return True
+        if isinstance(selfValue, str) and isinstance(otherValue, str):
+            if normalizeSpace and " ".join(selfValue.split()) == " ".join(otherValue.split()): # normalized space comparison
+                return True
+            return normalizeXhtml and xhtmlFragmentsEqual(selfValue, otherValue, normalizeSpace)
+        return False
 
     def isDuplicateOf(
             self,
             other: ModelFact,
             topLevel: bool = True,
             deemP0Equal: bool = False,
-            unmatchedFactsStack: list[ModelFact] | None = None
+            unmatchedFactsStack: list[ModelFact] | None = None,
+            normalizeXhtml: bool = False
         ) -> bool:
         """(bool) -- fact is duplicate of other fact
 
@@ -540,6 +545,7 @@ class ModelFact(ModelObject, ModelFactBase):
         :type topLevel: bool
         :param deemPOEqual: True to deem any precision=0 facts equal ignoring value
         :type deepPOEqual: bool
+        :param normalizeXhtml: also deem tuple item string values equal if they parse to equivalent XHTML fragments
         """
         if unmatchedFactsStack is not None:
             if topLevel: del unmatchedFactsStack[0:]
@@ -565,10 +571,10 @@ class ModelFact(ModelObject, ModelFactBase):
                 return False
             for child1 in self.modelTupleFacts:
                 if child1.isItem:
-                    if not any(child1.isVEqualTo(child2, deemP0Equal) for child2 in other.modelTupleFacts if child1.qname == child2.qname):
+                    if not any(child1.isVEqualTo(child2, deemP0Equal, normalizeXhtml=normalizeXhtml) for child2 in other.modelTupleFacts if child1.qname == child2.qname):
                         return False
                 elif child1.isTuple:
-                    if not any(child1.isDuplicateOf( child2, False, deemP0Equal, unmatchedFactsStack)
+                    if not any(child1.isDuplicateOf( child2, False, deemP0Equal, unmatchedFactsStack, normalizeXhtml)
                                for child2 in other.modelTupleFacts):
                         return False
         else:

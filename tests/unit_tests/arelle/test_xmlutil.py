@@ -8,6 +8,7 @@ from arelle.XmlUtil import (
     escapedText,
     collapseWhitespace,
     replaceWhitespace,
+    xhtmlFragmentsEqual,
 )
 
 
@@ -104,6 +105,41 @@ COLLAPSE_WHITESPACE_TESTS = [
 def test_collapseWhitespace(value, expected):
     result = collapseWhitespace(value)
     assert result == expected
+
+
+XHTML_FRAGMENTS_EQUAL_TESTS = [
+    ("a <b>b</b>", 'a <b xmlns="http://www.w3.org/1999/xhtml">b</b>', True),
+    ("<a title='t' href='x'>y</a>", '<a href="x" title="t">y</a>', True),
+    ("<b>&amp;lt;XML&gt;</b>", "<b>&#38;lt;XML&#62;</b>", True),
+    ("<br/>", "<br></br>", True),
+    ("<p>a\n  <b>b</b></p>", "<p>a <b>b</b></p>", True),
+    ('\n<p xmlns="http://www.w3.org/1999/xhtml">p</p>\n0.10\n', "<p>p</p>\n0.10", True),
+    ("<b>b</b>", '<b xmlns="http://example.com/">b</b>', False),
+    ("<b>b</b>", "<i>b</i>", False),
+    ("<b>b</b>", "&lt;b&gt;b&lt;/b&gt;", False),
+    ("a < b", "a  <  b", False),
+    ("<b>&nbsp;</b>", "<b>&#160;</b>", False),
+]
+
+
+@pytest.mark.parametrize("a, b, expected", XHTML_FRAGMENTS_EQUAL_TESTS)
+def test_xhtmlFragmentsEqual(a, b, expected):
+    assert xhtmlFragmentsEqual(a, b) is expected
+    assert xhtmlFragmentsEqual(b, a) is expected
+
+
+XHTML_FRAGMENTS_EQUAL_WITHOUT_NORMALIZED_SPACE_TESTS = [
+    ("a <b>b</b>", 'a <b xmlns="http://www.w3.org/1999/xhtml">b</b>', True),
+    ("<a title='t'  href='x'>y</a>", '<a href="x" title="t">y</a>', True),
+    ("<p>a\n  <b>b</b></p>", "<p>a <b>b</b></p>", False),
+    ("<p>p</p>\n", "<p>p</p>", False),
+]
+
+
+@pytest.mark.parametrize("a, b, expected", XHTML_FRAGMENTS_EQUAL_WITHOUT_NORMALIZED_SPACE_TESTS)
+def test_xhtmlFragmentsEqual_without_normalized_space(a, b, expected):
+    assert xhtmlFragmentsEqual(a, b, normalizeSpace=False) is expected
+    assert xhtmlFragmentsEqual(b, a, normalizeSpace=False) is expected
 
 
 ESCAPED_TEXT_TESTS = [
