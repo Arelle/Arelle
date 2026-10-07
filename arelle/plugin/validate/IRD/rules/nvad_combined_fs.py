@@ -22,7 +22,7 @@ from collections.abc import Iterable
 from decimal import Decimal
 from typing import Any
 
-from arelle.ModelInstanceObject import ModelFact
+from arelle.ModelInstanceObject import ModelFact, ModelUnit
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
 from arelle.ValidateXbrl import ValidateXbrl
@@ -37,18 +37,6 @@ from ..DisclosureSystems import ALL_IRD_DISCLOSURE_SYSTEMS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
-
-
-def _distinctNumericValues(facts: Iterable[ModelFact]) -> list[Decimal]:
-    values: list[Decimal] = []
-    seen: set[Decimal] = set()
-    for fact in facts:
-        value = getNumericValue(fact)
-        if value is None or value in seen:
-            continue
-        seen.add(value)
-        values.append(value)
-    return values
 
 
 def _fsRevenueAndPbtRequired(
@@ -67,6 +55,24 @@ def _fsRevenueAndPbtRequired(
     return hasFalseValueFactByQname(
         modelXbrl, pluginData.accountsPreparedAtConsolidatedLevelQn
     )
+
+
+def _groupFactsByUnit(
+        facts: Iterable[ModelFact],
+) -> list[tuple[ModelUnit, list[ModelFact]]]:
+    """Partition facts by unit s-equality. Facts with no unit are omitted."""
+    groups: list[tuple[ModelUnit, list[ModelFact]]] = []
+    for fact in facts:
+        unit = fact.unit
+        if unit is None:
+            continue
+        for groupUnit, groupFacts in groups:
+            if groupUnit.isEqualTo(unit):
+                groupFacts.append(fact)
+                break
+        else:
+            groups.append((unit, [fact]))
+    return groups
 
 
 def _hasFsDocument(
@@ -120,6 +126,13 @@ def _hasFsRevenue(
     )
 
 
+def _isVEqualToAny(fact: ModelFact, others: Iterable[ModelFact]) -> bool:
+    return any(
+        fact.isVEqualTo(other, numericIntervalConsistency=True)
+        for other in others
+    )
+
+
 def _iterContextMatchedFacts(
         modelXbrl: ModelXbrl,
         leftQnames: tuple[QName, ...],
@@ -139,20 +152,40 @@ def _mismatchedNumericValues(
         leftFacts: Iterable[ModelFact],
         rightFacts: Iterable[ModelFact],
 ) -> tuple[Decimal, Decimal] | None:
-    """Return one unequal pair, or None when both sides report the same values."""
-    leftValues = _distinctNumericValues(leftFacts)
-    rightValues = _distinctNumericValues(rightFacts)
-    if not leftValues or not rightValues or set(leftValues) == set(rightValues):
-        return None
-    leftMismatch = next(
-        (value for value in leftValues if value not in rightValues),
-        leftValues[0],
-    )
-    rightMismatch = next(
-        (value for value in rightValues if value not in leftValues),
-        rightValues[0],
-    )
-    return leftMismatch, rightMismatch
+    """Return one unequal pair, or None when every shared unit is v-equal.
+
+    Facts already share a context. They are compared within one unit
+    (``ModelUnit.isEqualTo``); a unit present on only one side is
+    skipped. Equality is ``ModelFact.isVEqualTo`` with numeric interval
+    consistency, so overlapping ``decimals`` intervals match.
+    """
+    rightGroups = _groupFactsByUnit(rightFacts)
+    for leftUnit, leftGroup in _groupFactsByUnit(leftFacts):
+        rightGroup = next(
+            (
+                group for groupUnit, group in rightGroups
+                if leftUnit.isEqualTo(groupUnit)
+            ),
+            None,
+        )
+        if not rightGroup:
+            continue
+        leftUnmatched = next(
+            (fact for fact in leftGroup if not _isVEqualToAny(fact, rightGroup)),
+            None,
+        )
+        rightUnmatched = next(
+            (fact for fact in rightGroup if not _isVEqualToAny(fact, leftGroup)),
+            None,
+        )
+        if leftUnmatched is None and rightUnmatched is None:
+            continue
+        leftValue = getNumericValue(leftUnmatched if leftUnmatched is not None else leftGroup[0])
+        rightValue = getNumericValue(rightUnmatched if rightUnmatched is not None else rightGroup[0])
+        if leftValue is None or rightValue is None:
+            continue
+        return leftValue, rightValue
+    return None
 
 
 def _numericFactsByContext(
@@ -289,10 +322,12 @@ def rule_nvad_e_1300(
 
     The identity is per statement of financial position. Facts are
     paired by context s-equality (entity, period, and dimensions), not
-    by ``contextRef``. A context tagged on only one side is skipped.
-    One error is reported when both sides are present and a value
-    differs. Full HKFRS and private-entity qnames are pooled. Either
-    side entirely untagged is skipped.
+    by ``contextRef``, then compared within each unit. A context or
+    unit tagged on only one side is skipped. Values are v-equal when
+    their ``decimals`` intervals overlap. One error is reported when
+    both sides are present and a value differs. Full HKFRS and
+    private-entity qnames are pooled. Either side entirely untagged is
+    skipped.
     """
     modelXbrl = val.modelXbrl
     for assetFacts, equityFacts in _iterContextMatchedFacts(
@@ -332,9 +367,11 @@ def rule_nvad_e_1390(
     Combined filings only. Facts are paired by context s-equality
     (entity, period, and dimensions), so a tax-computation context and
     a financial-statements context match when they describe the same
-    period even though their ``contextRef`` ids differ. A prior-year
-    financial-statements figure with no tax-computation counterpart is
-    skipped. One error is reported when both sides are present and a
+    period even though their ``contextRef`` ids differ, then compared
+    within each unit. A prior-year financial-statements figure with no
+    tax-computation counterpart is skipped, as is a unit present on
+    only one side. Values are v-equal when their ``decimals`` intervals
+    overlap. One error is reported when both sides are present and a
     value differs. Accepts ``ird_fs:ProfitLossBeforeTax`` and
     ``ird_fs_pe:ProfitLossBeforeTax``. Either side entirely untagged is
     skipped — TC-only, FS-only, and consolidated BIR51 filings (FS PBT
