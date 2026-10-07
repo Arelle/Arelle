@@ -124,6 +124,7 @@ class RuntimeOptions:
     redirectFallbacks: Optional[dict[re.Pattern[str], str]] = None
     relationshipCols: Optional[int] = None
     reportPackage: bool = False
+    requireInlineXbrl: bool = False
     roleTypesFile: Optional[str] = None
     rssReport: Optional[str] = None
     rssReportCols: Optional[int] = None

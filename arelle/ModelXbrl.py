@@ -67,6 +67,7 @@ def load(
     base: str | None = None,
     useFileSource: FileSourceClass | None = None,
     errorCaptureLevel: int | None = None,
+    requiredDocumentTypes: tuple[int, ...] = (),
     **kwargs: Any,
 ) -> ModelXbrl:
     """Each loaded instance, DTS, testcase, testsuite, versioning report, or RSS feed, is represented by an
@@ -78,6 +79,7 @@ def load(
     :param nextaction: text to use as status line prompt on conclusion of loading and discovery
     :param base: the base URL if any (such as a versioning report's URL when loading to/from DTS modelXbrl).
     :param useFileSource: for internal use (when an entry point is in a FileSource archive and discovered files expected to also be in the entry point's archive.
+    :param requiredDocumentTypes: if not empty, report an error if the entry document is not one of these ModelDocument types (testcase and RSS feed documents are always allowed).
    """
     if nextaction is None: nextaction = _("loading")
     modelXbrl = create(modelManager, errorCaptureLevel=errorCaptureLevel)
@@ -107,6 +109,7 @@ def load(
         if hasattr(modelXbrl, "entryLoadingUrl"):
             del modelXbrl.entryLoadingUrl
         loadSchemalocatedSchemas(modelXbrl)
+    reportUnsupportedDocumentType(modelXbrl, requiredDocumentTypes)
 
     #from arelle import XmlValidate
     #uncomment for trial use of lxml xml schema validation of entry document
@@ -116,6 +119,18 @@ def load(
         pluginXbrlMethod(modelXbrl)
     modelManager.showStatus(_("xbrl loading finished, {0}...").format(nextaction))
     return modelXbrl
+
+def reportUnsupportedDocumentType(modelXbrl: ModelXbrl, requiredDocumentTypes: tuple[int, ...]) -> None:
+    modelDocument = modelXbrl.modelDocument
+    if not requiredDocumentTypes or modelDocument is None:
+        return
+    Type = arelle.ModelDocument.Type
+    # Testcases and RSS feeds only list the documents they load, which are checked on their own.
+    if modelDocument.type not in (*requiredDocumentTypes, Type.RSSFEED, *Type.TESTCASETYPES):
+        modelXbrl.error("arelle:unsupportedDocumentType",
+                        _("%(file)s has document type '%(type)s', but the required document types are %(requiredTypes)s."),
+                        modelObject=modelXbrl, file=modelDocument.basename, type=modelDocument.gettype(),
+                        requiredTypes=", ".join(f"'{Type.typeName[t]}'" for t in requiredDocumentTypes))
 
 def create(
         modelManager: ModelManager, newDocumentType: int | None = None, url: str | None = None, schemaRefs: list[str] | None = None, createModelDocument: bool = True, isEntry: bool = False,

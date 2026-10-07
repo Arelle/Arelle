@@ -247,6 +247,11 @@ class CntlrWinMain(Cntlr.Cntlr):
         self.validateAllFilesAsTaxonomyPackages.trace_add("write", self.setValidateAllFilesAsTaxonomyPackages)
         validateMenu.add_checkbutton(label=_("Validate all files as Taxonomy Packages"), underline=0, variable=self.validateAllFilesAsTaxonomyPackages, onvalue=True, offvalue=False)
 
+        self.requireInlineXbrl = BooleanVar(value=self.config.setdefault("requireInlineXbrl", False))
+        self.modelManager.requiredDocumentTypes = ModelDocument.Type.INLINEXBRLTYPES if self.requireInlineXbrl.get() else ()
+        self.requireInlineXbrl.trace_add("write", self.setRequireInlineXbrl)
+        validateMenu.add_checkbutton(label=_("Require Inline XBRL input"), underline=0, variable=self.requireInlineXbrl, onvalue=True, offvalue=False)
+
         self.validateDuplicateFacts: StringVar | None = None
         self.buildValidateDuplicateFactsMenu(validateMenu)
 
@@ -980,6 +985,7 @@ class CntlrWinMain(Cntlr.Cntlr):
                         # check modified time if GUI-loading from web
                         checkModifiedTime=isHttpUrl(filesource.url),
                         entrypoint=entrypoint,
+                        requiredDocumentTypes=self.modelManager.requiredDocumentTypes,
                     )
                     if modelXbrl:
                         loadedModels.append(modelXbrl)
@@ -1599,6 +1605,11 @@ class CntlrWinMain(Cntlr.Cntlr):
         self.config["validateAllFilesAsTaxonomyPackages"] = self.modelManager.validateAllFilesAsTaxonomyPackages
         self.saveConfig()
         self.setValidateTooltipText()
+
+    def setRequireInlineXbrl(self, *args: Any) -> None:
+        self.config["requireInlineXbrl"] = self.requireInlineXbrl.get()
+        self.modelManager.requiredDocumentTypes = ModelDocument.Type.INLINEXBRLTYPES if self.config["requireInlineXbrl"] else ()
+        self.saveConfig()
 
     def setCollectProfileStats(self, *args: Any) -> None:
         self.modelManager.collectProfileStats = self.collectProfileStats.get()
