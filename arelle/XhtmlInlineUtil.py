@@ -110,11 +110,11 @@ def resolveHtmlUri(elt: ModelObject, name: str, value: str) -> str:
     if (
         elt.localName == "object"
         and name in ("classid", "data", "archiveListElement")
-        and (base := elt.get("codebase"))
+        and elt.get("codebase")
     ):
-        base = base + "/"
-    else:
-        base = getattr(elt.modelDocument, "htmlBase", None) or ""
+        # Relative to the codebase, so they stay valid once the codebase itself is resolved.
+        return value
 
+    base = getattr(elt.modelDocument, "htmlBase", None) or ""
     _uri = urljoin(base, value)
     return _uri

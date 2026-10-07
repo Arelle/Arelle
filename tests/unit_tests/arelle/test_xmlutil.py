@@ -31,6 +31,24 @@ def test_opaque_uris_not_path_normed():
     assert node == f'<img src="{uri}">'
 
 
+def test_object_codebase_resolved_without_changing_source():
+    elt_attrs = {"codebase": "relative/codebase", "data": "path/to/data.file"}
+    elt = Mock(
+        spec=ModelObject,
+        localName="object",
+        namespaceURI="http://www.w3.org/1999/xhtml",
+        modelDocument=Mock(htmlBase="http://www.example.com/base/"),
+        prefix=None,
+        nsmap={},
+        get=elt_attrs.get,
+        items=elt_attrs.items,
+    )
+    elt.qname = qname(elt)
+    node = escapedNode(elt, start=True, empty=False, ixEscape=True, ixResolveUris=True)
+    assert node == '<object codebase="http://www.example.com/base/relative/codebase" data="path/to/data.file">'
+    elt.set.assert_not_called()
+
+
 REPLACE_WHITESPACE_TESTS = [
     ("\n", " "),
     ("\r", " "),
