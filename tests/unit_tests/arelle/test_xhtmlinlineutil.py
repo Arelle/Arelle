@@ -200,6 +200,26 @@ class TestResolveHtmlUri:
         result = resolveHtmlUri(elt, "codebase", "relative/codebase")
         assert result == "http://example.com/base/relative/codebase"
 
+    def test_relative_uri_spaces_escaped(self):
+        elt = _make_html_elt("a", htmlBase="http://example.com/base/")
+        result = resolveHtmlUri(elt, "href", "relative uri with spaces")
+        assert result == "http://example.com/base/relative%20uri%20with%20spaces"
+
+    def test_absolute_uri_spaces_unchanged(self):
+        elt = _make_html_elt("a", htmlBase="http://example.com/base/")
+        result = resolveHtmlUri(elt, "href", "http://example.com/absolute uri with spaces")
+        assert result == "http://example.com/absolute uri with spaces"
+
+    def test_relative_uri_spaces_unchanged_without_html_base(self):
+        elt = _make_html_elt("a", htmlBase="")
+        result = resolveHtmlUri(elt, "href", "relative uri with spaces")
+        assert result == "relative uri with spaces"
+
+    def test_archive_keeps_separators(self):
+        elt = _make_html_elt("object", htmlBase="http://example.com/base/")
+        result = resolveHtmlUri(elt, "archive", "../archive1.file  archive2.file http://example.com/object/archive.file")
+        assert result == "http://example.com/archive1.file http://example.com/base/archive2.file http://example.com/object/archive.file"
+
     def test_object_without_codebase_uses_html_base(self):
         elt = _make_html_elt("object", attrs={}, htmlBase="http://example.com/base/")
         result = resolveHtmlUri(elt, "data", "info.xml")

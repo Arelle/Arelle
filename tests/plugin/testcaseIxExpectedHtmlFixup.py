@@ -20,7 +20,7 @@ def compareInstanceLoaded(expectedInstance, outputInstanceToCompare):
         for n in htmlEltUriAttrs.get(elt.localName, ()):
             v = elt.get(n)
             if v:
-                v = resolveHtmlUri(elt, n, v).replace(" ", "%20")
+                v = resolveHtmlUri(elt, n, v)
                 elt.set(n, v)
 
 __pluginInfo__ = {
