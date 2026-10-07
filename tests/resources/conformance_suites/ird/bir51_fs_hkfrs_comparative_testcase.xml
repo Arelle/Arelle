@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="bir51_fs_hkfrs_comparative" description="BIR51 FS — Full HKFRS, Comparative Balance Sheet">
   <variation id="bir51_fs_hkfrs_comparative" name="bir51_fs_hkfrs_comparative">
-    <description>A valid full-HKFRS financial statements file that tags ird_fs:Assets and ird_fs:EquityAndLiabilities at two instants. Current year (31 March 2026) is 500 = 500. Prior year (31 March 2025) is 400 = 400. Each date balances, and the totals differ across dates. NVAD-E-1300 must compare within a context and must not fire.</description>
+    <description>A valid full-HKFRS financial statements file that tags ird_fs:Assets and ird_fs:EquityAndLiabilities at two instants. Current year (31 March 2026) is 500 = 500 in both HKD and USD. Prior year (31 March 2025) is 6,001,000 at decimals="-3" and 6,000,000 at decimals="-6", whose intervals overlap. NVAD-E-1300 must compare within a context and unit, and must not fire.</description>
     <data>
       <instance readMeFirst="true">bir51_fs_hkfrs_comparative.html</instance>
     </data>

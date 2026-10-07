@@ -9,9 +9,12 @@
     ird_fs:ProfitLossBeforeTax = 0   (duration, _ctx2)
     ird_fs:Equity             = 300  (instant, _ctx1)
 
-  Balance-sheet check (NVAD-E-1300), compared within each instant:
-    ird_fs:Assets = 500 = ird_fs:EquityAndLiabilities = 500  (fs__ctx1, 2026-03-31)
-    ird_fs:Assets = 400 = ird_fs:EquityAndLiabilities = 400  (fs__ctx1_py, 2025-03-31)
+  Balance-sheet check (NVAD-E-1300), compared within each instant and unit:
+    ird_fs:Assets = 500 = ird_fs:EquityAndLiabilities = 500
+      (fs__ctx1, 2026-03-31, HKD and USD)
+    ird_fs:Assets = 6,001,000 (decimals="-3") and
+    ird_fs:EquityAndLiabilities = 6,000,000 (decimals="-6")
+      (fs__ctx1_py, 2025-03-31, HKD; intervals overlap)
 
   Minimum tagging requirement (all four primary sections present):
     [210000] Statement of financial position
@@ -74,6 +77,10 @@
         <!-- Monetary unit: Hong Kong dollar -->
         <xbrli:unit id="fs_unit_HKD">
           <xbrli:measure>iso4217:HKD</xbrli:measure>
+        </xbrli:unit>
+        <!-- Monetary unit: US dollar. Same context as HKD, compared separately. -->
+        <xbrli:unit id="fs_unit_USD">
+          <xbrli:measure>iso4217:USD</xbrli:measure>
         </xbrli:unit>
         </ix:resources>
     </ix:header>
@@ -140,11 +147,17 @@
           <ix:nonFraction contextRef="fs__ctx1" name="ird_fs:Assets" id="fs_id006" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">500</ix:nonFraction>
         </td>
       </tr>
+      <tr>
+        <td>Total assets (USD)</td>
+        <td>
+          <ix:nonFraction contextRef="fs__ctx1" name="ird_fs:Assets" id="fs_gen_502" unitRef="fs_unit_USD" decimals="INF" scale="0" format="ixt:num-dot-decimal">500</ix:nonFraction>
+        </td>
+      </tr>
 
       <tr>
         <td>Total assets (31 March 2025)</td>
         <td>
-          <ix:nonFraction contextRef="fs__ctx1_py" name="ird_fs:Assets" id="fs_gen_500" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">400</ix:nonFraction>
+          <ix:nonFraction contextRef="fs__ctx1_py" name="ird_fs:Assets" id="fs_gen_500" unitRef="fs_unit_HKD" decimals="-3" scale="0" format="ixt:num-dot-decimal">6001000</ix:nonFraction>
         </td>
       </tr>
 
@@ -206,11 +219,17 @@
           <ix:nonFraction contextRef="fs__ctx1" name="ird_fs:EquityAndLiabilities" id="fs_id013" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">500</ix:nonFraction>
         </td>
       </tr>
+      <tr>
+        <td>Total equity and liabilities (USD)</td>
+        <td>
+          <ix:nonFraction contextRef="fs__ctx1" name="ird_fs:EquityAndLiabilities" id="fs_gen_503" unitRef="fs_unit_USD" decimals="INF" scale="0" format="ixt:num-dot-decimal">500</ix:nonFraction>
+        </td>
+      </tr>
 
       <tr>
         <td>Total equity and liabilities (31 March 2025)</td>
         <td>
-          <ix:nonFraction contextRef="fs__ctx1_py" name="ird_fs:EquityAndLiabilities" id="fs_gen_501" unitRef="fs_unit_HKD" decimals="INF" scale="0" format="ixt:num-dot-decimal">400</ix:nonFraction>
+          <ix:nonFraction contextRef="fs__ctx1_py" name="ird_fs:EquityAndLiabilities" id="fs_gen_501" unitRef="fs_unit_HKD" decimals="-6" scale="0" format="ixt:num-dot-decimal">6000000</ix:nonFraction>
         </td>
       </tr>
 
