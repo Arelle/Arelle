@@ -1,16 +1,37 @@
 """
 See COPYRIGHT.md for copyright information.
 """
-from arelle import ViewFile, XbrlConst
-from collections import defaultdict
+from __future__ import annotations
 
-def viewConcepts(modelXbrl, outFile, labelrole=None, lang=None):
-    modelXbrl.modelManager.showStatus(_("viewing concepts"))
+from collections import defaultdict
+from typing import TYPE_CHECKING, Any, cast
+
+from arelle import ViewFile, XbrlConst
+from arelle.ModelValue import QName
+from arelle.typing import TypeGetText
+
+if TYPE_CHECKING:
+    from arelle.FileSource import FileNamedStringIO
+    from arelle.ModelDocument import ModelDocument
+    from arelle.ModelDtsObject import ModelConcept
+    from arelle.ModelXbrl import ModelXbrl
+
+_: TypeGetText
+
+
+def viewConcepts(
+        modelXbrl: ModelXbrl | None,
+        outFile: str | FileNamedStringIO | None,
+        labelrole: str | None = None,
+        lang: str | None = None,
+) -> None:
+    modelXbrl.modelManager.showStatus(_("viewing concepts"))  # type: ignore[union-attr]
     view = ViewConcepts(modelXbrl, outFile, labelrole, lang)
-    view.view(modelXbrl.modelDocument)
+    view.view(modelXbrl.modelDocument)  # type: ignore[union-attr]
     view.close()
 
-COL_WIDTHS = {
+
+COL_WIDTHS: dict[str, int] = {
     "Label": 60,
     "Name": 60,
     "ID": 40,
@@ -26,23 +47,30 @@ COL_WIDTHS = {
     "Documentation": 100
     }
 
+
 class ViewConcepts(ViewFile.View):
-    def __init__(self, modelXbrl, outFile, labelrole, lang):
+    def __init__(
+            self,
+            modelXbrl: ModelXbrl | None,
+            outFile: str | FileNamedStringIO | None,
+            labelrole: str | None,
+            lang: str | None,
+    ) -> None:
         super(ViewConcepts, self).__init__(modelXbrl, outFile, "concepts", lang)
         self.labelrole = labelrole
 
-    def view(self, modelDocument):
+    def view(self, modelDocument: ModelDocument | None) -> None:
         # check for optional attributes nillable and typedDomainRef usage
         hasTypedDomainRef = False
         hasDifferentNillables = False
-        priorNillable = None
+        priorNillable: str | None = None
         excludedNamespaces = XbrlConst.ixbrlAll.union(
             (XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl,
              XbrlConst.xbrldt,
              XbrlConst.xhtml))
         # sort by labels
-        lbls = defaultdict(list)
-        for concept in set(self.modelXbrl.qnameConcepts.values()): # may be twice if unqualified (with and without namespace)
+        lbls: defaultdict[str, list[str]] = defaultdict(list)
+        for concept in set(self.modelXbrl.qnameConcepts.values()):  # type: ignore[union-attr] # may be twice if unqualified (with and without namespace)
             lbls[concept.label(preferredLabel=self.labelrole, lang=self.lang)].append(concept.objectId())
             if concept.modelDocument.targetNamespace not in excludedNamespaces:
                 if not hasTypedDomainRef and concept.typedDomainRef:
@@ -52,26 +80,36 @@ class ViewConcepts(ViewFile.View):
                 elif not hasDifferentNillables and concept.nillable != priorNillable:
                     hasDifferentNillables = True
         # header
-        headings = ["Label","Name","ID","Namespace","Abs\u00ADtract","Substi\u00ADtu\u00ADtion Group","Type","Per\u00ADiod Type", "Bal\u00ADance"]
+        headings = [
+            "Label",
+            "Name",
+            "ID",
+            "Namespace",
+            "Abs\u00ADtract",
+            "Substi\u00ADtu\u00ADtion Group",
+            "Type",
+            "Per\u00ADiod Type",
+            "Bal\u00ADance",
+        ]
         if hasDifferentNillables:
             headings.append("Nillable")
         if hasTypedDomainRef:
             headings.append("Typed Domain Ref")
         headings.append("Facets")
         headings.append("Doc\u00ADu\u00ADmen\u00ADta\u00ADtion")
-        self.setColWidths([COL_WIDTHS.get(hdg.replace("\u00AD",""), 8) for hdg in headings])
+        self.setColWidths([COL_WIDTHS.get(hdg.replace("\u00AD", ""), 8) for hdg in headings])
         self.addRow(headings, asHeader=True)
         srtLbls = sorted(lbls)
         for label in srtLbls:
             for objectId in lbls[label]:
-                concept = self.modelXbrl.modelObject(objectId)
+                concept = cast("ModelConcept", self.modelXbrl.modelObject(objectId))  # type: ignore[union-attr]
                 if concept.modelDocument.targetNamespace not in (
                          XbrlConst.xbrli, XbrlConst.link, XbrlConst.xlink, XbrlConst.xl,
                          XbrlConst.xbrldt):
-                    cols = [concept.label(preferredLabel=self.labelrole, lang=self.lang, strip=True, linkroleHint=XbrlConst.defaultLinkRole),
+                    cols: list[str | QName | None] = [concept.label(preferredLabel=self.labelrole, lang=self.lang, strip=True, linkroleHint=XbrlConst.defaultLinkRole),
                             concept.name,
                             concept.id,
-                            concept.qname.namespaceURI,
+                            concept.qname.namespaceURI,  # type: ignore[union-attr]
                             concept.abstract,
                             concept.substitutionGroupQname,
                             concept.typeQname,
