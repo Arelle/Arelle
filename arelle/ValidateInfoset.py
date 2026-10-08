@@ -73,22 +73,22 @@ def validate(val: ValidateXbrl, modelXbrl: ModelXbrl, infosetModelXbrl: ModelXbr
                                         concept=instFact.qname,
                                         expectedBalance=ptvBalance,
                                         foundBalance=instFact.concept.balance)  # type: ignore[union-attr]
-                    if ptvDecimals and ptvDecimals != str(inferredDecimals(fact)):
+                    if ptvDecimals and ptvDecimals != str(inferredDecimals(instFact)):
                         modelXbrl.error("arelle:infosetTest",
                             _("Fact %(factNumber)s inferred decimals mismatch %(concept)s expected %(expectedDecimals)s found %(inferredDecimals)s"),
                             modelObject=(instFact, infosetFact),
                                         factNumber=(i + 1),
                                         concept=instFact.qname,
                                         expectedDecimals=ptvDecimals,
-                                        inferredDecimals=str(inferredDecimals(fact)))
-                    if ptvPrecision and ptvPrecision != str(inferredPrecision(fact)):
+                                        inferredDecimals=str(inferredDecimals(instFact)))
+                    if ptvPrecision and ptvPrecision != str(inferredPrecision(instFact)):
                         modelXbrl.error("arelle:infosetTest",
                             _("Fact %(factNumber)s inferred precision mismatch %(concept)s expected %(expectedPrecision)s found %(inferredPrecision)s"),
                             modelObject=(instFact, infosetFact),
                                         factNumber=(i + 1),
                                         concept=instFact.qname,
                                         expectedPrecision=ptvPrecision,
-                                        inferredPrecision=str(inferredPrecision(fact)))
+                                        inferredPrecision=str(inferredPrecision(instFact)))
 
     elif infoset.type == Type.ARCSINFOSET:  # type: ignore[union-attr]
         # compare arcs
