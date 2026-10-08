@@ -973,7 +973,7 @@ class ModelXbrl:
 
         :param otherFact: Fact to match
         :deemP0inf: boolean for formula validation to deem P0 facts to be VEqual as if they were P=INF
-        :normalizeXhtml: boolean to also deem string values equal if they parse to equivalent XHTML fragments
+        :normalizeXhtml: boolean to also deem escaped inline fact values equal if they parse to equivalent XHTML fragments
         """
         for fact in self.facts:
             if not matchId or otherFact.id == fact.id:

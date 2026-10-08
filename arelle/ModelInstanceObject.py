@@ -526,7 +526,8 @@ class ModelFact(ModelObject, ModelFactBase):
         if isinstance(selfValue, str) and isinstance(otherValue, str):
             if normalizeSpace and " ".join(selfValue.split()) == " ".join(otherValue.split()): # normalized space comparison
                 return True
-            return normalizeXhtml and xhtmlFragmentsEqual(selfValue, otherValue, normalizeSpace)
+            if normalizeXhtml and any(isinstance(fact, ModelInlineFact) and fact.isEscaped for fact in (self, other)):
+                return xhtmlFragmentsEqual(selfValue, otherValue, normalizeSpace)
         return False
 
     def isDuplicateOf(
@@ -545,7 +546,7 @@ class ModelFact(ModelObject, ModelFactBase):
         :type topLevel: bool
         :param deemPOEqual: True to deem any precision=0 facts equal ignoring value
         :type deepPOEqual: bool
-        :param normalizeXhtml: also deem tuple item string values equal if they parse to equivalent XHTML fragments
+        :param normalizeXhtml: also deem escaped inline tuple item values equal if they parse to equivalent XHTML fragments
         """
         if unmatchedFactsStack is not None:
             if topLevel: del unmatchedFactsStack[0:]
