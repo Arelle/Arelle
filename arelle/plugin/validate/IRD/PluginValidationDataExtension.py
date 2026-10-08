@@ -107,6 +107,14 @@ class PluginValidationDataExtension(PluginData):
     epMachineryDetailsQn: QName
     epMachineryTaxAdjQn: QName
 
+    # Special flags (nvad_special_flags)
+    advanceRulingDetailsQn: QName
+    advanceRulingQn: QName
+    hongKongPracticeUnitQn: QName
+    permanentEstablishmentQn: QName
+    practisingCertificateNumberQn: QName
+    transactionsWithOtherPartsQn: QName
+
     # BIR51 corporate flags (nvad_bir51_corporate)
     privateCompanyQn: QName
     shareholderChangeQn: QName
