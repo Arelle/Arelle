@@ -466,7 +466,7 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict[str, Any]]:
         "--infoset",
         action="store_true",
         dest="infosetValidate",
-        help=_("Select validation with respect testcase infosets.")
+        help=_("Deprecated - testcase infosets are always compared when a variation provides one.")
         )
     validationGroup.add_option(
         "--compareInstance",
@@ -1878,8 +1878,6 @@ class CntlrCmdLine(Cntlr.Cntlr):
                               messageCode="info", file=options.entrypointFile)  # type: ignore[arg-type]
         if options.utrValidate:
             self.modelManager.validateUtr = True
-        if options.infosetValidate:
-            self.modelManager.validateInfoset = True
         if options.abortOnMajorError:
             self.modelManager.abortOnMajorError = True
         if options.collectProfileStats:

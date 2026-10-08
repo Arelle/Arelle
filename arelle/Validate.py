@@ -694,7 +694,7 @@ class Validate:
                 modelXbrl.error("exception:" + type(err).__name__,
                     _("Testcase formula variation validation exception: %(error)s, instance: %(instance)s"),
                     modelXbrl=modelXbrl, instance=modelXbrl.modelDocument.basename, error=err, exc_info=True)
-        if modelTestcaseVariation.resultIsInfoset and self.modelXbrl.modelManager.validateInfoset:
+        if modelTestcaseVariation.resultIsInfoset:
             for pluginXbrlMethod in modelXbrl.modelManager.cntlr.plugins.hooks("Validate.Infoset"):
                 pluginXbrlMethod(modelXbrl, modelTestcaseVariation.resultInfosetUri)
             infoset = modelXbrlLoad(self.modelXbrl.modelManager,
@@ -712,7 +712,7 @@ class Validate:
             else:   # check infoset
                 ValidateInfoset.validate(self.instValidator, modelXbrl, infoset)
             infoset.close()
-        if modelXbrl.hasTableRendering or modelTestcaseVariation.resultIsTable: # and self.modelXbrl.modelManager.validateInfoset:
+        if modelXbrl.hasTableRendering or modelTestcaseVariation.resultIsTable:
             # diff (or generate) table infoset
             resultTableUri = modelXbrl.modelManager.cntlr.webCache.normalizeUrl(modelTestcaseVariation.resultTableUri, baseForElement)
             if not any(alternativeValidation(modelXbrl, resultTableUri)

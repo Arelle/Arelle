@@ -47,8 +47,6 @@ def validate(val: ValidateXbrl, modelXbrl: ModelXbrl, infosetModelXbrl: ModelXbr
                         infosetFact = fact
                         break
                 if infosetFact is None:  # takes precision/decimals into account
-                    if fact is not None:
-                        fact.isVEqualTo(instFact, deemP0Equal=True)
                     modelXbrl.error("arelle:infosetTest",
                         _("Fact %(factNumber)s mismatch %(concept)s"),
                         modelObject=instFact,
@@ -75,22 +73,22 @@ def validate(val: ValidateXbrl, modelXbrl: ModelXbrl, infosetModelXbrl: ModelXbr
                                         concept=instFact.qname,
                                         expectedBalance=ptvBalance,
                                         foundBalance=instFact.concept.balance)  # type: ignore[union-attr]
-                    if ptvDecimals and ptvDecimals != str(inferredDecimals(fact)):
+                    if ptvDecimals and ptvDecimals != str(inferredDecimals(instFact)):
                         modelXbrl.error("arelle:infosetTest",
                             _("Fact %(factNumber)s inferred decimals mismatch %(concept)s expected %(expectedDecimals)s found %(inferredDecimals)s"),
                             modelObject=(instFact, infosetFact),
                                         factNumber=(i + 1),
                                         concept=instFact.qname,
                                         expectedDecimals=ptvDecimals,
-                                        inferredDecimals=str(inferredDecimals(fact)))
-                    if ptvPrecision and ptvPrecision != str(inferredPrecision(fact)):
+                                        inferredDecimals=str(inferredDecimals(instFact)))
+                    if ptvPrecision and ptvPrecision != str(inferredPrecision(instFact)):
                         modelXbrl.error("arelle:infosetTest",
                             _("Fact %(factNumber)s inferred precision mismatch %(concept)s expected %(expectedPrecision)s found %(inferredPrecision)s"),
                             modelObject=(instFact, infosetFact),
                                         factNumber=(i + 1),
                                         concept=instFact.qname,
-                                        expectedPrecisions=ptvPrecision,
-                                        inferredPrecision=str(inferredPrecision(fact)))
+                                        expectedPrecision=ptvPrecision,
+                                        inferredPrecision=str(inferredPrecision(instFact)))
 
     elif infoset.type == Type.ARCSINFOSET:  # type: ignore[union-attr]
         # compare arcs
@@ -159,17 +157,19 @@ def validate(val: ValidateXbrl, modelXbrl: ModelXbrl, infosetModelXbrl: ModelXbr
                         found = True
                 if not found:
                     modelXbrl.error("arelle:infosetTest",
-                        _("Arc not found: from %(fromPath)s, to %(toPath)s, role %(arcRole)s, linkRole $(extRole)s"),
+                        _("Arc not found: from %(fromPath)s, to %(toPath)s, role %(arcRole)s, linkRole %(linkRole)s"),
                         modelObject=arcElt, fromPath=arcElt.get("fromPath"), toPath=arcElt.get("toPath"), arcRole=arcRole, linkRole=extRole)
                     continue
+    elif infoset.type == Type.FACTDIMSINFOSET:  # type: ignore[union-attr]
         # validate dimensions of each fact
-        factElts = XmlUtil.children(modelXbrl.modelDocument.xmlRootElement, None, "*")  # type: ignore[union-attr]
         for itemElt in XmlUtil.children(infoset.xmlRootElement, None, "item"):  # type: ignore[union-attr]
             try:
                 qnElt = XmlUtil.child(itemElt, None, "qnElement")
                 factQname = qname(qnElt, XmlUtil.text(qnElt))  # type: ignore[arg-type]
-                sPointer = int(XmlUtil.child(itemElt, None, "sPointer").text)  # type: ignore[arg-type,union-attr]
-                factElt = factElts[sPointer - 1]  # 1-based xpath indexing
+                sPointer = XmlUtil.text(XmlUtil.child(itemElt, None, "sPointer"))  # type: ignore[arg-type]
+                factElt: ModelObject = modelXbrl.modelDocument.xmlRootElement  # type: ignore[union-attr]
+                for step in sPointer.split("/"):  # xpointer child sequence, 1-based, nested for tuple facts
+                    factElt = XmlUtil.children(factElt, None, "*")[int(step) - 1]
                 if factElt.qname != factQname:
                     modelXbrl.error("arelle:infosetTest",
                         _("Fact %(sPointer)s mismatch Qname, expected %(qnElt)s, observed %(factQname)s"),
@@ -191,11 +191,11 @@ def validate(val: ValidateXbrl, modelXbrl: ModelXbrl, infosetModelXbrl: ModelXbr
                         if not ((qnDim in context.qnameDims and not isDefault) or
                                 (qnDim in factElt.modelXbrl.qnameDimensionDefaults and isDefault)):  # type: ignore[union-attr]
                             modelXbrl.error("arelle:infosetTest",
-                                _("Fact %(sPointer)s (qnElt)s dimension mismatch %(qnDim)s"),
+                                _("Fact %(sPointer)s %(qnElt)s dimension mismatch %(qnDim)s"),
                                 modelObject=(itemElt, factElt, context), sPointer=sPointer, qnElt=factQname, qnDim=qnDim)
                     if numNonDefaults != len(context.qnameDims):
                         modelXbrl.error("arelle:infosetTest",
-                            _("Fact %(sPointer)s (qnElt)s dimensions count mismatch"),
+                            _("Fact %(sPointer)s %(qnElt)s dimensions count mismatch"),
                             modelObject=(itemElt, factElt, context), sPointer=sPointer, qnElt=factQname)
             except (IndexError, ValueError, AttributeError) as err:
                 modelXbrl.error("arelle:infosetTest",
