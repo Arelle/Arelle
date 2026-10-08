@@ -4,7 +4,7 @@ ixbrl-viewer==1.5.8
 # EDGAR plugins
 holidays==0.105
 matplotlib==3.10.9
-pytz==2026.4
+pytz==2026.5
 pythonmonkey==1.3.2
 
 # EDGAR and XULE plugins
