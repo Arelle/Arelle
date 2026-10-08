@@ -122,11 +122,13 @@
   <testcase uri="NVAD-E-1390_invalid_testcase.xml"/>
   <testcase uri="NVAD-E-1430_invalid_testcase.xml"/>
   <testcase uri="bir51_combined_baseline_testcase.xml"/>
+  <testcase uri="bir51_combined_comparative_pbt_testcase.xml"/>
   <testcase uri="bir51_combined_consolidated_testcase.xml"/>
   <testcase uri="bir51_combined_foreign_currency_testcase.xml"/>
   <testcase uri="bir51_combined_pe_taxonomy_testcase.xml"/>
   <testcase uri="bir51_fs_foreign_currency_testcase.xml"/>
   <testcase uri="bir51_fs_hkfrs_baseline_testcase.xml"/>
+  <testcase uri="bir51_fs_hkfrs_comparative_testcase.xml"/>
   <testcase uri="bir51_fs_hkfrs_consolidated_testcase.xml"/>
   <testcase uri="bir51_fs_pe_baseline_testcase.xml"/>
   <testcase uri="bir51_tc_advance_ruling_testcase.xml"/>

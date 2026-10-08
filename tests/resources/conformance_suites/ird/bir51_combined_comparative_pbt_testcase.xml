@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testcase xmlns="http://xbrl.org/2005/conformance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="bir51_combined_comparative_pbt" description="BIR51 Combined — Comparative Profit Before Tax">
+  <variation id="bir51_combined_comparative_pbt" name="bir51_combined_comparative_pbt">
+    <description>A complete BIR51 filing whose financial statements tag ProfitLossBeforeTax for two durations. The tax computation and the current-year financial statements are both 0. The prior year ended 31 March 2025 is 80 in the financial statements only. NVAD-E-1390 must not require every financial-statements profit-before-tax fact to equal the tax-computation fact.</description>
+    <data>
+      <instance readMeFirst="true">bir51_tc_baseline.html</instance>
+      <instance readMeFirst="true">bir51_fs_hkfrs_comparative_pbt.html</instance>
+    </data>
+    <result expected="valid"/>
+  </variation>
+</testcase>
