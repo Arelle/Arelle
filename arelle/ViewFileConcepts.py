@@ -20,14 +20,14 @@ _: TypeGetText
 
 
 def viewConcepts(
-        modelXbrl: ModelXbrl | None,
+        modelXbrl: ModelXbrl,
         outFile: str | FileNamedStringIO | None,
         labelrole: str | None = None,
         lang: str | None = None,
 ) -> None:
-    modelXbrl.modelManager.showStatus(_("viewing concepts"))  # type: ignore[union-attr]
+    modelXbrl.modelManager.showStatus(_("viewing concepts"))
     view = ViewConcepts(modelXbrl, outFile, labelrole, lang)
-    view.view(modelXbrl.modelDocument)  # type: ignore[union-attr]
+    view.view(modelXbrl.modelDocument)
     view.close()
 
 
@@ -51,7 +51,7 @@ COL_WIDTHS: dict[str, int] = {
 class ViewConcepts(ViewFile.View):
     def __init__(
             self,
-            modelXbrl: ModelXbrl | None,
+            modelXbrl: ModelXbrl,
             outFile: str | FileNamedStringIO | None,
             labelrole: str | None,
             lang: str | None,

@@ -2213,7 +2213,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         if options.factTableFile:
                             ViewFileFactTable.viewFacts(modelXbrl, options.factTableFile, labelrole=options.labelRole, lang=options.labelLang, cols=options.factTableCols)  # type: ignore[arg-type]
                         if options.conceptsFile:
-                            ViewFileConcepts.viewConcepts(modelXbrl, options.conceptsFile, labelrole=options.labelRole, lang=options.labelLang)
+                            ViewFileConcepts.viewConcepts(modelXbrl, options.conceptsFile, labelrole=options.labelRole, lang=options.labelLang)  # type: ignore[arg-type]
                         if options.preFile:
                             ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", XbrlConst.parentChild, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[arg-type]
                         if options.tableFile:

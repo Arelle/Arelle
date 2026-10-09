@@ -735,7 +735,7 @@ class CntlrWinMain(Cntlr.Cntlr):
                     if isinstance(view, ViewWinRoleTypes.ViewRoleTypes):
                         ViewFileRoleTypes.viewRoleTypes(modelXbrl, filename, view.tabTitle, view.isArcrole, lang=view.lang)
                     elif isinstance(view, ViewWinConcepts.ViewConcepts):
-                        ViewFileConcepts.viewConcepts(modelXbrl, filename, labelrole=view.labelrole, lang=view.lang)
+                        ViewFileConcepts.viewConcepts(modelXbrl, filename, labelrole=view.labelrole, lang=view.lang)  # type: ignore[arg-type]
                     elif isinstance(view, ViewWinFactList.ViewFactList):
                         ViewFileFactList.viewFacts(modelXbrl, filename, labelrole=view.labelrole, lang=view.lang)  # type: ignore[arg-type]
                     elif isinstance(view, ViewWinFactTable.ViewFactTable):
