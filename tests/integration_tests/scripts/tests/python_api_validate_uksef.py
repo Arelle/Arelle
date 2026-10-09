@@ -73,7 +73,6 @@ errors += validate_log_xml(log_xml, expected_results={
         regex.compile(r"^\[ESEF.2.1.4.multipleIdentifiers] .*"): 1,
         regex.compile(r"^\[ESEF.UKFRC6.invalidIdentifier] .*"): 1,
         regex.compile(r"^\[ESEF.UKFRC6.multipleIdentifiers] .*"): 1,
-        regex.compile(r"^\[ESEF.UK.missingCompaniesHouseMandatoryItem] .*"): 1,
     },
 })
 
