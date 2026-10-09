@@ -180,15 +180,45 @@ class TestResolveHtmlUri:
         result = resolveHtmlUri(elt, "archive", "lib.jar")
         assert result == "http://example.com/lib.jar"
 
-    def test_object_classid_uses_codebase(self):
-        elt = _make_html_elt("object", attrs={"codebase": "http://example.com/classes"})
+    def test_object_classid_relative_to_codebase_unchanged(self):
+        elt = _make_html_elt("object", attrs={"codebase": "classes"}, htmlBase="http://example.com/")
         result = resolveHtmlUri(elt, "classid", "MyClass.class")
-        assert result == "http://example.com/classes/MyClass.class"
+        assert result == "MyClass.class"
 
-    def test_object_data_uses_codebase(self):
-        elt = _make_html_elt("object", attrs={"codebase": "http://example.com/data"})
+    def test_object_data_relative_to_codebase_unchanged(self):
+        elt = _make_html_elt("object", attrs={"codebase": "data"}, htmlBase="http://example.com/")
         result = resolveHtmlUri(elt, "data", "info.xml")
-        assert result == "http://example.com/data/info.xml"
+        assert result == "info.xml"
+
+    def test_object_archive_relative_to_codebase_unchanged(self):
+        elt = _make_html_elt("object", attrs={"codebase": "lib"}, htmlBase="http://example.com/")
+        result = resolveHtmlUri(elt, "archive", "a.jar b.jar")
+        assert result == "a.jar b.jar"
+
+    def test_object_codebase_resolved_against_html_base(self):
+        elt = _make_html_elt("object", attrs={"codebase": "relative/codebase"}, htmlBase="http://example.com/base/")
+        result = resolveHtmlUri(elt, "codebase", "relative/codebase")
+        assert result == "http://example.com/base/relative/codebase"
+
+    def test_relative_uri_spaces_escaped(self):
+        elt = _make_html_elt("a", htmlBase="http://example.com/base/")
+        result = resolveHtmlUri(elt, "href", "relative uri with spaces")
+        assert result == "http://example.com/base/relative%20uri%20with%20spaces"
+
+    def test_absolute_uri_spaces_unchanged(self):
+        elt = _make_html_elt("a", htmlBase="http://example.com/base/")
+        result = resolveHtmlUri(elt, "href", "http://example.com/absolute uri with spaces")
+        assert result == "http://example.com/absolute uri with spaces"
+
+    def test_relative_uri_spaces_unchanged_without_html_base(self):
+        elt = _make_html_elt("a", htmlBase="")
+        result = resolveHtmlUri(elt, "href", "relative uri with spaces")
+        assert result == "relative uri with spaces"
+
+    def test_archive_keeps_separators(self):
+        elt = _make_html_elt("object", htmlBase="http://example.com/base/")
+        result = resolveHtmlUri(elt, "archive", "../archive1.file  archive2.file http://example.com/object/archive.file")
+        assert result == "http://example.com/archive1.file http://example.com/base/archive2.file http://example.com/object/archive.file"
 
     def test_object_without_codebase_uses_html_base(self):
         elt = _make_html_elt("object", attrs={}, htmlBase="http://example.com/base/")

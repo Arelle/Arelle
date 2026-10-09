@@ -495,6 +495,13 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict[str, Any]]:
         help=_("Ignore detected file type and validate all files as Taxonomy Packages.")
         )
     validationGroup.add_option(
+        "--requireInlineXbrl",
+        "--requireinlinexbrl",
+        action="store_true",
+        dest="requireInlineXbrl",
+        help=_("Report an error for any input that is not Inline XBRL.")
+        )
+    validationGroup.add_option(
         "--validationExitCode",
         action="store_true",
         default=False,
@@ -1833,6 +1840,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.modelManager.validateDuplicateFacts = duplicateType
         self.modelManager.validateAllFilesAsReportPackages = options.reportPackage
         self.modelManager.validateAllFilesAsTaxonomyPackages = options.taxonomyPackage
+        self.modelManager.requiredDocumentTypes = ModelDocument.Type.INLINEXBRLTYPES if options.requireInlineXbrl else ()
         if options.utrUrl:  # override disclosureSystem utrUrl
             self.modelManager.disclosureSystem.utrUrl = [options.utrUrl]
             # can be set now because the utr is first loaded at validation time
@@ -2027,7 +2035,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         filesource,
                         _("views loading"),
                         entrypoint=_entrypoint,
-                        errorCaptureLevel=errorCaptureLevel
+                        errorCaptureLevel=errorCaptureLevel,
+                        requiredDocumentTypes=self.modelManager.requiredDocumentTypes,
                     )
                     if filesource.isArchive:
                         # Keep archive filesource potentially used by multiple reports open.

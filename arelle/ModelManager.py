@@ -75,6 +75,7 @@ class ModelManager:
         self.baseTaxonomyValidationMode = ValidateBaseTaxonomiesMode.DISCLOSURE_SYSTEM
         self.validateAllFilesAsReportPackages = False
         self.validateAllFilesAsTaxonomyPackages = False
+        self.requiredDocumentTypes: tuple[int, ...] = ()
         self.validateDuplicateFacts = ValidateDuplicateFactsConst.DuplicateType.NONE
         self.validateXmlOim = False
         self.validateTableConstraintsSkipLoading = False

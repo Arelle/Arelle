@@ -64,18 +64,18 @@ def _compareInstance(originalInstance: ModelXbrl, expectedInstance: ModelXbrl, t
     expectedFootnotesRelSet = ModelRelationshipSet(expectedInstance, "XBRL-footnotes")
     for expectedInstanceFact in expectedInstance.facts:
         unmatchedFactsStack: list[ModelFact] = []
-        compareFact = targetInstance.matchFact(expectedInstanceFact, unmatchedFactsStack, deemP0inf=True, matchId=matchById, matchLang=False)
+        compareFact = targetInstance.matchFact(expectedInstanceFact, unmatchedFactsStack, deemP0inf=True, matchId=matchById, matchLang=False, normalizeXhtml=True)
         if compareFact is None:
             if unmatchedFactsStack: # get missing nested tuple fact, if possible
                 missingFact = unmatchedFactsStack[-1]
             else:
                 missingFact = expectedInstanceFact
             # is it possible to show value mismatches?
-            expectedFacts = targetInstance.factsByQname.get(missingFact.qname)
-            if expectedFacts and len(expectedFacts) == 1:
+            targetFacts = targetInstance.factsByQname.get(missingFact.qname)
+            if targetFacts and len(targetFacts) == 1:
                 targetInstance.error("compareInstance:expectedFactMissing",
                                             _('Output missing expected fact %(fact)s, extracted value "%(value1)s", expected value  "%(value2)s"'),
-                                            modelXbrl=missingFact, fact=missingFact.qname, value1=missingFact.xValue, value2=next(iter(expectedFacts)).xValue)
+                                            modelXbrl=missingFact, fact=missingFact.qname, value1=next(iter(targetFacts)).xValue, value2=missingFact.xValue)
             else:
                 targetInstance.error("compareInstance:expectedFactMissing",
                                             _("Output missing expected fact %(fact)s"),

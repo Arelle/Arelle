@@ -39,6 +39,7 @@ class ModelDocumentType:
     HTML: int = 17
 
     TESTCASETYPES: tuple[int, ...] = (TESTCASESINDEX, TESTCASE, REGISTRY, REGISTRYTESTCASE, XPATHTESTSUITE)
+    INLINEXBRLTYPES: tuple[int, ...] = (INLINEXBRL, INLINEXBRLDOCUMENTSET)
 
     typeName: tuple[str, ...] = ("unknown XML",
                 "unknown non-XML",

@@ -276,13 +276,9 @@ def escapedNode(
         tagName = str(elt.qname)
     s.append(tagName)
     if start or empty:
-        if elt.localName == "object" and (value := elt.get("codebase")): # resolve codebase before other element names
-            # 2022-09-15: not sure about this one, but seems that
-            # elt.get("codebase") should be the value arg for resolveHtmlUri
-            elt.set("codebase", resolveHtmlUri(elt, "codebase", value))
         for n, v in sorted(elt.items(), key=lambda item: item[0]):
             if n in uriAttrs:
-                v = resolveHtmlUri(elt, n, v).replace(" ", "%20") # %20 replacement needed for conformance test passing
+                v = resolveHtmlUri(elt, n, v)
             attrName = qname(elt, n) if n.startswith("{") else n
             s.append(' {0}="{1}"'.format(attrName,
                 v.replace("&","&amp;").replace('"', "&quot;")))
@@ -306,6 +302,36 @@ def replaceWhitespace(s: str) -> str:
 def collapseWhitespace(s: str) -> str:
     # https://www.w3.org/TR/xmlschema-1/#d0e1654
     return _collapseWhitespacePattern.sub(" ", s).strip(" ")
+
+
+def _canonicalXhtmlFragment(fragment: str, parser: etree.XMLParser) -> str | None:
+    wrapped = f'<div xmlns="{xhtml}">{fragment}</div>'
+    try:
+        element = etree.fromstring(wrapped, parser)
+    except etree.XMLSyntaxError:
+        return None
+    return etree.canonicalize(element)
+
+
+def xhtmlFragmentsEqual(a: str, b: str, normalizeSpace: bool = True) -> bool:
+    """Whether two strings are the same XHTML fragment when parsed with XHTML as the default namespace.
+
+    Quote style, attribute order, character references, empty element syntax and
+    redundant namespace declarations are ignored. If normalizeSpace is true, leading
+    and trailing whitespace is ignored and other runs of whitespace compare as a
+    single space. Strings that aren't well formed XML fragments are never equal.
+    """
+    if normalizeSpace:
+        a = a.strip()
+        b = b.strip()
+    parser = etree.XMLParser(resolve_entities=False, no_network=True)
+    canonicalA = _canonicalXhtmlFragment(a, parser)
+    canonicalB = _canonicalXhtmlFragment(b, parser)
+    if canonicalA is None or canonicalB is None:
+        return False
+    if normalizeSpace:
+        return canonicalA.split() == canonicalB.split()
+    return canonicalA == canonicalB
 
 
 def parentId(

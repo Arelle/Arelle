@@ -60,7 +60,16 @@ DEFAULTorNONDEFAULT = sys.intern("default-or-non-default")
 _NOT_FOUND = object()
 
 
-def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str | None = None, base: str | None = None, useFileSource: FileSourceClass | None = None, errorCaptureLevel: int | None = None, **kwargs: Any) -> ModelXbrl:
+def load(
+    modelManager: ModelManager,
+    url: str | FileSourceClass,
+    nextaction: str | None = None,
+    base: str | None = None,
+    useFileSource: FileSourceClass | None = None,
+    errorCaptureLevel: int | None = None,
+    requiredDocumentTypes: tuple[int, ...] = (),
+    **kwargs: Any,
+) -> ModelXbrl:
     """Each loaded instance, DTS, testcase, testsuite, versioning report, or RSS feed, is represented by an
     instance of a ModelXbrl object. The ModelXbrl object has a collection of ModelDocument objects, each
     representing an XML document (for now, with SQL whenever its time comes). One of the modelDocuments of
@@ -70,6 +79,7 @@ def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str
     :param nextaction: text to use as status line prompt on conclusion of loading and discovery
     :param base: the base URL if any (such as a versioning report's URL when loading to/from DTS modelXbrl).
     :param useFileSource: for internal use (when an entry point is in a FileSource archive and discovered files expected to also be in the entry point's archive.
+    :param requiredDocumentTypes: if not empty, report an error if the entry document is not one of these ModelDocument types (testcase and RSS feed documents are always allowed).
    """
     if nextaction is None: nextaction = _("loading")
     modelXbrl = create(modelManager, errorCaptureLevel=errorCaptureLevel)
@@ -99,6 +109,7 @@ def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str
         if hasattr(modelXbrl, "entryLoadingUrl"):
             del modelXbrl.entryLoadingUrl
         loadSchemalocatedSchemas(modelXbrl)
+    reportUnsupportedDocumentType(modelXbrl, requiredDocumentTypes)
 
     #from arelle import XmlValidate
     #uncomment for trial use of lxml xml schema validation of entry document
@@ -108,6 +119,18 @@ def load(modelManager: ModelManager, url: str | FileSourceClass, nextaction: str
         pluginXbrlMethod(modelXbrl)
     modelManager.showStatus(_("xbrl loading finished, {0}...").format(nextaction))
     return modelXbrl
+
+def reportUnsupportedDocumentType(modelXbrl: ModelXbrl, requiredDocumentTypes: tuple[int, ...]) -> None:
+    modelDocument = modelXbrl.modelDocument
+    if not requiredDocumentTypes or modelDocument is None:
+        return
+    Type = arelle.ModelDocument.Type
+    # Testcases and RSS feeds only list the documents they load, which are checked on their own.
+    if modelDocument.type not in (*requiredDocumentTypes, Type.RSSFEED, *Type.TESTCASETYPES):
+        modelXbrl.error("arelle:unsupportedDocumentType",
+                        _("%(file)s has document type '%(type)s', but the required document types are %(requiredTypes)s."),
+                        modelObject=modelXbrl, file=modelDocument.basename, type=modelDocument.gettype(),
+                        requiredTypes=", ".join(f"'{Type.typeName[t]}'" for t in requiredDocumentTypes))
 
 def create(
         modelManager: ModelManager, newDocumentType: int | None = None, url: str | None = None, schemaRefs: list[str] | None = None, createModelDocument: bool = True, isEntry: bool = False,
@@ -936,19 +959,28 @@ class ModelXbrl:
             )
             return self._dimensionsInUse
 
-    def matchFact(self, otherFact: ModelFact, unmatchedFactsStack: list[ModelFact] | None = None, deemP0inf: bool = False, matchId: bool = False, matchLang: bool = True) -> ModelFact | None:
+    def matchFact(
+        self,
+        otherFact: ModelFact,
+        unmatchedFactsStack: list[ModelFact] | None = None,
+        deemP0inf: bool = False,
+        matchId: bool = False,
+        matchLang: bool = True,
+        normalizeXhtml: bool = False,
+    ) -> ModelFact | None:
         """Finds matching fact, by XBRL 2.1 duplicate definition (if tuple), or by
         QName and VEquality (if an item), lang and accuracy equality, as in formula and test case usage
 
         :param otherFact: Fact to match
         :deemP0inf: boolean for formula validation to deem P0 facts to be VEqual as if they were P=INF
+        :normalizeXhtml: boolean to also deem escaped inline fact values equal if they parse to equivalent XHTML fragments
         """
         for fact in self.facts:
             if not matchId or otherFact.id == fact.id:
                 if (fact.isTuple):
-                    if otherFact.isDuplicateOf(fact, unmatchedFactsStack=unmatchedFactsStack):
+                    if otherFact.isDuplicateOf(fact, unmatchedFactsStack=unmatchedFactsStack, normalizeXhtml=normalizeXhtml):
                         return fact
-                elif (fact.qname == otherFact.qname and fact.isVEqualTo(otherFact, deemP0inf=deemP0inf)):
+                elif (fact.qname == otherFact.qname and fact.isVEqualTo(otherFact, deemP0inf=deemP0inf, normalizeXhtml=normalizeXhtml)):
                     if fact.isFraction:
                         return fact
                     elif fact.isMultiLanguage and matchLang:

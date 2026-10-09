@@ -221,7 +221,8 @@ class Validate:
                 if self.useFileSource.isArchive and (isLegacyAbs(rssItemUrl) or not rssItemUrl.endswith(".zip")):
                     modelXbrl = modelXbrlLoad(self.modelXbrl.modelManager,
                                                openFileSource(rssItemUrl, self.modelXbrl.modelManager.cntlr, reloadCache=reloadCache),
-                                               _("validating"), rssItem=rssItem)
+                                               _("validating"), rssItem=rssItem,
+                                               requiredDocumentTypes=self.modelXbrl.modelManager.requiredDocumentTypes)
                 else: # need own file source, may need instance discovery
                     filesource = openFileSource(rssItemUrl, self.modelXbrl.modelManager.cntlr)
                     if filesource and not filesource.selection and filesource.isArchive:
@@ -237,7 +238,8 @@ class Validate:
                                 _("RSS item validation exception: %(error)s, entry URL: %(instance)s"),
                                 modelXbrl=self.modelXbrl, instance=rssItemUrl, error=err)
                             continue # don't try to load this entry URL
-                    modelXbrl = modelXbrlLoad(self.modelXbrl.modelManager, filesource, _("validating"), rssItem=rssItem, errorCaptureLevel=errorCaptureLevel)
+                    modelXbrl = modelXbrlLoad(self.modelXbrl.modelManager, filesource, _("validating"), rssItem=rssItem, errorCaptureLevel=errorCaptureLevel,
+                                              requiredDocumentTypes=self.modelXbrl.modelManager.requiredDocumentTypes)
                 for pluginXbrlMethod in modelXbrl.modelManager.cntlr.plugins.hooks("RssItem.Xbrl.Loaded"):
                     pluginXbrlMethod(modelXbrl, {}, rssItem)
                 if getattr(rssItem, "doNotProcessRSSitem", False) or modelXbrl.modelDocument is None:
@@ -438,7 +440,7 @@ class Validate:
                     if archivePath:
                         with self.useFileSource.fs.open(archivePath[1]) as embeddedFile:  # type: ignore[union-attr]
                             readMeFirstUriIsArchive = readMeFirstUriIsEmbeddedZipFile = zipfile.is_zipfile(embeddedFile)  # type: ignore[arg-type]
-            modelXbrlLoadArgs: dict[str, Any] = {}
+            modelXbrlLoadArgs: dict[str, Any] = {"requiredDocumentTypes": self.modelXbrl.modelManager.requiredDocumentTypes}
             if modelTestcaseVariation.ixdsTarget:
                 modelXbrlLoadArgs["ixdsTarget"] = modelTestcaseVariation.ixdsTarget
             if not readMeFirstUriIsArchive:
