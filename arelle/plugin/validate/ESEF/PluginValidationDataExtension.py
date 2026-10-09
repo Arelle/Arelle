@@ -10,6 +10,7 @@ from typing import cast
 from arelle import XbrlConst
 from arelle.ModelInstanceObject import ModelContext
 from arelle.ModelObject import ModelObject
+from arelle.ModelValue import QName
 from arelle.ModelXbrl import ModelXbrl
 from arelle.utils.PluginData import PluginData
 from arelle.utils.validate.ContextIssues import ContextIssues, getContextIssues, getContextsByEntityIdentifier
@@ -21,6 +22,10 @@ _XLINK_HREF = f"{{{XbrlConst.xlink}}}href"
 
 @dataclass
 class PluginValidationDataExtension(PluginData):
+    uksefMandatoryFacts: tuple[QName, ...] = ()
+    uksefGroupAuditedMandatoryFacts: tuple[QName, ...] = ()
+    uksefAuditorOpinionAlternatives: tuple[QName, ...] = ()
+
     def getContextIssues(self, modelXbrl: ModelXbrl) -> ContextIssues:
         return getContextIssues(modelXbrl)
 
