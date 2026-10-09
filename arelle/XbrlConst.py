@@ -682,6 +682,22 @@ qnTableConceptRelationshipNodeMMDD = QName.fromParts("conceptRelationshipNode", 
 qnTableDimensionRelationshipNodeMMDD = QName.fromParts("dimensionRelationshipNode", tableMMDD, _TABLE_PREFIX)
 qnTableAspectNodeMMDD = QName.fromParts("aspectNode", tableMMDD, _TABLE_PREFIX)
 
+# Positional dimensions (table linkbase 1.0 addition, work item #37).
+# The attribute rides the anyAttribute wildcard on table:table.type, so it needs
+# no change to the REC'd table schema and is ignored by processors without it.
+# The namespace carries the table specification's own status date URI rather than
+# a date of its own, so the conformance suite templates it with the same token it
+# uses everywhere else.  Production and pre-production forms are both recognised,
+# as for the extensible enumerations above.
+tablePositionals = frozenset({
+    "http://xbrl.org/2014/table-positional",
+    "http://xbrl.org/WGWD/YYYY-MM-DD/table-positional",
+})
+cnTablePositionalDimensionsOnly = frozenset(  # clark names
+    "{{{}}}positionalDimensionsOnly".format(namespace)
+    for namespace in tablePositionals
+)
+
 booleanValueTrue = "true"
 booleanValueFalse = "false"
 
