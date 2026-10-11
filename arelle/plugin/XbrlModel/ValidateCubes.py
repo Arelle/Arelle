@@ -42,6 +42,39 @@ def isNegativeCube(compMdl, cubeObj):
     return getattr(getattr(cubeTypeObj, "name", None), "localName", None) == "negativeCube"
 
 
+def isExtensionAddition(cubeObj):
+    """True for an unnamed cube that extends another: it adds properties (requiredCubes,
+    excludeCubes, cubeNetworks, properties) to its base cube rather than defining a cube of its
+    own. It declares no dimensions, so matched on its own it would admit every fact and give every
+    fact a fact space."""
+    return getattr(cubeObj, "name", None) is None and getattr(cubeObj, "extends", None) is not None
+
+
+def excludeCubesOf(compMdl, cubeObj):
+    """The exclude cube QNames that apply to a cube: its effective excludeCubes (its own and those
+    inherited through extends) plus those added by unnamed extension cubes extending it."""
+    added = getattr(compMdl, "_extensionExcludeCubesCache", None)
+    if added is None:
+        added = compMdl._extensionExcludeCubesCache = {}
+        for module in compMdl.xbrlModels.values():
+            for extCube in getattr(module, "cubes", None) or ():
+                if isExtensionAddition(extCube) and extCube.excludeCubes:
+                    added.setdefault(extCube.extends, []).extend(extCube.excludeCubes)
+    return list(compMdl.effectiveExcludeCubes(cubeObj)) + added.get(getattr(cubeObj, "name", None), [])
+
+
+def factExcludedFromCube(compMdl, fact, cubeObj):
+    """True if an exclude cube of the cube includes the fact (tavi.md "Exclude cube": the
+    intersection of the facts of the exclude cube and the defined cube is removed). A fact is in an
+    exclude cube when it lies in its dimensional space and satisfies its period constraints."""
+    for exclQn in excludeCubesOf(compMdl, cubeObj):
+        exclCube = compMdl.namedObjects.get(exclQn)
+        if (isinstance(exclCube, XbrlCube) and matchFactToCube(compMdl, fact, exclCube)
+                and factMatchesPeriodConstraints(compMdl, fact, exclCube)):
+            return True
+    return False
+
+
 def matchFactToCube(compMdl, factspace, cubeObj):
     """Check if the factspace dimensions match the cube dimensions and allowed members.
         Return True if the factspace matches the cube, False otherwise.
@@ -163,6 +196,8 @@ def _cubeConceptCandidateIndex(compMdl):
     openCubes = []
     for module in compMdl.xbrlModels.values():
         for cubeObj in getattr(module, "cubes", None) or ():
+            if isExtensionAddition(cubeObj):
+                continue # adds to its base cube (see isExtensionAddition); not a cube of its own
             conceptDim = next((cd for cd in (cubeObj.cubeDimensions or ())
                                if cd.dimension == conceptCoreDim), None)
             members = conceptDim.allowedMembers(compMdl) if conceptDim is not None else None

@@ -30,7 +30,7 @@ from .XbrlUnit import parseUnitString, XbrlUnit
 from .UnitSignature import (dataTypeSignature, isEmptySignature, signaturesEqual,
                             signatureString, unitDimensionSignature, unitNamespacesFor)
 from .ValidateXbrlModel import validateValue
-from .ValidateCubes import validateCubes, isNegativeCube, factMatchesPeriodConstraints
+from .ValidateCubes import validateCubes, isNegativeCube, factMatchesPeriodConstraints, factExcludedFromCube
 from .ErrorCatalog import emit_error
 
 periodPattern = re.compile( # regex for xs:dateTime or xs:date with optional end dateTime or date separated by "/" and optional "Z" timezone designator
@@ -423,12 +423,17 @@ def validateFactPosition(txmyMdl, fact):
     # itself recognized as negative (see isNegativeCube)
     matchedCubes = validateCubes(txmyMdl, fact)
     nonNegativeCubes = [c for c in matchedCubes if not isNegativeCube(txmyMdl, c)]
+    # A positive cube whose exclude cube includes the fact neither holds the fact nor gives it a fact
+    # space: "an exclude cube applied to a positive cube can thus make a fact invalid" (tavi.md,
+    # "All dimensions").
+    nonNegativeCubes = [c for c in nonNegativeCubes if not factExcludedFromCube(txmyMdl, fact, c)]
     if not nonNegativeCubes:
         error("oimte:noFactSpaceForFact",
               _("The fact %(name)s with concept %(conceptName)s does not fit within any defined cube fact space."),
               conceptName=cQn)
     else:
-        for cubeObj in matchedCubes:
+        # Negative cubes hold no facts: they only exclude facts from the cubes that name them.
+        for cubeObj in nonNegativeCubes:
             # Fact space (above) ignores period constraints; membership applies them: a fact whose
             # period does not match is not included in the cube (tavi.md "Period constraint object").
             if not factMatchesPeriodConstraints(txmyMdl, fact, cubeObj):

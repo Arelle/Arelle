@@ -228,6 +228,11 @@ class XbrlCompiledModel(ModelXbrl): # complete wrapper for ModelXbrl
         # the cube-concept candidate index (ValidateCubes) derives from allowedMembers, which
         # depend on effective relationships -- rebuild it if those change
         self._cubeConceptCandidateIndexCache = None
+        # exclude cubes added by unnamed extension cubes, and the date resolution / facts-by-concept
+        # indexes used by period constraint membership (ValidateCubes)
+        self._extensionExcludeCubesCache = None
+        self._dateResolutionCache = None
+        self._factsByConceptCache = None
         # likewise the unusable-member index (XbrlCube.isUnusableMember) is derived from the
         # xbrl:usable properties on effective domain-network relationships
         self._unusableMembersCache = None
