@@ -30,7 +30,7 @@ from .XbrlUnit import parseUnitString, XbrlUnit
 from .UnitSignature import (dataTypeSignature, isEmptySignature, signaturesEqual,
                             signatureString, unitDimensionSignature, unitNamespacesFor)
 from .ValidateXbrlModel import validateValue
-from .ValidateCubes import validateCubes, isNegativeCube
+from .ValidateCubes import validateCubes, isNegativeCube, factMatchesPeriodConstraints
 from .ErrorCatalog import emit_error
 
 periodPattern = re.compile( # regex for xs:dateTime or xs:date with optional end dateTime or date separated by "/" and optional "Z" timezone designator
@@ -429,6 +429,10 @@ def validateFactPosition(txmyMdl, fact):
               conceptName=cQn)
     else:
         for cubeObj in matchedCubes:
+            # Fact space (above) ignores period constraints; membership applies them: a fact whose
+            # period does not match is not included in the cube (tavi.md "Period constraint object").
+            if not factMatchesPeriodConstraints(txmyMdl, fact, cubeObj):
+                continue
             cellFacts = getattr(cubeObj, "_cellFacts", None)
             if cellFacts is None:
                 cellFacts = cubeObj._cellFacts = {}

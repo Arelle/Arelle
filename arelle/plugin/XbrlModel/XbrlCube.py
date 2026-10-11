@@ -3,7 +3,9 @@ See COPYRIGHT.md for copyright information.
 """
 
 from typing import TYPE_CHECKING, Optional, Union, TypeAlias
+import calendar
 import regex as re
+from datetime import datetime
 from collections.abc import Iterable
 
 from arelle.ModelValue import qname, QName, DateTime, YearMonthDayTimeDuration
@@ -58,7 +60,9 @@ class XbrlPeriodConstraint(XbrlModelObject):
         for prop in ("stYr","stMo","stDa", "stHr", "stMn", "stSc", "enYr","enMo","enDa", "enHr", "enMn", "enSc"):
             if not self._periodPatternDict[prop] in (None, "YYYY", "MM", "DD", "hh", "mm", "SS") and perValDict[prop] is not None:
                 if self._periodPatternDict[prop] == "eom":
-                    dt = datetime.strptime(perValDict[prop[:2]+"Dt"])
+                    # the start or end date group of the matched period (the pattern names them
+                    # stDt and EnDt)
+                    dt = datetime.strptime(perValDict["stDt" if prop.startswith("st") else "EnDt"], "%Y-%m-%d")
                     if dt.day != calendar.monthrange(dt.year, dt.month)[1]:
                         return False
                 else:

@@ -52,7 +52,8 @@ def matchFactToCube(compMdl, factspace, cubeObj):
         For core dimensions (concept, entity, unit), the factspace dimension value must match one of the
         allowed members of the cube dimension.
 
-        For period dimension, the factspace period value must match one of the period constraints of the cube dimension.
+        For the period dimension, only presence is checked here: period constraints select which facts
+        the cube includes (factMatchesPeriodConstraints), and do not remove the fact from its fact space.
 
         For taxonomy-defined dimensions, the factspace dimension value must match one of the allowed members of the cube dimension.
 
@@ -95,12 +96,10 @@ def matchFactToCube(compMdl, factspace, cubeObj):
             if factPerVal is None and not cubeDimObj.optional:
                 hasDims = False # period required but fact has no period (e.g. periodType:none concept)
                 break
-            # periodConstraints are content selectors (they filter facts INTO
-            # the cube for query/reporting views) and do NOT gate dimensional
-            # validity. A fact whose period does not satisfy a periodConstraint
-            # still shares the cube's dimensional space for purposes of
-            # oimte:noFactSpaceForFact. See oim-taxonomy spec
-            # "Period constraint object" section.
+            # Period constraints decide MEMBERSHIP, not fact space: a fact whose period does not
+            # match is not included in the cube, but still lies in its dimensional space for
+            # oimte:noFactSpaceForFact. Membership is applied by factMatchesPeriodConstraints
+            # (below), called where facts are recorded in the cube's cells.
             continue
         elif dimName not in factspace.factDimensions:
             if not cubeDimObj.optional:
@@ -331,3 +330,239 @@ def validateCubeDuplicates(compMdl, cubeObj):
                 facts=", ".join(str(n) for n in factNames if n is not None),
                 cell=str(cellKey))
 
+
+
+# ---------------------------------------------------------------------------------------------
+# Period constraint membership
+#
+# tavi.md "Period constraint object": the period constraints of a cube's period dimension
+# "select those facts whose periods match ... If a facts period dimension matches all the
+# defined properties then it is included in the cube."  Properties of one period constraint
+# object AND; separate period constraint objects OR.
+#
+# This is MEMBERSHIP (which facts a cube holds: completeness, duplicates, calculations, formula
+# cube queries), not FACT SPACE. A fact excluded from a cube by its period constraints still lies
+# in the cube's dimensional space, so matchFactToCube -- which decides oimte:noFactSpaceForFact --
+# ignores period constraints (conformance CUBE-PeriodConstraintInstant-Valid: a duration fact is
+# "excluded" from an instant-only cube and the report is still valid).
+#
+# Periods are read from the fact's period string as tavi.md "Period" resolves it: a date-only
+# start is T00:00:00 of its day; a date-only end, or a date-only instant, is T00:00:00 of the
+# following day (so "2024-12-31" is the instant 2025-01-01T00:00:00, and "2023-01-01/2023-01-01"
+# is 24 hours). The parsed _periodValue cannot be used for this: it reads a date-only end as
+# midnight at the START of its day. Dates are then compared as calendar days, an end or instant
+# at midnight naming the day it closes.
+# ---------------------------------------------------------------------------------------------
+
+import calendar as _calendar
+import datetime as _datetime
+import re as _re
+
+_isoDurationPattern = _re.compile(
+    r"^(-)?P(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?$")
+
+
+def factMatchesPeriodConstraints(compMdl, fact, cubeObj) -> bool:
+    """True if the fact is included in the cube by the period constraints of its period
+    dimension: the cube has none, or the fact's period matches every property of at least one
+    period constraint object. A fact with no period matches no period constraint."""
+    for cubeDimObj in cubeObj.cubeDimensions or ():
+        if cubeDimObj.dimension != periodCoreDim:
+            continue
+        constraints = cubeDimObj.periodConstraints or ()
+        if not constraints:
+            return True
+        period = _factPeriod(fact)
+        if period is None:
+            return False
+        return any(_periodConstraintMatches(compMdl, perConstObj, period, fact)
+                   for perConstObj in constraints)
+    return True
+
+
+class _Period:
+    """A fact period resolved per tavi.md: start and end points, and the calendar days they name."""
+    __slots__ = ("isInstant", "startPoint", "endPoint", "startDay", "endDay")
+
+    def __init__(self, startPoint, endPoint):
+        self.isInstant = startPoint is None
+        self.startPoint = startPoint
+        self.endPoint = endPoint
+        self.endDay = _pointEndDay(endPoint)
+        self.startDay = startPoint.date() if startPoint is not None else self.endDay
+
+    @property
+    def isDuration(self):
+        return not self.isInstant
+
+
+def _parsePeriod(perStr):
+    """A period string as a _Period, or None if it is not a period."""
+    startStr, _sep, endStr = str(perStr).strip().rpartition("/")
+    try:
+        endPoint = _parsePoint(endStr, isEnd=True)
+        startPoint = _parsePoint(startStr, isEnd=False) if startStr else None
+    except ValueError:
+        return None
+    return _Period(startPoint, endPoint)
+
+
+def _parsePoint(text, isEnd):
+    """A start, end or instant value as a point in time; a date-only end or instant is midnight of
+    the following day."""
+    if "T" in text:
+        return _datetime.datetime.fromisoformat(text.replace("Z", "+00:00")).replace(tzinfo=None)
+    day = _datetime.date.fromisoformat(text)
+    point = _datetime.datetime(day.year, day.month, day.day)
+    return point + _datetime.timedelta(days=1) if isEnd else point
+
+
+def _pointEndDay(point):
+    """The calendar day an end or instant point names: midnight names the day it closes."""
+    if point.time() == _datetime.time(0):
+        return (point - _datetime.timedelta(days=1)).date()
+    return point.date()
+
+
+def _periodConstraintMatches(compMdl, perConstObj, period, fact) -> bool:
+    """All defined properties of one period constraint object match the fact's period."""
+    periodType = perConstObj.periodType
+    if periodType == "instant" and not period.isInstant:
+        return False
+    if periodType == "duration" and not period.isDuration:
+        return False
+    if perConstObj.timeSpan:
+        if not period.isDuration:
+            return False
+        if _addDuration(period.startPoint, perConstObj.timeSpan) != period.endPoint:
+            return False
+    # periodPattern matches the lexical period (XbrlPeriodConstraint.periodPatternMatch)
+    if perConstObj.periodPattern and perConstObj.periodPatternMatch(fact.factDimensions.get(periodCoreDim)) is False:
+        return False
+    # endDate: a duration's end, an instant's date; startDate: a duration's start, an instant's date
+    # onOrAfter: an instant's date, a duration's start; onOrBefore: an instant's date, a duration's end
+    endDay = period.endDay
+    startDay = period.startDay
+    for dateResObj, factDay, test in ((perConstObj.endDate, endDay, "eq"),
+                                      (perConstObj.startDate, startDay, "eq"),
+                                      (perConstObj.onOrAfter, startDay, "ge"),
+                                      (perConstObj.onOrBefore, endDay, "le")):
+        if dateResObj is None:
+            continue
+        days = resolveDateResolution(compMdl, dateResObj)
+        if days is None:
+            continue  # resolves to nothing: the property is ignored (tavi.md "Date resolution")
+        if test == "eq" and factDay not in days:
+            return False
+        if test == "ge" and not any(factDay >= d for d in days):
+            return False
+        if test == "le" and not any(factDay <= d for d in days):
+            return False
+    return True
+
+
+def resolveDateResolution(compMdl, dateResObj):
+    """The set of calendar days a date resolution object resolves to in this report, or None
+    when it resolves to none (then the property using it is ignored). Cached per model."""
+    cache = getattr(compMdl, "_dateResolutionCache", None)
+    if cache is None:
+        cache = compMdl._dateResolutionCache = {}
+    key = id(dateResObj)
+    if key in cache:
+        return cache[key]
+    days = set()
+    if dateResObj.conceptName is not None:
+        for fact in _factsOfConcept(compMdl, dateResObj.conceptName):
+            for fv in fact.factValues or ():
+                # the lexical value (a date names its day); the typed value if no lexical one is kept
+                day = _valueDay(fv.value if fv.value is not None else getattr(fv, "_xValue", None))
+                if day is not None:
+                    days.add(day)
+    elif dateResObj.context is not None:
+        atStart = getattr(dateResObj.context, "atSuffix", "end") == "start"
+        for fact in _factsOfConcept(compMdl, dateResObj.context):
+            period = _factPeriod(fact)
+            if period is not None:
+                days.add(period.startDay if atStart else period.endDay)
+    elif dateResObj.value is not None:
+        day = _valueDay(dateResObj.value)
+        if day is not None:
+            days.add(day)
+    elif dateResObj.dateProperty:
+        days.update(_datePropertyDays(compMdl, dateResObj))
+    if days and dateResObj.timeShift:
+        days = {_addDuration(_datetime.datetime.combine(d, _datetime.time()), dateResObj.timeShift).date()
+                for d in days}
+    result = days or None
+    cache[key] = result
+    return result
+
+
+def _factsOfConcept(compMdl, conceptQn):
+    """Facts reporting the concept (QName or QNameAt), indexed once per model."""
+    index = getattr(compMdl, "_factsByConceptCache", None)
+    if index is None:
+        index = compMdl._factsByConceptCache = {}
+        for fact in compMdl.filterNamedObjects(XbrlFact):
+            qn = (fact.factDimensions or {}).get(conceptCoreDim)
+            if isinstance(qn, str) and ":" in qn:
+                qn = qname(qn, fact.module._prefixNamespaces)
+            if qn is not None:
+                index.setdefault((qn.namespaceURI, qn.localName), []).append(fact)
+    return index.get((conceptQn.namespaceURI, conceptQn.localName), ())
+
+
+def _factPeriod(fact):
+    """The fact's period as a _Period, from its period dimension's lexical value."""
+    perStr = fact.factDimensions.get(periodCoreDim)
+    return _parsePeriod(perStr) if perStr is not None else None
+
+
+def _datePropertyDays(compMdl, dateResObj):
+    """Days named by a dateProperty "objectQName.propertyQName@start|@end": the property's
+    value is a date or a period."""
+    ref, _sep, suffix = str(dateResObj.dateProperty).partition("@")
+    objPart, _sep, propPart = ref.rpartition(".")
+    prefixes = getattr(getattr(dateResObj, "module", None), "_prefixNamespaces", None)
+    objQn, propQn = qname(objPart, prefixes), qname(propPart, prefixes)
+    obj = compMdl.namedObjects.get(objQn) if objQn is not None else None
+    for prop in getattr(obj, "properties", None) or ():
+        if prop.property == propQn:
+            value = str(prop.value)
+            if "/" in value:
+                period = _parsePeriod(value)
+                if period is None:
+                    return set()
+                return {period.startDay if suffix == "start" else period.endDay}
+            day = _valueDay(value)
+            return {day} if day is not None else set()
+    return set()
+
+
+def _valueDay(value):
+    """A date or dateTime value, by its lexical form, as the calendar day it names: a date names
+    its day, a dateTime at midnight the day it closes."""
+    if value is None:
+        return None
+    text = str(value).strip()
+    try:
+        return _pointEndDay(_parsePoint(text, isEnd=True))
+    except ValueError:
+        return None
+
+
+def _addDuration(point, duration):
+    """point + an xs:duration, calendar-wise: years and months first (clamping the day to the
+    month's length), then weeks, days and time. Returns None for an unparseable duration."""
+    m = _isoDurationPattern.match(str(duration).strip())
+    if not m:
+        return None
+    neg, years, months, weeks, days, hours, minutes, seconds = m.groups()
+    sign = -1 if neg else 1
+    totalMonths = point.month - 1 + sign * (int(years or 0) * 12 + int(months or 0))
+    year, month = point.year + totalMonths // 12, totalMonths % 12 + 1
+    day = min(point.day, _calendar.monthrange(year, month)[1])
+    shifted = point.replace(year=year, month=month, day=day)
+    return shifted + sign * _datetime.timedelta(weeks=int(weeks or 0), days=int(days or 0),
+                                                hours=int(hours or 0), minutes=int(minutes or 0),
+                                                seconds=float(seconds or 0))
