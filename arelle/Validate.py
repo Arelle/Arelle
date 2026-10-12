@@ -389,6 +389,7 @@ class Validate:
     ) -> list[ModelXbrl]:
         preLoadingErrors: list[str] = [] # accumulate pre-loading errors, such as during taxonomy package loading
         loadedModels: list[ModelXbrl] = []
+        identifiedReportCount = 0
         filesource: FileSource | None = None
         readMeFirstElements = modelTestcaseVariation.readMeFirstElements
         expectTaxonomyPackage = (index < len(readMeFirstElements) and
@@ -526,6 +527,8 @@ class Validate:
                 if filesource and filesource.isReportPackage and not _rptPkgIxdsOptions:
                     if not reportPackageErrors:
                         assert isinstance(filesource.basefile, str)
+                        if filesource.reportPackage is not None and filesource.reportPackage.reports is not None:
+                            identifiedReportCount = len(filesource.reportPackage.reports)
                         if entrypoints := filesourceEntrypointFiles(filesource):
                             fileSourceValidator = ValidateFileSource(self.modelXbrl.modelManager.cntlr, filesource)
                             fileSourceValidator.validate(
@@ -608,11 +611,7 @@ class Validate:
         for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.plugins.hooks("Validate.Complete"):
             pluginXbrlMethod(self.modelXbrl.modelManager.cntlr, filesource)
         errors = [error for model in loadedModels for error in model.errors]
-        reportModelCount = len([
-            model for model in loadedModels
-            if model.modelDocument is not None and (model.fileSource.isReportPackage or not model.fileSource.isTaxonomyPackage)
-        ])
-        self.determineTestStatus(modelTestcaseVariation, errors, validateModelCount=reportModelCount)
+        self.determineTestStatus(modelTestcaseVariation, errors, validateModelCount=identifiedReportCount)
         if not inputDTSes:
             for model in loadedModels:
                 model.close()
