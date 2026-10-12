@@ -153,6 +153,7 @@ class RuntimeOptions:
     validateDuplicateFacts: Optional[str] = None
     validateXmlOim: bool = False
     validateTableConstraintsSkipLoading: bool = False
+    skipPackageContentLoading: bool = False
     validateEFM: Optional[bool] = None
     validateEFMCalcTree: Optional[bool] = None
     validateHMRC: Optional[bool] = None

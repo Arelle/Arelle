@@ -13,6 +13,10 @@ if TYPE_CHECKING:
     from arelle.FileSource import FileSource
 
 
+def isPackage(filesource: FileSource) -> bool:
+    return filesource.isReportPackage or filesource.isTaxonomyPackage
+
+
 class ValidateFileSource:
     def __init__(self, cntrl: Cntlr, filesource: FileSource):
         self._cntrl = cntrl

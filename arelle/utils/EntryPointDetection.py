@@ -13,6 +13,7 @@ from arelle import FileSource
 from arelle.FileSource import FileNamedBytesIO
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.UrlUtil import isHttpUrl
+from arelle.ValidateFileSource import isPackage
 from arelle.typing import TypeGetText
 
 _: TypeGetText
@@ -33,6 +34,7 @@ def parseEntrypointFileInput(
     entrypointFile: str | None,
     sourceZipStream: BinaryIO | FileNamedBytesIO | None = None,
     fallbackSelect: bool = True,
+    skipPackageEntries: bool = False,
 ) -> EntrypointParseResult:
     # entrypointFile may be absent (if input is a POSTED zip or file name ending in .zip)
     #    or may be a | separated set of file names
@@ -63,7 +65,7 @@ def parseEntrypointFileInput(
     _entrypointFiles = _entryPoints
     if filesource and not filesource.selection and not (sourceZipStream and len(_entrypointFiles) > 0):
         try:
-            filesourceEntrypointFiles(filesource, _entrypointFiles, fallbackSelect=fallbackSelect)
+            filesourceEntrypointFiles(filesource, _entrypointFiles, fallbackSelect=fallbackSelect, skipPackageEntries=skipPackageEntries)
         except Exception as err:
             cntlr.addToLog(str(err), messageCode="error", level=logging.ERROR)
             return EntrypointParseResult(success=False, entrypointFiles=_entrypointFiles, filesource=filesource)
@@ -75,9 +77,13 @@ def filesourceEntrypointFiles(
     entrypointFiles: list[dict[str, Any]] | None = None,
     inlineOnly: bool = False,
     fallbackSelect: bool = True,
+    skipPackageEntries: bool = False,
 ) -> list[dict[str, str]]:
     if entrypointFiles is None:
         entrypointFiles = []
+    if skipPackageEntries and isPackage(filesource):
+        del entrypointFiles[:]
+        return entrypointFiles
     for pluginXbrlMethod in filesource.hooks("FileSource.EntrypointFiles"):
         resultEntrypointFiles = pluginXbrlMethod(filesource, inlineOnly)
         if resultEntrypointFiles is not None:
