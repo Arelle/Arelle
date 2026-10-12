@@ -20,7 +20,7 @@ import regex as re
 
 from arelle import UrlUtil, ViewUtil
 from arelle.ValidateDuplicateFactsConst import DuplicateTypeArg
-from arelle.ValidateFileSource import ValidateFileSource
+from arelle.ValidateFileSource import ValidateFileSource, isPackage
 from arelle.logging.formatters.LogFormatter import LogFormatter, logRefsFileLines
 from arelle.typing import TypeGetText
 from arelle.utils.EntryPointDetection import parseEntrypointFileInput
@@ -236,6 +236,11 @@ class CntlrWinMain(Cntlr.Cntlr):
         self.validateTableConstraintsSkipLoading = BooleanVar(value=self.modelManager.validateTableConstraintsSkipLoading)
         self.validateTableConstraintsSkipLoading.trace_add("write", self.setValidateTableConstraintsSkipLoading)
         validateMenu.add_checkbutton(label=_("xBRL-CSV: Table Constraints only (no load)"), underline=0, variable=self.validateTableConstraintsSkipLoading, onvalue=True, offvalue=False)
+
+        self.modelManager.skipPackageContentLoading = self.config.setdefault("skipPackageContentLoading", False)
+        self.skipPackageContentLoading = BooleanVar(value=self.modelManager.skipPackageContentLoading)
+        self.skipPackageContentLoading.trace_add("write", self.setSkipPackageContentLoading)
+        validateMenu.add_checkbutton(label=_("Packages: skip loading reports and taxonomies"), underline=0, variable=self.skipPackageContentLoading, onvalue=True, offvalue=False)
 
         self.modelManager.validateAllFilesAsReportPackages = self.config.setdefault("validateAllFilesAsReportPackages", False)
         self.validateAllFilesAsReportPackages = BooleanVar(value=self.modelManager.validateAllFilesAsReportPackages)
@@ -883,15 +888,22 @@ class CntlrWinMain(Cntlr.Cntlr):
         if filename:
             for xbrlLoadedMethod in self.plugins.hooks("CntlrWinMain.Xbrl.Open"):
                 filename = xbrlLoadedMethod(self, filename) # runs in GUI thread, allows mapping filename, mult return filename
+            skipPackageContentLoading = self.modelManager.skipPackageContentLoading and not importToDTS
             entrypointParseResult = parseEntrypointFileInput(
                 self,
                 filename,
                 fallbackSelect=False,
+                skipPackageEntries=skipPackageContentLoading,
             )
             if not entrypointParseResult.success or entrypointParseResult.filesource is None:
                 return
             filesource = entrypointParseResult.filesource
             entrypointFiles = entrypointParseResult.entrypointFiles
+            if skipPackageContentLoading and isPackage(filesource):
+                self.updateFileHistory(filename, importToDTS)
+                self.addToLog(_("skipped loading package contents: {0}").format(filesource.url))
+                filesource.close()
+                return
             # check for archive files
             if filesource.isArchive:
                 if (
@@ -930,11 +942,16 @@ class CntlrWinMain(Cntlr.Cntlr):
                 self,
                 url,
                 fallbackSelect=False,
+                skipPackageEntries=self.modelManager.skipPackageContentLoading,
             )
             if not entrypointParseResult.success or entrypointParseResult.filesource is None:
                 return
             filesource = entrypointParseResult.filesource
             entrypointFiles = entrypointParseResult.entrypointFiles
+            if self.modelManager.skipPackageContentLoading and isPackage(filesource):
+                self.addToLog(_("skipped loading package contents: {0}").format(filesource.url))
+                filesource.close()
+                return
             if filesource.isArchive:
                 if (
                         len(entrypointFiles) == 0 and
@@ -1600,6 +1617,11 @@ class CntlrWinMain(Cntlr.Cntlr):
     def setValidateTableConstraintsSkipLoading(self, *args: Any) -> None:
         self.modelManager.validateTableConstraintsSkipLoading = self.validateTableConstraintsSkipLoading.get()
         self.config["validateTableConstraintsSkipLoading"] = self.modelManager.validateTableConstraintsSkipLoading
+        self.saveConfig()
+
+    def setSkipPackageContentLoading(self, *args: Any) -> None:
+        self.modelManager.skipPackageContentLoading = self.skipPackageContentLoading.get()
+        self.config["skipPackageContentLoading"] = self.modelManager.skipPackageContentLoading
         self.saveConfig()
 
     def setValidateAllFilesAsReportPackages(self, *args: Any) -> None:
