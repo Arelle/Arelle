@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       edgar_ref:
-        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
+        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for the tag pinned in plugin-versions.txt)'
         required: false
         type: string
       openssl_version:
@@ -18,7 +18,7 @@ on:
         required: false
         type: string
       xule_ref:
-        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
+        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for the tag pinned in plugin-versions.txt)'
         required: false
         type: string
     outputs:
@@ -31,7 +31,7 @@ on:
   workflow_dispatch:
     inputs:
       edgar_ref:
-        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
+        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for the tag pinned in plugin-versions.txt)'
         required: false
         type: string
       openssl_version:
@@ -45,7 +45,7 @@ on:
         required: true
         type: string
       xule_ref:
-        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
+        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for the tag pinned in plugin-versions.txt)'
         required: false
         type: string
 
@@ -63,12 +63,18 @@ jobs:
         uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
+      - name: Resolve plugin refs
+        id: plugin-refs
+        uses: ./.github/actions/plugin_refs
+        with:
+          edgar_ref: ${{ inputs.edgar_ref }}
+          xule_ref: ${{ inputs.xule_ref }}
       - name: Checkout EDGAR
         uses: actions/checkout@v7.0.1
         with:
           repository: Arelle/EDGAR
           path: arelle/plugin/EDGAR
-          ref: ${{ inputs.edgar_ref }}
+          ref: ${{ steps.plugin-refs.outputs.edgar_ref }}
       - name: Cleanup EDGAR
         run: rm -rf arelle/plugin/EDGAR/.git
       - name: Checkout XULE
@@ -76,7 +82,7 @@ jobs:
         with:
           repository: xbrlus/xule
           path: xule
-          ref: ${{ inputs.xule_ref }}
+          ref: ${{ steps.plugin-refs.outputs.xule_ref }}
       - name: Move XULE plugins
         run: |
           mv xule/plugin/validate/* arelle/plugin/validate/

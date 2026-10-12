@@ -13,23 +13,37 @@ inputs:
   short_name:
     description: Optional shortened version of name for compact display (defaults to `name`)
     required: false
+  edgar_ref:
+    description: Arelle/EDGAR branch, tag or SHA to checkout (blank for the tag pinned in plugin-versions.txt)
+    required: false
+  xule_ref:
+    description: xbrlus/xule branch, tag or SHA to checkout (blank for the tag pinned in plugin-versions.txt)
+    required: false
 
 runs:
   using: composite
   steps:
+    - name: Resolve plugin refs
+      id: plugin-refs
+      if: ${{ inputs.name == 'efm_current' }}
+      uses: ./.github/actions/plugin_refs
+      with:
+        edgar_ref: ${{ inputs.edgar_ref }}
+        xule_ref: ${{ inputs.xule_ref }}
     - name: Checkout EDGAR
       if: ${{ inputs.name == 'efm_current' }}
       uses: actions/checkout@v7.0.1
       with:
         repository: Arelle/EDGAR
         path: arelle/plugin/EDGAR
+        ref: ${{ steps.plugin-refs.outputs.edgar_ref }}
     - name: Checkout XULE
       if: ${{ inputs.name == 'efm_current' }}
       uses: actions/checkout@v7.0.1
       with:
         repository: xbrlus/xule
         path: tmp
-        ref: ${{ inputs.xule_ref }}
+        ref: ${{ steps.plugin-refs.outputs.xule_ref }}
     - name: Setup XULE
       if: ${{ inputs.name == 'efm_current' }}
       shell: bash

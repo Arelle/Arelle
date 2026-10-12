@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       edgar_ref:
-        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
+        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for the tag pinned in plugin-versions.txt)'
         required: false
         type: string
       python_version:
@@ -13,7 +13,7 @@ on:
         required: false
         type: string
       xule_ref:
-        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
+        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for the tag pinned in plugin-versions.txt)'
         required: false
         type: string
 
