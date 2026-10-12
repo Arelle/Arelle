@@ -39,20 +39,30 @@ ARG INCLUDE_EDGAR=""
 ARG EDGAR_REF=""
 ARG XULE_REF=""
 
+## Plugin release tags used when EDGAR_REF / XULE_REF are blank
+COPY plugin-versions.txt .
+
 ## Clone EDGAR plugin if enabled and plugin doesn't already exist
-## Uses EDGAR_REF to pin a specific tag/release if provided
+## Uses EDGAR_REF (branch, tag or SHA) if provided, otherwise the tag in plugin-versions.txt
 RUN if ([ -n "$INCLUDE_EDGAR" ] || [ -n "$EDGAR_REF" ]) && [ ! -d arelle/plugin/EDGAR ]; then \
-        git clone --depth 1 ${EDGAR_REF:+--branch "$EDGAR_REF"} https://github.com/Arelle/EDGAR.git \
+        . ./plugin-versions.txt \
+        && git init -q EDGAR \
+        && git -C EDGAR fetch -q --depth 1 https://github.com/Arelle/EDGAR.git "${EDGAR_REF:-$EDGAR_VERSION}" \
+        && git -C EDGAR checkout -q FETCH_HEAD \
         && rm -rf EDGAR/.git \
         && mv EDGAR arelle/plugin/; \
     fi
 
 ## Clone XULE plugin if enabled and plugin doesn't already exist
-## Uses XULE_REF to pin a specific tag/release if provided
+## Uses XULE_REF (branch, tag or SHA) if provided, otherwise the tag in plugin-versions.txt
 ## Moves XULE validation contents (DQC.py & eforms.py) to Arelle validation directory
 ## Moves XULE plugin directory contents to arelle plugin directory
 RUN if ([ -n "$INCLUDE_EDGAR" ] || [ -n "$XULE_REF" ]) && [ ! -d arelle/plugin/xule ]; then \
-        git clone --depth 1 ${XULE_REF:+--branch "$XULE_REF"} https://github.com/xbrlus/xule.git \
+        . ./plugin-versions.txt \
+        && git init -q xule \
+        && git -C xule fetch -q --depth 1 https://github.com/xbrlus/xule.git "${XULE_REF:-$XULE_VERSION}" \
+        && git -C xule checkout -q FETCH_HEAD \
+        && rm -rf xule/.git \
         && mv xule/plugin/validate/* arelle/plugin/validate/ \
         && rm -rf xule/plugin/validate \
         && mv xule/plugin/* arelle/plugin/ \

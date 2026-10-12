@@ -1,0 +1,4 @@
+# Release tags of the external plugins bundled into builds, Docker images and CI.
+# Shell-sourceable (KEY=VALUE). This is the only place these versions are defined.
+EDGAR_VERSION=26.3
+XULE_VERSION=30055
