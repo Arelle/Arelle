@@ -23,11 +23,10 @@ from arelle.ModelValue import qname
 from arelle.ValidateXbrlCalcs import rangeValue, insignificantDigits
 
 from .ErrorCatalog import emit_error
-from .XbrlConst import xbrl, qnXbrlRootSource
+from .XbrlConst import xbrl, qnXbrlRootSource, qnsXbrlSummationConcept
 from .XbrlCube import conceptCoreDim
 from .XbrlNetwork import XbrlNetwork
 
-qnXbrlSummationConcept = qname(xbrl, "xbrl:summation-concept")
 qnXbrlGreaterLesser = qname(xbrl, "xbrl:greater-lesser")
 qnXbrlWeight = qname(xbrl, "xbrl:weight")
 
@@ -207,7 +206,7 @@ def validateCubeCalculations(compMdl, cubeObj):
         ntwkObj = compMdl.namedObjects.get(ntwkQn)
         if not isinstance(ntwkObj, XbrlNetwork):
             continue
-        if ntwkObj.relationshipTypeName == qnXbrlSummationConcept:
+        if ntwkObj.relationshipTypeName in qnsXbrlSummationConcept:
             calcNetworks.append(ntwkObj)
         elif ntwkObj.relationshipTypeName == qnXbrlGreaterLesser:
             greaterLesserNetworks.append(ntwkObj)

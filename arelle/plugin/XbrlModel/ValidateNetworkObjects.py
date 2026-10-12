@@ -7,7 +7,8 @@ from ordered_set import OrderedSet
 from arelle.ModelValue import QName, qname
 from .ErrorCatalog import emit_error
 from .XbrlConcept import XbrlCollectionType, XbrlDataType, XbrlConcept
-from .XbrlConst import objectsWithProperties, qnXbrlRootSource, xbrl, xbrla
+from .XbrlConst import (objectsWithProperties, qnXbrlRootSource, qnsXbrlSummationConcept, xbrl,
+                        xbrla)
 from .XbrlCube import XbrlCube, conceptCoreDim
 from .XbrlDimension import XbrlDomainNetwork
 from .XbrlLabel import XbrlLabelType
@@ -19,7 +20,6 @@ qnXbrlClassSubclass = qname(xbrl, "xbrl:class-subclass")
 qnPreferredLabel = qname(xbrl, "xbrl:preferredLabel")
 qnXbrlTaxonomyGroup = qname(xbrl, "xbrl:taxonomy-group")
 qnXbrlaBalance = qname(xbrla, "xbrla:balance")
-qnXbrlSummationConcept = qname(xbrl, "xbrl:summation-concept")
 qnXbrlGreaterLesser = qname(xbrl, "xbrl:greater-lesser")
 qnXbrlWeight = qname(xbrl, "xbrl:weight")
 # The property is defined entirely in terms of xbrla:balance, so moving it to the accounting
@@ -427,7 +427,7 @@ def validateNetworkFamily(compMdl, module, oimFile, *, assertObjectType, validat
         # Summation-concept checks run after the loop above, because they read link property
         # values through propertyObjectValue, which returns the validated typed value that
         # validateProperties sets on each relationship inside that loop.
-        if getattr(relTypeObj, "name", None) == qnXbrlSummationConcept:
+        if getattr(relTypeObj, "name", None) in qnsXbrlSummationConcept:
             _validateSummationConceptNetwork(compMdl, ntwkObj)
         elif getattr(relTypeObj, "name", None) == qnXbrlGreaterLesser:
             _validateGreaterLesserNetwork(compMdl, ntwkObj)

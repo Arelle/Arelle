@@ -248,6 +248,15 @@ builtInPrefixTaxonomies = { # these are in resources subdirectory
 }
 
 qnStdLabel = qname(xbrl, "xbrl:label")
+
+# The calculation relationship was renamed summation-item -> summation-concept during the working
+# group's review, after the PWD was published. The published PWD taxonomy therefore declares
+# xbrl:summation-item, while tavi.md and the spec taxonomy on the review branch declare
+# xbrl:summation-concept. Both are accepted until the published documents catch up; everything
+# this plugin emits uses the newer name.
+qnXbrlSummationConcept = qname(xbrl, "xbrl:summation-concept")
+qnXbrlSummationItem = qname(xbrl, "xbrl:summation-item")
+qnsXbrlSummationConcept = frozenset((qnXbrlSummationConcept, qnXbrlSummationItem))
 qnXsDate = qname(xsd, "xs:date")
 qnXsDateTime = qname(xsd, "xs:dateTime")
 qnXsDuration = qname(xsd, "xs:duration")

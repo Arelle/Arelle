@@ -1016,6 +1016,12 @@
             {
                 "labelType": "xbrl:documentation",
                 "language": "en",
+                "forObject": "xbrl:summation-item",
+                "value": "The name this relationship type carried in the published PWD, accepted as an alias of xbrl:summation-concept until the published documents are updated."
+            },
+            {
+                "labelType": "xbrl:documentation",
+                "language": "en",
                 "forObject": "xbrl:general-special",
                 "value": "Relationship type used to indicate a general-to-special relationship between concepts (a refinement or more specific version)."
             },
@@ -2102,6 +2108,23 @@
             },
             {
                 "name": "xbrl:summation-concept",
+                "cycles": "undirected",
+                "allowedLinkProperties": [
+                    "xbrl:weight",
+                    "xbrl:reconciliation"
+                ],
+                "requiredLinkProperties": [
+                    "xbrl:weight"
+                ],
+                "sourceObjects": [
+                    "xbrl:conceptObject"
+                ],
+                "targetObjects": [
+                    "xbrl:conceptObject"
+                ]
+            },
+            {
+                "name": "xbrl:summation-item",
                 "cycles": "undirected",
                 "allowedLinkProperties": [
                     "xbrl:weight",
