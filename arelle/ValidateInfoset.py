@@ -225,22 +225,22 @@ def stripTime(periodAspect: Iterable[str | None]) -> tuple[DateTime | None, ...]
 
 def compareRenderingInfosetElts(
         modelXbrl: ModelXbrl,
-        sourceElt: etree._Element | None,
-        comparisonElt: etree._Element | None
+        sourceElt: etree._Element,
+        comparisonElt: etree._Element
     ) -> None:
-    sourceEltTag = sourceElt.tag if sourceElt is not None else "(no more elements)"
-    comparisonEltTag = comparisonElt.tag if comparisonElt is not None else "(no more elements)"
+    sourceEltTag = sourceElt.tag
+    comparisonEltTag = comparisonElt.tag
     if sourceEltTag != comparisonEltTag:
         modelXbrl.error("arelle:tableModelElementMismatch",
             _("Table layout model expecting %(elt1)s found %(elt2)s source path %(elt1path)s comparison line %(elt2line)s path %(elt2path)s, srcElt %(elt1xml)s cmpElt %(elt2xml)s"),
             modelObject=modelXbrl, elt1=sourceEltTag, elt2=comparisonEltTag,
-            elt1path=sourceElt.getroottree().getpath(sourceElt), elt2path=comparisonElt.getroottree().getpath(comparisonElt),  # type: ignore[arg-type,union-attr]
-            elt2line=comparisonElt.sourceline,  # type: ignore[union-attr]
-            elt1xml=etree.tostring(sourceElt),elt2xml=etree.tostring(comparisonElt))  # type: ignore[arg-type]
+            elt1path=sourceElt.getroottree().getpath(sourceElt), elt2path=comparisonElt.getroottree().getpath(comparisonElt),
+            elt2line=comparisonElt.sourceline,
+            elt1xml=etree.tostring(sourceElt),elt2xml=etree.tostring(comparisonElt))
     elif sourceEltTag == "{http://xbrl.org/2014/table/model}cell":
-        ceSrcIter = sourceElt.iter("{http://xbrl.org/2014/table/model}fact",  # type: ignore[union-attr]
+        ceSrcIter = sourceElt.iter("{http://xbrl.org/2014/table/model}fact",
                                    "{http://xbrl.org/2014/table/model}label")
-        ceCmpIter = comparisonElt.iter("{http://xbrl.org/2014/table/model}fact",  # type: ignore[union-attr]
+        ceCmpIter = comparisonElt.iter("{http://xbrl.org/2014/table/model}fact",
                                        "{http://xbrl.org/2014/table/model}label")
         ceSrcElt = next(ceSrcIter, None)
         ceCmpElt = next(ceCmpIter, None)
@@ -251,7 +251,7 @@ def compareRenderingInfosetElts(
         srcConstraints: dict[tuple[str, str], tuple[str, ...]] = {}
         cmpConstraints: dict[tuple[str, str], tuple[str, ...]] = {}
         for srcE, cstrts in ((sourceElt, srcConstraints), (comparisonElt, cmpConstraints)):
-            for e in srcE.iter("{http://xbrl.org/2014/table/model}constraint"):  # type: ignore[union-attr]
+            for e in srcE.iter("{http://xbrl.org/2014/table/model}constraint"):
                 cstrtTag = e.get("tag", "")
                 cstrtAspect = e.findtext("{http://xbrl.org/2014/table/model}aspect")
                 if cstrtAspect:
@@ -268,18 +268,18 @@ def compareRenderingInfosetElts(
             modelXbrl.error("arelle:tableModelConstraintsMismatch",
                 _("Table layout model constraints %(src)s expecting %(cmp)s source path %(elt1path)s comparison line %(elt2line)s path %(elt2path)s"),
                 modelObject=modelXbrl, src=",".join(str(s) for s in sorted(srcConstraints.items())), cmp=",".join(str(s) for s in sorted(cmpConstraints.items())),
-                elt1path=sourceElt.getroottree().getpath(sourceElt), elt2path=comparisonElt.getroottree().getpath(comparisonElt),  # type: ignore[arg-type,union-attr]
-                elt2line=comparisonElt.sourceline)  # type: ignore[union-attr]
+                elt1path=sourceElt.getroottree().getpath(sourceElt), elt2path=comparisonElt.getroottree().getpath(comparisonElt),
+                elt2line=comparisonElt.sourceline)
     else:
-        text1 = (sourceElt.text or "").strip() or "(none)"  # type: ignore[union-attr]
-        text2 = (comparisonElt.text or "").strip() or "(none)"  # type: ignore[union-attr]
+        text1 = (sourceElt.text or "").strip() or "(none)"
+        text2 = (comparisonElt.text or "").strip() or "(none)"
         if text1 != text2:
             modelXbrl.error("arelle:tableModelTextMismatch",
                 _("Table layout model comparison element %(elt)s expecting text %(text1)s found %(text2)s source line %(elt1line)s comparison line %(elt2line)s"),
-                modelObject=modelXbrl, elt=sourceElt.tag, text1=text1, text2=text2,  # type: ignore[union-attr]
-                elt1line=sourceElt.sourceline, elt2line=comparisonElt.sourceline)  # type: ignore[union-attr]
-        attrs1 = dict(sourceElt.items())  # type: ignore[union-attr]
-        attrs2 = dict(comparisonElt.items())  # type: ignore[union-attr]
+                modelObject=modelXbrl, elt=sourceElt.tag, text1=text1, text2=text2,
+                elt1line=sourceElt.sourceline, elt2line=comparisonElt.sourceline)
+        attrs1 = dict(sourceElt.items())
+        attrs2 = dict(comparisonElt.items())
         # remove attributes not to be compared
         for attr in ("{http://www.w3.org/XML/1998/namespace}base",):
             if attr in attrs1: del attrs1[attr]
@@ -287,10 +287,10 @@ def compareRenderingInfosetElts(
         if attrs1 != attrs2:
             modelXbrl.error("arelle:tableModelAttributesMismatch",
                 _("Table layout model comparison element %(elt)s expecting attributes %(attrs1)s found %(attrs2)s source line %(elt1line)s comparison line %(elt2line)s"),
-                modelObject=modelXbrl, elt=sourceElt.tag,  # type: ignore[union-attr]
+                modelObject=modelXbrl, elt=sourceElt.tag,
                 attrs1=", ".join('{0}="{1}"'.format(k, v) for k, v in sorted(attrs1.items())),
                 attrs2=", ".join('{0}="{1}"'.format(k, v) for k, v in sorted(attrs2.items())),
-                elt1line=sourceElt.sourceline, elt2line=comparisonElt.sourceline)  # type: ignore[union-attr]
+                elt1line=sourceElt.sourceline, elt2line=comparisonElt.sourceline)
 
 
 def validateRenderingInfoset(modelXbrl: ModelXbrl, comparisonFile: str, sourceDoc: etree._ElementTree) -> None:
@@ -312,8 +312,8 @@ def validateRenderingInfoset(modelXbrl: ModelXbrl, comparisonFile: str, sourceDo
         if len(headerElts) == 3:
             if headerElts[0].get("axis") == "y" and headerElts[2].get("axis") == "z":
                 headerElts[0].addprevious(headerElts[2])
-        sourceIter = sourceDoc.iter()
-        comparisonIter = comparisonDoc.iter()
+        sourceIter = sourceDoc.iter(etree.Element)
+        comparisonIter = comparisonDoc.iter(etree.Element)
         sourceElt = next(sourceIter, None)
         comparisonElt = next(comparisonIter, None)
         # skip over nsmap elements used to create output trees
@@ -322,11 +322,7 @@ def validateRenderingInfoset(modelXbrl: ModelXbrl, comparisonFile: str, sourceDo
         while comparisonElt is not None and sourceElt.tag == "nsmap":  # type: ignore[union-attr]
             comparisonElt = next(comparisonIter, None)
         while sourceElt is not None and comparisonElt is not None:
-            while isinstance(sourceElt, etree._Comment):
-                sourceElt = next(sourceIter, None)
-            while isinstance(comparisonElt, etree._Comment):
-                comparisonElt = next(comparisonIter, None)
-            if sourceElt is None or not any(e is not None for e in sourceElt.iterancestors("{http://xbrl.org/2014/table/model}cell")):
+            if not any(e is not None for e in sourceElt.iterancestors("{http://xbrl.org/2014/table/model}cell")):
                 compareRenderingInfosetElts(modelXbrl, sourceElt, comparisonElt)
             sourceElt = next(sourceIter, None)
             comparisonElt = next(comparisonIter, None)
