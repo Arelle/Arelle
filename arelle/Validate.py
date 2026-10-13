@@ -23,7 +23,7 @@ from arelle.CompareInstance import compareInstance
 from arelle.ModelRssItem import rssItemAlreadyValidatedStatuses
 from arelle.ModelRssObject import ModelRssObject
 from arelle.PythonUtil import isLegacyAbs
-from arelle.ValidateFileSource import ValidateFileSource
+from arelle.ValidateFileSource import ValidateFileSource, isPackage
 from arelle.ValidateXbrlCalcs import ValidateCalcsMode
 from arelle.formula import ValidateFormula
 from arelle.FileSource import FileSource, openFileSource, archiveFilenameParts
@@ -389,6 +389,7 @@ class Validate:
     ) -> list[ModelXbrl]:
         preLoadingErrors: list[str] = [] # accumulate pre-loading errors, such as during taxonomy package loading
         loadedModels: list[ModelXbrl] = []
+        identifiedReportCount = 0
         filesource: FileSource | None = None
         readMeFirstElements = modelTestcaseVariation.readMeFirstElements
         expectTaxonomyPackage = (index < len(readMeFirstElements) and
@@ -523,10 +524,13 @@ class Validate:
                             _("Testcase variation validation exception: %(error)s, entry URL: %(instance)s"),
                             modelXbrl=self.modelXbrl, instance=readMeFirstUri, error=err)
                         return [] # don't try to load this entry URL
+                skipPackageContentLoading = self.modelXbrl.modelManager.skipPackageContentLoading
                 if filesource and filesource.isReportPackage and not _rptPkgIxdsOptions:
                     if not reportPackageErrors:
                         assert isinstance(filesource.basefile, str)
-                        if entrypoints := filesourceEntrypointFiles(filesource):
+                        if filesource.reportPackage is not None and filesource.reportPackage.reports is not None:
+                            identifiedReportCount = len(filesource.reportPackage.reports)
+                        if entrypoints := filesourceEntrypointFiles(filesource, skipPackageEntries=skipPackageContentLoading):
                             fileSourceValidator = ValidateFileSource(self.modelXbrl.modelManager.cntlr, filesource)
                             fileSourceValidator.validate(
                                 self.modelXbrl.modelManager.validateAllFilesAsReportPackages,
@@ -550,7 +554,8 @@ class Validate:
                         # Legacy ESEF conformance suite logic.
                         for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.plugins.hooks("ModelTestcaseVariation.ReportPackageIxds"):
                                 filesource.select(pluginXbrlMethod(filesource, **_rptPkgIxdsOptions))
-                    if len(loadedModels) == 0:
+                    skipContentLoading = skipPackageContentLoading and isPackage(filesource)
+                    if len(loadedModels) == 0 and not skipContentLoading:
                         modelXbrl = modelXbrlLoad(self.modelXbrl.modelManager,
                                                     filesource,
                                                     _("validating"),
@@ -608,11 +613,7 @@ class Validate:
         for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.plugins.hooks("Validate.Complete"):
             pluginXbrlMethod(self.modelXbrl.modelManager.cntlr, filesource)
         errors = [error for model in loadedModels for error in model.errors]
-        reportModelCount = len([
-            model for model in loadedModels
-            if model.modelDocument is not None and (model.fileSource.isReportPackage or not model.fileSource.isTaxonomyPackage)
-        ])
-        self.determineTestStatus(modelTestcaseVariation, errors, validateModelCount=reportModelCount)
+        self.determineTestStatus(modelTestcaseVariation, errors, validateModelCount=identifiedReportCount)
         if not inputDTSes:
             for model in loadedModels:
                 model.close()

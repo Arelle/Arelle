@@ -60,7 +60,7 @@ from arelle.CompareInstance import compareInstance
 from arelle.Locale import format_string, setApplicationLocale, setDisableRTL
 from arelle.ModelFormulaObject import FormulaOptions
 from arelle.ModelValue import qname
-from arelle.ValidateFileSource import ValidateFileSource
+from arelle.ValidateFileSource import ValidateFileSource, isPackage
 from arelle.oim.xml.Save import saveOimReportToXmlInstance
 from arelle.rendering import RenderingEvaluator
 from arelle.RuntimeOptions import RuntimeOptions, RuntimeOptionsException
@@ -360,6 +360,16 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict[str, Any]]:
         help=_(
             "Validates an xBRL-CSV report against its Table Constraints metadata only, "
             "without loading the taxonomy or creating facts. Implies --validate."
+            )
+        )
+    validationGroup.add_option(
+        "--skipPackageContentLoading",
+        "--skippackagecontentloading",
+        action="store_true",
+        dest="skipPackageContentLoading",
+        help=_(
+            "Skips loading reports and taxonomies inside report and taxonomy packages. Useful for validating "
+            "package structure without asserting anything about the reports and taxonomies within."
             )
         )
     validationGroup.add_option(
@@ -1834,6 +1844,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         self.modelManager.validateTableConstraintsSkipLoading = options.validateTableConstraintsSkipLoading
         if options.validateTableConstraintsSkipLoading:
             options.validate = True
+        self.modelManager.skipPackageContentLoading = options.skipPackageContentLoading
         if options.validateDuplicateFacts:
             duplicateTypeArg = ValidateDuplicateFactsConst.DuplicateTypeArg(options.validateDuplicateFacts)
             duplicateType = duplicateTypeArg.duplicateType()
@@ -1994,7 +2005,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
             if not (options.entrypointFile or sourceZipStream):
                 return True
 
-        entrypointParseResult = parseEntrypointFileInput(self, options.entrypointFile, sourceZipStream)
+        entrypointParseResult = parseEntrypointFileInput(self, options.entrypointFile, sourceZipStream, skipPackageEntries=options.skipPackageContentLoading)
         if not entrypointParseResult.success:
             return False
         filesource = entrypointParseResult.filesource
@@ -2007,7 +2018,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if options.validate and filesource is not None:
             ValidateFileSource(self, filesource).validate(options.reportPackage, options.taxonomyPackage)
 
-        if len(_entrypointFiles) == 0 and not options.packages:
+        skipContentLoading = options.skipPackageContentLoading and filesource is not None and isPackage(filesource)
+        entrypointsRequired = not options.packages and not skipContentLoading
+        if entrypointsRequired and len(_entrypointFiles) == 0:
             if options.entrypointFile:
                 msg = _("No XBRL entry points could be loaded from provided file: {}").format(options.entrypointFile)
             else:
