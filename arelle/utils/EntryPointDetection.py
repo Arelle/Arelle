@@ -28,7 +28,12 @@ class EntrypointParseResult:
     filesource: FileSource.FileSource | None
 
 
-def parseEntrypointFileInput(cntlr: Cntlr, entrypointFile: str | None, sourceZipStream: BinaryIO | FileNamedBytesIO | None = None, fallbackSelect: bool = True) -> EntrypointParseResult:
+def parseEntrypointFileInput(
+    cntlr: Cntlr,
+    entrypointFile: str | None,
+    sourceZipStream: BinaryIO | FileNamedBytesIO | None = None,
+    fallbackSelect: bool = True,
+) -> EntrypointParseResult:
     # entrypointFile may be absent (if input is a POSTED zip or file name ending in .zip)
     #    or may be a | separated set of file names
     _entryPoints = []
@@ -65,7 +70,12 @@ def parseEntrypointFileInput(cntlr: Cntlr, entrypointFile: str | None, sourceZip
     return EntrypointParseResult(success=True, entrypointFiles=_entrypointFiles, filesource=filesource)
 
 
-def filesourceEntrypointFiles(filesource: FileSource.FileSource, entrypointFiles: list[dict[str, Any]] | None = None, inlineOnly: bool = False, fallbackSelect: bool = True) -> list[dict[str, str]]:
+def filesourceEntrypointFiles(
+    filesource: FileSource.FileSource,
+    entrypointFiles: list[dict[str, Any]] | None = None,
+    inlineOnly: bool = False,
+    fallbackSelect: bool = True,
+) -> list[dict[str, str]]:
     if entrypointFiles is None:
         entrypointFiles = []
     for pluginXbrlMethod in filesource.hooks("FileSource.EntrypointFiles"):
