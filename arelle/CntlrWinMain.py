@@ -883,7 +883,11 @@ class CntlrWinMain(Cntlr.Cntlr):
         if filename:
             for xbrlLoadedMethod in self.plugins.hooks("CntlrWinMain.Xbrl.Open"):
                 filename = xbrlLoadedMethod(self, filename) # runs in GUI thread, allows mapping filename, mult return filename
-            entrypointParseResult = parseEntrypointFileInput(self, filename, fallbackSelect=False)
+            entrypointParseResult = parseEntrypointFileInput(
+                self,
+                filename,
+                fallbackSelect=False,
+            )
             if not entrypointParseResult.success or entrypointParseResult.filesource is None:
                 return
             filesource = entrypointParseResult.filesource
@@ -922,7 +926,11 @@ class CntlrWinMain(Cntlr.Cntlr):
             self.updateFileHistory(url, False)
             for xbrlLoadedMethod in self.plugins.hooks("CntlrWinMain.Xbrl.Open"):
                 url = xbrlLoadedMethod(self, url) # runs in GUI thread, allows mapping url, mult return url
-            entrypointParseResult = parseEntrypointFileInput(self, url, fallbackSelect=False)
+            entrypointParseResult = parseEntrypointFileInput(
+                self,
+                url,
+                fallbackSelect=False,
+            )
             if not entrypointParseResult.success or entrypointParseResult.filesource is None:
                 return
             filesource = entrypointParseResult.filesource
