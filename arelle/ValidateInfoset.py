@@ -228,16 +228,14 @@ def compareRenderingInfosetElts(
         sourceElt: etree._Element,
         comparisonElt: etree._Element
     ) -> None:
-    sourceEltTag = sourceElt.tag
-    comparisonEltTag = comparisonElt.tag
-    if sourceEltTag != comparisonEltTag:
+    if sourceElt.tag != comparisonElt.tag:
         modelXbrl.error("arelle:tableModelElementMismatch",
             _("Table layout model expecting %(elt1)s found %(elt2)s source path %(elt1path)s comparison line %(elt2line)s path %(elt2path)s, srcElt %(elt1xml)s cmpElt %(elt2xml)s"),
-            modelObject=modelXbrl, elt1=sourceEltTag, elt2=comparisonEltTag,
+            modelObject=modelXbrl, elt1=sourceElt.tag, elt2=comparisonElt.tag,
             elt1path=sourceElt.getroottree().getpath(sourceElt), elt2path=comparisonElt.getroottree().getpath(comparisonElt),
             elt2line=comparisonElt.sourceline,
             elt1xml=etree.tostring(sourceElt),elt2xml=etree.tostring(comparisonElt))
-    elif sourceEltTag == "{http://xbrl.org/2014/table/model}cell":
+    elif sourceElt.tag == "{http://xbrl.org/2014/table/model}cell":
         ceSrcIter = sourceElt.iter("{http://xbrl.org/2014/table/model}fact",
                                    "{http://xbrl.org/2014/table/model}label")
         ceCmpIter = comparisonElt.iter("{http://xbrl.org/2014/table/model}fact",
