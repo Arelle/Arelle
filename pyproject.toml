@@ -232,8 +232,6 @@ ignore = [
     "E713",
     # do not use bare 'except'
     "E722",
-    # do not assign a lambda expression, use a def
-    "E731",
     # ambiguous variable name
     "E741",
 
