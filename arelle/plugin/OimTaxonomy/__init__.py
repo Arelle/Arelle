@@ -417,11 +417,11 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                 else:
                                     continue
                                 collectionProp[_valKey] = valVal
-                    elif isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] == type(None) and isinstance(jsonValue,dict): # optional embdded object
+                    elif isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] is type(None) and isinstance(jsonValue,dict): # optional embdded object
                         createTaxonomyObjects(propName, jsonValue, newObj, pathParts + [propName]) # object property
                     else:
                         optional = False
-                        if isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] == type(None):
+                        if isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] is type(None):
                             propType = propType.__args__[0] # scalar property
                             optional = True
                         if propType == QNameAt:
@@ -495,7 +495,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                 createTaxonomyObject(value, oimParentObj, str, objClass, newObj, pathParts + [f"[{id}]"])
                                 ownrProp[id] = newObj
                             return None # facts not returnable
-                    elif isinstance(ownrPropType, _UnionGenericAlias) and ownrPropType.__args__[-1] == type(None): # optional nested object
+                    elif isinstance(ownrPropType, _UnionGenericAlias) and ownrPropType.__args__[-1] is type(None): # optional nested object
                         keyClass = None
                         objClass = ownrPropType.__args__[0]
                     else: # parent      is just an object field, not a  collection
@@ -520,7 +520,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                             ownrProp.add(newObj)
                         else:
                             ownrProp.append(newObj)
-                    elif isinstance(ownrPropType, _UnionGenericAlias) and ownrPropType.__args__[-1] == type(None): # optional nested object
+                    elif isinstance(ownrPropType, _UnionGenericAlias) and ownrPropType.__args__[-1] is type(None): # optional nested object
                         setattr(oimParentObj, pathParts[-1], newObj)
                     return newObj
             return None

@@ -231,16 +231,12 @@ ignore = [
     "E702",
     # statement ends with a semicolon
     "E703",
-    # comparison to None should be 'if cond is not None:'
-    "E711",
     # comparison to True should be 'if cond is True:' or 'if cond:'
     "E712",
     # test for membership should be 'not in'
     "E713",
     # test for object identity should be 'is not'
     "E714",
-    # do not compare types, use 'isinstance()'
-    "E721",
     # do not use bare 'except'
     "E722",
     # do not assign a lambda expression, use a def

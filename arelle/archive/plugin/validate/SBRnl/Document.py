@@ -173,7 +173,7 @@ def checkDTSdocument(val, modelDocument, isFilingDocument):
                     elif localName == "appinfo":
                         if (parent.localName != "annotation" or parent.namespaceURI != XbrlConst.xsd or
                             parent.getparent().localName != "schema" or parent.getparent().namespaceURI != XbrlConst.xsd or
-                            XmlUtil.previousSiblingElement(parent) != None):
+                            XmlUtil.previousSiblingElement(parent) is not None):
                             val.modelXbrl.error("SBR.NL.2.2.0.12",
                                 _("Annotation/appinfo record must be be behind schema and before import"), modelObject=elt)
                         nextSiblingElement = XmlUtil.nextSiblingElement(parent)

@@ -121,7 +121,7 @@ class TestFrozenOrderedSet:
 
         assert fos != 42
         assert fos != "123"
-        assert fos != None
+        assert fos != None  # noqa: E711
 
     def test_hashable(self):
         fos1 = FrozenOrderedSet([1, 2, 3])

@@ -592,7 +592,7 @@ def checkElements(val: ValidateXbrl, modelDocument: ModelDocument, parent: _Elem
                         if val.validateSBRNL:
                             if (parent.localName != "annotation" or parent.namespaceURI != XbrlConst.xsd or  # type: ignore[union-attr]
                                 parent.getparent().localName != "schema" or parent.getparent().namespaceURI != XbrlConst.xsd or  # type: ignore[union-attr]
-                                XmlUtil.previousSiblingElement(parent) != None):  # type: ignore[arg-type]
+                                XmlUtil.previousSiblingElement(parent) is not None):  # type: ignore[arg-type]
                                 val.modelXbrl.error("SBR.NL.2.2.0.12",
                                     _("Annotation/appinfo record must be be behind schema and before import"), modelObject=elt)
                             nextSiblingElement = XmlUtil.nextSiblingElement(parent)  # type: ignore[arg-type]

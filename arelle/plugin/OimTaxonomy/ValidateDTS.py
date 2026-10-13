@@ -361,7 +361,7 @@ def validateTaxonomy(dts, txmy):
     for grpCntObj in txmy.groupContents:
         assertObjectType(grpCntObj, XbrlGroupContent)
         grpQn = grpCntObj.groupName
-        if grpQn not in dts.namedObjects or type(dts.namedObjects[grpQn]) != XbrlGroup:
+        if grpQn not in dts.namedObjects or type(dts.namedObjects[grpQn]) is not XbrlGroup:
             dts.error("oimte:invalidGroupObject",
                       _("The groupContent object groupName QName %(name)s MUST be a valid group object in the dts"),
                       xbrlObject=grpCntObj, name=grpQn)

@@ -294,11 +294,11 @@ def resolveDefinition(view, strctMdlParent, defnMdlNode, depth, facts, iBrkdn=No
                 ordCardinality, ordDepth = defnMdlNode.cardinalityAndDepth(strctMdlNode, handleXPathException=False)
             except (XPathException, FunctionArgType, ResolutionException) as ex:
                 if (isinstance(defnMdlNode, DefnMdlRelationshipNode) and
-                    type(ex) == FunctionArgType and ex.argNum == 5 and isinstance(ex.value, int) and ex.value >= 0):
+                    type(ex) is FunctionArgType and ex.argNum == 5 and isinstance(ex.value, int) and ex.value >= 0):
                     view.modelXbrl.error("xbrlte:relationshipNodeTooManyGenerations",
                                          ex.expectedType,
                                          modelObject=(view.defnMdlTable,defnMdlNode), xlinkLabel=defnMdlNode.xlinkLabel, axis=defnMdlNode.localName)
-                elif isinstance(defnMdlNode, DefnMdlRelationshipNode) and type(ex) == ResolutionException:
+                elif isinstance(defnMdlNode, DefnMdlRelationshipNode) and type(ex) is ResolutionException:
                     view.modelXbrl.error(ex.code,
                     _("Relationship node %(xlinkLabel)s expression not castable to required type (%(error)s)"),
                     modelObject=(view.defnMdlTable,defnMdlNode), xlinkLabel=defnMdlNode.xlinkLabel, axis=defnMdlNode.localName,

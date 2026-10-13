@@ -63,7 +63,7 @@ class ErrorManager:
         for argCode in messageCodes if isinstance(messageCodes,tuple) else (messageCodes,):
             if (isinstance(argCode, ModelValue.QName) or
                     (_validationType and argCode and argCode.startswith(_validationType)) or
-                    (not _exclusiveTypesPattern or _exclusiveTypesPattern.match(argCode or "") == None)):
+                    (not _exclusiveTypesPattern or _exclusiveTypesPattern.match(argCode or "") is None)):
                 effectiveMessageCode = argCode
                 break
         return effectiveMessageCode

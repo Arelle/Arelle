@@ -87,7 +87,7 @@ class XbrlObject:
                         propVal = ", ".join(str(v) for v in val)
                     else:
                         continue # omit this property
-                elif val is None and isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] == type(None):
+                elif val is None and isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] is type(None):
                     continue # skip showing absent Optional[...] properties
                 else:
                     propVal = (propName, f"{val}")
