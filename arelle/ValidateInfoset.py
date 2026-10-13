@@ -246,6 +246,17 @@ def _layoutChildren(elt: etree._Element) -> list[etree._Element]:
     return children
 
 
+def _layoutAttributes(elt: etree._Element) -> dict[str, str]:
+    attrs = {k: v for k, v in elt.items() if k not in IGNORED_LAYOUT_ATTRIBUTES}
+    if elt.tag == TABLE_MODEL_CELL:
+        # The layout model schema defaults span to 1 and rollup to false, and Arelle omits both defaults.
+        span = attrs.get("span", "1").strip()
+        attrs["span"] = str(int(span)) if span.lstrip("+").isdigit() else span
+        rollup = attrs.get("rollup", "false").strip()
+        attrs["rollup"] = {"1": "true", "0": "false"}.get(rollup, rollup)
+    return attrs
+
+
 def compareRenderingInfosetElts(
         modelXbrl: ModelXbrl,
         sourceElt: etree._Element,
@@ -260,6 +271,15 @@ def compareRenderingInfosetElts(
             elt2line=comparisonElt.sourceline,
             elt1xml=etree.tostring(sourceElt),elt2xml=etree.tostring(comparisonElt))
         return
+    sourceAttrs = _layoutAttributes(sourceElt)
+    comparisonAttrs = _layoutAttributes(comparisonElt)
+    if sourceAttrs != comparisonAttrs:
+        modelXbrl.error("arelle:tableModelAttributesMismatch",
+            _("Table layout model comparison element %(elt)s expecting attributes %(attrs2)s found %(attrs1)s source path %(elt1path)s comparison line %(elt2line)s"),
+            modelObject=modelXbrl, elt=sourceElt.tag,
+            attrs1=", ".join('{0}="{1}"'.format(k, v) for k, v in sorted(sourceAttrs.items())),
+            attrs2=", ".join('{0}="{1}"'.format(k, v) for k, v in sorted(comparisonAttrs.items())),
+            elt1path=sourcePath, elt2line=comparisonElt.sourceline)
     if sourceElt.tag == TABLE_MODEL_CELL:
         srcConstraints: dict[tuple[str, str], tuple[str, ...]] = {}
         cmpConstraints: dict[tuple[str, str], tuple[str, ...]] = {}
@@ -283,16 +303,6 @@ def compareRenderingInfosetElts(
                 modelObject=modelXbrl, src=",".join(str(s) for s in sorted(srcConstraints.items())), cmp=",".join(str(s) for s in sorted(cmpConstraints.items())),
                 elt1path=sourcePath, elt2path=comparisonElt.getroottree().getpath(comparisonElt),
                 elt2line=comparisonElt.sourceline)
-    else:
-        sourceAttrs = {k: v for k, v in sourceElt.items() if k not in IGNORED_LAYOUT_ATTRIBUTES}
-        comparisonAttrs = {k: v for k, v in comparisonElt.items() if k not in IGNORED_LAYOUT_ATTRIBUTES}
-        if sourceAttrs != comparisonAttrs:
-            modelXbrl.error("arelle:tableModelAttributesMismatch",
-                _("Table layout model comparison element %(elt)s expecting attributes %(attrs2)s found %(attrs1)s source path %(elt1path)s comparison line %(elt2line)s"),
-                modelObject=modelXbrl, elt=sourceElt.tag,
-                attrs1=", ".join('{0}="{1}"'.format(k, v) for k, v in sorted(sourceAttrs.items())),
-                attrs2=", ".join('{0}="{1}"'.format(k, v) for k, v in sorted(comparisonAttrs.items())),
-                elt1path=sourcePath, elt2line=comparisonElt.sourceline)
     sourceChildren = _layoutChildren(sourceElt)
     comparisonChildren = _layoutChildren(comparisonElt)
     if not sourceChildren and not comparisonChildren:
