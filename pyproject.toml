@@ -235,8 +235,6 @@ ignore = [
     "F403",
     # xxx may be undefined, or defined from star imports: xxx
     "F405",
-    # '...'  ... has unused named argument(s)
-    "F504",
     # '...'.format(...) has unused arguments at position(s): n
     "F523",
     # '...'.format(...) is missing argument(s) for placeholder(s): n

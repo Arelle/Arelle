@@ -734,7 +734,6 @@ WITH row_values (%(newCols)s) AS (
                 sql.append( ("SELECT %(returningCols)s %(statusIfExisting)s from %(inputTable)s JOIN %(table)s ON ( %(match)s );" %
                                 {"inputTable": _inputTableName,
                                  "table": _table,
-                                 "newCols": ", ".join(newCols),
                                  "match": " AND ".join("{0}.{2} = {1}.{2}".format(_table,_inputTableName,col)
                                             for col in matchCols),
                                  "statusIfExisting": ", FALSE" if returnExistenceStatus else "",
@@ -781,7 +780,6 @@ WITH row_values (%(newCols)s) AS (
                        ("SELECT %(returningCols)s %(statusIfExisting)s from #%(inputTable)s JOIN %(table)s ON ( %(match)s );" %
                             {"inputTable": _inputTableName,
                              "table": _table,
-                             "newCols": ", ".join(newCols),
                              "match": " AND ".join("{0}.{2} = #{1}.{2}".format(_table,_inputTableName,col)
                                         for col in matchCols),
                              "statusIfExisting": ", 0" if returnExistenceStatus else "",
@@ -829,7 +827,6 @@ WITH row_values (%(newCols)s) AS (
                        ("SELECT %(returningCols)s %(statusIfExisting)s from %(inputTable)s JOIN %(table)s ON ( %(match)s )" %
                             {"inputTable": _inputTableName,
                              "table": _table,
-                             "newCols": ", ".join(newCols),
                              "match": " AND ".join("{0}.{2} = {1}.{2}".format(_table,_inputTableName,col)
                                         for col in matchCols),
                              "statusIfExisting": ", 0" if returnExistenceStatus else "",
@@ -879,7 +876,6 @@ WITH row_values (%(newCols)s) AS (
                        ("SELECT %(returningCols)s %(statusIfExisting)s from %(inputTable)s JOIN %(table)s ON ( %(match)s );" %
                             {"inputTable": _inputTableName,
                              "table": _table,
-                             "newCols": ", ".join(newCols),
                              "match": " AND ".join("{0}.{2} = {1}.{2}".format(_table,_inputTableName,col)
                                         for col in matchCols),
                              "statusIfExisting": ", 0" if returnExistenceStatus else "",
