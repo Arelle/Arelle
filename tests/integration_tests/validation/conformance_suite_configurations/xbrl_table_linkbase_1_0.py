@@ -120,6 +120,54 @@ config = ConformanceSuiteConfig(
             "xbrlte:closedDefinitionNodeZeroCardinality": 1,
             "xbrlte:invalidDimensionRelationshipSource": 1,
         },
+        "0100-table/0144-table-filter-arc/0144-table-filter-arc-testcase.xml:v-03": {
+            "arelle:tableModelChildCountMismatch": 1,
+        },
+        "0100-table/0144-table-filter-arc/0144-table-filter-arc-testcase.xml:v-04": {
+            "arelle:tableModelChildCountMismatch": 1,
+        },
+        "0100-table/0170-parent-child-order/0170-parent-child-order-testcase.xml:v-01": {
+            "arelle:tableModelChildCountMismatch": 1,
+        },
+        "1000-rule-node/1200-merged-rule-node/1200-merged-rule-node-testcase.xml:v-03": {
+            "arelle:tableModelChildCountMismatch": 1,
+        },
+        "1000-rule-node/1200-merged-rule-node/1200-merged-rule-node-testcase.xml:v-10": {
+            "arelle:tableModelChildCountMismatch": 1,
+        },
+        "1000-rule-node/1300-rule-node-rule-sets/1300-rule-node-rule-sets-testcase.xml:v-08": {
+            "arelle:tableModelChildCountMismatch": 1,
+        },
+        "1000-rule-node/1300-rule-node-rule-sets/1300-rule-node-rule-sets-testcase.xml:v-08i": {
+            "arelle:tableModelChildCountMismatch": 1,
+        },
+        "6000-aspect-node/6100-concept-aspect-node/6100-concept-aspect-node-testcase.xml:v-01": {
+            "arelle:tableModelChildCountMismatch": 1,
+        },
+        "6000-aspect-node/6200-period-aspect-node/6200-period-aspect-node-testcase.xml:v-01": {
+            "arelle:tableModelChildCountMismatch": 1,
+        },
+        "6000-aspect-node/6300-entity-identifier-aspect-node/6300-entity-identifier-aspect-node-testcase.xml:v-01": {
+            "arelle:tableModelChildCountMismatch": 1,
+        },
+        "6000-aspect-node/6400-unit-aspect-node/6400-unit-aspect-node-testcase.xml:v-01": {
+            "arelle:tableModelChildCountMismatch": 1,
+        },
+        "6000-aspect-node/6500-dimension-aspect-node/6500-dimension-aspect-node-testcase.xml:v-01": {
+            "arelle:tableModelChildCountMismatch": 1,
+        },
+        "6000-aspect-node/6500-dimension-aspect-node/6500-dimension-aspect-node-testcase.xml:v-02": {
+            "arelle:tableModelChildCountMismatch": 1,
+        },
+        "6000-aspect-node/6500-dimension-aspect-node/6500-dimension-aspect-node-testcase.xml:v-06": {
+            "arelle:tableModelChildCountMismatch": 1,
+        },
+        "6000-aspect-node/6640-aspect-node-explicit-dimension-filter/6640-aspect-node-explicit-dimension-filter-testcase.xml:v-03": {
+            "arelle:tableModelChildCountMismatch": 1,
+        },
+        "6000-aspect-node/6650-aspect-node-typed-dimension-filter/6650-aspect-node-typed-dimension-filter-testcase.xml:v-04": {
+            "arelle:tableModelChildCountMismatch": 1,
+        },
     }.items()},
     info_url="https://specifications.xbrl.org/work-product-index-table-linkbase-table-linkbase-1.0.html",
     name=PurePath(__file__).stem,

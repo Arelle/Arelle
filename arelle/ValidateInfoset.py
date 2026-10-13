@@ -296,6 +296,11 @@ def compareRenderingInfosetElts(
                 _("Table layout model comparison element %(elt)s expecting text %(text2)s found %(text1)s source path %(elt1path)s comparison line %(elt2line)s"),
                 modelObject=modelXbrl, elt=sourceElt.tag, text1=sourceText or "(none)", text2=comparisonText or "(none)",
                 elt1path=sourcePath, elt2line=comparisonElt.sourceline)
+    if len(sourceChildren) != len(comparisonChildren):
+        modelXbrl.error("arelle:tableModelChildCountMismatch",
+            _("Table layout model comparison element %(elt)s expecting %(count2)s child elements found %(count1)s source path %(elt1path)s comparison line %(elt2line)s"),
+            modelObject=modelXbrl, elt=sourceElt.tag, count1=len(sourceChildren), count2=len(comparisonChildren),
+            elt1path=sourcePath, elt2line=comparisonElt.sourceline)
     for sourceChild, comparisonChild in zip(sourceChildren, comparisonChildren):
         compareRenderingInfosetElts(modelXbrl, sourceChild, comparisonChild)
 
@@ -308,12 +313,6 @@ def validateRenderingInfoset(modelXbrl: ModelXbrl, comparisonFile: str, sourceDo
             comparisonDoc = etree.parse(file)
         else:
             comparisonDoc = etree.parse(comparisonFile)
-        numSrcTblElts = len(sourceDoc.findall(".//{http://xbrl.org/2014/table/model}table"))
-        numCmpTblElts = len(comparisonDoc.findall(".//{http://xbrl.org/2014/table/model}table"))
-        if numSrcTblElts != numCmpTblElts:
-            modelXbrl.error("arelle:tableModelNumberOfTables",
-                _("Table layout model comparison expects %(numCmpTblElts)s table elements, layout has %(numSrcTblElts)s table elements"),
-                modelObject=modelXbrl, numSrcTblElts=numSrcTblElts, numCmpTblElts=numCmpTblElts)
         # order comparison document headers in z - y - x order
         headerElts = comparisonDoc.findall(".//{http://xbrl.org/2014/table/model}headers")
         if len(headerElts) == 3:
