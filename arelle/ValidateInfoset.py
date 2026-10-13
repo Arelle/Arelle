@@ -314,11 +314,6 @@ def validateRenderingInfoset(modelXbrl: ModelXbrl, comparisonFile: str, sourceDo
         comparisonIter = comparisonDoc.iter(etree.Element)
         sourceElt = next(sourceIter, None)
         comparisonElt = next(comparisonIter, None)
-        # skip over nsmap elements used to create output trees
-        while sourceElt is not None and sourceElt.tag == "nsmap":
-            sourceElt = next(sourceIter, None)
-        while comparisonElt is not None and sourceElt.tag == "nsmap":  # type: ignore[union-attr]
-            comparisonElt = next(comparisonIter, None)
         while sourceElt is not None and comparisonElt is not None:
             if not any(e is not None for e in sourceElt.iterancestors("{http://xbrl.org/2014/table/model}cell")):
                 compareRenderingInfosetElts(modelXbrl, sourceElt, comparisonElt)
