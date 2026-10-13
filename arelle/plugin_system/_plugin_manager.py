@@ -607,7 +607,7 @@ class PluginManager:
 
         return sys.modules[moduleName]
 
-    def loadModule(self, moduleInfo: dict[str, Any], packagePrefix: str="") -> None:
+    def loadModule(self, moduleInfo: dict[str, Any], packagePrefix: str = "") -> None:
         name = moduleInfo["name"]
         moduleURL = moduleInfo["moduleURL"]
         modulePath = Path(moduleInfo["path"])

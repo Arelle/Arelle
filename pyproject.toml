@@ -180,8 +180,6 @@ ignore = [
     "E241",
     # unexpected spaces around keyword / parameter equals
     "E251",
-    # missing whitespace around parameter equals
-    "E252",
     # at least two spaces before inline comment
     "E261",
     # inline comment should start with '# '

@@ -23,7 +23,7 @@ def stripIxdsSurrogatePrefix(path: str) -> str:
             return after
     return path
 
-def authority(url: str, includeScheme: bool=True) -> str:
+def authority(url: str, includeScheme: bool = True) -> str:
     if url:
         authSep = url.find(":")
         if authSep > -1:
