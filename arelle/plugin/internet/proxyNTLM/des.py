@@ -52,7 +52,7 @@ DESException = "DESException"
 #---------------------------------------------------------------------
 def str_to_key56(key_str):
     ""
-    if type(key_str) != type(""):
+    if type(key_str) is not str:
         #rise DESException, 'ERROR. Wrong key type.'
         pass
     if len(key_str) < 7:

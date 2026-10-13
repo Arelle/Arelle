@@ -377,7 +377,7 @@ class XPathContext:
                         op2 = s2[0]
                         assert testTypeCompatibility is not None
                         testTypeCompatibility(self, p, op, op1, op2)
-                        if type(op1) != type(op2) and op in (
+                        if type(op1) is not type(op2) and op in (
                             "+",
                             "-",
                             "*",

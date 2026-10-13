@@ -237,8 +237,6 @@ ignore = [
     "E713",
     # test for object identity should be 'is not'
     "E714",
-    # do not compare types, use 'isinstance()'
-    "E721",
     # do not use bare 'except'
     "E722",
     # do not assign a lambda expression, use a def

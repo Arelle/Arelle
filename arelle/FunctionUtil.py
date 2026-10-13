@@ -176,7 +176,7 @@ def testTypeCompatibility(
 
     elif isinstance(a1, bool) != isinstance(a2, bool):
         pass  # fail if one arg is bool and the other is not (don't le t bool be subclass of num types)
-    elif (type(a1) == type(a2)
+    elif (type(a1) is type(a2)
           or (isinstance(a1, Number) and isinstance(a2, Number))
           or (isinstance(a1, str) and isinstance(a2, str))):
         return
