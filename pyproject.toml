@@ -154,8 +154,6 @@ select = ["E", "W", "F", "Q", "CPY"]
 ignore = [
     # indentation is not a multiple of 4
     "E111",
-    # indentation is not a multiple of 4 (comment)
-    "E114",
     # E116 unexpected indentation (comment)
     "E116",
     # over-indented
