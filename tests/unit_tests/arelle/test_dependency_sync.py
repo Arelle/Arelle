@@ -1,12 +1,7 @@
 from __future__ import annotations
 
-import sys
+import tomllib
 from pathlib import Path
-
-if sys.version_info < (3, 11):
-    import tomli as tomllib
-else:
-    import tomllib
 
 from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name

@@ -1666,11 +1666,7 @@ class CntlrWinMain(Cntlr.Cntlr):
     # worker threads addToLog
     def addToLog(self, message: str, messageCode: str = "", messageArgs: dict[str, Any] | None = None, file: str = "", refs: list[dict[str, Any]] | None = None, level: int | str = logging.INFO) -> None:
         if isinstance(level, str):
-            levelStr = level
-            try:
-                level = logging.getLevelNamesMapping().get(levelStr, logging.INFO) # novermin
-            except AttributeError:
-                level = logging._nameToLevel.get(levelStr, logging.INFO)  # private but 3.10-safe
+            level = logging.getLevelNamesMapping().get(level, logging.INFO)
         if level < logging.INFO and not self.showDebugMessages.get():
             return # skip DEBUG and INFO-RESULT messages
         if messageCode and messageCode not in message: # prepend message code

@@ -378,7 +378,7 @@ class ModelVersReport(ModelDocument.ModelDocument):
                            for uri in self.entryURIs(toDTS)]),
                 categoryType,
                 Version.version,
-                format(datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")))
+                format(datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M UTC")))
              )
         from arelle.ModelObjectFactory import parser
         self.parser, self.parserLookupName, self.parserLookupClass = parser(self.modelXbrl,None)

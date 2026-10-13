@@ -4,9 +4,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import uuid
-from typing import TYPE_CHECKING, Any, Sequence
-# for python 3.10
-from typing_extensions import Self
+from typing import TYPE_CHECKING, Any, Self, Sequence
 
 from arelle import XbrlConst, XmlUtil
 from arelle.ModelDtsObject import ModelConcept

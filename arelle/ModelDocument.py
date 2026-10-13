@@ -8,9 +8,7 @@ from zipfile import ZipFile
 import regex as re
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, cast, TYPE_CHECKING
-# for python 3.10
-from typing_extensions import Self
+from typing import Any, cast, Self, TYPE_CHECKING
 from lxml import etree
 from xml.sax import SAXParseException
 from arelle import (XbrlConst, XmlUtil, UrlUtil, ValidateFilingText,

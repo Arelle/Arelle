@@ -22,13 +22,12 @@ from collections.abc import Callable
 from email.utils import parsedate as email_parsedate
 from http.client import IncompleteRead
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, NamedTuple
+from typing import TYPE_CHECKING, Any, NamedTuple, Self
 from urllib import request as proxyhandlers
 from urllib.error import ContentTooShortError, HTTPError, URLError
 from urllib.parse import quote, unquote, urlparse, urlsplit, urlunsplit
 
 import regex as re
-from typing_extensions import Self
 
 try:
     import ssl

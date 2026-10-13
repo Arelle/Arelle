@@ -5,14 +5,7 @@ Type hints for Arelle.
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any, TypedDict, TypeVar  # pylint: disable=no-name-in-module
-
-try:
-    from typing import assert_type as assert_type # novermin
-except ImportError:
-    T = TypeVar("T")
-    def assert_type(x: T, _: Any, /) -> T:
-        return x
+from typing import TypedDict, TypeVar, assert_type as assert_type  # pylint: disable=no-name-in-module
 
 TypeGetText = Callable[[str], str]
 

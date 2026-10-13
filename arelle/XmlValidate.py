@@ -573,7 +573,7 @@ def _comparableInstant(value: datetime.datetime | datetime.time | gYearMonth | g
     else:  # gDay
         dt = datetime.datetime(GTYPE_ANCHOR_YEAR, GTYPE_ANCHOR_MONTH, value.day, tzinfo=value.tzinfo)
     if dt.tzinfo is not None:
-        dt = dt.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+        dt = dt.astimezone(datetime.UTC).replace(tzinfo=None)
     return dt
 
 

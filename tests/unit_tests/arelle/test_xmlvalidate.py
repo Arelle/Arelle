@@ -109,7 +109,7 @@ BASE_XSD_TYPES = {
     ],
     "date": [
         {"value": "2025-01-02", "expected": ("=", DateTime(2025, 1, 2), VALID)},
-        {"value": "2025-01-02Z", "expected": ("=", DateTime(2025, 1, 2, tzinfo=datetime.timezone.utc), VALID)},
+        {"value": "2025-01-02Z", "expected": ("=", DateTime(2025, 1, 2, tzinfo=datetime.UTC), VALID)},
         {"value": "2025-01-02+01:30", "expected": ("=", DateTime(2025, 1, 2, tzinfo=datetime.timezone(datetime.timedelta(seconds=5400))), VALID)},
         {"value": "2025-01-02T03:04:05", "expected": ("=", None, INVALID)},
         {"value": "2025-01-02 T03:04:05", "expected": ("=", None, INVALID)},
@@ -121,7 +121,7 @@ BASE_XSD_TYPES = {
     "dateTime": [
         {"value": "2025-01-02T03:04:05", "expected": ("=", DateTime(2025, 1, 2, 3, 4, 5), VALID)},
         {"value": "2025-01-02T03:04:05.6", "expected": ("=", DateTime(2025, 1, 2, 3, 4, 5, 600000), VALID)},
-        {"value": "2025-01-02T03:04:05.6Z", "expected": ("=", DateTime(2025, 1, 2, 3, 4, 5, 600000, tzinfo=datetime.timezone.utc), VALID)},
+        {"value": "2025-01-02T03:04:05.6Z", "expected": ("=", DateTime(2025, 1, 2, 3, 4, 5, 600000, tzinfo=datetime.UTC), VALID)},
         {"value": "2025-01-02T03:04:05.6+01:30", "expected": ("=", DateTime(2025, 1, 2, 3, 4, 5, 600000, tzinfo=datetime.timezone(datetime.timedelta(seconds=5400))), VALID)},
         {"value": "2025-01-02T03:04:05.6-01:30", "expected": ("=", DateTime(2025, 1, 2, 3, 4, 5, 600000, tzinfo=datetime.timezone(datetime.timedelta(seconds=-5400))), VALID)},
         {"value": "2025-01-02", "expected": ("=", None, INVALID)},
@@ -178,7 +178,7 @@ BASE_XSD_TYPES = {
     "gDay": [
         {"value": "---01", "expected": ("=", gDay(1), VALID)},
         {"value": "---31", "expected": ("=", gDay(31), VALID)},
-        {"value": "---01Z", "expected": ("=", gDay(1, tzinfo=datetime.timezone.utc), VALID)},
+        {"value": "---01Z", "expected": ("=", gDay(1, tzinfo=datetime.UTC), VALID)},
         {"value": "---01+01:11", "expected": ("=", gDay(1, tzinfo=datetime.timezone(datetime.timedelta(hours=1, minutes=11))), VALID)},
         {"value": "---01-01:11", "expected": ("=", gDay(1, tzinfo=datetime.timezone(datetime.timedelta(hours=-1, minutes=-11))), VALID)},
         {"value": "---01-14:00", "expected": ("=", gDay(1, tzinfo=datetime.timezone(datetime.timedelta(hours=-14))), VALID)},
@@ -196,7 +196,7 @@ BASE_XSD_TYPES = {
     "gMonth": [
         {"value": "--01", "expected": ("=", gMonth(1), VALID)},
         {"value": "--12", "expected": ("=", gMonth(12), VALID)},
-        {"value": "--01Z", "expected": ("=", gMonth(1, tzinfo=datetime.timezone.utc), VALID)},
+        {"value": "--01Z", "expected": ("=", gMonth(1, tzinfo=datetime.UTC), VALID)},
         {"value": "--01+01:11", "expected": ("=", gMonth(1, tzinfo=datetime.timezone(datetime.timedelta(hours=1, minutes=11))), VALID)},
         {"value": "--01-01:11", "expected": ("=", gMonth(1, tzinfo=datetime.timezone(datetime.timedelta(hours=-1, minutes=-11))), VALID)},
         {"value": "--01-14:00", "expected": ("=", gMonth(1, tzinfo=datetime.timezone(datetime.timedelta(hours=-14))), VALID)},
@@ -216,7 +216,7 @@ BASE_XSD_TYPES = {
         {"value": "--01-01", "expected": ("=", gMonthDay(1, 1), VALID)},
         {"value": "--01-31", "expected": ("=", gMonthDay(1, 31), VALID)},
         {"value": "--12-01", "expected": ("=", gMonthDay(12, 1), VALID)},
-        {"value": "--01-01Z", "expected": ("=", gMonthDay(1, 1, tzinfo=datetime.timezone.utc), VALID)},
+        {"value": "--01-01Z", "expected": ("=", gMonthDay(1, 1, tzinfo=datetime.UTC), VALID)},
         {"value": "--01-01+01:11", "expected": ("=", gMonthDay(1, 1, tzinfo=datetime.timezone(datetime.timedelta(hours=1, minutes=11))), VALID)},
         {"value": "--01-01-01:11", "expected": ("=", gMonthDay(1, 1, tzinfo=datetime.timezone(datetime.timedelta(hours=-1, minutes=-11))), VALID)},
         {"value": "--01-01-14:00", "expected": ("=", gMonthDay(1, 1, tzinfo=datetime.timezone(datetime.timedelta(hours=-14))), VALID)},
@@ -241,7 +241,7 @@ BASE_XSD_TYPES = {
         {"value": "-10000", "expected": ("=", gYear(10000), VALID)},
         {"value": "-0001", "expected": ("=", gYear(1), VALID)},
         {"value": "0001", "expected": ("=", gYear(1), VALID)},
-        {"value": "-0001Z", "expected": ("=", gYear(1, tzinfo=datetime.timezone.utc), VALID)},
+        {"value": "-0001Z", "expected": ("=", gYear(1, tzinfo=datetime.UTC), VALID)},
         {"value": "-0001+01:11", "expected": ("=", gYear(1, tzinfo=datetime.timezone(datetime.timedelta(hours=1, minutes=11))), VALID)},
         {"value": "-0001-01:11", "expected": ("=", gYear(1, tzinfo=datetime.timezone(datetime.timedelta(hours=-1, minutes=-11))), VALID)},
         {"value": "-0001-14:00", "expected": ("=", gYear(1, tzinfo=datetime.timezone(datetime.timedelta(hours=-14))), VALID)},
@@ -261,7 +261,7 @@ BASE_XSD_TYPES = {
         {"value": "-10000-01", "expected": ("=", gYearMonth(10000, 1), VALID)},
         {"value": "-0001-01", "expected": ("=", gYearMonth(1, 1), VALID)},
         {"value": "0001-01", "expected": ("=", gYearMonth(1, 1), VALID)},
-        {"value": "-0001-01Z", "expected": ("=", gYearMonth(1, 1, tzinfo=datetime.timezone.utc), VALID)},
+        {"value": "-0001-01Z", "expected": ("=", gYearMonth(1, 1, tzinfo=datetime.UTC), VALID)},
         {"value": "-0001-01+01:11", "expected": ("=", gYearMonth(1, 1, tzinfo=datetime.timezone(datetime.timedelta(hours=1, minutes=11))), VALID)},
         {"value": "-0001-01-01:11", "expected": ("=", gYearMonth(1, 1, tzinfo=datetime.timezone(datetime.timedelta(hours=-1, minutes=-11))), VALID)},
         {"value": "-0001-01-14:00", "expected": ("=", gYearMonth(1, 1, tzinfo=datetime.timezone(datetime.timedelta(hours=-14))), VALID)},
@@ -384,7 +384,7 @@ BASE_XSD_TYPES = {
     "time": [
         {"value": "03:04:05", "expected": ("=", Time(3, 4, 5), VALID)},
         {"value": "03:04:05.6", "expected": ("=", Time(3, 4, 5, 600000), VALID)},
-        {"value": "03:04:05.6Z", "expected": ("=", Time(3, 4, 5, 600000, tzinfo=datetime.timezone.utc), VALID)},
+        {"value": "03:04:05.6Z", "expected": ("=", Time(3, 4, 5, 600000, tzinfo=datetime.UTC), VALID)},
         {"value": "03:04:05.6+01:30", "expected": ("=", Time(3, 4, 5, 600000, tzinfo=datetime.timezone(datetime.timedelta(seconds=5400))), VALID)},
         {"value": "03:04:05.6-01:30", "expected": ("=", Time(3, 4, 5, 600000, tzinfo=datetime.timezone(datetime.timedelta(seconds=-5400))), VALID)},
         {"value": "3:04:05", "expected": ("=", None, INVALID)},
@@ -431,7 +431,7 @@ BASE_XSD_TYPES = {
         {"value": "2025-01-02", "expected": ("=", DateTime(2025, 1, 2), VALID)},
         {"value": "2025-01-02T03:04:05", "expected": ("=", DateTime(2025, 1, 2, 3, 4, 5), VALID)},
         {"value": "2025-01-02T03:04:05.6", "expected": ("=", DateTime(2025, 1, 2, 3, 4, 5, 600000), VALID)},
-        {"value": "2025-01-02T03:04:05.6Z", "expected": ("=", DateTime(2025, 1, 2, 3, 4, 5, 600000, tzinfo=datetime.timezone.utc), VALID)},
+        {"value": "2025-01-02T03:04:05.6Z", "expected": ("=", DateTime(2025, 1, 2, 3, 4, 5, 600000, tzinfo=datetime.UTC), VALID)},
         {"value": "2025-01-02T03:04:05.6+01:30", "expected": ("=", DateTime(2025, 1, 2, 3, 4, 5, 600000, tzinfo=datetime.timezone(datetime.timedelta(seconds=5400))), VALID)},
         {"value": "2025-01-02T03:04:05.6-01:30", "expected": ("=", DateTime(2025, 1, 2, 3, 4, 5, 600000, tzinfo=datetime.timezone(datetime.timedelta(seconds=-5400))), VALID)},
         {"value": "2025-01-02 T03:04:05", "expected": ("=", None, INVALID)},
@@ -1043,21 +1043,21 @@ def test_validateValueString_facets_ordering(
         ("dateTime", "2024-12-31T00:00:00Z", {"minInclusive": DateTime(2025, 1, 2, 3, 4, 5)}, INVALID),  # determinate violation
         ("dateTime", "2025-01-05T00:00:00Z", {"minInclusive": DateTime(2025, 1, 2, 3, 4, 5)}, VALID),  # determinate acceptance
         # timezone-naive value vs timezone-aware bound
-        ("dateTime", "2025-01-02T03:04:05", {"maxInclusive": DateTime(2025, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc)}, INVALID),  # indeterminate
-        ("dateTime", "2024-12-31T00:00:00", {"minInclusive": DateTime(2025, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc)}, INVALID),  # determinate violation
-        ("dateTime", "2025-01-01T00:00:00", {"maxInclusive": DateTime(2025, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc)}, VALID),  # determinate acceptance
+        ("dateTime", "2025-01-02T03:04:05", {"maxInclusive": DateTime(2025, 1, 2, 3, 4, 5, tzinfo=datetime.UTC)}, INVALID),  # indeterminate
+        ("dateTime", "2024-12-31T00:00:00", {"minInclusive": DateTime(2025, 1, 2, 3, 4, 5, tzinfo=datetime.UTC)}, INVALID),  # determinate violation
+        ("dateTime", "2025-01-01T00:00:00", {"maxInclusive": DateTime(2025, 1, 2, 3, 4, 5, tzinfo=datetime.UTC)}, VALID),  # determinate acceptance
         # xs:time (no date component) with mixed timezone presence
-        ("time", "03:04:05", {"maxInclusive": Time(3, 4, 5, tzinfo=datetime.timezone.utc)}, INVALID),  # indeterminate
+        ("time", "03:04:05", {"maxInclusive": Time(3, 4, 5, tzinfo=datetime.UTC)}, INVALID),  # indeterminate
         ("time", "03:04:05Z", {"minInclusive": Time(3, 4, 5)}, INVALID),  # indeterminate
         ("time", "23:00:00Z", {"minInclusive": Time(0, 0, 0)}, VALID),  # determinate acceptance
-        ("time", "00:00:00", {"maxInclusive": Time(23, 0, 0, tzinfo=datetime.timezone.utc)}, VALID),  # determinate acceptance
+        ("time", "00:00:00", {"maxInclusive": Time(23, 0, 0, tzinfo=datetime.UTC)}, VALID),  # determinate acceptance
         # gYear: a difference of a whole year always swamps the +/-14h timezone
         # uncertainty (Datatypes 3.2.7.4), so it is determinate even with
         # mismatched timezones; only a tie on the year field is indeterminate.
         ("gYear", "2025Z", {"maxInclusive": gYear(2025)}, INVALID),  # indeterminate: same year, tz mismatch
-        ("gYear", "2025", {"maxInclusive": gYear(2025, tzinfo=datetime.timezone.utc)}, INVALID),  # indeterminate, reversed
+        ("gYear", "2025", {"maxInclusive": gYear(2025, tzinfo=datetime.UTC)}, INVALID),  # indeterminate, reversed
         ("gYear", "2026Z", {"maxInclusive": gYear(2025)}, INVALID),  # determinate violation (later year)
-        ("gYear", "2024", {"minInclusive": gYear(2025, tzinfo=datetime.timezone.utc)}, INVALID),  # determinate violation
+        ("gYear", "2024", {"minInclusive": gYear(2025, tzinfo=datetime.UTC)}, INVALID),  # determinate violation
         ("gYear", "2024Z", {"maxInclusive": gYear(2025)}, VALID),  # determinate acceptance (earlier year)
         # gYearMonth: same reasoning one level finer (month, not year)
         ("gYearMonth", "2025-06Z", {"maxInclusive": gYearMonth(2025, 6)}, INVALID),  # indeterminate

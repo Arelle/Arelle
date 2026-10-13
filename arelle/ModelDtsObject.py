@@ -65,9 +65,7 @@ from collections.abc import Collection, Iterator
 import decimal
 import os
 import sys
-from typing import TYPE_CHECKING, Any, Iterable
-# for python 3.10
-from typing_extensions import Self
+from typing import TYPE_CHECKING, Any, Iterable, Self
 from arelle import (
     Locale,
     ModelValue,
