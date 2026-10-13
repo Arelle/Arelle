@@ -8,7 +8,6 @@ without pulling in the heavy model/validation imports of ValidateDuplicateFacts.
 
 from __future__ import annotations
 
-from collections.abc import Iterator
 from enum import Enum, Flag, auto
 from typing import Any
 
@@ -19,16 +18,6 @@ class DuplicateType(Flag):
     CONSISTENT = auto()
     INCOMPLETE = auto()
     COMPLETE = auto()
-
-    # Flags before 3.11 did not support iterating Flag values,
-    # so we have to override with our own iterator. Remove when we no longer support 3.10
-    def __iter__(self) -> Iterator[DuplicateType]:
-        # num must be a positive integer
-        num = self.value
-        while num:
-            b = num & (~num + 1)
-            yield DuplicateType(b)
-            num ^= b
 
     @property
     def description(self) -> str:
