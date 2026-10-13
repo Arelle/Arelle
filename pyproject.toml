@@ -140,7 +140,6 @@ extend-exclude = [
     "docs",
     "lib",
     "pygettext.py",
-    "msgfmt.py",
     "tests/resources",
     "venv",
 ]
