@@ -114,7 +114,7 @@ class TestGDateCombinedTimezoneOffset:
 
     def test_gMonthDay_naive_vs_aware_never_equal_and_order_raises(self):
         naive = gMonthDay(6, 14)
-        aware = gMonthDay(6, 14, tzinfo=datetime.timezone.utc)
+        aware = gMonthDay(6, 14, tzinfo=datetime.UTC)
         assert naive != aware
         assert not (naive == aware)
         with pytest.raises(TypeError):

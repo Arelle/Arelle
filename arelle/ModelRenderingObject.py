@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import os
 from collections import defaultdict, OrderedDict
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, Self
 
 from arelle import XmlUtil, XbrlConst
 from arelle.formula.XPathParser import parse
@@ -34,7 +34,6 @@ from arelle.typing import TypeGetText
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
-    from typing_extensions import Self
 
     from arelle.ModelDocument import ModelDocument
     from arelle.ModelXbrl import ModelXbrl

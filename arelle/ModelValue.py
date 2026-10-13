@@ -6,8 +6,7 @@ import datetime, isodate
 import sys
 from collections.abc import Mapping
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, cast, overload, Literal, Optional, Union
-from typing_extensions import Self
+from typing import TYPE_CHECKING, Any, cast, overload, Literal, Optional, Self, Union
 from fractions import Fraction
 from arelle.UrlUtil import isValidUriReference
 from arelle.typing import ModelObjectBase
