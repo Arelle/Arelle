@@ -244,11 +244,12 @@ def compareRenderingInfosetElts(
         sourceElt: etree._Element,
         comparisonElt: etree._Element
     ) -> None:
+    sourcePath = sourceElt.getroottree().getpath(sourceElt)
     if sourceElt.tag != comparisonElt.tag:
         modelXbrl.error("arelle:tableModelElementMismatch",
             _("Table layout model expecting %(elt2)s found %(elt1)s source path %(elt1path)s comparison line %(elt2line)s path %(elt2path)s, srcElt %(elt1xml)s cmpElt %(elt2xml)s"),
             modelObject=modelXbrl, elt1=sourceElt.tag, elt2=comparisonElt.tag,
-            elt1path=sourceElt.getroottree().getpath(sourceElt), elt2path=comparisonElt.getroottree().getpath(comparisonElt),
+            elt1path=sourcePath, elt2path=comparisonElt.getroottree().getpath(comparisonElt),
             elt2line=comparisonElt.sourceline,
             elt1xml=etree.tostring(sourceElt),elt2xml=etree.tostring(comparisonElt))
         return
@@ -273,18 +274,18 @@ def compareRenderingInfosetElts(
             modelXbrl.error("arelle:tableModelConstraintsMismatch",
                 _("Table layout model constraints %(src)s expecting %(cmp)s source path %(elt1path)s comparison line %(elt2line)s path %(elt2path)s"),
                 modelObject=modelXbrl, src=",".join(str(s) for s in sorted(srcConstraints.items())), cmp=",".join(str(s) for s in sorted(cmpConstraints.items())),
-                elt1path=sourceElt.getroottree().getpath(sourceElt), elt2path=comparisonElt.getroottree().getpath(comparisonElt),
+                elt1path=sourcePath, elt2path=comparisonElt.getroottree().getpath(comparisonElt),
                 elt2line=comparisonElt.sourceline)
     else:
         sourceAttrs = {k: v for k, v in sourceElt.items() if k not in IGNORED_LAYOUT_ATTRIBUTES}
         comparisonAttrs = {k: v for k, v in comparisonElt.items() if k not in IGNORED_LAYOUT_ATTRIBUTES}
         if sourceAttrs != comparisonAttrs:
             modelXbrl.error("arelle:tableModelAttributesMismatch",
-                _("Table layout model comparison element %(elt)s expecting attributes %(attrs2)s found %(attrs1)s source line %(elt1line)s comparison line %(elt2line)s"),
+                _("Table layout model comparison element %(elt)s expecting attributes %(attrs2)s found %(attrs1)s source path %(elt1path)s comparison line %(elt2line)s"),
                 modelObject=modelXbrl, elt=sourceElt.tag,
                 attrs1=", ".join('{0}="{1}"'.format(k, v) for k, v in sorted(sourceAttrs.items())),
                 attrs2=", ".join('{0}="{1}"'.format(k, v) for k, v in sorted(comparisonAttrs.items())),
-                elt1line=sourceElt.sourceline, elt2line=comparisonElt.sourceline)
+                elt1path=sourcePath, elt2line=comparisonElt.sourceline)
     sourceChildren = _layoutChildren(sourceElt)
     comparisonChildren = _layoutChildren(comparisonElt)
     if not sourceChildren and not comparisonChildren:
@@ -292,9 +293,9 @@ def compareRenderingInfosetElts(
         comparisonText = (comparisonElt.text or "").strip()
         if sourceText != comparisonText:
             modelXbrl.error("arelle:tableModelTextMismatch",
-                _("Table layout model comparison element %(elt)s expecting text %(text2)s found %(text1)s source line %(elt1line)s comparison line %(elt2line)s"),
+                _("Table layout model comparison element %(elt)s expecting text %(text2)s found %(text1)s source path %(elt1path)s comparison line %(elt2line)s"),
                 modelObject=modelXbrl, elt=sourceElt.tag, text1=sourceText or "(none)", text2=comparisonText or "(none)",
-                elt1line=sourceElt.sourceline, elt2line=comparisonElt.sourceline)
+                elt1path=sourcePath, elt2line=comparisonElt.sourceline)
     for sourceChild, comparisonChild in zip(sourceChildren, comparisonChildren):
         compareRenderingInfosetElts(modelXbrl, sourceChild, comparisonChild)
 
