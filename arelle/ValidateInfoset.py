@@ -225,6 +225,8 @@ def stripTime(periodAspect: Iterable[str | None]) -> tuple[DateTime | None, ...]
 
 TABLE_MODEL_CELL = f"{{{XbrlConst.tableModel}}}cell"
 TABLE_MODEL_CONSTRAINT = f"{{{XbrlConst.tableModel}}}constraint"
+TABLE_MODEL_HEADERS = f"{{{XbrlConst.tableModel}}}headers"
+TABLE_MODEL_TABLE = f"{{{XbrlConst.tableModel}}}table"
 IGNORED_LAYOUT_ATTRIBUTES = {"{http://www.w3.org/XML/1998/namespace}base"}
 
 
@@ -234,7 +236,12 @@ def _childElements(elt: etree._Element) -> list[etree._Element]:
 
 def _layoutChildren(elt: etree._Element) -> list[etree._Element]:
     children = _childElements(elt)
-    if elt.tag == TABLE_MODEL_CELL:
+    if elt.tag == TABLE_MODEL_TABLE:
+        # Header order across axes is not significant.
+        headers = sorted((child for child in children if child.tag == TABLE_MODEL_HEADERS), key=lambda child: child.get("axis", ""))
+        others = [child for child in children if child.tag != TABLE_MODEL_HEADERS]
+        children = headers + others
+    elif elt.tag == TABLE_MODEL_CELL:
         children = [child for child in children if child.tag != TABLE_MODEL_CONSTRAINT]
     return children
 
@@ -313,11 +320,6 @@ def validateRenderingInfoset(modelXbrl: ModelXbrl, comparisonFile: str, sourceDo
             comparisonDoc = etree.parse(file)
         else:
             comparisonDoc = etree.parse(comparisonFile)
-        # order comparison document headers in z - y - x order
-        headerElts = comparisonDoc.findall(".//{http://xbrl.org/2014/table/model}headers")
-        if len(headerElts) == 3:
-            if headerElts[0].get("axis") == "y" and headerElts[2].get("axis") == "z":
-                headerElts[0].addprevious(headerElts[2])
         compareRenderingInfosetElts(modelXbrl, sourceDoc.getroot(), comparisonDoc.getroot())
     except (IOError, etree.LxmlError) as err:
         modelXbrl.error("arelle:tableModelFileError",
