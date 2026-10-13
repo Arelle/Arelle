@@ -231,8 +231,6 @@ ignore = [
     "E702",
     # statement ends with a semicolon
     "E703",
-    # comparison to None should be 'if cond is not None:'
-    "E711",
     # comparison to True should be 'if cond is True:' or 'if cond:'
     "E712",
     # test for membership should be 'not in'

@@ -453,7 +453,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
     def getbackgroundColor(self, factPrototype: FactPrototype) -> str:
         bgColor = XbrlTable.TG_BG_DEFAULT # default monetary
         concept = factPrototype.concept
-        if concept == None:
+        if concept is None:
             return bgColor
         isNumeric = concept.isNumeric
         isInteger = concept.baseXbrliType in integerItemTypes
