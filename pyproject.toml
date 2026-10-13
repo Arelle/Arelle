@@ -156,8 +156,6 @@ ignore = [
     "E111",
     # indentation is not a multiple of 4 (comment)
     "E114",
-    # expected an indented block (comment)
-    "E115",
     # E116 unexpected indentation (comment)
     "E116",
     # over-indented
