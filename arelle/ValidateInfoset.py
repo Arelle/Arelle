@@ -301,19 +301,12 @@ def validateRenderingInfoset(modelXbrl: ModelXbrl, comparisonFile: str, sourceDo
             comparisonDoc = etree.parse(file)
         else:
             comparisonDoc = etree.parse(comparisonFile)
-        # uncomment to debug when layout model corrupted after creation
-        # with open("/Users/hermf/temp/temp2.xml", "wb") as fh:
-        #     fh.write(etree.tostring(sourceDoc, pretty_print=True))
         numSrcTblElts = len(sourceDoc.findall(".//{http://xbrl.org/2014/table/model}table"))
         numCmpTblElts = len(comparisonDoc.findall(".//{http://xbrl.org/2014/table/model}table"))
         if numSrcTblElts != numCmpTblElts:
             modelXbrl.error("arelle:tableModelNumberOfTables",
                 _("Table layout model comparison expects %(numCmpTblElts)s table elements, layout has %(numSrcTblElts)s table elements"),
                 modelObject=modelXbrl, numSrcTblElts=numSrcTblElts, numCmpTblElts=numCmpTblElts)
-        if False: # numCmpTblElts > 1 and comparisonFile.endswith("linkrole-parameter.xml"):
-            # reverse tables for this test case
-            tblElts = sourceDoc.findall(".//{http://xbrl.org/2014/table/model}table")
-            tblElts[0].addprevious(tblElts[1])
         # order comparison document headers in z - y - x order
         headerElts = comparisonDoc.findall(".//{http://xbrl.org/2014/table/model}headers")
         if len(headerElts) == 3:
@@ -337,11 +330,6 @@ def validateRenderingInfoset(modelXbrl: ModelXbrl, comparisonFile: str, sourceDo
                 compareRenderingInfosetElts(modelXbrl, sourceElt, comparisonElt)
             sourceElt = next(sourceIter, None)
             comparisonElt = next(comparisonIter, None)
-        # option to save sourceDoc when errors detected
-        # numErrorsAtStart = len(modelXbrl.errors)
-        # if len(modelXbrl.errors) > numErrorsAtStart:
-        #     with io.open("/Users/hermf/temp/temp/" + os.path.basename(comparisonFile), "wb") as fh:
-        #         fh.write(etree.tostring(sourceDoc, encoding="utf-8", pretty_print=True))
     except (IOError, etree.LxmlError) as err:
         modelXbrl.error("arelle:tableModelFileError",
             _("Table layout model comparison file %(xmlfile)s error %(error)s"),
