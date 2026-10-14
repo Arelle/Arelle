@@ -2226,7 +2226,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                             ViewFileTests.viewTests(self.modelManager.modelXbrl, options.testReport, options.testReportCols)  # type: ignore[no-untyped-call]
 
                         if options.rssReport:
-                            ViewFileRssFeed.viewRssFeed(self.modelManager.modelXbrl, options.rssReport, options.rssReportCols)  # type: ignore[no-untyped-call]
+                            ViewFileRssFeed.viewRssFeed(self.modelManager.modelXbrl, options.rssReport, options.rssReportCols)  # type: ignore[arg-type]
 
                         if options.DTSFile:
                             ViewFileDTS.viewDTS(modelXbrl, options.DTSFile)  # type: ignore[arg-type]
