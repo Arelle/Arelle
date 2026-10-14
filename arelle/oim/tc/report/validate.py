@@ -291,9 +291,10 @@ class TCReportValidator:
         checked_report_params: set[tuple[str, str]] = set()
         sort_ranges: dict[str, list[_TableRange]] = {}
         table_counts: Counter[str] = Counter()
-        last_writers = self._last_writers()
+        ordered_tables = self._table_order()
+        last_writers = self._last_writers(ordered_tables)
         deferred_tables: list[tuple[str, XbrlCsvTable, _Template]] = []
-        for position, (table_id, table) in enumerate(tables.items()):
+        for position, (table_id, table) in enumerate(ordered_tables):
             template_id = table.template or table_id
             template = self._templates.get(template_id)
             if template is None:
@@ -343,10 +344,55 @@ class TCReportValidator:
             )
             yield from self._validate_reference_keys(table_id, table, template, rows)
 
-    def _last_writers(self) -> dict[KeyStore, int]:
+    def _table_order(self) -> list[tuple[str, XbrlCsvTable]]:
+        """The tables in the order they are validated.
+
+        A table whose reference keys read a key store comes after the tables that
+        add to it, so its references can be checked in the first pass. Otherwise
+        metadata order is kept, including when tables reference each other's keys.
+        """
+        remaining = list(self._csv_metadata.tables.items())
+        remaining_writers: Counter[KeyStore] = Counter()
+        for table_id, table in remaining:
+            for key in self._unique_keys(table_id, table):
+                remaining_writers[key.store] += 1
+        ordered_tables = []
+        while remaining:
+            # If all tables wait on each other, take the first.
+            next_table = remaining[0]
+            # The first table that can go, to keep metadata order.
+            for table_id, table in remaining:
+                if not self._waits_for_writers(table_id, table, remaining_writers):
+                    next_table = (table_id, table)
+                    break
+            remaining.remove(next_table)
+            ordered_tables.append(next_table)
+            for key in self._unique_keys(*next_table):
+                remaining_writers[key.store] -= 1
+        return ordered_tables
+
+    def _waits_for_writers(
+        self, table_id: str, table: XbrlCsvTable, remaining_writers: Counter[KeyStore]
+    ) -> bool:
+        """Whether another remaining table adds to a key store the table's
+        reference keys read."""
+        template = self._templates.get(table.template or table_id)
+        if template is None:
+            return False
+        own_stores = {key.store for key in template.unique_keys}
+        if any(key.target in own_stores for key in template.reference_keys):
+            # A table that reads its own key store has to be checked in a second pass.
+            return False
+        return any(remaining_writers[key.target] > 0 for key in template.reference_keys)
+
+    def _unique_keys(self, table_id: str, table: XbrlCsvTable) -> tuple[_UniqueKey, ...]:
+        template = self._templates.get(table.template or table_id)
+        return template.unique_keys if template is not None else ()
+
+    def _last_writers(self, ordered_tables: list[tuple[str, XbrlCsvTable]]) -> dict[KeyStore, int]:
         """The position of the last table that adds values to each key store."""
         last_writers: dict[KeyStore, int] = {}
-        for position, (table_id, table) in enumerate(self._csv_metadata.tables.items()):
+        for position, (table_id, table) in enumerate(ordered_tables):
             template = self._templates.get(table.template or table_id)
             if template is not None:
                 for key in template.unique_keys:
