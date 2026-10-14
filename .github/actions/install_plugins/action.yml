@@ -1,0 +1,42 @@
+name: Install Plugins
+description: Checks out the EDGAR and xule plugins into arelle/plugin. A blank ref falls back to the tag pinned in plugin-versions.json. Requires the repository to be checked out.
+inputs:
+  edgar_ref:
+    description: 'Arelle/EDGAR branch, tag or SHA (blank to use the pin)'
+    required: false
+  xule_ref:
+    description: 'xbrlus/xule branch, tag or SHA (blank to use the pin)'
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve plugin refs
+      id: refs
+      shell: bash
+      env:
+        EDGAR_OVERRIDE: ${{ inputs.edgar_ref }}
+        XULE_OVERRIDE: ${{ inputs.xule_ref }}
+      run: |
+        echo "edgar_ref=${EDGAR_OVERRIDE:-$(jq -r .EDGAR_VERSION plugin-versions.json)}" >> "$GITHUB_OUTPUT"
+        echo "xule_ref=${XULE_OVERRIDE:-$(jq -r .XULE_VERSION plugin-versions.json)}" >> "$GITHUB_OUTPUT"
+    - name: Checkout EDGAR
+      uses: actions/checkout@v7.0.1
+      with:
+        repository: Arelle/EDGAR
+        path: arelle/plugin/EDGAR
+        ref: ${{ steps.refs.outputs.edgar_ref }}
+    - name: Checkout XULE
+      uses: actions/checkout@v7.0.1
+      with:
+        repository: xbrlus/xule
+        path: xule
+        ref: ${{ steps.refs.outputs.xule_ref }}
+    - name: Move plugins and clean up
+      shell: bash
+      run: |
+        rm -rf arelle/plugin/EDGAR/.git
+        mv xule/plugin/validate/* arelle/plugin/validate/
+        rm -rf xule/plugin/validate
+        mv xule/plugin/* arelle/plugin/
+        rm -rf xule

@@ -9,7 +9,7 @@ on:
         default: true
         type: boolean
       edgar_ref:
-        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
+        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for the tag pinned in plugin-versions.json)'
         required: false
         type: string
       macos_version:
@@ -28,7 +28,7 @@ on:
         required: false
         type: string
       xule_ref:
-        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
+        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for the tag pinned in plugin-versions.json)'
         required: false
         type: string
     outputs:
@@ -46,7 +46,7 @@ on:
         default: true
         type: boolean
       edgar_ref:
-        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
+        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for the tag pinned in plugin-versions.json)'
         required: false
         type: string
       macos_version:
@@ -65,7 +65,7 @@ on:
         required: true
         type: string
       xule_ref:
-        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
+        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for the tag pinned in plugin-versions.json)'
         required: false
         type: string
 
@@ -94,22 +94,11 @@ jobs:
       - run: |
           python -m pip install --upgrade pip setuptools wheel
           pip install -r requirements-build.txt
-      - uses: actions/checkout@v7.0.1
+      - name: Install plugins
+        uses: ./.github/actions/install_plugins
         with:
-          repository: Arelle/EDGAR
-          path: arelle/plugin/EDGAR
-          ref: ${{ inputs.edgar_ref }}
-      - run: rm -rf arelle/plugin/EDGAR/.git
-      - uses: actions/checkout@v7.0.1
-        with:
-          repository: xbrlus/xule
-          path: tmp
-          ref: ${{ inputs.xule_ref }}
-      - run: |
-          mv tmp/plugin/validate/* arelle/plugin/validate/
-          rm -rf tmp/plugin/validate
-          mv tmp/plugin/* arelle/plugin/
-          rm -rf tmp
+          edgar_ref: ${{ inputs.edgar_ref }}
+          xule_ref: ${{ inputs.xule_ref }}
       - name: Capture build version
         run: echo "BUILD_VERSION=$(python -W ignore distro.py --version)" >> $GITHUB_ENV
       - name: Define artifact names

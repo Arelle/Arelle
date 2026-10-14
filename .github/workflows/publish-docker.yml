@@ -18,12 +18,12 @@ on:
         type: string
       edgar_ref:
         default: ''
-        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
+        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for the tag pinned in plugin-versions.json)'
         required: false
         type: string
       xule_ref:
         default: ''
-        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
+        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for the tag pinned in plugin-versions.json)'
         required: false
         type: string
 
@@ -41,12 +41,12 @@ on:
         type: string
       edgar_ref:
         default: ''
-        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for default)'
+        description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for the tag pinned in plugin-versions.json)'
         required: false
         type: string
       xule_ref:
         default: ''
-        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for default)'
+        description: 'xbrlus/xule branch, tag or SHA to checkout (blank for the tag pinned in plugin-versions.json)'
         required: false
         type: string
 
@@ -121,33 +121,11 @@ jobs:
           provenance: true
           sbom: true
 
-      - name: Checkout EDGAR
-        uses: actions/checkout@v7.0.1
+      - name: Install plugins
+        uses: ./.github/actions/install_plugins
         with:
-          repository: Arelle/EDGAR
-          path: arelle/plugin/EDGAR
-          ref: ${{ inputs.edgar_ref }}
-          fetch-depth: 1
-
-      - name: Cleanup EDGAR
-        run: rm -rf arelle/plugin/EDGAR/.git
-
-      - name: Checkout XULE
-        uses: actions/checkout@v7.0.1
-        with:
-          repository: xbrlus/xule
-          path: xule
-          ref: ${{ inputs.xule_ref }}
-          fetch-depth: 1
-
-      - name: Move XULE plugins
-        run: |
-          mv xule/plugin/validate/* arelle/plugin/validate/
-          rm -rf xule/plugin/validate
-          mv xule/plugin/* arelle/plugin/
-
-      - name: Cleanup XULE
-        run: rm -rf xule
+          edgar_ref: ${{ inputs.edgar_ref }}
+          xule_ref: ${{ inputs.xule_ref }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta

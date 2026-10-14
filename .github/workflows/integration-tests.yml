@@ -8,10 +8,12 @@ on:
       - '**.pyw'
       - '.github/actions/get_conformance_suites_matrix/**'
       - '.github/actions/get_test_scripts_matrix/**'
+      - '.github/actions/install_plugins/**'
       - '.github/actions/test_conformance_suite/**'
       - '.github/actions/test_script/**'
       - '.github/workflows/integration-tests.yml'
       - 'arelle/**'
+      - 'plugin-versions.json'
       - 'requirements*.txt'
       - 'tests/**'
 

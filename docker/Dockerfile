@@ -4,6 +4,11 @@ FROM python:${PYTHON_VERSION} AS builder
 
 WORKDIR /usr/src/app
 
+## jq reads the plugin versions from plugin-versions.json
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends jq \
+  && rm -rf /var/lib/apt/lists/*
+
 ## Requirements are installed here to ensure they will be cached.
 ARG EXTRA_PIP=""
 ## Plugin requirements includes PythonMonkey which requires npm to install node modules.
@@ -39,20 +44,28 @@ ARG INCLUDE_EDGAR=""
 ARG EDGAR_REF=""
 ARG XULE_REF=""
 
+## Plugin release tags used when EDGAR_REF / XULE_REF are blank
+COPY plugin-versions.json .
+
 ## Clone EDGAR plugin if enabled and plugin doesn't already exist
-## Uses EDGAR_REF to pin a specific tag/release if provided
+## Uses EDGAR_REF (branch, tag or SHA) if provided, otherwise the tag in plugin-versions.json
 RUN if ([ -n "$INCLUDE_EDGAR" ] || [ -n "$EDGAR_REF" ]) && [ ! -d arelle/plugin/EDGAR ]; then \
-        git clone --depth 1 ${EDGAR_REF:+--branch "$EDGAR_REF"} https://github.com/Arelle/EDGAR.git \
+        git init -q EDGAR \
+        && git -C EDGAR fetch -q --depth 1 https://github.com/Arelle/EDGAR.git "${EDGAR_REF:-$(jq -r .EDGAR_VERSION plugin-versions.json)}" \
+        && git -C EDGAR checkout -q FETCH_HEAD \
         && rm -rf EDGAR/.git \
         && mv EDGAR arelle/plugin/; \
     fi
 
 ## Clone XULE plugin if enabled and plugin doesn't already exist
-## Uses XULE_REF to pin a specific tag/release if provided
+## Uses XULE_REF (branch, tag or SHA) if provided, otherwise the tag in plugin-versions.json
 ## Moves XULE validation contents (DQC.py & eforms.py) to Arelle validation directory
 ## Moves XULE plugin directory contents to arelle plugin directory
 RUN if ([ -n "$INCLUDE_EDGAR" ] || [ -n "$XULE_REF" ]) && [ ! -d arelle/plugin/xule ]; then \
-        git clone --depth 1 ${XULE_REF:+--branch "$XULE_REF"} https://github.com/xbrlus/xule.git \
+        git init -q xule \
+        && git -C xule fetch -q --depth 1 https://github.com/xbrlus/xule.git "${XULE_REF:-$(jq -r .XULE_VERSION plugin-versions.json)}" \
+        && git -C xule checkout -q FETCH_HEAD \
+        && rm -rf xule/.git \
         && mv xule/plugin/validate/* arelle/plugin/validate/ \
         && rm -rf xule/plugin/validate \
         && mv xule/plugin/* arelle/plugin/ \
