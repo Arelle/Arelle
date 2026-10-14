@@ -235,8 +235,6 @@ ignore = [
     "F405",
     # '...'.format(...) has unused arguments at position(s): n
     "F523",
-    # '...'.format(...) is missing argument(s) for placeholder(s): n
-    "F524",
     # dictionary key 'xs' repeated with different values
     "F601",
     # redefinition of unused 'xxx' from line 31
