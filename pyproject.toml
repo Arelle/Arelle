@@ -243,8 +243,6 @@ ignore = [
     "F811",
     # undefined name
     "F821",
-    # local variable 'id' defined as a builtin referenced before assignment
-    "F823",
     # local variable name is assigned to but never used
     "F841",
 
