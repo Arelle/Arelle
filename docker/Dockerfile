@@ -4,6 +4,11 @@ FROM python:${PYTHON_VERSION} AS builder
 
 WORKDIR /usr/src/app
 
+## jq reads the plugin versions from plugin-versions.json
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends jq \
+  && rm -rf /var/lib/apt/lists/*
+
 ## Requirements are installed here to ensure they will be cached.
 ARG EXTRA_PIP=""
 ## Plugin requirements includes PythonMonkey which requires npm to install node modules.
@@ -40,27 +45,25 @@ ARG EDGAR_REF=""
 ARG XULE_REF=""
 
 ## Plugin release tags used when EDGAR_REF / XULE_REF are blank
-COPY plugin-versions.txt .
+COPY plugin-versions.json .
 
 ## Clone EDGAR plugin if enabled and plugin doesn't already exist
-## Uses EDGAR_REF (branch, tag or SHA) if provided, otherwise the tag in plugin-versions.txt
+## Uses EDGAR_REF (branch, tag or SHA) if provided, otherwise the tag in plugin-versions.json
 RUN if ([ -n "$INCLUDE_EDGAR" ] || [ -n "$EDGAR_REF" ]) && [ ! -d arelle/plugin/EDGAR ]; then \
-        . ./plugin-versions.txt \
-        && git init -q EDGAR \
-        && git -C EDGAR fetch -q --depth 1 https://github.com/Arelle/EDGAR.git "${EDGAR_REF:-$EDGAR_VERSION}" \
+        git init -q EDGAR \
+        && git -C EDGAR fetch -q --depth 1 https://github.com/Arelle/EDGAR.git "${EDGAR_REF:-$(jq -r .EDGAR_VERSION plugin-versions.json)}" \
         && git -C EDGAR checkout -q FETCH_HEAD \
         && rm -rf EDGAR/.git \
         && mv EDGAR arelle/plugin/; \
     fi
 
 ## Clone XULE plugin if enabled and plugin doesn't already exist
-## Uses XULE_REF (branch, tag or SHA) if provided, otherwise the tag in plugin-versions.txt
+## Uses XULE_REF (branch, tag or SHA) if provided, otherwise the tag in plugin-versions.json
 ## Moves XULE validation contents (DQC.py & eforms.py) to Arelle validation directory
 ## Moves XULE plugin directory contents to arelle plugin directory
 RUN if ([ -n "$INCLUDE_EDGAR" ] || [ -n "$XULE_REF" ]) && [ ! -d arelle/plugin/xule ]; then \
-        . ./plugin-versions.txt \
-        && git init -q xule \
-        && git -C xule fetch -q --depth 1 https://github.com/xbrlus/xule.git "${XULE_REF:-$XULE_VERSION}" \
+        git init -q xule \
+        && git -C xule fetch -q --depth 1 https://github.com/xbrlus/xule.git "${XULE_REF:-$(jq -r .XULE_VERSION plugin-versions.json)}" \
         && git -C xule checkout -q FETCH_HEAD \
         && rm -rf xule/.git \
         && mv xule/plugin/validate/* arelle/plugin/validate/ \
