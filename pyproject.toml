@@ -229,8 +229,6 @@ ignore = [
 
     # imported but unused
     "F401",
-    # 'from xxx import *' used; unable to detect undefined names
-    "F403",
     # dictionary key 'xs' repeated with different values
     "F601",
     # redefinition of unused 'xxx' from line 31
@@ -264,7 +262,7 @@ ignore = [
 "arelle/archive/plugin/sakaCalendar.py" = ["CPY001"]
 "arelle/archive/plugin/validate/XFsyntax/xf.py" = ["CPY001"]
 "arelle/plugin/internet/**" = ["CPY001"]
-"arelle/webserver/bottle.py" = ["CPY001"]
+"arelle/webserver/bottle.py" = ["CPY001", "F403"]
 
 [tool.ruff.lint.flake8-copyright]
 notice-rgx = "See COPYRIGHT\\.md for copyright information\\."
