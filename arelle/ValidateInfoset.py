@@ -3,14 +3,15 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+import datetime
 from collections import Counter, defaultdict
-from collections.abc import Iterable
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from lxml import etree
 
 from arelle.ModelDocument import Type
-from arelle.ModelValue import qname, dateTime, DateTime
+from arelle.ModelValue import DATETIME, dateTime, qname
 from arelle import XmlUtil, XbrlConst
 from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals
 from arelle.typing import TypeGetText
@@ -213,25 +214,52 @@ def resolvePath(modelXbrl: ModelXbrl, namespaceId: str | None) -> ModelObject | 
     return None
 
 
-def stripTime(periodAspect: Iterable[str | None]) -> tuple[DateTime | None, ...]:
-    a = [t for t in periodAspect if t]
-    p = []
-    if len(a) > 1:
-        p.append(dateTime(a[0].replace("Z","")))
-    if len(a) > 0:
-        p.append(dateTime(a[-1].replace("Z", ""), addOneDay=True))
-    return tuple(p)
-
-
 TABLE_MODEL_CELL = f"{{{XbrlConst.tableModel}}}cell"
 TABLE_MODEL_CONSTRAINT = f"{{{XbrlConst.tableModel}}}constraint"
 TABLE_MODEL_HEADERS = f"{{{XbrlConst.tableModel}}}headers"
 TABLE_MODEL_TABLE = f"{{{XbrlConst.tableModel}}}table"
+PERIOD_DATE_TAGS = {XbrlConst.qnXbrliStartDate.clarkNotation, XbrlConst.qnXbrliEndDate.clarkNotation, XbrlConst.qnXbrliInstant.clarkNotation}
 IGNORED_LAYOUT_ATTRIBUTES = {"{http://www.w3.org/XML/1998/namespace}base"}
+
+@dataclass(frozen=True)
+class CanonicalElement:
+    tag: str
+    attributes: tuple[tuple[str, str], ...]
+    text: str
+    children: tuple[CanonicalElement, ...]
+
+
+@dataclass(frozen=True)
+class CanonicalConstraint:
+    aspect: str
+    tag: str
+    value: CanonicalElement | None
 
 
 def _childElements(elt: etree._Element) -> list[etree._Element]:
     return list(elt.iterchildren(etree.Element))
+
+
+def _periodDateTime(elt: etree._Element, text: str) -> str:
+    # Date only end dates and instants mean the end of that day. Expected outputs mix Z and no time zone.
+    value = dateTime(text.replace("Z", ""), addOneDay=elt.tag != XbrlConst.qnXbrliStartDate.clarkNotation, type=DATETIME)
+    return text if value is None else datetime.datetime.isoformat(value)
+
+
+def _canonicalValue(elt: etree._Element) -> CanonicalElement:
+    text = (elt.text or "").strip()
+    if elt.tag in PERIOD_DATE_TAGS:
+        text = _periodDateTime(elt, text)
+    attrs = tuple(sorted((str(k), str(v)) for k, v in elt.items()))
+    return CanonicalElement(str(elt.tag), attrs, text, tuple(_canonicalValue(child) for child in _childElements(elt)))
+
+
+def _canonicalConstraint(constraintElt: etree._Element) -> CanonicalConstraint:
+    aspectElt = constraintElt.find(f"{{{XbrlConst.tableModel}}}aspect")
+    valueElt = constraintElt.find(f"{{{XbrlConst.tableModel}}}value")
+    aspect = "" if aspectElt is None else (aspectElt.text or "").strip()
+    value = None if valueElt is None else _canonicalValue(valueElt)
+    return CanonicalConstraint(aspect, constraintElt.get("tag", ""), value)
 
 
 def _layoutChildren(elt: etree._Element) -> list[etree._Element]:
@@ -281,25 +309,12 @@ def compareRenderingInfosetElts(
             attrs2=", ".join('{0}="{1}"'.format(k, v) for k, v in sorted(comparisonAttrs.items())),
             elt1path=sourcePath, elt2line=comparisonElt.sourceline)
     if sourceElt.tag == TABLE_MODEL_CELL:
-        srcConstraints: list[tuple[str, str, tuple[object, ...]]] = []
-        cmpConstraints: list[tuple[str, str, tuple[object, ...]]] = []
-        for srcE, cstrts in ((sourceElt, srcConstraints), (comparisonElt, cmpConstraints)):
-            for e in srcE.iter("{http://xbrl.org/2014/table/model}constraint"):
-                cstrtTag = e.get("tag", "")
-                cstrtAspect = e.findtext("{http://xbrl.org/2014/table/model}aspect")
-                if cstrtAspect:
-                    cstrtValue: tuple[str, ...] = ()
-                    if e.find("{http://xbrl.org/2014/table/model}value") is not None:
-                        cstrtValue = tuple((f.text or "").strip() for f in e.find("{http://xbrl.org/2014/table/model}value") for f in e.iter())  # type: ignore[union-attr]
-                    if cstrtAspect == "period":
-                        # remove end dates time parts if zero (because not consistently reported in conf suite expected outputs)
-                        cstrts.append((cstrtAspect, cstrtTag, stripTime(cstrtValue)))
-                    else:
-                        cstrts.append((cstrtAspect, cstrtTag, cstrtValue))
-        if Counter(srcConstraints) != Counter(cmpConstraints):
+        sourceConstraints = [_canonicalConstraint(c) for c in sourceElt.iterchildren(TABLE_MODEL_CONSTRAINT)]
+        comparisonConstraints = [_canonicalConstraint(c) for c in comparisonElt.iterchildren(TABLE_MODEL_CONSTRAINT)]
+        if Counter(sourceConstraints) != Counter(comparisonConstraints):
             modelXbrl.error("arelle:tableModelConstraintsMismatch",
                 _("Table layout model constraints %(src)s expecting %(cmp)s source path %(elt1path)s comparison line %(elt2line)s path %(elt2path)s"),
-                modelObject=modelXbrl, src=",".join(str(s) for s in srcConstraints), cmp=",".join(str(c) for c in cmpConstraints),
+                modelObject=modelXbrl, src=",".join(str(s) for s in sourceConstraints), cmp=",".join(str(c) for c in comparisonConstraints),
                 elt1path=sourcePath, elt2path=comparisonElt.getroottree().getpath(comparisonElt),
                 elt2line=comparisonElt.sourceline)
     sourceChildren = _layoutChildren(sourceElt)
