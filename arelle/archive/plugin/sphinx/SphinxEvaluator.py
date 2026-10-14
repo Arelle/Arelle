@@ -665,7 +665,7 @@ def evaluateWith(node, sphinxContext):
 def contextView(sphinxContext, fact=None):
     if isinstance(fact, ModelFact):
         return "{0}[{1}]".format(fact.qname,
-                                 ", ".join("{2}={1}".format(aspectName(aspect),
+                                 ", ".join("{0}={1}".format(aspectName(aspect),
                                    factAspectValue(fact, aspect, view=True))
                                    for aspect, fact in sphinxContext.hyperspaceBindings.aspectBoundFacts.items()
                                    if factAspectValue(fact, aspect) and aspect != Aspect.CONCEPT))
