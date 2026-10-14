@@ -233,8 +233,6 @@ ignore = [
     "F403",
     # xxx may be undefined, or defined from star imports: xxx
     "F405",
-    # '...'.format(...) has unused arguments at position(s): n
-    "F523",
     # dictionary key 'xs' repeated with different values
     "F601",
     # redefinition of unused 'xxx' from line 31

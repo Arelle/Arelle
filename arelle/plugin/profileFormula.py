@@ -43,7 +43,7 @@ def profileFormulaMenuCommand(cntlr):
 
     excludeCompileTime = messagebox.askyesno(_("arelle - Exclude formula compile statistics"),
                 _("Should formula compiling be excluded from the statistics?\n"
-                  '(Yes will make a separate compiling "pass" so that statistics include execution only.)'.format(errMsg)),
+                  '(Yes will make a separate compiling "pass" so that statistics include execution only.)'),
                 parent=cntlr.parent)
 
     cntlr.config["formulaProfileReportDir"] = os.path.dirname(profileReportFile)

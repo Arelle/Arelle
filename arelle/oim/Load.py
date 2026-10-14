@@ -1061,7 +1061,7 @@ def _loadFromOIM(cntlr, error, warning, modelXbrl, oimFile, mappedUri):
                       _("Invalid JSON structure member types in metadata: %(members)s"),
                       sourceFileLine=oimFile, members=", ".join(invalidMemberTypes))
             if invalidSQNames:
-                error("oimce:invalidSQName".format(errPrefix),
+                error("oimce:invalidSQName",
                       _("Invalid SQNames in metadata: %(members)s"),
                       sourceFileLine=oimFile, members=", ".join(invalidMemberTypes))
 
