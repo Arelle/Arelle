@@ -7,11 +7,13 @@ import datetime
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
+from urllib.parse import urljoin
 
 from lxml import etree
 
 from arelle.ModelDocument import Type
 from arelle.ModelValue import DATETIME, dateTime, qname
+from arelle.UrlUtil import ensureUrl
 from arelle import XmlUtil, XbrlConst
 from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals
 from arelle.typing import TypeGetText
@@ -216,12 +218,14 @@ def resolvePath(modelXbrl: ModelXbrl, namespaceId: str | None) -> ModelObject | 
 
 TABLE_MODEL_CELL = f"{{{XbrlConst.tableModel}}}cell"
 TABLE_MODEL_CONSTRAINT = f"{{{XbrlConst.tableModel}}}constraint"
+TABLE_MODEL_FACT = f"{{{XbrlConst.tableModel}}}fact"
 TABLE_MODEL_HEADERS = f"{{{XbrlConst.tableModel}}}headers"
 TABLE_MODEL_TABLE = f"{{{XbrlConst.tableModel}}}table"
 PERIOD_DATE_TAGS = {XbrlConst.qnXbrliStartDate.clarkNotation, XbrlConst.qnXbrliEndDate.clarkNotation, XbrlConst.qnXbrliInstant.clarkNotation}
 # Concept and explicit dimension values and unit measures hold QNames. Other text, such as an entity identifier, is literal.
 QNAME_VALUE_TAGS = {f"{{{XbrlConst.tableModel}}}value", f"{{{XbrlConst.xbrli}}}measure"}
-IGNORED_LAYOUT_ATTRIBUTES = {"{http://www.w3.org/XML/1998/namespace}base"}
+XML_BASE = "{http://www.w3.org/XML/1998/namespace}base"
+IGNORED_LAYOUT_ATTRIBUTES = {XML_BASE}
 
 @dataclass(frozen=True)
 class CanonicalElement:
@@ -251,6 +255,14 @@ def _periodDateTime(elt: etree._Element, text: str) -> str:
     # Date only end dates and instants mean the end of that day. Expected outputs mix Z and no time zone.
     value = dateTime(text.replace("Z", ""), addOneDay=elt.tag != XbrlConst.qnXbrliStartDate.clarkNotation, type=DATETIME)
     return text if value is None else datetime.datetime.isoformat(value)
+
+
+def _factLocation(factElt: etree._Element, documentUri: str) -> str:
+    uri = ensureUrl(documentUri)
+    for elt in [*reversed(list(factElt.iterancestors())), factElt]:
+        if xmlBase := elt.get(XML_BASE):
+            uri = urljoin(uri, xmlBase)
+    return urljoin(uri, (factElt.text or "").strip())
 
 
 def _canonicalValue(elt: etree._Element) -> CanonicalElement:
@@ -297,7 +309,9 @@ def _layoutAttributes(elt: etree._Element) -> dict[str, str]:
 def compareRenderingInfosetElts(
         modelXbrl: ModelXbrl,
         sourceElt: etree._Element,
-        comparisonElt: etree._Element
+        comparisonElt: etree._Element,
+        sourceDocumentUri: str,
+        comparisonDocumentUri: str
     ) -> None:
     sourcePath = sourceElt.getroottree().getpath(sourceElt)
     if sourceElt.tag != comparisonElt.tag:
@@ -331,6 +345,9 @@ def compareRenderingInfosetElts(
     if not sourceChildren and not comparisonChildren:
         sourceText = (sourceElt.text or "").strip()
         comparisonText = (comparisonElt.text or "").strip()
+        if sourceElt.tag == TABLE_MODEL_FACT:
+            sourceText = _factLocation(sourceElt, sourceDocumentUri)
+            comparisonText = _factLocation(comparisonElt, comparisonDocumentUri)
         if sourceText != comparisonText:
             modelXbrl.error("arelle:tableModelTextMismatch",
                 _("Table layout model comparison element %(elt)s expecting text %(text2)s found %(text1)s source path %(elt1path)s comparison line %(elt2line)s"),
@@ -342,7 +359,7 @@ def compareRenderingInfosetElts(
             modelObject=modelXbrl, elt=sourceElt.tag, count1=len(sourceChildren), count2=len(comparisonChildren),
             elt1path=sourcePath, elt2line=comparisonElt.sourceline)
     for sourceChild, comparisonChild in zip(sourceChildren, comparisonChildren):
-        compareRenderingInfosetElts(modelXbrl, sourceChild, comparisonChild)
+        compareRenderingInfosetElts(modelXbrl, sourceChild, comparisonChild, sourceDocumentUri, comparisonDocumentUri)
 
 
 def validateRenderingInfoset(modelXbrl: ModelXbrl, comparisonFile: str, sourceDoc: etree._ElementTree) -> None:
@@ -353,7 +370,8 @@ def validateRenderingInfoset(modelXbrl: ModelXbrl, comparisonFile: str, sourceDo
             comparisonDoc = etree.parse(file)
         else:
             comparisonDoc = etree.parse(comparisonFile)
-        compareRenderingInfosetElts(modelXbrl, sourceDoc.getroot(), comparisonDoc.getroot())
+        assert modelXbrl.modelDocument is not None
+        compareRenderingInfosetElts(modelXbrl, sourceDoc.getroot(), comparisonDoc.getroot(), modelXbrl.modelDocument.uri, comparisonFile)
     except (IOError, etree.LxmlError) as err:
         modelXbrl.error("arelle:tableModelFileError",
             _("Table layout model comparison file %(xmlfile)s error %(error)s"),
