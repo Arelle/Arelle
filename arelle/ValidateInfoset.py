@@ -3,7 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import Counter, defaultdict
 from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
@@ -281,26 +281,25 @@ def compareRenderingInfosetElts(
             attrs2=", ".join('{0}="{1}"'.format(k, v) for k, v in sorted(comparisonAttrs.items())),
             elt1path=sourcePath, elt2line=comparisonElt.sourceline)
     if sourceElt.tag == TABLE_MODEL_CELL:
-        srcConstraints: dict[tuple[str, str], tuple[str, ...]] = {}
-        cmpConstraints: dict[tuple[str, str], tuple[str, ...]] = {}
+        srcConstraints: list[tuple[str, str, tuple[object, ...]]] = []
+        cmpConstraints: list[tuple[str, str, tuple[object, ...]]] = []
         for srcE, cstrts in ((sourceElt, srcConstraints), (comparisonElt, cmpConstraints)):
             for e in srcE.iter("{http://xbrl.org/2014/table/model}constraint"):
                 cstrtTag = e.get("tag", "")
                 cstrtAspect = e.findtext("{http://xbrl.org/2014/table/model}aspect")
                 if cstrtAspect:
-                    if e.find("{http://xbrl.org/2014/table/model}value") is None:
-                        cstrts[cstrtAspect, cstrtTag] = ()
+                    cstrtValue: tuple[str, ...] = ()
+                    if e.find("{http://xbrl.org/2014/table/model}value") is not None:
+                        cstrtValue = tuple((f.text or "").strip() for f in e.find("{http://xbrl.org/2014/table/model}value") for f in e.iter())  # type: ignore[union-attr]
+                    if cstrtAspect == "period":
+                        # remove end dates time parts if zero (because not consistently reported in conf suite expected outputs)
+                        cstrts.append((cstrtAspect, cstrtTag, stripTime(cstrtValue)))
                     else:
-                        cstrts[cstrtAspect, cstrtTag] = tuple((f.text or "").strip() for f in e.find("{http://xbrl.org/2014/table/model}value") for f in e.iter())  # type: ignore[union-attr]
-        for c in (srcConstraints, cmpConstraints):
-            for k, v in c.items():
-                if isinstance(k, tuple) and k[0] == "period":
-                    # remove end dates time parts if zero (because not consistently reported in conf suite expected outputs)
-                    c[k] = stripTime(c[k])  # type: ignore[assignment]
-        if srcConstraints != cmpConstraints:
+                        cstrts.append((cstrtAspect, cstrtTag, cstrtValue))
+        if Counter(srcConstraints) != Counter(cmpConstraints):
             modelXbrl.error("arelle:tableModelConstraintsMismatch",
                 _("Table layout model constraints %(src)s expecting %(cmp)s source path %(elt1path)s comparison line %(elt2line)s path %(elt2path)s"),
-                modelObject=modelXbrl, src=",".join(str(s) for s in sorted(srcConstraints.items())), cmp=",".join(str(s) for s in sorted(cmpConstraints.items())),
+                modelObject=modelXbrl, src=",".join(str(s) for s in srcConstraints), cmp=",".join(str(c) for c in cmpConstraints),
                 elt1path=sourcePath, elt2path=comparisonElt.getroottree().getpath(comparisonElt),
                 elt2line=comparisonElt.sourceline)
     sourceChildren = _layoutChildren(sourceElt)
