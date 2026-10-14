@@ -219,6 +219,8 @@ TABLE_MODEL_CONSTRAINT = f"{{{XbrlConst.tableModel}}}constraint"
 TABLE_MODEL_HEADERS = f"{{{XbrlConst.tableModel}}}headers"
 TABLE_MODEL_TABLE = f"{{{XbrlConst.tableModel}}}table"
 PERIOD_DATE_TAGS = {XbrlConst.qnXbrliStartDate.clarkNotation, XbrlConst.qnXbrliEndDate.clarkNotation, XbrlConst.qnXbrliInstant.clarkNotation}
+# Concept and explicit dimension values and unit measures hold QNames. Other text, such as an entity identifier, is literal.
+QNAME_VALUE_TAGS = {f"{{{XbrlConst.tableModel}}}value", f"{{{XbrlConst.xbrli}}}measure"}
 IGNORED_LAYOUT_ATTRIBUTES = {"{http://www.w3.org/XML/1998/namespace}base"}
 
 @dataclass(frozen=True)
@@ -240,6 +242,11 @@ def _childElements(elt: etree._Element) -> list[etree._Element]:
     return list(elt.iterchildren(etree.Element))
 
 
+def _qnameOrText(elt: etree._Element, text: str) -> str:
+    qn = qname(text, elt.nsmap, noPrefixIsNoNamespace=True)
+    return text if qn is None else qn.clarkNotation
+
+
 def _periodDateTime(elt: etree._Element, text: str) -> str:
     # Date only end dates and instants mean the end of that day. Expected outputs mix Z and no time zone.
     value = dateTime(text.replace("Z", ""), addOneDay=elt.tag != XbrlConst.qnXbrliStartDate.clarkNotation, type=DATETIME)
@@ -250,6 +257,8 @@ def _canonicalValue(elt: etree._Element) -> CanonicalElement:
     text = (elt.text or "").strip()
     if elt.tag in PERIOD_DATE_TAGS:
         text = _periodDateTime(elt, text)
+    elif elt.tag in QNAME_VALUE_TAGS:
+        text = _qnameOrText(elt, text)
     attrs = tuple(sorted((str(k), str(v)) for k, v in elt.items()))
     return CanonicalElement(str(elt.tag), attrs, text, tuple(_canonicalValue(child) for child in _childElements(elt)))
 
@@ -257,7 +266,7 @@ def _canonicalValue(elt: etree._Element) -> CanonicalElement:
 def _canonicalConstraint(constraintElt: etree._Element) -> CanonicalConstraint:
     aspectElt = constraintElt.find(f"{{{XbrlConst.tableModel}}}aspect")
     valueElt = constraintElt.find(f"{{{XbrlConst.tableModel}}}value")
-    aspect = "" if aspectElt is None else (aspectElt.text or "").strip()
+    aspect = "" if aspectElt is None else _qnameOrText(aspectElt, (aspectElt.text or "").strip())
     value = None if valueElt is None else _canonicalValue(valueElt)
     return CanonicalConstraint(aspect, constraintElt.get("tag", ""), value)
 

@@ -129,6 +129,12 @@ config = ConformanceSuiteConfig(
         "0100-table/0170-parent-child-order/0170-parent-child-order-testcase.xml:v-01": {
             "arelle:tableModelChildCountMismatch": 1,
         },
+        "1000-rule-node/1060-rule-node-unit-rule/1060-rule-node-unit-rule-testcase.xml:v-01": {
+            "arelle:tableModelConstraintsMismatch": 2,
+        },
+        "1000-rule-node/1060-rule-node-unit-rule/1060-rule-node-unit-rule-testcase.xml:v-01i": {
+            "arelle:tableModelConstraintsMismatch": 2,
+        },
         "1000-rule-node/1070-rule-node-occ-rule/1070-rule-node-occ-rule-testcase.xml:v-05": {
             "arelle:tableModelConstraintsMismatch": 1,
         },
@@ -143,6 +149,12 @@ config = ConformanceSuiteConfig(
         },
         "1000-rule-node/1200-merged-rule-node/1200-merged-rule-node-testcase.xml:v-03": {
             "arelle:tableModelChildCountMismatch": 1,
+        },
+        "1000-rule-node/1200-merged-rule-node/1200-merged-rule-node-testcase.xml:v-04": {
+            "arelle:tableModelConstraintsMismatch": 2,
+        },
+        "1000-rule-node/1200-merged-rule-node/1200-merged-rule-node-testcase.xml:v-04i": {
+            "arelle:tableModelConstraintsMismatch": 2,
         },
         "1000-rule-node/1200-merged-rule-node/1200-merged-rule-node-testcase.xml:v-10": {
             "arelle:tableModelChildCountMismatch": 1,
@@ -164,6 +176,9 @@ config = ConformanceSuiteConfig(
         },
         "6000-aspect-node/6400-unit-aspect-node/6400-unit-aspect-node-testcase.xml:v-01": {
             "arelle:tableModelChildCountMismatch": 1,
+        },
+        "6000-aspect-node/6400-unit-aspect-node/6400-unit-aspect-node-testcase.xml:v-01i": {
+            "arelle:tableModelConstraintsMismatch": 3,
         },
         "6000-aspect-node/6500-dimension-aspect-node/6500-dimension-aspect-node-testcase.xml:v-01": {
             "arelle:tableModelChildCountMismatch": 1,
