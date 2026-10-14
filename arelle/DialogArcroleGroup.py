@@ -142,9 +142,9 @@ class DialogArcroleGroup(Toplevel):
 
     def comboBoxSelected(self, *args: Any) -> None:
         arcroles = self.arcroleGroups.get(self.groupName.value, [])
-        for checkbox in self.checkboxes:
-            checkbox.valueVar.set(checkbox.attr in arcroles)  # type: ignore[arg-type]
-            checkbox.isChanged = False
+        for box in self.checkboxes:
+            box.valueVar.set(box.attr in arcroles)  # type: ignore[arg-type]
+            box.isChanged = False
 
     def clearGroupName(self) -> None:
         groupName = self.groupName.value
@@ -152,6 +152,6 @@ class DialogArcroleGroup(Toplevel):
             del self.arcroleGroups[groupName]
         self.groupName.valueVar.set("")
         self.groupName["values"] = sorted(self.arcroleGroups.keys())
-        for checkbox in self.checkboxes:
-            checkbox.valueVar.set(False)  # type: ignore[arg-type]
-            checkbox.isChanged = False
+        for box in self.checkboxes:
+            box.valueVar.set(False)  # type: ignore[arg-type]
+            box.isChanged = False

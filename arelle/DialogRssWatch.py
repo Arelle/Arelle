@@ -257,9 +257,9 @@ class DialogRssWatch(Toplevel):
             self.options["latestPubDate"] = XmlUtil.datetimeValue(self.cellLatestPubDate.value)
         else:
             self.options["latestPubDate"] = None
-        for checkbox in self.checkboxes:
-            assert checkbox.attr is not None
-            self.options[checkbox.attr] = checkbox.value
+        for box in self.checkboxes:
+            assert box.attr is not None
+            self.options[box.attr] = box.value
         self.options["validateCalcs"] = self.calcModeMenu[self.validateCalcs.value]
 
     def ok(self, event: Event[Any] | None = None) -> None:

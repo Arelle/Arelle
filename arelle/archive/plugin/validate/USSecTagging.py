@@ -231,7 +231,7 @@ def saveDtsMatches(dts, secDtsTagMatchesFile):
     num2wayConcepts = 0
     num2wayMembers = 0
 
-    for qname, concept in sorted(dts.qnameConcepts.items(), key=lambda item: item[0]):
+    for conceptQname, concept in sorted(dts.qnameConcepts.items(), key=lambda item: item[0]):
         if concept.isItem and concept.isPrimaryItem: # both pri item and domain members
             stdLabel = concept.label(lang="en-US", fallbackToQname=False)
             defLabel = concept.label(preferredLabel=XbrlConst.documentationLabel, lang="en-US", fallbackToQname=False)
@@ -239,26 +239,26 @@ def saveDtsMatches(dts, secDtsTagMatchesFile):
                 if stdLabel is not None:
                     for rowNbr, pattern in dts.twoWayMemberStdLabelPattern:
                         if pattern.search(stdLabel):
-                            csvWriter.writerow((str(qname), "member-2-way", rowNbr, pattern.pattern[6:-7], stdLabel, defLabel))
+                            csvWriter.writerow((str(conceptQname), "member-2-way", rowNbr, pattern.pattern[6:-7], stdLabel, defLabel))
                             num2wayMembers += 1
             elif concept.isNumeric and not concept.isAbstract: # not dimension domain/member
                 if defLabel is not None:
                     for rowNbr, pattern in dts.twoWayPriItemDefLabelPattern:
                         if pattern.search(defLabel):
-                            csvWriter.writerow((str(qname), "concept-2-way-doc", rowNbr, pattern.pattern[6:-7], stdLabel, defLabel))
+                            csvWriter.writerow((str(conceptQname), "concept-2-way-doc", rowNbr, pattern.pattern[6:-7], stdLabel, defLabel))
                             num2wayConcepts += 1
                     for rowNbr, pattern in dts.oneWayPriItemDefLabelPattern:
                         if pattern.search(defLabel):
-                            csvWriter.writerow((str(qname), "concept-1-way-doc", rowNbr, pattern.pattern[6:-7], stdLabel, defLabel))
+                            csvWriter.writerow((str(conceptQname), "concept-1-way-doc", rowNbr, pattern.pattern[6:-7], stdLabel, defLabel))
                             num1wayConcepts += 1
                 if stdLabel is not None:
                     for rowNbr, pattern in dts.twoWayPriItemStdLabelPattern:
                         if pattern.search(stdLabel):
-                            csvWriter.writerow((str(qname), "concept-2-way-lbl", rowNbr, pattern.pattern[6:-7], stdLabel, defLabel))
+                            csvWriter.writerow((str(conceptQname), "concept-2-way-lbl", rowNbr, pattern.pattern[6:-7], stdLabel, defLabel))
                             num2wayConcepts += 1
                     for rowNbr, pattern in dts.oneWayPriItemStdLabelPattern:
                         if pattern.search(stdLabel):
-                            csvWriter.writerow((str(qname), "concept-1-way-lbl", rowNbr, pattern.pattern[6:-7], stdLabel, defLabel))
+                            csvWriter.writerow((str(conceptQname), "concept-1-way-lbl", rowNbr, pattern.pattern[6:-7], stdLabel, defLabel))
                             num1wayConcepts += 1
 
     csvFile.close()

@@ -292,7 +292,7 @@ def validateFacts(val, factsToCheck):
     nilFacts = []
     stringFactsWithXmlLang = []
     nonMonetaryNonPureFacts = []
-    for qname, facts in factsByQname.items():
+    for facts in factsByQname.values():
         for f in facts:
             if f.qname == qnFIndicators or f.qname == qnFIndicators:
                 continue # skip root-level and non-root-level filing indicators

@@ -212,8 +212,8 @@ class DialogFormulaParameters(Toplevel):
 
     def setOptions(self) -> None:
         # set formula options
-        for checkbox in self.checkboxes:
-            self.options[checkbox.attr] = checkbox.value  # type: ignore[index]
+        for box in self.checkboxes:
+            self.options[box.attr] = box.value  # type: ignore[index]
         parameterValues: dict[str, tuple[str, str]] = {}
         for paramCells in self.gridCells:
             qnameCell, typeCell, valueCell = paramCells
