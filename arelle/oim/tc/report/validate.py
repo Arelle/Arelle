@@ -293,8 +293,11 @@ class TCReportValidator:
         table_counts: Counter[str] = Counter()
         ordered_tables = self._table_order()
         last_writers = self._last_writers(ordered_tables)
+        freeable_stores = self._freeable_stores(ordered_tables, last_writers)
         deferred_tables: list[tuple[str, XbrlCsvTable, _Template]] = []
         for position, (table_id, table) in enumerate(ordered_tables):
+            for store in freeable_stores.get(position, ()):
+                store.clear()
             template_id = table.template or table_id
             template = self._templates.get(template_id)
             if template is None:
@@ -307,12 +310,7 @@ class TCReportValidator:
             table_counts[template_id] += 1
             self._report_progress(_("Validating table constraints of table {}").format(table_id))
             sort = SortTracker() if template.sort_key is not None else None
-            # Reference keys are checked while the table is read when every table
-            # that fills their target stores came before it.
-            references_ready = all(
-                last_writers.get(key.target, -1) < position
-                for key in template.reference_keys
-            )
+            references_ready = self._references_ready(template, position, last_writers)
             if not references_ready:
                 deferred_tables.append((table_id, table, template))
             yield from self._validate_table(
@@ -389,6 +387,18 @@ class TCReportValidator:
         template = self._templates.get(table.template or table_id)
         return template.unique_keys if template is not None else ()
 
+    @staticmethod
+    def _references_ready(
+        template: _Template, position: int, last_writers: Mapping[KeyStore, int]
+    ) -> bool:
+        """Whether the reference keys of the table at the position are checked while
+        it is read, because every table that fills their target stores came before it.
+        Otherwise all of them are checked in the second pass."""
+        return all(
+            last_writers.get(key.target, -1) < position
+            for key in template.reference_keys
+        )
+
     def _last_writers(self, ordered_tables: list[tuple[str, XbrlCsvTable]]) -> dict[KeyStore, int]:
         """The position of the last table that adds values to each key store."""
         last_writers: dict[KeyStore, int] = {}
@@ -398,6 +408,29 @@ class TCReportValidator:
                 for key in template.unique_keys:
                     last_writers[key.store] = position
         return last_writers
+
+    def _freeable_stores(
+        self, ordered_tables: list[tuple[str, XbrlCsvTable]], last_writers: Mapping[KeyStore, int]
+    ) -> dict[int, list[KeyStore]]:
+        """The key stores that can be freed before the table at each position,
+        because no table from there on adds to them or reads them."""
+        last_uses = dict(last_writers)
+        second_pass_targets: set[KeyStore] = set()
+        for position, (table_id, table) in enumerate(ordered_tables):
+            template = self._templates.get(table.template or table_id)
+            if template is None:
+                continue
+            references_ready = self._references_ready(template, position, last_writers)
+            for key in template.reference_keys:
+                if references_ready:
+                    last_uses[key.target] = position
+                else:
+                    second_pass_targets.add(key.target)
+        freeable_stores: dict[int, list[KeyStore]] = {}
+        for store, last_use in last_uses.items():
+            if store not in second_pass_targets:
+                freeable_stores.setdefault(last_use + 1, []).append(store)
+        return freeable_stores
 
     def _validate_uninstantiated_template(self, template_id: str) -> Generator[TCReportValidationError, None, None]:
         for parameter in self._templates[template_id].parameters:

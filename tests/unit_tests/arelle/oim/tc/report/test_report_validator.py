@@ -972,6 +972,62 @@ class TestReferenceKeys:
         assert list(validator.validate()) == []
         assert one not in validator._key_stores["k"]
 
+    def test_stores_are_cleared_once_no_later_table_uses_them(self) -> None:
+        tc = _tc(
+            target=_template(keys=_unique("a", name="referenced"), a=self._INTEGER),
+            unreferenced=_template(keys=_unique("a", name="unreferenced"), a=self._INTEGER),
+            reference=_template(keys=_reference("a", target="referenced"), a=self._INTEGER),
+            other=_template(a=self._INTEGER),
+        )
+        tables = _tables(
+            target=XbrlCsvTable(url="t.csv"),
+            unreferenced=XbrlCsvTable(url="t.csv"),
+            reference=XbrlCsvTable(url="t.csv"),
+            other=XbrlCsvTable(url="t.csv"),
+        )
+        one = (KeyValue(1, Decimal(1)),)
+        held: dict[str, set[str]] = {}
+
+        def open_table(table_id: str, table: XbrlCsvTable) -> Iterator[list[str]]:
+            held[table_id] = {name for name, store in validator._key_stores.items() if one in store}
+            return iter([["a"], ["1"]])
+
+        validator = TCReportValidator(tables, tc, {}, open_table)
+        assert list(validator.validate()) == []
+        assert "referenced" in held["reference"]
+        assert "referenced" not in held["other"]
+        assert "unreferenced" not in held["reference"]
+
+    @pytest.mark.parametrize(
+        ("negate", "errors"), [(False, []), (True, ["tcre:referenceKeyViolation"])]
+    )
+    def test_deferred_tables_keep_every_target(
+        self, negate: bool, errors: list[str]
+    ) -> None:
+        # b reads its own key, so its reference to a is also checked in the
+        # second pass, after c.
+        tc = _tc(
+            a=_template(keys=_unique("x", name="ka"), x=self._INTEGER),
+            b=_template(
+                keys=TCKeys(
+                    unique=(TCUniqueKey("kb", ("x",), "error", False),),
+                    reference=(
+                        TCReferenceKey("ra", ("x",), "ka", negate, "error"),
+                        TCReferenceKey("rb", ("x",), "kb", False, "error"),
+                    ),
+                ),
+                x=self._INTEGER,
+            ),
+            c=_template(keys=_unique("x", name="kc"), x=self._INTEGER),
+        )
+        tables = _tables(
+            a=XbrlCsvTable(url="a.csv"),
+            b=XbrlCsvTable(url="b.csv"),
+            c=XbrlCsvTable(url="c.csv"),
+        )
+        files = {"a.csv": [["x"], ["1"]], "b.csv": [["x"], ["1"]], "c.csv": [["x"], ["1"]]}
+        assert [error.code for error in _run(tables, tc, files)] == errors
+
     def test_target_index_spans_templates_sharing_the_key(self) -> None:
         tables = _tables(
             t=XbrlCsvTable(url="t.csv"),
