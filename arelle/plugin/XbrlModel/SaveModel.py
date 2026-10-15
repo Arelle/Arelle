@@ -509,8 +509,17 @@ def buildDerivedContent(txmyMdl, **kwargs):
     if not (cubeContents or factValues or calculationResults):
         return None
     derived = OrderedDict()
-    if calculationResults:
-        # non-derivable content: its provenance is required, not optional
+    # The rendering that bound fact values were placed on, carried with them from the loaded
+    # document (see carryBoundDerivedContent); a staged copy is named by its staged basename.
+    boundReportSource = getattr(txmyMdl, "_boundReportSource", None)
+    if boundReportSource and any(e.get("basis") == "bound" for e in factValues):
+        reportSource = OrderedDict(boundReportSource)
+        rewrite = kwargs.get("derivedSourceUrlRewrite")
+        if rewrite is not None and reportSource.get("url"):
+            reportSource["url"] = rewrite(reportSource["url"]) or reportSource["url"]
+        derived["reportSource"] = reportSource
+    if calculationResults or any(e.get("basis") == "bound" for e in factValues):
+        # non-derivable content (verdicts, bindings): its provenance is required, not optional
         derived["derivation"] = buildDerivationObject(txmyMdl)
     if factValues:
         derived["factValues"] = factValues

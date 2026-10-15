@@ -242,11 +242,26 @@ def stageForViewer(cntlr, compMdl, folder, saveMode="full"):
                          "nothing for the viewer to render the facts against."),
                        messageCode="arelle:xbrlModelViewerNoDocument", level="ERROR")
         return None
+    # A rendering the model's facts were placed on as derived content (bound fact values -- an
+    # alignment or tagging by somebody other than the filer) is not one of the model's sources,
+    # so it is not in its sourceMappings; it is named by the derived content's reportSource,
+    # relative to the document that carried it, and staged beside the rest.
+    stagedDerived = {}
+    boundSource = getattr(compMdl, "_boundReportSource", None) or {}
+    if boundSource.get("url"):
+        base = getattr(compMdl, "_boundReportSourceBase", None)
+        derivedUrl = boundSource["url"]
+        if base and not os.path.isabs(derivedUrl) and "://" not in derivedUrl:
+            derivedUrl = os.path.join(os.path.dirname(base), derivedUrl)
+        basename = stageDocument(cntlr, derivedUrl, folder)
+        if basename is not None:
+            stagedDerived[boundSource["url"]] = basename
     # The model is written with sourceMappings naming the staged copies, so the viewer resolves
     # the document from the model itself and the staged directory is self-contained.
     modelName = os.path.splitext(next(iter(stagedNames.values())))[0] + MODEL_SUFFIX
     saveFiles(cntlr, compMdl, os.path.join(folder, modelName), saveMode=saveMode,
-              sourceUrlRewrite=lambda sourceName, url: stagedNames.get(sourceName))
+              sourceUrlRewrite=lambda sourceName, url: stagedNames.get(sourceName),
+              derivedSourceUrlRewrite=stagedDerived.get)
     scriptName = stageViewerBundle(folder, bundleDir)
     with open(os.path.join(folder, STUB_NAME), "w", encoding="utf-8") as fh:
         fh.write(_STUB_HTML.format(script=scriptName))

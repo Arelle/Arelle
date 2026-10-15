@@ -190,6 +190,31 @@ UNSPECIFIABLE_STR = '\uDBFE' # impossible unicode character
 # Characters not permitted unencoded in xs:anyURI (RFC 2396 / RFC 2732).
 _anyURIInvalidChars = re.compile(r'[\s|<>{}\\^`]')
 
+def carryBoundDerivedContent(compMdl, derivedContent, documentUrl):
+    """Keep a loaded document's bound derived fact values, so a save re-emits them.
+
+    Only "bound" entries are kept. Resolved values, cube contents and calculation results are
+    re-derived by this processor when it validates, and carrying an earlier processor's copy
+    forward would publish its conclusions as this one's. A bound entry records a placement --
+    an alignment, or a tagging journal applied for somebody else's report -- that cannot be
+    recovered from the model, and its reportSource names the rendering it was placed on.
+    Entries take the shape ApplyTaggingJournal gives compMdl._boundFactValues.
+    """
+    bound = []
+    for entry in derivedContent.get("factValues") or ():
+        if isinstance(entry, dict) and entry.get("basis") == "bound" and entry.get("factValueName"):
+            bound.append({"factValueName": entry["factValueName"],
+                          "value": entry.get("value"),
+                          "sourceText": entry.get("sourceText"),
+                          "sources": entry.get("valueSources")})
+    if not bound:
+        return
+    compMdl._boundFactValues = (getattr(compMdl, "_boundFactValues", None) or []) + bound
+    reportSource = derivedContent.get("reportSource")
+    if isinstance(reportSource, dict):
+        compMdl._boundReportSource = dict(reportSource)
+        compMdl._boundReportSourceBase = documentUrl # its url is relative to this document
+
 def jsonGet(tbl, key, default=None):
     """"""
     if isinstance(tbl, dict):
@@ -482,6 +507,13 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
         # would otherwise be rejected as invalid JSON structure rather than being
         # read. See XbrlConst "Dated specification namespaces".
         _foldStatusDates(moduleFileObj, modelXbrl, moduleFile, error)
+        # derivedContent is a document-level sibling of documentInfo and xbrlModel, not part of
+        # the model, and the taxonomy schema closes the document root, so it is set aside before
+        # schema validation (it has its own schema, oim-taxonomy-derived-document-schema.json).
+        # Its "bound" fact values are carried forward below: they record where somebody placed
+        # this model's facts on another rendering, which nothing can re-derive from the model.
+        inputDerivedContent = (moduleFileObj.pop("derivedContent", None)
+                               if isinstance(moduleFileObj, dict) else None)
         if jsonschemaValidator is None:
             cntlr.showStatus(_("Loading schema validator schema file"))
             with io.open(OIMT_SCHEMA, mode="rt", encoding="utf-8") as fh:
@@ -1196,6 +1228,8 @@ def loadXbrlModule(cntlr, error, warning, modelXbrl, moduleFile, mappedUri, **kw
 
 
         newModule = createModelObjects("xbrlModel", moduleFileObj["xbrlModel"], xbrlCompMdl, ["", "xbrlModel"])
+        if isinstance(inputDerivedContent, dict):
+            carryBoundDerivedContent(xbrlCompMdl, inputDerivedContent, moduleFile)
         modelXbrl.profileActivity(f"Create taxonomy objects from {moduleFileBasename}", minTimeToShow=PROFILE_MIN_TIME)
         newModule._prefixNamespaces = prefixNamespaces
         newModule._documentNamespaceURI = _documentNamespaceURI  # None when documentNamespacePrefix absent/invalid
