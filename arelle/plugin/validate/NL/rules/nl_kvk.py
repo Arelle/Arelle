@@ -1776,15 +1776,18 @@ def rule_nl_kvk_4_4_2_5(
     role [990010], [990015], [990020] or [990025]) when the dimensional structure contains only one axis:
     bw2‑titel9_FinancialStatementsTypeAxis for NL‑GAAP, or ifrs‑full:ConsolidatedAndSeparateFinancialStatementsAxis for IFRS.
 
-    For each fact with exactly one explicit dimension:
+    For each fact with exactly one explicit dimension, the concept must be assigned to the
+    placeholder matching the axis/member combination. The concept may also appear in other
+    definition link roles.
+
     If the dimension is bw2‑titel9_FinancialStatementsTypeAxis and the member is bw2-titel9_ConsolidatedMember:
-        the fact must be in exactly one definition linkbase, and it must be [990010]
+        the concept must be assigned to [990010]
     If the dimension is bw2‑titel9_FinancialStatementsTypeAxis and the member is bw2-titel9_SeparateMember:
-        the fact must be in exactly one definition linkbase, and it must be [990020]
+        the concept must be assigned to [990020]
     If the dimension is ifrs‑full:ConsolidatedAndSeparateFinancialStatementsAxis and the member is ifrs-full_ConsolidatedMember:
-        the fact must be in exactly one definition linkbase, and it must be [990015]
+        the concept must be assigned to [990015]
     If the dimension is ifrs‑full:ConsolidatedAndSeparateFinancialStatementsAxis and the member is ifrs-full_SeparateMember:
-        the fact must be in exactly one definition linkbase, and it must be [990025]
+        the concept must be assigned to [990025]
     (Facts with zero or multiple explicit dimensions are ignored)
 
     Although not documented, the conformance suite implies concepts in any extension definition link role should be ignored.
@@ -1835,7 +1838,7 @@ def rule_nl_kvk_4_4_2_5(
         if (concept := fact.concept) is None:
             continue
         conceptRoleUris = primaryItemElrs.get(concept, set())
-        if conceptRoleUris == {requiredRole}:
+        if requiredRole in conceptRoleUris:
             continue
         if not conceptRoleUris.isdisjoint(extensionRoleUris):
             # Ignore concept if it is assigned to an extension definition link role.
