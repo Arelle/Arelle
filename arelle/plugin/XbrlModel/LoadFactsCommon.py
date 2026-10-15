@@ -26,7 +26,7 @@ from typing import Optional
 
 from arelle.ModelValue import QName
 
-from .XbrlConst import xbrl as xbrlNs
+from .XbrlConst import xbrl as xbrlNs, xbrla as xbrlaNs, xbrlr as xbrlrNs
 
 # XBRL 2.1 namespaces (fixed by the XBRL 2.1 / dimensions specifications).
 XBRLI = "http://www.xbrl.org/2003/instance"
@@ -43,6 +43,16 @@ qnUnknownNilReason = QName("xbrl", xbrlNs, "unknownNilReason")
 # xbrli:pure. A unit of pure (the domain value of xbrl:unit) is equivalent to no
 # unit, so a lone pure numerator is dropped when building the OIM unit string.
 qnPure = QName("xbrli", XBRLI, "pure")
+
+# The two measures XBRL 2.1 defines in its own namespace have built-in unit objects in
+# the model under other names, so a legacy measure is folded onto the built-in unit, as
+# the legacy taxonomy loader folds xbrli:sharesItemType onto xbrla:sharesType.  Left
+# unfolded, xbrli:shares resolves to no unit object, so its unit signature is empty and
+# every shares and per-share fact fails oimte:factUnitDatatypeMismatch.
+LEGACY_MEASURES = {
+    QName("xbrli", XBRLI, "shares"): QName("xbrla", xbrlaNs, "shares"),
+    qnPure: QName("xbrlr", xbrlrNs, "pure"),
+}
 
 
 # --------------------------------------------------------------------------
@@ -172,7 +182,7 @@ def oimUnit(unitElt, module) -> Optional[str]:
         for m in parent.findall(clark(XBRLI, "measure")):
             qn = resolvePrefixedName((m.text or "").strip(), m.nsmap)
             if qn is not None:
-                qns.append(qn)
+                qns.append(LEGACY_MEASURES.get(qn, qn))
         return qns
 
     def emit(qns) -> str:
@@ -193,7 +203,7 @@ def oimUnit(unitElt, module) -> Optional[str]:
     nums = measureQNames(unitElt)
     if not nums:
         return None
-    if len(nums) == 1 and nums[0] == qnPure:
+    if len(nums) == 1 and nums[0] == LEGACY_MEASURES[qnPure]:
         return None  # a lone xbrli:pure numerator is equivalent to no unit
     return emit(nums)
 
@@ -246,11 +256,13 @@ def oimContextDimensions(ctxElt, rootNsmap=None):
                     prefix = p
                     break
             entityQn = QName(prefix, scheme, identifier)
-        # explicit / typed members appear in segment and/or scenario
-        for container in ("segment", "scenario"):
-            cElt = ent.find(clark(XBRLI, container))
-            if cElt is not None:
-                parseDimensions(cElt, dims)
+    # explicit / typed members appear in segment and/or scenario: the segment is a child of
+    # the entity, but the scenario is a child of the context itself.  (ESEF requires the
+    # scenario, so looking for it under the entity dropped every dimension of an ESEF report.)
+    for parent, container in ((ent, "segment"), (ctxElt, "scenario")):
+        cElt = parent.find(clark(XBRLI, container)) if parent is not None else None
+        if cElt is not None:
+            parseDimensions(cElt, dims)
     perElt = ctxElt.find(clark(XBRLI, "period"))
     oimPer = oimPeriod(perElt) if perElt is not None else None
     return (entityQn, oimPer, dims)
