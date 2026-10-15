@@ -139,11 +139,19 @@ wired to the command line (see §4):
 | **Match** facts onto an existing tagged PDF | [`tools/alignFactsToSurface.py`](tools/alignFactsToSurface.py) | A filer/Acrobat PDF exists and looks better than anything rendered |
 | **Match** facts onto an existing HTML5 document | [`tools/alignFactsToSurface.py`](tools/alignFactsToSurface.py) (`alignToHtml5`) | A published report carries no XBRL — the website case above |
 
-All three consume the *html-locator* facts file produced by `saveOIMFacts`
-(`--plugins saveOIMFacts --SaveOIMFactspace facts.json`), whose fact values carry
-`xbrl:htmlElementId` locators, and rewrite those to the target surface's
-locators: PDF page/MCID/bbox, or the `xbrlx:htmlElementPointer` /
-`htmlTextOffset` / `htmlTextQuote` triple for HTML5.
+All three consume facts whose fact values carry `xbrl:htmlElementId` locators: a
+compiled model saved by `--saveOIMmodel` (any mode), or the *html-locator* facts file
+produced by `saveOIMFacts` (`--plugins saveOIMFacts --SaveOIMFactspace facts.json`).
+They rewrite those locators to the target surface's: PDF page/MCID/bbox, or the
+`xbrlx:htmlElementPointer` / `htmlTextOffset` / `htmlTextQuote` triple for HTML5.
+
+**A fact keeps its form.** A fact value with no `value` has its locators in
+`valueSources` and is derived from the text found there; a `report`-mode save
+gives each fact its `value` and moves the locators to `valueAnchors`, which only
+locate it. The aligner rewrites whichever the fact uses. Align a `report`-mode
+model: its facts keep their filed values, so nothing has to be re-derived from
+the new surface's text, which for a PDF often does not parse back to the filed
+number (`11 313,4` in a French report).
 
 The HTML5 target needs the triple rather than a bare pointer because a published
 report has no per-fact elements to address: **27% of the numbers in Microsoft's
@@ -338,12 +346,16 @@ it has not been fully validated, however clean the rest of the log looks.
 
 ### PDF tools
 
-Prerequisite (both directions):
+Prerequisite (both directions): the report's facts with their html locators,
+best as a `report`-mode compiled model (see §1, "A fact keeps its form"):
 
 ```bash
-arelleCmdLine --plugins saveOIMFacts --file report.xhtml \
-    --SaveOIMFactspace report-html-facts.json
+arelleCmdLine --plugins XbrlModel --file report.xhtml \
+    --saveOIMmodel report-html-facts.json --oimSaveMode report
 ```
+
+The `saveOIMFacts` plugin's factspace (`--plugins saveOIMFacts --SaveOIMFactspace
+report-html-facts.json`) also works.
 
 ### Generate a traceable tagged PDF
 
@@ -520,6 +532,14 @@ compiled model. See the [`__init__.py`](__init__.py) header and
 [`PruneModel.py`](PruneModel.py). (Hooks: `CntlrWinMain.Xbrl.Save`;
 `CntlrCmdLine.Xbrl.Run` for the command line.)
 
+**A report loaded from an archive** (a report package, an SEC `…-xbrl.zip`) is
+saved with its `sourceMappings` naming the document *inside* the archive
+(`…-xbrl.zip/msft-20250630.htm`), or the inline document set when the report
+spans several documents. While loading, the mapping names the archive so that the
+package's catalog applies and every document of the set is found. A saved model
+naming the archive, though, would name nothing a consumer can render or read text
+from once reopened.
+
 The command-line save runs on the `Xbrl.Run` hook, *after* validation, and
 validates the model first if nothing else has. Both matter: a legacy report opened
 as an entry point materializes its DTS and facts at validate time, and the saved
@@ -574,6 +594,14 @@ recompute would produce, since it would look identical to a carried verdict. It 
 silent-wrong-answer shape as a mis-placed locator: a plausible result and a correct one,
 indistinguishable to the reader.
 
+**Reopening a model that carries derived content.** The loader sets `derivedContent`
+aside before schema validation, because the taxonomy schema closes the document
+root. It carries forward the `bound` fact values with their `reportSource`. These
+are placements made by an alignment or an applied tagging journal, and nothing can
+re-derive them from the model. Resolved values, cube contents and calculation
+results are not carried: validating the reopened model derives them again, and
+carrying an earlier processor's copy would publish its conclusions as this one's.
+
 Specified in `oim-taxonomy-derived.md` in the `oim` repository, with a JSON schema alongside it;
 validate a model carrying derived content against `oim-taxonomy-derived-document-schema.json`,
 since the taxonomy schema closes its document root. See
@@ -595,9 +623,24 @@ document plus an OIM model.
 - **`--saveXbrlModelViewer <dir>`** (command line) stages the same directory without
   opening a browser, for serving elsewhere.
 
-Either way the staged directory is self-contained: the compiled model, the source
-document(s), and the viewer bundle. The model's `documentInfo.sourceMappings` is
-rewritten to name the staged document, so the viewer resolves it from the model.
+Either way the staged directory is self-contained:
+
+- the compiled model, its `documentInfo.sourceMappings` rewritten to name the
+  staged documents, so the viewer resolves them from the model;
+- the source document(s), and, for an HTML document, the images and stylesheets it
+  references by relative path, with the fonts and images those stylesheets
+  reference, at the same relative paths, so the staged page looks like the
+  published one;
+- the rendering named by `derivedContent.reportSource`, when the model carries
+  facts placed on one as derived content (an alignment onto a company's web page),
+  with its assets as above;
+- the viewer bundle, a stub `ixbrlviewer.html`, and an empty
+  `ixbrlviewer.config.json` (the viewer always requests one; an existing one is
+  left alone).
+
+The documents are read from beside the model, or from inside the archive it names,
+so a model opened from its saved JSON stages the same as one loaded from the
+filing.
 
 The directory follows Arelle's existing convention (as `EDGAR/render` does): a
 subdirectory named `out` beside the entry file — or beside the *archive*, when the
@@ -731,6 +774,12 @@ because they show up in the emitted names and in what survives:
   presentation or calculation meaning. The known-name map is read from the
   shipped resources, so declaring an arcrole in a spec taxonomy is picked up
   here automatically and replaces the synthesised name.
+* **The two XBRL 2.1 measures are folded onto the built-in units.** A legacy
+  `xbrli:shares` becomes `xbrla:shares`, and `xbrli:pure` in a compound unit becomes
+  `xbrlr:pure`, as `xbrli:sharesItemType` becomes `xbrla:sharesType`. Left unfolded,
+  `xbrli:shares` resolves to no unit object, so every shares and per-share fact
+  fails `oimte:factUnitDatatypeMismatch`. The unit model is still being settled in
+  the working group, and this fold will follow it.
 * **Synthesised names carry a digest when abbreviated.** Group, cube and network
   names derive from extended-link role URIs, which SEC filers make long and
   highly similar — `…OfferingsDetail` and `…OfferingsParentheticalDetail` agree
@@ -825,7 +874,9 @@ not contribute, so the total is additionally reported as inconsistent.
 | [`ValidateCalculations.py`](ValidateCalculations.py) | summation-concept binding and consistency checking (proposal §6.2, §7) |
 | [`ValidateNetworkObjects.py`](ValidateNetworkObjects.py) | network validation, including the summation-concept definition-time checks (proposal §5) |
 | [`LoadLegacyTaxonomy.py`](LoadLegacyTaxonomy.py) | legacy XBRL 2.1 DTS → compiled model, including calculation linkbases and the all-facts cube (proposal appendix B) |
-| [`ViewerLaunch.py`](ViewerLaunch.py) | stage a self-contained iXBRL Viewer directory (model + document + bundle) and open it |
+| [`ViewerLaunch.py`](ViewerLaunch.py) | stage a self-contained iXBRL Viewer directory (model, documents with their images and stylesheets, bundle) and open it |
+| [`tools/tlbTemplate-eiopa.py`](tools/tlbTemplate-eiopa.py) | generate a Tavi module with a grid layout per template from EIOPA's DPM annotated templates workbook (`tlbTemplate-eiopa.py <workbook.xlsx> <out.json> [table]`) |
+| [`DEMO-DA2026.md`](DEMO-DA2026.md) | reproducing the Data Amplified 2026 demonstration from the published filings |
 | [`tools/genSecTransformTypes.py`](tools/genSecTransformTypes.py) | regenerate `resources/sec-transform-types.json` from SEC's formal transformation registry |
 | [`loadFromPDF.py`](../loadFromPDF.py) | read a tagged PDF + template into facts (the reverse, standalone PoC) |
 

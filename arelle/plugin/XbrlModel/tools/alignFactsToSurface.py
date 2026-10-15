@@ -58,8 +58,10 @@ Usage
             --facts report-html-facts.json --html5 annual-report.html \
             [--into model|derivedContent] [--out-facts report-html5-facts.json]
 
-``--facts`` is the OIM-Taxonomy facts file from ``saveOIMFacts`` (html
-``valueSources``). The PDF must be tagged (marked content) for the text path;
+``--facts`` holds facts with ``xbrl:htmlElementId`` locators: a compiled model saved by
+``--saveOIMmodel`` (best in ``report`` mode, where each fact keeps its value and its locators
+are ``valueAnchors``), or the facts file from ``saveOIMFacts``. A fact keeps its form: the
+locators are rewritten where the fact has them. The PDF must be tagged (marked content) for the text path;
 the image path additionally needs the filing's image files next to the HTML.
 
 Both are also reachable from the plugin command line, as ``--align-to-pdf`` and

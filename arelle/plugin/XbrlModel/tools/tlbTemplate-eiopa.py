@@ -104,6 +104,9 @@ new profile entry; only ``anchorStrategy`` needs code (EIOPA gray-band vs EBA
 
 Configuration constants (top of module)
 ----------------------------------------
+The command line overrides them: ``python3 tlbTemplate-eiopa.py <workbook.xlsx> <layout.json>
+[tableFilter]`` processes the whole workbook unless a table is named.
+
 * ``EXCELWB`` / ``LAYOUTFILE`` — input and output file paths.
 * ``FMT`` — profile key (``"EIOPA"`` or ``"EBA"``) selecting ``PROFILES[FMT]``.
 * ``TABLEFILTER`` — set to a table name (e.g. ``"S.02.01.01.01"``) to process
