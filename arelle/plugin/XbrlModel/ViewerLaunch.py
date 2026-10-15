@@ -38,7 +38,7 @@ MODEL_SUFFIX = "-model.json"
 
 _STUB_HTML = '''<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
-  <head><meta charset="UTF-8"/><title>XBRL Model Viewer</title></head>
+  <head><meta charset="UTF-8"/><title>XBRL Model Viewer</title><link rel="icon" href="data:,"/></head>
   <body><script src="{script}"></script></body>
 </html>
 '''
@@ -265,6 +265,14 @@ def stageForViewer(cntlr, compMdl, folder, saveMode="full"):
     scriptName = stageViewerBundle(folder, bundleDir)
     with open(os.path.join(folder, STUB_NAME), "w", encoding="utf-8") as fh:
         fh.write(_STUB_HTML.format(script=scriptName))
+    # The viewer always requests an optional ixbrlviewer.config.json beside its script and treats a
+    # 404 as an empty configuration. An empty file behaves the same and keeps a 404 out of the browser
+    # console, where it reads as a failure (the stub's empty icon does the same for favicon.ico).
+    # A configuration already in the folder is the user's, and is left alone.
+    configPath = os.path.join(folder, "ixbrlviewer.config.json")
+    if not os.path.exists(configPath):
+        with open(configPath, "w", encoding="utf-8") as fh:
+            fh.write("{}\n")
     return "{}?xbrlModel={}".format(STUB_NAME, modelName)
 
 
