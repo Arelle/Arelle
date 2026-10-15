@@ -32,7 +32,7 @@ _: TypeGetText  # Handle gettext
 
 
 def checkFilingDTS(val: ValidateXbrl, modelDocument: ModelDocument, esefNotesConcepts: set[str],
-                   visited: list[ModelDocument], ifrsNses: list[str], hrefXlinkRole: str | None =None) -> None:
+                   visited: list[ModelDocument], ifrsNses: list[str], hrefXlinkRole: str | None = None) -> None:
     visited.append(modelDocument)
     for referencedDocument, modelDocumentReference in modelDocument.referencesDocument.items():
         if referencedDocument not in visited and referencedDocument.inDTS: # ignore non-DTS documents

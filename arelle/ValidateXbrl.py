@@ -657,7 +657,7 @@ class ValidateXbrl:
                                 self.genericArcArcroles.add(arcrole)
                                 if arcrole in (XbrlConst.elementLabel, XbrlConst.elementReference):
                                     resourceArcTos.append((toLabel, arcrole, arcElt))
-                   # values of type (not needed for validating parsers)
+                    # values of type (not needed for validating parsers)
                     if xlinkType not in xlinkTypeValues: # ("", "simple", "extended", "locator", "arc", "resource", "title", "none"):
                         self.modelXbrl.error("xlink:type",
                             _("Xlink type %(xlinkType)s invalid in extended link %(linkrole)s"),

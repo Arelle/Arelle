@@ -1,11 +1,6 @@
 """
 See COPYRIGHT.md for copyright information.
 """
-from tkinter import *
-try:
-    from tkinter.ttk import *
-except ImportError:
-    from ttk import *
 import os
 from arelle import (ViewWinTree, XmlUtil)
 from arelle.ModelDocumentType import ModelDocumentType

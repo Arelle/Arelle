@@ -42,7 +42,7 @@ class SakaCalendar:
     def get_month_length(self, extendedYear,  month):
         if  month < 0  or  month > 11:
             extendedYear += month/12 # floorDivide(month, 12, remainder)
-            month =  month%12
+            month =  month % 12
         if self.is_gregorian_leap(extendedYear + self.INDIAN_ERA_START) and month == 0:
             return 31
         if month >= 1 and  month <=5 :

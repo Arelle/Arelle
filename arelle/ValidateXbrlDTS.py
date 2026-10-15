@@ -974,7 +974,7 @@ def checkElements(val: ValidateXbrl, modelDocument: ModelDocument, parent: _Elem
                         if not elt.get("{http://www.w3.org/XML/1998/namespace}lang"):
                             val.modelXbrl.error(("EFM.N/A", "GFM:1.10.13"),
                                 _("Inline XBRL footnote %(footnoteID)s is missing an xml:lang attribute"),
-                                modelObject=elt, footnoteID=id)
+                                modelObject=elt, footnoteID=elt.get("footnoteID"))
                     if elt.namespaceURI == XbrlConst.ixbrl:
                         # a missing footnoteID is reported by schema validation of the document
                         footnoteID = elt.footnoteID

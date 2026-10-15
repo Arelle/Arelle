@@ -80,7 +80,7 @@ def extEdgarMetadata(xbrlOpenDb, entrypoint, rssItem):
     md["mailAddressState"] = md.get("mail-address.state")
     md["mailAddressZip"] = md.get("mail-address.zip")
     md["formType"] = rssItemGet(rssItem, "formType") or md.get("document-type")
-    md["reportId"] = "{}|{}|{}".format(md["cik"], md["formType"].replace("/A",""), md["fiscalYearFocus"], md["fiscalPeriodFocus"])
+    md["reportId"] = "{}|{}|{}|{}".format(md["cik"], md["formType"].replace("/A",""), md["fiscalYearFocus"], md["fiscalPeriodFocus"])
 
 def extEdgarInitializeBatch(self, rssObject):
     results = self.execute("SELECT fe.accession_number, s.accepted_timestamp "

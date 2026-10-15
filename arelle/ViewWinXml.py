@@ -1,11 +1,7 @@
 """
 See COPYRIGHT.md for copyright information.
 """
-from tkinter import *
-try:
-    from tkinter.ttk import *
-except ImportError:
-    from ttk import *
+from tkinter import END
 from arelle.CntlrWinTooltip import ToolTip
 import io
 from arelle import (XmlUtil, ViewWinList)

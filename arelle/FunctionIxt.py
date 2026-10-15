@@ -1300,7 +1300,7 @@ tr2Functions = {
     "numunitdecimal": numunitdecimal
 }
 
-    # transformation registry v-3 functions
+# transformation registry v-3 functions
 tr3Functions = tr2Functions.copy() # tr3 starts with tr2 and adds more functions
 tr3Functions.update ({
     # same as v2: "booleanfalse": booleanfalse,
@@ -1336,7 +1336,7 @@ tr3Functions.update ({
     "numunitdecimalin": numunitdecimalin,
     # same as v2: "zerodash": zerodash,
 })
-    # transformation registry v-4 functions
+# transformation registry v-4 functions
 tr4Functions = {
     "date-day-month": datedaymonthTR2,
     "date-day-monthname-bg": datedaymonthbg,
@@ -1434,7 +1434,7 @@ tr4Functions = {
     "numdotdecimalin": numdotdecimalinTR4,
     "num-unit-decimal": numunitdecimalTR4,
 }
-    # transformation registry v-5 functions
+# transformation registry v-5 functions
 tr5Functions = tr4Functions.copy() # tr5 starts with tr4 and adds more functions
 tr5Functions.update ({
     # Welsh language

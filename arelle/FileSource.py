@@ -980,7 +980,7 @@ def stripDeclarationText(text: str) -> str:
     return text
 
 
-def saveFile(cntlr: Cntlr, filepath: str, contents: str, encoding: str | None = None, mode: str="wt") -> None:
+def saveFile(cntlr: Cntlr, filepath: str, contents: str, encoding: str | None = None, mode: str = "wt") -> None:
     if isHttpUrl(filepath):
         _cacheFilepath = cntlr.webCache.getfilename(filepath)
         if _cacheFilepath is None:

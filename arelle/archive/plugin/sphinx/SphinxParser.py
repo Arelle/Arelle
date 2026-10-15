@@ -315,7 +315,7 @@ class astAnnotationDeclaration(astNode):
         self.name = name
         self.annotationType = annotationType # "string"
     def __repr__(self):
-        return "annotationDeclaration({0}{2}(".format(self.name,
+        return "annotationDeclaration({0}{1})".format(self.name,
                                                       (" as " + self.annotationType) if self.annotationType else "")
 
 class astBinaryOperation(astNode):
@@ -700,8 +700,8 @@ class astFormulaRule(astRule):
         self.bind = None
         super(astFormulaRule, self).__init__(sourceStr, loc, nodes)
     def __repr__(self):
-        return "formula({0}name={1}, {2}{3}{4} := {5}{6})".format(
-                  ("str(self.precondition) + ", "" ) if self.precondition else "",
+        return "formula({0}name={1}, {2}{3}{4}{5})".format(
+                  (str(self.precondition) + ", ") if self.precondition else "",
                   self.name,
                   (str(self.severity) + ", ") if self.severity else "",
                   ("bind=" + str(self.bind) + ", ") if self.bind else "",

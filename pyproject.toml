@@ -152,16 +152,8 @@ extend-exclude = [
 preview = true
 select = ["E", "W", "F", "Q", "CPY"]
 ignore = [
-    # indentation contains mixed spaces and tabs
-    "E101",
     # indentation is not a multiple of 4
     "E111",
-    # indentation is not a multiple of 4 (comment)
-    "E114",
-    # expected an indented block (comment)
-    "E115",
-    # E116 unexpected indentation (comment)
-    "E116",
     # over-indented
     "E117",
     # whitespace after '('
@@ -182,16 +174,12 @@ ignore = [
     "E226",
     # missing whitespace around bitwise or shift operator
     "E227",
-    # missing whitespace around modulo operator
-    "E228",
     # missing whitespace after ':'
     "E231",
     # multiple spaces after ','
     "E241",
     # unexpected spaces around keyword / parameter equals
     "E251",
-    # missing whitespace around parameter equals
-    "E252",
     # at least two spaces before inline comment
     "E261",
     # inline comment should start with '# '
@@ -234,37 +222,19 @@ ignore = [
     "E712",
     # test for membership should be 'not in'
     "E713",
-    # test for object identity should be 'is not'
-    "E714",
     # do not use bare 'except'
     "E722",
-    # do not assign a lambda expression, use a def
-    "E731",
     # ambiguous variable name
     "E741",
 
     # imported but unused
     "F401",
-    # import 'xxx' from line 15 shadowed by loop variable
-    "F402",
-    # 'from xxx import *' used; unable to detect undefined names
-    "F403",
-    # xxx may be undefined, or defined from star imports: xxx
-    "F405",
-    # '...'  ... has unused named argument(s)
-    "F504",
-    # '...'.format(...) has unused arguments at position(s): n
-    "F523",
-    # '...'.format(...) is missing argument(s) for placeholder(s): n
-    "F524",
     # dictionary key 'xs' repeated with different values
     "F601",
     # redefinition of unused 'xxx' from line 31
     "F811",
     # undefined name
     "F821",
-    # local variable 'id' defined as a builtin referenced before assignment
-    "F823",
     # local variable name is assigned to but never used
     "F841",
 
@@ -292,7 +262,7 @@ ignore = [
 "arelle/archive/plugin/sakaCalendar.py" = ["CPY001"]
 "arelle/archive/plugin/validate/XFsyntax/xf.py" = ["CPY001"]
 "arelle/plugin/internet/**" = ["CPY001"]
-"arelle/webserver/bottle.py" = ["CPY001"]
+"arelle/webserver/bottle.py" = ["CPY001", "F403"]
 
 [tool.ruff.lint.flake8-copyright]
 notice-rgx = "See COPYRIGHT\\.md for copyright information\\."

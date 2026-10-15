@@ -51,7 +51,7 @@ newRssWatchOptions: dict[str, str | bool | None] = {
     "latestPubDate": None,
 }
 
-        # Note: if adding to this list keep DialogRssWatch in sync
+# Note: if adding to this list keep DialogRssWatch in sync
 class ModelRssItem(ModelObject):
 
     status: str

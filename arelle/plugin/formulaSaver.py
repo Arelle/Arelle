@@ -77,7 +77,7 @@ class GenerateXbrlFormula:
                 self.xfLines.insert(0, 'namespace {} = "{}";'.format(prefix, ns))
 
         self.xfLines.insert(0, "")
-        self.xfLines.insert(0, "Version 1.0;".format(self.modelXbrl.modelDocument.basename, XmlUtil.dateunionValue(datetime.datetime.now())))
+        self.xfLines.insert(0, "Version 1.0;")
 
         self.xfLines.insert(0, "")
         self.xfLines.insert(0, "(: Generated from {} by Arelle on {} :)".format(self.modelXbrl.modelDocument.basename, XmlUtil.dateunionValue(datetime.datetime.now())))
