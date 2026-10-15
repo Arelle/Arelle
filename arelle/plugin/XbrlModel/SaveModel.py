@@ -261,12 +261,25 @@ def collectSourceMappings(txmyMdl, sourceUrlRewrite=None):
         to emit (or None to emit the url unchanged); ViewerLaunch uses it to name the document
         it staged beside the model.
     """
+    # A report loaded from an archive binds its sourceMapping to the archive (see
+    # FactPipeline.reportDocumentUrls), and the document it was loaded from is known only to this
+    # session. Saved as the archive, the model names something no consumer can render or read text
+    # from once it is reopened -- a viewer then shows the zip's bytes as a page. So the saved
+    # mapping names the document inside the archive (FileSource reads an "archive/member" path),
+    # or the inline document set when the report spans several documents.
+    entryUrl = getattr(txmyMdl, "_xbrlModelReportEntryUrl", None)
     seen = set()
     out = []
     for module in txmyMdl.xbrlModels.values():
         for sm in getattr(module, "_sourceMappings", None) or ():
             sn = str(sm.sourceName) if getattr(sm, "sourceName", None) is not None else None
             url = getattr(sm, "url", None)
+            if url and entryUrl and entryUrl != url and entryUrl.startswith(url.rstrip("/") + "/"):
+                from .FactPipeline import reportDocumentUrls
+                documents = reportDocumentUrls(txmyMdl, url)
+                # one document is named plainly; several keep the document-set form, which
+                # reportDocumentUrls expands again when the saved model is reopened
+                url = documents[0] if len(documents) == 1 else entryUrl
             if sourceUrlRewrite is not None:
                 url = sourceUrlRewrite(sn, url) or url
             key = (sn, url)

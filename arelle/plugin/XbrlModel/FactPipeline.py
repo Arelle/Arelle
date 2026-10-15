@@ -453,7 +453,11 @@ def reportDocumentUrls(compMdl, mappingUrl) -> list:
     """
     entryUrl = getattr(compMdl, "_xbrlModelReportEntryUrl", None)
     if not entryUrl:
-        return [mappingUrl] if mappingUrl else []
+        # a saved model names the entry document (or document set) itself: see
+        # SaveModel.collectSourceMappings
+        entryUrl = mappingUrl
+    if not entryUrl:
+        return []
     from arelle import PluginManager
     for separatorMethod in PluginManager.pluginClassMethods("InlineDocumentSet.Url.Separator"):
         separator = separatorMethod()
