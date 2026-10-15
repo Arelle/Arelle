@@ -182,6 +182,14 @@ LAYOUTFILE = f"{TLBDIR}/{FMT}_Solvency_II_layout{('_' + TABLEFILTER) if TABLEFIL
 #FMT = "EBA" # EBA or EIOPA
 #TABLEFILTER = "C_66.01.a
 
+# Command line, overriding the constants above so a run can be reproduced without editing
+# this file:  python3 tlbTemplate-eiopa.py <workbook.xlsx> <layout.json> [tableFilter]
+# Given a workbook, the whole workbook is processed unless a table filter is named.
+import sys
+if len(sys.argv) > 2:
+    EXCELWB, LAYOUTFILE = sys.argv[1], sys.argv[2]
+    TABLEFILTER = sys.argv[3] if len(sys.argv) > 3 else None
+
 # Format profiles.  Each authority/authoring-tool encodes the same layout
 # semantics with different conventions.  Rather than scatter ``if FMT ==`` tests
 # through the parser, the profile object collects every convention that differs
