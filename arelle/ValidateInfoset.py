@@ -3,14 +3,17 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from collections import defaultdict
-from collections.abc import Iterable
+import datetime
+from collections import Counter, defaultdict
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
+from urllib.parse import urljoin
 
 from lxml import etree
 
 from arelle.ModelDocument import Type
-from arelle.ModelValue import qname, dateTime, DateTime
+from arelle.ModelValue import DATETIME, dateTime, qname
+from arelle.UrlUtil import ensureUrl
 from arelle import XmlUtil, XbrlConst
 from arelle.ValidateXbrlCalcs import inferredPrecision, inferredDecimals
 from arelle.typing import TypeGetText
@@ -213,84 +216,150 @@ def resolvePath(modelXbrl: ModelXbrl, namespaceId: str | None) -> ModelObject | 
     return None
 
 
-def stripTime(periodAspect: Iterable[str | None]) -> tuple[DateTime | None, ...]:
-    a = [t for t in periodAspect if t]
-    p = []
-    if len(a) > 1:
-        p.append(dateTime(a[0].replace("Z","")))
-    if len(a) > 0:
-        p.append(dateTime(a[-1].replace("Z", ""), addOneDay=True))
-    return tuple(p)
+TABLE_MODEL_CELL = f"{{{XbrlConst.tableModel}}}cell"
+TABLE_MODEL_CONSTRAINT = f"{{{XbrlConst.tableModel}}}constraint"
+TABLE_MODEL_FACT = f"{{{XbrlConst.tableModel}}}fact"
+TABLE_MODEL_HEADERS = f"{{{XbrlConst.tableModel}}}headers"
+TABLE_MODEL_TABLE = f"{{{XbrlConst.tableModel}}}table"
+PERIOD_DATE_TAGS = {XbrlConst.qnXbrliStartDate.clarkNotation, XbrlConst.qnXbrliEndDate.clarkNotation, XbrlConst.qnXbrliInstant.clarkNotation}
+# Concept and explicit dimension values and unit measures hold QNames. Other text, such as an entity identifier, is literal.
+QNAME_VALUE_TAGS = {f"{{{XbrlConst.tableModel}}}value", f"{{{XbrlConst.xbrli}}}measure"}
+XML_BASE = "{http://www.w3.org/XML/1998/namespace}base"
+IGNORED_LAYOUT_ATTRIBUTES = {XML_BASE}
+
+@dataclass(frozen=True)
+class CanonicalElement:
+    tag: str
+    attributes: tuple[tuple[str, str], ...]
+    text: str
+    children: tuple[CanonicalElement, ...]
+
+
+@dataclass(frozen=True)
+class CanonicalConstraint:
+    aspect: str
+    tag: str
+    value: CanonicalElement | None
+
+
+def _childElements(elt: etree._Element) -> list[etree._Element]:
+    return list(elt.iterchildren(etree.Element))
+
+
+def _qnameOrText(elt: etree._Element, text: str) -> str:
+    qn = qname(text, elt.nsmap, noPrefixIsNoNamespace=True)
+    return text if qn is None else qn.clarkNotation
+
+
+def _periodDateTime(elt: etree._Element, text: str) -> str:
+    # Date only end dates and instants mean the end of that day. Expected outputs mix Z and no time zone.
+    value = dateTime(text.replace("Z", ""), addOneDay=elt.tag != XbrlConst.qnXbrliStartDate.clarkNotation, type=DATETIME)
+    return text if value is None else datetime.datetime.isoformat(value)
+
+
+def _factLocation(factElt: etree._Element, documentUri: str) -> str:
+    uri = ensureUrl(documentUri)
+    for elt in [*reversed(list(factElt.iterancestors())), factElt]:
+        if xmlBase := elt.get(XML_BASE):
+            uri = urljoin(uri, xmlBase)
+    return urljoin(uri, (factElt.text or "").strip())
+
+
+def _canonicalValue(elt: etree._Element) -> CanonicalElement:
+    text = (elt.text or "").strip()
+    if elt.tag in PERIOD_DATE_TAGS:
+        text = _periodDateTime(elt, text)
+    elif elt.tag in QNAME_VALUE_TAGS:
+        text = _qnameOrText(elt, text)
+    attrs = tuple(sorted((str(k), str(v)) for k, v in elt.items()))
+    return CanonicalElement(str(elt.tag), attrs, text, tuple(_canonicalValue(child) for child in _childElements(elt)))
+
+
+def _canonicalConstraint(constraintElt: etree._Element) -> CanonicalConstraint:
+    aspectElt = constraintElt.find(f"{{{XbrlConst.tableModel}}}aspect")
+    valueElt = constraintElt.find(f"{{{XbrlConst.tableModel}}}value")
+    aspect = "" if aspectElt is None else _qnameOrText(aspectElt, (aspectElt.text or "").strip())
+    value = None if valueElt is None else _canonicalValue(valueElt)
+    return CanonicalConstraint(aspect, constraintElt.get("tag", ""), value)
+
+
+def _layoutChildren(elt: etree._Element) -> list[etree._Element]:
+    children = _childElements(elt)
+    if elt.tag == TABLE_MODEL_TABLE:
+        # Header order across axes is not significant.
+        headers = sorted((child for child in children if child.tag == TABLE_MODEL_HEADERS), key=lambda child: child.get("axis", ""))
+        others = [child for child in children if child.tag != TABLE_MODEL_HEADERS]
+        children = headers + others
+    elif elt.tag == TABLE_MODEL_CELL:
+        children = [child for child in children if child.tag != TABLE_MODEL_CONSTRAINT]
+    return children
+
+
+def _layoutAttributes(elt: etree._Element) -> dict[str, str]:
+    attrs = {k: v for k, v in elt.items() if k not in IGNORED_LAYOUT_ATTRIBUTES}
+    if elt.tag == TABLE_MODEL_CELL:
+        # The layout model schema defaults span to 1 and rollup to false, and Arelle omits both defaults.
+        span = attrs.get("span", "1").strip()
+        attrs["span"] = str(int(span)) if span.lstrip("+").isdigit() else span
+        rollup = attrs.get("rollup", "false").strip()
+        attrs["rollup"] = {"1": "true", "0": "false"}.get(rollup, rollup)
+    return attrs
 
 
 def compareRenderingInfosetElts(
         modelXbrl: ModelXbrl,
-        sourceElt: etree._Element | None,
-        comparisonElt: etree._Element | None
+        sourceElt: etree._Element,
+        comparisonElt: etree._Element,
+        sourceDocumentUri: str,
+        comparisonDocumentUri: str
     ) -> None:
-    sourceEltTag = sourceElt.tag if sourceElt is not None else "(no more elements)"
-    comparisonEltTag = comparisonElt.tag if comparisonElt is not None else "(no more elements)"
-    if sourceEltTag != comparisonEltTag:
+    sourcePath = sourceElt.getroottree().getpath(sourceElt)
+    if sourceElt.tag != comparisonElt.tag:
         modelXbrl.error("arelle:tableModelElementMismatch",
-            _("Table layout model expecting %(elt1)s found %(elt2)s source path %(elt1path)s comparison line %(elt2line)s path %(elt2path)s, srcElt %(elt1xml)s cmpElt %(elt2xml)s"),
-            modelObject=modelXbrl, elt1=sourceEltTag, elt2=comparisonEltTag,
-            elt1path=sourceElt.getroottree().getpath(sourceElt), elt2path=comparisonElt.getroottree().getpath(comparisonElt),  # type: ignore[arg-type,union-attr]
-            elt2line=comparisonElt.sourceline,  # type: ignore[union-attr]
-            elt1xml=etree.tostring(sourceElt),elt2xml=etree.tostring(comparisonElt))  # type: ignore[arg-type]
-    elif sourceEltTag == "{http://xbrl.org/2014/table/model}cell":
-        ceSrcIter = sourceElt.iter("{http://xbrl.org/2014/table/model}fact",  # type: ignore[union-attr]
-                                   "{http://xbrl.org/2014/table/model}label")
-        ceCmpIter = comparisonElt.iter("{http://xbrl.org/2014/table/model}fact",  # type: ignore[union-attr]
-                                       "{http://xbrl.org/2014/table/model}label")
-        ceSrcElt = next(ceSrcIter, None)
-        ceCmpElt = next(ceCmpIter, None)
-        while ceSrcElt is not None and ceCmpElt is not None:
-            compareRenderingInfosetElts(modelXbrl, ceSrcElt, ceCmpElt)
-            ceSrcElt = next(ceSrcIter, None)
-            ceCmpElt = next(ceCmpIter, None)
-        srcConstraints: dict[tuple[str, str], tuple[str, ...]] = {}
-        cmpConstraints: dict[tuple[str, str], tuple[str, ...]] = {}
-        for srcE, cstrts in ((sourceElt, srcConstraints), (comparisonElt, cmpConstraints)):
-            for e in srcE.iter("{http://xbrl.org/2014/table/model}constraint"):  # type: ignore[union-attr]
-                cstrtTag = e.get("tag", "")
-                cstrtAspect = e.findtext("{http://xbrl.org/2014/table/model}aspect")
-                if cstrtAspect:
-                    if e.find("{http://xbrl.org/2014/table/model}value") is None:
-                        cstrts[cstrtAspect, cstrtTag] = ()
-                    else:
-                        cstrts[cstrtAspect, cstrtTag] = tuple((f.text or "").strip() for f in e.find("{http://xbrl.org/2014/table/model}value") for f in e.iter())  # type: ignore[union-attr]
-        for c in (srcConstraints, cmpConstraints):
-            for k, v in c.items():
-                if isinstance(k, tuple) and k[0] == "period":
-                    # remove end dates time parts if zero (because not consistently reported in conf suite expected outputs)
-                    c[k] = stripTime(c[k])  # type: ignore[assignment]
-        if srcConstraints != cmpConstraints:
+            _("Table layout model expecting %(elt2)s found %(elt1)s source path %(elt1path)s comparison line %(elt2line)s path %(elt2path)s, srcElt %(elt1xml)s cmpElt %(elt2xml)s"),
+            modelObject=modelXbrl, elt1=sourceElt.tag, elt2=comparisonElt.tag,
+            elt1path=sourcePath, elt2path=comparisonElt.getroottree().getpath(comparisonElt),
+            elt2line=comparisonElt.sourceline,
+            elt1xml=etree.tostring(sourceElt),elt2xml=etree.tostring(comparisonElt))
+        return
+    sourceAttrs = _layoutAttributes(sourceElt)
+    comparisonAttrs = _layoutAttributes(comparisonElt)
+    if sourceAttrs != comparisonAttrs:
+        modelXbrl.error("arelle:tableModelAttributesMismatch",
+            _("Table layout model comparison element %(elt)s expecting attributes %(attrs2)s found %(attrs1)s source path %(elt1path)s comparison line %(elt2line)s"),
+            modelObject=modelXbrl, elt=sourceElt.tag,
+            attrs1=", ".join('{0}="{1}"'.format(k, v) for k, v in sorted(sourceAttrs.items())),
+            attrs2=", ".join('{0}="{1}"'.format(k, v) for k, v in sorted(comparisonAttrs.items())),
+            elt1path=sourcePath, elt2line=comparisonElt.sourceline)
+    if sourceElt.tag == TABLE_MODEL_CELL:
+        sourceConstraints = [_canonicalConstraint(c) for c in sourceElt.iterchildren(TABLE_MODEL_CONSTRAINT)]
+        comparisonConstraints = [_canonicalConstraint(c) for c in comparisonElt.iterchildren(TABLE_MODEL_CONSTRAINT)]
+        if Counter(sourceConstraints) != Counter(comparisonConstraints):
             modelXbrl.error("arelle:tableModelConstraintsMismatch",
                 _("Table layout model constraints %(src)s expecting %(cmp)s source path %(elt1path)s comparison line %(elt2line)s path %(elt2path)s"),
-                modelObject=modelXbrl, src=",".join(str(s) for s in sorted(srcConstraints.items())), cmp=",".join(str(s) for s in sorted(cmpConstraints.items())),
-                elt1path=sourceElt.getroottree().getpath(sourceElt), elt2path=comparisonElt.getroottree().getpath(comparisonElt),  # type: ignore[arg-type,union-attr]
-                elt2line=comparisonElt.sourceline)  # type: ignore[union-attr]
-    else:
-        text1 = (sourceElt.text or "").strip() or "(none)"  # type: ignore[union-attr]
-        text2 = (comparisonElt.text or "").strip() or "(none)"  # type: ignore[union-attr]
-        if text1 != text2:
+                modelObject=modelXbrl, src=",".join(str(s) for s in sourceConstraints), cmp=",".join(str(c) for c in comparisonConstraints),
+                elt1path=sourcePath, elt2path=comparisonElt.getroottree().getpath(comparisonElt),
+                elt2line=comparisonElt.sourceline)
+    sourceChildren = _layoutChildren(sourceElt)
+    comparisonChildren = _layoutChildren(comparisonElt)
+    if not sourceChildren and not comparisonChildren:
+        sourceText = (sourceElt.text or "").strip()
+        comparisonText = (comparisonElt.text or "").strip()
+        if sourceElt.tag == TABLE_MODEL_FACT:
+            sourceText = _factLocation(sourceElt, sourceDocumentUri)
+            comparisonText = _factLocation(comparisonElt, comparisonDocumentUri)
+        if sourceText != comparisonText:
             modelXbrl.error("arelle:tableModelTextMismatch",
-                _("Table layout model comparison element %(elt)s expecting text %(text1)s found %(text2)s source line %(elt1line)s comparison line %(elt2line)s"),
-                modelObject=modelXbrl, elt=sourceElt.tag, text1=text1, text2=text2,  # type: ignore[union-attr]
-                elt1line=sourceElt.sourceline, elt2line=comparisonElt.sourceline)  # type: ignore[union-attr]
-        attrs1 = dict(sourceElt.items())  # type: ignore[union-attr]
-        attrs2 = dict(comparisonElt.items())  # type: ignore[union-attr]
-        # remove attributes not to be compared
-        for attr in ("{http://www.w3.org/XML/1998/namespace}base",):
-            if attr in attrs1: del attrs1[attr]
-            if attr in attrs2: del attrs2[attr]
-        if attrs1 != attrs2:
-            modelXbrl.error("arelle:tableModelAttributesMismatch",
-                _("Table layout model comparison element %(elt)s expecting attributes %(attrs1)s found %(attrs2)s source line %(elt1line)s comparison line %(elt2line)s"),
-                modelObject=modelXbrl, elt=sourceElt.tag,  # type: ignore[union-attr]
-                attrs1=", ".join('{0}="{1}"'.format(k, v) for k, v in sorted(attrs1.items())),
-                attrs2=", ".join('{0}="{1}"'.format(k, v) for k, v in sorted(attrs2.items())),
-                elt1line=sourceElt.sourceline, elt2line=comparisonElt.sourceline)  # type: ignore[union-attr]
+                _("Table layout model comparison element %(elt)s expecting text %(text2)s found %(text1)s source path %(elt1path)s comparison line %(elt2line)s"),
+                modelObject=modelXbrl, elt=sourceElt.tag, text1=sourceText or "(none)", text2=comparisonText or "(none)",
+                elt1path=sourcePath, elt2line=comparisonElt.sourceline)
+    if len(sourceChildren) != len(comparisonChildren):
+        modelXbrl.error("arelle:tableModelChildCountMismatch",
+            _("Table layout model comparison element %(elt)s expecting %(count2)s child elements found %(count1)s source path %(elt1path)s comparison line %(elt2line)s"),
+            modelObject=modelXbrl, elt=sourceElt.tag, count1=len(sourceChildren), count2=len(comparisonChildren),
+            elt1path=sourcePath, elt2line=comparisonElt.sourceline)
+    for sourceChild, comparisonChild in zip(sourceChildren, comparisonChildren):
+        compareRenderingInfosetElts(modelXbrl, sourceChild, comparisonChild, sourceDocumentUri, comparisonDocumentUri)
 
 
 def validateRenderingInfoset(modelXbrl: ModelXbrl, comparisonFile: str, sourceDoc: etree._ElementTree) -> None:
@@ -301,47 +370,8 @@ def validateRenderingInfoset(modelXbrl: ModelXbrl, comparisonFile: str, sourceDo
             comparisonDoc = etree.parse(file)
         else:
             comparisonDoc = etree.parse(comparisonFile)
-        # uncomment to debug when layout model corrupted after creation
-        # with open("/Users/hermf/temp/temp2.xml", "wb") as fh:
-        #     fh.write(etree.tostring(sourceDoc, pretty_print=True))
-        numSrcTblElts = len(sourceDoc.findall(".//{http://xbrl.org/2014/table/model}table"))
-        numCmpTblElts = len(comparisonDoc.findall(".//{http://xbrl.org/2014/table/model}table"))
-        if numSrcTblElts != numCmpTblElts:
-            modelXbrl.error("arelle:tableModelNumberOfTables",
-                _("Table layout model comparison expects %(numCmpTblElts)s table elements, layout has %(numSrcTblElts)s table elements"),
-                modelObject=modelXbrl, numSrcTblElts=numSrcTblElts, numCmpTblElts=numCmpTblElts)
-        if False: # numCmpTblElts > 1 and comparisonFile.endswith("linkrole-parameter.xml"):
-            # reverse tables for this test case
-            tblElts = sourceDoc.findall(".//{http://xbrl.org/2014/table/model}table")
-            tblElts[0].addprevious(tblElts[1])
-        # order comparison document headers in z - y - x order
-        headerElts = comparisonDoc.findall(".//{http://xbrl.org/2014/table/model}headers")
-        if len(headerElts) == 3:
-            if headerElts[0].get("axis") == "y" and headerElts[2].get("axis") == "z":
-                headerElts[0].addprevious(headerElts[2])
-        sourceIter = sourceDoc.iter()
-        comparisonIter = comparisonDoc.iter()
-        sourceElt = next(sourceIter, None)
-        comparisonElt = next(comparisonIter, None)
-        # skip over nsmap elements used to create output trees
-        while sourceElt is not None and sourceElt.tag == "nsmap":
-            sourceElt = next(sourceIter, None)
-        while comparisonElt is not None and sourceElt.tag == "nsmap":  # type: ignore[union-attr]
-            comparisonElt = next(comparisonIter, None)
-        while sourceElt is not None and comparisonElt is not None:
-            while isinstance(sourceElt, etree._Comment):
-                sourceElt = next(sourceIter, None)
-            while isinstance(comparisonElt, etree._Comment):
-                comparisonElt = next(comparisonIter, None)
-            if sourceElt is None or not any(e is not None for e in sourceElt.iterancestors("{http://xbrl.org/2014/table/model}cell")):
-                compareRenderingInfosetElts(modelXbrl, sourceElt, comparisonElt)
-            sourceElt = next(sourceIter, None)
-            comparisonElt = next(comparisonIter, None)
-        # option to save sourceDoc when errors detected
-        # numErrorsAtStart = len(modelXbrl.errors)
-        # if len(modelXbrl.errors) > numErrorsAtStart:
-        #     with io.open("/Users/hermf/temp/temp/" + os.path.basename(comparisonFile), "wb") as fh:
-        #         fh.write(etree.tostring(sourceDoc, encoding="utf-8", pretty_print=True))
+        assert modelXbrl.modelDocument is not None
+        compareRenderingInfosetElts(modelXbrl, sourceDoc.getroot(), comparisonDoc.getroot(), modelXbrl.modelDocument.uri, comparisonFile)
     except (IOError, etree.LxmlError) as err:
         modelXbrl.error("arelle:tableModelFileError",
             _("Table layout model comparison file %(xmlfile)s error %(error)s"),

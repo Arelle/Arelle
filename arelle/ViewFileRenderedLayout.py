@@ -3,6 +3,7 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
+import io
 from datetime import timedelta
 from copy import deepcopy
 from typing import TYPE_CHECKING, Any
@@ -15,7 +16,7 @@ from arelle.ModelObject import ModelObject
 from arelle.Aspect import Aspect, aspectStr
 from arelle.rendering.RenderingLayout import layoutTable
 from arelle import XbrlConst
-from arelle.XmlUtil import elementFragmentIdentifier, addQnameValue
+from arelle.XmlUtil import elementFragmentIdentifier, addQnameValue, writexml
 
 if TYPE_CHECKING:
     from arelle.FileSource import FileNamedStringIO
@@ -50,7 +51,11 @@ def viewRenderedLayout(
         view.view(lytMdlTblMdl)
     if diffToFile and outfile:
         from arelle.ValidateInfoset import validateRenderingInfoset
-        validateRenderingInfoset(modelXbrl, outfile, view.xmlDoc)  # type: ignore[arg-type]
+        assert view.xmlDoc is not None
+        # Compare the file Arelle would write, not the tree it builds in memory.
+        with io.StringIO() as written:
+            writexml(written, view.xmlDoc)
+            validateRenderingInfoset(modelXbrl, outfile, etree.ElementTree(etree.fromstring(written.getvalue())))  # type: ignore[arg-type]
         view.close(noWrite=True)
     else:
         view.close()
