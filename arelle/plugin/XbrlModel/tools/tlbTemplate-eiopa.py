@@ -272,7 +272,7 @@ if profile["hasEnumerationsSheet"]:
         
 labels = {}
 concepts = set()
-enumConceptMembers = defaultdict(set)
+enumConceptMembers = defaultdict(OrderedSet) # workbook order: a set iterated in hash order made each run differ
 dims = set()
 dimMems = defaultdict(set)
 dataTables = []
