@@ -53,7 +53,7 @@ jobs:
       - name: Collect Tcl 9 artifacts
         run: |
           cp TkTable/*.dylib output/
-      - uses: actions/upload-artifact@v7.0.1
+      - uses: actions/upload-artifact@v7.0.2
         with:
           name: tktable-macos-arm64
           path: output/
@@ -90,7 +90,7 @@ jobs:
       - name: Collect Tcl 9 artifacts
         run: |
           cp TkTable/*.dylib output/
-      - uses: actions/upload-artifact@v7.0.1
+      - uses: actions/upload-artifact@v7.0.2
         with:
           name: tktable-macos-x86_64
           path: output/
@@ -173,7 +173,7 @@ jobs:
       - name: Collect Tcl 9 artifacts
         run: |
           cp TkTable/*.so output/
-      - uses: actions/upload-artifact@v7.0.1
+      - uses: actions/upload-artifact@v7.0.2
         with:
           name: tktable-linux-x86_64
           path: output/
@@ -261,7 +261,7 @@ jobs:
         run: |
           $tktableDir = Get-ChildItem -Path "tcl9-install\lib" -Directory -Filter "Tktable*" | Select-Object -First 1
           Copy-Item "$($tktableDir.FullName)\*.dll" output\
-      - uses: actions/upload-artifact@v7.0.1
+      - uses: actions/upload-artifact@v7.0.2
         with:
           name: tktable-win-x86_64
           path: output/
