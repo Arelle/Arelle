@@ -19,7 +19,7 @@ package -- a sibling of the archive, because FileSource.basefile is the archive'
 A read-only location falls back to the web cache directory for that URL, and then to a temp
 directory.
 '''
-import os, shutil, tempfile, webbrowser
+import os, posixpath, re, shutil, tempfile, webbrowser
 
 from arelle import PluginManager
 
@@ -169,17 +169,13 @@ def hasViewableSource(compMdl):
     return False
 
 
-def stageDocument(cntlr, url, folder):
-    """Copy one source document into folder and return its basename, or None.
+def readDocument(cntlr, url):
+    """The bytes of one document, or None.
 
     Read through Arelle's FileSource / WebCache rather than the filesystem: the URL may name a
     member of an archive, or a document that only exists in the web cache.
     """
     from arelle import FileSource
-    basename = os.path.basename(url.split("?", 1)[0].split("#", 1)[0])
-    if not basename:
-        return None
-    destination = os.path.join(folder, basename)
     try:
         fileSource = FileSource.openFileSource(url, cntlr)
         try:
@@ -196,10 +192,80 @@ def stageDocument(cntlr, url, folder):
                 data = fh.read()
         except Exception:
             return None
+    return data
+
+
+def stageDocument(cntlr, url, folder):
+    """Copy one source document, and the files its rendering needs, into folder and return its
+    basename, or None."""
+    basename = os.path.basename(url.split("?", 1)[0].split("#", 1)[0])
+    if not basename:
+        return None
+    data = readDocument(cntlr, url)
+    if data is None:
+        return None
+    destination = os.path.join(folder, basename)
     if os.path.abspath(destination) != os.path.abspath(url):
         with open(destination, "wb") as fh:
             fh.write(data)
+    if basename.lower().endswith((".htm", ".html", ".xhtml")):
+        stageDocumentAssets(cntlr, url, data, folder)
     return basename
+
+
+# References a rendering of an HTML document needs beside it: images, and stylesheets with what
+# they in turn reference (fonts, background images). Scripts are not staged: the viewer removes
+# them from the document it renders.
+_HTML_ASSET_REFS = re.compile(
+    rb"""<img\b[^>]*?\bsrc\s*=\s*["']([^"']+)["']"""
+    rb"""|<link\b(?=[^>]*\brel\s*=\s*["']?stylesheet)[^>]*?\bhref\s*=\s*["']([^"']+)["']""",
+    re.IGNORECASE)
+_CSS_ASSET_REFS = re.compile(rb"""url\(\s*["']?([^"')]+)["']?\s*\)|@import\s+["']([^"']+)["']""",
+                             re.IGNORECASE)
+
+
+def _relativeAssetPath(ref, referrerDir=""):
+    """A reference as a path relative to the document, or None for anything that is not one: a
+    data: or other scheme URL, a site-absolute path, a fragment, or a path climbing above the
+    document's folder (staging must never write outside the folder it was given). referrerDir is
+    the folder, relative to the document, of the file holding the reference -- a stylesheet's
+    url() is relative to the stylesheet."""
+    ref = ref.decode("utf-8", "replace").strip().split("#", 1)[0].split("?", 1)[0]
+    if not ref or ":" in ref or ref.startswith(("/", "\\")):
+        return None
+    path = posixpath.normpath(posixpath.join(referrerDir, ref))
+    if path.startswith("..") or path == ".":
+        return None
+    return path
+
+
+def stageDocumentAssets(cntlr, documentUrl, documentBytes, folder):
+    """Stage the images and stylesheets an HTML document references by relative path, at the
+    same relative paths, so the staged rendering looks like the published one (an inline
+    filing's images, a company web page's stylesheet and fonts). A reference that cannot be read
+    is skipped: the document still renders and its facts still bind, only without that file."""
+    documentBase = posixpath.dirname(documentUrl)
+    pending = [(path, documentBase) for m in _HTML_ASSET_REFS.finditer(documentBytes)
+               for path in [_relativeAssetPath(m.group(1) or m.group(2))] if path]
+    seen = set()
+    while pending:
+        path, base = pending.pop()
+        if path in seen:
+            continue
+        seen.add(path)
+        data = readDocument(cntlr, posixpath.join(base, path) if "://" not in base else base + "/" + path)
+        if data is None:
+            continue
+        destination = os.path.join(folder, *path.split("/"))
+        os.makedirs(os.path.dirname(destination), exist_ok=True)
+        with open(destination, "wb") as fh:
+            fh.write(data)
+        if path.lower().endswith(".css"):
+            cssDir = posixpath.dirname(path)
+            for m in _CSS_ASSET_REFS.finditer(data):
+                nested = _relativeAssetPath(m.group(1) or m.group(2), cssDir)
+                if nested:
+                    pending.append((nested, base))
 
 
 def stageViewerBundle(folder, bundleDir):
