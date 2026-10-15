@@ -77,23 +77,23 @@ jobs:
       WINDOWS_ZIP_PREVIEW_NAME: arelle-win-${{ inputs.label }}-preview.zip
     steps:
       - name: Download Linux artifact
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           name: ${{ needs.build-linux.outputs.uploaded_artifact_name }}
       - name: Download macOS arm64 artifact
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           name: ${{ needs.build-macos-arm64.outputs.uploaded_artifact_name }}
       - name: Download macOS x64 artifact
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           name: ${{ needs.build-macos-x64.outputs.uploaded_artifact_name }}
       - name: Download Windows installer artifact
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           name: ${{ needs.build-windows.outputs.exe_uploaded_artifact_name }}
       - name: Download Windows zip artifact
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           name: ${{ needs.build-windows.outputs.zip_uploaded_artifact_name }}
 
