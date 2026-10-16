@@ -72,6 +72,7 @@ Put each file in `$DEMO/inputs/<folder>/` with the name shown. Those names are w
 | `paclife/` | [EDGAR filing 0001104659-25-020739](https://www.sec.gov/Archives/edgar/data/813900/000110465925020739/), Pacific Select Fund N-CSR: `tm255536d1_ncsr.htm`, `pacificlife-20241231.xsd` and the images it references | `tm255536d1_ncsr.htm`: `4e9d7a509bb7412c3125ad4435f690c0c0c1581190ff89edee4f0cac4e07679d` |
 | `paclife/paclife.pdf` | **made by hand:** `tm255536d1_ncsr.htm` opened in Acrobat Pro with *Create PDF from web page* (tagged) | varies |
 | `principal/` | [EDGAR filing 0000898745-24-000723](https://www.sec.gov/Archives/edgar/data/898745/000089874524000723/), Principal Funds N-CSR: the inline primary document as disseminated, saved as `primary-document.htm`, plus `principal-20241031.xsd` and the images it references | `primary-document.htm`: `48f21eb13921236cf205a26830975457c0838c67936b8dd2dab90b32a5bf43dd` |
+| `eiopa-2.10/EIOPA_Solvency_II_DPM_Annotated_Templates_2.10.0.xlsx` | [EIOPA](https://dev.eiopa.europa.eu/Taxonomy/Full/2.10.0/S2/EIOPA_Solvency_II_DPM_Annotated_Templates_2.10.0.xlsx), the Solvency II 2.10.0 DPM annotated templates, from [EIOPA's supervisory reporting page](https://www.eiopa.europa.eu/tools-and-data/supervisory-reporting-dpm-and-xbrl_en) | `518980394e10913a68240238b65123f5bd4f2df5dffe56365a284c9388cbd0e6` |
 | `tavi-demo/tavi-demo-2026-09-01.zip` | [xbrl.org](https://www.xbrl.org/Specification/tavi/PWD-2026-09-01/demo/tavi-demo-2026-09-01.zip), the Tavi PWD's published demo, whose model viewer shows the generated templates as tables (step 8) | `4518c96461d7538953834d7506ad31a352023eb7a15ea7438f730adb8455d394` |
 | `principal/principal.pdf` | **made by hand:** `primary-document.htm` through *Create PDF from web page*, as for Pacific Life | varies |
 
@@ -192,23 +193,24 @@ facts appear (README §3). Peak memory is about 3.3 GB and 5.4 GB.
 ## 8. Prudential templates as Tavi models (demo 3)
 
 Demo 3 generates a Tavi module, with a grid layout per template, from EIOPA's Solvency II DPM annotated
-templates workbook (2.8.2 Hotfix). That workbook is not distributed with this guide. Given a copy:
+templates workbook, release 2.10.0 (step 3):
 
 ```bash
-python3 $DEMO/arelle/arelle/plugin/XbrlModel/tools/tlbTemplate-eiopa.py <workbook.xlsx> $OUT/eiopa.json \
+python3 $DEMO/arelle/arelle/plugin/XbrlModel/tools/tlbTemplate-eiopa.py \
+    $IN/eiopa-2.10/EIOPA_Solvency_II_DPM_Annotated_Templates_2.10.0.xlsx $OUT/eiopa.json \
     > $OUT/eiopa-generate.log   # the generator prints its working tables; keep them out of the terminal
 arelle $OUT/eiopa.log --plugins XbrlModel -f $OUT/eiopa.json --validate
 ```
 
-On the 2.8.2 Hotfix workbook used for the demonstration this gives 599 tables (599 report cubes and 610
-exclusion cubes for crossed-out cells) with no validation errors. The generator's output is deterministic.
+On the 2.10.0 workbook this gives 570 tables (570 report cubes and 556 exclusion cubes for crossed-out cells)
+with no validation errors. The generator's output is deterministic.
 
 To see a template as a table, generate it on its own and open it in the model viewer of the PWD's published
 demo, which draws a module's grid layouts in its **Layout** tab:
 
 ```bash
 unzip -q -o $IN/tavi-demo/tavi-demo-2026-09-01.zip -d $OUT
-python3 $DEMO/arelle/arelle/plugin/XbrlModel/tools/tlbTemplate-eiopa.py <workbook.xlsx> \
+python3 $DEMO/arelle/arelle/plugin/XbrlModel/tools/tlbTemplate-eiopa.py $IN/eiopa-2.10/EIOPA_Solvency_II_DPM_Annotated_Templates_2.10.0.xlsx \
     $OUT/tavi-demo-2026-09-01/examples/eiopa-S.02.01.01.01.json S.02.01.01.01 > $OUT/eiopa-S.02.01.log
 ```
 
@@ -306,7 +308,7 @@ it. An unstyled page, or console 404s for `ixbrlviewer.config.json` or `main.css
 before the code was updated: restart it.
 
 **Demo 3: prudential templates.** Open `$OUT/eiopa.json`. The **Cubes** pane holds one cube per template table
-(599); the grid layouts are the `layouts` object of `eiopa.json`, one data table per template. The module
+(570); the grid layouts are the `layouts` object of `eiopa.json`, one data table per template. The module
 has no facts or source document, so no viewer opens: to see a template as a table, use the PWD demo viewer
 as in step 8. Loading and building the views for its 992 cubes takes a
 little while.
