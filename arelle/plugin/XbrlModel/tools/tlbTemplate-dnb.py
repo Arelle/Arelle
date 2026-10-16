@@ -40,6 +40,13 @@ FMT = "dnb"
 TABLEFILTER = "T01.01"                    # a table code to limit processing, or None for all
 TLBDIR = "/Users/hermf/Documents/projects/XBRL.org/oim/specifications/oim-taxonomy/examples/TLB"
 LAYOUTFILE = f"{TLBDIR}/DNB_layout{('_' + TABLEFILTER) if TABLEFILTER else ''}.json"
+# Command line, overriding the constants above so a run can be reproduced without editing
+# this file:  python3 tlbTemplate-dnb.py <workbook.xlsx> <layout.json> [tableFilter]
+# Given a workbook, the whole workbook is processed unless a table is named.
+import sys
+if len(sys.argv) > 2:
+    EXCELWB, LAYOUTFILE = sys.argv[1], sys.argv[2]
+    TABLEFILTER = sys.argv[3] if len(sys.argv) > 3 else None
 PFX = FMT
 targetNamespace = f"http://example.com/taxonomy/{FMT}"
 
