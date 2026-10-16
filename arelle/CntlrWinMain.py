@@ -1202,7 +1202,7 @@ class CntlrWinMain(Cntlr.Cntlr):
                 priorOutputInstance.close()
             currentAction = "showing resulting formula output instance"
             if currentOutputInstance:
-                ViewWinXml.viewXml(currentOutputInstance, self.tabWinBtm, "Formula Output Instance", currentOutputInstance.modelDocument.xmlDocument)  # type: ignore[union-attr]
+                ViewWinXml.viewXml(currentOutputInstance, self.tabWinBtm, "Formula Output Instance", currentOutputInstance.modelDocument.xmlDocument)  # type: ignore[union-attr,arg-type]
         except Exception as err:
             msg = _("Exception {0}: {1}, at {2}").format(
                      currentAction,
