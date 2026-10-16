@@ -131,10 +131,14 @@ Known limitations
   entries (``conceptPrefixes``, ``dimensionPrefixes``, Z tokens, ...) and the
   ``rowColLabels`` anchor detector implemented (EBA uses explicit "Rows"/"Columns"
   labels, not the gray band).
-* **In-sheet Z is read only partially.**  The combined "Z Axis:" setting on the
-  "Sheets (Z)" row (which carries any metric) is read, but the per-dimension member
-  *lists* on the continuation rows (e.g. S.22.01.01.01's dropdown + member tree)
-  are not — those Z dimensions' member choices are dropped.
+* **In-sheet Z dimensions are selectable, not enumerated.**  The combined "Z Axis:"
+  setting on the "Sheets (Z)" row (which carries any metric) becomes the z axis item.
+  Each Z dimension named in row 1 becomes a z ``axisGroup``: an explicit one with an
+  ``axisNetwork`` of its continuation row's member list (matched to the dimension by
+  domain code, the list's description, or the members the dimension has elsewhere), a
+  typed one with no network (its values are the facts').  The lists are as the workbook
+  gives them: a few (S.26.13/S.26.14 risk-type hierarchies) lack members that EIOPA's
+  sample instances use.
 * **Exclusion cubes over-cover harmlessly.**  Blocked cells are coalesced into
   greedy (not minimal) rectangles; a rectangle's cross-product may span dimensional
   coordinates that are not table cells, but those have no axis item and no fact, so
@@ -279,9 +283,9 @@ numZlists = 0
 enums = []
 if profile["hasEnumerationsSheet"]:
     wsEnum = wb["Enumerations"]
-    for rowNum in range(1, wsEnum.max_row):
+    for rowNum in range(1, wsEnum.max_row + 1):
         row = []
-        for colNum in range(1, wsEnum.max_column):
+        for colNum in range(1, wsEnum.max_column + 1):
             v = wsEnum.cell(rowNum, colNum).value
             if v:
                 row.append(v)
@@ -306,6 +310,16 @@ prefixes = set()
 # multi-member set spans a coalesced rectangle of blocked cells.
 # NOTE (follow-up): the domain `root` for xbrl:concept is a placeholder.
 exclDomains = {}
+
+# In-sheet Z dimensions (declared in row 1) become z axis groups.  An explicit one's member
+# list is an enumeration of one of its domains, which does not name the dimension, so the
+# list is matched to its dimension after every sheet has been read (see resolveZGroups).
+# Typed dimensions: an open table's key column whose comment gives no member list ("s2c_dim:XA
+# (...)", where an explicit one adds "= s2c_exp:LB - 701 ..."), and a Z row that names its
+# dimension with no list.  Their values are strings, not members.
+typedDims = set()
+pendingZGroups = [] # (table, {dim: axisGroup}, [(zAxisId, members, list description)])
+zDomains = {}
 def exclDomain(dim, members):
     key = (dim, tuple(members))
     if key not in exclDomains:
@@ -456,6 +470,7 @@ for ws in wb.worksheets:
     firstDataRow = firstDataCol = firstXhdrRow = firstXdimRow = firstYdimCol = ydimRow = maxDataCol = maxDataRow = None
     zDim = inZ = firstXhdrCol = pastXhdr = None
     zChoices = []
+    zInSheetRows = [] # (label, member list or None, text) per Z-band continuation row
     zTokenCol1 = profile["zTokenCol1"]
     zTokenCol2Prefix = profile["zTokenCol2Prefix"]
     pastZ = not (zTokenCol1 and any(cellValue(rowNum, 1) == zTokenCol1 for rowNum in range(2,20)))
@@ -488,6 +503,13 @@ for ws in wb.worksheets:
             if all(not cellValue(rowNum, c) for c in range(1,20)):
                 pastZ = True
             else:
+                # a continuation row of the Z band selects one in-sheet Z dimension: column A
+                # has its label and id ('Article 112 "mandatory" (Z0010)'), column B its member
+                # list (explicit), or a later cell its dimension name (typed)
+                enumRow = sheetCellEnumRow.get((tableName, f"B{rowNum}"))
+                zInSheetRows.append((cellValue(rowNum, 1) or "",
+                                     enums[int(enumRow)-1] if enumRow else None,
+                                     " ".join(str(cellValue(rowNum, c)) for c in range(2,20) if cellValue(rowNum, c))))
                 continue
         if not pastXhdr:
             if not firstXhdrCol:
@@ -539,6 +561,8 @@ for ws in wb.worksheets:
             dim = wsCell(firstDataRow-1, colNum).comment
             if dim:
                 yKeyColsDims.append(qn(dim.text))
+                if "= " not in dim.text:
+                    typedDims.add(yKeyColsDims[-1])
                 yKeyColIds.append(None)
                 # the label is the text before the column code: 'Fund number "optional" (C0070) *natural number*'
                 yKeyColLabels.append(re.split(r"\s*[(]C\d{4}[)]", cellValue(firstDataRow-1, colNum) or "", maxsplit=1)[0].strip())
@@ -598,7 +622,9 @@ for ws in wb.worksheets:
     xAxis = {}
     yAxis = {}
     dt = {"name": qnTable, "tableType": "gridLayout", "xAxis": xAxis, "yAxis": yAxis}
-    if zDim is not None or zChoices:
+    # row 1 names the in-sheet Z dimensions (in alphabetical order, not that of the Z rows)
+    zRow1Dims = [qn(v) for v in (cellValue(1, c) for c in range(2,20)) if isDimension(v)]
+    if zDim is not None or zChoices or zRow1Dims:
         zAxis = {}
         dt["zAxis"] = zAxis
     dataTables.append(dt)
@@ -752,13 +778,23 @@ for ws in wb.worksheets:
         if fullFirstYdimCol:
             firstYdimColQns = OrderedSet(qn(firstYdim, q) for q in firstYdimColMems)
             cubeYDomMems[qn(firstYdim)] = list(firstYdimColQns)
+        # firstYdimCol is the first column filled in the first row that has any; a dimension
+        # column left of it is filled only in later rows (S.25.01's s2c_dim:DV, in R0060 and
+        # R0100 only), so walk back over the header row's dimension names to the data columns
+        yDimStartCol = firstYdimCol
+        while (yDimStartCol - 1 > firstDataCol
+               and not re.match(r"C\d{4}", str(cellValue(firstDataRow-1, yDimStartCol-1, mergeSource=False) or ""))
+               and (isDimension(cellValue(ydimRow, yDimStartCol-1)) or cellValue(ydimRow, yDimStartCol-1) == "Metrics")):
+            yDimStartCol -= 1
         for ydRow in range(firstDataRow, firstXdimRow or maxDataRow+1):
             yDims.append({})
-            for memCol in range(firstYdimCol, firstYdimCol + 20):
+            for memCol in range(yDimStartCol, firstYdimCol + 20):
                 dim = cellValue(ydimRow, memCol)
                 mem = cellValue(ydRow, memCol)
-                if not dim or not mem:
+                if not dim:
                     break
+                if not mem:
+                    continue # no member of this dimension on this row (S.02.01 R0530 has no TB, but has VL)
                 qnDim = qnDimOf(dim, mem)
                 if qnDim is None:
                     continue # dim slot is not a real dimension (misread id/member/label)
@@ -800,6 +836,25 @@ for ws in wb.worksheets:
                         continue # dim slot is not a real dimension (misread id/member/label)
                     if zid: zIds[-1] = zid
                     zDimsVal[qnDim] = qn(dim, mem)
+
+    # In-sheet Z dimensions: one z axis group each, its axisId that of its Z row.  A typed one
+    # names its dimension and has no network (its values are the facts'); an explicit one's
+    # member list gets a domain network once resolveZGroups has matched the list to its dimension.
+    zGroups = {d: {"dimensionName": d} for d in zRow1Dims if d not in {k for zd in zDims or () for k in zd}}
+    zLists = []
+    for label, members, text in zInSheetRows:
+        m = re.search(r"[(](Z\d{4})[)]", label)
+        typedDim = re.search(r"\b(s2c_dim:\w+)", text) if not members else None
+        group = zGroups.get(qn(typedDim.group(1))) if typedDim else None
+        if group is not None:
+            typedDims.add(group["dimensionName"])
+            if m: group["axisIds"] = [m.group(1)]
+        elif members:
+            # the list's description names its dimension: "s2c_exp:CA - 1 (Currency conversion approach) ..."
+            e = re.search(r"s2c_exp:\w+ - \d+ [(]([^)]*)[)]", text)
+            zLists.append((m.group(1) if m else None, members, e.group(1) if e else None))
+    if zGroups:
+        pendingZGroups.append((qnTable, zGroups, zLists))
 
     # ---- Metrics-anchored concept recovery ----
     # Every table carries a literal "Metrics" cell marking the concept dimension's label,
@@ -865,13 +920,20 @@ for ws in wb.worksheets:
         conceptDim["domainNetwork"] = conceptDomName
     cubeDims = [conceptDim]
     seenCubeDims = {"xbrl:concept"}
-    for dimset in xDims + yDims + (zDims or []):
+    # the dimensions of z axis groups and of an open table's key columns take their members
+    # from the cube (typed or explicit), so the cube has them too
+    groupDims = list(zGroups) + ([d for d in yKeyColsDims if d] if isOpenTable else [])
+    for dimset in xDims + yDims + (zDims or []) + [dict.fromkeys(groupDims)]:
         for d in dimset:
             if d not in seenCubeDims:
                 seenCubeDims.add(d)
-                cubeDims.append({"dimension": d, "optional": True})
-    for coreDim in ("xbrl:period", "xbrl:entity", "xbrl:unit"):
+                cubeDims.append({"dimension": d, "domainDataType": "xs:string", "optional": True} if d in typedDims
+                                else {"dimension": d, "optional": True})
+    for coreDim in ("xbrl:period", "xbrl:entity"):
         cubeDims.append({"dimension": coreDim})
+    # non-numeric facts (enumerations, strings, dates) and pure ones have no unit, and a table
+    # may mix them with monetary facts
+    cubeDims.append({"dimension": "xbrl:unit", "optional": True})
     cube = {"name": cubeName, "cubeType": "xbrl:reportCube", "cubeDimensions": cubeDims}
     cubes.append(cube)
 
@@ -924,6 +986,11 @@ for ws in wb.worksheets:
             # the exclusion spans all the table's concepts (the shared concept domain)
             if not any(cd["dimension"] == "xbrl:concept" for cd in exclCubeDims) and conceptDomName:
                 exclCubeDims.insert(0, {"dimension": "xbrl:concept", "domainNetwork": conceptDomName})
+            # a cube holds no fact with a dimension it lacks, so the selectable z dimensions are
+            # included with any member: the cell is blocked whatever the reader selects
+            for d in zGroups:
+                exclCubeDims.append({"dimension": d, "domainDataType": "xs:string", "optional": True} if d in typedDims
+                                    else {"dimension": d, "optional": True})
             exclCubeDims.append({"dimension": "xbrl:period"})
             exclCubeDims.append({"dimension": "xbrl:entity"})
             exclName = f"{qnTable}_Excl{len(exclNames)+1}"
@@ -968,9 +1035,61 @@ for ws in wb.worksheets:
     elif yIds:
         yga["axisItems"] = [{"axisId": yId, "dimensions": {}} for yId in yIds]
 
-    if zDims:
+    if zDims or zGroups:
         zAxis["gridAxis"] = zga = {}
-        zga["axisItems"] = [axisItem(zIds, i, dm) for i, dm in enumerate(zDims)]
+        if zDims:
+            zga["axisItems"] = [axisItem(zIds, i, dm) for i, dm in enumerate(zDims)]
+        if zGroups:
+            zga["axisGroups"] = list(zGroups.values())
+
+def resolveZGroups():
+    """Match each in-sheet Z member list to one of its table's row-1 Z dimensions and give that
+    dimension's axis group a domain network of the list.  A list's members are of a domain
+    (s2c_AO:x1), which names the dimension only when the codes agree (s2c_dim:AO); otherwise
+    it is the dimension whose label the list's description repeats ("s2c_exp:CA - 1 (Currency
+    conversion approach)" for s2c_dim:AF), the dimension that has members of that domain
+    elsewhere in the workbook (s2c_LB for s2c_dim:BL), or the one dimension left.  A dimension whose list stays unmatched keeps an
+    axis group with no network: its members are then those of the facts."""
+    unmatched = []
+    for table, groups, lists in pendingZGroups:
+        openDims = [d for d, g in groups.items() if "axisIds" not in g] # not taken by a typed Z row
+        lists = [(zid, [m for m in members if re.match(r"[\w_.]+:[\w_.]+ ", m)], desc) for zid, members, desc in lists]
+        lists = [l for l in lists if l[1]]
+        while lists:
+            matched = None
+            for zid, members, desc in lists:
+                domainPrefix = members[0].partition(":")[0]
+                cands = [d for d in openDims if d.endswith("_dim_" + domainPrefix.rpartition("_")[2])]
+                if len(cands) != 1 and desc:
+                    cands = [d for d in openDims if labels.get(d) == desc]
+                if len(cands) != 1:
+                    folded = f"{extensionPrefix}:{domainPrefix}_"
+                    cands = [d for d in openDims if any(m.startswith(folded) for m in dimMems[d])]
+                if len(cands) != 1 and len(lists) == 1 and len(openDims) == 1:
+                    cands = openDims
+                if len(cands) == 1:
+                    matched = (zid, members, desc, cands[0])
+                    break
+            if not matched:
+                unmatched.extend(f"{table} {l[0]}" for l in lists)
+                break
+            zid, members, desc, d = matched
+            lists.remove((zid, members, desc))
+            openDims.remove(d)
+            memQns = [qnFromLabel(m) for m in members]
+            dimMems[d].update(memQns)
+            key = (d, tuple(memQns))
+            if key not in zDomains:
+                zDomains[key] = f"{extensionPrefix}:z{len(zDomains)+1}Dom"
+                root = f"{d}Cls"
+                domains.append({"name": zDomains[key], "root": root,
+                                "relationships": [{"source": root, "target": m} for m in memQns]})
+            if zid:
+                groups[d]["axisIds"] = [zid]
+            groups[d]["axisNetwork"] = zDomains[key]
+    print(f"Z axis groups: {sum(len(g) for _, g, _ in pendingZGroups)}, member lists unmatched: {len(unmatched)} {unmatched[:10]}")
+
+resolveZGroups()
 
 print(f"Num tables {numTables}, Num of Z in sheet = {numZinSheet}, Num Z lists {numZlists}")
 print(f"labels {labels}\nconcepts {concepts}\ndims {dims}\ndimMems {dimMems}")
@@ -1000,8 +1119,13 @@ xbrlMdl["version"] = "0.9"
 xbrlMdl["importedTaxonomies"] = [{"xbrlModelName": "xbrlm:base"}]
 # NB: the schema has no `modelForm` or `abstracts` top-level properties, so they are
 # not emitted.
+# An EIOPA metric's local name codes its data type and period type in its first two letters
+# (s2md_met:mi686: monetary, instant).  Folding keeps the source prefix in the local name
+# (eiopa:s2md_met_mi686), so the code is read after that prefix.
+def metricCode(qn):
+    return qn.rpartition(":")[2].rpartition("_")[2]
 def dt(qn):
-    ln = qn.rpartition(":")[2]
+    ln = metricCode(qn)
     return {"m":"xbrlr:monetary",
             "e":"xs:QName",
             "i": "xs:integer",
@@ -1009,7 +1133,7 @@ def dt(qn):
             "d": "xs:date",
             }.get(ln[0] if ln else "","xs:string")
 def pt(qn):
-    ln = qn.rpartition(":")[2]
+    ln = metricCode(qn)
     return "instant" if len(ln) > 1 and ln[1] == "i" else "duration"
 xbrlMdl["concepts"] = []
 for c in sorted(concepts):
@@ -1022,7 +1146,8 @@ for c in sorted(concepts):
 xbrlMdl["cubes"] = cubes
 xbrlMdl["dimensions"] = [{"name":d, "domainClass":f"{d}Cls"} for d in sorted(dims)]
 # each domainClass declares the object type its members may be (schema-required)
-xbrlMdl["domainClasses"] = [{"name":f"{d}Cls", "allowedDomainItem":"xbrl:memberObject"} for d in sorted(dims)]
+xbrlMdl["domainClasses"] = [{"name":f"{d}Cls", "allowedDomainItem": "xs:string" if d in typedDims else "xbrl:memberObject"}
+                             for d in sorted(dims)]
 mems = set(v for vls in dimMems.values() for v in vls)
 for m in enumConceptMembers.values():
     mems.update(m)
