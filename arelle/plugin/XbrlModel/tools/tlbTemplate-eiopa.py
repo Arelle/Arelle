@@ -193,6 +193,22 @@ if len(sys.argv) > 2:
     EXCELWB, LAYOUTFILE = sys.argv[1], sys.argv[2]
     TABLEFILTER = sys.argv[3] if len(sys.argv) > 3 else None
 
+def documentOrder(hdrs):
+    """Sort grid headers into document order, in place, and drop the sort keys.
+
+    The headers are collected one header row (or column) at a time, outermost first, so they come out
+    grouped by level: every level-5 header, then every level-4 one.  A renderer places a spanning
+    header's children by reading the array in order -- a parent, then the headers beneath it, then the
+    parent's next sibling, as the specification's gridHeader example lists them -- and with a ragged
+    hierarchy (a leaf such as Goodwill beside Investments, which goes three levels deeper) the grouped
+    order does not say which rows a level-3 header covers at all.  So each header is placed where its
+    label sits: its first row (or column), or its last for a rollUpLocation of "end", whose children
+    come before it; on a tie, the outer level first.
+    """
+    hdrs.sort(key=lambda h: (h["_at"], -h["labelLevel"]))
+    for h in hdrs:
+        del h["_at"]
+
 # Format profiles.  Each authority/authoring-tool encodes the same layout
 # semantics with different conventions.  Rather than scatter ``if FMT ==`` tests
 # through the parser, the profile object collects every convention that differs
@@ -494,6 +510,13 @@ for ws in wb.worksheets:
             v = cellValue(rowNum, colNum, mergeSource=False)
             if isEntryCell(rowNum, colNum) and not isGrayCell(rowNum, colNum) and isGrayCell(rowNum-1, colNum):
                 if not firstDataCol:
+                    # The first data row's own leftmost cell may be greyed out (not reported: S.02.01's
+                    # Goodwill has no Solvency II value), which would start the data one column late,
+                    # drop that column and read the row-code column as a header level. The column-code
+                    # row above is what fixes the data columns, so walk back while it continues.
+                    while (colNum - 1 > firstRowHdrCol and isGrayCell(rowNum-1, colNum-1)
+                           and cellValue(rowNum-1, colNum-1, mergeSource=False)):
+                        colNum -= 1
                     firstDataCol = colNum
                     firstDataRow = rowNum
                     for col2 in range(colNum, maxCol+1):
@@ -602,7 +625,9 @@ for ws in wb.worksheets:
             if span > 1:
                 lbl["span"] = span
             if xhRow < firstDataRow - 2: # check if there is a rollup?
-                if levelSpan > 1 or not cellValue(xhRow + 1, xhCol):
+                # levelSpan counts the header rows the label is merged into beyond its own: one is
+                # enough for the label to claim the column, as an empty cell beneath it does
+                if levelSpan >= 1 or not cellValue(xhRow + 1, xhCol):
                     lbl["rollUpLocation"] = "start"
                     rollupCols.add(xhCol)
                 elif not cellValue(xhRow, xhCol + span - 1):
@@ -610,6 +635,7 @@ for ws in wb.worksheets:
                     rollupCols.add(xhCol + span - 1)
                 elif span > 1:
                     lbl["rollUpLocation"] = "none"
+            lbl["_at"] = xhCol + span - 1 if lbl.get("rollUpLocation") == "end" else xhCol
             xHdrs.append(lbl)
             xhCol += span
     # A spanning header cannot be a leaf: labelLevel 1 is the per-column level and the spec
@@ -618,6 +644,7 @@ for ws in wb.worksheets:
     if any(h["labelLevel"] == 1 and h.get("span", 1) > 1 for h in xHdrs):
         for h in xHdrs:
             h["labelLevel"] += 1
+    documentOrder(xHdrs)
    # x IDs for mapping to axis items
     xIds = [cellValue(firstDataRow-1, xdCol) for xdCol in range(firstDataCol, maxDataCol+1) if cellValue(firstDataRow-1, xdCol)]
     if isOpenTable:
@@ -685,7 +712,10 @@ for ws in wb.worksheets:
             if span > 1:
                 lbl["span"] = span
             if yhCol < firstDataCol - 2: # check if there is a rollup?
-                if levelSpan > 1 or not cellValue(yhRow, yhCol + 1):
+                # levelSpan counts the header columns the label is merged into beyond its own: one is
+                # enough for the label to claim the row (else the inner column repeats it, shifting
+                # every label below against its row code), as an empty cell beside it does
+                if levelSpan >= 1 or not cellValue(yhRow, yhCol + 1):
                     lbl["rollUpLocation"] = "start"
                     rollupRows.add(yhRow)
                 elif not cellValue(yhRow + span - 1, yhCol):
@@ -693,12 +723,14 @@ for ws in wb.worksheets:
                     rollupRows.add(yhRow + span - 1)
                 elif span > 1:
                     lbl["rollUpLocation"] = "none"
+            lbl["_at"] = yhRow + span - 1 if lbl.get("rollUpLocation") == "end" else yhRow
             yHdrs.append(lbl)
             yhRow += span
     # reserve labelLevel 1 for the (label-less) leaf rows when the innermost header spans
     if any(h["labelLevel"] == 1 and h.get("span", 1) > 1 for h in yHdrs):
         for h in yHdrs:
             h["labelLevel"] += 1
+    documentOrder(yHdrs)
     # y IDs for mapping to axis items
     yIds = []
     if firstYdimCol and ydimRow:
