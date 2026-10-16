@@ -531,6 +531,7 @@ for ws in wb.worksheets:
 
     yKeyColsDims = [] # are the leftmost columns with dimension labels (not necessarily all dim cols)
     yKeyColIds = []
+    yKeyColLabels = [] # a key column's label is in its own (column-code) row, with its code in parentheses
     # is this an open table with no row headers?
     if isOpenTable:
         # capture dimensions from col headers
@@ -539,6 +540,8 @@ for ws in wb.worksheets:
             if dim:
                 yKeyColsDims.append(qn(dim.text))
                 yKeyColIds.append(None)
+                # the label is the text before the column code: 'Fund number "optional" (C0070) *natural number*'
+                yKeyColLabels.append(re.split(r"\s*[(]C\d{4}[)]", cellValue(firstDataRow-1, colNum) or "", maxsplit=1)[0].strip())
                 if isGrayCell(firstDataRow-1, colNum):
                     m = re.match(r".*[(](\w+)[)]", cellValue(firstDataRow-1, colNum))
                     if m:
@@ -645,6 +648,14 @@ for ws in wb.worksheets:
         for h in xHdrs:
             h["labelLevel"] += 1
     documentOrder(xHdrs)
+    # An open table's key columns (the row's identifying dimensions: line, asset ID, fund number, ...)
+    # have no label in the header rows read above -- theirs is in the column-code row, "Asset ID Code and
+    # Type of code (C0040)" -- so they came out blank.
+    if isOpenTable and yKeyColLabels:
+        leaves = [h for h in xHdrs if h["labelLevel"] == 1]
+        for h, label in zip(leaves, yKeyColLabels):
+            if not h["label"] and label:
+                h["label"] = label
    # x IDs for mapping to axis items
     xIds = [cellValue(firstDataRow-1, xdCol) for xdCol in range(firstDataCol, maxDataCol+1) if cellValue(firstDataRow-1, xdCol)]
     if isOpenTable:
@@ -940,6 +951,14 @@ for ws in wb.worksheets:
         xga["axisItems"] = [axisItem(xIds, i, dm) for i, dm in enumerate(xDims)]
     elif xIds:
         xga["axisItems"] = [{"axisId": xId, "dimensions": {}} for xId in xIds]
+    if isOpenTable:
+        # each key column holds, row by row, a member of its dimension (named in the template's cell
+        # comment): an axis group of that dimension over the column's axisId says so; with no
+        # axisNetwork, its members are those of the cube's dimension (typed or explicit)
+        groups = [{"dimensionName": str(dim), "axisIds": [yKeyColIds[i]]}
+                  for i, dim in enumerate(yKeyColsDims) if dim and i < len(yKeyColIds) and yKeyColIds[i]]
+        if groups:
+            xga["axisGroups"] = groups
 
     yAxis["gridAxis"] = yga = {}
     if yHdrs:
