@@ -243,10 +243,15 @@ In **Help ▸ Manage plug-ins**, add three plugins:
 | plugin | how to add it | listed as |
 |---|---|---|
 | XBRL Model | **Select**, then `XbrlModel` | XBRL Model |
-| SEC transforms | **Select**, then `EDGAR/transform` | SEC Inline Transforms |
+| SEC transforms | **Select**, then `EDGAR` (simplest), or **Browse**, then `$DEMO/arelle/arelle/plugin/EDGAR/transform/__init__.py` | EDGAR, or SEC Inline Transforms |
 | viewer | **Browse**, then `$DEMO/viewer/iXBRLViewerPlugin/__init__.py` | ixbrl-viewer |
 
-Close the dialog and restart Arelle.
+Selecting the whole `EDGAR` plugin brings in the transforms with the rest of it, and logs
+`[arelle.xulePluginNotLoaded] Xule plugin is not loaded`, which is harmless here: XULE runs the DQC rules,
+which these steps do not use. Browsing to `EDGAR/transform/__init__.py` adds only the transforms.
+
+Close the dialog and restart Arelle. Restart it again whenever the code under `$DEMO` is updated: a running
+Arelle keeps the plugin code it loaded.
 
 **Check:** **Help ▸ Manage plug-ins** lists all three as `enabled`, and the **Tools** menu has
 **Open iXBRL Viewer on load** (checked) and **Validate XBRL model on load** (checked).
@@ -278,11 +283,14 @@ and the viewer. The documents are copied from beside the model, which is where s
 before the browser opens.
 
 **Check:** each opens with facts highlighted, as in step 9, and the browser's console shows no failed
-requests.
+requests. Microsoft's page is styled as on microsoft.com: its stylesheet, fonts and images are staged with
+it. An unstyled page, or console 404s for `ixbrlviewer.config.json` or `main.css`, means an Arelle started
+before the code was updated: restart it.
 
 **Demo 3: prudential templates.** Open `$OUT/eiopa.json`. The **Cubes** pane holds one cube per template table
 (599); the grid layouts are the `layouts` object of `eiopa.json`, one data table per template. The module
-has no facts or source document, so no viewer opens.
+has no facts or source document, so no viewer opens. Loading and building the views for its 992 cubes takes a
+little while.
 
 ## What these steps do not cover
 
