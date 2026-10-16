@@ -200,7 +200,7 @@ python3 $DEMO/arelle/arelle/plugin/XbrlModel/tools/tlbTemplate-eiopa.py <workboo
 arelle $OUT/eiopa.log --plugins XbrlModel -f $OUT/eiopa.json --validate
 ```
 
-On the 2.8.2 Hotfix workbook used for the demonstration this gives 599 tables (599 report cubes and 393
+On the 2.8.2 Hotfix workbook used for the demonstration this gives 599 tables (599 report cubes and 610
 exclusion cubes for crossed-out cells) with no validation errors. The generator's output is deterministic.
 
 To see a template as a table, generate it on its own and open it in the model viewer of the PWD's published
@@ -209,17 +209,14 @@ demo, which draws a module's grid layouts in its **Layout** tab:
 ```bash
 unzip -q -o $IN/tavi-demo/tavi-demo-2026-09-01.zip -d $OUT
 python3 $DEMO/arelle/arelle/plugin/XbrlModel/tools/tlbTemplate-eiopa.py <workbook.xlsx> \
-    $OUT/tavi-demo-2026-09-01/examples/eiopa-S.25.01.01.01.json S.25.01.01.01 > $OUT/eiopa-S.25.01.log
+    $OUT/tavi-demo-2026-09-01/examples/eiopa-S.02.01.01.01.json S.02.01.01.01 > $OUT/eiopa-S.02.01.log
 ```
 
-Open the viewer (step 9), use **Open File…** to choose `examples/eiopa-S.25.01.01.01.json`, select the
-**Layout** tab, then the layout `eiopa:eiopaLayout`. **Check:** S.25.01.01.01, the solvency capital
-requirement under the standard formula, is drawn with rows R0010 (market risk) to R0100 (basic SCR) and
-columns C0030 to C0050.
-
-Templates whose rows carry more than one level of header (S.02.01, the balance sheet, is one of 212) are not
-yet drawn correctly: the viewer and the generator read the header levels differently, and the encoding is to
-be settled with the viewer's author.
+Open the viewer (step 9), use **Open File…** to choose `examples/eiopa-S.02.01.01.01.json`, select the
+**Layout** tab, then the layout `eiopa:eiopaLayout`. **Check:** S.02.01.01.01, the balance sheet, is drawn
+with its Assets and Liabilities bands, the nested categories beneath them, 83 rows from R0010 (goodwill) to
+R1000 (excess of assets over liabilities), and the columns C0010 (Solvency II value) and C0020 (statutory
+accounts value).
 
 ## 9. View
 
