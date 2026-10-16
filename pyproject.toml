@@ -186,8 +186,6 @@ ignore = [
     "E262",
     # block comment should start with '# '
     "E265",
-    # too many leading '#' for block comment
-    "E266",
     # multiple spaces after keyword
     "E271",
     # multiple spaces before keyword

@@ -555,7 +555,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
 
         return schemaDoc
 
-        ####################### convert to XML Taxonomy
+        # convert to XML Taxonomy
 
 
         QN_ANNOTATION = qname("{http://www.w3.org/2001/XMLSchema}xs:annotation")
@@ -599,7 +599,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
 
 
 
-        ##### Move to end
+        # Move to end
         currentAction = "identifying default dimensions"
         if modelXbrl is not None:
             ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl) # needs dimension defaults

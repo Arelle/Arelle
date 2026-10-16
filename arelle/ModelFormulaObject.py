@@ -1992,7 +1992,7 @@ class ModelMatchFilter(ModelFilter):
                 elif firstFact is None:
                     firstFact = fact
                 elif matchAll and not aspectMatches(xpCtx, fact, firstFact, aspect):
-                    ### error
+                    # error
                     raise XPathContext.XPathException(xpCtx, "xbrlmfe:inconsistentMatchedVariableSequence",
                                                       _("Matched variable sequence includes fact {0} inconsistent in aspect {1}").format(
                                                       str(fact), aspectStr(aspect)

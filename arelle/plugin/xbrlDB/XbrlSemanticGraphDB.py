@@ -703,7 +703,7 @@ class XbrlSemanticGraphDatabaseConnection():
                                 "from_id": self.type_id[modelType.qname],
                                 "to_id": self.type_id[qnameDerivedFrom],
                                 "rel": "derived_from"})
-        ### was ### g.addEdge(g.v(it.from_id), g.v(it.to_id), it.rel)
+        # was ### g.addEdge(g.v(it.from_id), g.v(it.to_id), it.rel)
         self.execute("Insert type derivation edges", """
             e.each{
                 fromV = g.v(it.from_id)

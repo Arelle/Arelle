@@ -76,8 +76,8 @@ def streamingExtensionsLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
                     _("%(error)s, %(fileName)s, line %(line)s, column %(column)s, %(sourceAction)s source element"),
                     modelObject=modelXbrl, fileName=os.path.basename(filepath),
                     error=error.message, line=error.line, column=error.column, sourceAction="streaming")
-    #### note: written for iterparse of lxml prior to version 3.3, otherwise rewrite to use XmlPullParser ###
-    #### note: iterparse wants a binary file, but file is text mode
+    # note: written for iterparse of lxml prior to version 3.3, otherwise rewrite to use XmlPullParser ###
+    # note: iterparse wants a binary file, but file is text mode
     _file, = modelXbrl.fileSource.file(filepath, binary=True)
     startedAt = time.time()
     modelXbrl.profileActivity()

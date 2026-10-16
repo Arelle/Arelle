@@ -2129,7 +2129,7 @@ def xfLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
 
 def guiXbrlLoaded(cntlr, modelXbrl, attach, *args, **kwargs):
     #return
-    #### disabled for future less annoying option
+    # disabled for future less annoying option
     if cntlr.hasGui and getattr(modelXbrl, "loadedFromXbrlFormula", False):
         from arelle import ModelDocument
         from tkinter.filedialog import askdirectory
