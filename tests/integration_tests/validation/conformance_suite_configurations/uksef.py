@@ -73,7 +73,6 @@ _MISSING_MANDATORY_ITEM_COUNTS = {
     "FRC_20/index.xml:TC2_valid": 1,
     "FRC_21/index.xml:TC1_valid": 1,
     "FRC_10/index.xml:TC3_invalid": 2,
-    "FRC_11/index.xml:TC2_invalid": 1,
     "FRC_11/index.xml:TC3_invalid": 2,
     "FRC_13/index.xml:TC2_invalid": 1,
     "FRC_13/index.xml:TC3_invalid": 1,
