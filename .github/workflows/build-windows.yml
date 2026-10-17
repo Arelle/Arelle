@@ -7,10 +7,8 @@ on:
         description: 'Arelle/EDGAR branch, tag or SHA to checkout (blank for the tag pinned in plugin-versions.json)'
         required: false
         type: string
-      # CPython 3.14.7 Windows bundles Tcl/Tk 9.0.4. Xule still calls
-      # tkinter.Variable.trace(), which Tcl 9 removed.
       python_version:
-        default: '3.14.6'
+        default: '3.15.1'
         description: 'Python version to use'
         required: false
         type: string
@@ -38,7 +36,7 @@ on:
         required: false
         type: string
       python_version:
-        default: '3.14.6'
+        default: '3.15.1'
         description: 'Python version to use'
         required: true
         type: string
