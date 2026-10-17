@@ -1,0 +1,16 @@
+name: Install unixODBC
+description: Installs the unixODBC dependencies so pyodbc can be built from sdist if a wheel hasn't been published for the python version.
+
+runs:
+  using: composite
+  steps:
+    - name: Install unixODBC (Linux)
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends unixodbc-dev
+    - name: Install unixODBC (macOS)
+      if: runner.os == 'macOS'
+      shell: bash
+      run: brew install unixodbc

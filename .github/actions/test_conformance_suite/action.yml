@@ -35,6 +35,8 @@ runs:
         cache: 'pip'
         check-latest: true
         python-version: ${{ inputs.python_version }}
+    - name: Install unixODBC
+      uses: ./.github/actions/install_unixodbc
     - name: Install dependencies
       shell: bash
       run: |
