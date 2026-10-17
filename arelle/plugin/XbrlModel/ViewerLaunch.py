@@ -152,13 +152,27 @@ def sourceDocumentUrls(compMdl):
     return urls
 
 
+def hasGridLayoutFacts(compMdl):
+    """Whether the model has facts and gridLayout data tables to show them in. A report with no
+    document of its own, such as a prudential report, is shown by the viewer as its tables."""
+    if not any(getattr(module, "facts", None) for module in compMdl.xbrlModels.values()):
+        return False
+    return any(dataTable.tableType == "gridLayout"
+               for module in compMdl.xbrlModels.values()
+               for layout in getattr(module, "layouts", None) or ()
+               for dataTable in layout.dataTables or ())
+
+
 def hasViewableSource(compMdl):
     """Whether this model has something for the viewer to render facts against.
 
-    Two conditions, both necessary: a sourceMapping naming a document, and at least one fact
-    value located in it. A model with neither is a taxonomy, not a report, and opening a viewer
-    on it would show an empty document with no way to tell why.
+    Either a document -- a sourceMapping naming one, and at least one fact value located in it --
+    or grid layout tables for its facts (see hasGridLayoutFacts). A model with neither is a
+    taxonomy, not a report, and opening a viewer on it would show an empty document with no way
+    to tell why.
     """
+    if hasGridLayoutFacts(compMdl) and not sourceDocumentUrls(compMdl):
+        return True
     if not sourceDocumentUrls(compMdl):
         return False
     for module in compMdl.xbrlModels.values():
@@ -303,6 +317,12 @@ def stageForViewer(cntlr, compMdl, folder, saveMode="full"):
             basename = stageDocument(cntlr, url, folder)
             if basename is not None and sourceName not in stagedNames:
                 stagedNames[sourceName] = basename
+    if not stagedNames and not documentUrls and hasGridLayoutFacts(compMdl):
+        # No document: the viewer draws the model's grid layout tables, so the model is all
+        # that is staged.
+        modelName = os.path.splitext(os.path.basename(getattr(compMdl, "uri", None) or "model"))[0] + MODEL_SUFFIX
+        saveFiles(cntlr, compMdl, os.path.join(folder, modelName), saveMode=saveMode)
+        return _stageViewerFiles(folder, bundleDir, modelName)
     if not stagedNames:
         cntlr.addToLog(_("The model names no source document that could be staged, so there is "
                          "nothing for the viewer to render the facts against."),
@@ -328,6 +348,12 @@ def stageForViewer(cntlr, compMdl, folder, saveMode="full"):
     saveFiles(cntlr, compMdl, os.path.join(folder, modelName), saveMode=saveMode,
               sourceUrlRewrite=lambda sourceName, url: stagedNames.get(sourceName),
               derivedSourceUrlRewrite=stagedDerived.get)
+    return _stageViewerFiles(folder, bundleDir, modelName)
+
+
+def _stageViewerFiles(folder, bundleDir, modelName):
+    """Write the viewer bundle, its stub page and an empty configuration beside the staged model;
+       return the viewer URL path (stub + query)."""
     scriptName = stageViewerBundle(folder, bundleDir)
     with open(os.path.join(folder, STUB_NAME), "w", encoding="utf-8") as fh:
         fh.write(_STUB_HTML.format(script=scriptName))
