@@ -19,6 +19,7 @@ RUN apt-get update -y && \
         libgdbm-compat-dev \
         libgdbm-dev \
         liblzma-dev \
+        libmpdec-dev \
         libncurses5-dev \
         libncursesw5-dev \
         libnss3-dev \
