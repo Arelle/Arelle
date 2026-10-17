@@ -36,8 +36,8 @@ Usage
     python3 eiopaInstanceFacts.py <instance.xbrl> <out.json> [<module.json>]
 
 Without a module, ``out.json`` is a JSON array of facts.  With a module, ``out.json`` is
-that module with ``xbrlModel.facts`` set to the facts whose concept and dimensions the module
-defines (a single-table module defines only that table's), and with the namespace
+that module with ``xbrlModel.facts`` set to the facts whose concept, dimensions and explicit
+members the module defines (a single-table module defines only that table's), and with the namespace
 prefixes the facts use (entity scheme, unit measures) added to ``documentInfo``.
 """
 import json
@@ -209,13 +209,17 @@ def main(argv):
             module = json.load(fh)
         model = module["xbrlModel"]
         concepts = {c["name"] for c in model.get("concepts", ())}
-        dimensions = {d["name"] for d in model.get("dimensions", ())}
+        members = {m["name"] for m in model.get("members", ())}
+        # a typed dimension's domain class allows a datatype, not member objects: any value will do
+        typedClasses = {c["name"] for c in model.get("domainClasses", ()) if c.get("allowedDomainItem") != "xbrl:memberObject"}
+        dimensions = {d["name"]: d.get("domainClass") in typedClasses for d in model.get("dimensions", ())}
         model["facts"] = [f for f in facts if f["factDimensions"]["xbrl:concept"] in concepts
-                          and all(d.startswith("xbrl:") or d in dimensions for d in f["factDimensions"])]
+                          and all(d.startswith("xbrl:") or (d in dimensions and (dimensions[d] or v in members))
+                                  for d, v in f["factDimensions"].items())]
         namespaces = module["documentInfo"].setdefault("namespaces", {})
         for prefix, ns in usedPrefixes.items():
             namespaces.setdefault(prefix, ns)
-        print(f"{len(model['facts'])} of {len(facts)} facts have a concept and dimensions of {model.get('name')}")
+        print(f"{len(model['facts'])} of {len(facts)} facts have a concept, dimensions and members of {model.get('name')}")
         out = module
     else:
         print(f"{len(facts)} facts")
