@@ -318,7 +318,7 @@ exclDomains = {}
 # (...)", where an explicit one adds "= s2c_exp:LB - 701 ..."), and a Z row that names its
 # dimension with no list.  Their values are strings, not members.
 typedDims = set()
-pendingZGroups = [] # (table, {dim: axisGroup}, [(zAxisId, members, list description)])
+pendingZGroups = [] # (table, {dim: axisGroup}, [(zAxisId, members, list description, Z row label)])
 zDomains = {}
 def exclDomain(dim, members):
     key = (dim, tuple(members))
@@ -560,9 +560,15 @@ for ws in wb.worksheets:
         for colNum in range(firstDataCol, maxDataCol+1):
             dim = wsCell(firstDataRow-1, colNum).comment
             if dim:
-                yKeyColsDims.append(qn(dim.text))
+                # the comment names the dimension, and for an explicit one its member list after " = "
+                yKeyColsDims.append(qn(dim.text.partition(" = ")[0]))
                 if "= " not in dim.text:
                     typedDims.add(yKeyColsDims[-1])
+                else: # explicit: its members are the entry cell's list ("= s2c_exp:LB - 701 ...")
+                    enumRow = sheetCellEnumRow.get((tableName, f"{colLtr(colNum)}{firstDataRow}"))
+                    if enumRow:
+                        dimMems[yKeyColsDims[-1]].update(qnFromLabel(m) for m in enums[int(enumRow)-1]
+                                                         if re.match(r"[\w_.]+:[\w_.]+ ", m))
                 yKeyColIds.append(None)
                 # the label is the text before the column code: 'Fund number "optional" (C0070) *natural number*'
                 yKeyColLabels.append(re.split(r"\s*[(]C\d{4}[)]", cellValue(firstDataRow-1, colNum) or "", maxsplit=1)[0].strip())
@@ -852,7 +858,7 @@ for ws in wb.worksheets:
         elif members:
             # the list's description names its dimension: "s2c_exp:CA - 1 (Currency conversion approach) ..."
             e = re.search(r"s2c_exp:\w+ - \d+ [(]([^)]*)[)]", text)
-            zLists.append((m.group(1) if m else None, members, e.group(1) if e else None))
+            zLists.append((m.group(1) if m else None, members, e.group(1) if e else None, label))
     if zGroups:
         pendingZGroups.append((qnTable, zGroups, zLists))
 
@@ -1045,36 +1051,52 @@ for ws in wb.worksheets:
 def resolveZGroups():
     """Match each in-sheet Z member list to one of its table's row-1 Z dimensions and give that
     dimension's axis group a domain network of the list.  A list's members are of a domain
-    (s2c_AO:x1), which names the dimension only when the codes agree (s2c_dim:AO); otherwise
-    it is the dimension whose label the list's description repeats ("s2c_exp:CA - 1 (Currency
-    conversion approach)" for s2c_dim:AF), the dimension that has members of that domain
-    elsewhere in the workbook (s2c_LB for s2c_dim:BL), or the one dimension left.  A dimension whose list stays unmatched keeps an
-    axis group with no network: its members are then those of the facts."""
+    (s2c_AO:x1).  The ways of matching it, strongest first, each tried on every list before the
+    next: the domain code is the dimension's (s2c_dim:AO); the list's description is the
+    dimension's label ("s2c_exp:CA - 1 (Currency conversion approach)" for s2c_dim:AF); the
+    dimension has members of that domain elsewhere in the workbook (s2c_LB for s2c_dim:BL); the
+    description begins the label ("Line of business" for "Line of business [general]"); a word
+    of the description or of the Z row's label is in the dimension's label; it is the one
+    dimension left.  The order matters: S.19.01's "Currency" list begins the label of
+    s2c_dim:AF, which the "Currency conversion approach" list matches exactly.  A dimension
+    whose list stays unmatched keeps an axis group with no network: its members are then
+    those of the facts."""
+    def words(text):
+        return {w for w in re.findall(r"[a-z]+", (text or "").lower()) if len(w) > 3}
+    strategies = (
+        lambda openDims, domainPrefix, desc, rowLabel, lists: [d for d in openDims if d.endswith("_dim_" + domainPrefix.rpartition("_")[2])],
+        lambda openDims, domainPrefix, desc, rowLabel, lists: [d for d in openDims if desc and labels.get(d) == desc],
+        lambda openDims, domainPrefix, desc, rowLabel, lists: [d for d in openDims
+                                                               if any(m.startswith(f"{extensionPrefix}:{domainPrefix}_") for m in dimMems[d])],
+        lambda openDims, domainPrefix, desc, rowLabel, lists: [d for d in openDims
+                                                               if desc and (labels.get(d) or "").lower().startswith(desc.lower())],
+        # a word of the list's description or Z row label in the dimension's label ("Currency for
+        # interest rate risk" for s2c_dim:OC "Original/exposure currency"), when a sheet is built
+        # alone and has no other sheets' members to go by
+        lambda openDims, domainPrefix, desc, rowLabel, lists: [d for d in openDims
+                                                               if (words(desc) | words(rowLabel)) & words(labels.get(d))],
+        lambda openDims, domainPrefix, desc, rowLabel, lists: openDims if len(lists) == 1 else [],
+    )
     unmatched = []
     for table, groups, lists in pendingZGroups:
         openDims = [d for d, g in groups.items() if "axisIds" not in g] # not taken by a typed Z row
-        lists = [(zid, [m for m in members if re.match(r"[\w_.]+:[\w_.]+ ", m)], desc) for zid, members, desc in lists]
+        lists = [(zid, [m for m in members if re.match(r"[\w_.]+:[\w_.]+ ", m)], desc, rowLabel) for zid, members, desc, rowLabel in lists]
         lists = [l for l in lists if l[1]]
         while lists:
             matched = None
-            for zid, members, desc in lists:
-                domainPrefix = members[0].partition(":")[0]
-                cands = [d for d in openDims if d.endswith("_dim_" + domainPrefix.rpartition("_")[2])]
-                if len(cands) != 1 and desc:
-                    cands = [d for d in openDims if labels.get(d) == desc]
-                if len(cands) != 1:
-                    folded = f"{extensionPrefix}:{domainPrefix}_"
-                    cands = [d for d in openDims if any(m.startswith(folded) for m in dimMems[d])]
-                if len(cands) != 1 and len(lists) == 1 and len(openDims) == 1:
-                    cands = openDims
-                if len(cands) == 1:
-                    matched = (zid, members, desc, cands[0])
+            for strategy in strategies:
+                for zid, members, desc, rowLabel in lists:
+                    cands = strategy(openDims, members[0].partition(":")[0], desc, rowLabel, lists)
+                    if len(cands) == 1:
+                        matched = (zid, members, desc, rowLabel, cands[0])
+                        break
+                if matched:
                     break
             if not matched:
                 unmatched.extend(f"{table} {l[0]}" for l in lists)
                 break
-            zid, members, desc, d = matched
-            lists.remove((zid, members, desc))
+            zid, members, desc, rowLabel, d = matched
+            lists.remove((zid, members, desc, rowLabel))
             openDims.remove(d)
             memQns = [qnFromLabel(m) for m in members]
             dimMems[d].update(memQns)
