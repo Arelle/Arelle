@@ -91,6 +91,8 @@ jobs:
           check-latest: true
           python-version: ${{ inputs.python_version }}
           architecture: ${{ inputs.python_architecture }}
+      - name: Install unixODBC
+        uses: ./.github/actions/install_unixodbc
       - run: |
           python -m pip install --upgrade pip setuptools wheel
           pip install -r requirements-build.txt

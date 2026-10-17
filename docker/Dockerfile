@@ -5,8 +5,9 @@ FROM python:${PYTHON_VERSION} AS builder
 WORKDIR /usr/src/app
 
 ## jq reads the plugin versions from plugin-versions.json
+## unixodbc-dev lets pyodbc build from source on Python versions it has no wheels for
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends jq \
+  && apt-get install -y --no-install-recommends jq unixodbc-dev \
   && rm -rf /var/lib/apt/lists/*
 
 ## Requirements are installed here to ensure they will be cached.
@@ -78,9 +79,11 @@ FROM python:${PYTHON_VERSION}-slim AS production
 ## Prevent python from buffering stdout & stderr
 ENV PYTHONUNBUFFERED=1
 
+## libodbc2 is the unixODBC runtime a source built pyodbc links against
 RUN apt-get update \
   && apt-get install --upgrade -y --no-install-recommends \
   curl \
+  libodbc2 \
   && apt-get purge -y --auto-remove \
   && rm -rf /var/lib/apt/lists/*
 

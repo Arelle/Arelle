@@ -106,6 +106,8 @@ jobs:
           cache: 'pip'
           check-latest: true
           python-version: ${{ inputs.python_version }}
+      - name: "[Test] Install unixODBC"
+        uses: ./.github/actions/install_unixodbc
       - name: "[Test] Test build artifact"
         run : |
           mkdir .test_build
