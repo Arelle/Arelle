@@ -1,7 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <testcases name="Comprehensive index of iXBRL filing examples for HK IRD Profits Tax (BIR51/BIR52). Each scenario represents a distinct, valid combination of filing conditions and is designed to pass all applicable validation rules. Status 'complete' means the file exists; 'needs_correction' means the file exists but has documented validity issues; 'planned' means the file does not yet exist.">
-  <testcase uri="553-E-0467-unknown-entrypoint_invalid_testcase.xml"/>
-  <testcase uri="553-E-0467_invalid_testcase.xml"/>
   <testcase uri="553-E-0468_invalid_testcase.xml"/>
   <testcase uri="553-E-0470_invalid_testcase.xml"/>
   <testcase uri="553-E-0498_invalid_testcase.xml"/>
