@@ -8,6 +8,7 @@ from pathlib import Path
 from tests.integration_tests.download_cache import apply_cache
 from tests.integration_tests.integration_test_util import download_from_private_s3, download_from_public_s3
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteAssetConfig, AssetType, AssetSource, CONFORMANCE_SUITE_PATH_PREFIX
+from tests.integration_tests.validation.validation_util import get_innermost_zip
 
 
 def _download_asset(asset: ConformanceSuiteAssetConfig, download_private: bool) -> bool:
@@ -149,7 +150,9 @@ def verify_asset(asset: ConformanceSuiteAssetConfig) -> None:
     if asset.full_entry_point_root:
         if zipfile.is_zipfile(asset.full_entry_point_root):
             with zipfile.ZipFile(asset.full_entry_point_root, "r") as zip_ref:
-                assert asset.entry_point and asset.entry_point.as_posix() in zip_ref.namelist(), \
+                assert asset.entry_point
+                entry_point_zip, entry_point_path = get_innermost_zip(zip_ref, asset.entry_point.as_posix())
+                assert entry_point_path in entry_point_zip.namelist(), \
                     f"Asset entry point {asset.entry_point} does not exist in archive: {asset.full_entry_point_root}"
         else:
             assert asset.full_entry_point and asset.full_entry_point.exists(), \
