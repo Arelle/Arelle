@@ -79,19 +79,25 @@ def _controlProperty(compMdl, propertyQn, default=None):
     xbrlModels is in import order, base modules first, so it is walked in reverse.
     """
     for mdlObj in reversed(list(compMdl.xbrlModels.values())):
-        value = _propertyValue(mdlObj, propertyQn)
+        # the model object carries the rounding mode as its own attribute, beside
+        # duplicateFactsInModel; it is not a taxonomy-defined property object
+        value = getattr(mdlObj, propertyQn.localName, None)
         if value is not None:
             return value
     return default
 
 
 def _isTruncation(compMdl):
-    """True when the effective xbrl:roundingMode is truncation (proposal section 7.1).
+    """True when the model's effective xbrl:roundingMode is truncation (proposal section 7.1).
 
-    A processor may override the declared mode at run time (proposal section 3.3), for a
-    report whose rounding convention is known out of band, or to run a conformance suite
-    that parameterises the mode per variation. Where the override is applied it MUST be
-    reported, and the results are then not conformant results for the model as published.
+    This is the model-wide mode. A fact value may carry its own, which _truncationOf applies in
+    preference; this remains the default for fact values that do not, and selects between the
+    rounding and truncation spellings of the error codes.
+
+    A processor may override the declared mode at run time, for a report whose rounding convention
+    is known out of band, or to run a conformance suite that parameterises the mode per variation.
+    Where the override is applied it MUST be reported, and the results are then not conformant
+    results for the model as published.
     """
     declared = str(_controlProperty(compMdl, qnRoundingMode, "roundToNearest"))
     override = getattr(compMdl, "calcRoundingModeOverride", None)
@@ -107,8 +113,36 @@ def _isTruncation(compMdl):
     return declared == "truncation"
 
 
-def _factValueInterval(bucket, truncate):
+def _truncationOf(compMdl, modelTruncate):
+    """A function giving the rounding mode of one fact value, as a truncation flag.
+
+    A fact value may declare its own xbrl:roundingMode, so that a report can carry statements of
+    both conventions -- in EDINET, parent-only statements truncated beside consolidated statements
+    rounded. Where it declares none, the model's mode applies. A run time override, being an
+    override of what the model says, replaces both.
+
+    The fact value carries it as its own roundingMode attribute, as decimals is carried; the
+    xbrl:roundingMode propertyType in core.json is the model object's mechanism, and a fact value
+    object is not among the objects that carry property objects.
+    """
+    override = getattr(compMdl, "calcRoundingModeOverride", None)
+
+    def truncationOf(fv):
+        if override is not None:
+            return override == "truncation"
+        declared = getattr(fv, "roundingMode", None)
+        if declared is None:
+            return modelTruncate
+        return str(declared) == "truncation"
+
+    return truncationOf
+
+
+def _factValueInterval(bucket, truncationOf):
     """Interval for one reported data point, over its duplicate fact values.
+
+    truncationOf gives the rounding mode of each fact value, so a data point whose duplicates
+    were reported under different conventions is intersected over the interval each implies.
 
     Implements sections 7.1, 7.4 and 7.5. Returns (status, interval) where status is None
     when the interval is usable, and otherwise "nil", "nonNumeric", "excessDigits" or
@@ -132,7 +166,7 @@ def _factValueInterval(bucket, truncate):
         try:
             if insignificantDigits(value, decimals=dec):
                 return "excessDigits", None
-            _lo, _hi, _loIncl, _hiIncl = rangeValue(value, dec, truncate=truncate)
+            _lo, _hi, _loIncl, _hiIncl = rangeValue(value, dec, truncate=truncationOf(_fv))
         except (InvalidOperation, ValueError, TypeError, ArithmeticError):
             return "nonNumeric", None
         if not (_lo.is_finite() and _hi.is_finite()):
@@ -213,9 +247,10 @@ def validateCubeCalculations(compMdl, cubeObj):
     if not calcNetworks and not greaterLesserNetworks:
         return
     aligned = _alignedCells(cubeObj)
-    truncate = _isTruncation(compMdl)
+    truncate = _isTruncation(compMdl)            # model-wide, for the error code spelling
+    truncationOf = _truncationOf(compMdl, truncate)   # per fact value, for the intervals
     for ntwkObj in greaterLesserNetworks:
-        _checkGreaterLesser(compMdl, cubeObj, ntwkObj, aligned, truncate)
+        _checkGreaterLesser(compMdl, cubeObj, ntwkObj, aligned, truncationOf)
     for ntwkObj in calcNetworks:
         for totalQn, contributions in _calculations(compMdl, ntwkObj).items():
             for alignKey, byConcept in aligned.items():
@@ -227,7 +262,7 @@ def validateCubeCalculations(compMdl, cubeObj):
                 if not bound:
                     continue  # a calculation binds only where at least one contribution is reported
                 _checkBinding(compMdl, cubeObj, ntwkObj, totalQn, totalBucket, bound,
-                              alignKey, truncate)
+                              alignKey, truncate, truncationOf)
 
 
 def _recordResult(compMdl, cubeObj, ntwkObj, totalQn, alignKey, consistent,
@@ -254,7 +289,7 @@ def _recordResult(compMdl, cubeObj, ntwkObj, totalQn, alignKey, consistent,
         "calculated": calculated, "reported": reported})
 
 
-def _checkGreaterLesser(compMdl, cubeObj, ntwkObj, aligned, truncate):
+def _checkGreaterLesser(compMdl, cubeObj, ntwkObj, aligned, truncationOf):
     """Check a greater-lesser network against the facts (proposal section 11.2).
 
     Binds exactly as a calculation does: within this cube's facts, wherever a reported data
@@ -271,8 +306,8 @@ def _checkGreaterLesser(compMdl, cubeObj, ntwkObj, aligned, truncate):
             lesserBucket = byConcept.get(relObj.target)
             if not greaterBucket or not lesserBucket:
                 continue
-            greaterStatus, greaterInterval = _factValueInterval(greaterBucket, truncate)
-            lesserStatus, lesserInterval = _factValueInterval(lesserBucket, truncate)
+            greaterStatus, greaterInterval = _factValueInterval(greaterBucket, truncationOf)
+            lesserStatus, lesserInterval = _factValueInterval(lesserBucket, truncationOf)
             if greaterStatus is not None or lesserStatus is not None:
                 continue  # nil, excess digits or inconsistent duplicates: no verdict here
             greaterLo, greaterHi, _greaterLoIncl, greaterHiIncl = greaterInterval
@@ -290,11 +325,11 @@ def _checkGreaterLesser(compMdl, cubeObj, ntwkObj, aligned, truncate):
 
 
 def _checkBinding(compMdl, cubeObj, ntwkObj, totalQn, totalBucket, bound, alignKey,
-                  truncate):
+                  truncate, truncationOf):
     """Check one binding of one calculation (proposal section 7)."""
     # 1 and 2: a duplicate or excess-digit condition stops checking for this binding
     for bucket, _weight, _conceptQn in [(totalBucket, None, totalQn)] + bound:
-        status, _interval = _factValueInterval(bucket, truncate)
+        status, _interval = _factValueInterval(bucket, truncationOf)
         if status == "excessDigits":
             emit_error(compMdl, _CALC_ERROR["excessDigits"],
                        _("Calculation checking stopped for the total %(total)s in cube %(cube)s: a bound fact has digits in excess of its declared precision."),
@@ -320,7 +355,7 @@ def _checkBinding(compMdl, cubeObj, ntwkObj, totalQn, totalBucket, bound, alignK
                             xbrlObject=cubeObj, total=totalQn, cube=cubeObj.name, concept=_conceptQn)
             return
 
-    totalStatus, totalInterval = _factValueInterval(totalBucket, truncate)
+    totalStatus, totalInterval = _factValueInterval(totalBucket, truncationOf)
     if totalStatus is not None:
         return  # an all-nil total is ignored for binding
 
@@ -329,7 +364,7 @@ def _checkBinding(compMdl, cubeObj, ntwkObj, totalQn, totalBucket, bound, alignK
     calcLoIncl = calcHiIncl = True
     contributed = False
     for bucket, weight, _conceptQn in bound:
-        status, interval = _factValueInterval(bucket, truncate)
+        status, interval = _factValueInterval(bucket, truncationOf)
         if status is not None:
             continue  # an all-nil contribution simply does not participate
         lo, hi, loIncl, hiIncl = interval

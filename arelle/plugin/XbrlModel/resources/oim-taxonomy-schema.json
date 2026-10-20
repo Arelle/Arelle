@@ -104,6 +104,14 @@
                     ],
                     "description": "Sets the default duplicate facts validation policy for all cubes in the model. The value of duplicateFactsInCube on a cube takes precedence over this model-level default. If absent, defaults to 'inconsistent duplicates'."
                 },
+                "roundingMode": {
+                    "type": "string",
+                    "enum": [
+                        "roundToNearest",
+                        "truncation"
+                    ],
+                    "description": "Rounding mode for the facts of this model; where absent roundToNearest applies, and a fact value's own roundingMode takes precedence."
+                },
                 "importedTaxonomies": {
                     "type": "array",
                     "description": "Set of import taxonomy objects defining external models to be imported into this XBRL model. Each import specifies a model QName and optional selection/filtering criteria.",
@@ -1300,6 +1308,14 @@
                                                 }
                                             ],
                                             "description": "An integer providing the value of the decimals property, or absent if the value is infinitely precise or not applicable (for nil or non-numeric facts)"
+                                        },
+                                        "roundingMode": {
+                                            "type": "string",
+                                            "enum": [
+                                                "roundToNearest",
+                                                "truncation"
+                                            ],
+                                            "description": "Rounding mode of this fact value; where absent the rounding mode of the XBRL model object declaring the fact applies."
                                         },
                                         "language": {
                                             "type": "string",

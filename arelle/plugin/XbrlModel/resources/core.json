@@ -1938,14 +1938,6 @@
                 "allowedObjects": [
                     "xbrl:factValueSourceObject"
                 ]
-            },
-            {
-                "name": "xbrl:roundingMode",
-                "dataType": "xbrlr:roundingModeType",
-                "definitional": false,
-                "allowedObjects": [
-                    "xbrl:xbrlModelObject"
-                ]
             }
         ],
         "factLocatorTypes": [

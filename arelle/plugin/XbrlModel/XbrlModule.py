@@ -69,6 +69,7 @@ class XbrlModule(XbrlModelObject):
     modelForm: Optional[str] # (optional) Indicates if the model is a compiled or is modularized. If no value is provided the model defaults to module. Possible values are compiled, module
     modelType: Optional[QName]
     duplicateFactsInModel: Optional[str] # (optional) A string value that indicates if the model validates duplicate facts. It can be one of the following: no duplicates, complete duplicates,consistent duplicates, or inconsistent duplicates. If no string value is provided the default value is inconsistent duplicates. The value of duplicateFactsInModel sets the default value of duplicateFactsInCube. The value of duplicateFactsInCube has precedence over duplicateFactsInModel
+    roundingMode: Optional[str] # (optional) How the facts of this model were obtained from the values they represent, `roundToNearest` or `truncation`. A fact value's own roundingMode takes precedence; where neither is present `roundToNearest` applies.
     concepts: Optional[NonemptySet[XbrlConcept]] # ordered set of concept objects.
     collectionTypes: Optional[NonemptySet[XbrlCollectionType]] # ordered set of collectionType objects.
     cubes: Optional[NonemptySet[XbrlCube]] # ordered set of cube objects.
