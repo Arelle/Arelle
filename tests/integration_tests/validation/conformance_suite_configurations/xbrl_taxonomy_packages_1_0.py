@@ -1,14 +1,10 @@
 from pathlib import PurePath, Path
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 
-ZIP_PATH = Path("taxonomy-package-conformance.zip")
-EXTRACTED_PATH = Path(ZIP_PATH.stem)
 config = ConformanceSuiteConfig(
     assets=[
-        ConformanceSuiteAssetConfig.nested_conformance_suite(
-            ZIP_PATH,
-            EXTRACTED_PATH,
-            entry_point_root=EXTRACTED_PATH,
+        ConformanceSuiteAssetConfig.conformance_suite(
+            Path("taxonomy-package-conformance.zip"),
             entry_point=Path("index.xml"),
         ),
     ],
