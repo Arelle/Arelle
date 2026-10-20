@@ -4,14 +4,11 @@ from tests.integration_tests.validation.assets import NL_PACKAGES
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
 
 ZIP_PATH = Path("NT17_KVK_20221214 Berichten.zip")
-EXTRACTED_PATH = Path(ZIP_PATH.stem)
 config = ConformanceSuiteConfig(
     assets=[
-        ConformanceSuiteAssetConfig.nested_conformance_suite(
+        ConformanceSuiteAssetConfig.conformance_suite(
             ZIP_PATH,
-            EXTRACTED_PATH,
-            entry_point_root=EXTRACTED_PATH / "berichten" / "NT17_KVK_20221214 - Testsuite.zip",
-            entry_point=Path("testcases.xml"),
+            entry_point=Path("berichten/NT17_KVK_20221214 - Testsuite.zip/testcases.xml"),
             public_download_url="https://sbr-nl.nl/sites/default/files/bestanden/taxonomie/NT17_KVK_20221214%20Berichten.zip",
             source=AssetSource.S3_PUBLIC,
         ),
