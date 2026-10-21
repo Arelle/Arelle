@@ -587,12 +587,7 @@ class FileSource:
                     return (FileNamedTextIOWrapper(filepath, io.BytesIO(b), encoding=encoding),
                             encoding)
                 except KeyError as err:
-                    # Note 2022-09-06
-                    # The following error is raised by mypy, indicating there's a bug here:
-                    # Missing positional argument "fileName"
-                    # Not fixing this bug as a part of this PR
-                    # Also expecting second argument to be int but is str here
-                    raise ArchiveFileIOError(self, archiveFileName) from err # type: ignore[call-arg]
+                    raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName) from err
             elif archiveFileSource.isEis:
                 assert self.eisDocument is not None
                 for docElt in self.eisDocument.iter(tag="{http://www.sec.gov/edgar/common}document"):

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import errno
+import io
+import tarfile
 import zipfile
 from pathlib import Path
 
@@ -15,6 +17,19 @@ def _zip(tmp_path: Path, members: dict[str, bytes]) -> Path:
         for name, data in members.items():
             archive.writestr(name, data)
     return path
+
+
+def _tar_gz_bytes(members: dict[str, bytes]) -> bytes:
+    buffer = io.BytesIO()
+    with tarfile.open(fileobj=buffer, mode="w:gz") as archive:
+        directory = tarfile.TarInfo("pkg")
+        directory.type = tarfile.DIRTYPE
+        archive.addfile(directory)
+        for name, data in members.items():
+            info = tarfile.TarInfo(name)
+            info.size = len(data)
+            archive.addfile(info, io.BytesIO(data))
+    return buffer.getvalue()
 
 
 class TestStream:
@@ -49,3 +64,13 @@ class TestTarGz:
         file_source = FileSource(str(path))
         file_source.open()
         assert not file_source.isOpen
+
+    def test_missing_tar_gz_member_is_not_found(self, tmp_path: Path) -> None:
+        path = tmp_path / "pkg.tar.gz"
+        path.write_bytes(_tar_gz_bytes({"pkg/a.xml": b"<a/>"}))
+        file_source = FileSource(str(path))
+        file_source.open()
+        assert file_source.file(f"{path}/pkg/a.xml", binary=True)[0].read() == b"<a/>"
+        with pytest.raises(ArchiveFileIOError) as error:
+            file_source.file(f"{path}/pkg/missing.xml", binary=True)
+        assert error.value.errno == errno.ENOENT
