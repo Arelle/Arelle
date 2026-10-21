@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from arelle.FileSource import ArchiveFileIOError, openFileSource
+from arelle.FileSource import ArchiveFileIOError, FileSource, openFileSource
 
 
 def _zip(tmp_path: Path, members: dict[str, bytes]) -> Path:
@@ -40,3 +40,12 @@ class TestStream:
         file_source = openFileSource(str(path))
         with file_source.stream(str(path)) as stream:
             assert stream.read() == b"a,b\n1,2\n"
+
+
+class TestTarGz:
+    def test_unreadable_tar_gz_is_not_opened(self, tmp_path: Path) -> None:
+        path = tmp_path / "pkg.tar.gz"
+        path.write_bytes(b"not a tar")
+        file_source = FileSource(str(path))
+        file_source.open()
+        assert not file_source.isOpen

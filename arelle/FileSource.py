@@ -270,7 +270,7 @@ class FileSource:
                     assert isinstance(self.basefile, str)
                     self.fs = tarfile.open(self.basefile, "r:gz")
                     self.isOpen = True
-                except OSError as err:
+                except (OSError, tarfile.TarError) as err:
                     self.isValid = False
                     self.logError(err)
                     pass
