@@ -30,6 +30,9 @@ autodoc2_packages = [
     }
 ]
 autodoc2_hidden_objects = ["private", "dunder"]
+autodoc2_hidden_regexes = [
+    r"arelle\.oim\.const\.XSD_TZ", # MyST parses the regex value as a broken link
+]
 autodoc2_render_plugin = "myst"
 suppress_warnings = [
     "autodoc2.dup_item", # bottle and tkinter warnings
