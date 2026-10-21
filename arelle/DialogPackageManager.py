@@ -420,7 +420,7 @@ class DialogPackageManager(Toplevel):
 
 
     def findOnWeb(self) -> None:
-        self.loadPackageUrl(DialogURL.askURL(self))  # type: ignore[no-untyped-call]
+        self.loadPackageUrl(DialogURL.askURL(self))
 
     def loadPackageUrl(self, url: str | None) -> None:
         if url:  # url is the in-cache or local file

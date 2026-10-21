@@ -1,18 +1,27 @@
 """
 See COPYRIGHT.md for copyright information.
 """
-from tkinter import Toplevel, StringVar, N, S, E, W, EW
-try:
-    from tkinter.ttk import Frame, Button, Label, Entry
-except ImportError:
-    from ttk import Frame, Button, Label, Entry
-from arelle.CntlrWinTooltip import ToolTip
+from __future__ import annotations
+
+from tkinter import Toplevel, StringVar, N, S, E, W, EW, Event
+from tkinter.ttk import Frame, Button, Label, Entry
+from typing import TYPE_CHECKING, Any
+
 import regex as re
+
+from arelle.CntlrWinTooltip import ToolTip
+from arelle.typing import TypeGetText
+
+if TYPE_CHECKING:
+    from tkinter import Tk
+
+_: TypeGetText
+
 
 """
 caller checks accepted, if True, caller retrieves url
 """
-def askURL(parent, url=None, buttonSEC=False, buttonRSS=False):
+def askURL(parent: Tk | Toplevel, url: str | None = None, buttonSEC: bool = False, buttonRSS: bool = False) -> str | None:
     dialog = DialogURL(parent, url, buttonSEC, buttonRSS)
     if dialog.accepted:
         return dialog.url
@@ -20,14 +29,14 @@ def askURL(parent, url=None, buttonSEC=False, buttonRSS=False):
 
 
 class DialogURL(Toplevel):
-    def __init__(self, parent, url=None, buttonSEC=False, buttonRSS=False):
+    def __init__(self, parent: Tk | Toplevel, url: str | None = None, buttonSEC: bool = False, buttonRSS: bool = False) -> None:
         super(DialogURL, self).__init__(parent)
         self.parent = parent
         parentGeometry = re.match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
-        dialogX = int(parentGeometry.group(3))
-        dialogY = int(parentGeometry.group(4))
+        dialogX = int(parentGeometry.group(3))  # type: ignore[union-attr]
+        dialogY = int(parentGeometry.group(4))  # type: ignore[union-attr]
         self.accepted = False
-        self.url = None
+        self.url: str | None = None
         self.transient(self.parent)
         self.title("Enter URL")
         self.urlVar = StringVar()
@@ -63,11 +72,11 @@ class DialogURL(Toplevel):
         cancelButton.grid(row=1, column=3, sticky=EW, pady=3, padx=3)
         ToolTip(cancelButton, text=_("Cancel operation"))
 
-        frame.grid(row=0, column=0, sticky=(N,S,E,W))
+        frame.grid(row=0, column=0, sticky=(N, S, E, W))
         frame.columnconfigure(1, weight=1)
         window = self.winfo_toplevel()
         window.columnconfigure(0, weight=1)
-        self.geometry("+{0}+{1}".format(dialogX+50,dialogY+100))
+        self.geometry("+{0}+{1}".format(dialogX + 50, dialogY + 100))
 
         self.bind("<Alt-u>", lambda *ignore: urlEntry.focus_set())
         self.bind("<Return>", self.ok)
@@ -77,22 +86,22 @@ class DialogURL(Toplevel):
         self.grab_set()
         self.wait_window(self)
 
-    def ok(self, event=None):
+    def ok(self, event: Event[Any] | None = None) -> None:
         self.url = self.urlVar.get().strip()
         if self.url and self.url[0] == '"' and self.url[-1] == '"':
             self.url = self.url[1:-1] # strip double quotes (from cut and paste from database etc
         self.accepted = True
         self.close()
 
-    def close(self, event=None):
+    def close(self, event: Event[Any] | None = None) -> None:
         self.parent.focus_set()
         self.destroy()
 
-    def usSec(self, event=None):
+    def usSec(self, event: Event[Any] | None = None) -> None:
         import webbrowser
         webbrowser.open("http://www.sec.gov/edgar/searchedgar/companysearch.html")
 
-    def rssFeed(self, event=None):
+    def rssFeed(self, event: Event[Any] | None = None) -> None:
         self.url = "http://www.sec.gov/Archives/edgar/usgaap.rss.xml"
         self.accepted = True
         self.close()
