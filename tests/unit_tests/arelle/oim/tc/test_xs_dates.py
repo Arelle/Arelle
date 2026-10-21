@@ -307,6 +307,7 @@ class TestParseDurations:
     def test_day_time_rejects(self, value: str) -> None:
         assert parse_day_time_duration(value) is None
 
+    @pytest.mark.requires_c_decimal
     def test_oversized_parts_are_parsed(self) -> None:
         digits = "1" * 5000
         assert parse_year_month_duration(f"P{digits}M") == Decimal(digits)

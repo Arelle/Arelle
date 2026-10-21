@@ -103,6 +103,7 @@ class TestEquality:
         assert _key_value("xs:integer", None) == NULL_KEY_VALUE
         assert _key_value("xs:string", "") != NULL_KEY_VALUE
 
+    @pytest.mark.requires_c_decimal
     def test_integer_beyond_the_int_conversion_limit_is_a_typed_value(self) -> None:
         digits = "1" * 5000
         assert _key_value("xs:integer", "0" + digits) == _key_value("xs:integer", digits)

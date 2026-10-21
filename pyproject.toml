@@ -114,6 +114,7 @@ addopts = "--strict-markers"
 markers = [
     "fast: mark automatically applied to tests which don't have the \"slow\" mark applied (deselect with '-m \"not fast\"')",
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "requires_c_decimal: skips the test when Python was built without the C _decimal module",
 ]
 
 [tool.ruff]
