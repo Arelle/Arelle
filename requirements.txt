@@ -2,7 +2,7 @@
 bottle==0.13.4
 certifi==2026.7.22
 cheroot==11.1.2
-filelock==4.1.1
+filelock==4.2.1
 isodate==0.7.2
 jaconv==0.5.0
 jsonschema==4.26.0
@@ -13,11 +13,11 @@ pyparsing==3.3.3
 python-dateutil==2.9.0.post0
 regex==2026.9.29
 tornado==6.5.10
-truststore==0.10.4
+truststore==0.10.5
 typing-extensions==4.16.0
 # plugins
 # security plugin
-pycryptodome==3.24.1
+pycryptodome==4.0.1
 # xbrlDB plugin
 oracledb==26.0.1
 pg8000==1.31.5
@@ -26,6 +26,6 @@ pyodbc==5.3.0
 rdflib==7.6.0
 # other
 graphviz==0.21
-pillow==12.3.0
+pillow==13.0.0
 pywin32==312 ; sys_platform == "win32"
 tinycss2==1.5.1

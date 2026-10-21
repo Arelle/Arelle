@@ -1,15 +1,15 @@
-ruff==0.17.0
+ruff==0.17.1
 
 mypy==2.4.0
 
-types-boto3[s3]==1.43.111
+types-boto3[s3]==1.43.114
 types-lxml==2026.2.16
-types-openpyxl==3.1.5.20260827
+types-openpyxl==3.1.5.20261017
 types-PyMySQL==1.2.0.20260923
 types-python-dateutil==2.9.0.20260807
 types-pytz==2026.5.0.20261006
 types-pywin32==312.0.0.20261006
-types-regex==2026.9.29.20261005
+types-regex==2026.9.29.20261017
 types-requests==2.33.0.20261006
 types-simplejson==4.2.0.20261006
 types-ujson==5.10.0.20250822
