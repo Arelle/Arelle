@@ -1,27 +1,37 @@
 """
 See COPYRIGHT.md for copyright information.
 """
-from tkinter import Toplevel, PhotoImage, N, S, E, W, EW, NW
-try:
-    from tkinter.ttk import Label, Button, Frame
-except ImportError:
-    from ttk import Label, Button, Frame
+from __future__ import annotations
+
+from tkinter import Toplevel, PhotoImage, N, S, E, W, EW, NW, Event
+from tkinter.ttk import Label, Button, Frame
+from typing import TYPE_CHECKING, Any
+
 from regex import match as re_match
+
+from arelle.typing import TypeGetText
+
+if TYPE_CHECKING:
+    from tkinter import Tk
+
+_: TypeGetText
+
+
 """
 caller checks accepted, if True, caller retrieves url
 """
-def about(parent, title, imageFile, body):
+def about(parent: Tk | Toplevel, title: str, imageFile: str, body: str) -> None:
     dialog = DialogAbout(parent, title, imageFile, body)
     return None
 
 
 class DialogAbout(Toplevel):
-    def __init__(self, parent, title, imageFile, body):
+    def __init__(self, parent: Tk | Toplevel, title: str, imageFile: str, body: str) -> None:
         super(DialogAbout, self).__init__(parent)
         self.parent = parent
         parentGeometry = re_match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", parent.geometry())
-        dialogX = int(parentGeometry.group(3))
-        dialogY = int(parentGeometry.group(4))
+        dialogX = int(parentGeometry.group(3))  # type: ignore[union-attr]
+        dialogY = int(parentGeometry.group(4))  # type: ignore[union-attr]
         self.transient(self.parent)
         self.title(title)
 
@@ -49,9 +59,9 @@ class DialogAbout(Toplevel):
         self.grab_set()
         self.wait_window(self)
 
-    def ok(self, event=None):
+    def ok(self, event: Event[Any] | None = None) -> None:
         self.close()
 
-    def close(self, event=None):
+    def close(self, event: Event[Any] | None = None) -> None:
         self.parent.focus_set()
         self.destroy()
