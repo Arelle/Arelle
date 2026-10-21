@@ -268,7 +268,10 @@ class FileSource:
             elif self.isTarGz:
                 try:
                     assert isinstance(self.basefile, str)
-                    self.fs = tarfile.open(self.basefile, "r:gz")
+                    if archiveFilenameParts(self.basefile):
+                        self.fs = tarfile.open(fileobj=openFileStream(self.cntlr, self.basefile, "rb"), mode="r:gz")
+                    else:
+                        self.fs = tarfile.open(self.basefile, "r:gz")
                     self.isOpen = True
                 except (OSError, tarfile.TarError) as err:
                     self.isValid = False

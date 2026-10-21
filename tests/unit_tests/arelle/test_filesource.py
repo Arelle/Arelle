@@ -74,3 +74,9 @@ class TestTarGz:
         with pytest.raises(ArchiveFileIOError) as error:
             file_source.file(f"{path}/pkg/missing.xml", binary=True)
         assert error.value.errno == errno.ENOENT
+
+    def test_tar_gz_in_zip_is_opened(self, tmp_path: Path) -> None:
+        path = _zip(tmp_path, {"suite/inner.tar.gz": _tar_gz_bytes({"pkg/a.xml": b"<a/>"})})
+        file_source = FileSource(f"{path}/suite/inner.tar.gz")
+        file_source.open()
+        assert file_source.file(f"{path}/suite/inner.tar.gz/pkg/a.xml", binary=True)[0].read() == b"<a/>"
