@@ -457,7 +457,7 @@ class DialogPluginManager(Toplevel):
             self.loadFoundModuleInfo(moduleInfo, filename)
 
     def findOnWeb(self) -> None:
-        url = DialogURL.askURL(self)  # type: ignore[no-untyped-call]
+        url = DialogURL.askURL(self)
         if url:  # url is the in-cache or local file
             moduleInfo = self._pluginManager.moduleModuleInfo(moduleURL=url)
             self.cntlr.showStatus("") # clear web loading status
