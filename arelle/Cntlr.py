@@ -33,7 +33,7 @@ from arelle.logging.handlers.LogToBufferHandler import LogToBufferHandler
 from arelle.logging.handlers.LogToPrintHandler import LogToPrintHandler
 from arelle.logging.handlers.LogToXmlHandler import LogToXmlHandler
 from arelle.logging.handlers.StructuredMessageLogHandler import StructuredMessageLogHandler
-from arelle.SystemInfo import PlatformOS, getSystemWordSize, hasFileSystem, hasWebServer, isCGI, isGAE
+from arelle.SystemInfo import PlatformOS, contextMenuClick, getSystemWordSize, hasFileSystem, hasWebServer, isCGI, isGAE
 from arelle.packages._package_manager import PackageManager
 from arelle.packages.package_registry import PackageRegistry
 from arelle.plugin_system._plugin_manager import PluginManager
@@ -240,7 +240,6 @@ class Cntlr:
             if self.hasFileSystem and not configHomeDir:
                 self.userAppDir = os.path.expanduser("~") + "/Library/Application Support/Arelle"
             # note that cache is in ~/Library/Caches/Arelle
-            self.contextMenuClick = "<Button-2>"
             self.hasClipboard = hasGui  # clipboard always only if Gui (not command line mode)
         elif self.isMSW:
             if self.hasFileSystem and not configHomeDir:
@@ -263,7 +262,6 @@ class Cntlr:
                     pass
             else:
                 self.hasClipboard = False
-            self.contextMenuClick = "<Button-3>"
         else:  # Unix/Linux
             if self.hasFileSystem and not configHomeDir:
                     self.userAppDir = os.path.join( os.path.expanduser("~/.config"), "arelle")
@@ -275,7 +273,7 @@ class Cntlr:
                     self.hasClipboard = False
             else:
                 self.hasClipboard = False
-            self.contextMenuClick = "<Button-3>"
+        self.contextMenuClick = contextMenuClick()
         self.hasWebServer = hasWebServer()
         # assert that app dir must exist
         config = None

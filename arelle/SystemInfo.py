@@ -51,6 +51,12 @@ def hasWebServer() -> bool:
         return False
 
 
+def contextMenuClick() -> str:
+    """Return the event sequence for a right click in the GUI."""
+    # Tk on macOS reports the right mouse button as button 2
+    return "<Button-2>" if sys.platform == "darwin" else "<Button-3>"
+
+
 def getSystemWordSize() -> int:
     return int(round(math.log(sys.maxsize, 2)) + 1)
 
