@@ -65,31 +65,13 @@
                     },
                     {
                         "source": "oimtce:CalculationErrorClassDomain",
-                        "target": "oimtce:inconsistentCalculationUsingRounding",
+                        "target": "oimtce:inconsistentCalculation",
                         "order": 10
                     },
                     {
                         "source": "oimtce:CalculationErrorClassDomain",
-                        "target": "oimtce:inconsistentCalculationUsingTruncation",
-                        "order": 11
-                    },
-                    {
-                        "source": "oimtce:CalculationErrorClassDomain",
-                        "target": "oimtce:disallowedDuplicateFactsUsingRounding",
+                        "target": "oimtce:disallowedDuplicateFacts",
                         "order": 12
-                    },
-                    {
-                        "source": "oimtce:CalculationErrorClassDomain",
-                        "target": "oimtce:disallowedDuplicateFactsUsingTruncation",
-                        "order": 13
-                    },
-                    {
-                        "source": "oimtce:CalculationErrorClassDomain",
-                        "target": "oimtce:greaterLesserPeriodTypeMismatch"
-                    },
-                    {
-                        "source": "oimtce:CalculationErrorClassDomain",
-                        "target": "oimtce:greaterLesserInconsistent"
                     }
                 ]
             }
@@ -180,7 +162,7 @@
                 ]
             },
             {
-                "name": "oimtce:inconsistentCalculationUsingRounding",
+                "name": "oimtce:inconsistentCalculation",
                 "domainClasses": [
                     "oimtce:CalculationErrorClassDomain"
                 ],
@@ -192,55 +174,7 @@
                 ]
             },
             {
-                "name": "oimtce:inconsistentCalculationUsingTruncation",
-                "domainClasses": [
-                    "oimtce:CalculationErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimtce:disallowedDuplicateFactsUsingRounding",
-                "domainClasses": [
-                    "oimtce:CalculationErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimtce:disallowedDuplicateFactsUsingTruncation",
-                "domainClasses": [
-                    "oimtce:CalculationErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimtce:greaterLesserPeriodTypeMismatch",
-                "domainClasses": [
-                    "oimtce:CalculationErrorClassDomain"
-                ],
-                "properties": [
-                    {
-                        "property": "xbrl:severity",
-                        "value": "error"
-                    }
-                ]
-            },
-            {
-                "name": "oimtce:greaterLesserInconsistent",
+                "name": "oimtce:disallowedDuplicateFacts",
                 "domainClasses": [
                     "oimtce:CalculationErrorClassDomain"
                 ],
@@ -303,31 +237,13 @@
                     },
                     {
                         "source": "oimtce:CalculationErrors",
-                        "target": "oimtce:inconsistentCalculationUsingRounding",
+                        "target": "oimtce:inconsistentCalculation",
                         "order": 10
                     },
                     {
                         "source": "oimtce:CalculationErrors",
-                        "target": "oimtce:inconsistentCalculationUsingTruncation",
-                        "order": 11
-                    },
-                    {
-                        "source": "oimtce:CalculationErrors",
-                        "target": "oimtce:disallowedDuplicateFactsUsingRounding",
+                        "target": "oimtce:disallowedDuplicateFacts",
                         "order": 12
-                    },
-                    {
-                        "source": "oimtce:CalculationErrors",
-                        "target": "oimtce:disallowedDuplicateFactsUsingTruncation",
-                        "order": 13
-                    },
-                    {
-                        "source": "oimtce:CalculationErrors",
-                        "target": "oimtce:greaterLesserPeriodTypeMismatch"
-                    },
-                    {
-                        "source": "oimtce:CalculationErrors",
-                        "target": "oimtce:greaterLesserInconsistent"
                     }
                 ]
             }
@@ -436,75 +352,27 @@
                 "labelType": "xbrl:errorMessage"
             },
             {
-                "forObject": "oimtce:inconsistentCalculationUsingRounding",
+                "forObject": "oimtce:inconsistentCalculation",
                 "language": "en",
-                "value": "Inconsistent Calculation Using Rounding",
+                "value": "Inconsistent Calculation",
                 "labelType": "xbrl:label"
             },
             {
-                "forObject": "oimtce:inconsistentCalculationUsingRounding",
+                "forObject": "oimtce:inconsistentCalculation",
                 "language": "en",
-                "value": "A bound calculation is inconsistent under the round-to-nearest rounding mode.",
+                "value": "A bound calculation is inconsistent: the calculated total interval and the reported total interval do not overlap.",
                 "labelType": "xbrl:errorMessage"
             },
             {
-                "forObject": "oimtce:inconsistentCalculationUsingTruncation",
+                "forObject": "oimtce:disallowedDuplicateFacts",
                 "language": "en",
-                "value": "Inconsistent Calculation Using Truncation",
+                "value": "Disallowed Duplicate Facts",
                 "labelType": "xbrl:label"
             },
             {
-                "forObject": "oimtce:inconsistentCalculationUsingTruncation",
+                "forObject": "oimtce:disallowedDuplicateFacts",
                 "language": "en",
-                "value": "A bound calculation is inconsistent under the truncation rounding mode.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
-                "forObject": "oimtce:disallowedDuplicateFactsUsingRounding",
-                "language": "en",
-                "value": "Disallowed Duplicate Facts Using Rounding",
-                "labelType": "xbrl:label"
-            },
-            {
-                "forObject": "oimtce:disallowedDuplicateFactsUsingRounding",
-                "language": "en",
-                "value": "A binding includes a data point with inconsistent duplicate facts under the round-to-nearest rounding mode, and no further checking is performed for that binding.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
-                "forObject": "oimtce:disallowedDuplicateFactsUsingTruncation",
-                "language": "en",
-                "value": "Disallowed Duplicate Facts Using Truncation",
-                "labelType": "xbrl:label"
-            },
-            {
-                "forObject": "oimtce:disallowedDuplicateFactsUsingTruncation",
-                "language": "en",
-                "value": "A binding includes a data point with inconsistent duplicate facts under the truncation rounding mode, and no further checking is performed for that binding.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
-                "forObject": "oimtce:greaterLesserPeriodTypeMismatch",
-                "language": "en",
-                "value": "Greater-Lesser Period Type Mismatch",
-                "labelType": "xbrl:label"
-            },
-            {
-                "forObject": "oimtce:greaterLesserPeriodTypeMismatch",
-                "language": "en",
-                "value": "The concepts of a greater-lesser relationship must have the same periodType.",
-                "labelType": "xbrl:errorMessage"
-            },
-            {
-                "forObject": "oimtce:greaterLesserInconsistent",
-                "language": "en",
-                "value": "Greater-Lesser Inconsistent",
-                "labelType": "xbrl:label"
-            },
-            {
-                "forObject": "oimtce:greaterLesserInconsistent",
-                "language": "en",
-                "value": "A bound greater-lesser relationship is violated: the lesser concept's reported value exceeds the greater concept's.",
+                "value": "A binding includes a data point with inconsistent duplicate facts, and no further checking is performed for that binding.",
                 "labelType": "xbrl:errorMessage"
             }
         ],

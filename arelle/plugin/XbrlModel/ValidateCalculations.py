@@ -36,11 +36,9 @@ qnRoundingMode = qname(xbrl, "xbrl:roundingMode")
 # Error codes for the consistency checks, from section 10 of the proposal. They are kept in
 # one table so the namespace can be changed in one place.
 _CALC_ERROR = {
-    "inconsistentRounding": "oimtce:inconsistentCalculationUsingRounding",
-    "inconsistentTruncation": "oimtce:inconsistentCalculationUsingTruncation",
+    "inconsistent": "oimtce:inconsistentCalculation",
     "excessDigits": "oimtce:excessDigits",
-    "duplicatesRounding": "oimtce:disallowedDuplicateFactsUsingRounding",
-    "duplicatesTruncation": "oimtce:disallowedDuplicateFactsUsingTruncation",
+    "duplicates": "oimtce:disallowedDuplicateFacts",
     "greaterLesserInconsistent": "oimtce:greaterLesserInconsistent",
 }
 
@@ -247,8 +245,8 @@ def validateCubeCalculations(compMdl, cubeObj):
     if not calcNetworks and not greaterLesserNetworks:
         return
     aligned = _alignedCells(cubeObj)
-    truncate = _isTruncation(compMdl)            # model-wide, for the error code spelling
-    truncationOf = _truncationOf(compMdl, truncate)   # per fact value, for the intervals
+    # the model-wide mode is the default for fact values that declare none of their own
+    truncationOf = _truncationOf(compMdl, _isTruncation(compMdl))
     for ntwkObj in greaterLesserNetworks:
         _checkGreaterLesser(compMdl, cubeObj, ntwkObj, aligned, truncationOf)
     for ntwkObj in calcNetworks:
@@ -262,7 +260,7 @@ def validateCubeCalculations(compMdl, cubeObj):
                 if not bound:
                     continue  # a calculation binds only where at least one contribution is reported
                 _checkBinding(compMdl, cubeObj, ntwkObj, totalQn, totalBucket, bound,
-                              alignKey, truncate, truncationOf)
+                              alignKey, truncationOf)
 
 
 def _recordResult(compMdl, cubeObj, ntwkObj, totalQn, alignKey, consistent,
@@ -325,7 +323,7 @@ def _checkGreaterLesser(compMdl, cubeObj, ntwkObj, aligned, truncationOf):
 
 
 def _checkBinding(compMdl, cubeObj, ntwkObj, totalQn, totalBucket, bound, alignKey,
-                  truncate, truncationOf):
+                  truncationOf):
     """Check one binding of one calculation (proposal section 7)."""
     # 1 and 2: a duplicate or excess-digit condition stops checking for this binding
     for bucket, _weight, _conceptQn in [(totalBucket, None, totalQn)] + bound:
@@ -338,7 +336,7 @@ def _checkBinding(compMdl, cubeObj, ntwkObj, totalQn, totalBucket, bound, alignK
                           _CALC_ERROR["excessDigits"])
             return
         if status == "inconsistentDuplicates":
-            code = _CALC_ERROR["duplicatesTruncation" if truncate else "duplicatesRounding"]
+            code = _CALC_ERROR["duplicates"]
             emit_error(compMdl, code,
                        _("Calculation checking stopped for the total %(total)s in cube %(cube)s: a bound data point has inconsistent duplicate facts."),
                        xbrlObject=cubeObj, total=totalQn, cube=cubeObj.name)
@@ -387,11 +385,11 @@ def _checkBinding(compMdl, cubeObj, ntwkObj, totalQn, totalBucket, bound, alignK
     consistent = lowerFits and upperFits
     _recordResult(compMdl, cubeObj, ntwkObj, totalQn, alignKey, consistent,
                   None if consistent else
-                  _CALC_ERROR["inconsistentTruncation" if truncate else "inconsistentRounding"],
+                  _CALC_ERROR["inconsistent"],
                   calculated=f"[{calcLo}, {calcHi}]",
                   reported=f"[{reportedLo}, {reportedHi}]")
     if not consistent:
-        emit_error(compMdl, _CALC_ERROR["inconsistentTruncation" if truncate else "inconsistentRounding"],
+        emit_error(compMdl, _CALC_ERROR["inconsistent"],
                    _("The calculation of %(total)s in network %(network)s bound in cube %(cube)s is inconsistent: the contributions sum to %(calculated)s but the reported total is %(reported)s (aspects %(aspects)s)."),
                    xbrlObject=cubeObj, total=totalQn, network=ntwkObj.name, cube=cubeObj.name,
                    calculated=f"[{calcLo}, {calcHi}]", reported=f"[{reportedLo}, {reportedHi}]",
