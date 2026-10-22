@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import difflib
 import fnmatch
+import io
 import json
 import multiprocessing
 import os.path
@@ -164,14 +165,34 @@ def _verify_shards(
         assert sorted(vids) == sorted(discovered_paths_map[path])
 
 
+def get_innermost_zip(zip_file: zipfile.ZipFile, path: str) -> tuple[zipfile.ZipFile, str]:
+    """
+    Follows a path through any zips nested in the given zip.
+    :return: The zip that directly contains the path, and the path within that zip.
+    """
+    names = set(zip_file.namelist())
+    parts = path.split("/")
+    for index in range(1, len(parts)):
+        member = "/".join(parts[:index])
+        # A file entry with more path after it can only be an archive.
+        if member not in names:
+            continue
+        nested_zip_file = io.BytesIO(zip_file.read(member))
+        if not zipfile.is_zipfile(nested_zip_file):
+            return zip_file, path
+        return get_innermost_zip(zipfile.ZipFile(nested_zip_file), "/".join(parts[index:]))
+    return zip_file, path
+
+
 def _collect_zip_test_cases(
         zip_file: zipfile.ZipFile,
         file_path: str,
         path_strs: list[str],
         expected_missing_testcases: frozenset[str],
 ) -> None:
-    zip_files = zip_file.namelist()
-    file_path_in_zip = file_path in zip_files
+    member_zip, member_path = get_innermost_zip(zip_file, file_path)
+    zip_files = member_zip.namelist()
+    file_path_in_zip = member_path in zip_files
     if file_path in expected_missing_testcases:
         if file_path_in_zip:
             raise RuntimeError(f"Found test case file {file_path} that was expected to be missing.")
@@ -180,13 +201,14 @@ def _collect_zip_test_cases(
         # case insensitive search (necessary for EFM suite).
         matching_files = [
             zf for zf in zip_files
-            if zf.casefold() == file_path.casefold()
+            if zf.casefold() == member_path.casefold()
         ]
         if len(matching_files) != 1:
             raise RuntimeError(f"Unable to find referenced test case file {file_path}.")
-        file_path = matching_files[0]
+        file_path = file_path[:len(file_path) - len(member_path)] + matching_files[0]
+        member_path = matching_files[0]
 
-    with zip_file.open(file_path) as fh:
+    with member_zip.open(member_path) as fh:
         tree = etree.parse(fh)
     for test_case_index in _collect_test_case_paths(file_path, tree, path_strs):
         _collect_zip_test_cases(zip_file, test_case_index, path_strs, expected_missing_testcases)
@@ -196,7 +218,8 @@ def _collect_zip_test_case_variation_ids(zip_file: zipfile.ZipFile, test_case_pa
     testcase_variation_map: dict[str, list[str]] = {}
     for test_case_path in sorted(test_case_paths):
         variation_ids: set[str] = set()
-        with zip_file.open(test_case_path) as f:
+        member_zip, member_path = get_innermost_zip(zip_file, test_case_path)
+        with member_zip.open(member_path) as f:
             tree = etree.parse(f)
         for variation in tree.findall("{*}variation"):
             variation_id = _get_variation_id(variation, test_case_path)

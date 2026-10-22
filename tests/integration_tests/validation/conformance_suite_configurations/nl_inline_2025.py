@@ -4,14 +4,11 @@ from tests.integration_tests.validation.assets import ESEF_PACKAGES, NL_PACKAGES
 from tests.integration_tests.validation.conformance_suite_config import ConformanceSuiteConfig, ConformanceSuiteAssetConfig, AssetSource
 
 ZIP_PATH = Path("conformance-suite-2025-sbr-domein-handelsregister.zip")
-EXTRACTED_PATH = Path(ZIP_PATH.stem)
 config = ConformanceSuiteConfig(
     assets=[
-        ConformanceSuiteAssetConfig.nested_conformance_suite(
+        ConformanceSuiteAssetConfig.conformance_suite(
             ZIP_PATH,
-            EXTRACTED_PATH,
-            entry_point_root=EXTRACTED_PATH / "conformance-suite-2025-sbr-domein-handelsregister",
-            entry_point=Path("index.xml"),
+            entry_point=Path("conformance-suite-2025-sbr-domein-handelsregister/index.xml"),
             public_download_url="https://www.sbr-nl.nl/sites/default/files/2026-01/conformance-suite-2025-sbr-domein-handelsregister.zip",
             source=AssetSource.S3_PUBLIC,
         ),
@@ -22,13 +19,13 @@ config = ConformanceSuiteConfig(
     base_taxonomy_validation="none",
     disclosure_system="NL-INLINE-2025",
     disclosure_system_by_prefix=[
-        (f"tests/{s}", "NL-INLINE-2025-GAAP-OTHER-PREVIEW") for s in [
+        (f"conformance-suite-2025-sbr-domein-handelsregister/tests/{s}", "NL-INLINE-2025-GAAP-OTHER-PREVIEW") for s in [
         "G5-1-3_1/index.xml",
         "G5-1-3_2/index.xml",
         "G7-1-4_1/index.xml",
         "G7-1-4_2/index.xml",
     ]] + [
-        (f"tests/{s}", "NL-INLINE-MULTI-TARGET") for s in [
+        (f"conformance-suite-2025-sbr-domein-handelsregister/tests/{s}", "NL-INLINE-MULTI-TARGET") for s in [
         "G6-1-3_1/index.xml",
         "G6-1-3_2/index.xml",
         "G6-1-3_3/index.xml",
@@ -263,7 +260,7 @@ config = ConformanceSuiteConfig(
             "usableConceptsNotAppliedByTaggedFacts": 1,
         },
     }.items()},
-    expected_failure_ids=frozenset(f"tests/{s}" for s in [
+    expected_failure_ids=frozenset(f"conformance-suite-2025-sbr-domein-handelsregister/tests/{s}" for s in [
         # Conformance Suite Errors
         "G3-4-1_2/index.xml:TC2_invalid",  # Expects fractionElementUsed”.  Note the double quote at the end.
         "G3-6-3_5/index.xml:TC2_invalid",  # Expects kvkFilingDocumentNameDoesNotFollowNamingConvention, should be elementsReferencedInKvkFilingDocumentNotLimitedToMandatoryElements.

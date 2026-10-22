@@ -162,6 +162,7 @@ class FileSource:
     eisDocument: etree._ElementTree | None
     fs: zipfile.ZipFile | tarfile.TarFile | io.StringIO | None
     filesDir: list[str] | None
+    _entryNamesCache: frozenset[str] | None
     referencedFileSources: dict[str, FileSource]
     rssDocument: etree._ElementTree | None
     selection: str | list[str] | None
@@ -190,6 +191,7 @@ class FileSource:
         self.fs = None
         self.selection = None
         self.filesDir = None
+        self._entryNamesCache = None
         self.referencedFileSources = {}  # archive file name, fileSource object
         self.taxonomyPackage = None # taxonomy package
         self.mappedPaths = None  # remappings of path segments may be loaded by taxonomyPackage manifest
@@ -268,9 +270,12 @@ class FileSource:
             elif self.isTarGz:
                 try:
                     assert isinstance(self.basefile, str)
-                    self.fs = tarfile.open(self.basefile, "r:gz")
+                    if archiveFilenameParts(self.basefile):
+                        self.fs = tarfile.open(fileobj=openFileStream(self.cntlr, self.basefile, "rb"), mode="r:gz")
+                    else:
+                        self.fs = tarfile.open(self.basefile, "r:gz")
                     self.isOpen = True
-                except OSError as err:
+                except (OSError, tarfile.TarError) as err:
                     self.isValid = False
                     self.logError(err)
                     pass
@@ -450,6 +455,7 @@ class FileSource:
             self.isInstalledTaxonomyPackage = False
             self.isOpen = False
         self.filesDir = None
+        self._entryNamesCache = None
 
     @property
     def isArchive(self) -> bool:
@@ -525,21 +531,64 @@ class FileSource:
             assert isinstance(self.baseurl, str)
             if (filepath.startswith(self.basefile) or
                 filepath.startswith(self.baseurl)):
-                return self
+                return self._innermostFileSource(filepath)
         referencedFileParts = archiveFilenameParts(filepath)
         if referencedFileParts is not None:
+            assert filepath is not None
             referencedArchiveFile, referencedSelection = referencedFileParts
             if referencedArchiveFile in self.referencedFileSources:
                 referencedFileSource = self.referencedFileSources[referencedArchiveFile]
                 if referencedFileSource.isInArchive(filepath):
-                    return referencedFileSource
+                    return referencedFileSource._innermostFileSource(filepath)
             elif (not self.isOpen or
                   (referencedArchiveFile != self.basefile and referencedArchiveFile != self.baseurl)):
                 referencedFileSource = openFileSource(filepath, self.cntlr)
                 if referencedFileSource:
                     self.referencedFileSources[referencedArchiveFile] = referencedFileSource
-                    return referencedFileSource
+                    return referencedFileSource._innermostFileSource(filepath)
         return None
+
+    def _innermostFileSource(self, filepath: str) -> FileSource:
+        """The file source for the most deeply nested archive in this archive that contains filepath, or this file source."""
+        if not (self.isZip or self.isTarGz):
+            return self
+        archiveFileName = _archiveFileName(self, filepath).replace("\\", "/")
+        segments = archiveFileName.split("/")
+        for index in range(1, len(segments)):
+            member = "/".join(segments[:index])
+            # A file entry with more path after it can only be an archive.
+            if member not in self._entryNames:
+                continue
+            embeddedUrl = filepath[:len(filepath) - len(archiveFileName) + len(member)]
+            embeddedFileSource = self._embeddedArchiveFileSource(embeddedUrl)
+            if embeddedFileSource is None:
+                return self
+            return embeddedFileSource._innermostFileSource(filepath)
+        return self
+
+    @property
+    def _entryNames(self) -> frozenset[str]:
+        if self._entryNamesCache is None:
+            entryNames = self.dir or ()
+            # Tar lists directories without a trailing slash, so only its files can be archives.
+            if isinstance(self.fs, tarfile.TarFile):
+                entryNames = [member.name for member in self.fs.getmembers() if member.isfile()]
+            # Zips written on Windows can separate names with backslashes.
+            self._entryNamesCache = frozenset(entryName.replace("\\", "/") for entryName in entryNames)
+        return self._entryNamesCache
+
+    def _embeddedArchiveFileSource(self, embeddedUrl: str) -> FileSource | None:
+        """The opened file source for an entry in this archive, or None if the entry isn't a zip or tar.gz."""
+        embeddedFileSource = self.referencedFileSources.get(embeddedUrl)
+        if embeddedFileSource is None:
+            embeddedFileSource = FileSource(embeddedUrl, self.cntlr)
+            if not (embeddedFileSource.isZip or embeddedFileSource.isTarGz):
+                return None
+            embeddedFileSource.open()
+            self.referencedFileSources[embeddedUrl] = embeddedFileSource
+        if not embeddedFileSource.isOpen:
+            return None
+        return embeddedFileSource
 
     def file(
         self,
@@ -587,12 +636,7 @@ class FileSource:
                     return (FileNamedTextIOWrapper(filepath, io.BytesIO(b), encoding=encoding),
                             encoding)
                 except KeyError as err:
-                    # Note 2022-09-06
-                    # The following error is raised by mypy, indicating there's a bug here:
-                    # Missing positional argument "fileName"
-                    # Not fixing this bug as a part of this PR
-                    # Also expecting second argument to be int but is str here
-                    raise ArchiveFileIOError(self, archiveFileName) from err # type: ignore[call-arg]
+                    raise ArchiveFileIOError(self, errno.ENOENT, archiveFileName) from err
             elif archiveFileSource.isEis:
                 assert self.eisDocument is not None
                 for docElt in self.eisDocument.iter(tag="{http://www.sec.gov/edgar/common}document"):

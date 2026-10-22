@@ -437,10 +437,9 @@ class Validate:
                     readMeFirstUriIsEmbeddedZipFile = True
                 else:
                     normalizedReadMeFirstUri = self.modelXbrl.modelManager.cntlr.webCache.normalizeUrl(readMeFirstUri, baseForElement)
-                    archivePath = archiveFilenameParts(normalizedReadMeFirstUri)
-                    if archivePath:
-                        with self.useFileSource.fs.open(archivePath[1]) as embeddedFile:  # type: ignore[union-attr]
-                            readMeFirstUriIsArchive = readMeFirstUriIsEmbeddedZipFile = zipfile.is_zipfile(embeddedFile)  # type: ignore[arg-type]
+                    if archiveFilenameParts(normalizedReadMeFirstUri):
+                        with self.useFileSource.stream(normalizedReadMeFirstUri) as embeddedFile:
+                            readMeFirstUriIsArchive = readMeFirstUriIsEmbeddedZipFile = zipfile.is_zipfile(embeddedFile)
             modelXbrlLoadArgs: dict[str, Any] = {"requiredDocumentTypes": self.modelXbrl.modelManager.requiredDocumentTypes}
             if modelTestcaseVariation.ixdsTarget:
                 modelXbrlLoadArgs["ixdsTarget"] = modelTestcaseVariation.ixdsTarget
