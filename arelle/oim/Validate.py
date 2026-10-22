@@ -70,7 +70,7 @@ def validateTableConstraints(modelXbrl: ModelXbrl) -> None:
                 error=str(tcReportError),
             )
     except OIMException as ex:
-        modelXbrl.error(ex.code, ex.message, modelObject=modelXbrl, **ex.msgArgs)
+        modelXbrl.error(ex.code, ex.message, modelObject=modelXbrl, **ex.msgArgs)  # type: ignore[arg-type]
     except UnicodeDecodeError as ex:
         modelXbrl.error(
             "xbrlce:invalidCSVFileFormat",

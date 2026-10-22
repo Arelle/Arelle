@@ -374,7 +374,6 @@ module = [
     'arelle.formula.FormulaConsisAsser',
     'arelle.formula.FormulaEvaluator',
     'arelle.formula.ValidateFormula',
-    'arelle.oim.Load',
     'arelle.plugin.CacheBuilder',
     'arelle.plugin.EdgarRendererAllReports',
     'arelle.plugin.SECCorrespondenceLoader',

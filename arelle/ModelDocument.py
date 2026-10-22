@@ -175,12 +175,12 @@ def load(modelXbrl: ModelXbrl, uri: str, base: str | None = None, referringEleme
             except CSVTestcaseException:
                 modelDocument = None
         from arelle.oim.Load import isOimLoadable, oimLoader
-        if isOimLoadable(normalizedUri, filepath):  # type: ignore[no-untyped-call]
-            modelDocument = oimLoader(modelXbrl, normalizedUri, filepath)  # type: ignore[no-untyped-call]
-            if isinstance(modelDocument, Exception):
+        if isOimLoadable(normalizedUri, filepath):
+            oimDocument = oimLoader(modelXbrl, normalizedUri, filepath)
+            if isinstance(oimDocument, Exception):
                 return None
-            if modelDocument is not None:
-                return modelDocument
+            if oimDocument is not None:
+                return oimDocument
         if (modelXbrl.modelManager.validateDisclosureSystem and (
             (isEntry and modelXbrl.modelManager.disclosureSystem.validateEntryText) or
             (modelXbrl.modelManager.disclosureSystem.validateFileText and
