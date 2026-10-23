@@ -1,12 +1,11 @@
 """
 See COPYRIGHT.md for copyright information.
 """
-from tkinter import E, EW, N, S, Toplevel, W, messagebox
+from __future__ import annotations
 
-try:
-    from tkinter.ttk import Frame, Button, Label, Entry
-except ImportError:
-    from ttk import Frame, Button, Label, Entry
+from tkinter import E, EW, N, S, Event, Toplevel, W, messagebox
+from tkinter.ttk import Frame, Button
+from typing import TYPE_CHECKING, Any
 
 import regex as re
 
@@ -15,6 +14,9 @@ from arelle.CntlrWinTooltip import ToolTip
 from arelle.UiUtil import checkbox, gridCombobox, gridHdr, label
 from arelle.typing import TypeGetText
 
+if TYPE_CHECKING:
+    from arelle.CntlrWinMain import CntlrWinMain
+
 _: TypeGetText
 
 """
@@ -22,18 +24,18 @@ allow user to override system language codes for user interface and labels
 """
 
 
-def askLanguage(mainWin):
+def askLanguage(mainWin: CntlrWinMain) -> None:
     DialogLanguage(mainWin)
 
 
 class DialogLanguage(Toplevel):
-    def __init__(self, mainWin):
+    def __init__(self, mainWin: CntlrWinMain) -> None:
         super(DialogLanguage, self).__init__(mainWin.parent)
         self.mainWin = mainWin
         self.parent = mainWin.parent
         parentGeometry = re.match(r"(\d+)x(\d+)[+]?([-]?\d+)[+]?([-]?\d+)", self.parent.geometry())
-        dialogX = int(parentGeometry.group(3))
-        dialogY = int(parentGeometry.group(4))
+        dialogX = int(parentGeometry.group(3))  # type: ignore[union-attr]
+        dialogY = int(parentGeometry.group(4))  # type: ignore[union-attr]
         self.transient(self.parent)
         self.title(_("arelle - User Interface and Labels language code settings"))
         self.languageCodes = Locale.languageCodes()
@@ -44,12 +46,12 @@ class DialogLanguage(Toplevel):
                 if langTag in systemLangTags
             ]
         else:
-            localeOptionTitles = self.languageCodes.keys()
+            localeOptionTitles = list(self.languageCodes.keys())
         localeOptions = (_("System default locale ({0})").format(mainWin.modelManager.defaultLang), *sorted(localeOptionTitles))
         labelLanguageOptions = (_("System default language ({0})").format(mainWin.modelManager.defaultLang), *sorted(self.languageCodes.keys()))
         self.uiLang = Locale.posixLocaleToBCP47Lang(mainWin.config.get("userInterfaceLangOverride", ""))
         if self.uiLang == "" or self.uiLang == mainWin.modelManager.defaultLang:
-            self.uiLangIndex = 0
+            self.uiLangIndex: int | None = 0
         else:
             self.uiLangIndex = None
             for i, langName in enumerate(localeOptions):
@@ -58,7 +60,7 @@ class DialogLanguage(Toplevel):
                     break
         self.labelLang = mainWin.config.get("labelLangOverride", "")
         if self.labelLang == "" or self.labelLang == mainWin.modelManager.defaultLang:
-            self.labelLangIndex = 0
+            self.labelLangIndex: int | None = 0
         else:
             self.labelLangIndex = None
             for i, langName in enumerate(labelLanguageOptions):
@@ -90,11 +92,11 @@ class DialogLanguage(Toplevel):
         cancelButton = Button(frame, text=_("Cancel"), command=self.close)
         okButton.grid(row=3, column=2, sticky=E, pady=3)
         cancelButton.grid(row=3, column=3, columnspan=2, sticky=EW, pady=3, padx=3)
-        frame.grid(row=0, column=0, sticky=(N,S,E,W))
+        frame.grid(row=0, column=0, sticky=(N, S, E, W))
         frame.columnconfigure(1, weight=1)
         window = self.winfo_toplevel()
         window.columnconfigure(0, weight=1)
-        self.geometry("+{0}+{1}".format(dialogX+50,dialogY+100))
+        self.geometry("+{0}+{1}".format(dialogX + 50,dialogY + 100))
 
         self.bind("<Return>", self.ok)
         self.bind("<Escape>", self.close)
@@ -103,7 +105,7 @@ class DialogLanguage(Toplevel):
         self.grab_set()
         self.wait_window(self)
 
-    def ok(self, event=None):
+    def ok(self, event: Event[Any] | None = None) -> None:
         self.mainWin.config["disableRtl"] = self.cbDisableRtl.value
         Locale.setDisableRTL(self.cbDisableRtl.value)
         labelLangIndex = self.cbLabelLang.valueIndex
@@ -124,7 +126,7 @@ class DialogLanguage(Toplevel):
 
             localeCode = Locale.findCompatibleLocale(langCode)
             if localeCode is not None:
-                newLocale = Locale.getUserLocale(localeCode)
+                newLocale, _localeSetupMessage = Locale.getUserLocale(localeCode)
                 self.mainWin.modelManager.locale = newLocale
             else:
                 messagebox.showerror(_("User interface locale error"),
@@ -150,6 +152,6 @@ class DialogLanguage(Toplevel):
                    parent=self)
         self.close()
 
-    def close(self, event=None):
+    def close(self, event: Event[Any] | None = None) -> None:
         self.parent.focus_set()
         self.destroy()
