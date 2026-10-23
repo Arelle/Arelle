@@ -983,8 +983,6 @@ def checkElements(val: ValidateXbrl, modelDocument: ModelDocument, parent: _Elem
                                 val.ixdsFootnotesById[footnoteID] = []
                             val.ixdsFootnotesById[footnoteID].append(elt)
                             val.ixdsFootnotes[footnoteID] = elt
-                    else:
-                        checkIxContinuationChain(val, elt)
                     if not elt.xmlLang:
                         val.modelXbrl.error(ixMsgCode("footnoteLang", elt, sect="validation"),
                             _("Inline XBRL footnotes require an in-scope xml:lang"),
@@ -1059,8 +1057,6 @@ def checkElements(val: ValidateXbrl, modelDocument: ModelDocument, parent: _Elem
                         val.modelXbrl.error(ixMsgCode("nonFractionNegative", elt, sect="validation"),
                             _("Inline XBRL ix:nonFraction without format attribute must be non-negative"),
                             modelObject=elt)
-                elif elt.localName == "nonNumeric":
-                    checkIxContinuationChain(val, elt)
                 elif elt.localName == "references":
                     val.ixdsReferences[elt.get("target")].append(elt)
                 elif elt.localName == "relationship":
@@ -1450,21 +1446,6 @@ def checkArcrole(
             _("LRR arcrole %(arcrole)s on %(element)s has status %(status)s"),
             modelObject=elt, arcrole=arcrole, element=arcEltQname, status=XbrlConst.lrrUnapprovedArcroles[arcrole])
 
-
-def checkIxContinuationChain(val: ValidateXbrl, elt: ModelObject, chain: list[ModelObject] | None = None) -> None:
-    if chain is None:
-        chain = [elt]
-    else:
-        for otherElt in chain:
-            if XmlUtil.isDescendantOf(elt, otherElt) or XmlUtil.isDescendantOf(otherElt, elt):
-                val.modelXbrl.error("ix:continuationDescendancy",
-                                _("Inline XBRL continuation chain has elements which are descendants of each other."),
-                                modelObject=(elt, otherElt))
-            else:
-                contAt = elt.get("_continuationElement")
-                if contAt is not None:
-                    chain.append(elt)
-                checkIxContinuationChain(val, contAt, chain)  # type: ignore[arg-type]
 
 def _isNegativeDecimal(text: str) -> bool:
     """Return True if text is a valid decimal number and is negative."""
