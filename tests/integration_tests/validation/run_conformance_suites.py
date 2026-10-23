@@ -14,7 +14,7 @@ from tests.integration_tests.validation.conformance_suite_configs import (
     ALL_CONFORMANCE_SUITE_CONFIGS,
     PUBLIC_CONFORMANCE_SUITE_CONFIGS
 )
-from tests.integration_tests.validation.download_assets import download_assets, verify_assets
+from tests.integration_tests.validation.download_assets import download_assets, verify_assets, verify_entry_points
 from tests.integration_tests.validation.validation_util import get_conformance_suite_test_results, save_timing_file
 from tests.integration_tests.validation.validation_util import (
     save_actual_results_file,
@@ -171,6 +171,7 @@ def run_conformance_suites(
     for config in conformance_suite_configs:
         if config.preprocessing_func is not None:
             config.preprocessing_func(config)
+    verify_entry_points(unique_assets)
     all_results = []
     if test_option:
         for config in conformance_suite_configs:

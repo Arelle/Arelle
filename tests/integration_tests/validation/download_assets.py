@@ -142,11 +142,18 @@ def download_assets(
 def verify_asset(asset: ConformanceSuiteAssetConfig) -> None:
     """
     Verifies that an asset exists at it's expected location.
-    For entry point assets, verifies that the entry point exists where it is expected.
     Raises an `AssertionError` on failure, otherwise logs a message.
     """
     assert asset.full_local_path.exists(), \
         f"Missing asset {asset} at path {asset.full_local_path}"
+    print(f"Verified asset: {asset.full_local_path}")
+
+
+def verify_entry_point(asset: ConformanceSuiteAssetConfig) -> None:
+    """
+    For entry point assets, verifies that the entry point exists where it is expected.
+    Raises an `AssertionError` on failure.
+    """
     if asset.full_entry_point_root:
         if zipfile.is_zipfile(asset.full_entry_point_root):
             with zipfile.ZipFile(asset.full_entry_point_root, "r") as zip_ref:
@@ -157,7 +164,6 @@ def verify_asset(asset: ConformanceSuiteAssetConfig) -> None:
         else:
             assert asset.full_entry_point and asset.full_entry_point.exists(), \
                 f"Asset entry point does not exist: {asset.full_entry_point}"
-    print(f"Verified asset: {asset.full_local_path}")
 
 
 def verify_assets(assets: set[ConformanceSuiteAssetConfig]) -> None:
@@ -170,3 +176,12 @@ def verify_assets(assets: set[ConformanceSuiteAssetConfig]) -> None:
         if asset.type == AssetType.CACHE_PACKAGE:
             continue  # Cache packages are deleted after being applied
         verify_asset(asset)
+
+
+def verify_entry_points(assets: set[ConformanceSuiteAssetConfig]) -> None:
+    """
+    Verifies the entry point of each of the given assets exists.
+    Raises an `AssertionError` on failure.
+    """
+    for asset in assets:
+        verify_entry_point(asset)
