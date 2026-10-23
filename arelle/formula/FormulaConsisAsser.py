@@ -1,17 +1,30 @@
 """
 See COPYRIGHT.md for copyright information.
 """
+from __future__ import annotations
+
 from math import fabs
+from typing import TYPE_CHECKING
 
 from arelle import XbrlConst
+from arelle.ModelFormulaObject import ModelConsistencyAssertion
+from arelle.typing import TypeGetText
 from arelle.ValidateXbrlCalcs import inferredPrecision, roundValue
 from arelle.XbrlUtil import S_EQUAL2, xEqual
 
+if TYPE_CHECKING:
+    from arelle.formula.XPathContext import XPathContext
+    from arelle.ModelFormulaObject import ModelVariableSet
+    from arelle.ModelInstanceObject import ModelFact
 
-def evaluate(xpCtx, varSet, derivedFact):
+_: TypeGetText
+
+
+def evaluate(xpCtx: XPathContext, varSet: ModelVariableSet, derivedFact: ModelFact | None) -> None:
     # there may be multiple consis assertions parenting any formula
     for consisAsserRel in xpCtx.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula).toModelObject(varSet):
         consisAsser = consisAsserRel.fromModelObject
+        assert isinstance(consisAsser, ModelConsistencyAssertion)
         hasProportionalAcceptanceRadius = consisAsser.hasProportionalAcceptanceRadius
         hasAbsoluteAcceptanceRadius = consisAsser.hasAbsoluteAcceptanceRadius
         if derivedFact is None:
@@ -44,17 +57,17 @@ def evaluate(xpCtx, varSet, derivedFact):
             if (
                 not inputFact.isNil
                 and inputFact.qname == derivedFact.qname
-                and inputFact.context.isEqualTo(
+                and inputFact.context.isEqualTo(  # type: ignore[union-attr]
                     derivedFact.context, dimensionalAspectModel=(varSet.aspectModel == "dimensional")
                 )
-                and (not isNumeric or inputFact.unit.isEqualTo(derivedFact.unit))
+                and (not isNumeric or inputFact.unit.isEqualTo(derivedFact.unit))  # type: ignore[union-attr]
             ):
                 aspectMatchedInputFacts.append(inputFact)
 
         if len(aspectMatchedInputFacts) == 0:
             if isStrict:
                 if derivedFact.isNil:
-                    isSatisfied = True
+                    isSatisfied: bool | None = True
                 else:
                     isSatisfied = False
             else:
@@ -74,14 +87,14 @@ def evaluate(xpCtx, varSet, derivedFact):
             isSatisfied = True
 
         paramQnamesAdded = []
-        for paramRel in consisAsser.orderedVariableRelationships:
+        for paramRel in consisAsser.orderedVariableRelationships:  # type: ignore[attr-defined]
             paramQname = paramRel.variableQname
             paramVar = paramRel.toModelObject
             paramValue = xpCtx.inScopeVars.get(paramVar.parameterQname)
             paramAlreadyInVars = paramQname in xpCtx.inScopeVars
             if not paramAlreadyInVars:
                 paramQnamesAdded.append(paramQname)
-                xpCtx.inScopeVars[paramQname] = paramValue
+                xpCtx.inScopeVars[paramQname] = paramValue  # type: ignore[assignment]
         acceptance = None
         for fact in aspectMatchedInputFacts:
             if isSatisfied != True:
@@ -112,7 +125,7 @@ def evaluate(xpCtx, varSet, derivedFact):
                     if acceptance is not None:
                         if hasProportionalAcceptanceRadius:
                             acceptance *= derivedFact.vEqValue
-                        isSatisfied = fabs(derivedFact.vEqValue - fact.vEqValue) <= fabs(acceptance)
+                        isSatisfied = fabs(derivedFact.vEqValue - fact.vEqValue) <= fabs(acceptance)  # type: ignore[operator]
                     else:
                         isSatisfied = None  # no radius
                 else:
@@ -133,13 +146,13 @@ def evaluate(xpCtx, varSet, derivedFact):
                 )
             message = consisAsser.message(isSatisfied)
             if message is not None:
-                xpCtx.inScopeVars[XbrlConst.qnCaAspectMatchedFacts] = aspectMatchedInputFacts
-                xpCtx.inScopeVars[XbrlConst.qnCaAcceptanceRadius] = acceptance
-                xpCtx.inScopeVars[XbrlConst.qnCaAbsoluteAcceptanceRadiusExpression] = consisAsser.get("absoluteAcceptanceRadius")
-                xpCtx.inScopeVars[XbrlConst.qnCaProportionalAcceptanceRadiusExpression] = consisAsser.get("proportionalAcceptanceRadius")
+                xpCtx.inScopeVars[XbrlConst.qnCaAspectMatchedFacts] = aspectMatchedInputFacts  # type: ignore[assignment]
+                xpCtx.inScopeVars[XbrlConst.qnCaAcceptanceRadius] = acceptance  # type: ignore[assignment]
+                xpCtx.inScopeVars[XbrlConst.qnCaAbsoluteAcceptanceRadiusExpression] = consisAsser.get("absoluteAcceptanceRadius")  # type: ignore[assignment]
+                xpCtx.inScopeVars[XbrlConst.qnCaProportionalAcceptanceRadiusExpression] = consisAsser.get("proportionalAcceptanceRadius")  # type: ignore[assignment]
                 xpCtx.modelXbrl.info(
-                    "message:" + consisAsser.id,
-                    message.evaluate(xpCtx),
+                    "message:" + consisAsser.id,  # type: ignore[operator]
+                    message.evaluate(xpCtx),  # type: ignore[union-attr]
                     modelObject=message,
                     messageCodes=("message:{variableSetID|xlinkLabel}"),
                 )
@@ -148,8 +161,8 @@ def evaluate(xpCtx, varSet, derivedFact):
                 xpCtx.inScopeVars.pop(XbrlConst.qnCaAbsoluteAcceptanceRadiusExpression)
                 xpCtx.inScopeVars.pop(XbrlConst.qnCaProportionalAcceptanceRadiusExpression)
             if isSatisfied:
-                consisAsser.countSatisfied += 1
+                consisAsser.countSatisfied += 1  # type: ignore[attr-defined]
             else:
-                consisAsser.countNotSatisfied += 1
+                consisAsser.countNotSatisfied += 1  # type: ignore[attr-defined]
         for paramQname in paramQnamesAdded:
             xpCtx.inScopeVars.pop(paramQname)
