@@ -34,14 +34,13 @@ __all__ = ["ArrayVar", "Table"]
 
 import os
 import platform
-import sys
 import tkinter
 from tkinter import Variable, Widget, messagebox, Event, Menu, Tk
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 
-from arelle.SystemInfo import PlatformOS
+from arelle.SystemInfo import PlatformOS, contextMenuClick
 from arelle.typing import TypeGetText
 
 if TYPE_CHECKING:
@@ -161,7 +160,7 @@ class Table(Widget):
             kw["pady"] = 1
         if _TKTABLE_LOADED:
             Widget.__init__(self, master, "table", kw)
-        self.contextMenuClick: str = "<Button-2>" if sys.platform == "darwin" else "<Button-3>"
+        self.contextMenuClick: str = contextMenuClick()
         self.isInitialized: bool = _TKTABLE_LOADED
 
     def _options(self, cnf: Any, kw: Any = None) -> tuple[str, ...]:

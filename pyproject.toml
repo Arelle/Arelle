@@ -148,9 +148,10 @@ extend-exclude = [
 # Mirrors the previous flake8 configuration (pycodestyle E/W, Pyflakes F) so
 # that migrating off flake8 does not change what gets flagged. "Q"
 # (flake8-quotes) is additionally enabled to enforce double quotes, and "CPY"
-# (flake8-copyright, a preview rule) to require the copyright notice.
+# (flake8-copyright, a preview rule) to require the copyright notice. "INP"
+# (flake8-no-pep420) requires __init__.py so packages aren't left as namespaces.
 preview = true
-select = ["E", "W", "F", "Q", "CPY"]
+select = ["E", "W", "F", "Q", "CPY", "INP"]
 ignore = [
     # indentation is not a multiple of 4
     "E111",
@@ -255,12 +256,17 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 # Tests and third party code bundled verbatim don't carry the Arelle copyright notice.
-"tests/**" = ["CPY001"]
+"tests/**" = ["CPY001", "INP001"]
 "arelle/TkTableWrapper.py" = ["CPY001"]
 "arelle/archive/plugin/sakaCalendar.py" = ["CPY001"]
 "arelle/archive/plugin/validate/XFsyntax/xf.py" = ["CPY001"]
 "arelle/plugin/internet/**" = ["CPY001"]
 "arelle/webserver/bottle.py" = ["CPY001", "F403"]
+# Only Arelle's core packages need __init__.py. Plugins are loaded by path, and
+# tests and archived scripts aren't imported as packages.
+"arelle/archive/**" = ["INP001"]
+"arelle/examples/**" = ["INP001"]
+"arelle/plugin/**" = ["INP001"]
 
 [tool.ruff.lint.flake8-copyright]
 notice-rgx = "See COPYRIGHT\\.md for copyright information\\."

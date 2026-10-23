@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pytest
-from _decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation
 
 from arelle.ValidateXbrlCalcs import insignificantDigits
 

@@ -7,11 +7,10 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Iterator
 from dataclasses import dataclass, field
+from decimal import Decimal
 from functools import cached_property
 from math import isnan
 from typing import Any, SupportsFloat, cast
-
-from _decimal import Decimal
 
 from arelle import XmlValidateConst
 from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit

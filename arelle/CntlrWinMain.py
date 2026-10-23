@@ -190,7 +190,8 @@ class CntlrWinMain(Cntlr.Cntlr):
                     self.fileMenuLength += 1
             else:
                 self.fileMenu.add_command(label=label, underline=0, command=command, accelerator=shortcut_text)  # type: ignore[arg-type]
-                self.parent.bind(shortcut, command)  # type: ignore[arg-type]
+                if shortcut:
+                    self.parent.bind(shortcut, command)  # type: ignore[arg-type]
                 self.fileMenuLength += 1
         self.loadFileMenuHistory()
         self.menubar.add_cascade(label=_("File"), menu=self.fileMenu, underline=0)
@@ -372,7 +373,8 @@ class CntlrWinMain(Cntlr.Cntlr):
                     pluginMenuExtender(self, helpMenu)
             else:
                 helpMenu.add_command(label=label, underline=0, command=command, accelerator=shortcut_text)  # type: ignore[arg-type]
-                self.parent.bind(shortcut, command)  # type: ignore[arg-type]
+                if shortcut:
+                    self.parent.bind(shortcut, command)
         for pluginMenuExtender in self.plugins.hooks("CntlrWinMain.Menu.Help"):
             pluginMenuExtender(self, helpMenu)
         self.menubar.add_cascade(label=_("Help"), menu=helpMenu, underline=0)

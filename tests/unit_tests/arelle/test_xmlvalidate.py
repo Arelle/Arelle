@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import datetime
-from _decimal import Decimal
+from decimal import Decimal
 from fractions import Fraction
 from math import inf, isnan, nan
 import tracemalloc
