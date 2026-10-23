@@ -968,13 +968,13 @@ def checkElements(val: ValidateXbrl, modelDocument: ModelDocument, parent: _Elem
                                        for e in XmlUtil.ancestors(elt, ns, "div")):
                                 val.modelXbrl.error(("EFM.N/A", "GFM:1.10.16"),
                                     _("Inline XBRL footnote %(footnoteID)s must be in non-displayable div due to arcrole %(arcrole)s"),
-                                    modelObject=elt, footnoteID=elt.get("footnoteID"),
+                                    modelObject=elt, footnoteID=elt.footnoteID or "(no id)",
                                     arcrole=elt.get("{http://www.w3.org/1999/xlink}arcrole"))
 
                         if not elt.get("{http://www.w3.org/XML/1998/namespace}lang"):
                             val.modelXbrl.error(("EFM.N/A", "GFM:1.10.13"),
                                 _("Inline XBRL footnote %(footnoteID)s is missing an xml:lang attribute"),
-                                modelObject=elt, footnoteID=elt.get("footnoteID"))
+                                modelObject=elt, footnoteID=elt.footnoteID or "(no id)")
                     if elt.namespaceURI == XbrlConst.ixbrl:
                         # a missing footnoteID is reported by schema validation of the document
                         footnoteID = elt.footnoteID
