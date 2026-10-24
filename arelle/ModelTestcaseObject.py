@@ -455,12 +455,16 @@ class ModelTestcaseVariation(ModelObject):
 
     @property
     def blockedMessageCodes(self) -> str | None:
-        blockedCodesRegex = XmlUtil.descendantAttr(self, None, ("results","result"), "blockedMessageCodes")  # type: ignore[arg-type] # DQC 4/5 test suite
-        if not blockedCodesRegex:
-            ignoredCodes = XmlUtil.descendants(self, None, "ignore-error") # ESEF test suite
-            if ignoredCodes:
-                blockedCodesRegex = "|".join(".*" + c.stringValue for c in ignoredCodes)  # type: ignore[union-attr]
-        return blockedCodesRegex
+        return XmlUtil.descendantAttr(self, None, ("results","result"), "blockedMessageCodes")  # type: ignore[arg-type] # DQC 4/5 test suite
+
+    @property
+    def ignoredErrors(self) -> list[QName]:
+        ignoredErrors = []
+        for ignoreElement in XmlUtil.descendants(self, None, "ignore-error"): # ESEF test suite
+            errorCode = ModelValue.qname(ignoreElement, ignoreElement.stringValue)  # type: ignore[union-attr]
+            if errorCode is not None:
+                ignoredErrors.append(errorCode)
+        return ignoredErrors
 
     @property
     def expectedVersioningReport(self) -> None:

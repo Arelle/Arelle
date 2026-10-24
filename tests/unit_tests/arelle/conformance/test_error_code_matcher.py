@@ -7,7 +7,7 @@ import pytest
 
 from arelle import XbrlConst
 from arelle.ModelValue import QName
-from arelle.conformance.ErrorCodeMatcher import errorCodeMatches
+from arelle.conformance.ErrorCodeMatcher import errorCodeMatches, filterIgnoredErrors
 
 CONFORMANCE_NS = "http://xbrl.org/2008/conformance"
 
@@ -60,6 +60,8 @@ def suiteCode(localName: str, prefix: str | None = None, namespaceURI: str = CON
         ("EFM.6.05.35", "utre:error-NumericFactUtrInvalid", True),
         (suiteCode("xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a"), "xmlSchema:elementUnexpected", True),
         (suiteCode("xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a"), "lxml.SCHEMAV_ELEMENT_CONTENT", False),
+        (suiteCode("xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2"), "lxml.SCHEMAV_CVC_COMPLEX_TYPE_3_2_1", True),
+        (suiteCode("xbrl.core.xml.SchemaValidationError.cvc-complex-type_4"), "lxml.SCHEMAV_CVC_COMPLEX_TYPE_4", True),
         # Plain string codes.
         ("xbrl:multipleTopLevelSchemasForNamespace", "xbrl:multipleTopLevelSchemasForNamespace", True),
         ("xbrl:multipleTopLevelSchemasForNamespace", "info:duplicatedSchema", False),
@@ -71,3 +73,28 @@ def suiteCode(localName: str, prefix: str | None = None, namespaceURI: str = CON
 )
 def test_errorCodeMatches(expected: Any, actual: Any, matches: bool) -> None:
     assert errorCodeMatches(expected, actual) is matches
+
+
+def test_filterIgnoredErrors_removes_ignored() -> None:
+    errors: list[Any] = [
+        "ESEF.UKFRC17.reportPackageNameDoesNotFollowNamingConvention",
+        "ESEF.UKFRC8.segmentUsed",
+        "ESEF.UKFRC1.incorrectTarget",
+        {"assertion": (1, 0, 0, 0, 0)},
+    ]
+    ignored = [
+        suiteCode("xbrl.efr.esef.uk.reportPackageNameDoesNotFollowNamingConvention"),
+        suiteCode("xbrl.efr.esef.esma.segmentUsed"),
+    ]
+    expected: list[Any] = [suiteCode("xbrl.efr.esef.uk.incorrectTarget")]
+    assert filterIgnoredErrors(errors, ignored, expected) == [
+        "ESEF.UKFRC1.incorrectTarget",
+        {"assertion": (1, 0, 0, 0, 0)},
+    ]
+
+
+def test_filterIgnoredErrors_keeps_expected() -> None:
+    errors: list[Any] = ["ESEF.UKFRC18.reportFileNameDoesNotFollowNamingConvention"]
+    ignored = [suiteCode("xbrl.efr.esef.esma.reportFileNameDoesNotFollowNamingConvention")]
+    expected: list[Any] = [suiteCode("xbrl.efr.esef.uk.reportFileNameDoesNotFollowNamingConvention")]
+    assert filterIgnoredErrors(errors, ignored, expected) == errors

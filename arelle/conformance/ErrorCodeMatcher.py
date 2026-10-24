@@ -23,9 +23,11 @@ SUITE_CODE_ALTERNATIVES: dict[str, frozenset[str]] = {
     "EFM.6.03.05": frozenset({"xmlSchema:syntax", "EFM.5.02.01.01"}),
     "EFM.6.04.03": frozenset({"xmlSchema:valueError"}),
     "EFM.6.05.35": frozenset({"utre:error-NumericFactUtrInvalid"}),
-    # UKSEF names schema errors after the constraint they violate.
-    # Example: tests/FRC/FRC_08/index.xml:TC2_invalid
+    # UKSEF names schema errors after the constraint they violate, and libxml2 numbers some clauses differently.
+    # Examples: tests/FRC/FRC_08/index.xml:TC2_invalid and the ignored errors of tests/FRC/FRC_20/index.xml:TC3_invalid
     "xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a": frozenset({"xmlSchema:elementUnexpected"}),
+    "xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2": frozenset({"lxml.SCHEMAV_CVC_COMPLEX_TYPE_3_2_1"}),
+    "xbrl.core.xml.SchemaValidationError.cvc-complex-type_4": frozenset({"lxml.SCHEMAV_CVC_COMPLEX_TYPE_4"}),
 }
 
 
@@ -38,6 +40,21 @@ def errorCodeMatches(expected: Any, actual: Any) -> bool:
     if not isinstance(actual, str) or not isinstance(expected, (QName, str)):
         return bool(actual == expected)
     return _sameCode(expected, actual) or actual in SUITE_CODE_ALTERNATIVES.get(str(expected), ())
+
+
+def filterIgnoredErrors(
+        errors: list[QName | str | dict[str, Any]],
+        ignoredCodes: list[QName],
+        expectedCodes: list[QName | str],
+) -> list[QName | str | dict[str, Any]]:
+    """
+    Remove errors matching a code the conformance suite ignores, unless they also match a code it expects.
+    """
+    return [
+        error for error in errors
+        if not any(errorCodeMatches(ignoredCode, error) for ignoredCode in ignoredCodes)
+        or any(errorCodeMatches(expectedCode, error) for expectedCode in expectedCodes)
+    ]
 
 
 def _assertionCountsMatch(expected: dict[str, Any], actual: dict[str, Any]) -> bool:
