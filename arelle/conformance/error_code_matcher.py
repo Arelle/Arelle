@@ -28,6 +28,8 @@ def error_code_matches(expected: Any, actual: Any) -> bool:
         return bool(actual == expected)
     matched = False
     if isinstance(expected, QName):
+        if actual.startswith("{"):
+            return bool(qname(actual) == expected)
         prefix, sep, local_name = actual.rpartition(":")
         if (
                 # ESEF has comma separated list of localnames of errors

@@ -1,7 +1,11 @@
+from types import SimpleNamespace
+
 import pytest
 import regex
+from lxml import etree
 
-from arelle.FunctionFn import tokenize, normalize_space
+from arelle.FunctionFn import _errorCode, tokenize, normalize_space
+from arelle.ModelValue import QName
 from arelle.formula import XPathContext
 
 from test_xmlutil import COLLAPSE_WHITESPACE_TESTS
@@ -85,3 +89,26 @@ def test_normalize_whitespace_examples(args, expected):
     contextItem = None
     result = normalize_space(xc, p, contextItem, args)
     assert result == expected
+
+
+ERROR_NS = "http://abc.com/test1"
+
+
+@pytest.mark.parametrize(
+    "qn,nsmap,expected",
+    [
+        (QName("eg", ERROR_NS, "aspect-issues"), {}, "eg:aspect-issues"),
+        (QName(None, None, "aspect-issues"), {}, "aspect-issues"),
+        (QName(None, ERROR_NS, "aspect-issues"), {"eg": ERROR_NS}, "eg:aspect-issues"),
+        (QName(None, ERROR_NS, "aspect-issues"), {None: ERROR_NS}, f"{{{ERROR_NS}}}aspect-issues"),
+        (QName(None, ERROR_NS, "aspect-issues"), {}, f"{{{ERROR_NS}}}aspect-issues"),
+    ],
+)
+def test_errorCode(qn, nsmap, expected):
+    xc = SimpleNamespace(progHeader=SimpleNamespace(element=etree.Element("formula", nsmap=nsmap)))
+    assert str(_errorCode(xc, qn)) == expected
+
+
+def test_errorCode_without_an_expression_element():
+    xc = SimpleNamespace(progHeader=None)
+    assert _errorCode(xc, QName(None, ERROR_NS, "aspect-issues")) == f"{{{ERROR_NS}}}aspect-issues"

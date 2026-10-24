@@ -31,6 +31,9 @@ def suite_code(local_name: str, prefix: str | None = None, namespace_uri: str = 
         # Prefixed codes resolve through the suite's namespaces.
         (suite_code("PrimaryItemDimensionallyInvalidError", "xbrldie", "http://xbrl.org/2005/xbrldi/errors"), "xbrldie:PrimaryItemDimensionallyInvalidError", True),
         (suite_code("PrimaryItemDimensionallyInvalidError", "xbrldie", "http://xbrl.org/2005/xbrldi/errors"), "xbrldte:PrimaryItemDimensionallyInvalidError", False),
+        (suite_code("aspect-issues", "eg", "http://abc.com/test1"), "eg:aspect-issues", True),
+        (suite_code("aspect-issues", "eg", "http://abc.com/test1"), "{http://abc.com/test1}aspect-issues", True),
+        (suite_code("aspect-issues", "eg", "http://abc.com/test1"), "{http://abc.com/test2}aspect-issues", False),
         (suite_code("FORG0001", "err", XbrlConst.xpath2err), "err:FORG0001", True),
         (suite_code("valueError", namespace_uri=XbrlConst.xdtSchemaErrorNS), "xmlSchema:valueError", True),
         # Plain string codes.
