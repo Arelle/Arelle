@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import logging
 import os
-from collections import defaultdict
+from collections import Counter, defaultdict
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Union, cast, TypeAlias
 
@@ -31,6 +31,7 @@ class ErrorManager:
     logHasRelevelerPlugin: bool | None
     _errorCaptureLevel: int
     _errors: ErrorsType
+    _errorLevels: defaultdict[str, Counter[str]]
     _logCount: dict[str, int] = {}
     _logRefFileRelUris: defaultdict[Any, dict[str, str]]
     _modelManager: ModelManager
@@ -38,6 +39,7 @@ class ErrorManager:
     def __init__(self, modelManager: ModelManager, errorCaptureLevel: int):
         self._errorCaptureLevel = errorCaptureLevel
         self._errors = []
+        self._errorLevels = defaultdict(Counter)
         self._logCount = {}
         self._logRefFileRelUris = defaultdict(dict)
         self._modelManager = modelManager
@@ -46,6 +48,10 @@ class ErrorManager:
     @property
     def errors(self) -> ErrorsType:
         return self._errors
+
+    @property
+    def errorLevels(self) -> dict[str, Counter[str]]:
+        return self._errorLevels
 
     @property
     def logCount(self) -> dict[str, int]:
@@ -70,6 +76,7 @@ class ErrorManager:
 
     def clear(self) -> None:
         self._errors.clear()
+        self._errorLevels.clear()
         self._logCount.clear()
 
     def isLoggingEffectiveFor(self, logger: logging.Logger, **kwargs: Any) -> bool:  # args can be messageCode(s) and level
@@ -134,9 +141,11 @@ class ErrorManager:
             self._logCount[numericLevel] = self._logCount.get(numericLevel, 0) + 1
             if numericLevel >= self._errorCaptureLevel:
                 try: # if there's a numeric errorCount arg, extend messages codes by count
-                    self._errors.extend([messageCode] * int(logArgs[1]["errorCount"]))
+                    errorCount = int(logArgs[1]["errorCount"])
                 except (IndexError, KeyError, ValueError): # no msgArgs, no errorCount, or not int
-                    self._errors.append(messageCode) # assume one error occurence
+                    errorCount = 1 # assume one error occurence
+                self._errors.extend([messageCode] * errorCount)
+                self._errorLevels[str(messageCode)][logging.getLevelName(numericLevel)] += errorCount
             """@messageCatalog=[]"""
             logger.log(numericLevel, *logArgs, exc_info=args.get("exc_info"), extra=extras)
 

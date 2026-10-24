@@ -206,7 +206,7 @@ def get_test_data(
                     if mv.modelXbrl is not None and mv.modelXbrl.modelManager.formulaOptions.testcaseResultsCaptureWarnings:
                         expected_warnings = dict(Counter(str(warning) for warning in mv.expectedWarnings or []))
                     configured_errors = dict(Counter(str(error) for error in mv.userExpectedErrors))
-                    actual_codes = dict(sorted(mv.actualCounts.items()))
+                    actual_codes = {code: sum(levels.values()) for code, levels in sorted(mv.actualCounts.items())}
                     results.append(VariationResult(
                         test_id=test_id,
                         expected_failure=isExpectedFailure(test_id, expected_failure_ids, required_locale_by_ids, system_locale),

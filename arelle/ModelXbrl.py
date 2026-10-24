@@ -8,7 +8,7 @@ import os
 import sys
 import traceback
 import uuid
-from collections import defaultdict
+from collections import Counter, defaultdict
 from typing import TYPE_CHECKING, Any, TypeVar, Union, cast, Optional
 
 import regex as re
@@ -187,6 +187,10 @@ class ModelXbrl:
         .. attribute:: errors
 
         Captured error codes (at or over minimum error capture logging level) and assertion results, which were sent to logger, via log() methods, used for validation and post-processing
+
+        .. attribute:: errorLevels
+
+        Counts by logging level name of each captured error code
 
         .. attribute:: logErrorCount, logWarningCoutn, logInfoCount
 
@@ -1263,6 +1267,10 @@ class ModelXbrl:
     @property
     def errors(self) -> ErrorsType:
         return self.errorManager.errors
+
+    @property
+    def errorLevels(self) -> dict[str, Counter[str]]:
+        return self.errorManager.errorLevels
 
     @property
     def logCount(self) -> dict[str, int]:

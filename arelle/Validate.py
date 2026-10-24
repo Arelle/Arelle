@@ -13,7 +13,7 @@ from urllib.parse import unquote
 import zipfile
 
 import regex as re
-from collections import defaultdict, OrderedDict
+from collections import Counter, defaultdict, OrderedDict
 from arelle import (
     ModelVersReport, XbrlConst,
     ValidateXbrl, ValidateVersReport,
@@ -68,6 +68,21 @@ TESTCASE_CALCS_MODES = {
     "round-to-nearest": ValidateCalcsMode.ROUND_TO_NEAREST,
     "truncate": ValidateCalcsMode.TRUNCATION,
 }
+
+def _mergeErrorLevels(errorLevels: Iterable[dict[str, Counter[str]]]) -> defaultdict[str, Counter[str]]:
+    mergedErrorLevels: defaultdict[str, Counter[str]] = defaultdict(Counter)
+    for codeLevels in errorLevels:
+        for code, levels in codeLevels.items():
+            mergedErrorLevels[code].update(levels)
+    return mergedErrorLevels
+
+def _actualLevelCounts(count: int, levels: dict[str, int]) -> dict[str, int]:
+    levelCounts = dict(levels)
+    # Codes added without being logged, such as conf:testcaseExpectedReportCountError, have no level.
+    unknownCount = count - sum(levelCounts.values())
+    if unknownCount > 0:
+        levelCounts["UNKNOWN"] = unknownCount
+    return levelCounts
 
 class Validate:
     """Validation operations are separated from the objects that are validated, because the operations are
@@ -341,7 +356,7 @@ class Validate:
                     modelVersReport = modelXbrlLoad(self.modelXbrl.modelManager, versReportFile, _("validating existing version report"))
                     if modelVersReport and modelVersReport.modelDocument and modelVersReport.modelDocument.type == Type.VERSIONINGREPORT:
                         ValidateVersReport.ValidateVersReport(self.modelXbrl).validate(modelVersReport)
-                        self.determineTestStatus(modelTestcaseVariation, modelVersReport.errors)
+                        self.determineTestStatus(modelTestcaseVariation, modelVersReport.errors, errorLevels=[modelVersReport.errorLevels])
                         modelVersReport.close()
                 elif len(inputDTSes) == 2:
                     ModelVersReport.ModelVersReport(self.modelXbrl).diffDTSes(
@@ -356,7 +371,7 @@ class Validate:
                             modelXbrl=testcase, id=modelTestcaseVariation.id, name=modelTestcaseVariation.name, file=os.path.basename(readMeFirstUri))  # type: ignore[type-var]
                     modelTestcaseVariation.status = "failed"
             elif resultIsTaxonomyPackage:
-                self.determineTestStatus(modelTestcaseVariation, modelXbrl.errors)
+                self.determineTestStatus(modelTestcaseVariation, modelXbrl.errors, errorLevels=[modelXbrl.errorLevels])
                 modelXbrl.close()
             elif inputDTSes:
                 validateInputDTS = True
@@ -611,7 +626,10 @@ class Validate:
         for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.plugins.hooks("Validate.Complete"):
             pluginXbrlMethod(self.modelXbrl.modelManager.cntlr, filesource)
         errors = [error for model in loadedModels for error in model.errors]
-        self.determineTestStatus(modelTestcaseVariation, errors, validateModelCount=identifiedReportCount)
+        self.determineTestStatus(
+            modelTestcaseVariation, errors, validateModelCount=identifiedReportCount,
+            errorLevels=[model.errorLevels for model in loadedModels],
+        )
         if not inputDTSes:
             for model in loadedModels:
                 model.close()
@@ -728,12 +746,19 @@ class Validate:
         extraErrors: ErrorsType = []
         for pluginXbrlMethod in self.modelXbrl.modelManager.cntlr.plugins.hooks("TestcaseVariation.Validated"):
             pluginXbrlMethod(self.modelXbrl, modelXbrl, extraErrors, inputDTSes)
-        self.determineTestStatus(modelTestcaseVariation, [e for inputDTSlist in inputDTSes.values() for inputDTS in inputDTSlist for e in inputDTS.errors] + extraErrors) # include infoset errors in status
+        self.determineTestStatus(
+            modelTestcaseVariation,
+            [e for inputDTSlist in inputDTSes.values() for inputDTS in inputDTSlist for e in inputDTS.errors] + extraErrors, # include infoset errors in status
+            errorLevels=[inputDTS.errorLevels for inputDTSlist in inputDTSes.values() for inputDTS in inputDTSlist],
+        )
         if modelXbrl.formulaOutputInstance and self.noErrorCodes(modelTestcaseVariation.actual):
             # if an output instance is created, and no string error codes, ignoring dict of assertion results, validate it
             modelXbrl.formulaOutputInstance.hasFormulae = False #  block formulae on output instance (so assertion of input is not lost)
             self.instValidator.validate(modelXbrl.formulaOutputInstance, modelTestcaseVariation.parameters)
-            self.determineTestStatus(modelTestcaseVariation, modelXbrl.formulaOutputInstance.errors)
+            self.determineTestStatus(
+                modelTestcaseVariation, modelXbrl.formulaOutputInstance.errors,
+                errorLevels=[modelXbrl.formulaOutputInstance.errorLevels],
+            )
             if self.noErrorCodes(modelTestcaseVariation.actual): # if still 'clean' pass it forward for comparison to expected result instance
                 formulaOutputInstance = modelXbrl.formulaOutputInstance
                 modelXbrl.formulaOutputInstance = None # prevent it from being closed now
@@ -759,8 +784,9 @@ class Validate:
                 errorCaptureLevel=errorCaptureLevel,
                 matchById=not modelXbrlHasFormulae
             )
+            compareErrorLevels = formulaOutputInstance.errorLevels
             formulaOutputInstance.close()
-            self.determineTestStatus(modelTestcaseVariation, compareErrors)
+            self.determineTestStatus(modelTestcaseVariation, compareErrors, errorLevels=[compareErrorLevels])
         if compareIxResultInstance:
             for inputDTSlist in inputDTSes.values():
                 for inputDTS in inputDTSlist:  # type: ignore[assignment]
@@ -774,7 +800,8 @@ class Validate:
             self,
             modelTestcaseVariation: ModelTestcaseVariation,
             errors: ErrorsType,
-            validateModelCount: int | None = None
+            validateModelCount: int | None = None,
+            errorLevels: Iterable[dict[str, Counter[str]]] = (),
         ) -> None:
         testcaseResultOptions = self.modelXbrl.modelManager.formulaOptions.testcaseResultOptions
         testcaseExpectedErrors = self.modelXbrl.modelManager.formulaOptions.testcaseExpectedErrors or {}
@@ -872,7 +899,10 @@ class Validate:
                     modelTestcaseVariation.assertions = error
                 else:   # error code results
                     _actual[error] = _actual.get(error, 0) + 1
-            modelTestcaseVariation.actualCounts = _actual
+            levelsByCode = _mergeErrorLevels((*errorLevels, self.modelXbrl.modelManager.cntlr.errorLevels))
+            modelTestcaseVariation.actualCounts = {
+                str(code): _actualLevelCounts(count, levelsByCode.get(str(code), {})) for code, count in _actual.items()
+            }
             modelTestcaseVariation.actual = [error if qty == 1 else "{} ({})".format(error,qty)
                                              for error, qty in sorted(_actual.items(), key=lambda i:i[0])]
             for error in _errors:

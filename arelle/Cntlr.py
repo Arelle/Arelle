@@ -19,6 +19,7 @@ import subprocess
 import sys
 import tempfile
 import traceback
+from collections import Counter
 from typing import TYPE_CHECKING, Any, cast, Union, Literal
 
 import regex
@@ -351,6 +352,12 @@ class Cntlr:
         if self.errorManager is None:
             return []
         return self.errorManager.errors
+
+    @property
+    def errorLevels(self) -> dict[str, Counter[str]]:
+        if self.errorManager is None:
+            return {}
+        return self.errorManager.errorLevels
 
     @property
     def uiLangDir(self) -> str:
