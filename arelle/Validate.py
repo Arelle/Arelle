@@ -296,9 +296,6 @@ class Validate:
                                         modelObject=testcaseVariation,
                                         variationId=testcaseVariation.id)
 
-            # Clear errors added to the controller during testcase loading.
-            assert self.modelXbrl.modelManager.cntlr.errorManager is not None, "errorManager must be set"
-            self.modelXbrl.modelManager.cntlr.errorManager.clear()
             for modelTestcaseVariation in testcaseVariations:
                 self._validateTestcaseVariation(testcase, modelTestcaseVariation)
 
@@ -312,6 +309,9 @@ class Validate:
     def _validateTestcaseVariation(self, testcase: ModelDocument, modelTestcaseVariation: ModelTestcaseVariation) -> None:
         # update ui thread via modelManager (running in background here)
         startTime = time.perf_counter()
+        # Clear errors added to the controller during testcase loading or by a previous variation.
+        assert self.modelXbrl.modelManager.cntlr.errorManager is not None, "errorManager must be set"
+        self.modelXbrl.modelManager.cntlr.errorManager.clear()
         self.modelXbrl.modelManager.viewModelObject(self.modelXbrl, modelTestcaseVariation.objectId())
         # is this a versioning report?
         resultIsVersioningReport = modelTestcaseVariation.resultIsVersioningReport
