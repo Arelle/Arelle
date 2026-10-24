@@ -11,6 +11,9 @@ from arelle.ModelValue import QName, qname
 # Arelle starts these codes with a reference to the rule that reports them, which suites leave out or qualify differently.
 RULE_REFERENCED_CODE_PREFIXES = ("ESEF.", "NL.NL-KVK")
 
+# Hierarchical codes where Arelle reports a more specific code below the one a suite expects.
+HIERARCHICAL_CODE_PREFIXES = ("EFM.", "EXG.")
+
 
 def error_code_matches(expected: Any, actual: Any) -> bool:
     """
@@ -45,8 +48,6 @@ def error_code_matches(expected: Any, actual: Any) -> bool:
              (expected == "EFM.6.03.05" and (actual.startswith("xmlSchema:") or actual == "EFM.5.02.01.01")) or
              (expected == "EFM.6.04.03" and (actual.startswith("xmlSchema:") or actual.startswith("utr:") or actual.startswith("xbrl.") or actual.startswith("xlink:"))) or
              (expected == "EFM.6.05.35" and actual.startswith("utre:")) or
-             (expected.startswith("EFM.") and actual.startswith(expected)) or
-             (expected.startswith("EXG.") and actual.startswith(expected)) or
              (expected == "vere:invalidDTSIdentifier" and actual.startswith("xbrl"))
              ):
         matched = True
@@ -60,6 +61,8 @@ def _formula_assertion_counts_match(expected: dict[str, tuple[int, int]], actual
 
 def _same_literal(expected: str, actual: str) -> bool:
     if actual == expected:
+        return True
+    if expected.startswith(HIERARCHICAL_CODE_PREFIXES) and actual.startswith(expected + "."):
         return True
     if not actual.startswith(RULE_REFERENCED_CODE_PREFIXES):
         return False
