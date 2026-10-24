@@ -6,7 +6,7 @@ from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from typing import Any
 
-from tests.integration_tests.integration_test_util import VariationResult
+from tests.integration_tests.integration_test_util import VariationResult, format_failure_message
 from tests.integration_tests.validation.conformance_suite_config import (
     ConformanceSuiteConfig, ConformanceSuiteAssetConfig
 )
@@ -236,14 +236,18 @@ def get_select_option(options: Namespace) -> str:
     return options.name
 
 
-def get_failed_test_ids(results: list[VariationResult]) -> list[str]:
-    failed_ids = []
-    for result in results:
-        if result.status == "skip":
-            continue
-        if (result.status == "pass") == result.expected_failure:
-            failed_ids.append(result.test_id)
-    return failed_ids
+def get_failed_results(results: list[VariationResult]) -> list[VariationResult]:
+    return [
+        result
+        for result in results
+        if result.status != "skip" and (result.status == "pass") == result.expected_failure
+    ]
+
+
+def describe_failure(result: VariationResult) -> str:
+    if result.expected_failure:
+        return "Testcase variation passed, but the conformance suite config lists it as an expected failure."
+    return format_failure_message(result)
 
 
 def run() -> None:
@@ -260,11 +264,11 @@ def run() -> None:
                   f"\tEntry Point: {config.entry_point_path}")
     else:
         results = run_conformance_suites_options(options)
-        failed_ids = get_failed_test_ids(results)
-        if failed_ids:
-            print(f"\n{len(failed_ids)} of {len(results)} conformance suite tests failed:")
-            for failed_id in failed_ids:
-                print(failed_id)
+        failed_results = get_failed_results(results)
+        if failed_results:
+            print(f"\n{len(failed_results)} of {len(results)} conformance suite tests failed:")
+            for failed_result in failed_results:
+                print(f"\n{failed_result.test_id}\n{describe_failure(failed_result)}")
             sys.exit(1)
 
 
