@@ -24,6 +24,12 @@ if TYPE_CHECKING:
 TXMY_PKG_SRC_ELTS = ("metadata", "catalog", "taxonomy")
 
 
+def _suiteErrorCode(element: ModelObject) -> QName | str | None:
+    if element.get("nonStandardErrorCodes"):
+        return element.stringValue
+    return ModelValue.qname(element, element.stringValue)
+
+
 def testcaseVariationsByTarget(testcaseVariations: list[ModelTestcaseVariation]) -> Generator[ModelTestcaseVariation, None, None]:
     for modelTestcaseVariation in testcaseVariations:
         modelTestcaseVariation.errors = None # Errors accumulate over multiple ixdsTargets for same variation
@@ -366,13 +372,10 @@ class ModelTestcaseVariation(ModelObject):
         if isinstance(errorElements,list) and len(errorElements) > 0:
             errorCodes = []
             for errorElement in errorElements:
-                if errorElement.get("nonStandardErrorCodes"):
-                    errorCode = errorElement.stringValue
-                else:
-                    errorCode = ModelValue.qname(errorElement, errorElement.stringValue)
+                errorCode = _suiteErrorCode(errorElement)
                 num = int(errorElement.attr("num") or 1)
                 errorCodes.extend([errorCode] * num)
-            return errorCodes
+            return errorCodes  # type: ignore[return-value]
         if resultElement is not None:
             if expected:
                 return expected  # type: ignore[no-any-return]
