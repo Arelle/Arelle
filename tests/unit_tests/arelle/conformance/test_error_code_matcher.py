@@ -74,6 +74,8 @@ def suite_code(local_name: str, prefix: str | None = None, namespace_uri: str = 
         (suite_code("xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a"), "xmlSchema:elementUnexpected", True),
         (suite_code("xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a"), "lxml.SCHEMAV_ELEMENT_CONTENT", False),
         (suite_code("xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a"), "xmlSchema:valueError", False),
+        (suite_code("xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2"), "lxml.SCHEMAV_CVC_COMPLEX_TYPE_3_2_1", True),
+        (suite_code("xbrl.core.xml.SchemaValidationError.cvc-complex-type_4"), "lxml.SCHEMAV_CVC_COMPLEX_TYPE_4", True),
         # Plain string codes.
         ("xbrl:multipleTopLevelSchemasForNamespace", "xbrl:multipleTopLevelSchemasForNamespace", True),
         ("xbrl:multipleTopLevelSchemasForNamespace", "info:duplicatedSchema", False),

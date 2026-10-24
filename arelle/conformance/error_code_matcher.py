@@ -32,9 +32,11 @@ SUITE_CODE_ALTERNATIVES: dict[str, frozenset[str]] = {
     "EFM.6.03.05": frozenset({"xmlSchema:syntax", "EFM.5.02.01.01"}),
     "EFM.6.04.03": frozenset({"xmlSchema:valueError"}),
     "EFM.6.05.35": frozenset({"utre:error-NumericFactUtrInvalid"}),
-    # UKSEF names schema errors after the constraint they violate.
-    # Example: tests/FRC/FRC_08/index.xml:TC2_invalid
+    # UKSEF names schema errors after the constraint they violate, and libxml2 numbers some clauses differently.
+    # Examples: tests/FRC/FRC_08/index.xml:TC2_invalid and the ignored errors of tests/FRC/FRC_20/index.xml:TC3_invalid
     "xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a": frozenset({"xmlSchema:elementUnexpected"}),
+    "xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2": frozenset({"lxml.SCHEMAV_CVC_COMPLEX_TYPE_3_2_1"}),
+    "xbrl.core.xml.SchemaValidationError.cvc-complex-type_4": frozenset({"lxml.SCHEMAV_CVC_COMPLEX_TYPE_4"}),
 }
 
 
