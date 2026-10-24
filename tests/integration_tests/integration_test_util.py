@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import locale
 import os
 from collections import Counter
@@ -32,11 +31,17 @@ class VariationResult:
     expected_failure: bool
     status: str
     match_all: bool
-    expected: str
+    expected_result: str | None
+    expected_errors: dict[str, int]
+    expected_count: int | None
     expected_warnings: dict[str, int]
+    expected_assertions: dict[str, dict[str, int]]
+    ignored_errors: list[str]
     configured_errors: dict[str, int]
-    actual_codes: dict[str, int]
+    actual_codes: dict[str, dict[str, int]]
     actual_assertions: dict[str, dict[str, int]]
+    unmatched_expected: dict[str, int]
+    unmatched_actual: dict[str, int]
     duration: float | None
 
 
@@ -193,30 +198,28 @@ def get_test_data(
                     if mv.status == "skip":
                         skipped_test_cases.add(test_id)
                         continue  # don't report variations skipped due to shards
-                    expected_results: Any
-                    if isinstance(mv.expected, str):
-                        expected_results = mv.expected
-                    elif isinstance(mv.expected, dict):
-                        expected_results = {"ASSERTIONS": {assertionId: name_assertion_counts(counts) for assertionId, counts in mv.expected.items()}}
-                    elif mv.expected:
-                        expected_results = {"ERROR": Counter(str(error) for error in mv.expected)}
-                    else:
-                        expected_results = {}
+                    expected_result, expected_errors, expected_assertions = split_expected(mv.expected)
                     expected_warnings: dict[str, int] = {}
                     if mv.modelXbrl is not None and mv.modelXbrl.modelManager.formulaOptions.testcaseResultsCaptureWarnings:
                         expected_warnings = dict(Counter(str(warning) for warning in mv.expectedWarnings or []))
                     configured_errors = dict(Counter(str(error) for error in mv.userExpectedErrors))
-                    actual_codes = {code: sum(levels.values()) for code, levels in sorted(mv.actualCounts.items())}
+                    actual_codes = dict(sorted(mv.actualCounts.items()))
                     results.append(VariationResult(
                         test_id=test_id,
                         expected_failure=isExpectedFailure(test_id, expected_failure_ids, required_locale_by_ids, system_locale),
                         status=mv.status,
                         match_all=mv.matchAll,
-                        expected=json.dumps(expected_results),
+                        expected_result=expected_result,
+                        expected_errors=expected_errors,
+                        expected_count=mv.expectedCount,
                         expected_warnings=expected_warnings,
+                        expected_assertions=expected_assertions,
+                        ignored_errors=sorted(str(error) for error in mv.ignoredErrors),
                         configured_errors=configured_errors,
                         actual_codes=actual_codes,
                         actual_assertions=get_actual_assertion_results(mv.actual),
+                        unmatched_expected=dict(sorted(Counter(mv.unmatchedExpected).items())),
+                        unmatched_actual=dict(sorted(Counter(mv.unmatchedActual).items())),
                         duration=mv.duration,
                     ))
         if test_cases_with_unrecognized_type:
@@ -236,6 +239,18 @@ def get_test_data(
         cntlr.modelManager.close()
         PackageManager.close()
         PluginManager.getInstance().close()
+
+
+def split_expected(expected: Any) -> tuple[str | None, dict[str, int], dict[str, dict[str, int]]]:
+    """Splits a variation's expected result into valid or invalid, expected error counts and expected assertion results."""
+    if expected in ("valid", "invalid"):
+        return expected, {}, {}
+    # Some suites, such as EFM, give a single expected code as a string.
+    if isinstance(expected, str):
+        return None, {expected: 1}, {}
+    if isinstance(expected, dict):
+        return None, {}, {assertionId: name_assertion_counts(counts) for assertionId, counts in expected.items()}
+    return None, dict(Counter(str(error) for error in expected or [])), {}
 
 
 def name_assertion_counts(counts: tuple[int, ...]) -> dict[str, int]:
@@ -258,16 +273,52 @@ def get_actual_assertion_results(actual: list[Any]) -> dict[str, dict[str, int]]
     }
 
 
+def _format_section(title: str, entries: list[str]) -> list[str]:
+    return [f"{title}:", *(f"  {entry}" for entry in entries)] if entries else []
+
+
+def _format_assertion(assertion_id: str, counts: dict[str, int]) -> str:
+    return f"assertion {assertion_id}: {counts['satisfied']} satisfied, {counts['not satisfied']} not satisfied"
+
+
 def format_failure_message(result: VariationResult) -> str:
+    """Explains a failed variation: what the suite and config expected, what was raised, and what didn't match."""
     match_mode = "match-all" if result.match_all else "match-any"
-    lines = [f"Testcase variation failed ({match_mode})", f"Expected by the suite: {result.expected}"]
-    if result.expected_warnings:
-        lines.append(f"Expected warnings: {result.expected_warnings}")
-    if result.configured_errors:
-        lines.append(f"Configured additional errors: {result.configured_errors}")
-    lines.append(f"Actual codes: {result.actual_codes}")
-    if result.actual_assertions:
-        lines.append(f"Actual assertion results: {result.actual_assertions}")
+    lines = [f"Testcase variation failed in {match_mode} mode:"]
+    expected_by_suite = []
+    if result.expected_result is not None:
+        expected_by_suite.append(result.expected_result)
+    expected_by_suite.extend(f"error {code}: {count}" for code, count in result.expected_errors.items())
+    expected_by_suite.extend(f"warning {code}: {count}" for code, count in result.expected_warnings.items())
+    expected_by_suite.extend(_format_assertion(assertion_id, counts) for assertion_id, counts in result.expected_assertions.items())
+    if result.expected_count is not None:
+        expected_by_suite.append(f"total matching codes: {result.expected_count}")
+    lines.extend(_format_section("Expected by the suite", expected_by_suite or ["nothing"]))
+    lines.extend(_format_section("Ignored by the suite", [f"error {code}" for code in result.ignored_errors]))
+    lines.extend(_format_section("Expected by the config", [f"error {code}: {count}" for code, count in result.configured_errors.items()]))
+    raised = [
+        f"{level.lower()} {code}: {count}"
+        for code, levels in result.actual_codes.items()
+        for level, count in sorted(levels.items())
+    ]
+    # Some disclosure systems run their own assertions on every report, so their results only matter when the suite expects them.
+    if result.expected_assertions:
+        raised.extend(_format_assertion(assertion_id, counts) for assertion_id, counts in result.actual_assertions.items())
+    lines.extend(_format_section("Raised", raised or ["nothing"]))
+    lines.extend(_format_section(
+        "Expected but not raised",
+        [
+            f"{'warning' if code in result.expected_warnings else 'error'} {code}: {count}"
+            for code, count in result.unmatched_expected.items()
+        ],
+    ))
+    lines.extend(_format_section(
+        "Raised but not expected",
+        [
+            f"{'/'.join(level.lower() for level in sorted(result.actual_codes[code]))} {code}: {count}"
+            for code, count in result.unmatched_actual.items()
+        ],
+    ))
     return "\n".join(lines)
 
 
