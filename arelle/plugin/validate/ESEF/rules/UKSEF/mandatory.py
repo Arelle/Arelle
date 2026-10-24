@@ -44,13 +44,13 @@ _MANDATORY_ALL: tuple[tuple[str, str], ...] = (
 )
 _MANDATORY_GROUP_AUDITED: tuple[tuple[str, str], ...] = (
     ("aurep", "DateAuditorsReport"),
-    ("business", "NameEntityAuditors"),
-    ("aurep", "NameSeniorStatutoryAuditor"),
+    ("aurep", "OpinionAuditorsOnEntity"),
     ("direp", "DateSigningDirectorsReport"),
     ("direp", "DirectorSigningDirectorsReport"),
 )
-# Item 16: at least one of these must be present (in addition to bus:NameEntityAuditors).
-_AUDITOR_OPINION_ALTERNATIVES = (("aurep", "OpinionAuditorsOnEntity"), ("aurep", "NamedIndividualAuditor"))
+# Item 17 names the auditor either individually or as the senior statutory auditor together with the audit firm.
+_INDIVIDUAL_AUDITOR = ("aurep", "NameIndividualAuditor")
+_STATUTORY_AUDITOR_AND_FIRM = (("aurep", "NameSeniorStatutoryAuditor"), ("business", "NameEntityAuditors"))
 
 # Conventional prefixes, used only to render concept names in messages.
 _DISPLAY_PREFIX = {"business": "bus", "core": "core", "aurep": "aurep", "direp": "direp"}
@@ -117,8 +117,11 @@ def rule_missingCompaniesHouseMandatoryItem(
         if (namespace, localName) not in present:
             missing.append(f"{_DISPLAY_PREFIX[namespace]}:{localName}")
 
-    if isGroupAudited and not present.intersection(_AUDITOR_OPINION_ALTERNATIVES):
-        missing.append(" or ".join(f"{_DISPLAY_PREFIX[ns]}:{n}" for ns, n in _AUDITOR_OPINION_ALTERNATIVES))
+    if isGroupAudited and _INDIVIDUAL_AUDITOR not in present and not present.issuperset(_STATUTORY_AUDITOR_AND_FIRM):
+        individual, statutory, firm = (
+            f"{_DISPLAY_PREFIX[ns]}:{n}" for ns, n in (_INDIVIDUAL_AUDITOR, *_STATUTORY_AUDITOR_AND_FIRM)
+        )
+        missing.append(f"{individual} or {statutory} and {firm}")
 
     if missing:
         yield Validation.error(
