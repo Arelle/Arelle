@@ -23,13 +23,18 @@ def suiteCode(localName: str, prefix: str | None = None, namespaceURI: str = CON
         (suiteCode("DBA.FR24"), "DBA.FR24", True),
         (suiteCode("DBA.FR24"), "DBA.FR2", False),
         (suiteCode("aspect-issues", "eg", "http://abc.com/test1"), "aspect-issues", False),
-        # ESEF codes are compared by their final segment.
+        # Arelle's ESEF and NL codes are compared by their final segment.
         (suiteCode("UsableConceptsNotAppliedByTaggedFacts"), "ESEF.3.4.2.UsableConceptsNotAppliedByTaggedFacts", True),
+        (suiteCode("missingOrInvalidTaxonomyPackage"), "ESEF.RTS.Annex.III.3.missingOrInvalidTaxonomyPackage", True),
+        (suiteCode("periodWithTimeContent"), "NL.NL-KVK-3.1.2.1.periodWithTimeContent", True),
+        (suiteCode("extensionTaxonomyWrongFilesStructure"), "NL.NL-KVK.RTS_Annex_IV_Par_6.extensionTaxonomyWrongFilesStructure", True),
         (suiteCode("UsableConceptsNotAppliedByTaggedFacts"), "ESEF.3.4.2.extensionConceptsNotAnchored", False),
         ("missingCompaniesHouseMandatoryItem", "ESEF.UK.missingCompaniesHouseMandatoryItem", True),
+        ("ESEF.UK.missingCompaniesHouseMandatoryItem", "ESEF.UK.missingCompaniesHouseMandatoryItem", True),
         # UKSEF suite codes are qualified with an authority.
         (suiteCode("xbrl.efr.esef.uk.incorrectTarget"), "ESEF.UKFRC1.incorrectTarget", True),
         (suiteCode("xbrl.efr.esef.esma.segmentUsed"), "ESEF.UKFRC8.segmentUsed", True),
+        (suiteCode("xbrl.efr.esef.esma.UsableConceptsNotAppliedByTaggedFacts"), "ESEF.3.4.2.UsableConceptsNotAppliedByTaggedFacts", True),
         (suiteCode("xbrl.efr.esef.uk.incorrectTarget"), "ESEF.UKFRC1.noUKFRSData", False),
         (suiteCode("xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a"), "xmlSchema:elementUnexpected", True),
         # Prefixed codes resolve through the suite's namespaces.
