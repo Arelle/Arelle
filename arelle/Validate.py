@@ -892,13 +892,6 @@ class Validate:
                     status = "fail"
                 else:
                     status = "pass"
-            #if expected == "EFM.6.03.02" or expected == "EFM.6.03.08": # 6.03.02 is not testable
-            #    status = "pass"
-            # check if expected is a whitespace separated list of error tokens
-            if status == "fail" and isinstance(expected,str) and " " in expected:
-                if all(any(testErr == e for testErr in _errors)
-                       for e in expected.split()):
-                        status = "pass"
             if not _errors and status == "fail":
                 if modelTestcaseVariation.assertions:
                     priorAsserResults = modelTestcaseVariation.assertions
