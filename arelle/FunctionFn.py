@@ -150,7 +150,23 @@ def error(
         raise XPathContext.FunctionNumArgs()
     qn = qnameArg(xc, p, args, 0, "QName?", emptyFallback=None)
     msg = stringArg(xc, args, 1, "xs:string", emptyFallback="")
-    raise XPathContext.XPathException(p, (cast(ModelValueQName, qn) or "err:FOER0000"), msg)
+    raise XPathContext.XPathException(p, (_errorCode(xc, cast(ModelValueQName, qn)) if qn else "err:FOER0000"), msg)
+
+
+def _errorCode(xc: XPathContext.XPathContext, qn: ModelValueQName) -> ModelValueQName | str:
+    """
+    The code to report for an error QName, keeping its namespace when the QName has no prefix.
+
+    fn:QName takes its prefix only from its lexical argument, so an error QName can have a namespace without a prefix.
+    A prefix in scope for the expression is used if there is one, otherwise the namespace is kept as {namespace}name.
+    """
+    if qn.prefix or not qn.namespaceURI:
+        return qn
+    element = xc.progHeader.element if xc.progHeader is not None else None
+    prefix = XmlUtil.xmlnsprefix(element, qn.namespaceURI) if element is not None else None
+    if prefix:
+        return f"{prefix}:{qn.localName}"
+    return qn.clarkNotation
 
 
 def trace(

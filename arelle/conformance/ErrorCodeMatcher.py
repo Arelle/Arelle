@@ -24,6 +24,8 @@ def errorCodeMatches(_exp: Any, testErr: Any) -> bool:
             testErr = testErrSuffix
     _expMatched = False
     if isinstance(_exp,QName) and isinstance(testErr,str):
+        if testErr.startswith("{"):
+            return bool(qname(testErr) == _exp)
         errPrefix, sep, errLocalName = testErr.rpartition(":")
         if (
                 # ESEF has comma separated list of localnames of errors
