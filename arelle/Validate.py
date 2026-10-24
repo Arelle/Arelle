@@ -845,8 +845,11 @@ class Validate:
                     expectedCount = len(expected)
             elif expectedCount is None:
                 expectedCount = 0
+        unmatchedExpected: list[Any] = []
+        unmatchedActual: list[Any] = []
         if expected == "valid":
             status = "pass" if numErrors == 0 else "fail"
+            unmatchedActual = [e for e in _errors if not isinstance(e, dict)]
         elif expected == "invalid":
             status = "fail" if numErrors == 0 else "pass"
         elif expected in (None, []) and numErrors == 0 and not expectedWarnings:
@@ -866,13 +869,19 @@ class Validate:
                     expectedCount += len(expectedWarnings)
             if not isinstance(expected, list):
                 expected = [expected]  # type: ignore[list-item]
+            unmatchedExpected = _expectedList.copy()
             for testErr in _errors:
                 for _exp in _expectedList:
                     if error_code_matches(_exp, testErr):
                         _passCount += 1
                         if matchAllExpected:
                             _expectedList.remove(_exp)
+                        if _exp in unmatchedExpected:
+                            unmatchedExpected.remove(_exp)
                         break
+                else:
+                    if not isinstance(testErr, dict):
+                        unmatchedActual.append(testErr)
             if _passCount > 0:
                 if expectedCount is not None and (expectedCount != _passCount or
                                                   (matchAllExpected and expectedCount != numErrors)):
@@ -891,6 +900,8 @@ class Validate:
         else:
             status = "fail"
         modelTestcaseVariation.status = status
+        modelTestcaseVariation.unmatchedExpected = [str(e) for e in unmatchedExpected if not isinstance(e, dict)]
+        modelTestcaseVariation.unmatchedActual = [str(e) for e in unmatchedActual]
         _actual: dict[str, int] = {} # code and quantity
         if numErrors > 0 or hasAssertionResult: # either coded errors or assertions (in errors list)
             # put error codes first, sorted, then assertion result (dict's)

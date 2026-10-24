@@ -79,6 +79,9 @@ class ModelTestcaseVariation(ModelObject):
         self.duration: float | None = None
         self.actual: ErrorsType = []
         self.actualCounts: dict[str, dict[str, int]] = {}
+        # Expected codes that no actual code matched, and actual codes that matched no expected code.
+        self.unmatchedExpected: list[str] = []
+        self.unmatchedActual: list[str] = []
         self.matchAll: bool = False
         self.assertions: dict[str, tuple[int, int, int, int, int]] | None = None
         self.ixdsTarget: str | None = None
