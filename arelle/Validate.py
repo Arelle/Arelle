@@ -846,7 +846,7 @@ class Validate:
                 if not expectedCount:
                     expectedCount = len(expected)
             elif expectedCount is None:
-                expectedCount = 0
+                expectedCount = 1 if isinstance(expected, dict) else 0
         unmatchedExpected: list[Any] = []
         unmatchedActual: list[Any] = []
         if expected == "valid":
@@ -871,6 +871,10 @@ class Validate:
                     expectedCount += len(expectedWarnings)
             if not isinstance(expected, list):
                 expected = [expected]  # type: ignore[list-item]
+            # Some disclosure systems run assertions on every report, so their results only count when the suite expects them.
+            numResults = numErrors
+            if any(isinstance(e, dict) for e in _expectedList):
+                numResults += sum(isinstance(e, dict) for e in _errors)
             unmatchedExpected = _expectedList.copy()
             for testErr in _errors:
                 for _exp in _expectedList:
@@ -886,7 +890,7 @@ class Validate:
                         unmatchedActual.append(testErr)
             if _passCount > 0:
                 if expectedCount is not None and (expectedCount != _passCount or
-                                                  (matchAllExpected and expectedCount != numErrors)):
+                                                  (matchAllExpected and expectedCount != numResults)):
                     status = "fail"
                 else:
                     status = "pass"
