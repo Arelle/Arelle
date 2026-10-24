@@ -19,6 +19,10 @@ def suite_code(local_name: str, prefix: str | None = None, namespace_uri: str = 
 @pytest.mark.parametrize(
     "expected,actual,matches",
     [
+        # Unprefixed suite codes are compared as text.
+        (suite_code("DBA.FR24"), "DBA.FR24", True),
+        (suite_code("DBA.FR24"), "DBA.FR2", False),
+        (suite_code("aspect-issues", "eg", "http://abc.com/test1"), "aspect-issues", False),
         # ESEF codes are compared by their final segment.
         (suite_code("UsableConceptsNotAppliedByTaggedFacts"), "ESEF.3.4.2.UsableConceptsNotAppliedByTaggedFacts", True),
         (suite_code("UsableConceptsNotAppliedByTaggedFacts"), "ESEF.3.4.2.extensionConceptsNotAnchored", False),
