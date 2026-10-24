@@ -37,7 +37,6 @@ def suite_code(local_name: str, prefix: str | None = None, namespace_uri: str = 
         (suite_code("xbrl.efr.esef.esma.segmentUsed"), "ESEF.UKFRC8.segmentUsed", True),
         (suite_code("xbrl.efr.esef.esma.UsableConceptsNotAppliedByTaggedFacts"), "ESEF.3.4.2.UsableConceptsNotAppliedByTaggedFacts", True),
         (suite_code("xbrl.efr.esef.uk.incorrectTarget"), "ESEF.UKFRC1.noUKFRSData", False),
-        (suite_code("xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a"), "xmlSchema:elementUnexpected", True),
         # Prefixed codes resolve through the suite's namespaces.
         (suite_code("PrimaryItemDimensionallyInvalidError", "xbrldie", "http://xbrl.org/2005/xbrldi/errors"), "xbrldie:PrimaryItemDimensionallyInvalidError", True),
         (suite_code("PrimaryItemDimensionallyInvalidError", "xbrldie", "http://xbrl.org/2005/xbrldi/errors"), "xbrldte:PrimaryItemDimensionallyInvalidError", False),
@@ -50,9 +49,22 @@ def suite_code(local_name: str, prefix: str | None = None, namespace_uri: str = 
         ("EFM.6.05.20", "EFM.6.05.20.periodStartLabel", True),
         ("EXG.3.05", "EXG.3.05.EX98SPACFactsDependency", True),
         ("EFM.6.05.2", "EFM.6.05.20.documentTypeValue", False),
-        # Plain string codes.
-        ("EFM.6.03.04", "xmlSchema:valueError", True),
+        # Suite codes that Arelle reports as a different code.
         ("html:syntaxError", "lxml.SCHEMAV_ELEMENT_CONTENT", True),
+        ("html:syntaxError", "lxml.SCHEMAP_SRC_IMPORT", False),
+        ("EFM.6.03.04", "xmlSchema:syntax", True),
+        ("EFM.6.03.04", "xmlSchema:valueError", False),
+        ("EFM.6.03.05", "EFM.5.02.01.01", True),
+        ("EFM.6.03.05", "EFM.5.02.01.011", False),
+        ("EFM.6.04.03", "xmlSchema:valueError", True),
+        ("EFM.6.04.03", "xmlSchema:syntax", False),
+        ("EFM.6.04.03", "utre:error-NumericFactUtrInvalid", False),
+        ("EFM.6.04.03", "xlink:sourceNotFound", False),
+        ("EFM.6.05.35", "utre:error-NumericFactUtrInvalid", True),
+        (suite_code("xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a"), "xmlSchema:elementUnexpected", True),
+        (suite_code("xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a"), "lxml.SCHEMAV_ELEMENT_CONTENT", False),
+        (suite_code("xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a"), "xmlSchema:valueError", False),
+        # Plain string codes.
         ("xbrl:multipleTopLevelSchemasForNamespace", "xbrl:multipleTopLevelSchemasForNamespace", True),
         ("xbrl:multipleTopLevelSchemasForNamespace", "info:duplicatedSchema", False),
         # Assertion results.

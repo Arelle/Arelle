@@ -14,6 +14,20 @@ RULE_REFERENCED_CODE_PREFIXES = ("ESEF.", "NL.NL-KVK")
 # Hierarchical codes where Arelle reports a more specific code below the one a suite expects.
 HIERARCHICAL_CODE_PREFIXES = ("EFM.", "EXG.")
 
+# Suite codes that Arelle reports as a different code, mapped to the codes that satisfy them.
+SUITE_CODE_ALTERNATIVES: dict[str, frozenset[str]] = {
+    # EFM suites expect an HTML syntax error where Arelle reports XHTML schema validation errors.
+    "html:syntaxError": frozenset({"lxml.SCHEMAV_CVC_COMPLEX_TYPE_3_2_1", "lxml.SCHEMAV_ELEMENT_CONTENT"}),
+    # EFM rules that Arelle reports as the underlying schema, unit registry, or document character error.
+    "EFM.6.03.04": frozenset({"xmlSchema:syntax"}),
+    "EFM.6.03.05": frozenset({"xmlSchema:syntax", "EFM.5.02.01.01"}),
+    "EFM.6.04.03": frozenset({"xmlSchema:valueError"}),
+    "EFM.6.05.35": frozenset({"utre:error-NumericFactUtrInvalid"}),
+    # UKSEF names schema errors after the constraint they violate.
+    # Example: tests/FRC/FRC_08/index.xml:TC2_invalid
+    "xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a": frozenset({"xmlSchema:elementUnexpected"}),
+}
+
 
 def error_code_matches(expected: Any, actual: Any) -> bool:
     """
@@ -23,6 +37,8 @@ def error_code_matches(expected: Any, actual: Any) -> bool:
         return isinstance(expected, dict) and isinstance(actual, dict) and _formula_assertion_counts_match(expected, actual)
     if not isinstance(actual, str) or not isinstance(expected, (QName, str)):
         return bool(actual == expected)
+    if actual in SUITE_CODE_ALTERNATIVES.get(str(expected), ()):
+        return True
     matched = False
     if isinstance(expected, QName):
         if actual.startswith("{"):
@@ -35,21 +51,10 @@ def error_code_matches(expected: Any, actual: Any) -> bool:
                            (prefix == expected.prefix and expected.namespaceURI),
                            local_name)) or
                 # XDT xml schema tests expected results
-                (expected.namespaceURI == XbrlConst.xdtSchemaErrorNS and prefix == "xmlSchema") or
-                # UKSEF conformance suite expects XML schema validation errors in format xbrl.core.xml.SchemaValidationError.*
-                # Example: tests/FRC/FRC_08/index.xml:TC2_invalid
-                (expected.localName.startswith("xbrl.core.xml.SchemaValidationError.cvc") and prefix == "xmlSchema")
+                (expected.namespaceURI == XbrlConst.xdtSchemaErrorNS and prefix == "xmlSchema")
         ):
             matched = True
-    elif (actual == expected or
-             _same_literal(expected, actual) or
-             (expected == "html:syntaxError" and actual.startswith("lxml.SCHEMA")) or
-             (expected == "EFM.6.03.04" and actual.startswith("xmlSchema:")) or
-             (expected == "EFM.6.03.05" and (actual.startswith("xmlSchema:") or actual == "EFM.5.02.01.01")) or
-             (expected == "EFM.6.04.03" and (actual.startswith("xmlSchema:") or actual.startswith("utr:") or actual.startswith("xbrl.") or actual.startswith("xlink:"))) or
-             (expected == "EFM.6.05.35" and actual.startswith("utre:")) or
-             (expected == "vere:invalidDTSIdentifier" and actual.startswith("xbrl"))
-             ):
+    elif _same_literal(expected, actual):
         matched = True
     return matched
 
