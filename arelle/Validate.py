@@ -25,6 +25,7 @@ from arelle.ModelRssObject import ModelRssObject
 from arelle.PythonUtil import isLegacyAbs
 from arelle.ValidateFileSource import ValidateFileSource, isPackage
 from arelle.ValidateXbrlCalcs import ValidateCalcsMode
+from arelle.conformance.ErrorCodeMatcher import errorCodeMatches
 from arelle.formula import ValidateFormula
 from arelle.FileSource import FileSource, openFileSource, archiveFilenameParts
 from arelle.ModelDocument import (
@@ -41,7 +42,7 @@ from arelle.ModelXbrl import (
 from arelle.ErrorManager import ErrorsType
 from arelle.ModelObject import ModelObject
 from arelle.ModelTestcaseObject import testcaseVariationsByTarget, ModelTestcaseVariation
-from arelle.ModelValue import (qname, QName)
+from arelle.ModelValue import QName
 from arelle.packages.report.DetectReportPackage import isReportPackageExtension
 from arelle.rendering import RenderingEvaluator
 from arelle.utils.EntryPointDetection import filesourceEntrypointFiles
@@ -62,8 +63,6 @@ class ValidationException(Exception):
 
     def __repr__(self) -> str:
         return "{0}({1})={2}".format(self.code,self.severity,self.message)
-
-commaSpaceSplitPattern = re.compile(r",\s*")
 
 TESTCASE_CALCS_MODES = {
     "round-to-nearest": ValidateCalcsMode.ROUND_TO_NEAREST,
@@ -836,52 +835,8 @@ class Validate:
             if not isinstance(expected, list):
                 expected = [expected]  # type: ignore[list-item]
             for testErr in _errors:
-                testErrPrefix = None
-                if isinstance(testErr, str) and testErr.startswith(("ESEF.", "NL.NL-KVK")): # compared as list of strings to QName localname
-                    testErrPrefix, __, testErrSuffix = testErr.rpartition(".")
-                    if not testErrSuffix.isdigit():
-                        testErr = testErrSuffix
                 for _exp in _expectedList:
-                    _expMatched = False
-                    if isinstance(_exp,QName) and isinstance(testErr,str):
-                        errPrefix, sep, errLocalName = testErr.rpartition(":")
-                        if (
-                                # ESEF has comma separated list of localnames of errors
-                                (not sep and errLocalName in commaSpaceSplitPattern.split(_exp.localName.strip())) or
-                                (_exp == qname(XbrlConst.errMsgPrefixNS.get(errPrefix) or
-                                           (errPrefix == _exp.prefix and _exp.namespaceURI),
-                                           errLocalName)) or
-                                # XDT xml schema tests expected results
-                                (_exp.namespaceURI == XbrlConst.xdtSchemaErrorNS and errPrefix == "xmlSchema") or
-                                # UKSEF conformance suite expects XML schema validation errors in format xbrl.core.xml.SchemaValidationError.*
-                                # Example: tests/FRC/FRC_08/index.xml:TC2_invalid
-                                (_exp.localName.startswith("xbrl.core.xml.SchemaValidationError.cvc") and errPrefix == "xmlSchema") or
-                                # ESEF.UK*: Actual (str): *:match, Expected (QName): {*}*.match
-                                (
-                                        testErrPrefix and testErrPrefix.startswith("ESEF.UK") and
-                                        errLocalName and errLocalName == _exp.localName.rpartition(".")[2]
-                                )
-                        ):
-                            _expMatched = True
-                    elif type(testErr) is type(_exp):
-                        if isinstance(testErr,dict):
-                            if len(testErr) == len(_exp) and all(
-                                k in testErr and counts == testErr[k][:len(counts)]
-                                for k, counts in _exp.items()):
-                                _expMatched = True
-                        elif (testErr == _exp or
-                            (isinstance(_exp, str) and (
-                             (_exp == "html:syntaxError" and testErr.startswith("lxml.SCHEMA")) or
-                             (_exp == "EFM.6.03.04" and testErr.startswith("xmlSchema:")) or
-                             (_exp == "EFM.6.03.05" and (testErr.startswith("xmlSchema:") or testErr == "EFM.5.02.01.01")) or
-                             (_exp == "EFM.6.04.03" and (testErr.startswith("xmlSchema:") or testErr.startswith("utr:") or testErr.startswith("xbrl.") or testErr.startswith("xlink:"))) or
-                             (_exp == "EFM.6.05.35" and testErr.startswith("utre:")) or
-                             (_exp.startswith("EFM.") and testErr.startswith(_exp)) or
-                             (_exp.startswith("EXG.") and testErr.startswith(_exp)) or
-                             (_exp == "vere:invalidDTSIdentifier" and testErr.startswith("xbrl"))
-                             ))):
-                            _expMatched = True
-                    if _expMatched:
+                    if errorCodeMatches(_exp, testErr):
                         _passCount += 1
                         if matchAllExpected:
                             _expectedList.remove(_exp)
