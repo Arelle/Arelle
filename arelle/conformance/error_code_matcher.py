@@ -39,29 +39,35 @@ def error_code_matches(expected: Any, actual: Any) -> bool:
         return bool(actual == expected)
     if actual in SUITE_CODE_ALTERNATIVES.get(str(expected), ()):
         return True
-    matched = False
-    if isinstance(expected, QName):
-        if actual.startswith("{"):
-            return bool(qname(actual) == expected)
-        prefix, sep, local_name = actual.rpartition(":")
-        if (
-                # An unprefixed suite QName is only in the testcase's default namespace, so its text is the code.
-                (not sep and _same_literal(str(expected), actual)) or
-                (expected == qname(XbrlConst.errMsgPrefixNS.get(prefix) or
-                           (prefix == expected.prefix and expected.namespaceURI),
-                           local_name)) or
-                # XDT xml schema tests expected results
-                (expected.namespaceURI == XbrlConst.xdtSchemaErrorNS and prefix == "xmlSchema")
-        ):
-            matched = True
-    elif _same_literal(expected, actual):
-        matched = True
-    return matched
+    return _same_code(expected, actual)
 
 
 def _formula_assertion_counts_match(expected: dict[str, tuple[int, int]], actual: dict[str, tuple[int, ...]]) -> bool:
     # Arelle reports ok, warning and error message counts after the satisfied and not satisfied counts suites list.
     return {assertion_id: counts[:2] for assertion_id, counts in actual.items()} == expected
+
+
+def _same_code(expected: QName | str, actual: str) -> bool:
+    if isinstance(expected, QName):
+        if actual.startswith("{"):
+            return bool(qname(actual) == expected)
+        prefix, sep, local_name = actual.rpartition(":")
+        if sep:
+            return _resolves_to(expected, prefix, local_name)
+    # Arelle codes without a namespace can only be compared as text. The text of a suite QName without a prefix is
+    # its local name, since the testcase's default namespace isn't an error namespace.
+    return _same_literal(str(expected), actual)
+
+
+def _resolves_to(expected: QName, prefix: str, local_name: str) -> bool:
+    # Arelle's prefixes aren't declared, so one the suite also uses is taken to mean the same namespace.
+    namespace_uri = XbrlConst.errMsgPrefixNS.get(prefix) or (expected.namespaceURI if prefix == expected.prefix else None)
+    if not namespace_uri or namespace_uri != expected.namespaceURI:
+        return False
+    # The generic schema error namespace stands for any XML schema error.
+    if namespace_uri == XbrlConst.xdtSchemaErrorNS:
+        return True
+    return local_name == expected.localName
 
 
 def _same_literal(expected: str, actual: str) -> bool:

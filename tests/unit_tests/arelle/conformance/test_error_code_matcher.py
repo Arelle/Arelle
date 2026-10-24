@@ -43,8 +43,10 @@ def suite_code(local_name: str, prefix: str | None = None, namespace_uri: str = 
         (suite_code("aspect-issues", "eg", "http://abc.com/test1"), "eg:aspect-issues", True),
         (suite_code("aspect-issues", "eg", "http://abc.com/test1"), "{http://abc.com/test1}aspect-issues", True),
         (suite_code("aspect-issues", "eg", "http://abc.com/test1"), "{http://abc.com/test2}aspect-issues", False),
+        (suite_code("aspect-issues", "eg", "http://abc.com/test1"), "undeclared:aspect-issues", False),
         (suite_code("FORG0001", "err", XbrlConst.xpath2err), "err:FORG0001", True),
-        (suite_code("valueError", namespace_uri=XbrlConst.xdtSchemaErrorNS), "xmlSchema:valueError", True),
+        (suite_code("XmlSchemaError", "sche", XbrlConst.xdtSchemaErrorNS), "xmlSchema:valueError", True),
+        (suite_code("XmlSchemaError", "sche", XbrlConst.xdtSchemaErrorNS), "xbrldte:PrimaryItemDimensionallyInvalidError", False),
         # EFM and EXG codes are hierarchical.
         ("EFM.6.05.20", "EFM.6.05.20.periodStartLabel", True),
         ("EXG.3.05", "EXG.3.05.EX98SPACFactsDependency", True),
