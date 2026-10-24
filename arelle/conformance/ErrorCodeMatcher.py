@@ -15,46 +15,46 @@ RULE_REFERENCED_CODE_PREFIXES = ("ESEF.", "NL.NL-KVK")
 HIERARCHICAL_CODE_PREFIXES = ("EFM.", "EXG.")
 
 
-def errorCodeMatches(_exp: Any, testErr: Any) -> bool:
+def errorCodeMatches(expected: Any, actual: Any) -> bool:
     """
     Whether an error code (or assertion result) reported by Arelle satisfies one listed by a conformance suite.
     """
-    _expMatched = False
-    if isinstance(_exp,QName) and isinstance(testErr,str):
-        if testErr.startswith("{"):
-            return bool(qname(testErr) == _exp)
-        errPrefix, sep, errLocalName = testErr.rpartition(":")
+    matched = False
+    if isinstance(expected,QName) and isinstance(actual,str):
+        if actual.startswith("{"):
+            return bool(qname(actual) == expected)
+        prefix, sep, localName = actual.rpartition(":")
         if (
                 # An unprefixed suite QName is only in the testcase's default namespace, so its text is the code.
-                (not sep and _sameLiteral(str(_exp), testErr)) or
-                (_exp == qname(XbrlConst.errMsgPrefixNS.get(errPrefix) or
-                           (errPrefix == _exp.prefix and _exp.namespaceURI),
-                           errLocalName)) or
+                (not sep and _sameLiteral(str(expected), actual)) or
+                (expected == qname(XbrlConst.errMsgPrefixNS.get(prefix) or
+                           (prefix == expected.prefix and expected.namespaceURI),
+                           localName)) or
                 # XDT xml schema tests expected results
-                (_exp.namespaceURI == XbrlConst.xdtSchemaErrorNS and errPrefix == "xmlSchema") or
+                (expected.namespaceURI == XbrlConst.xdtSchemaErrorNS and prefix == "xmlSchema") or
                 # UKSEF conformance suite expects XML schema validation errors in format xbrl.core.xml.SchemaValidationError.*
                 # Example: tests/FRC/FRC_08/index.xml:TC2_invalid
-                (_exp.localName.startswith("xbrl.core.xml.SchemaValidationError.cvc") and errPrefix == "xmlSchema")
+                (expected.localName.startswith("xbrl.core.xml.SchemaValidationError.cvc") and prefix == "xmlSchema")
         ):
-            _expMatched = True
-    elif type(testErr) is type(_exp):
-        if isinstance(testErr,dict):
-            if len(testErr) == len(_exp) and all(
-                k in testErr and counts == testErr[k][:len(counts)]
-                for k, counts in _exp.items()):
-                _expMatched = True
-        elif (testErr == _exp or
-            (isinstance(_exp, str) and (
-             _sameLiteral(_exp, testErr) or
-             (_exp == "html:syntaxError" and testErr.startswith("lxml.SCHEMA")) or
-             (_exp == "EFM.6.03.04" and testErr.startswith("xmlSchema:")) or
-             (_exp == "EFM.6.03.05" and (testErr.startswith("xmlSchema:") or testErr == "EFM.5.02.01.01")) or
-             (_exp == "EFM.6.04.03" and (testErr.startswith("xmlSchema:") or testErr.startswith("utr:") or testErr.startswith("xbrl.") or testErr.startswith("xlink:"))) or
-             (_exp == "EFM.6.05.35" and testErr.startswith("utre:")) or
-             (_exp == "vere:invalidDTSIdentifier" and testErr.startswith("xbrl"))
+            matched = True
+    elif type(actual) is type(expected):
+        if isinstance(actual,dict):
+            if len(actual) == len(expected) and all(
+                k in actual and counts == actual[k][:len(counts)]
+                for k, counts in expected.items()):
+                matched = True
+        elif (actual == expected or
+            (isinstance(expected, str) and (
+             _sameLiteral(expected, actual) or
+             (expected == "html:syntaxError" and actual.startswith("lxml.SCHEMA")) or
+             (expected == "EFM.6.03.04" and actual.startswith("xmlSchema:")) or
+             (expected == "EFM.6.03.05" and (actual.startswith("xmlSchema:") or actual == "EFM.5.02.01.01")) or
+             (expected == "EFM.6.04.03" and (actual.startswith("xmlSchema:") or actual.startswith("utr:") or actual.startswith("xbrl.") or actual.startswith("xlink:"))) or
+             (expected == "EFM.6.05.35" and actual.startswith("utre:")) or
+             (expected == "vere:invalidDTSIdentifier" and actual.startswith("xbrl"))
              ))):
-            _expMatched = True
-    return _expMatched
+            matched = True
+    return matched
 
 
 def _sameLiteral(expected: str, actual: str) -> bool:
