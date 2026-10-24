@@ -3,10 +3,13 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-from typing import Any
+from collections.abc import Sequence
+from typing import Any, TypeVar
 
 from arelle import XbrlConst
 from arelle.ModelValue import QName, qname
+
+ErrorT = TypeVar("ErrorT")
 
 # Arelle starts these codes with a reference to the rule that reports them, which suites leave out or qualify differently.
 RULE_REFERENCED_CODE_PREFIXES = ("ESEF.", "NL.NL-KVK")
@@ -46,6 +49,18 @@ def error_code_matches(expected: Any, actual: Any) -> bool:
     if actual in SUITE_CODE_ALTERNATIVES.get(str(expected), ()):
         return True
     return _same_code(expected, actual)
+
+
+def filter_ignored_errors(errors: list[ErrorT], ignored_codes: Sequence[QName | str], suite_expected_codes: Sequence[QName | str]) -> list[ErrorT]:
+    """
+    Remove errors matching a code the conformance suite ignores, unless they also match a code the suite itself expects.
+    Some variations ignore a code they also expect.
+    """
+    return [
+        error for error in errors
+        if not any(error_code_matches(ignored_code, error) for ignored_code in ignored_codes)
+        or any(error_code_matches(expected_code, error) for expected_code in suite_expected_codes)
+    ]
 
 
 def _formula_assertion_counts_match(expected: dict[str, tuple[int, int]], actual: dict[str, tuple[int, ...]]) -> bool:

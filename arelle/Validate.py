@@ -25,7 +25,7 @@ from arelle.ModelRssObject import ModelRssObject
 from arelle.PythonUtil import isLegacyAbs
 from arelle.ValidateFileSource import ValidateFileSource, isPackage
 from arelle.ValidateXbrlCalcs import ValidateCalcsMode
-from arelle.conformance.error_code_matcher import error_code_matches
+from arelle.conformance.error_code_matcher import error_code_matches, filter_ignored_errors
 from arelle.formula import ValidateFormula
 from arelle.FileSource import FileSource, openFileSource, archiveFilenameParts
 from arelle.ModelDocument import (
@@ -789,11 +789,10 @@ class Validate:
             _blockPattern = re.compile(_blockedMessageCodes)
             _errors = [e for e in errors if isinstance(e,str) and not _blockPattern.match(e)]
         else:
-            _errors = errors  # type: ignore[assignment]
+            _errors = errors.copy()  # type: ignore[assignment]
         _errors.extend(self.modelXbrl.modelManager.cntlr.errors)  # type: ignore[arg-type]
-        numErrors = sum(isinstance(e,(QName,str)) for e in _errors) # does not include assertion dict results
-        hasAssertionResult = any(isinstance(e,dict) for e in _errors)
         expected = modelTestcaseVariation.expected
+        suiteExpectedCodes = expected if isinstance(expected, list) else [expected] if isinstance(expected, (QName, str)) else []
         expectedCount = modelTestcaseVariation.expectedCount
         userExpectedErrors = modelTestcaseVariation.setUserExpectedErrors(testcaseExpectedErrors, self.useFileSource).copy()
         if userExpectedErrors:
@@ -807,6 +806,12 @@ class Validate:
             expected.extend(userExpectedErrors)  # type: ignore[union-attr]
             if expectedCount is not None:
                 expectedCount += len(userExpectedErrors)
+        ignoredErrors = modelTestcaseVariation.ignoredErrors
+        if ignoredErrors:
+            # Codes the config expects in addition can't bring back an error the suite ignores.
+            _errors = filter_ignored_errors(_errors, ignoredErrors, suiteExpectedCodes)
+        numErrors = sum(isinstance(e,(QName,str)) for e in _errors) # does not include assertion dict results
+        hasAssertionResult = any(isinstance(e,dict) for e in _errors)
         if matchAllExpected:
             if isinstance(expected, list):
                 if not expectedCount:

@@ -7,7 +7,7 @@ import pytest
 
 from arelle import XbrlConst
 from arelle.ModelValue import QName
-from arelle.conformance.error_code_matcher import error_code_matches
+from arelle.conformance.error_code_matcher import error_code_matches, filter_ignored_errors
 
 CONFORMANCE_NS = "http://xbrl.org/2008/conformance"
 
@@ -85,3 +85,32 @@ def suite_code(local_name: str, prefix: str | None = None, namespace_uri: str = 
 )
 def test_error_code_matches(expected: Any, actual: Any, matches: bool) -> None:
     assert error_code_matches(expected, actual) is matches
+
+
+def test_filter_ignored_errors_removes_ignored() -> None:
+    errors: list[Any] = [
+        "ESEF.UKFRC17.reportPackageNameDoesNotFollowNamingConvention",
+        "ESEF.UKFRC8.segmentUsed",
+        "ESEF.UKFRC1.incorrectTarget",
+        {"assertion": (1, 0, 0, 0, 0)},
+    ]
+    ignored = [
+        suite_code("xbrl.efr.esef.uk.reportPackageNameDoesNotFollowNamingConvention"),
+        suite_code("xbrl.efr.esef.esma.segmentUsed"),
+    ]
+    assert filter_ignored_errors(errors, ignored, []) == [
+        "ESEF.UKFRC1.incorrectTarget",
+        {"assertion": (1, 0, 0, 0, 0)},
+    ]
+
+
+def test_filter_ignored_errors_keeps_the_other_authoritys_error() -> None:
+    errors: list[Any] = ["ESEF.UKFRC18.reportFileNameDoesNotFollowNamingConvention"]
+    ignored = [suite_code("xbrl.efr.esef.esma.reportFileNameDoesNotFollowNamingConvention")]
+    assert filter_ignored_errors(errors, ignored, []) == errors
+
+
+def test_filter_ignored_errors_keeps_an_ignored_error_the_suite_expects() -> None:
+    errors: list[Any] = ["ESEF.UKFRC15.imageDoesNotMatchItsFileExtension"]
+    code = suite_code("xbrl.efr.esef.esma.imageDoesNotMatchItsFileExtension")
+    assert filter_ignored_errors(errors, [code], [code]) == errors
