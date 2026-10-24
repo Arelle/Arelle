@@ -14,6 +14,20 @@ RULE_REFERENCED_CODE_PREFIXES = ("ESEF.", "NL.NL-KVK")
 # Hierarchical codes where Arelle reports a more specific code below the one a suite expects.
 HIERARCHICAL_CODE_PREFIXES = ("EFM.", "EXG.")
 
+# Suite codes that Arelle reports as a different code, mapped to the codes that satisfy them.
+SUITE_CODE_ALTERNATIVES: dict[str, frozenset[str]] = {
+    # EFM suites expect an HTML syntax error where Arelle reports XHTML schema validation errors.
+    "html:syntaxError": frozenset({"lxml.SCHEMAV_CVC_COMPLEX_TYPE_3_2_1", "lxml.SCHEMAV_ELEMENT_CONTENT"}),
+    # EFM rules that Arelle reports as the underlying schema or unit registry error.
+    "EFM.6.03.04": frozenset({"xmlSchema:syntax"}),
+    "EFM.6.03.05": frozenset({"xmlSchema:syntax", "EFM.5.02.01.01"}),
+    "EFM.6.04.03": frozenset({"xmlSchema:valueError"}),
+    "EFM.6.05.35": frozenset({"utre:error-NumericFactUtrInvalid"}),
+    # UKSEF names schema errors after the constraint they violate.
+    # Example: tests/FRC/FRC_08/index.xml:TC2_invalid
+    "xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a": frozenset({"xmlSchema:elementUnexpected"}),
+}
+
 
 def errorCodeMatches(expected: Any, actual: Any) -> bool:
     """
@@ -23,7 +37,7 @@ def errorCodeMatches(expected: Any, actual: Any) -> bool:
         return isinstance(expected, dict) and isinstance(actual, dict) and _assertionCountsMatch(expected, actual)
     if not isinstance(actual, str) or not isinstance(expected, (QName, str)):
         return bool(actual == expected)
-    return _sameCode(expected, actual) or _satisfiesBroaderCode(expected, actual)
+    return _sameCode(expected, actual) or actual in SUITE_CODE_ALTERNATIVES.get(str(expected), ())
 
 
 def _assertionCountsMatch(expected: dict[str, Any], actual: dict[str, Any]) -> bool:
@@ -46,7 +60,10 @@ def _sameCode(expected: QName | str, actual: str) -> bool:
 def _resolvesTo(expected: QName, prefix: str, localName: str) -> bool:
     # Arelle's prefixes aren't declared, so one the suite also uses is taken to mean the same namespace.
     namespaceURI = XbrlConst.errMsgPrefixNS.get(prefix) or (expected.namespaceURI if prefix == expected.prefix else None)
-    return bool(namespaceURI) and namespaceURI == expected.namespaceURI and localName == expected.localName
+    if not namespaceURI or namespaceURI != expected.namespaceURI:
+        return False
+    # The generic schema error namespace stands for any XML schema error.
+    return localName == expected.localName or namespaceURI == XbrlConst.xdtSchemaErrorNS
 
 
 def _sameLiteral(expected: str, actual: str) -> bool:
@@ -56,22 +73,3 @@ def _sameLiteral(expected: str, actual: str) -> bool:
         return True
     # Suites may qualify the name differently, such as xbrl.efr.esef.uk.name for ESEF.UKFRC1.name.
     return actual.startswith(RULE_REFERENCED_CODE_PREFIXES) and actual.rpartition(".")[2] == expected.rpartition(".")[2]
-
-
-def _satisfiesBroaderCode(expected: QName | str, actual: str) -> bool:
-    if isinstance(expected, QName):
-        return actual.rpartition(":")[0] == "xmlSchema" and (
-            # XDT xml schema tests expected results
-            expected.namespaceURI == XbrlConst.xdtSchemaErrorNS or
-            # UKSEF conformance suite expects XML schema validation errors in format xbrl.core.xml.SchemaValidationError.*
-            # Example: tests/FRC/FRC_08/index.xml:TC2_invalid
-            expected.localName.startswith("xbrl.core.xml.SchemaValidationError.cvc")
-        )
-    return (
-        (expected == "html:syntaxError" and actual.startswith("lxml.SCHEMA")) or
-        (expected == "EFM.6.03.04" and actual.startswith("xmlSchema:")) or
-        (expected == "EFM.6.03.05" and (actual.startswith("xmlSchema:") or actual == "EFM.5.02.01.01")) or
-        (expected == "EFM.6.04.03" and (actual.startswith("xmlSchema:") or actual.startswith("utr:") or actual.startswith("xbrl.") or actual.startswith("xlink:"))) or
-        (expected == "EFM.6.05.35" and actual.startswith("utre:")) or
-        (expected == "vere:invalidDTSIdentifier" and actual.startswith("xbrl"))
-    )

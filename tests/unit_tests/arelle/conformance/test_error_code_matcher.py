@@ -36,7 +36,6 @@ def suiteCode(localName: str, prefix: str | None = None, namespaceURI: str = CON
         (suiteCode("xbrl.efr.esef.esma.segmentUsed"), "ESEF.UKFRC8.segmentUsed", True),
         (suiteCode("xbrl.efr.esef.esma.UsableConceptsNotAppliedByTaggedFacts"), "ESEF.3.4.2.UsableConceptsNotAppliedByTaggedFacts", True),
         (suiteCode("xbrl.efr.esef.uk.incorrectTarget"), "ESEF.UKFRC1.noUKFRSData", False),
-        (suiteCode("xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a"), "xmlSchema:elementUnexpected", True),
         # Prefixed codes resolve through the suite's namespaces.
         (suiteCode("PrimaryItemDimensionallyInvalidError", "xbrldie", "http://xbrl.org/2005/xbrldi/errors"), "xbrldie:PrimaryItemDimensionallyInvalidError", True),
         (suiteCode("PrimaryItemDimensionallyInvalidError", "xbrldie", "http://xbrl.org/2005/xbrldi/errors"), "xbrldte:PrimaryItemDimensionallyInvalidError", False),
@@ -44,14 +43,24 @@ def suiteCode(localName: str, prefix: str | None = None, namespaceURI: str = CON
         (suiteCode("aspect-issues", "eg", "http://abc.com/test1"), "{http://abc.com/test1}aspect-issues", True),
         (suiteCode("aspect-issues", "eg", "http://abc.com/test1"), "{http://abc.com/test2}aspect-issues", False),
         (suiteCode("FORG0001", "err", XbrlConst.xpath2err), "err:FORG0001", True),
-        (suiteCode("valueError", namespaceURI=XbrlConst.xdtSchemaErrorNS), "xmlSchema:valueError", True),
+        (suiteCode("XmlSchemaError", "sche", XbrlConst.xdtSchemaErrorNS), "xmlSchema:valueError", True),
+        (suiteCode("XmlSchemaError", "sche", XbrlConst.xdtSchemaErrorNS), "xbrldte:PrimaryItemDimensionallyInvalidError", False),
         # EFM and EXG codes are hierarchical.
         ("EFM.6.05.20", "EFM.6.05.20.periodStartLabel", True),
         ("EXG.3.05", "EXG.3.05.EX98SPACFactsDependency", True),
         ("EFM.6.05.2", "EFM.6.05.20.documentTypeValue", False),
-        # Plain string codes.
-        ("EFM.6.03.04", "xmlSchema:valueError", True),
+        # Suite codes that Arelle reports as a different code.
         ("html:syntaxError", "lxml.SCHEMAV_ELEMENT_CONTENT", True),
+        ("html:syntaxError", "lxml.SCHEMAP_SRC_IMPORT", False),
+        ("EFM.6.03.04", "xmlSchema:syntax", True),
+        ("EFM.6.03.04", "xmlSchema:valueError", False),
+        ("EFM.6.03.05", "EFM.5.02.01.01", True),
+        ("EFM.6.03.05", "EFM.5.02.01.011", False),
+        ("EFM.6.04.03", "xmlSchema:valueError", True),
+        ("EFM.6.05.35", "utre:error-NumericFactUtrInvalid", True),
+        (suiteCode("xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a"), "xmlSchema:elementUnexpected", True),
+        (suiteCode("xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a"), "lxml.SCHEMAV_ELEMENT_CONTENT", False),
+        # Plain string codes.
         ("xbrl:multipleTopLevelSchemasForNamespace", "xbrl:multipleTopLevelSchemasForNamespace", True),
         ("xbrl:multipleTopLevelSchemasForNamespace", "info:duplicatedSchema", False),
         # Assertion results.
