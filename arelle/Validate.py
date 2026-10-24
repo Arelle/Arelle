@@ -830,7 +830,9 @@ class Validate:
                 expected = []
             elif isinstance(expected, list):
                 expected = expected.copy()
-            expected.extend(userExpectedErrors)  # type: ignore[union-attr]
+            elif isinstance(expected, dict):
+                expected = [expected]  # type: ignore[list-item]
+            expected.extend(userExpectedErrors)
             if expectedCount is not None:
                 expectedCount += len(userExpectedErrors)
         ignoredErrors = modelTestcaseVariation.ignoredErrors
@@ -889,7 +891,8 @@ class Validate:
                 else:
                     status = "pass"
             if not _errors and status == "fail":
-                if modelTestcaseVariation.assertions:
+                # Prior assertion results can't satisfy other expected codes, which a later instance without errors didn't raise.
+                if modelTestcaseVariation.assertions and len(expected) == 1:
                     _expected = expected[0] if isinstance(expected, list) else expected
                     if error_code_matches(_expected, modelTestcaseVariation.assertions):
                         status = "pass" # passing was previously successful and no further errors
