@@ -5,12 +5,8 @@ from __future__ import annotations
 
 from typing import Any
 
-import regex as re
-
 from arelle import XbrlConst
 from arelle.ModelValue import QName, qname
-
-commaSpaceSplitPattern = re.compile(r",\s*")
 
 
 def errorCodeMatches(_exp: Any, testErr: Any) -> bool:
@@ -28,8 +24,8 @@ def errorCodeMatches(_exp: Any, testErr: Any) -> bool:
             return bool(qname(testErr) == _exp)
         errPrefix, sep, errLocalName = testErr.rpartition(":")
         if (
-                # ESEF has comma separated list of localnames of errors
-                (not sep and errLocalName in commaSpaceSplitPattern.split(_exp.localName.strip())) or
+                # An unprefixed suite QName is only in the testcase's default namespace, so its text is the code.
+                (not sep and testErr == str(_exp)) or
                 (_exp == qname(XbrlConst.errMsgPrefixNS.get(errPrefix) or
                            (errPrefix == _exp.prefix and _exp.namespaceURI),
                            errLocalName)) or
