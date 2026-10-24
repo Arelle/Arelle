@@ -23,20 +23,7 @@ def errorCodeMatches(expected: Any, actual: Any) -> bool:
         return isinstance(expected, dict) and isinstance(actual, dict) and _assertionCountsMatch(expected, actual)
     if not isinstance(actual, str) or not isinstance(expected, (QName, str)):
         return bool(actual == expected)
-    if _satisfiesBroaderCode(expected, actual):
-        return True
-    if isinstance(expected, QName):
-        if actual.startswith("{"):
-            return bool(qname(actual) == expected)
-        prefix, sep, localName = actual.rpartition(":")
-        return (
-                # An unprefixed suite QName is only in the testcase's default namespace, so its text is the code.
-                (not sep and _sameLiteral(str(expected), actual)) or
-                (expected == qname(XbrlConst.errMsgPrefixNS.get(prefix) or
-                           (prefix == expected.prefix and expected.namespaceURI),
-                           localName))
-        )
-    return _sameLiteral(expected, actual)
+    return _sameCode(expected, actual) or _satisfiesBroaderCode(expected, actual)
 
 
 def _assertionCountsMatch(expected: dict[str, Any], actual: dict[str, Any]) -> bool:
@@ -44,6 +31,22 @@ def _assertionCountsMatch(expected: dict[str, Any], actual: dict[str, Any]) -> b
         assertionId in actual and counts == actual[assertionId][:len(counts)]
         for assertionId, counts in expected.items()
     )
+
+
+def _sameCode(expected: QName | str, actual: str) -> bool:
+    if actual.startswith("{") and isinstance(expected, QName):
+        return bool(qname(actual) == expected)
+    prefix, sep, localName = actual.rpartition(":")
+    if sep and isinstance(expected, QName):
+        return _resolvesTo(expected, prefix, localName)
+    # An unprefixed suite QName is only in the testcase's default namespace, so its text is the code.
+    return _sameLiteral(str(expected), actual)
+
+
+def _resolvesTo(expected: QName, prefix: str, localName: str) -> bool:
+    # Arelle's prefixes aren't declared, so one the suite also uses is taken to mean the same namespace.
+    namespaceURI = XbrlConst.errMsgPrefixNS.get(prefix) or (expected.namespaceURI if prefix == expected.prefix else None)
+    return bool(namespaceURI) and namespaceURI == expected.namespaceURI and localName == expected.localName
 
 
 def _sameLiteral(expected: str, actual: str) -> bool:
