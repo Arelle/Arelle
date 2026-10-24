@@ -45,8 +45,11 @@ def suiteCode(localName: str, prefix: str | None = None, namespaceURI: str = CON
         (suiteCode("aspect-issues", "eg", "http://abc.com/test1"), "{http://abc.com/test2}aspect-issues", False),
         (suiteCode("FORG0001", "err", XbrlConst.xpath2err), "err:FORG0001", True),
         (suiteCode("valueError", namespaceURI=XbrlConst.xdtSchemaErrorNS), "xmlSchema:valueError", True),
-        # Plain string codes.
+        # EFM and EXG codes are hierarchical.
         ("EFM.6.05.20", "EFM.6.05.20.periodStartLabel", True),
+        ("EXG.3.05", "EXG.3.05.EX98SPACFactsDependency", True),
+        ("EFM.6.05.2", "EFM.6.05.20.documentTypeValue", False),
+        # Plain string codes.
         ("EFM.6.03.04", "xmlSchema:valueError", True),
         ("html:syntaxError", "lxml.SCHEMAV_ELEMENT_CONTENT", True),
         ("xbrl:multipleTopLevelSchemasForNamespace", "xbrl:multipleTopLevelSchemasForNamespace", True),

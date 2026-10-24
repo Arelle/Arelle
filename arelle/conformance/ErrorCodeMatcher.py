@@ -11,6 +11,9 @@ from arelle.ModelValue import QName, qname
 # Arelle starts these codes with a reference to the rule that reports them, which suites leave out or qualify differently.
 RULE_REFERENCED_CODE_PREFIXES = ("ESEF.", "NL.NL-KVK")
 
+# Hierarchical codes where Arelle reports a more specific code below the one a suite expects.
+HIERARCHICAL_CODE_PREFIXES = ("EFM.", "EXG.")
+
 
 def errorCodeMatches(_exp: Any, testErr: Any) -> bool:
     """
@@ -48,8 +51,6 @@ def errorCodeMatches(_exp: Any, testErr: Any) -> bool:
              (_exp == "EFM.6.03.05" and (testErr.startswith("xmlSchema:") or testErr == "EFM.5.02.01.01")) or
              (_exp == "EFM.6.04.03" and (testErr.startswith("xmlSchema:") or testErr.startswith("utr:") or testErr.startswith("xbrl.") or testErr.startswith("xlink:"))) or
              (_exp == "EFM.6.05.35" and testErr.startswith("utre:")) or
-             (_exp.startswith("EFM.") and testErr.startswith(_exp)) or
-             (_exp.startswith("EXG.") and testErr.startswith(_exp)) or
              (_exp == "vere:invalidDTSIdentifier" and testErr.startswith("xbrl"))
              ))):
             _expMatched = True
@@ -58,6 +59,8 @@ def errorCodeMatches(_exp: Any, testErr: Any) -> bool:
 
 def _sameLiteral(expected: str, actual: str) -> bool:
     if actual == expected:
+        return True
+    if expected.startswith(HIERARCHICAL_CODE_PREFIXES) and actual.startswith(expected + "."):
         return True
     # Suites may qualify the name differently, such as xbrl.efr.esef.uk.name for ESEF.UKFRC1.name.
     return actual.startswith(RULE_REFERENCED_CODE_PREFIXES) and actual.rpartition(".")[2] == expected.rpartition(".")[2]
