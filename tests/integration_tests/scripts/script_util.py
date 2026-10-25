@@ -87,7 +87,7 @@ def _get_arelle_args(
     if plugins:
         args.append(f"--plugins={'|'.join(plugins)}")
     if offline:
-        args.append("--internetConnectivity=offline")
+        args.append("--workOffline")
     args.extend(additional_args or [])
     if logFile:
         args.extend(["--logFile", str(logFile)])

@@ -49,7 +49,7 @@ print(f"Validating report: {target_path}")
 options = RuntimeOptions(
     entrypointFile=str(report_zip_path),
     disclosureSystemName="esef-2024",
-    internetConnectivity="offline",
+    workOffline=True,
     logFile=str(arelle_log_file),
     logFormat="[%(messageCode)s] %(message)s - %(file)s",
     packages=package_paths,

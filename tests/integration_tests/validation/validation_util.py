@@ -325,7 +325,7 @@ def get_conformance_suite_arguments(config: ConformanceSuiteConfig, filename: st
             "--logFile", f"conf-{config.name}{shard_str}-log.txt",
         ])
     if offline or config.runs_without_network:
-        args.extend(["--internetConnectivity", "offline"])
+        args.append("--workOffline")
     for pattern in testcase_filters:
         args.extend(["--testcaseFilter", pattern])
     for testcase_id, errorCounts in expected_additional_testcase_errors.items():

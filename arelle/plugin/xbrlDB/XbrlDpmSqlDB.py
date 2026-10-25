@@ -42,7 +42,7 @@ windows
    arelleCmdLine -f http://sec.org/somewhere/some.rss -v --store-to-XBRL-DB "myserver.com,portnumber,pguser,pgpasswd,database,timeoutseconds"
 
 concrete example:
-   python3.4 arelleCmdLine.py -f "/Users/hermf/Documents/mvsl/projects/EIOPA/xbrt/13. XBRL Instance Documents/1.5.2 (generated with DPM Architect)/arg.xbrl"  --formula none --store-to-XBRL-DB ",,,,/users/hermf/temp/DBtest5.xbrt,90,sqliteDpmDB" --internetConnectivity offline --skipDT --plugins logging/dpmSignature.pyS
+   python3.4 arelleCmdLine.py -f "/Users/hermf/Documents/mvsl/projects/EIOPA/xbrt/13. XBRL Instance Documents/1.5.2 (generated with DPM Architect)/arg.xbrl"  --formula none --store-to-XBRL-DB ",,,,/users/hermf/temp/DBtest5.xbrt,90,sqliteDpmDB" --workOffline --skipDT --plugins logging/dpmSignature.pyS
 
 '''
 
