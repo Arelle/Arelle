@@ -64,7 +64,7 @@ from arelle.ValidateFileSource import ValidateFileSource, isPackage
 from arelle.oim.xml.Save import saveOimReportToXmlInstance
 from arelle.rendering import RenderingEvaluator
 from arelle.RuntimeOptions import RuntimeOptions, RuntimeOptionsException
-from arelle.SocketUtils import INTERNET_CONNECTIVITY, OFFLINE
+from arelle.SocketUtils import INTERNET_CONNECTIVITY, OFFLINE, WORK_OFFLINE
 from arelle.SystemInfo import PlatformOS, getSystemInfo, getSystemWordSize, hasWebServer, isCGI, isGAE
 from arelle.typing import TypeGetText
 from arelle.utils.EntryPointDetection import parseEntrypointFileInput
@@ -1216,7 +1216,14 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict[str, Any]]:
         f"--{INTERNET_CONNECTIVITY.lower()}",
         choices=("online", OFFLINE),
         dest="internetConnectivity",
-        help=_("Specify internet connectivity: `online` or `offline`")
+        help=_("Deprecated - use --workOffline. Specify internet connectivity: `online` or `offline`")
+        )
+    internetConnectivityGroup.add_option(
+        f"--{WORK_OFFLINE}",
+        f"--{WORK_OFFLINE.lower()}",
+        action="store_true",
+        dest="workOffline",
+        help=_("Work offline, loading taxonomies and reports only from the local filesystem.")
         )
     internetConnectivityGroup.add_option(
         "--internetTimeout",
@@ -1698,10 +1705,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
         # Some options below (e.g. `packages`) may trigger web requests,
         # so the `workOffline` flag needs to be set early on.
-        if options.internetConnectivity == "offline":
-            self.webCache.workOffline = True
-        elif options.internetConnectivity == "online":
-            self.webCache.workOffline = False
+        if options.workOffline is not None:
+            self.webCache.workOffline = options.workOffline
 
         if options.proxy:
             if options.proxy != "show":

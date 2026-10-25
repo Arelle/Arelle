@@ -6,6 +6,7 @@ import socket
 
 INTERNET_CONNECTIVITY = "internetConnectivity"
 OFFLINE = "offline"
+WORK_OFFLINE = "workOffline"
 
 
 class WarnSocket(socket.socket):

@@ -15,20 +15,23 @@ if sys.platform == "darwin" and getattr(sys, "frozen", False):
 
 import regex as re
 
-from arelle.SocketUtils import INTERNET_CONNECTIVITY, OFFLINE, warnSocket
+from arelle.SocketUtils import INTERNET_CONNECTIVITY, OFFLINE, WORK_OFFLINE, warnSocket
 
 internetConnectivityArgPattern = rf"--({INTERNET_CONNECTIVITY}|{INTERNET_CONNECTIVITY.lower()})"
 internetConnectivityArgRegex = re.compile(internetConnectivityArgPattern)
-internetConnectivityOfflineEqualsRegex = re.compile(f"{internetConnectivityArgPattern}={OFFLINE}")
+internetConnectivityEqualsRegex = re.compile(rf"{internetConnectivityArgPattern}=(.*)")
+workOffline = False
 prevArg = ""
 for arg in sys.argv[1:]:
-    if (
-            internetConnectivityOfflineEqualsRegex.fullmatch(arg)
-            or (internetConnectivityArgRegex.fullmatch(prevArg) and arg == OFFLINE)
-    ):
-        warnSocket()
-        break
+    if arg in (f"--{WORK_OFFLINE}", f"--{WORK_OFFLINE.lower()}"):
+        workOffline = True
+    elif match := internetConnectivityEqualsRegex.fullmatch(arg):
+        workOffline = match.group(2) == OFFLINE
+    elif internetConnectivityArgRegex.fullmatch(prevArg):
+        workOffline = arg == OFFLINE
     prevArg = arg
+if workOffline:
+    warnSocket()
 
 from arelle import CntlrCmdLine
 
