@@ -1228,11 +1228,11 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict[str, Any]]:
     internetConnectivityGroup.add_option(
         "--internetRecheck",
         "--internetrecheck",
-        choices=("weekly", "daily", "never", "hourly", "quarter-hourly"),
+        choices=("monthly", "weekly", "daily", "never", "hourly", "quarter-hourly"),
         action="store",
         dest="internetRecheck",
         help=_(
-            "Specify rechecking for newer cache files 'quarter-hourly', `hourly`, `daily`, `weekly` or `never`."
+            "Specify rechecking for newer cache files 'quarter-hourly', `hourly`, `daily`, `weekly`, `monthly` or `never`."
             )
         )
     internetConnectivityGroup.add_option(
