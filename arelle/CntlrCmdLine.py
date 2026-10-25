@@ -64,7 +64,7 @@ from arelle.ValidateFileSource import ValidateFileSource, isPackage
 from arelle.oim.xml.Save import saveOimReportToXmlInstance
 from arelle.rendering import RenderingEvaluator
 from arelle.RuntimeOptions import RuntimeOptions, RuntimeOptionsException
-from arelle.SocketUtils import INTERNET_CONNECTIVITY, OFFLINE, WORK_OFFLINE
+from arelle.SocketUtils import INTERNET_CONNECTIVITY, OFFLINE, WORK_OFFLINE, WORK_ONLINE
 from arelle.SystemInfo import PlatformOS, getSystemInfo, getSystemWordSize, hasWebServer, isCGI, isGAE
 from arelle.typing import TypeGetText
 from arelle.utils.EntryPointDetection import parseEntrypointFileInput
@@ -1225,7 +1225,7 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict[str, Any]]:
         f"--{INTERNET_CONNECTIVITY.lower()}",
         choices=("online", OFFLINE),
         dest="internetConnectivity",
-        help=_("Deprecated - use --workOffline. Specify internet connectivity: `online` or `offline`")
+        help=_("Deprecated - use --workOffline or --workOnline. Specify internet connectivity: `online` or `offline`")
         )
     internetConnectivityGroup.add_option(
         f"--{WORK_OFFLINE}",
@@ -1233,6 +1233,16 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict[str, Any]]:
         action="store_true",
         dest="workOffline",
         help=_("Work offline, loading taxonomies and reports only from the local filesystem. Defaults to the {0} environment variable, if set.").format(WORK_OFFLINE_ENV_VAR)
+        )
+    internetConnectivityGroup.add_option(
+        f"--{WORK_ONLINE}",
+        f"--{WORK_ONLINE.lower()}",
+        action="store_false",
+        dest="workOffline",
+        help=_(
+            "Work online, downloading taxonomies and reports that are not in the cache. "
+            "This is the default unless the {0} environment variable is set, so this option can temporarily override it."
+            ).format(WORK_OFFLINE_ENV_VAR)
         )
     internetConnectivityGroup.add_option(
         "--internetTimeout",
