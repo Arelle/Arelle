@@ -11,7 +11,7 @@ config = ConformanceSuiteConfig(
         ConformanceSuiteAssetConfig.conformance_suite(
             Path("table-linkbase-conformance-2024-12-17.zip"),
             entry_point=Path("table-linkbase-conformance-2024-12-17/testcases-index.xml"),
-            public_download_url="https://www.xbrl.org/2015/table-linkbase-conformance-2024-12-17.zip",
+            public_download_url="https://www.xbrl.org/2024/table-linkbase-conformance-2024-12-17.zip",
             source=AssetSource.S3_PUBLIC,
         ),
     ],

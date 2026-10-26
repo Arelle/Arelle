@@ -45,6 +45,7 @@ from tests.integration_tests.validation.conformance_suite_configurations.xbrl_ex
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_extensible_enumerations_2_0 import config as xbrl_extensible_enumerations_2_0
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_formula_1_0 import config as xbrl_formula_1_0
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_formula_1_0_assertion_severity_2_0 import config as xbrl_formula_1_0_assertion_severity_2_0
+from tests.integration_tests.validation.conformance_suite_configurations.xbrl_ixbrl_1_0 import config as xbrl_ixbrl_1_0
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_ixbrl_1_1 import config as xbrl_ixbrl_1_1
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_link_role_registry_1_0 import config as xbrl_link_role_registry_1_0
 from tests.integration_tests.validation.conformance_suite_configurations.xbrl_oim_1_0 import config as xbrl_oim_1_0
@@ -102,6 +103,7 @@ ALL_CONFORMANCE_SUITE_CONFIGS: tuple[ConformanceSuiteConfig, ...] = (
     xbrl_extensible_enumerations_2_0,
     xbrl_formula_1_0,
     xbrl_formula_1_0_assertion_severity_2_0,
+    xbrl_ixbrl_1_0,
     xbrl_ixbrl_1_1,
     xbrl_link_role_registry_1_0,
     xbrl_oim_1_0,
