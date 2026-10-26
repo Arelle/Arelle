@@ -849,11 +849,8 @@ class Validate:
                     status = "pass"
             if not _errors and status == "fail":
                 if modelTestcaseVariation.assertions:
-                    priorAsserResults = modelTestcaseVariation.assertions
                     _expected = expected[0] if isinstance(expected, list) else expected
-                    if len(priorAsserResults) == len(_expected) and all(  # type: ignore[arg-type]
-                            k in priorAsserResults and counts == priorAsserResults[k][:len(counts)]
-                            for k, counts in _expected.items()):  # type: ignore[union-attr]
+                    if error_code_matches(_expected, modelTestcaseVariation.assertions):
                         status = "pass" # passing was previously successful and no further errors
                 elif (isinstance(expected,dict) and # no assertions fired, are all the expected zero counts?
                       all(countSatisfied == 0 and countNotSatisfied == 0 for countSatisfied, countNotSatisfied in expected.values())):
