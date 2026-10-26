@@ -406,6 +406,9 @@ class ModelObject(etree.ElementBase, ModelObjectBase):
     def __repr__(self) -> str:
         return ("{0}[{1}, {2} line {3})".format(type(self).__name__, self.objectIndex, self.modelDocument.basename, self.sourceline))
 
+    def __bool__(self) -> bool:
+        return True
+
 class ModelComment(etree.CommentBase):
     """ModelConcept is a custom proxy objects for etree.
     """
@@ -418,11 +421,17 @@ class ModelComment(etree.CommentBase):
     def init(self, modelDocument: ModelDocument) -> None:
         self.modelDocument = modelDocument
 
+    def __bool__(self) -> bool:
+        return True
+
 class ModelProcessingInstruction(etree.PIBase):
     """ModelProcessingInstruction is a custom proxy object for etree.
     """
     def _init(self) -> None:
         pass
+
+    def __bool__(self) -> bool:
+        return True
 
 class ModelAttribute:
     """
