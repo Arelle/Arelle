@@ -13,7 +13,7 @@ config = ConformanceSuiteConfig(
         ),
     ],
     base_taxonomy_validation="none",
-    disclosure_system="ird-2025-draft",
+    disclosure_system="ird-2025-preview",
     expected_additional_testcase_errors={f"*{s}": val for s, val in {
         # Invalid schema reference points to non-existent file, causing
         # "Instance fact missing schema definition" for 103 facts
