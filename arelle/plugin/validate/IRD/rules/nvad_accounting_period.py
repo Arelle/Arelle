@@ -21,8 +21,8 @@ from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
-from arelle.utils.validate.Facts import hasValidNonNilFactByQname, hasTrueValueFactByQname, getValidNonNilFactsByQname
 from arelle.utils.validate.Validation import Validation
+from . import flagTrueMissingFactValidation, factPresentFlagNotTrueValidation
 from . import getFactsByDateValue
 from ..DisclosureSystems import ALL_IRD_DISCLOSURE_SYSTEMS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
@@ -46,20 +46,16 @@ def rule_nvad_e_0130(
     ReasonsForTheChangeOfAccountingDate must also be tagged.
     """
     modelXbrl = val.modelXbrl
-    if not hasTrueValueFactByQname(modelXbrl, pluginData.accountingDateDifferentQn):
-        return
-
-    if not hasValidNonNilFactByQname(modelXbrl, pluginData.reasonsForChangeOfAccountingDateQn):
-        yield Validation.error(
-            codes="IRD.NVAD-E-0130",
-            msg=_(
-                "ReasonsForTheChangeOfAccountingDate must be tagged when "
-                "AccountingDateDifferentFromThatOfLastYear is true."
-            ),
-            modelObject=getValidNonNilFactsByQname(
-                modelXbrl, pluginData.accountingDateDifferentQn
-            ),
-        )
+    yield from flagTrueMissingFactValidation(
+        modelXbrl,
+        flagQn=pluginData.accountingDateDifferentQn,
+        factQn=pluginData.reasonsForChangeOfAccountingDateQn,
+        code="IRD.NVAD-E-0130",
+        msg=_(
+            "ReasonsForTheChangeOfAccountingDate must be tagged when "
+            "AccountingDateDifferentFromThatOfLastYear is true."
+        ),
+    )
 
 
 @validation(
@@ -79,20 +75,16 @@ def rule_nvad_e_0140(
     reasons present alongside a false (or absent) flag is inconsistent.
     """
     modelXbrl = val.modelXbrl
-    if not hasValidNonNilFactByQname(modelXbrl, pluginData.reasonsForChangeOfAccountingDateQn):
-        return
-
-    if not hasTrueValueFactByQname(modelXbrl, pluginData.accountingDateDifferentQn):
-        yield Validation.error(
-            codes="IRD.NVAD-E-0140",
-            msg=_(
-                "AccountingDateDifferentFromThatOfLastYear must be true "
-                "when ReasonsForTheChangeOfAccountingDate is tagged."
-            ),
-            modelObject=getValidNonNilFactsByQname(
-                modelXbrl, pluginData.reasonsForChangeOfAccountingDateQn
-            ),
-        )
+    yield from factPresentFlagNotTrueValidation(
+        modelXbrl,
+        flagQn=pluginData.accountingDateDifferentQn,
+        factQn=pluginData.reasonsForChangeOfAccountingDateQn,
+        code="IRD.NVAD-E-0140",
+        msg=_(
+            "AccountingDateDifferentFromThatOfLastYear must be true "
+            "when ReasonsForTheChangeOfAccountingDate is tagged."
+        ),
+    )
 
 
 @validation(

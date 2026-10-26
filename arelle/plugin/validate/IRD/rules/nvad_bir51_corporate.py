@@ -35,7 +35,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Facts import hasValidNonNilFactByQname, hasTrueValueFactByQname, getValidNonNilFactsByQname, hasFalseValueFactByQname
 from arelle.utils.validate.Validation import Validation
-from . import isZeroOrAbsent
+from . import flagTrueMissingFactValidation, isZeroOrAbsent
 from ..DisclosureSystems import ALL_IRD_DISCLOSURE_SYSTEMS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -62,19 +62,16 @@ def rule_nvad_e_1090(
     modelXbrl = val.modelXbrl
     if not pluginData.isBir51(modelXbrl):
         return
-
-    if not hasTrueValueFactByQname(modelXbrl, pluginData.privateCompanyQn):
-        return
-
-    if not hasValidNonNilFactByQname(modelXbrl, pluginData.shareholderChangeQn):
-        yield Validation.error(
-            codes="IRD.NVAD-E-1090",
-            msg=_(
-                "ShareholderChange must be tagged when PrivateCompany "
-                "is true in a BIR51 filing."
-            ),
-            modelObject=getValidNonNilFactsByQname(modelXbrl, pluginData.privateCompanyQn),
-        )
+    yield from flagTrueMissingFactValidation(
+        modelXbrl,
+        flagQn=pluginData.privateCompanyQn,
+        factQn=pluginData.shareholderChangeQn,
+        code="IRD.NVAD-E-1090",
+        msg=_(
+            "ShareholderChange must be tagged when PrivateCompany "
+            "is true in a BIR51 filing."
+        ),
+    )
 
 
 @validation(

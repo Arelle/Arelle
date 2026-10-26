@@ -29,8 +29,9 @@ from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
-from arelle.utils.validate.Facts import hasValidNonNilFactByQname, hasTrueValueFactByQname, getValidNonNilFactsByQname, iterValidNonNilFactsByQname
+from arelle.utils.validate.Facts import iterValidNonNilFactsByQname
 from arelle.utils.validate.Validation import Validation
+from . import factPresentFlagNotTrueValidation, flagTrueMissingFactValidation
 from ..DisclosureSystems import ALL_IRD_DISCLOSURE_SYSTEMS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -57,20 +58,16 @@ def rule_nvad_e_0940(
     inconsistent.
     """
     modelXbrl = val.modelXbrl
-    if not hasValidNonNilFactByQname(modelXbrl, pluginData.advanceRulingDetailsQn):
-        return
-
-    if not hasTrueValueFactByQname(modelXbrl, pluginData.advanceRulingQn):
-        yield Validation.error(
-            codes="IRD.NVAD-E-0940",
-            msg=_(
-                "AdvanceRuling must be true when AdvanceRulingDetails "
-                "is tagged."
-            ),
-            modelObject=getValidNonNilFactsByQname(
-                modelXbrl, pluginData.advanceRulingDetailsQn
-            ),
-        )
+    yield from factPresentFlagNotTrueValidation(
+        modelXbrl,
+        flagQn=pluginData.advanceRulingQn,
+        factQn=pluginData.advanceRulingDetailsQn,
+        code="IRD.NVAD-E-0940",
+        msg=_(
+            "AdvanceRuling must be true when AdvanceRulingDetails "
+            "is tagged."
+        ),
+    )
 
 
 @validation(
@@ -90,18 +87,16 @@ def rule_nvad_e_0950(
     also be tagged.
     """
     modelXbrl = val.modelXbrl
-    if not hasTrueValueFactByQname(modelXbrl, pluginData.advanceRulingQn):
-        return
-
-    if not hasValidNonNilFactByQname(modelXbrl, pluginData.advanceRulingDetailsQn):
-        yield Validation.error(
-            codes="IRD.NVAD-E-0950",
-            msg=_(
-                "AdvanceRulingDetails must be tagged when AdvanceRuling "
-                "is true."
-            ),
-            modelObject=getValidNonNilFactsByQname(modelXbrl, pluginData.advanceRulingQn),
-        )
+    yield from flagTrueMissingFactValidation(
+        modelXbrl,
+        flagQn=pluginData.advanceRulingQn,
+        factQn=pluginData.advanceRulingDetailsQn,
+        code="IRD.NVAD-E-0950",
+        msg=_(
+            "AdvanceRulingDetails must be tagged when AdvanceRuling "
+            "is true."
+        ),
+    )
 
 
 @validation(
@@ -123,22 +118,18 @@ def rule_nvad_e_0960(
     false (or absent) PE flag is inconsistent.
     """
     modelXbrl = val.modelXbrl
-    if not hasValidNonNilFactByQname(modelXbrl, pluginData.transactionsWithOtherPartsQn):
-        return
-
-    if not hasTrueValueFactByQname(modelXbrl, pluginData.permanentEstablishmentQn):
-        yield Validation.error(
-            codes="IRD.NVAD-E-0960",
-            msg=_(
-                "PermanentEstablishmentHongKongNonHongKongResidentPerson "
-                "must be true when "
-                "TransactionsWithOtherPartsNonHongKongResidentPerson "
-                "is tagged."
-            ),
-            modelObject=getValidNonNilFactsByQname(
-                modelXbrl, pluginData.transactionsWithOtherPartsQn
-            ),
-        )
+    yield from factPresentFlagNotTrueValidation(
+        modelXbrl,
+        flagQn=pluginData.permanentEstablishmentQn,
+        factQn=pluginData.transactionsWithOtherPartsQn,
+        code="IRD.NVAD-E-0960",
+        msg=_(
+            "PermanentEstablishmentHongKongNonHongKongResidentPerson "
+            "must be true when "
+            "TransactionsWithOtherPartsNonHongKongResidentPerson "
+            "is tagged."
+        ),
+    )
 
 
 @validation(
@@ -159,22 +150,18 @@ def rule_nvad_e_0970(
     must also be tagged.
     """
     modelXbrl = val.modelXbrl
-    if not hasTrueValueFactByQname(modelXbrl, pluginData.permanentEstablishmentQn):
-        return
-
-    if not hasValidNonNilFactByQname(modelXbrl, pluginData.transactionsWithOtherPartsQn):
-        yield Validation.error(
-            codes="IRD.NVAD-E-0970",
-            msg=_(
-                "TransactionsWithOtherPartsNonHongKongResidentPerson "
-                "must be tagged when "
-                "PermanentEstablishmentHongKongNonHongKongResidentPerson "
-                "is true."
-            ),
-            modelObject=getValidNonNilFactsByQname(
-                modelXbrl, pluginData.permanentEstablishmentQn
-            ),
-        )
+    yield from flagTrueMissingFactValidation(
+        modelXbrl,
+        flagQn=pluginData.permanentEstablishmentQn,
+        factQn=pluginData.transactionsWithOtherPartsQn,
+        code="IRD.NVAD-E-0970",
+        msg=_(
+            "TransactionsWithOtherPartsNonHongKongResidentPerson "
+            "must be tagged when "
+            "PermanentEstablishmentHongKongNonHongKongResidentPerson "
+            "is true."
+        ),
+    )
 
 
 @validation(
@@ -230,20 +217,16 @@ def rule_nvad_e_0981(
     must also be tagged.
     """
     modelXbrl = val.modelXbrl
-    if not hasTrueValueFactByQname(modelXbrl, pluginData.hongKongPracticeUnitQn):
-        return
-
-    if not hasValidNonNilFactByQname(modelXbrl, pluginData.practisingCertificateNumberQn):
-        yield Validation.error(
-            codes="IRD.NVAD-E-0981",
-            msg=_(
-                "PractisingCertificateNumber must be tagged when "
-                "HongKongPracticeUnit is true."
-            ),
-            modelObject=getValidNonNilFactsByQname(
-                modelXbrl, pluginData.hongKongPracticeUnitQn
-            ),
-        )
+    yield from flagTrueMissingFactValidation(
+        modelXbrl,
+        flagQn=pluginData.hongKongPracticeUnitQn,
+        factQn=pluginData.practisingCertificateNumberQn,
+        code="IRD.NVAD-E-0981",
+        msg=_(
+            "PractisingCertificateNumber must be tagged when "
+            "HongKongPracticeUnit is true."
+        ),
+    )
 
 
 @validation(
@@ -264,17 +247,13 @@ def rule_nvad_e_0982(
     (or absent) flag is inconsistent.
     """
     modelXbrl = val.modelXbrl
-    if not hasValidNonNilFactByQname(modelXbrl, pluginData.practisingCertificateNumberQn):
-        return
-
-    if not hasTrueValueFactByQname(modelXbrl, pluginData.hongKongPracticeUnitQn):
-        yield Validation.error(
-            codes="IRD.NVAD-E-0982",
-            msg=_(
-                "HongKongPracticeUnit must be true when "
-                "PractisingCertificateNumber is tagged."
-            ),
-            modelObject=getValidNonNilFactsByQname(
-                modelXbrl, pluginData.practisingCertificateNumberQn
-            ),
-        )
+    yield from factPresentFlagNotTrueValidation(
+        modelXbrl,
+        flagQn=pluginData.hongKongPracticeUnitQn,
+        factQn=pluginData.practisingCertificateNumberQn,
+        code="IRD.NVAD-E-0982",
+        msg=_(
+            "HongKongPracticeUnit must be true when "
+            "PractisingCertificateNumber is tagged."
+        ),
+    )
