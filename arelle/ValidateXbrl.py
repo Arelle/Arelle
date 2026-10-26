@@ -376,7 +376,7 @@ class ValidateXbrl:
                         self.modelXbrl.error("xbrl.4.9:tupleMixedContent",
                             _("Tuple %(concept)s must not have mixed content"),
                             modelObject=concept, concept=concept.qname)
-                    if XmlUtil.descendant(conceptType, XbrlConst.xsd, "simpleContent"):
+                    if XmlUtil.descendant(conceptType, XbrlConst.xsd, "simpleContent") is not None:
                         self.modelXbrl.error("xbrl.4.9:tupleSimpleContent",
                             _("Tuple %(concept)s must not have simple content"),
                             modelObject=concept, concept=concept.qname)

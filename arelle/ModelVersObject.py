@@ -301,28 +301,28 @@ class ModelRelationshipSet(ModelVersObject):
 
     @property
     def link(self) -> QName | None:
-        if self.relationshipSetElement and self.relationshipSetElement.get("link"):
+        if self.relationshipSetElement is not None and self.relationshipSetElement.get("link"):
             return self.prefixedNameQname(self.relationshipSetElement.get("link"))
         else:
             return None
 
     @property
     def linkrole(self) -> str | None:
-        if self.relationshipSetElement and self.relationshipSetElement.get("linkrole"):
+        if self.relationshipSetElement is not None and self.relationshipSetElement.get("linkrole"):
             return self.relationshipSetElement.get("linkrole")
         else:
             return None
 
     @property
     def arc(self) -> QName | None:
-        if self.relationshipSetElement and self.relationshipSetElement.get("arc"):
+        if self.relationshipSetElement is not None and self.relationshipSetElement.get("arc"):
             return self.prefixedNameQname(self.relationshipSetElement.get("arc"))
         else:
             return None
 
     @property
     def arcrole(self) -> str | None:
-        if self.relationshipSetElement and self.relationshipSetElement.get("arcrole"):
+        if self.relationshipSetElement is not None and self.relationshipSetElement.get("arcrole"):
             return self.relationshipSetElement.get("arcrole")
         else:
             return None
