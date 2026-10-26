@@ -12,8 +12,8 @@ Rules implemented here:
                TransactionsWithOtherParts is tagged
   NVAD-E-0970  TransactionsWithOtherParts required when
                PermanentEstablishment is true
-  NVAD-E-0980  PractisingCertificateNumber must only use English
-               characters and numbers and must not exceed 6 digits.
+  NVAD-E-0980  PractisingCertificateNumber must contain only English
+               letters and digits and must not exceed 6 characters
   NVAD-E-0981  PractisingCertificateNumber required when
                HongKongPracticeUnit is true
   NVAD-E-0982  HongKongPracticeUnit must be true when
@@ -36,7 +36,7 @@ from ..PluginValidationDataExtension import PluginValidationDataExtension
 
 _: TypeGetText
 
-PRACTISING_CERT_PATTERN = re.compile(r"[A-Za-z0-9]{0,6}")
+PRACTISING_CERT_PATTERN = re.compile(r"[A-Za-z0-9]{1,6}")
 
 
 @validation(
@@ -191,23 +191,26 @@ def rule_nvad_e_0980(
     characters.
 
     The IRD restricts the practising certificate number of the CPA who
-    signed the Auditor's Report to English characters and
-    numbers, with a maximum length of 6. Facts that are absent are
-    skipped (presence is covered by
-    NVAD-E-0981).
+    signed the Auditor's Report to English letters and digits, with a
+    length of 1 to 6. Surrounding whitespace is ignored. Absent facts
+    are skipped (presence is covered by NVAD-E-0981).
     """
     for fact in iterValidNonNilFactsByQname(val.modelXbrl, pluginData.practisingCertificateNumberQn):
         if not isinstance(fact.xValue, str):
             continue
-        if not PRACTISING_CERT_PATTERN.fullmatch(fact.xValue):
-            yield Validation.error(
-                codes="IRD.NVAD-E-0980",
-                msg=_(
-                    "PractisingCertificateNumber must only use English characters and "
-                    "numbers and must not exceed 6 digits."
-                ),
-                modelObject=fact,
-            )
+        value = fact.xValue.strip()
+        if PRACTISING_CERT_PATTERN.fullmatch(value):
+            continue
+        yield Validation.error(
+            codes="IRD.NVAD-E-0980",
+            msg=_(
+                "PractisingCertificateNumber must contain only English "
+                "letters and digits and must not exceed 6 characters; "
+                "found '%(value)s'."
+            ),
+            modelObject=fact,
+            value=value,
+        )
 
 
 @validation(

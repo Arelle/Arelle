@@ -355,9 +355,9 @@ def rule_nvad_e_1240(
         return
 
     for fact in iterValidNonNilFactsByQname(modelXbrl, pluginData.bir52PartnerHkidOrBrnQn):
-        value = fact.xValue
-        if not isinstance(value, str):
+        if not isinstance(fact.xValue, str):
             continue
+        value = fact.xValue.strip()
         if pluginData.hkidRegex.match(value) or pluginData.brnRegex.match(value):
             continue
         yield Validation.error(
@@ -368,7 +368,7 @@ def rule_nvad_e_1240(
                 "8-digit BRN; found '%(value)s'."
             ),
             modelObject=fact,
-            value=fact.xValue,
+            value=value,
         )
 
 
