@@ -287,9 +287,8 @@ def rule_nvad_e_0050(
     ird_tc concepts — are not mis-flagged as missing every mandatory item.
     """
     modelXbrl = val.modelXbrl
-    hrefs = pluginData.getSchemaRefHrefs(modelXbrl)
-    if not any(href in pluginData.validTcEntryPoints for href in hrefs):
-        return  # FS document — NVAD-E-0050 does not apply
+    if not pluginData.hasTcEntryPoint(modelXbrl):
+        return  # No current TC entry point — NVAD-E-0050 does not apply
 
     mandatoryQns = (
         pluginData.mandatoryTcBir52Qns
@@ -331,9 +330,8 @@ def rule_nvad_e_0170(
     Rule is guarded to TC documents only (schemaRef in TC entry points)
     so that FS-only documents in combined filings are not mis-flagged.
     """
-    hrefs = pluginData.getSchemaRefHrefs(val.modelXbrl)
-    if not any(href in pluginData.validTcEntryPoints for href in hrefs):
-        return  # FS document — NVAD-E-0170 does not apply
+    if not pluginData.hasTcEntryPoint(val.modelXbrl):
+        return  # No current TC entry point — NVAD-E-0170 does not apply
 
     if not hasValidNonNilFactByQname(val.modelXbrl, pluginData.hksicCodeQn):
         yield Validation.error(

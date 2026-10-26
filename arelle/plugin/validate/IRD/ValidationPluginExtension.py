@@ -46,9 +46,11 @@ class ValidationPluginExtension(ValidationPlugin):
         ])
         validFs = frozenset([
             f"{BASE}ird_fs_entry_point_2026-04-01.xsd",
+            f"{BASE}ird_fs-zh-hk_entry_point_2026-04-01.xsd",
         ])
         validFsPe = frozenset([
             f"{BASE}ird_fs_pe_entry_point_2026-04-01.xsd",
+            f"{BASE}ird_fs_pe-zh-hk_entry_point_2026-04-01.xsd",
         ])
 
         releasedVersionDates = frozenset([

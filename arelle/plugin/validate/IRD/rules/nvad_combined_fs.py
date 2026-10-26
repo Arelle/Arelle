@@ -84,12 +84,7 @@ def _hasFsDocument(
     TC-only filings have no financial statements document, so FS
     mandatory-item rules must not fire against them.
     """
-    fsEntryPoints = (
-        pluginData.validFsEntryPoints | pluginData.validFsPeEntryPoints
-    )
-    return any(
-        href in fsEntryPoints for href in pluginData.getSchemaRefHrefs(modelXbrl)
-    )
+    return pluginData.hasFsEntryPoint(modelXbrl)
 
 
 def _hasFsEquity(

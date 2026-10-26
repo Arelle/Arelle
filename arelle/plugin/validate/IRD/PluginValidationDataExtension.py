@@ -254,6 +254,27 @@ class PluginValidationDataExtension(PluginData):
             if (href := (ref.get(XLINK_HREF, "") or ""))
         ]
 
+    def hasEntryPoint(self, modelXbrl: ModelXbrl, entryPoints: frozenset[str]) -> bool:
+        """True when any schemaRef href is in *entryPoints*.
+
+        Membership is exact. The taxonomy package publishes ``http`` URLs.
+        """
+        return any(
+            href in entryPoints
+            for href in self.getSchemaRefHrefs(modelXbrl)
+        )
+
+    def hasTcEntryPoint(self, modelXbrl: ModelXbrl) -> bool:
+        """True when the IXDS references a current TC entry point."""
+        return self.hasEntryPoint(modelXbrl, self.validTcEntryPoints)
+
+    def hasFsEntryPoint(self, modelXbrl: ModelXbrl) -> bool:
+        """True when the IXDS references a current FS or FS-PE entry point."""
+        return self.hasEntryPoint(
+            modelXbrl,
+            self.validFsEntryPoints | self.validFsPeEntryPoints,
+        )
+
     @lru_cache(1)
     def factsByPartnerContext(
         self,
