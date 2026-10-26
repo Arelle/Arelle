@@ -85,7 +85,7 @@ def generate_viewer(base_url: str) -> Path:
 
     options = RuntimeOptions(
         entrypointFile=str(demo_ixbrl_report),
-        internetConnectivity="offline",
+        workOffline=True,
         logFile="logToStructuredMessage",
         logLevel="warning",
         packages=[str(taxonomy_package)],

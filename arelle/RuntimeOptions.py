@@ -162,6 +162,7 @@ class RuntimeOptions:
     viewArcrole: Optional[str] = None
     viewFile: Optional[str | FileNamedStringIO] = None
     webserver: Optional[str] = None
+    workOffline: Optional[bool] = None
     xdgConfigHome: Optional[str] = None
     validationExitCode: bool = False
 
@@ -189,6 +190,13 @@ class RuntimeOptions:
             raise RuntimeOptionsException("formulaVarSetTimeout must be a positive number")
         if self.formulaReportTimeout is not None and self.formulaReportTimeout <= 0:
             raise RuntimeOptionsException("formulaReportTimeout must be a positive number")
+        if self.internetConnectivity is not None:
+            if self.internetConnectivity not in ("online", "offline"):
+                raise RuntimeOptionsException("internetConnectivity must be 'online' or 'offline'")
+            workOffline = self.internetConnectivity == "offline"
+            if self.workOffline is not None and self.workOffline != workOffline:
+                raise RuntimeOptionsException("internetConnectivity conflicts with workOffline")
+            self.workOffline = workOffline
         if pluginOptions:
             existingBaseOptions = sorted(
                 optionName

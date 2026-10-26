@@ -23,7 +23,7 @@ import time
 import traceback
 from optparse import SUPPRESS_HELP, Option, OptionGroup, OptionParser
 from pprint import pprint
-from typing import Any, TYPE_CHECKING, cast
+from typing import Any, TYPE_CHECKING, TypeVar, cast
 
 import regex as re
 from lxml import etree
@@ -64,7 +64,7 @@ from arelle.ValidateFileSource import ValidateFileSource, isPackage
 from arelle.oim.xml.Save import saveOimReportToXmlInstance
 from arelle.rendering import RenderingEvaluator
 from arelle.RuntimeOptions import RuntimeOptions, RuntimeOptionsException
-from arelle.SocketUtils import INTERNET_CONNECTIVITY, OFFLINE
+from arelle.SocketUtils import INTERNET_CONNECTIVITY, OFFLINE, WORK_OFFLINE, WORK_ONLINE
 from arelle.SystemInfo import PlatformOS, getSystemInfo, getSystemWordSize, hasWebServer, isCGI, isGAE
 from arelle.typing import TypeGetText
 from arelle.utils.EntryPointDetection import parseEntrypointFileInput
@@ -79,7 +79,16 @@ PROCESS_QUERY_INFORMATION = 0x400
 DISABLE_PERSISTENT_CONFIG_OPTION = "--disablePersistentConfig"
 TESTCASE_EXPECTED_ERRORS_OPTION="testcaseExpectedErrors"
 UILANG_OPTION = "--uiLang"
+INTERNET_RECHECK_CHOICES = ("never", "monthly", "weekly", "daily", "hourly", "quarter-hourly")
+INTERNET_RECHECK_ENV_VAR = "ARELLE_INTERNET_RECHECK"
+INTERNET_RECHECK_ENV_VALUES = {choice: choice for choice in INTERNET_RECHECK_CHOICES}
+WORK_OFFLINE_ENV_VAR = "ARELLE_WORK_OFFLINE"
+WORK_OFFLINE_ENV_VALUES = {
+    "true": True, "1": True, "yes": True, "on": True,
+    "false": False, "0": False, "no": False, "off": False,
+}
 _: TypeGetText
+_T = TypeVar("_T")
 
 
 def main() -> None:
@@ -1216,7 +1225,24 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict[str, Any]]:
         f"--{INTERNET_CONNECTIVITY.lower()}",
         choices=("online", OFFLINE),
         dest="internetConnectivity",
-        help=_("Specify internet connectivity: `online` or `offline`")
+        help=_("Deprecated - use --workOffline or --workOnline. Specify internet connectivity: `online` or `offline`")
+        )
+    internetConnectivityGroup.add_option(
+        f"--{WORK_OFFLINE}",
+        f"--{WORK_OFFLINE.lower()}",
+        action="store_true",
+        dest="workOffline",
+        help=_("Work offline, loading taxonomies and reports only from the local filesystem. Defaults to the {0} environment variable, if set.").format(WORK_OFFLINE_ENV_VAR)
+        )
+    internetConnectivityGroup.add_option(
+        f"--{WORK_ONLINE}",
+        f"--{WORK_ONLINE.lower()}",
+        action="store_false",
+        dest="workOffline",
+        help=_(
+            "Work online, downloading taxonomies and reports that are not in the cache. "
+            "This is the default unless the {0} environment variable is set, so this option can temporarily override it."
+            ).format(WORK_OFFLINE_ENV_VAR)
         )
     internetConnectivityGroup.add_option(
         "--internetTimeout",
@@ -1228,12 +1254,13 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict[str, Any]]:
     internetConnectivityGroup.add_option(
         "--internetRecheck",
         "--internetrecheck",
-        choices=("weekly", "daily", "never", "hourly", "quarter-hourly"),
+        choices=INTERNET_RECHECK_CHOICES,
         action="store",
         dest="internetRecheck",
         help=_(
-            "Specify rechecking for newer cache files 'quarter-hourly', `hourly`, `daily`, `weekly` or `never`."
-            )
+            "Specify rechecking for newer cache files 'quarter-hourly', `hourly`, `daily`, `weekly`, `monthly` or `never`. "
+            "Defaults to the {0} environment variable, if set."
+            ).format(INTERNET_RECHECK_ENV_VAR)
         )
     internetConnectivityGroup.add_option(
         "--noCertificateCheck",
@@ -1627,6 +1654,21 @@ class CntlrCmdLine(Cntlr.Cntlr):
         )
         self.preloadedPlugins: dict[str, Any] = {}
 
+    def _optionOrEnv(self, optionValue: _T | None, envVar: str, envValues: dict[str, _T]) -> _T | None:
+        """Return the option value if provided, otherwise the value envValues maps the environment variable to."""
+        if optionValue is not None:
+            return optionValue
+        envValue = os.getenv(envVar)
+        if not envValue:
+            return None
+        if (key := envValue.strip().lower()) in envValues:
+            return envValues[key]
+        self.addToLog(_("Environment variable %(envVar)s value %(value)s ignored, expected one of %(choices)s."),
+                      messageCode="arelle:environmentVariableError",
+                      messageArgs={"envVar": envVar, "value": envValue, "choices": ", ".join(envValues)},
+                      level=logging.WARNING)
+        return None
+
     def run(self, options: RuntimeOptions, sourceZipStream: Any = None, responseZipStream: Any = None) -> bool:
         """Process command line arguments or web service request, such as to load and validate an XBRL document, or start web server.
 
@@ -1698,10 +1740,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
 
         # Some options below (e.g. `packages`) may trigger web requests,
         # so the `workOffline` flag needs to be set early on.
-        if options.internetConnectivity == "offline":
-            self.webCache.workOffline = True
-        elif options.internetConnectivity == "online":
-            self.webCache.workOffline = False
+        if (workOffline := self._optionOrEnv(options.workOffline, WORK_OFFLINE_ENV_VAR, WORK_OFFLINE_ENV_VALUES)) is not None:
+            self.webCache.workOffline = workOffline
 
         if options.proxy:
             if options.proxy != "show":
@@ -1810,9 +1850,9 @@ class CntlrCmdLine(Cntlr.Cntlr):
         if options.showEnvironment:
             self.addToLog(_("Config directory: {0}").format(self.configDir))
             self.addToLog(_("Cache directory: {0}").format(self.userAppDir))
-            for envVar in ("XDG_CONFIG_HOME",):
+            for envVar in ("XDG_CONFIG_HOME", WORK_OFFLINE_ENV_VAR, INTERNET_RECHECK_ENV_VAR):
                 if envVar in os.environ:
-                    self.addToLog(_("XDG_CONFIG_HOME={0}").format(os.environ[envVar]))
+                    self.addToLog(_("{0}={1}").format(envVar, os.environ[envVar]))
             return True
 
         self.modelManager.customTransforms = None # clear out prior custom transforms
@@ -1908,8 +1948,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.webCache.timeout = (options.internetTimeout or None)  # use None if zero specified to disable timeout
         if options.internetLogDownloads:
             self.webCache.logDownloads = True
-        if options.internetRecheck:
-            self.webCache.recheck = options.internetRecheck
+        if internetRecheck := self._optionOrEnv(options.internetRecheck, INTERNET_RECHECK_ENV_VAR, INTERNET_RECHECK_ENV_VALUES):
+            self.webCache.recheck = internetRecheck
         fo = FormulaOptions()
         if options.parameters:
             parameterSeparator = options.parameterSeparator or ","

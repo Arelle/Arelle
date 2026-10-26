@@ -51,7 +51,7 @@ print(f"Generating IXBRL viewer: {viewer_path}")
 with open(samples_zip_path, "rb") as stream:
     options = RuntimeOptions(
         entrypointFile=str(target_path),
-        internetConnectivity="offline" if arelle_offline else "online",
+        workOffline=arelle_offline,
         keepOpen=True,
         logFile="logToStructuredMessage",
         logFormat="[%(messageCode)s] %(message)s - %(file)s",

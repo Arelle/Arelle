@@ -77,7 +77,7 @@ def _run(
         session.run(
             RuntimeOptions(
                 entrypointFile=str(metadata_path),
-                internetConnectivity="offline",
+                workOffline=True,
                 keepOpen=True,
                 logFormat="[%(messageCode)s] %(message)s",
                 validate=True,

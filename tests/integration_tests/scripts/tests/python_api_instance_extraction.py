@@ -43,7 +43,7 @@ with io.BytesIO() as extracted_stream:
     with open(report_zip_path, "rb") as stream:
         options = RuntimeOptions(
             entrypointFile=str(manifest_path),
-            internetConnectivity="offline" if arelle_offline else "online",
+            workOffline=arelle_offline,
             keepOpen=True,
             logFile=str(arelle_log_file1),
             logFormat="[%(messageCode)s] %(message)s - %(file)s",
@@ -78,7 +78,7 @@ with open(report_zip_path, "rb") as stream:
     print(f"Validating instance: {extracted_final_path}")
     options = RuntimeOptions(
         entrypointFile=str(extracted_final_path),
-        internetConnectivity="offline" if arelle_offline else "online",
+        workOffline=arelle_offline,
         keepOpen=True,
         logFile=str(arelle_log_file2),
         logFormat="[%(messageCode)s] %(message)s - %(file)s",
