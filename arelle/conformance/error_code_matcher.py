@@ -11,6 +11,12 @@ from arelle.ModelValue import QName, qname
 # Arelle starts these codes with a reference to the rule that reports them, which suites leave out or qualify differently.
 RULE_REFERENCED_CODE_PREFIXES = ("ESEF.", "NL.NL-KVK")
 
+# The UKSEF suite qualifies its codes with the authority whose rule reports them, and uses some names for both.
+UKSEF_SUITE_CODE_AUTHORITIES = {"xbrl.efr.esef.esma.": "esma", "xbrl.efr.esef.uk.": "uk"}
+# Arelle reports ESMA rules without the ESEF.UK prefix, and these UK rules reuse a name the suite also gives the other
+# authority. Other UK rules have names only one authority uses, so their codes match either qualification.
+UKSEF_RULE_AUTHORITIES = {"ESEF.UKFRC6": "esma", "ESEF.UKFRC7": "uk", "ESEF.UKFRC18": "uk"}
+
 # Hierarchical codes where Arelle reports a more specific code below the one a suite expects.
 HIERARCHICAL_CODE_PREFIXES = ("EFM.", "EXG.")
 
@@ -83,4 +89,18 @@ def _same_literal(expected: str, actual: str) -> bool:
     # A numeric final segment is part of a rule number, not a name.
     if actual_name.isdigit():
         return False
+    if _different_uksef_authorities(expected, actual):
+        return False
     return actual_name == expected_name
+
+
+def _different_uksef_authorities(expected: str, actual: str) -> bool:
+    expected_authority = next(
+        (authority for prefix, authority in UKSEF_SUITE_CODE_AUTHORITIES.items() if expected.startswith(prefix)), None
+    )
+    if expected_authority is None:
+        return False
+    if not actual.startswith("ESEF.UK"):
+        return expected_authority != "esma"
+    actual_authority = UKSEF_RULE_AUTHORITIES.get(actual.rpartition(".")[0])
+    return actual_authority is not None and actual_authority != expected_authority

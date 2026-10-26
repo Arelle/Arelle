@@ -37,6 +37,14 @@ def suite_code(local_name: str, prefix: str | None = None, namespace_uri: str = 
         (suite_code("xbrl.efr.esef.esma.segmentUsed"), "ESEF.UKFRC8.segmentUsed", True),
         (suite_code("xbrl.efr.esef.esma.UsableConceptsNotAppliedByTaggedFacts"), "ESEF.3.4.2.UsableConceptsNotAppliedByTaggedFacts", True),
         (suite_code("xbrl.efr.esef.uk.incorrectTarget"), "ESEF.UKFRC1.noUKFRSData", False),
+        # Where the UKSEF suite gives a name to both authorities, Arelle's code must be from the same authority's rule.
+        (suite_code("xbrl.efr.esef.uk.reportFileNameDoesNotFollowNamingConvention"), "ESEF.UKFRC18.reportFileNameDoesNotFollowNamingConvention", True),
+        (suite_code("xbrl.efr.esef.esma.reportFileNameDoesNotFollowNamingConvention"), "ESEF.UKFRC18.reportFileNameDoesNotFollowNamingConvention", False),
+        (suite_code("xbrl.efr.esef.esma.invalidIdentifier"), "ESEF.UKFRC6.invalidIdentifier", True),
+        (suite_code("xbrl.efr.esef.esma.invalidIdentifier"), "ESEF.UKFRC7.invalidIdentifier", False),
+        (suite_code("xbrl.efr.esef.uk.invalidIdentifier"), "ESEF.UKFRC7.invalidIdentifier", True),
+        (suite_code("xbrl.efr.esef.uk.invalidIdentifier"), "ESEF.UKFRC6.invalidIdentifier", False),
+        (suite_code("xbrl.efr.esef.uk.invalidIdentifier"), "ESEF.2.1.1.invalidIdentifier", False),
         # Prefixed codes resolve through the suite's namespaces.
         (suite_code("PrimaryItemDimensionallyInvalidError", "xbrldie", "http://xbrl.org/2005/xbrldi/errors"), "xbrldie:PrimaryItemDimensionallyInvalidError", True),
         (suite_code("PrimaryItemDimensionallyInvalidError", "xbrldie", "http://xbrl.org/2005/xbrldi/errors"), "xbrldte:PrimaryItemDimensionallyInvalidError", False),
