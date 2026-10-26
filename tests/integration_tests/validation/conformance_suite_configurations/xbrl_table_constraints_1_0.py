@@ -28,15 +28,6 @@ config = ConformanceSuiteConfig(
         "720-tc-report-processor/index-tc-report-table.xml:V-901-tp-null": {
             "arelle:notLoaded": 1,
         },
-        # The tc prefix is not bound to the Table Constraints namespace, so there is no
-        # metadata to validate when skipping report loading.
-        **{
-            f"710-tc-metadata-processor/index-tc-metadata-table.xml:{s}": {
-                "arelle:notLoaded": 1,
-                "arelle:noTableConstraints": 1,
-            }
-            for s in ("V-809dc", "V-809de", "V-817b")
-        },
         # Three xs:duration key fields without durationType are each reported.
         "720-tc-report-processor/index-tc-report-table.xml:V-25": {
             "tcme:illegalKeyField": 2,

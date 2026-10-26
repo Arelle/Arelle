@@ -1363,9 +1363,9 @@ def _loadFromOIM(
                                    _("Table constraints validation without loading requires an xBRL-CSV report: %(file)s"),
                                    file=oimFile)
             if tcMetadataResult.metadata is None and not tcMetadataResult.errors:
-                raise OIMException("arelle:noTableConstraints",
-                                   _("Table constraints validation without loading requested but the report has no table constraints metadata: %(file)s"),
-                                   file=oimFile)
+                modelXbrl.info("arelle:noTableConstraints",
+                               _("Table constraints validation without loading requested but the report has no table constraints metadata: %(file)s"),
+                               modelObject=modelXbrl, file=oimFile)
             # Taxonomy discovery and fact creation are skipped. An empty entry document
             # keeps the model usable for validation dispatch and the GUI.
             modelXbrl.tableConstraintsSkipLoading = True

@@ -63,16 +63,6 @@ def _csv_metadata(constraint_type: str | None) -> dict[str, Any]:
     }
 
 
-_JSON_METADATA = {
-    "documentInfo": {
-        "documentType": "https://xbrl.org/2021/xbrl-json",
-        "namespaces": {"eg": "http://example.com/eg"},
-        "taxonomy": ["taxonomy.xsd"],
-    },
-    "facts": {},
-}
-
-
 def _run(
     tmp_path: Path,
     metadata: dict[str, Any],
@@ -131,19 +121,13 @@ def test_report_validation_runs_in_both_modes(
     assert "tcre:missingColumn" in model.errors
 
 
-@pytest.mark.parametrize(
-    "metadata, expected_error",
-    [
-        (_csv_metadata(None), "arelle:noTableConstraints"),
-        (_JSON_METADATA, "arelle:tableConstraintsSkipLoadingRequiresXbrlCsv"),
-    ],
-)
-def test_table_constraints_skip_loading_rejects_unsuitable_reports(
-    tmp_path: Path, metadata: dict[str, Any], expected_error: str
+def test_table_constraints_skip_loading_without_tc_metadata_is_valid(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    model = _run(tmp_path, metadata, table_constraints_skip_loading=True)
-    assert expected_error in model.errors
-    assert model.modelDocument is None
+    model = _run(tmp_path, _csv_metadata(None), table_constraints_skip_loading=True)
+    assert model.errors == []
+    assert model.tableConstraintsSkipLoading
+    assert "[arelle:noTableConstraints]" in capsys.readouterr().out
 
 
 def test_workbook_metadata_is_not_checked_for_table_constraints(tmp_path: Path) -> None:
