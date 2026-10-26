@@ -77,11 +77,11 @@ def rule_nvad_e_0060(
             yield Validation.error(
                 codes="IRD.NVAD-E-0060",
                 msg=_(
-                    "%(qname)s is a BIR52-specific element and must "
+                    "%(localName)s is a BIR52-specific element and must "
                     "not be tagged in a BIR51 (corporation) filing."
                 ),
                 modelObject=facts,
-                qname=qn.localName,
+                localName=qn.localName,
             )
 
 
@@ -113,11 +113,11 @@ def rule_nvad_e_0070(
             yield Validation.error(
                 codes="IRD.NVAD-E-0070",
                 msg=_(
-                    "%(qname)s is a BIR51-specific element and must "
+                    "%(localName)s is a BIR51-specific element and must "
                     "not be tagged in a BIR52 (partnership) filing."
                 ),
                 modelObject=facts,
-                qname=qn.localName,
+                localName=qn.localName,
             )
 
 
