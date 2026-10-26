@@ -33,19 +33,22 @@ def isZeroOrAbsent(modelXbrl: ModelXbrl, qn: QName) -> bool:
     """
     return all(
         getNumericValue(fact) == 0
-        for fact in  iterValidNonNilFactsByQname(modelXbrl, qn)
+        for fact in iterValidNonNilFactsByQname(modelXbrl, qn)
     )
 
 
 def getNumericValue(fact: ModelFact) -> Decimal | None:
-    """Return the numeric *xValue* of *fact*, or ``None`` if unavailable."""
-    try:
-        val = fact.xValue
-        if isinstance(val, (int, float, Decimal)):
-            return Decimal(val)
-    except Exception:
-        pass
-    return None
+    """Return the numeric *xValue* of *fact*, or ``None`` when it is not an amount.
+
+    Booleans are not amounts. A float is converted through ``str`` so the
+    decimal follows the displayed value.
+    """
+    val = fact.xValue
+    if isinstance(val, bool) or not isinstance(val, (int, float, Decimal)):
+        return None
+    if isinstance(val, float):
+        return Decimal(str(val))
+    return Decimal(val)
 
 
 def getDateValue(fact: ModelFact) -> date | None:
@@ -53,6 +56,8 @@ def getDateValue(fact: ModelFact) -> date | None:
     val = fact.xValue
     if isinstance(val, datetime):
         return val.date()
+    if isinstance(val, date):
+        return val
     return None
 
 
