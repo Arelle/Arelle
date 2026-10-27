@@ -3,12 +3,11 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-import os, io, sys, json
+import os, sys
 from collections.abc import Iterable
-from typing import Any, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING, TypeAlias
 from collections import defaultdict, OrderedDict
 from arelle import XbrlConst
-from arelle.ModelFormulaObject import ModelFormulaResource
 from arelle.ModelObject import ModelObject
 from arelle.ModelDtsObject import ModelResource, ModelRelationship
 from arelle.ModelValue import QName
@@ -41,7 +40,7 @@ EMPTY_DICT: dict[Any, Any] = {}
 TRACE_RESOLUTION = False
 TRACE_TABLE_STRUCTURE = True
 
-RENDER_UNITS_PER_CHAR = 16 # nominal screen units per char for wrapLength computation and adjustment
+RENDER_UNITS_PER_CHAR = 16  # nominal screen units per char for wrapLength computation and adjustment
 
 
 def prod(seq: Iterable[int]) -> int:
@@ -171,7 +170,7 @@ def resolveTableAxesStructure(view: Any, strctMdlTable: StrctMdlNode, tblBrkdnRe
             elif axis == "z":
                 view.zAxisBreakdowns = len(axisBrkdnRels)
         if not axisBrkdnRels: # no breakdown rels
-            strctMdlBreakdown = resolveDefinition(view, strctMdlTable, None, 1, facts, 0, axisBrkdnRels, axis=axis)  # type: ignore[arg-type]
+            strctMdlBreakdown = resolveDefinition(view, strctMdlTable, None, 1, facts, 0, axisBrkdnRels, axis=axis)
             strctMdlBreakdown.setHasOpenNode()  # type: ignore[union-attr]
             if axis == "x":
                 view.dataCols += strctMdlBreakdown.leafNodeCount  # type: ignore[union-attr]
@@ -301,7 +300,7 @@ def checkLabelWidth(
 def resolveDefinition(
         view: Any,
         strctMdlParent: StrctMdlNode,
-        defnMdlNode: ModelFormulaResource,
+        defnMdlNode: DefnMdlBreakdown | DefnMdlDefinitionNode | None,
         depth: int,
         facts: Any,
         iBrkdn: int | None = None,
@@ -313,10 +312,10 @@ def resolveDefinition(
     if isinstance(defnMdlNode, (NoneType, DefnMdlBreakdown)):
         strctMdlNode = StrctMdlBreakdown(strctMdlParent, defnMdlNode, axis)  # type: ignore[arg-type]
     else:
-        if isinstance(defnMdlNode, (DefnMdlRelationshipNode, DefnMdlAspectNode)) or mergeAspects or defnMdlNode.isMerged:  # type: ignore[attr-defined]
+        if isinstance(defnMdlNode, (DefnMdlRelationshipNode, DefnMdlAspectNode)) or mergeAspects or defnMdlNode.isMerged:
             strctMdlNode = strctMdlParent  # type: ignore[assignment]  # all children are added during relationship navigatio below
         else:
-            strctMdlNode = StrctMdlStructuralNode(strctMdlParent, defnMdlNode)  # type: ignore[arg-type,assignment]
+            strctMdlNode = StrctMdlStructuralNode(strctMdlParent, defnMdlNode)  # type: ignore[assignment]
     if strctMdlParent.axis:
         axis = strctMdlParent.axis
 
@@ -695,7 +694,7 @@ def cartesianProductExpander(
 
 
 def addRelationship(
-        relDefinitionNode: DefnMdlConceptRelationshipNode,
+        relDefinitionNode: DefnMdlConceptRelationshipNode | DefnMdlDimensionRelationshipNode,
         rel: ModelRelationship | QName,
         strctMdlNode: StrctMdlNode,
         rootOrSelfStructuralNodes: dict[QName, StrctMdlNode] | None = None
@@ -762,9 +761,11 @@ def addRelationship(
     return relChildStrctMdlNode
 
 
+RelationshipTree: TypeAlias = ModelRelationship | QName | list["RelationshipTree"]
+
 def addRelationships(
-        relDefinitionNode: DefnMdlConceptRelationshipNode,
-        rels: Iterable[list[ModelRelationship | QName] | ModelRelationship | QName],
+        relDefinitionNode: DefnMdlConceptRelationshipNode | DefnMdlDimensionRelationshipNode,
+        rels: Iterable[RelationshipTree],
         strctMdlNode: StrctMdlNode,
         rootOrSelfStructuralNodes: dict[QName, StrctMdlNode] | None = None
     ) -> None:
