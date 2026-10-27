@@ -248,7 +248,6 @@ def resolveTableAxesStructure(view: Any, strctMdlTable: StrctMdlNode, tblBrkdnRe
         f"colHdrTopRow {view.colHdrTopRow} colHdrRows {view.colHdrRows} colHdrNonStdRoles {len(view.colHdrNonStdRoles)} "
         f"rowHdrNonStdRoles {len(view.rowHdrNonStdRoles)}"
         )
-    return None
 
 
 def sortkey(obj: int | ModelObject) -> int:
