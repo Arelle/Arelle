@@ -85,7 +85,7 @@ class ViewRenderedStructuralModel(ViewFile.View):
         for tblELR in tblELRs:
             self.zOrdinateChoices: dict[Any, Any] = {}
 
-            strctMdlTable = resolveTableStructure(self, tblELR)  # type: ignore[no-untyped-call]
+            strctMdlTable = resolveTableStructure(self, tblELR)
             if strctMdlTable is None:
                 continue
 

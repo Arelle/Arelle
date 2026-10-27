@@ -311,7 +311,6 @@ module = [
     'arelle.DialogOpenArchive',
     'arelle.rendering.RenderingEvaluator',
     'arelle.rendering.RenderingLayout',
-    'arelle.rendering.RenderingResolution',
     'arelle.Version',
     'arelle.ViewFileTests',
     'arelle.ViewWinTests',
