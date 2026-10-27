@@ -889,8 +889,8 @@ class ValidateXbrl:
                             self.modelXbrl.error(
                                 ("enum2ie:InvalidEnumerationSetValue" if concept.instanceOfType(XbrlConst.qnEnumerationSetItemTypes)
                                  else "enum2ie:InvalidEnumerationValue") if concept.instanceOfType(XbrlConst.qnEnumeration2ItemTypes)
-                                else ("InvalidListFactValue" if concept.instanceOfType(XbrlConst.qnEnumerationListItemTypes)
-                                      else "InvalidFactValue"),
+                                else ("enumie:InvalidListFactValue" if concept.instanceOfType(XbrlConst.qnEnumerationListItemTypes)
+                                      else "enumie:InvalidFactValue"),
                                 _("Fact %(fact)s context %(contextID)s enumeration %(value)s is not in the domain of %(concept)s"),
                                 modelObject=f, fact=f.qname, contextID=f.contextID, value=f.xValue, concept=f.qname,
                                 messageCodes=("enumie:InvalidFactValue", "enumie:InvalidListFactValue",

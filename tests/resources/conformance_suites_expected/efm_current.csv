@@ -5253,7 +5253,7 @@ conf/622-only-supported-locations/622-03-consistent-locations/622-03-consistent-
 conf/622-only-supported-locations/622-03-consistent-locations/622-03-consistent-locations-testcase.xml:_008ng,EFM.6.22.03.incompatibleSchemas
 conf/622-only-supported-locations/622-03-consistent-locations/622-03-consistent-locations-testcase.xml:_009ng,EFM.6.07.10
 conf/622-only-supported-locations/622-03-consistent-locations/622-03-consistent-locations-testcase.xml:_009ng,EFM.6.22.03.incompatibleSchemas
-conf/622-only-supported-locations/622-03-consistent-locations/622-03-consistent-locations-testcase.xml:_009ng,InvalidFactValue
+conf/622-only-supported-locations/622-03-consistent-locations/622-03-consistent-locations-testcase.xml:_009ng,enumie:InvalidFactValue
 conf/622-only-supported-locations/622-03-consistent-locations/622-03-consistent-locations-testcase.xml:_015ng,EFM.6.07.10
 conf/622-only-supported-locations/622-03-consistent-locations/622-03-consistent-locations-testcase.xml:_015ng,EFM.6.10.01
 conf/622-only-supported-locations/622-03-consistent-locations/622-03-consistent-locations-testcase.xml:_015ng,EFM.6.12.03

@@ -25,7 +25,6 @@ _MISSING_MANDATORY_ITEM_COUNTS = {
     "FRC_01/index.xml:TC1_valid": 1,
     "FRC_01/index.xml:TC8_invalid": 1,
     "FRC_04/index.xml:TC1_valid": 1,
-    "FRC_05/index.xml:TC2_valid": 1,
     "FRC_05/index.xml:TC5_invalid": 1,
     "FRC_09/index.xml:TC3_valid": 1,
     "FRC_09/index.xml:TC5_valid": 1,
@@ -96,77 +95,10 @@ _MISSING_MANDATORY_ITEM_COUNTS = {
 
 # Test packages built to exercise other rules are not named after the issuer LEI.
 _PACKAGE_NAME_COUNTS = {
-    "FRC_12/index.xml:TC2_valid": 1,
-    "FRC_01/index.xml:TC1_valid": 1,
-    "FRC_01/index.xml:TC2_valid": 1,
-    "FRC_01/index.xml:TC3_valid": 1,
-    "FRC_01/index.xml:TC4_valid": 1,
-    "FRC_01/index.xml:TC5_valid": 1,
-    "FRC_01/index.xml:TC6_invalid": 1,
-    "FRC_01/index.xml:TC7_invalid": 1,
-    "FRC_01/index.xml:TC8_invalid": 1,
-    "FRC_01/index.xml:TC9_invalid": 1,
-    "FRC_02/index.xml:TC1_valid": 1,
-    "FRC_02/index.xml:TC2_valid": 1,
     "FRC_02/index.xml:TC3_invalid": 1,
-    "FRC_03/index.xml:TC1_valid": 1,
     "FRC_03/index.xml:TC2_invalid": 1,
-    "FRC_03/index.xml:TC3_invalid": 1,
-    "FRC_03/index.xml:TC4_invalid": 1,
-    "FRC_04/index.xml:TC1_valid": 1,
-    "FRC_05/index.xml:TC1_valid": 1,
-    "FRC_05/index.xml:TC2_valid": 1,
-    "FRC_05/index.xml:TC3_valid": 1,
     "FRC_05/index.xml:TC4_invalid": 1,
-    "FRC_05/index.xml:TC6_invalid": 1,
-    "FRC_06/index.xml:TC1_valid": 1,
-    "FRC_06/index.xml:TC2_invalid": 1,
-    "FRC_06/index.xml:TC3_invalid": 1,
-    "FRC_07/index.xml:TC1_valid": 1,
-    "FRC_07/index.xml:TC2_invalid": 1,
-    "FRC_07/index.xml:TC3_invalid": 1,
-    "FRC_07/index.xml:TC4_invalid": 1,
-    "FRC_08/index.xml:TC1_valid": 1,
     "FRC_08/index.xml:TC2_invalid": 1,
-    "FRC_08/index.xml:TC3_invalid": 1,
-    "FRC_09/index.xml:TC1_valid": 1,
-    "FRC_09/index.xml:TC3_valid": 1,
-    "FRC_09/index.xml:TC5_valid": 1,
-    "FRC_10/index.xml:TC1_valid": 1,
-    "FRC_10/index.xml:TC2_valid": 1,
-    "FRC_10/index.xml:TC3_invalid": 2,
-    "FRC_11/index.xml:TC1_valid": 1,
-    "FRC_11/index.xml:TC2_invalid": 1,
-    "FRC_11/index.xml:TC3_invalid": 2,
-    "FRC_12/index.xml:TC1_valid": 1,
-    "FRC_13/index.xml:TC1_valid": 1,
-    "FRC_13/index.xml:TC2_invalid": 1,
-    "FRC_13/index.xml:TC3_invalid": 1,
-    "FRC_14/index.xml:TC1_valid": 1,
-    "FRC_14/index.xml:TC2_valid": 1,
-    "FRC_14/index.xml:TC3_valid": 1,
-    "FRC_14/index.xml:TC4_invalid": 1,
-    "FRC_14/index.xml:TC5_invalid": 1,
-    "FRC_14/index.xml:TC6_invalid": 1,
-    "FRC_14/index.xml:TC7_invalid": 1,
-    "FRC_15/index.xml:TC1_valid": 1,
-    "FRC_15/index.xml:TC2_invalid": 1,
-    "FRC_15/index.xml:TC3_invalid": 1,
-    "FRC_15/index.xml:TC4_invalid": 1,
-    "FRC_16/index.xml:TC1_valid": 1,
-    "FRC_16/index.xml:TC2_invalid": 1,
-    "FRC_18/index.xml:TC1_valid": 1,
-    "FRC_18/index.xml:TC2_valid": 1,
-    "FRC_18/index.xml:TC3_invalid": 1,
-    "FRC_18/index.xml:TC4_invalid": 1,
-    "FRC_19/index.xml:TC1_valid": 1,
-    "FRC_19/index.xml:TC2_invalid": 1,
-    "FRC_20/index.xml:TC1_valid": 1,
-    "FRC_20/index.xml:TC2_valid": 1,
-    "FRC_20/index.xml:TC3_invalid": 1,
-    "FRC_21/index.xml:TC1_valid": 1,
-    "FRC_21/index.xml:TC2_invalid": 1,
-    "FRC_21/index.xml:TC3_invalid": 1,
 }
 
 # Expected additional errors that are specific to individual test cases.
@@ -189,12 +121,6 @@ _OTHER_ERRORS: dict[str, dict[str, int]] = {
         # rule_incorrectTarget covers the UKFRC1 and UKFRC3 incorrectTarget conditions.
         # UKFRC1 and UKFRC5 have the same conditions for the test case, but have different checks and fire different errors
         "noUKFRSData": 1,
-        # UKFRC6 fire invalidIdentifier error because `FRC_03:TC2` doesn't have a target attribute,
-        # and we can't separate schemas iso17442 and ENTITY_IDENTIFIER_SCHEME_CRN
-        "invalidIdentifier": 1,
-        # same explanation as invalidIdentifier error above
-        "multipleIdentifiers": 1,
-        "segmentUsed": 1,
     },
     "FRC_03/index.xml:TC3_invalid": {
         # rule_incorrectTarget covers the UKFRC1 and UKFRC3 incorrectTarget conditions.
@@ -271,21 +197,6 @@ _OTHER_ERRORS: dict[str, dict[str, int]] = {
         # `FRC_10:TC5` checks the report file extension, same as `FRC_12:TC3` but fires a different error code
         "noReportsPresent": 2,
         "segmentUsed": 1,
-    },
-    "FRC_17/index.xml:TC2_invalid": {
-        "reportFileNameDoesNotFollowNamingConvention": 1,
-    },
-    "FRC_17/index.xml:TC3_invalid": {
-        "reportFileNameDoesNotFollowNamingConvention": 1,
-    },
-    "FRC_19/index.xml:TC2_invalid": {
-        "executableCodePresent": 1,
-    },
-    "FRC_20/index.xml:TC3_invalid": {
-        # The testcase ignores these schema errors as cvc-complex-type_3_2_2 and cvc-complex-type_4,
-        # but Arelle reports them with lxml error codes (the charset attribute on xhtml:meta).
-        "lxml.SCHEMAV_CVC_COMPLEX_TYPE_3_2_1": 1,
-        "lxml.SCHEMAV_CVC_COMPLEX_TYPE_4": 1,
     },
 }
 

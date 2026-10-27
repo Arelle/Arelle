@@ -25,6 +25,7 @@ from arelle.ModelRssObject import ModelRssObject
 from arelle.PythonUtil import isLegacyAbs
 from arelle.ValidateFileSource import ValidateFileSource, isPackage
 from arelle.ValidateXbrlCalcs import ValidateCalcsMode
+from arelle.conformance.error_code_matcher import error_code_matches, filter_ignored_errors
 from arelle.formula import ValidateFormula
 from arelle.FileSource import FileSource, openFileSource, archiveFilenameParts
 from arelle.ModelDocument import (
@@ -41,7 +42,7 @@ from arelle.ModelXbrl import (
 from arelle.ErrorManager import ErrorsType
 from arelle.ModelObject import ModelObject
 from arelle.ModelTestcaseObject import testcaseVariationsByTarget, ModelTestcaseVariation
-from arelle.ModelValue import (qname, QName)
+from arelle.ModelValue import QName
 from arelle.packages.report.DetectReportPackage import isReportPackageExtension
 from arelle.rendering import RenderingEvaluator
 from arelle.utils.EntryPointDetection import filesourceEntrypointFiles
@@ -62,8 +63,6 @@ class ValidationException(Exception):
 
     def __repr__(self) -> str:
         return "{0}({1})={2}".format(self.code,self.severity,self.message)
-
-commaSpaceSplitPattern = re.compile(r",\s*")
 
 TESTCASE_CALCS_MODES = {
     "round-to-nearest": ValidateCalcsMode.ROUND_TO_NEAREST,
@@ -790,11 +789,10 @@ class Validate:
             _blockPattern = re.compile(_blockedMessageCodes)
             _errors = [e for e in errors if isinstance(e,str) and not _blockPattern.match(e)]
         else:
-            _errors = errors  # type: ignore[assignment]
+            _errors = errors.copy()  # type: ignore[assignment]
         _errors.extend(self.modelXbrl.modelManager.cntlr.errors)  # type: ignore[arg-type]
-        numErrors = sum(isinstance(e,(QName,str)) for e in _errors) # does not include assertion dict results
-        hasAssertionResult = any(isinstance(e,dict) for e in _errors)
         expected = modelTestcaseVariation.expected
+        suiteExpectedCodes = expected if isinstance(expected, list) else [expected] if isinstance(expected, (QName, str)) else []
         expectedCount = modelTestcaseVariation.expectedCount
         userExpectedErrors = modelTestcaseVariation.setUserExpectedErrors(testcaseExpectedErrors, self.useFileSource).copy()
         if userExpectedErrors:
@@ -808,6 +806,12 @@ class Validate:
             expected.extend(userExpectedErrors)  # type: ignore[union-attr]
             if expectedCount is not None:
                 expectedCount += len(userExpectedErrors)
+        ignoredErrors = modelTestcaseVariation.ignoredErrors
+        if ignoredErrors:
+            # Codes the config expects in addition can't bring back an error the suite ignores.
+            _errors = filter_ignored_errors(_errors, ignoredErrors, suiteExpectedCodes)
+        numErrors = sum(isinstance(e,(QName,str)) for e in _errors) # does not include assertion dict results
+        hasAssertionResult = any(isinstance(e,dict) for e in _errors)
         if matchAllExpected:
             if isinstance(expected, list):
                 if not expectedCount:
@@ -836,52 +840,8 @@ class Validate:
             if not isinstance(expected, list):
                 expected = [expected]  # type: ignore[list-item]
             for testErr in _errors:
-                testErrPrefix = None
-                if isinstance(testErr, str) and testErr.startswith(("ESEF.", "NL.NL-KVK")): # compared as list of strings to QName localname
-                    testErrPrefix, __, testErrSuffix = testErr.rpartition(".")
-                    if not testErrSuffix.isdigit():
-                        testErr = testErrSuffix
                 for _exp in _expectedList:
-                    _expMatched = False
-                    if isinstance(_exp,QName) and isinstance(testErr,str):
-                        errPrefix, sep, errLocalName = testErr.rpartition(":")
-                        if (
-                                # ESEF has comma separated list of localnames of errors
-                                (not sep and errLocalName in commaSpaceSplitPattern.split(_exp.localName.strip())) or
-                                (_exp == qname(XbrlConst.errMsgPrefixNS.get(errPrefix) or
-                                           (errPrefix == _exp.prefix and _exp.namespaceURI),
-                                           errLocalName)) or
-                                # XDT xml schema tests expected results
-                                (_exp.namespaceURI == XbrlConst.xdtSchemaErrorNS and errPrefix == "xmlSchema") or
-                                # UKSEF conformance suite expects XML schema validation errors in format xbrl.core.xml.SchemaValidationError.*
-                                # Example: tests/FRC/FRC_08/index.xml:TC2_invalid
-                                (_exp.localName.startswith("xbrl.core.xml.SchemaValidationError.cvc") and errPrefix == "xmlSchema") or
-                                # ESEF.UK*: Actual (str): *:match, Expected (QName): {*}*.match
-                                (
-                                        testErrPrefix and testErrPrefix.startswith("ESEF.UK") and
-                                        errLocalName and errLocalName == _exp.localName.rpartition(".")[2]
-                                )
-                        ):
-                            _expMatched = True
-                    elif type(testErr) is type(_exp):
-                        if isinstance(testErr,dict):
-                            if len(testErr) == len(_exp) and all(
-                                k in testErr and counts == testErr[k][:len(counts)]
-                                for k, counts in _exp.items()):
-                                _expMatched = True
-                        elif (testErr == _exp or
-                            (isinstance(_exp, str) and (
-                             (_exp == "html:syntaxError" and testErr.startswith("lxml.SCHEMA")) or
-                             (_exp == "EFM.6.03.04" and testErr.startswith("xmlSchema:")) or
-                             (_exp == "EFM.6.03.05" and (testErr.startswith("xmlSchema:") or testErr == "EFM.5.02.01.01")) or
-                             (_exp == "EFM.6.04.03" and (testErr.startswith("xmlSchema:") or testErr.startswith("utr:") or testErr.startswith("xbrl.") or testErr.startswith("xlink:"))) or
-                             (_exp == "EFM.6.05.35" and testErr.startswith("utre:")) or
-                             (_exp.startswith("EFM.") and testErr.startswith(_exp)) or
-                             (_exp.startswith("EXG.") and testErr.startswith(_exp)) or
-                             (_exp == "vere:invalidDTSIdentifier" and testErr.startswith("xbrl"))
-                             ))):
-                            _expMatched = True
-                    if _expMatched:
+                    if error_code_matches(_exp, testErr):
                         _passCount += 1
                         if matchAllExpected:
                             _expectedList.remove(_exp)
@@ -892,20 +852,10 @@ class Validate:
                     status = "fail"
                 else:
                     status = "pass"
-            #if expected == "EFM.6.03.02" or expected == "EFM.6.03.08": # 6.03.02 is not testable
-            #    status = "pass"
-            # check if expected is a whitespace separated list of error tokens
-            if status == "fail" and isinstance(expected,str) and " " in expected:
-                if all(any(testErr == e for testErr in _errors)
-                       for e in expected.split()):
-                        status = "pass"
             if not _errors and status == "fail":
                 if modelTestcaseVariation.assertions:
-                    priorAsserResults = modelTestcaseVariation.assertions
                     _expected = expected[0] if isinstance(expected, list) else expected
-                    if len(priorAsserResults) == len(_expected) and all(  # type: ignore[arg-type]
-                            k in priorAsserResults and counts == priorAsserResults[k][:len(counts)]
-                            for k, counts in _expected.items()):  # type: ignore[union-attr]
+                    if error_code_matches(_expected, modelTestcaseVariation.assertions):
                         status = "pass" # passing was previously successful and no further errors
                 elif (isinstance(expected,dict) and # no assertions fired, are all the expected zero counts?
                       all(countSatisfied == 0 and countNotSatisfied == 0 for countSatisfied, countNotSatisfied in expected.values())):
