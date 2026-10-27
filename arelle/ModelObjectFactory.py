@@ -208,7 +208,9 @@ class DiscoveringClassLookup(etree.PythonElementClassLookup):
             return modelObjectClass
         elif self.streamingOrSkipDTS and ns not in (XbrlConst.xbrli, XbrlConst.link):
             # self.makeelementParentModelObject is set in streamingExtensions.py and ModelXbrl.createFact
-            ancestor = proxyElement.getparent() or getattr(self.modelXbrl, "makeelementParentModelObject", None)
+            ancestor = proxyElement.getparent()
+            if ancestor is None:
+                ancestor = getattr(self.modelXbrl, "makeelementParentModelObject", None)
             while ancestor is not None:
                 ancestorTag = cast(str, ancestor.tag)  # not a modelObject yet, just parser prototype
                 if ancestorTag.startswith("{http://www.xbrl.org/2003/instance}") or ancestorTag.startswith("{http://www.xbrl.org/2003/linkbase}"):

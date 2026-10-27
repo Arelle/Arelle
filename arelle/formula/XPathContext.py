@@ -563,7 +563,7 @@ class XPathContext:
                                                 if len(t.args) >= 2 and isinstance(t.args[1], QNameDef):
                                                     modelXbrl = x.modelDocument.modelXbrl
                                                     modelConcept = modelXbrl.qnameConcepts.get(x.qname)
-                                                    if modelConcept and not modelConcept.instanceOfType(t.args[1]):
+                                                    if modelConcept is not None and not modelConcept.instanceOfType(t.args[1]):
                                                         result = False
                                             else:
                                                 result = False

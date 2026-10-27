@@ -248,18 +248,18 @@ def rule_fr33(
     reportingClass = False
     classOfReportingEntityFacts = val.modelXbrl.factsByQname.get(pluginData.classOfReportingEntityQn, set())
     for fact in classOfReportingEntityFacts:
-        if fact is not None and fact.xValid >= VALID:
+        if fact.xValid >= VALID:
             if fact.xValue in pluginData.cClassOfReportingEntityEnums or fact.xValue in pluginData.dClassOfReportingEntityEnums:
                 reportingClass = True
                 break
     if not reportingClass:
         reportingClass = any(
-            fact and fact.xValid >= VALID
+            fact.xValid >= VALID
             for fact in val.modelXbrl.factsByQname.get(pluginData.selectedElementsFromReportingClassCQn, set())
         )
     if not reportingClass:
         reportingClass = any(
-            fact and fact.xValid >= VALID
+            fact.xValid >= VALID
             for fact in val.modelXbrl.factsByQname.get(pluginData.selectedElementsFromReportingClassDQn, set())
         )
     if reportingClass:

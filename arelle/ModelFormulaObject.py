@@ -1549,7 +1549,7 @@ class ModelConceptRelation(ModelFilter):
     @property
     def linkQname(self) -> QName | None:
         linkname = XmlUtil.child(self, XbrlConst.crf, "linkname")
-        if linkname:
+        if linkname is not None:
             return qname(linkname, XmlUtil.text(linkname))
         return None
 
@@ -2619,7 +2619,7 @@ class ModelAncestorFilter(ModelFilter):
     @property
     def qnameExpression(self) -> str | None:
         qnameExpression = XmlUtil.descendant(self, XbrlConst.tf, "qnameExpression")
-        if qnameExpression:
+        if qnameExpression is not None:
             return XmlUtil.text(qnameExpression)
         return None
 
@@ -2684,7 +2684,7 @@ class ModelParentFilter(ModelFilter):
     @property
     def qnameExpression(self) -> str | None:
         qnameExpression = XmlUtil.descendant(self, XbrlConst.tf, "qnameExpression")
-        if qnameExpression:
+        if qnameExpression is not None:
             return XmlUtil.text(qnameExpression)
         return None
 
