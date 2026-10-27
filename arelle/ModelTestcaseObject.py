@@ -24,10 +24,13 @@ if TYPE_CHECKING:
 TXMY_PKG_SRC_ELTS = ("metadata", "catalog", "taxonomy")
 
 
-def _suiteErrorCode(element: ModelObject) -> QName | str | None:
+def _suiteErrorCode(element: ModelObject) -> QName | str:
+    code = element.stringValue
     if element.get("nonStandardErrorCodes"):
-        return element.stringValue
-    return ModelValue.qname(element, element.stringValue)
+        return code
+    qname = ModelValue.qname(element, code)
+    # A prefix the suite doesn't declare can't be resolved, so the code is compared as text.
+    return qname if qname is not None else code
 
 
 def testcaseVariationsByTarget(testcaseVariations: list[ModelTestcaseVariation]) -> Generator[ModelTestcaseVariation, None, None]:
@@ -375,7 +378,7 @@ class ModelTestcaseVariation(ModelObject):
                 errorCode = _suiteErrorCode(errorElement)
                 num = int(errorElement.attr("num") or 1)
                 errorCodes.extend([errorCode] * num)
-            return errorCodes  # type: ignore[return-value]
+            return errorCodes
         if resultElement is not None:
             if expected:
                 return expected  # type: ignore[no-any-return]
