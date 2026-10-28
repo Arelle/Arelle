@@ -15,7 +15,12 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, TypeVar
 
 from arelle.ModelValue import QName
-from arelle.utils.validate.Facts import iterValidNonNilFactsByQname, hasValidNonNilFactByQname, getValidNonNilFactsByQname
+from arelle.utils.validate.Facts import (
+    getValidNonNilFactsByQname,
+    hasTrueValueFactByQname,
+    hasValidNonNilFactByQname,
+    iterValidNonNilFactsByQname,
+)
 from arelle.utils.validate.Validation import Validation
 
 if TYPE_CHECKING:
@@ -33,19 +38,22 @@ def isZeroOrAbsent(modelXbrl: ModelXbrl, qn: QName) -> bool:
     """
     return all(
         getNumericValue(fact) == 0
-        for fact in  iterValidNonNilFactsByQname(modelXbrl, qn)
+        for fact in iterValidNonNilFactsByQname(modelXbrl, qn)
     )
 
 
 def getNumericValue(fact: ModelFact) -> Decimal | None:
-    """Return the numeric *xValue* of *fact*, or ``None`` if unavailable."""
-    try:
-        val = fact.xValue
-        if isinstance(val, (int, float, Decimal)):
-            return Decimal(val)
-    except Exception:
-        pass
-    return None
+    """Return the numeric *xValue* of *fact*, or ``None`` when it is not an amount.
+
+    Booleans are not amounts. A float is converted through ``str`` so the
+    decimal follows the displayed value.
+    """
+    val = fact.xValue
+    if isinstance(val, bool) or not isinstance(val, (int, float, Decimal)):
+        return None
+    if isinstance(val, float):
+        return Decimal(str(val))
+    return Decimal(val)
 
 
 def getDateValue(fact: ModelFact) -> date | None:
@@ -53,6 +61,8 @@ def getDateValue(fact: ModelFact) -> date | None:
     val = fact.xValue
     if isinstance(val, datetime):
         return val.date()
+    if isinstance(val, date):
+        return val
     return None
 
 
@@ -141,4 +151,40 @@ def nonzeroAmountMissingDetailsValidation(
             codes=code,
             msg=msg,
             modelObject=getValidNonNilFactsByQname(modelXbrl, amountQn),
+        )
+
+
+def flagTrueMissingFactValidation(
+    modelXbrl: ModelXbrl,
+    flagQn: QName,
+    factQn: QName,
+    code: str,
+    msg: str,
+) -> Iterable[Validation]:
+    """Emit an error when *flagQn* is true and *factQn* is absent."""
+    if not hasTrueValueFactByQname(modelXbrl, flagQn):
+        return
+    if not hasValidNonNilFactByQname(modelXbrl, factQn):
+        yield Validation.error(
+            codes=code,
+            msg=msg,
+            modelObject=getValidNonNilFactsByQname(modelXbrl, flagQn),
+        )
+
+
+def factPresentFlagNotTrueValidation(
+    modelXbrl: ModelXbrl,
+    flagQn: QName,
+    factQn: QName,
+    code: str,
+    msg: str,
+) -> Iterable[Validation]:
+    """Emit an error when *factQn* is present and *flagQn* is not true."""
+    if not hasValidNonNilFactByQname(modelXbrl, factQn):
+        return
+    if not hasTrueValueFactByQname(modelXbrl, flagQn):
+        yield Validation.error(
+            codes=code,
+            msg=msg,
+            modelObject=getValidNonNilFactsByQname(modelXbrl, factQn),
         )

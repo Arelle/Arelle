@@ -96,12 +96,12 @@ def rule_nvad_e_0010(
                 yield Validation.error(
                     codes="IRD.NVAD-E-0010",
                     msg=_(
-                        '%(qname)s is a mandatory monetary/decimal/'
+                        '%(localName)s is a mandatory monetary/decimal/'
                         'percentage item and must be tagged with '
                         'decimals="INF" (found decimals="%(decimals)s").'
                     ),
                     modelObject=fact,
-                    qname=qn.localName,
+                    localName=qn.localName,
                     decimals=fact.decimals,
                 )
 
@@ -152,13 +152,13 @@ def rule_nvad_e_0020(
                     yield Validation.error(
                         codes="IRD.NVAD-E-0020",
                         msg=_(
-                            "%(qname)s is a mandatory duration fact and "
+                            "%(localName)s is a mandatory duration fact and "
                             "must be tagged in the basis period "
                             "(%(basisStart)s to %(basisEnd)s); found "
                             "context period %(foundStart)s to %(foundEnd)s."
                         ),
                         modelObject=[fact] + basisFacts,
-                        qname=qn.localName,
+                        localName=qn.localName,
                         basisStart=basisStart,
                         basisEnd=basisEnd,
                         foundStart=foundStart,
@@ -209,12 +209,12 @@ def rule_nvad_e_0021(
                     yield Validation.error(
                         codes="IRD.NVAD-E-0021",
                         msg=_(
-                            "%(qname)s is a mandatory instant fact and "
+                            "%(localName)s is a mandatory instant fact and "
                             "must be tagged at the basis period end date "
                             "(%(basisEnd)s); found instant %(instantDate)s."
                         ),
                         modelObject=fact,
-                        qname=qn.localName,
+                        localName=qn.localName,
                         basisEnd=basisEnd,
                         instantDate=ctx.instantDate,
                     )
@@ -256,11 +256,11 @@ def rule_nvad_e_0030(
         yield Validation.error(
             codes="IRD.NVAD-E-0030",
             msg=_(
-                "%(qname)s was tagged more than once with "
+                "%(localName)s was tagged more than once with "
                 "inconsistent values in equivalent contexts: %(values)s."
             ),
             modelObject=facts,
-            qname=qname.localName,
+            localName=qname.localName,
             values=values,
         )
 
@@ -287,9 +287,8 @@ def rule_nvad_e_0050(
     ird_tc concepts — are not mis-flagged as missing every mandatory item.
     """
     modelXbrl = val.modelXbrl
-    hrefs = pluginData.getSchemaRefHrefs(modelXbrl)
-    if not any(href in pluginData.validTcEntryPoints for href in hrefs):
-        return  # FS document — NVAD-E-0050 does not apply
+    if not pluginData.hasTcEntryPoint(modelXbrl):
+        return  # No current TC entry point — NVAD-E-0050 does not apply
 
     mandatoryQns = (
         pluginData.mandatoryTcBir52Qns
@@ -302,11 +301,11 @@ def rule_nvad_e_0050(
             yield Validation.error(
                 codes="IRD.NVAD-E-0050",
                 msg=_(
-                    "%(qname)s is a mandatory TC item and must be "
+                    "%(localName)s is a mandatory TC item and must be "
                     "tagged with at least one fact."
                 ),
                 modelDocument=modelXbrl.modelDocument,
-                qname=qn.localName,
+                localName=qn.localName,
             )
 
 
@@ -331,9 +330,8 @@ def rule_nvad_e_0170(
     Rule is guarded to TC documents only (schemaRef in TC entry points)
     so that FS-only documents in combined filings are not mis-flagged.
     """
-    hrefs = pluginData.getSchemaRefHrefs(val.modelXbrl)
-    if not any(href in pluginData.validTcEntryPoints for href in hrefs):
-        return  # FS document — NVAD-E-0170 does not apply
+    if not pluginData.hasTcEntryPoint(val.modelXbrl):
+        return  # No current TC entry point — NVAD-E-0170 does not apply
 
     if not hasValidNonNilFactByQname(val.modelXbrl, pluginData.hksicCodeQn):
         yield Validation.error(

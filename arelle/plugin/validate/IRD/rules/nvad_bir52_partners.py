@@ -47,7 +47,7 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Facts import hasValidNonNilFactByQname, hasTrueValueFactByQname, getValidNonNilFactsByQname, iterValidNonNilFactsByQname
 from arelle.utils.validate.Validation import Validation
-from . import getNumericValue, getFactsByNumericValue
+from . import factPresentFlagNotTrueValidation, flagTrueMissingFactValidation, getNumericValue, getFactsByNumericValue
 from ..DisclosureSystems import ALL_IRD_DISCLOSURE_SYSTEMS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -126,26 +126,17 @@ def rule_nvad_e_1151(
     modelXbrl = val.modelXbrl
     if not pluginData.isBir52(modelXbrl):
         return
-
-    if not hasValidNonNilFactByQname(
-        modelXbrl, pluginData.bir52ProprietorPartnerEmolumentsAdjQn
-    ):
-        return
-
-    if not hasTrueValueFactByQname(
-        modelXbrl, pluginData.bir52ProprietorPartnerEmolumentsQn
-    ):
-        yield Validation.error(
-            codes="IRD.NVAD-E-1151",
-            msg=_(
-                "BIR52ProprietorPartnerEmoluments must be true when "
-                "BIR52ProprietorPartnerEmolumentsAdjustment is tagged "
-                "in a BIR52 filing."
-            ),
-            modelObject=getValidNonNilFactsByQname(
-                modelXbrl, pluginData.bir52ProprietorPartnerEmolumentsAdjQn
-            ),
-        )
+    yield from factPresentFlagNotTrueValidation(
+        modelXbrl,
+        flagQn=pluginData.bir52ProprietorPartnerEmolumentsQn,
+        factQn=pluginData.bir52ProprietorPartnerEmolumentsAdjQn,
+        code="IRD.NVAD-E-1151",
+        msg=_(
+            "BIR52ProprietorPartnerEmoluments must be true when "
+            "BIR52ProprietorPartnerEmolumentsAdjustment is tagged "
+            "in a BIR52 filing."
+        ),
+    )
 
 
 @validation(
@@ -169,26 +160,17 @@ def rule_nvad_e_1152(
     modelXbrl = val.modelXbrl
     if not pluginData.isBir52(modelXbrl):
         return
-
-    if not hasTrueValueFactByQname(
-        modelXbrl, pluginData.bir52ProprietorPartnerEmolumentsQn
-    ):
-        return
-
-    if not hasValidNonNilFactByQname(
-        modelXbrl, pluginData.bir52ProprietorPartnerEmolumentsAdjQn
-    ):
-        yield Validation.error(
-            codes="IRD.NVAD-E-1152",
-            msg=_(
-                "BIR52ProprietorPartnerEmolumentsAdjustment must be "
-                "tagged when BIR52ProprietorPartnerEmoluments is true "
-                "in a BIR52 filing."
-            ),
-            modelObject=getValidNonNilFactsByQname(
-                modelXbrl, pluginData.bir52ProprietorPartnerEmolumentsQn
-            ),
-        )
+    yield from flagTrueMissingFactValidation(
+        modelXbrl,
+        flagQn=pluginData.bir52ProprietorPartnerEmolumentsQn,
+        factQn=pluginData.bir52ProprietorPartnerEmolumentsAdjQn,
+        code="IRD.NVAD-E-1152",
+        msg=_(
+            "BIR52ProprietorPartnerEmolumentsAdjustment must be "
+            "tagged when BIR52ProprietorPartnerEmoluments is true "
+            "in a BIR52 filing."
+        ),
+    )
 
 
 @validation(
@@ -355,9 +337,9 @@ def rule_nvad_e_1240(
         return
 
     for fact in iterValidNonNilFactsByQname(modelXbrl, pluginData.bir52PartnerHkidOrBrnQn):
-        value = fact.xValue
-        if not isinstance(value, str):
+        if not isinstance(fact.xValue, str):
             continue
+        value = fact.xValue.strip()
         if pluginData.hkidRegex.match(value) or pluginData.brnRegex.match(value):
             continue
         yield Validation.error(
@@ -368,7 +350,7 @@ def rule_nvad_e_1240(
                 "8-digit BRN; found '%(value)s'."
             ),
             modelObject=fact,
-            value=fact.xValue,
+            value=value,
         )
 
 

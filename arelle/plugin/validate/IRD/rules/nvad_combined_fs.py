@@ -75,23 +75,6 @@ def _groupFactsByUnit(
     return groups
 
 
-def _hasFsDocument(
-    modelXbrl: ModelXbrl,
-    pluginData: PluginValidationDataExtension,
-) -> bool:
-    """True when the IXDS contains an FS or FS-PE taxonomy schemaRef.
-
-    TC-only filings have no financial statements document, so FS
-    mandatory-item rules must not fire against them.
-    """
-    fsEntryPoints = (
-        pluginData.validFsEntryPoints | pluginData.validFsPeEntryPoints
-    )
-    return any(
-        href in fsEntryPoints for href in pluginData.getSchemaRefHrefs(modelXbrl)
-    )
-
-
 def _hasFsEquity(
     modelXbrl: ModelXbrl,
     pluginData: PluginValidationDataExtension,
@@ -223,7 +206,7 @@ def rule_nvad_e_1290(
     modelXbrl = val.modelXbrl
     if pluginData.isBir52(modelXbrl):
         return
-    if not _hasFsDocument(modelXbrl, pluginData):
+    if not pluginData.hasFsEntryPoint(modelXbrl):
         return
     if not _hasFsEquity(modelXbrl, pluginData):
         yield Validation.error(
@@ -256,7 +239,7 @@ def rule_nvad_e_1291(
     ``ird_fs_pe:Revenue`` satisfies the requirement.
     """
     modelXbrl = val.modelXbrl
-    if not _hasFsDocument(modelXbrl, pluginData):
+    if not pluginData.hasFsEntryPoint(modelXbrl):
         return
     if not _fsRevenueAndPbtRequired(modelXbrl, pluginData):
         return
@@ -292,7 +275,7 @@ def rule_nvad_e_1292(
     satisfy the FS mandatory-item requirement.
     """
     modelXbrl = val.modelXbrl
-    if not _hasFsDocument(modelXbrl, pluginData):
+    if not pluginData.hasFsEntryPoint(modelXbrl):
         return
     if not _fsRevenueAndPbtRequired(modelXbrl, pluginData):
         return

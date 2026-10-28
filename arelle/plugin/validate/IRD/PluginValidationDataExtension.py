@@ -194,18 +194,23 @@ class PluginValidationDataExtension(PluginData):
         """True when the document is a BIR52 (partnership/proprietorship) filing.
 
         Detection is based on a higher count of BIR52-exclusive concepts
-        than BIR51-exclusive concepts.
+        than BIR51-exclusive concepts. With no exclusive facts the filing
+        is treated as BIR51.
         """
         n52 = self._exclusiveQnCount(modelXbrl, self.bir52ExclusiveQns)
         n51 = self._exclusiveQnCount(modelXbrl, self.bir51ExclusiveQns)
         if n51 == 0 and n52 == 0:
-            return False  # FS-only / no exclusive facts → keep today's BIR51 default
+            # No form-exclusive facts, including an FS-only filing. BIR52
+            # cannot be told apart from BIR51, so BIR51 rules apply
+            # (NVAD-E-1290 requires total equity).
+            return False
         return n52 > n51
 
     def isBir51(self, modelXbrl: ModelXbrl) -> bool:
         """True when the document is a BIR51 (corporation) filing.
 
-        BIR51 is assumed unless BIR52-exclusive concepts outnumber BIR51-exclusive ones.
+        BIR51 is assumed unless BIR52-exclusive concepts outnumber
+        BIR51-exclusive ones. A filing with neither set is BIR51.
         """
         return not self.isBir52(modelXbrl)
 
@@ -248,6 +253,27 @@ class PluginValidationDataExtension(PluginData):
             for ref in refs
             if (href := (ref.get(XLINK_HREF, "") or ""))
         ]
+
+    def hasEntryPoint(self, modelXbrl: ModelXbrl, entryPoints: frozenset[str]) -> bool:
+        """True when any schemaRef href is in *entryPoints*.
+
+        Membership is exact. The taxonomy package publishes ``http`` URLs.
+        """
+        return any(
+            href in entryPoints
+            for href in self.getSchemaRefHrefs(modelXbrl)
+        )
+
+    def hasTcEntryPoint(self, modelXbrl: ModelXbrl) -> bool:
+        """True when the IXDS references a current TC entry point."""
+        return self.hasEntryPoint(modelXbrl, self.validTcEntryPoints)
+
+    def hasFsEntryPoint(self, modelXbrl: ModelXbrl) -> bool:
+        """True when the IXDS references a current FS or FS-PE entry point."""
+        return self.hasEntryPoint(
+            modelXbrl,
+            self.validFsEntryPoints | self.validFsPeEntryPoints,
+        )
 
     @lru_cache(1)
     def factsByPartnerContext(

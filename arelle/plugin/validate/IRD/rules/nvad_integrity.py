@@ -102,9 +102,12 @@ def rule_nvad_e_1340(
         )
         yield Validation.error(
             codes="IRD.NVAD-E-1340",
-            msg=_('Fact value of "%(qname)s" is not found.'),
+            msg=_(
+                "The value of %(localName)s is empty. A string or text-block "
+                "fact must contain a non-empty value."
+            ),
             modelObject=fact,
-            qname=localName,
+            localName=localName,
         )
 
 
@@ -132,7 +135,10 @@ def rule_nvad_e_1360(
                 continue
             yield Validation.error(
                 codes="IRD.NVAD-E-1360",
-                msg=_('Invalid use of hidden tag for "%(qname)s".'),
+                msg=_(
+                    "%(localName)s is a mandatory item and must not be tagged "
+                    "inside ix:hidden."
+                ),
                 modelObject=fact,
-                qname=mandatoryQn,
+                localName=mandatoryQn.localName,
             )

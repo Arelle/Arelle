@@ -35,8 +35,8 @@ from arelle.ValidateXbrl import ValidateXbrl
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
-from arelle.utils.validate.Facts import hasValidNonNilFactByQname, hasTrueValueFactByQname, getValidNonNilFactsByQname
 from arelle.utils.validate.Validation import Validation
+from . import factPresentFlagNotTrueValidation, flagTrueMissingFactValidation
 from ..DisclosureSystems import ALL_IRD_DISCLOSURE_SYSTEMS
 from ..PluginValidationDataExtension import PluginValidationDataExtension
 
@@ -61,20 +61,16 @@ def rule_nvad_e_1000(
     (or absent) flag is inconsistent
     """
     modelXbrl = val.modelXbrl
-    if not hasValidNonNilFactByQname(modelXbrl, pluginData.businessCommencementDateQn):
-        return
-
-    if not hasTrueValueFactByQname(modelXbrl, pluginData.businessCommencementQn):
-        yield Validation.error(
-            codes="IRD.NVAD-E-1000",
-            msg=_(
-                "BusinessCommencement must be true when "
-                "BusinessCommencementDate is tagged."
-            ),
-            modelObject=getValidNonNilFactsByQname(
-                modelXbrl, pluginData.businessCommencementDateQn
-            ),
-        )
+    yield from factPresentFlagNotTrueValidation(
+        modelXbrl,
+        flagQn=pluginData.businessCommencementQn,
+        factQn=pluginData.businessCommencementDateQn,
+        code="IRD.NVAD-E-1000",
+        msg=_(
+            "BusinessCommencement must be true when "
+            "BusinessCommencementDate is tagged."
+        ),
+    )
 
 
 @validation(
@@ -94,20 +90,16 @@ def rule_nvad_e_1010(
     must also be tagged.
     """
     modelXbrl = val.modelXbrl
-    if not hasTrueValueFactByQname(modelXbrl, pluginData.businessCommencementQn):
-        return
-
-    if not hasValidNonNilFactByQname(modelXbrl, pluginData.businessCommencementDateQn):
-        yield Validation.error(
-            codes="IRD.NVAD-E-1010",
-            msg=_(
-                "BusinessCommencementDate must be tagged when "
-                "BusinessCommencement is true."
-            ),
-            modelObject=getValidNonNilFactsByQname(
-                modelXbrl, pluginData.businessCommencementQn
-            ),
-        )
+    yield from flagTrueMissingFactValidation(
+        modelXbrl,
+        flagQn=pluginData.businessCommencementQn,
+        factQn=pluginData.businessCommencementDateQn,
+        code="IRD.NVAD-E-1010",
+        msg=_(
+            "BusinessCommencementDate must be tagged when "
+            "BusinessCommencement is true."
+        ),
+    )
 
 
 @validation(
@@ -128,20 +120,16 @@ def rule_nvad_e_1020(
     absent) flag is inconsistent.
     """
     modelXbrl = val.modelXbrl
-    if not hasValidNonNilFactByQname(modelXbrl, pluginData.businessCessationDateQn):
-        return
-
-    if not hasTrueValueFactByQname(modelXbrl, pluginData.businessCessationQn):
-        yield Validation.error(
-            codes="IRD.NVAD-E-1020",
-            msg=_(
-                "BusinessCessation must be true when "
-                "BusinessCessationDate is tagged."
-            ),
-            modelObject=getValidNonNilFactsByQname(
-                modelXbrl, pluginData.businessCessationDateQn
-            ),
-        )
+    yield from factPresentFlagNotTrueValidation(
+        modelXbrl,
+        flagQn=pluginData.businessCessationQn,
+        factQn=pluginData.businessCessationDateQn,
+        code="IRD.NVAD-E-1020",
+        msg=_(
+            "BusinessCessation must be true when "
+            "BusinessCessationDate is tagged."
+        ),
+    )
 
 
 @validation(
@@ -161,20 +149,16 @@ def rule_nvad_e_1030(
     must also be tagged.
     """
     modelXbrl = val.modelXbrl
-    if not hasTrueValueFactByQname(modelXbrl, pluginData.businessCessationQn):
-        return
-
-    if not hasValidNonNilFactByQname(modelXbrl, pluginData.businessCessationDateQn):
-        yield Validation.error(
-            codes="IRD.NVAD-E-1030",
-            msg=_(
-                "BusinessCessationDate must be tagged when "
-                "BusinessCessation is true."
-            ),
-            modelObject=getValidNonNilFactsByQname(
-                modelXbrl, pluginData.businessCessationQn
-            ),
-        )
+    yield from flagTrueMissingFactValidation(
+        modelXbrl,
+        flagQn=pluginData.businessCessationQn,
+        factQn=pluginData.businessCessationDateQn,
+        code="IRD.NVAD-E-1030",
+        msg=_(
+            "BusinessCessationDate must be tagged when "
+            "BusinessCessation is true."
+        ),
+    )
 
 
 @validation(
@@ -198,21 +182,16 @@ def rule_nvad_e_1040(
     modelXbrl = val.modelXbrl
     if not pluginData.isBir52(modelXbrl):
         return
-
-    if not hasTrueValueFactByQname(modelXbrl, pluginData.businessCessationQn):
-        return
-
-    if not hasValidNonNilFactByQname(modelXbrl, pluginData.businessCessationDeathOfProprietorQn):
-        yield Validation.error(
-            codes="IRD.NVAD-E-1040",
-            msg=_(
-                "BusinessCessationDeathOfProprietor must be tagged when "
-                "BusinessCessation is true in a BIR52 filing."
-            ),
-            modelObject=getValidNonNilFactsByQname(
-                modelXbrl, pluginData.businessCessationQn
-            ),
-        )
+    yield from flagTrueMissingFactValidation(
+        modelXbrl,
+        flagQn=pluginData.businessCessationQn,
+        factQn=pluginData.businessCessationDeathOfProprietorQn,
+        code="IRD.NVAD-E-1040",
+        msg=_(
+            "BusinessCessationDeathOfProprietor must be tagged when "
+            "BusinessCessation is true in a BIR52 filing."
+        ),
+    )
 
 
 @validation(
@@ -232,22 +211,16 @@ def rule_nvad_e_1050(
     BusinessCessationProprietorDeathDate must also be tagged.
     """
     modelXbrl = val.modelXbrl
-    if not hasTrueValueFactByQname(
-        modelXbrl, pluginData.businessCessationDeathOfProprietorQn
-    ):
-        return
-
-    if not hasValidNonNilFactByQname(modelXbrl, pluginData.businessCessationProprietorDeathDateQn):
-        yield Validation.error(
-            codes="IRD.NVAD-E-1050",
-            msg=_(
-                "BusinessCessationProprietorDeathDate must be tagged "
-                "when BusinessCessationDeathOfProprietor is true."
-            ),
-            modelObject=getValidNonNilFactsByQname(
-                modelXbrl, pluginData.businessCessationDeathOfProprietorQn
-            ),
-        )
+    yield from flagTrueMissingFactValidation(
+        modelXbrl,
+        flagQn=pluginData.businessCessationDeathOfProprietorQn,
+        factQn=pluginData.businessCessationProprietorDeathDateQn,
+        code="IRD.NVAD-E-1050",
+        msg=_(
+            "BusinessCessationProprietorDeathDate must be tagged "
+            "when BusinessCessationDeathOfProprietor is true."
+        ),
+    )
 
 
 @validation(
@@ -268,20 +241,16 @@ def rule_nvad_e_1060(
     value is false.
     """
     modelXbrl = val.modelXbrl
-    if not hasTrueValueFactByQname(modelXbrl, pluginData.businessCessationQn):
-        return
-
-    if not hasValidNonNilFactByQname(modelXbrl, pluginData.businessCessationTransferredQn):
-        yield Validation.error(
-            codes="IRD.NVAD-E-1060",
-            msg=_(
-                "BusinessCessationTransferred must be tagged when "
-                "BusinessCessation is true."
-            ),
-            modelObject=getValidNonNilFactsByQname(
-                modelXbrl, pluginData.businessCessationQn
-            ),
-        )
+    yield from flagTrueMissingFactValidation(
+        modelXbrl,
+        flagQn=pluginData.businessCessationQn,
+        factQn=pluginData.businessCessationTransferredQn,
+        code="IRD.NVAD-E-1060",
+        msg=_(
+            "BusinessCessationTransferred must be tagged when "
+            "BusinessCessation is true."
+        ),
+    )
 
 
 @validation(
@@ -301,20 +270,16 @@ def rule_nvad_e_1070(
     BusinessCessationTransferee must also be tagged.
     """
     modelXbrl = val.modelXbrl
-    if not hasTrueValueFactByQname(modelXbrl, pluginData.businessCessationTransferredQn):
-        return
-
-    if not hasValidNonNilFactByQname(modelXbrl, pluginData.businessCessationTransfereeQn):
-        yield Validation.error(
-            codes="IRD.NVAD-E-1070",
-            msg=_(
-                "BusinessCessationTransferee must be tagged when "
-                "BusinessCessationTransferred is true."
-            ),
-            modelObject=getValidNonNilFactsByQname(
-                modelXbrl, pluginData.businessCessationTransferredQn
-            ),
-        )
+    yield from flagTrueMissingFactValidation(
+        modelXbrl,
+        flagQn=pluginData.businessCessationTransferredQn,
+        factQn=pluginData.businessCessationTransfereeQn,
+        code="IRD.NVAD-E-1070",
+        msg=_(
+            "BusinessCessationTransferee must be tagged when "
+            "BusinessCessationTransferred is true."
+        ),
+    )
 
 
 @validation(
@@ -338,24 +303,17 @@ def rule_nvad_e_1080(
     modelXbrl = val.modelXbrl
     if not pluginData.isBir52(modelXbrl):
         return
-
-    if not hasTrueValueFactByQname(modelXbrl, pluginData.businessCessationTransferredQn):
-        return
-
-    if not hasValidNonNilFactByQname(
-        modelXbrl, pluginData.businessCessationTransfereeBusinessNatureQn
-    ):
-        yield Validation.error(
-            codes="IRD.NVAD-E-1080",
-            msg=_(
-                "BusinessCessationTransfereeBusinessNature must be "
-                "tagged when BusinessCessationTransferred is true in a "
-                "BIR52 filing."
-            ),
-            modelObject=getValidNonNilFactsByQname(
-                modelXbrl, pluginData.businessCessationTransferredQn
-            ),
-        )
+    yield from flagTrueMissingFactValidation(
+        modelXbrl,
+        flagQn=pluginData.businessCessationTransferredQn,
+        factQn=pluginData.businessCessationTransfereeBusinessNatureQn,
+        code="IRD.NVAD-E-1080",
+        msg=_(
+            "BusinessCessationTransfereeBusinessNature must be "
+            "tagged when BusinessCessationTransferred is true in a "
+            "BIR52 filing."
+        ),
+    )
 
 
 @validation(
@@ -379,21 +337,14 @@ def rule_nvad_e_1081(
     modelXbrl = val.modelXbrl
     if not pluginData.isBir51(modelXbrl):
         return
-
-    if not hasTrueValueFactByQname(modelXbrl, pluginData.businessCessationQn):
-        return
-
-    if not hasValidNonNilFactByQname(
-        modelXbrl, pluginData.businessCessationTransferredAssetsAssociatedQn
-    ):
-        yield Validation.error(
-            codes="IRD.NVAD-E-1081",
-            msg=_(
-                "BusinessCessationTransferredAssetsAssociated must be "
-                "tagged when BusinessCessation is true in a BIR51 "
-                "filing."
-            ),
-            modelObject=getValidNonNilFactsByQname(
-                modelXbrl, pluginData.businessCessationQn
-            ),
-        )
+    yield from flagTrueMissingFactValidation(
+        modelXbrl,
+        flagQn=pluginData.businessCessationQn,
+        factQn=pluginData.businessCessationTransferredAssetsAssociatedQn,
+        code="IRD.NVAD-E-1081",
+        msg=_(
+            "BusinessCessationTransferredAssetsAssociated must be "
+            "tagged when BusinessCessation is true in a BIR51 "
+            "filing."
+        ),
+    )

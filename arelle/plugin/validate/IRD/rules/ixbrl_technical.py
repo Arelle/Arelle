@@ -33,16 +33,16 @@ from arelle.utils.PluginHooks import ValidationHook
 from arelle.utils.validate.Decorator import validation
 from arelle.utils.validate.Validation import Validation
 from ..DisclosureSystems import ALL_IRD_DISCLOSURE_SYSTEMS
-from ..PluginValidationDataExtension import PluginValidationDataExtension
+from ..PluginValidationDataExtension import PluginValidationDataExtension, XLINK_HREF
 
 _: TypeGetText
 
-# IRD entry-point URL from the iXBRL style guide. The directory date and
-# the date repeated in the filename are the taxonomy version. ``http``
-# and ``https`` are both accepted. Longer names (``fs_pe``) come before
+# IRD entry-point URL as published in the taxonomy package. The directory
+# date and the date repeated in the filename are the taxonomy version.
+# Every published href uses ``http``. Longer names (``fs_pe``) come before
 # the prefixes they contain (``fs``).
 IRD_HREF_RE = re.compile(
-    r"^https?://xbrl\.ird\.gov\.hk/taxonomy/"
+    r"^http://xbrl\.ird\.gov\.hk/taxonomy/"
     r"(?P<date>\d{4}-\d{2}-\d{2})/"
     r"ird_(?:fs_pe(?:-zh-hk)?|fs(?:-zh-hk)?|tc(?:-zh-hk)?)_entry_point_"
     r"(?P<file_date>\d{4}-\d{2}-\d{2})\.xsd$"
@@ -93,7 +93,7 @@ def _iterSchemaRefs(
     """Yield ``(ref, href)`` for every ``link:schemaRef`` in the IXDS."""
     for refs in pluginData.getSchemaRefsByDocument(modelXbrl).values():
         for ref in refs:
-            yield ref, (ref.get("{http://www.w3.org/1999/xlink}href", "") or "")
+            yield ref, (ref.get(XLINK_HREF, "") or "")
 
 
 @validation(

@@ -3,8 +3,8 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="../../../../config/disclosuresystems.xsd">
     <DisclosureSystem
-            names="ird-2025-draft"
-            description="Hong Kong IRD Profits Tax iXBRL Validation (2025 Draft)"
+            names="ird-2025-preview"
+            description="Hong Kong IRD Profits Tax iXBRL validation for Year of Assessment 2025/26 (IRD 2025 edition; taxonomy dated 2026-04-01)"
             validationType="IRD"
     />
 </DisclosureSystems>

@@ -13,6 +13,7 @@ Rules implemented here:
 """
 from __future__ import annotations
 
+import re
 from collections.abc import Iterable
 from datetime import date
 from typing import Any
@@ -35,6 +36,26 @@ _: TypeGetText
 ASSESSMENT_YEAR_MINIMUM = 2022
 ASSESSMENT_YEAR_WINDOW_PAST = 5
 ASSESSMENT_YEAR_WINDOW_FUTURE = 1
+
+
+def basisPeriodWindow(
+    yearOfAssessment: str,
+    pattern: re.Pattern[str],
+) -> tuple[date, date] | None:
+    """Return 1 April through 31 March for a consecutive ``20XX/YY`` value.
+
+    ``None`` when the value does not match the pattern or the second
+    year is not exactly one greater than the first. ``2099/00`` is
+    consecutive and ends on 31 March 2100.
+    """
+    match = pattern.match(yearOfAssessment.strip())
+    if not match:
+        return None
+    firstTwo, secondTwo = int(match.group(1)), int(match.group(2))
+    if secondTwo != (firstTwo + 1) % 100:
+        return None
+    firstYear = 2000 + firstTwo
+    return date(firstYear, 4, 1), date(firstYear + 1, 3, 31)
 
 
 @validation(
@@ -173,8 +194,10 @@ def rule_nvad_e_0120(
 
     Parses the assessment year from YearOfAssessment (``20XX/YY``) and
     requires BasisPeriodEndDate to fall within ``[1 April 20XX, 31 March
-    20YY]`` inclusive. Skips if YearOfAssessment is malformed (reported
-    separately by NVAD-E-0100) or either fact is untagged (NVAD-E-0050).
+    20YY]`` inclusive. A YearOfAssessment fact that is malformed or whose
+    years are not consecutive is skipped (NVAD-E-0100 reports it) and
+    any further YearOfAssessment facts are still checked. Untagged
+    dates are covered by NVAD-E-0050.
     """
     modelXbrl = val.modelXbrl
 
@@ -184,14 +207,10 @@ def rule_nvad_e_0120(
 
     for yearFact in iterValidNonNilFactsByQname(modelXbrl, pluginData.yearOfAssessmentQn):
         yearValue = (yearFact.value or "").strip()
-        match = pluginData.yearOfAssessmentRegex.match(yearValue)
-        if not match:
-            return
-
-        firstYear = 2000 + int(match.group(1))
-        secondYear = 2000 + int(match.group(2))
-        windowStart = date(firstYear, 4, 1)
-        windowEnd = date(secondYear, 3, 31)
+        window = basisPeriodWindow(yearValue, pluginData.yearOfAssessmentRegex)
+        if window is None:
+            continue
+        windowStart, windowEnd = window
         for endValue, endFacts in endFactsByValue.items():
             if not (windowStart <= endValue <= windowEnd):
                 yield Validation.error(

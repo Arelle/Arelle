@@ -1,10 +1,13 @@
 """
 See COPYRIGHT.md for copyright information.
 
-Hong Kong IRD Profits Tax iXBRL Validation Plugin.
+Hong Kong IRD Profits Tax iXBRL validation for BIR51 and BIR52 filings.
 
-Implements the IRD's published NVAD and technical validation rules for
-BIR51 and BIR52 Profits Tax iXBRL filings.
+The IRD brands this edition 2025 (Year of Assessment 2025/26). Taxonomy
+package filenames are dated 1 April of the following calendar year, so
+the current package is 2026-04-01.
+
+- [IRD iXBRL materials](https://www.ird.gov.hk/eng/tax/bus_ixbrl_materials.htm)
 
 Plugin entry point — loaded by Arelle via --plugin plugin/validate/IRD.
 """

@@ -35,7 +35,14 @@ HAN_UNICODE_NAME_PREFIXES = (
     "CJK COMPATIBILITY IDEOGRAPH",
 )
 
-def _isHan(text: str) -> bool:
+def _isHan(text: str, xmlLang: str | None) -> bool:
+    """Return ``zh`` or ``en`` for the length rule that applies to *value*.
+
+    An explicit ``xml:lang`` selects the rule. With no language tag, a
+    value that contains a Han character is Chinese.
+    """
+    if xmlLang:
+        return xmlLang.startswith("zh")
     for ch in text:
         name = unicodedata.name(ch, "")
         if any(name.startswith(p) for p in HAN_UNICODE_NAME_PREFIXES):
@@ -70,11 +77,11 @@ def rule_nvad_e_0060(
             yield Validation.error(
                 codes="IRD.NVAD-E-0060",
                 msg=_(
-                    "%(qname)s is a BIR52-specific element and must "
+                    "%(localName)s is a BIR52-specific element and must "
                     "not be tagged in a BIR51 (corporation) filing."
                 ),
                 modelObject=facts,
-                qname=qn.localName,
+                localName=qn.localName,
             )
 
 
@@ -106,11 +113,11 @@ def rule_nvad_e_0070(
             yield Validation.error(
                 codes="IRD.NVAD-E-0070",
                 msg=_(
-                    "%(qname)s is a BIR51-specific element and must "
+                    "%(localName)s is a BIR51-specific element and must "
                     "not be tagged in a BIR52 (partnership) filing."
                 ),
                 modelObject=facts,
-                qname=qn.localName,
+                localName=qn.localName,
             )
 
 
@@ -127,15 +134,13 @@ def rule_nvad_e_0080(
     """NVAD-E-0080: English CompanyName text must not exceed 120 characters.
 
     CompanyName is a single concept shared by English- and Chinese-medium
-    filers; a tagged value is treated as English when there are no Han
-    characters. Values containing Han characters are considered Chinese and
-    are checked separately by NVAD-E-0090.
+    filers. ``xml:lang`` selects the rule when it is present. With no
+    language tag, a value that contains a Han character is checked by
+    NVAD-E-0090.
     """
     for fact in iterValidNonNilFactsByQname(val.modelXbrl, pluginData.companyNameQn):
-        if fact.xmlLang and fact.xmlLang.startswith("zh"):
-            continue
         value = (fact.value or "").strip()
-        if _isHan(value):
+        if _isHan(value, fact.xmlLang):
             continue
         if len(value) > COMPANY_NAME_MAX_LEN:
             yield Validation.error(
@@ -163,14 +168,13 @@ def rule_nvad_e_0090(
 ) -> Iterable[Validation]:
     """NVAD-E-0090: Chinese CompanyName text must not exceed 120 characters.
 
-    A tagged CompanyName value is treated as Chinese when it contains any
-    Han character (the English case is checked separately by NVAD-E-0080).
+    A tagged CompanyName value is Chinese when ``xml:lang`` starts with
+    ``zh``, or when the language is absent and the value contains a Han
+    character. English names are checked by NVAD-E-0080.
     """
     for fact in iterValidNonNilFactsByQname(val.modelXbrl, pluginData.companyNameQn):
-        if fact.xmlLang and not fact.xmlLang.startswith("zh"):
-            continue
         value = (fact.value or "").strip()
-        if not _isHan(value):
+        if not _isHan(value, fact.xmlLang):
             continue
         if len(value) > COMPANY_NAME_MAX_LEN:
             yield Validation.error(

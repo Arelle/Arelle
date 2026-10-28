@@ -46,9 +46,11 @@ class ValidationPluginExtension(ValidationPlugin):
         ])
         validFs = frozenset([
             f"{BASE}ird_fs_entry_point_2026-04-01.xsd",
+            f"{BASE}ird_fs-zh-hk_entry_point_2026-04-01.xsd",
         ])
         validFsPe = frozenset([
             f"{BASE}ird_fs_pe_entry_point_2026-04-01.xsd",
+            f"{BASE}ird_fs_pe-zh-hk_entry_point_2026-04-01.xsd",
         ])
 
         releasedVersionDates = frozenset([
@@ -234,11 +236,11 @@ class ValidationPluginExtension(ValidationPlugin):
             tcQn("BIR52ProprietorPartnerMPF"),
         ])
 
-        # hksic_codes.json sourced from "The IRD iXBRL Data Preparation Tools" Mac version source.
-        # Download latest version from https://www.ird.gov.hk/eng/tax/bus_ixbrl_materials.htm
-        # Locate file at "IRD iXBRL Data Preparation Tools.app/Contents/Resources/resources/HSID.json"
-        # Last updated using version 4.1.0.0.
-        # Alternatively, the values could be extracted from here:
+        # HKSIC 2.0 codes. Extracted from IRD iXBRL Data Preparation Tools
+        # 4.1.0.0 (Mac), which stores the list at
+        # "IRD iXBRL Data Preparation Tools.app/Contents/Resources/resources/HSID.json".
+        # Download: https://www.ird.gov.hk/eng/tax/bus_ixbrl_materials.htm
+        # Census source:
         # https://www.censtatd.gov.hk/en/EIndexbySubject.html?pcode=B2XX0021&scode=452#statisticalReports1
         hksicPath = Path(__file__).parent / "resources" / "hksic_codes.json"
         validHksic: frozenset[str] = frozenset(

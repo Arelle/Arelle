@@ -213,13 +213,13 @@ def rule_nvad_e_1370(
             yield Validation.error(
                 codes="IRD.NVAD-E-1370",
                 msg=_(
-                    "%(qname)s is a TC monetary fact and "
+                    "%(localName)s is a TC monetary fact and "
                     "must use a unit consistent with HKD or the declared "
                     "CurrencyUsed ('%(currency)s'); found unit "
                     "'%(unit)s'."
                 ),
                 modelObject=fact,
-                qname=fact.qname.localName,
+                localName=fact.qname.localName,
                 currency="', '".join(str(v) for v in currencyValues),
                 unit=code or "non-currency",
             )
@@ -262,13 +262,13 @@ def rule_nvad_e_1430(
             yield Validation.error(
                 codes="IRD.NVAD-E-1430",
                 msg=_(
-                    "%(qname)s is an FS monetary fact and "
+                    "%(localName)s is an FS monetary fact and "
                     "must use a unit consistent with HKD or the paired "
                     "TC file's CurrencyUsed ('%(currency)s'); found unit "
                     "'%(unit)s'."
                 ),
                 modelObject=fact,
-                qname=fact.qname.localName,
+                localName=fact.qname.localName,
                 currency="', '".join(str(v) for v in currencyValues),
                 unit=code or "non-currency",
             )
