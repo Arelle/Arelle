@@ -9,13 +9,15 @@ from arelle import XbrlConst, XmlUtil
 from arelle.formula import XPathContext
 from arelle.ModelFormulaObject import ModelTypedDimension, ModelParameter
 from arelle.Aspect import aspectStr, Aspect
-from arelle.ModelRenderingObject import (DefnMdlDefinitionNode,
-                                         DefnMdlBreakdown,
-                                         DefnMdlClosedDefinitionNode,
-                                         DefnMdlRuleDefinitionNode,
-                                         DefnMdlAspectNode,
-                                         DefnMdlRelationshipNode,
-                                         DefnMdlDimensionRelationshipNode)
+from arelle.ModelRenderingObject import (
+    DefnMdlDefinitionNode,
+    DefnMdlBreakdown,
+    DefnMdlClosedDefinitionNode,
+    DefnMdlRuleDefinitionNode,
+    DefnMdlAspectNode,
+    DefnMdlRelationshipNode,
+    DefnMdlDimensionRelationshipNode, DefnMdlTable,
+    )
 from arelle.ModelValue import QName
 from arelle.typing import TypeGetText
 
@@ -115,7 +117,7 @@ def init(modelXbrl: ModelXbrl) -> None:
 
 def checkBreakdownDefinitionNode(
         modelXbrl: ModelXbrl,
-        modelTable: ModelObject,
+        modelTable: DefnMdlTable,
         tblBrkdnRel: ModelRelationship,
         tblAxisDisposition: Any,
         uncoverableAspects: tuple[int | QName, ...],
@@ -127,10 +129,10 @@ def checkBreakdownDefinitionNode(
         for aspect in definitionNode.aspectsCovered():
             aspectsCovered.add(aspect)
             if (aspect in uncoverableAspects or
-                (isinstance(aspect, QName) and modelTable.aspectModel == "non-dimensional")):  # type: ignore[attr-defined]
+                (isinstance(aspect, QName) and modelTable.aspectModel == "non-dimensional")):
                 modelXbrl.error("xbrlte:axisAspectModelMismatch",
                     _("%(definitionNode)s %(xlinkLabel)s, aspect model %(aspectModel)s, aspect %(aspect)s not allowed"),
-                    modelObject=modelTable, definitionNode=definitionNode.localName, xlinkLabel=definitionNode.xlinkLabel, aspectModel=modelTable.aspectModel,  # type: ignore[attr-defined]
+                    modelObject=modelTable, definitionNode=definitionNode.localName, xlinkLabel=definitionNode.xlinkLabel, aspectModel=modelTable.aspectModel,
                     aspect=str(aspect) if isinstance(aspect, QName) else Aspect.label[aspect])
             hasCoveredAspect = True
             if aspect in modelTable.priorAspectAxisDisposition:  # type: ignore[attr-defined]
@@ -170,7 +172,7 @@ def checkBreakdownDefinitionNode(
             if tag is not None:  # named constraint sets only
                 for aspect in ruleSet.aspectsCovered():  # type: ignore[attr-defined]
                     if aspect != Aspect.DIMENSIONS:
-                        modelTable.aspectsInTaggedConstraintSets.add(aspect)  # type: ignore[attr-defined]
+                        modelTable.aspectsInTaggedConstraintSets.add(aspect)
             if tag in tagConstraintSets:
                 modelXbrl.error("xbrlte:duplicateTag",
                     _("%(definitionNode)s %(xlinkLabel)s duplicate rule set tags %(tag)s"),
@@ -195,7 +197,7 @@ def checkBreakdownDefinitionNode(
                                       if aspect != Aspect.DIMENSIONS))
     if isinstance(definitionNode, DefnMdlDimensionRelationshipNode):
         hasCoveredAspect = True
-        if modelTable.aspectModel == "non-dimensional":  # type: ignore[attr-defined]
+        if modelTable.aspectModel == "non-dimensional":
             modelXbrl.error("xbrlte:axisAspectModelMismatch",
                 _("DimensionRelationship axis %(xlinkLabel)s can't be used in non-dimensional aspect model"),
                 modelObject=(modelTable,definitionNode), xlinkLabel=definitionNode.xlinkLabel)
@@ -242,7 +244,7 @@ def checkBreakdownDefinitionNode(
 
 def checkBreakdownLeafNodeAspects(
         modelXbrl: ModelXbrl,
-        modelTable: ModelObject,
+        modelTable: DefnMdlTable,
         tblBrkdnRel: ModelRelationship,
         parentAspectsCovered: set[int | QName],
         breakdownAspects: set[int | QName],
