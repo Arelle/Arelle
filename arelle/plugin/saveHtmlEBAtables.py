@@ -333,7 +333,7 @@ class SaveHtmlEbaTablesPlugin(PluginHooks):
         if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
             cntlr.addToLog("No taxonomy loaded.")
             return
-        RenderingEvaluator.init(modelXbrl)  # type: ignore[no-untyped-call]
+        RenderingEvaluator.init(modelXbrl)
         generateHtmlEbaTablesetFiles(cntlr.modelManager.modelXbrl, ebaTablesetIndexFile)
 
 

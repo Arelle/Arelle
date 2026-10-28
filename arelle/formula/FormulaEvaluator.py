@@ -40,7 +40,7 @@ expressionVariablesPattern = re.compile(r"([^$]*)([$]\w[\w:.-]*)([^$]*)")
 EMPTYSET = set()
 
 
-def init():
+def init() -> None:
     global ModelDimensionValue, ModelFact  # initialize objects that would cause recursive import
     if ModelDimensionValue is None:
         from arelle.ModelInstanceObject import ModelDimensionValue, ModelFact

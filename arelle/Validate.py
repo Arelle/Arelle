@@ -680,7 +680,7 @@ class Validate:
         assert modelXbrl.modelDocument is not None, "modelDocument must be set"
         if modelXbrl.hasTableRendering or modelTestcaseVariation.resultIsTable:
             try:
-                RenderingEvaluator.init(modelXbrl)  # type: ignore[no-untyped-call]
+                RenderingEvaluator.init(modelXbrl)
             except Exception as err:
                 modelXbrl.error("exception:" + type(err).__name__,
                     _("Testcase RenderingEvaluator.init exception: %(error)s, instance: %(instance)s"),
