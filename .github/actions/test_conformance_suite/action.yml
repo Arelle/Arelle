@@ -30,7 +30,7 @@ runs:
         edgar_ref: ${{ inputs.edgar_ref }}
         xule_ref: ${{ inputs.xule_ref }}
     - name: Install Python 3
-      uses: actions/setup-python@v7.0.0
+      uses: actions/setup-python@v7.1.0
       with:
         cache: 'pip'
         check-latest: true

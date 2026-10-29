@@ -25,7 +25,7 @@ runs:
         check-latest: true
         node-version: '26'
     - name: Install Python
-      uses: actions/setup-python@v7.0.0
+      uses: actions/setup-python@v7.1.0
       with:
         cache: 'pip'
         cache-dependency-path: |
