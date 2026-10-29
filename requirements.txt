@@ -1,6 +1,6 @@
 # core modules
 bottle==0.13.4
-certifi==2026.10.19
+certifi==2026.10.23
 cheroot==11.1.2
 filelock==4.2.4
 isodate==0.7.2
@@ -18,7 +18,7 @@ truststore==0.10.5
 typing-extensions==4.16.0
 # plugins
 # security plugin
-pycryptodome==4.0.1
+pycryptodome==4.2.0
 # xbrlDB plugin
 oracledb==26.0.1
 pg8000==1.31.5

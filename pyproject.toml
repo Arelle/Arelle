@@ -38,7 +38,7 @@ dependencies = [
     'openpyxl>=3,<4',
     'pillow>=10,<14',
     'pyparsing>=3,<4',
-    'python-dateutil>=2,<3',
+    'python-dateutil>=2,<4',
     'regex',
     'truststore>=0,<1',
     'typing-extensions>=4,<5',
