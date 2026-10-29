@@ -43,7 +43,7 @@ def init(modelXbrl: ModelXbrl) -> None:
     for baseSetKey in modelXbrl.baseSets.keys():
         arcrole, ELR, linkqname, arcqname = baseSetKey
         if ELR and linkqname and arcqname and XbrlConst.isTableRenderingArcrole(arcrole):
-            ValidateFormula.checkBaseSet(modelXbrl, arcrole, ELR, modelXbrl.relationshipSet(arcrole,ELR,linkqname,arcqname))
+            ValidateFormula.checkBaseSet(modelXbrl, arcrole, ELR, modelXbrl.relationshipSet(arcrole, ELR, linkqname, arcqname))  # type: ignore[arg-type]
             if arcrole in (XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD):
                 hasXbrlTables = True
 
@@ -65,7 +65,7 @@ def init(modelXbrl: ModelXbrl) -> None:
         modelXbrl.parameters = modelXbrl.modelManager.formulaOptions.typedParameters(modelXbrl.prefixedNamespaces)  # type: ignore[attr-defined]
 
         # validate parameters and custom function signatures
-        ValidateFormula.validate(modelXbrl, xpathContext=modelXbrl.rendrCntx,  # type: ignore[attr-defined]
+        ValidateFormula.validate(modelXbrl, xpathContext=modelXbrl.rendrCntx,  # type: ignore[attr-defined,arg-type]
                                   parametersOnly=True, statusMsg=_("compiling rendering tables"))
 
         # compile and validate tables
