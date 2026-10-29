@@ -1,6 +1,6 @@
 # core modules
 bottle==0.13.4
-certifi==2026.10.19
+certifi==2026.10.23
 cheroot==11.1.2
 filelock==4.2.4
 isodate==0.7.2
@@ -11,14 +11,14 @@ numpy==2.4.6 ; python_version == "3.11"
 numpy==2.5.4 ; python_version > "3.11"
 openpyxl==3.1.5
 pyparsing==3.3.3
-python-dateutil==2.9.0.post0
+python-dateutil==3.0.0
 regex==2026.9.29
-tornado==6.5.10
+tornado==6.6
 truststore==0.10.5
 typing-extensions==4.16.0
 # plugins
 # security plugin
-pycryptodome==4.0.1
+pycryptodome==4.2.0
 # xbrlDB plugin
 oracledb==26.0.1
 pg8000==1.31.5
