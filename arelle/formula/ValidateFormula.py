@@ -11,7 +11,8 @@ from typing import TYPE_CHECKING, Any, cast
 
 import regex as re
 
-from arelle import FunctionXs, ModelXbrl, ValidateXbrlDimensions, XbrlConst, XmlUtil
+from arelle import FunctionXs, ValidateXbrlDimensions, XbrlConst, XmlUtil
+from arelle.ModelXbrl import ModelXbrl, create as createModelXbrl
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.Aspect import Aspect, aspectModels
 from arelle.ModelFormulaObject import (
@@ -191,7 +192,7 @@ arcroleChecks: dict[str, tuple[Any, ...]] = {
 }
 
 
-def checkBaseSet(val: ValidateXbrl, arcrole: str, ELR: str | None, relsSet: ModelRelationshipSet) -> None:
+def checkBaseSet(val: ValidateXbrl | ModelXbrl, arcrole: str, ELR: str | None, relsSet: ModelRelationshipSet) -> None:
     # check hypercube-dimension relationships
 
     if arcrole in arcroleChecks:
@@ -785,7 +786,7 @@ def validate(
             if instanceQname != XbrlConst.qnStandardOutputInstance:
                 uri = uri + "-" + instanceQname.localName
             uri = uri + ".xml"
-            namedInstance = ModelXbrl.create(
+            namedInstance = createModelXbrl(
                 val.modelXbrl.modelManager,
                 newDocumentType=ModelDocumentType.INSTANCE,
                 url=uri,

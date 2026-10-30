@@ -43,7 +43,7 @@ def init(modelXbrl: ModelXbrl) -> None:
     for baseSetKey in modelXbrl.baseSets.keys():
         arcrole, ELR, linkqname, arcqname = baseSetKey
         if ELR and linkqname and arcqname and XbrlConst.isTableRenderingArcrole(arcrole):
-            ValidateFormula.checkBaseSet(modelXbrl, arcrole, ELR, modelXbrl.relationshipSet(arcrole, ELR, linkqname, arcqname))  # type: ignore[arg-type]
+            ValidateFormula.checkBaseSet(modelXbrl, arcrole, ELR, modelXbrl.relationshipSet(arcrole, ELR, linkqname, arcqname))
             if arcrole in (XbrlConst.tableBreakdown, XbrlConst.tableBreakdownMMDD):
                 hasXbrlTables = True
 
