@@ -309,7 +309,6 @@ exclude = '''(?x)(
 [[tool.mypy.overrides]]
 module = [
     'arelle.DialogOpenArchive',
-    'arelle.rendering.RenderingLayout',
     'arelle.Version',
     'arelle.ViewFileTests',
     'arelle.ViewWinTests',

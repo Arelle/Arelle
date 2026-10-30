@@ -33,7 +33,7 @@ from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.typing import TypeGetText
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Iterable, Sequence
 
     from arelle.ModelDocument import ModelDocument
     from arelle.ModelXbrl import ModelXbrl
@@ -206,7 +206,7 @@ class LytMdlConstraint:
         self.lytMdlParentCell = lytMdlCell
         self.tag = tag
         self.aspect: QName | None = None
-        self.value: QName | ModelObject | None = None
+        self.value: QName | ModelObject | dict[str, Any] | str | None = None
         self.label: str | None = None
         lytMdlCell.lytMdlConstraints.append(self)
 
@@ -221,7 +221,7 @@ class LytMdlConstraint:
             if hasattr(self.value, "value"):
                 return self.value.value  # type: ignore[no-any-return]
             elif hasattr(self.value, "stringValue"):
-                return XmlUtil.innerTextList(self.value)
+                return XmlUtil.innerTextList(self.value)  # type: ignore[arg-type]
             return str(self.value)
         if isinstance(self.aspect, QName):
             return str(self.aspect)
@@ -241,11 +241,11 @@ class LytMdlBodyCells:
 
 
 class LytMdlBodyCell:
-    def __init__(self, lytMdlParent: LytMdlTable, isOpenAspectEntrySurrogate: bool = False) -> None:
+    def __init__(self, lytMdlParent: LytMdlTable | LytMdlBodyCells, isOpenAspectEntrySurrogate: bool = False) -> None:
         self.lytMdlParent = lytMdlParent
         self.isOpenAspectEntrySurrogate = isOpenAspectEntrySurrogate
         lytMdlParent.lytMdlBodyChildren.append(self)
-        self.facts: tuple[tuple[ModelFact, Any, str], ...] = ()  # bound facts
+        self.facts: Sequence[tuple[ModelFact, Any, str]] = ()  # bound facts
 
     def __repr__(self) -> str:
         return f"LytMdlBodyCell[{', '.join(v for f, v, j in self.facts)}]"
@@ -745,7 +745,7 @@ class StrctMdlStructuralNode(StrctMdlNode):
             return self.strctMdlParentNode
         return self.strctMdlParentNode.strctMdlAncestorBreakdownNode  # type: ignore[no-any-return, union-attr]
 
-    def constraintSet(self, tagSelectors: set[str | None] | None = None) -> Any:
+    def constraintSet(self, tagSelectors: Iterable[str | None] | None = None) -> Any:
         defnMdlNode = self.defnMdlNode
         if defnMdlNode is None:
             return None  # root node
