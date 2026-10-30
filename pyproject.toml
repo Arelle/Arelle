@@ -375,7 +375,6 @@ module = [
     'arelle.examples.plugin.hello_dolly',
     'arelle.examples.plugin.rssSaveOim',
     'arelle.formula.FormulaEvaluator',
-    'arelle.formula.ValidateFormula',
     'arelle.plugin.CacheBuilder',
     'arelle.plugin.EdgarRendererAllReports',
     'arelle.plugin.SECCorrespondenceLoader',
