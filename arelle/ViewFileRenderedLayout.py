@@ -43,9 +43,9 @@ def viewRenderedLayout(
         if sourceView.lytMdlTblMdl:
             lytMdlTblMdl = sourceView.lytMdlTblMdl
         else:
-            lytMdlTblMdl = layoutTable(sourceView)  # type: ignore[no-untyped-call]
+            lytMdlTblMdl = layoutTable(sourceView)  # type: ignore[func-returns-value]
     else:
-        layoutTable(view)  # type: ignore[no-untyped-call]
+        layoutTable(view)
         lytMdlTblMdl = view.lytMdlTblMdl
     if view.tblElt is not None: # may be None if there is no table
         view.view(lytMdlTblMdl)

@@ -65,9 +65,9 @@ def viewRenderedGrid(
         if sourceView.lytMdlTblMdl:
             lytMdlTblMdl = sourceView.lytMdlTblMdl
         else:
-            lytMdlTblMdl = layoutTable(sourceView)  # type: ignore[no-untyped-call]
+            lytMdlTblMdl = layoutTable(sourceView)  # type: ignore[func-returns-value]
     else:
-        layoutTable(view, table)  # type: ignore[no-untyped-call]
+        layoutTable(view, table)
         lytMdlTblMdl = view.lytMdlTblMdl
     if view.type == HTML and view.tblElt is not None: # may be None if there is no table
         view.viewHTML(lytMdlTblMdl)
@@ -75,6 +75,7 @@ def viewRenderedGrid(
         view.viewXLSX(lytMdlTblMdl)
     view.close()
     modelXbrl.modelManager.showStatus(_("rendered table saved to {0}").format(outfile), clearAfter=5000)
+
 
 class ViewRenderedGrid(ViewFile.View):
     lytMdlTblMdl: LytMdlTableModel

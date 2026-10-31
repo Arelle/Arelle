@@ -1,46 +1,52 @@
 """
 See COPYRIGHT.md for copyright information.
 """
+from __future__ import annotations
+
 import os
 from collections import OrderedDict
+from collections.abc import Iterable, Sequence
+from typing import Any, cast
 from lxml import etree
 from arelle.FunctionXs import xsString
-from arelle.ModelObject import ModelObject
 from arelle.Aspect import Aspect, aspectModels, aspectRuleAspects, aspectModelAspect, aspectStr
-from arelle.ModelInstanceObject import ModelDimensionValue
+from arelle.ModelInstanceObject import ModelDimensionValue, ModelFact
 from arelle.PrototypeInstanceObject import FactPrototype
 from arelle.PythonUtil import OrderedSet
-from arelle.ModelRenderingObject import (StrctMdlBreakdown, StrctMdlStructuralNode,
-                                         DefnMdlClosedDefinitionNode, DefnMdlRuleDefinitionNode, DefnMdlAspectNode,
+from arelle.ModelRenderingObject import (StrctMdlNode, StrctMdlTable, StrctMdlBreakdown, StrctMdlStructuralNode,
+                                         DefnMdlClosedDefinitionNode, DefnMdlAspectNode,
                                          OPEN_ASPECT_ENTRY_SURROGATE, ROLLUP_SPECIFIES_MEMBER, ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE,
                                          aspectStrctNodes,
                                          LytMdlTableModel, LytMdlTableSet, LytMdlTable, LytMdlHeaders, LytMdlGroup,
                                          LytMdlHeader, LytMdlCell, LytMdlConstraint, LytMdlBodyCells, LytMdlBodyCell)
 from arelle.rendering.RenderingResolution import resolveTableStructure
 from arelle.formula.FormulaEvaluator import aspectMatches
-from arelle.PythonUtil import flattenSequence
 from arelle.ModelValue import QName
 from arelle.ModelXbrl import DEFAULT
 from arelle import XbrlConst
-from arelle.XbrlConst import tableModel as tableModelNamespace
-from arelle.XmlUtil import innerTextList, child, elementFragmentIdentifier, addQnameValue
 from collections import defaultdict
 from numbers import Number
+from arelle.typing import TypeGetText
 
-emptySet = set()
-emptyList = []
+_: TypeGetText
 
-headerOmittedRollupAspects  = {
+emptySet: set[Any] = set()
+emptyList: list[Any] = []
+
+headerOmittedRollupAspects = {
     Aspect.CONCEPT,
     Aspect.COMPLETE_SEGMENT, Aspect.COMPLETE_SCENARIO, Aspect.NON_XDT_SEGMENT, Aspect.NON_XDT_SCENARIO,
     Aspect.VALUE, Aspect.SCHEME,
     Aspect.PERIOD_TYPE, Aspect.START, Aspect.END, Aspect.INSTANT,
-    Aspect.UNIT_MEASURES, Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY}
+    Aspect.UNIT_MEASURES, Aspect.MULTIPLY_BY, Aspect.DIVIDE_BY
+}
 
-def layoutTable(view, table = None):
+
+def layoutTable(view: Any, table: str | None = None) -> None:
     view.modelXbrl.modelManager.showStatus(_("layout model generation"))
     viewTblELR = getattr(view, "tblELR", None)
 
+    tblELRs: Sequence[str]
     if viewTblELR is not None:
         tblELRs = (viewTblELR,)
     else:
@@ -59,51 +65,54 @@ def layoutTable(view, table = None):
         view.hasTableFilters = bool(view.defnMdlTable.filterRelationships)
 
         if view.tblBrkdnRels:
+            assert defnMdlTable is not None
             tableSetLabel = (defnMdlTable.genLabel(lang=view.lang, strip=True) or  # use table label, if any
                           view.roledefinition)
             # headers structure only build once for table
             lytMdlTblSet = LytMdlTableSet(view.lytMdlTblMdl, strctMdlTableSet, tableSetLabel, defnMdlTable.modelDocument.basename, defnMdlTable.sourceline, tblELR)
 
-            for strctMdlTable in strctMdlTableSet.strctMdlChildNodes:
+            for strctMdlTable in cast(list[StrctMdlTable], strctMdlTableSet.strctMdlChildNodes):
                 xTopStrctNode = strctMdlTable.strctMdlFirstAxisBreakdown("x")
                 yTopStrctNode = strctMdlTable.strctMdlFirstAxisBreakdown("y")
                 zTopStrctNode = strctMdlTable.strctMdlFirstAxisBreakdown("z")
-                xHasBreakdownWithoutNodes = xTopStrctNode.hasBreakdownWithoutNodes
-                yHasBreakdownWithoutNodes = yTopStrctNode.hasBreakdownWithoutNodes
+                xHasBreakdownWithoutNodes = xTopStrctNode.hasBreakdownWithoutNodes  # type: ignore[union-attr]
+                yHasBreakdownWithoutNodes = yTopStrctNode.hasBreakdownWithoutNodes  # type: ignore[union-attr]
 
                 # set table parameters to sequence value for this table
                 lytMdlTbl = LytMdlTable(lytMdlTblSet, strctMdlTable)
                 for name, seqVal in strctMdlTable.tblParamValues.items():
                     view.rendrCntx.inScopeVars[name] = [seqVal]
 
-                zDiscrimAspectNodes = [{}]
+                zDiscrimAspectNodes: list[dict[Any, set[Any]]] = [{}]
                 for discriminator in range(1, 65535):
                     view.StrctNodeModelElements = []
                     if discriminator == 1:
-                        zAspectStrctNodes = defaultdict(set)
+                        zAspectStrctNodes: defaultdict[Any, Any] = defaultdict(set)
 
-                        brkdownNodeLytMdlGrp = {}
+                        brkdownNodeLytMdlGrp: dict[StrctMdlNode, LytMdlGroup] = {}
                         view.headerCells = defaultdict(list) # order #: (breakdownNode, xml element)
-                        for axis in ("z", "y", "x", ):
-                            def listBreakdown(strctMdl, breakdownNodes):
+                        for axis in ("z", "y", "x"):
+
+                            def listBreakdown(strctMdl: StrctMdlNode, breakdownNodes: list[StrctMdlBreakdown]) -> None:
                                 if isinstance(strctMdl, StrctMdlBreakdown) and \
-                                        all(strctMdl.defnMdlNode is not None and strctMdl.defnMdlNode.id != bdn.defnMdlNode.id for bdn in breakdownNodes):
+                                        all(strctMdl.defnMdlNode is not None and strctMdl.defnMdlNode.id != bdn.defnMdlNode.id for bdn in breakdownNodes):  # type: ignore[union-attr]
                                     breakdownNodes.append(strctMdl)
 
                                 for node in strctMdl.strctMdlChildNodes:
                                     listBreakdown(node, breakdownNodes)
 
-                            breakdownNodes = []
+                            breakdownNodes: list[StrctMdlBreakdown] = []
                             breakdownNodesTop = [s for s in strctMdlTable.strctMdlChildNodes if s._axis == axis and s.defnMdlNode is not None]
                             for breakdownNode in breakdownNodesTop:
                                 listBreakdown(breakdownNode, breakdownNodes)
                             if breakdownNodes:
                                 lytMdlHdrs = LytMdlHeaders(lytMdlTbl, axis)
                                 for brkdownNode in breakdownNodes:
-                                    label = brkdownNode.defnMdlNode.genLabel(lang=view.lang, strip=True)
-                                    lytMdlGrp = LytMdlGroup(lytMdlHdrs, label, brkdownNode.defnMdlNode.modelDocument.basename, brkdownNode.defnMdlNode.sourceline)
+                                    brkdownDefnMdlNode = brkdownNode.defnMdlNode
+                                    label = brkdownDefnMdlNode.genLabel(lang=view.lang, strip=True)  # type: ignore[union-attr]
+                                    lytMdlGrp = LytMdlGroup(lytMdlHdrs, label, brkdownDefnMdlNode.modelDocument.basename, brkdownDefnMdlNode.sourceline)  # type: ignore[union-attr]
                                     brkdownNodeLytMdlGrp[brkdownNode] = lytMdlGrp
-                        zStrctNodes = []
+                        zStrctNodes: list[StrctMdlStructuralNode] = []
                         layoutAxis(view, view.dataFirstCol, view.colHdrTopRow, view.colHdrTopRow + view.colHdrRows - 1,
                                    zTopStrctNode, zStrctNodes, True, True, view.colHdrNonStdRoles, False)
                         # lay out choices for each discriminator
@@ -125,7 +134,7 @@ def layoutTable(view, table = None):
                                         i += 1
 
                         zColumns = view.headerCells
-                        zAspects = OrderedSet()
+                        zAspects: OrderedSet[Any] = OrderedSet()
                         zAspectStrctNodeChoices = defaultdict(list)
                         for effectiveStrctNode in zStrctNodes:
                             for aspect in aspectModels["dimensional"]:
@@ -140,13 +149,11 @@ def layoutTable(view, table = None):
                         zAspectChoiceLens = dict((aspect, len(zAspectStrctNodeChoices[aspect]))
                                                  for aspect in zAspects)
                         zAspectChoiceIndx = OrderedDict((aspect,0) for aspect in zAspects)
-                        #view.zAxis(1, strctMdlTable.strctMdlFirstAxisBreakdown("z"), zAspectStrctNodes, True)
                         view.cellsTableElt = lytMdlTbl
                         lytMdlZCells = LytMdlBodyCells(view.cellsTableElt, "z")
                         # rows/cols only on firstTime for infoset XML, but on each time for xhtml
-                        #view.zAxis(1, zTopStrctNode, zAspectStrctNodes, False)
-                        xStrctNodes = []
-                        yStrctNodes = []
+                        xStrctNodes: list[StrctMdlStructuralNode] = []
+                        yStrctNodes: list[StrctMdlStructuralNode] = []
                         zStrctNodes = []
                         zAspectStrctNodes = defaultdict(list)
 
@@ -157,13 +164,13 @@ def layoutTable(view, table = None):
                             layoutAxis(view, view.dataFirstRow, view.colHdrTopRow, view.colHdrTopRow + view.colHdrRows - 1,
                                        yTopStrctNode, yStrctNodes, True, True, view.rowHdrNonStdRoles, yHasBreakdownWithoutNodes)
                         # add header cells to header elements cycling through nested repeats
-                        headerByPos = {}
-                        for _position, breakdownCellElts in sorted(view.headerCells.items()): # , reverse=True):
+                        headerByPos: dict[int, dict[StrctMdlNode, LytMdlHeader]] = {}
+                        for _position, breakdownCellElts in sorted(view.headerCells.items()):
                             if breakdownCellElts:
                                 for breakdownNode, _strctNode, lytMdlCell in breakdownCellElts:
                                     if breakdownNode in brkdownNodeLytMdlGrp:
                                         lytMdlGrp = brkdownNodeLytMdlGrp[breakdownNode]
-                                        if True: #_position != 0: # TODO this need reworks
+                                        if True: # _position != 0:  # TODO this need reworks
                                             if _position not in headerByPos or breakdownNode not in headerByPos[_position]:
                                                 lytMdlHdr = LytMdlHeader(lytMdlGrp)
                                                 if _position not in headerByPos:
@@ -189,10 +196,10 @@ def layoutTable(view, table = None):
                                 if StrctNode.hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
                                     aspectValue = StrctNode.aspectValue(aspect)
                                     if aspectValue is None: aspectValue = "(bound dynamically)"
-                                    modelElt.addprevious(etree.Comment("   aspect {0}: {1}".format(aspectStr(aspect), xsString(None,None,aspectValue))))
+                                    modelElt.addprevious(etree.Comment("   aspect {0}: {1}".format(aspectStr(aspect), xsString(None,None,aspectValue))))  # type: ignore[arg-type]
                             for varName, varValue in StrctNode.variables.items():
                                     modelElt.addprevious(etree.Comment("   variable ${0}: {1}".format(varName, varValue)))
-                        for lytMdlGrp in brkdownNodeLytMdlGrp.values(): # remove empty header elements
+                        for lytMdlGrp in brkdownNodeLytMdlGrp.values():  # remove empty header elements
                             if not lytMdlGrp.lytMdlHeaders and not lytMdlGrp.label:
                                 if lytMdlGrp.lytMdlParentHeaders is not None:
                                     lytMdlGrp.lytMdlParentHeaders.lytMdlGroups.remove(lytMdlGrp)
@@ -200,13 +207,25 @@ def layoutTable(view, table = None):
                     if len(xStrctNodes) == 0:
                         xStrctNodes.append(StrctMdlStructuralNode(strctMdlTable, None))
                     lytMdlYCells = LytMdlBodyCells(lytMdlZCells, "y")
-                    hasRows = bodyCells(view, view.dataFirstRow, yStrctNodes, xStrctNodes, zDiscrimAspectNodes[discriminator-1], lytMdlYCells) # zAspectStrctNodes)
+                    hasRows = bodyCells(view, view.dataFirstRow, yStrctNodes, xStrctNodes, zDiscrimAspectNodes[discriminator - 1], lytMdlYCells) # zAspectStrctNodes)
                     if not hasRows or xHasBreakdownWithoutNodes or yHasBreakdownWithoutNodes:
                         lytMdlZCells.lytMdlBodyChildren.remove(lytMdlYCells)
                     if discriminator >= len(zDiscrimAspectNodes):
                         break
 
-def layoutAxis(view, leftCol, topRow, rowBelow, parentStrctNode, strctNodes, renderNow, atTop, HdrNonStdRoles, noBreakdownNodes):
+
+def layoutAxis(
+        view: Any,
+        leftCol: int,
+        topRow: int,
+        rowBelow: int,
+        parentStrctNode: StrctMdlNode | None,
+        strctNodes: list[StrctMdlStructuralNode],
+        renderNow: bool,
+        atTop: bool,
+        HdrNonStdRoles: Iterable[str],
+        noBreakdownNodes: bool
+    ) -> tuple[int, int, int, int, bool] | None:
     # axis handling for xml export
     if parentStrctNode is not None:
         parentRow = rowBelow
@@ -215,19 +234,19 @@ def layoutAxis(view, leftCol, topRow, rowBelow, parentStrctNode, strctNodes, ren
         colsToSpanParent = 0
         widthToSpanParent = 0
         rowsForThisBreakdown = 1 + parentStrctNode.hasRollUpChild
-        for strctNode in parentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
+        for strctNode in parentStrctNode.strctMdlChildNodes:  # strctMdlEffectiveChildNodes:
             noDescendants = False
             if isinstance(strctNode, StrctMdlBreakdown) and not strctNode.isLabeled:
                 rowsForThisStrctNode = 0
             else:
                 rowsForThisStrctNode = rowsForThisBreakdown
-            rightCol, row, cols, width, leafNode = layoutAxis(view, leftCol, topRow + rowsForThisStrctNode, rowBelow, strctNode, strctNodes, # nested items before totals
+            rightCol, row, cols, width, leafNode = layoutAxis(view, leftCol, topRow + rowsForThisStrctNode, rowBelow, strctNode, strctNodes,  # type: ignore[misc]  # nested items before totals
                                                               True, False, HdrNonStdRoles, noBreakdownNodes)
             if row - 1 < parentRow:
                 parentRow = row - 1
             nonAbstract = not strctNode.isAbstract
             if nonAbstract:
-                width += 100 # width for this label
+                width += 100  # width for this label
             widthToSpanParent += width
             if cols:
                 colsToSpanParent += cols
@@ -235,6 +254,7 @@ def layoutAxis(view, leftCol, topRow, rowBelow, parentStrctNode, strctNodes, ren
                 colsToSpanParent += rightCol + 1 - leftCol
             isRollUpCell = strctNode.rollup
             if renderNow and not isinstance(strctNode, StrctMdlBreakdown):
+                strctNode = cast(StrctMdlStructuralNode, strctNode)
                 label, source = strctNode.headerAndSource(lang=view.lang,
                                 returnGenLabel=isinstance(strctNode.defnMdlNode, DefnMdlClosedDefinitionNode),
                                 returnStdLabel=not isinstance(strctNode.defnMdlNode, DefnMdlAspectNode))
@@ -252,22 +272,22 @@ def layoutAxis(view, leftCol, topRow, rowBelow, parentStrctNode, strctNodes, ren
                 if not noBreakdownNodes:
                     view.headerCells[topRow].append((brkdownNode, strctNode, lytMdlCell))
                 if isRollUpCell == ROLLUP_SPECIFIES_MEMBER:
-                    continue # leave rollup's dimension out of structural model
+                    continue  # leave rollup's dimension out of structural model
                 elt = None
                 if not isRollUpCell:
-                    lytMdlCell.id = strctNode.defnMdlNode.id
+                    lytMdlCell.id = strctNode.defnMdlNode.id  # type: ignore[union-attr]
                     if label:
                         lytMdlCell.labels.append((label, None, None))
                         if label == OPEN_ASPECT_ENTRY_SURROGATE:
                             lytMdlCell.isOpenAspectEntrySurrogate = True
                     for role in HdrNonStdRoles:
-                        roleLabel, source = strctNode.headerAndSource(role=role, lang=view.lang, recurseParent=False) # infoset does not move parent label to decscndant
+                        roleLabel, source = strctNode.headerAndSource(role=role, lang=view.lang, recurseParent=False)  # infoset does not move parent label to decscndant
                         if roleLabel is not None:
                             lytMdlCell.labels.append((roleLabel, os.path.basename(role), view.lang))
 
-                orderKeys = {}
+                orderKeys: dict[str | None, int] = {}
 
-                for i, tag in enumerate(strctNode.constraintTags()):  # TODO try to order tags
+                for i, tag in enumerate(strctNode.constraintTags()):  # type: ignore[arg-type]  # TODO try to order tags
                     if tag is None:
                         orderKeys[tag] = 2
                     elif "start" in tag.lower():
@@ -277,24 +297,26 @@ def layoutAxis(view, leftCol, topRow, rowBelow, parentStrctNode, strctNodes, ren
                     else:
                         orderKeys[tag] = 0
 
+                constraintTags: Iterable[str | None]
                 if noBreakdownNodes:
                     constraintTags = ()
                 else:
-                    constraintTags = strctNode.constraintTags()
+                    constraintTags = strctNode.constraintTags()  # type: ignore[assignment]
                 for tag in sorted(constraintTags, key=lambda s: orderKeys[s]):
-                    aspectProcessed = set()
+                    aspectProcessed: set[Any] = set()
                     constraint = strctNode.constraintSet([tag])
 
-                    def hasAspect(aspect):
+                    def hasAspect(aspect: int) -> Any:
                         if tag:
                             return constraint.hasAspect(strctNode, aspect)
                         return strctNode.hasAspect(aspect)
-                    def getAspectValue(aspect):
+
+                    def getAspectValue(aspect: int) -> Any:
                         if tag:
                             return constraint.aspectValue(strctNode._rendrCntx, aspect)
                         return strctNode.aspectValue(aspect)
 
-                    def aspectsCovered():
+                    def aspectsCovered() -> set[Any]:
                         ac = strctNode.aspectsCovered(inherit=False)
                         if tag:
                             ac |= constraint.aspectsCovered()
@@ -304,7 +326,7 @@ def layoutAxis(view, leftCol, topRow, rowBelow, parentStrctNode, strctNodes, ren
                         if hasAspect(aspect) and aspect not in (Aspect.DIMENSIONS, Aspect.OMIT_DIMENSIONS):
                             if aspect in aspectProcessed:
                                 continue
-                            if aspect == Aspect.AUGMENT: # TODO seems to be skipped for xml output
+                            if aspect == Aspect.AUGMENT:  # TODO seems to be skipped for xml output
                                 continue
                             if isRollUpCell == ROLLUP_FOR_DIMENSION_RELATIONSHIP_NODE:
                                 continue
@@ -345,7 +367,8 @@ def layoutAxis(view, leftCol, topRow, rowBelow, parentStrctNode, strctNodes, ren
                                 aspect = Aspect.UNIT
                             else:
                                 aspectValue = getAspectValue(aspect)
-                                def format_aspect_value(aspectValue):
+
+                                def format_aspect_value(aspectValue: Any) -> Any:
                                     if aspectValue is None:
                                         aspectValue = "(bound dynamically)"
                                     elif isinstance(aspectValue, ModelDimensionValue): # typed dimension value
@@ -369,13 +392,13 @@ def layoutAxis(view, leftCol, topRow, rowBelow, parentStrctNode, strctNodes, ren
                                         view.modelXbrl.qnameDimensionDefaults.get(aspect) != aspectValue and
                                         aspectValue != XbrlConst.qnFormulaOccEmpty):
                                     lytMdlCnstrt.value = aspectValue
-                                    if isinstance(aspectValue,QName) and aspectValue in strctNode.modelXbrl.qnameConcepts:
-                                        lytMdlCnstrt.label = strctNode.modelXbrl.qnameConcepts[aspectValue].label()
+                                    if isinstance(aspectValue, QName) and aspectValue in strctNode.modelXbrl.qnameConcepts:  # type: ignore[union-attr]
+                                        lytMdlCnstrt.label = strctNode.modelXbrl.qnameConcepts[aspectValue].label()  # type: ignore[union-attr]
                                     else:
                                         lytMdlCnstrt.label = str(aspectValue)
                                 elif view.modelXbrl.qnameDimensionDefaults.get(aspect) == aspectValue:
-                                    if isinstance(aspect,QName) and aspect in strctNode.modelXbrl.qnameConcepts:
-                                        lytMdlCnstrt.label = strctNode.modelXbrl.qnameConcepts[aspect].label()
+                                    if isinstance(aspect, QName) and aspect in strctNode.modelXbrl.qnameConcepts:  # type: ignore[union-attr]
+                                        lytMdlCnstrt.label = strctNode.modelXbrl.qnameConcepts[aspect].label()  # type: ignore[union-attr]
                                     else:
                                         lytMdlCnstrt.label = str(aspect)
                             lytMdlCnstrt.aspect = aspect
@@ -389,104 +412,112 @@ def layoutAxis(view, leftCol, topRow, rowBelow, parentStrctNode, strctNodes, ren
                     strctNodes.append(strctNode)
             if nonAbstract:
                 rightCol += 1
-        return (rightCol, parentRow, colsToSpanParent, widthToSpanParent, noDescendants)
+        return rightCol, parentRow, colsToSpanParent, widthToSpanParent, noDescendants
+    return None
 
-def bodyCells(view, row, yStrctNodes, xStrctNodes, zAspectStrctNodes, lytMdlYCells):
+
+def bodyCells(
+        view: Any,
+        row: int,
+        yStrctNodes: list[StrctMdlStructuralNode],
+        xStrctNodes: list[StrctMdlStructuralNode],
+        zAspectStrctNodes: dict[Any, set[Any]],
+        lytMdlYCells: LytMdlBodyCells
+    ) -> bool:
     hasRows = False
-    if True: # yParentStrctNode is not None:
-        dimDefaults = view.modelXbrl.qnameDimensionDefaults
-        for yStrctNode in yStrctNodes: # yParentStrctNode.strctMdlChildNodes: # strctMdlEffectiveChildNodes:
-            #row = view.bodyCells(row, yStrctNode, xStrctNodes, zAspectStrctNodes)
-            if not (yStrctNode.isAbstract or
-                    (yStrctNode.strctMdlChildNodes and
-                     not isinstance(yStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode))) and yStrctNode.isLabeled:
-                hasColCells = False
-                lytMdlXCells = LytMdlBodyCells(lytMdlYCells, "x")
-                isEntryPrototype = yStrctNode.isEntryPrototype(default=False) # row to enter open aspects
-                yAspectStrctNodes = aspectStrctNodes(yStrctNode)
-                yTagSelectors = yStrctNode.tagSelectors
-                # data for columns of rows
-                ignoreDimValidity = view.ignoreDimValidity.get()
-                for i, xStrctNode in enumerate(xStrctNodes):
-                    xAspectStrctNodes = aspectStrctNodes(xStrctNode)
-                    cellTagSelectors = yTagSelectors | xStrctNode.tagSelectors
-                    if {"table.periodStart","table.periodEnd"} & cellTagSelectors:
-                        cellTagSelectors &= {"table.periodStart","table.periodEnd"}
-                    cellAspectValues = {}
-                    matchableAspects = set()
-                    isOpenAspectEntrySurrogate = False
-                    for aspect in xAspectStrctNodes.keys() | yAspectStrctNodes.keys() | zAspectStrctNodes.keys():
-                        aspectValue = yStrctNode.inheritedAspectValue(xStrctNode,
-                                           view, aspect, cellTagSelectors,
-                                           xAspectStrctNodes, yAspectStrctNodes, zAspectStrctNodes)
-                        # value is None for a dimension whose value is to be not reported in this slice
-                        if ((isinstance(aspect, Number) and aspectValue is not None) or  # not a dimension
-                            dimDefaults.get(aspect) != aspectValue or # explicit dim defaulted will equal the value
-                            aspectValue is not None): # typed dim absent will be none
-                            cellAspectValues[aspect] = aspectValue
-                            if isinstance(aspectValue,str) and aspectValue.startswith(OPEN_ASPECT_ENTRY_SURROGATE):
-                                isOpenAspectEntrySurrogate = True
-                        matchableAspects.add(aspectModelAspect.get(aspect,aspect)) #filterable aspect from rule aspect
-                    cellDefaultedDims = dimDefaults - cellAspectValues.keys()
-                    priItemQname = cellAspectValues.get(Aspect.CONCEPT)
-                    if priItemQname == OPEN_ASPECT_ENTRY_SURROGATE:
-                        priItemQname = None # open concept aspect
+    dimDefaults = view.modelXbrl.qnameDimensionDefaults
+    for yStrctNode in yStrctNodes:
+        if not (yStrctNode.isAbstract or
+                (yStrctNode.strctMdlChildNodes and
+                 not isinstance(yStrctNode.defnMdlNode, DefnMdlClosedDefinitionNode))) and yStrctNode.isLabeled:
+            hasColCells = False
+            lytMdlXCells = LytMdlBodyCells(lytMdlYCells, "x")
+            isEntryPrototype = yStrctNode.isEntryPrototype(default=False)  # row to enter open aspects
+            yAspectStrctNodes = aspectStrctNodes(yStrctNode)
+            yTagSelectors = yStrctNode.tagSelectors
+            # data for columns of rows
+            ignoreDimValidity = view.ignoreDimValidity.get()
+            for i, xStrctNode in enumerate(xStrctNodes):
+                xAspectStrctNodes = aspectStrctNodes(xStrctNode)
+                cellTagSelectors = yTagSelectors | xStrctNode.tagSelectors
+                if {"table.periodStart", "table.periodEnd"} & cellTagSelectors:
+                    cellTagSelectors &= {"table.periodStart", "table.periodEnd"}
+                cellAspectValues: dict[Any, Any] = {}
+                matchableAspects: set[Any] = set()
+                isOpenAspectEntrySurrogate = False
+                for aspect in xAspectStrctNodes.keys() | yAspectStrctNodes.keys() | zAspectStrctNodes.keys():
+                    aspectValue = yStrctNode.inheritedAspectValue(xStrctNode,
+                                       view, aspect, cellTagSelectors,
+                                       xAspectStrctNodes, yAspectStrctNodes, zAspectStrctNodes)
+                    # value is None for a dimension whose value is to be not reported in this slice
+                    if ((isinstance(aspect, Number) and aspectValue is not None) or  # not a dimension
+                        dimDefaults.get(aspect) != aspectValue or  # explicit dim defaulted will equal the value
+                        aspectValue is not None):  # typed dim absent will be none
+                        cellAspectValues[aspect] = aspectValue
+                        if isinstance(aspectValue,str) and aspectValue.startswith(OPEN_ASPECT_ENTRY_SURROGATE):
+                            isOpenAspectEntrySurrogate = True
+                    matchableAspects.add(aspectModelAspect.get(aspect, aspect))  # filterable aspect from rule aspect
+                cellDefaultedDims = dimDefaults - cellAspectValues.keys()
+                priItemQname = cellAspectValues.get(Aspect.CONCEPT)
+                if priItemQname == OPEN_ASPECT_ENTRY_SURROGATE:
+                    priItemQname = None  # open concept aspect
 
-                    concept = view.modelXbrl.qnameConcepts.get(priItemQname)
-                    conceptNotAbstract = concept is None or not concept.isAbstract
-                    from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
-                    fact = None
-                    factsVals = [] # matched / filtered [(fact, value, justify), ...]
-                    value = None # last of the facts matched
-                    justify = "left"
-                    fp = FactPrototype(view, cellAspectValues)
-                    if conceptNotAbstract:
-                        # Reuse already computed facts partition in case of open Y axis
-                        if hasattr(yStrctNode, "factsPartition"):
-                            facts = set(yStrctNode.factsPartition)
-                        else:
-                            # reduce set of matchable facts to those with pri item qname and have dimension aspects
-                            facts = view.modelXbrl.factsByQname[priItemQname] if priItemQname else view.modelXbrl.factsInInstance
-                            if view.hasTableFilters:
-                                facts = view.defnMdlTable.filteredFacts(view.rendrCntx, facts)
-                        for aspect in matchableAspects:  # trim down facts with explicit dimensions match or just present
-                            if isinstance(aspect, QName):
-                                aspectValue = cellAspectValues.get(aspect, None)
-                                if isinstance(aspectValue, ModelDimensionValue):
-                                    if aspectValue.isExplicit:
-                                        dimMemQname = aspectValue.memberQname # match facts with this explicit value
-                                    else:
-                                        dimMemQname = None  # match facts that report this dimension
-                                elif isinstance(aspectValue, QName):
-                                    dimMemQname = aspectValue  # match facts that have this explicit value
-                                elif aspectValue is None: # match typed dims that don't report this value
-                                    dimMemQname = DEFAULT
+                concept = view.modelXbrl.qnameConcepts.get(priItemQname)
+                conceptNotAbstract = concept is None or not concept.isAbstract
+                from arelle.ValidateXbrlDimensions import isFactDimensionallyValid
+                fact = None
+                factsVals: list[tuple[ModelFact, Any, str]] = []  # matched / filtered [(fact, value, justify), ...]
+                value = None  # last of the facts matched
+                justify = "left"
+                fp = FactPrototype(view, cellAspectValues)
+                if conceptNotAbstract:
+                    # Reuse already computed facts partition in case of open Y axis
+                    if hasattr(yStrctNode, "factsPartition"):
+                        facts = set(yStrctNode.factsPartition)
+                    else:
+                        # reduce set of matchable facts to those with pri item qname and have dimension aspects
+                        facts = view.modelXbrl.factsByQname[priItemQname] if priItemQname else view.modelXbrl.factsInInstance
+                        if view.hasTableFilters:
+                            facts = view.defnMdlTable.filteredFacts(view.rendrCntx, facts)
+                    for aspect in matchableAspects:  # trim down facts with explicit dimensions match or just present
+                        if isinstance(aspect, QName):
+                            aspectValue = cellAspectValues.get(aspect, None)
+                            dimMemQname: QName | str | None
+                            if isinstance(aspectValue, ModelDimensionValue):
+                                if aspectValue.isExplicit:
+                                    dimMemQname = aspectValue.memberQname # match facts with this explicit value
                                 else:
-                                    dimMemQname = None # match facts that report this dimension
-                                facts = facts & view.modelXbrl.factsByDimMemQname(aspect, dimMemQname)
-                        for fact in sorted(facts, key=lambda f:f.objectIndex):
-                            if (all(aspectMatches(view.rendrCntx, fact, fp, aspect)
-                                    for aspect in matchableAspects) and
-                                all(fact.context.dimMemberQname(dim,includeDefaults=True) in (dimDefaults[dim], None)
-                                    for dim in cellDefaultedDims) and
-                                    len(fp.context.qnameDims) == len(fact.context.qnameDims)):
-                                if yStrctNode.hasValueExpression(xStrctNode):
-                                    value = yStrctNode.evalValueExpression(fact, xStrctNode)
-                                else:
-                                    value = fact.effectiveValue
-                                justify = "right" if fact.isNumeric else "left"
-                                factsVals.append( (fact, value, justify) )
-                        hasColCells = bool(matchableAspects) # True
-                    if justify is None:
-                        justify = "right" if fp.isNumeric else "left"
-                    if conceptNotAbstract:
-                        if factsVals or ignoreDimValidity or isFactDimensionallyValid(view, fp) or isEntryPrototype:
-                            lytMdlCell = LytMdlBodyCell(lytMdlXCells, isOpenAspectEntrySurrogate)
-                            lytMdlCell.facts = factsVals
-                    fp.clear()  # dereference
-                row += 1
-                if hasColCells:
-                    hasRows = True
-                else:
-                    lytMdlYCells.lytMdlBodyChildren.remove(lytMdlXCells)
+                                    dimMemQname = None  # match facts that report this dimension
+                            elif isinstance(aspectValue, QName):
+                                dimMemQname = aspectValue  # match facts that have this explicit value
+                            elif aspectValue is None: # match typed dims that don't report this value
+                                dimMemQname = DEFAULT
+                            else:
+                                dimMemQname = None # match facts that report this dimension
+                            facts = facts & view.modelXbrl.factsByDimMemQname(aspect, dimMemQname)
+                    for fact in sorted(facts, key=lambda f:f.objectIndex):
+                        if (all(aspectMatches(view.rendrCntx, fact, fp, aspect)  # type: ignore[no-untyped-call]
+                                for aspect in matchableAspects) and
+                            all(fact.context.dimMemberQname(dim,includeDefaults=True) in (dimDefaults[dim], None)
+                                for dim in cellDefaultedDims) and
+                                len(fp.context.qnameDims) == len(fact.context.qnameDims)):  # type: ignore[union-attr]
+                            if yStrctNode.hasValueExpression(xStrctNode):
+                                value = yStrctNode.evalValueExpression(fact, xStrctNode)
+                            else:
+                                value = fact.effectiveValue
+                            justify = "right" if fact.isNumeric else "left"
+                            factsVals.append((fact, value, justify))
+                    hasColCells = bool(matchableAspects)  # True
+                if justify is None:
+                    justify = "right" if fp.isNumeric else "left"
+                if conceptNotAbstract:
+                    if factsVals or ignoreDimValidity or isFactDimensionallyValid(view, fp) or isEntryPrototype:
+                        lytMdlCell = LytMdlBodyCell(lytMdlXCells, isOpenAspectEntrySurrogate)
+                        lytMdlCell.facts = factsVals
+                fp.clear()  # dereference
+            row += 1
+            if hasColCells:
+                hasRows = True
+            else:
+                lytMdlYCells.lytMdlBodyChildren.remove(lytMdlXCells)
     return hasRows

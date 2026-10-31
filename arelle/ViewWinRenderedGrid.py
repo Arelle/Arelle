@@ -214,7 +214,7 @@ class ViewRenderedGrid(ViewWinTkTable.ViewTkTable):
         # remove old widgets
         self.viewFrame.clearGrid()
 
-        layoutTable(self)  # type: ignore[no-untyped-call]
+        layoutTable(self)
 
         lytMdlTblMdl = self.lytMdlTblMdl  # type: ignore[attr-defined]
         if len(lytMdlTblMdl.lytMdlTableSets) == 0 or len(lytMdlTblMdl.lytMdlTableSets[0].lytMdlTables) == 0:
