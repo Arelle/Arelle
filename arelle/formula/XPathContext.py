@@ -57,7 +57,7 @@ from arelle.typing import TypeGetText
 if TYPE_CHECKING:
     from arelle.ModelDocument import ModelDocument
     from arelle.formula.FormulaEvaluator import VariableBinding
-    from arelle.ModelFormulaObject import FormulaOptions, ModelGeneral, Trace as TraceClass
+    from arelle.ModelFormulaObject import FormulaOptions, ModelGeneral, Trace as TraceClass, ModelVariableSet
 
 _: TypeGetText
 
@@ -251,7 +251,7 @@ class XPathContext:
         self.contextItem = self.inputXbrlInstance.targetXbrlRootElement
         self.progHeader: ProgHeader | None = None
         self.traceType: int | None = None
-        self.variableSet = None
+        self.variableSet: ModelVariableSet | None = None
         self.factAspectsCache = factAspectsCache or FactAspectsCache(modelXbrl.modelManager.formulaOptions.cacheSize)
         self.inScopeVars: dict[QName, ModelXbrl | ModelObject | int | str] = {} if inScopeVars is None else inScopeVars
         self.cachedFilterResults: dict[ModelGeneral, set[ModelFact]] = {}
