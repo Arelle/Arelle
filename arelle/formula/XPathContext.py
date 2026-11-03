@@ -7,6 +7,7 @@ import datetime
 from decimal import Decimal, InvalidOperation
 from fractions import Fraction
 from numbers import Number
+from collections import defaultdict
 from collections.abc import Callable, Iterable, MutableSequence, Sequence
 from typing import Any, TYPE_CHECKING, Union, cast
 
@@ -55,6 +56,7 @@ from arelle.typing import TypeGetText
 
 if TYPE_CHECKING:
     from arelle.ModelDocument import ModelDocument
+    from arelle.formula.FormulaEvaluator import VariableBinding
     from arelle.ModelFormulaObject import FormulaOptions, ModelGeneral, Trace as TraceClass
 
 _: TypeGetText
@@ -222,6 +224,13 @@ GREGORIAN_TYPES = (gYearMonth, gYear, gMonthDay, gDay, gMonth)
 
 
 class XPathContext:
+    # set by ValidateFormula and FormulaEvaluator during formula processing
+    defaultDimensionAspects: set[QName]
+    dimensionsAspectUniverse: set[QName]
+    varBindings: dict[QName, VariableBinding]
+    evaluations: list[dict[QName, Any]]
+    evaluationHashDicts: dict[QName, defaultdict[int, set[int]]]
+
     def __init__(
             self,
             modelXbrl: ModelXbrl,

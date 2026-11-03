@@ -536,7 +536,7 @@ class StrctMdlNode:
         xc = self._rendrCntx
         if self.contextItemBinding and not isinstance(xc.contextItem, ModelFact):
             previousContextItem = xc.contextItem  # xbrli.xbrl
-            xc.contextItem = self.contextItemBinding.yieldedFact
+            xc.contextItem = self.contextItemBinding.yieldedFact  # type: ignore[assignment]
         else:
             previousContextItem = None
         variables = self.variables
@@ -701,10 +701,10 @@ class StrctMdlStructuralNode(StrctMdlNode):
         self._rendrCntx = rendrCntx or strctMdlParentNode._rendrCntx  # type: ignore[union-attr] # copy from parent except at root
         self.zInheritance = zInheritance
         if contextItemFact is not None:
-            self.contextItemBinding = VariableBinding(self._rendrCntx,  # type: ignore[no-untyped-call]
+            self.contextItemBinding = VariableBinding(self._rendrCntx,
                                                       boundFact=contextItemFact)
             if isinstance(self.contextItemBinding.yieldedFact, FactPrototype):
-                for aspect in defnMdlNode.aspectsCovered():  # type: ignore[union-attr]
+                for aspect in defnMdlNode.aspectsCovered():
                     if aspect != Aspect.DIMENSIONS:
                         self.aspectEntryObjectId = self.aspects[aspect] = contextItemFact.aspectEntryObjectId
                         break
@@ -833,7 +833,7 @@ class StrctMdlStructuralNode(StrctMdlNode):
         elif constraintSet is not None and constraintSet.hasAspect(self, aspect):
             if isinstance(defnMdlNode, DefnMdlAspectNode):
                 if contextItemBinding:
-                    return self.dimRAV(aspect, contextItemBinding.aspectValue(aspect))  # type: ignore[no-untyped-call]
+                    return self.dimRAV(aspect, contextItemBinding.aspectValue(aspect))
             else:
                 return self.dimRAV(aspect, constraintSet.aspectValue(xc, aspect))
         if inherit and isinstance(self.strctMdlParentNode, StrctMdlStructuralNode):
@@ -1005,8 +1005,8 @@ class DefnMdlTable(ModelFormulaResource):
         return defnMdlLabelsView(self)
 
     def filteredFacts(self, xpCtx: XPathContext, facts: Iterable[ModelFact]) -> Any:
-        return formulaEvaluatorFilterFacts(xpCtx, VariableBinding(xpCtx),  # type: ignore[no-untyped-call]
-                                           facts, self.filterRelationships, None)
+        return formulaEvaluatorFilterFacts(xpCtx, VariableBinding(xpCtx),
+                                           facts, self.filterRelationships, None)  # type: ignore[arg-type]
 
     @property
     def renderingXPathContext(self) -> XPathContext | None:
@@ -1268,7 +1268,7 @@ class DefnMdlClosedDefinitionNode(DefnMdlDefinitionNode):
         fp = FactPrototype(self, axisAspectValues)
         return set(fact
                    for fact in facts
-                   if aspectsMatch(xpCtx, fact, fp, aspects))  # type: ignore[no-untyped-call]
+                   if aspectsMatch(xpCtx, fact, fp, aspects))  # type: ignore[arg-type]
 
     @property
     def childrenCoverSameAspects(self) -> bool:
@@ -1847,19 +1847,19 @@ class DefnMdlAspectNode(DefnMdlOpenDefinitionNode):
         return None
 
     def filteredFactsPartitions(self, xpCtx: XPathContext, facts: Iterable[ModelFact]) -> Any:
-        filteredFacts = formulaEvaluatorFilterFacts(xpCtx, VariableBinding(xpCtx),  # type: ignore[no-untyped-call]
-                                                    facts, self.filterRelationships, None)
+        filteredFacts = formulaEvaluatorFilterFacts(xpCtx, VariableBinding(xpCtx),
+                                                    facts, self.filterRelationships, None)  # type: ignore[arg-type]
         if not self.includeUnreportedValue:
             # remove unreported falue
             reportedAspectFacts = set()
             for fact in filteredFacts:
                 if all(fact.context is not None and
-                       isinstance(fact.context.dimValue(dimAspect), (ModelDimensionValue, QName))  # include default dimension values
+                       isinstance(fact.context.dimValue(dimAspect), (ModelDimensionValue, QName))  # type: ignore[arg-type]  # include default dimension values
                        for dimAspect in self._dimensionsCovered):
                     reportedAspectFacts.add(fact)
         else:
             reportedAspectFacts = filteredFacts
-        return factsPartitions(xpCtx, reportedAspectFacts, self.aspectsCovered())  # type: ignore[no-untyped-call]
+        return factsPartitions(xpCtx, reportedAspectFacts, self.aspectsCovered())  # type: ignore[arg-type]
 
     @property
     def propertyView(self) -> tuple[tuple[str, str | None], ...]:
