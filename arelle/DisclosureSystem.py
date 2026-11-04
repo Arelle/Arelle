@@ -79,6 +79,7 @@ class DisclosureSystem:
     pluginTypes: set[str]
     validateFileText: bool
     validateEntryText: bool
+    validateCompaniesHouse: bool
     allowedExternalHrefPattern: re.Pattern[str] | None
     allowedImageTypes: dict[str, Iterable[str]] | None
     arcroleCyclesAllowed: dict[str, tuple[str, str | None]]
@@ -152,6 +153,7 @@ class DisclosureSystem:
                 self.pluginTypes.add(typeName)
         self.validateFileText = False
         self.validateEntryText = False
+        self.validateCompaniesHouse = False
         self.allowedExternalHrefPattern = None
         self.allowedImageTypes = None
         self.arcroleCyclesAllowed = {}
@@ -275,6 +277,7 @@ class DisclosureSystem:
                                         setattr(self, typeTestVariable, self.validationType == typeName)
                                 self.authority = dsElt.get("authority")
                                 self.validateFileText = dsElt.get("validateFileText") == "true"
+                                self.validateEntryText = dsElt.get("validateEntryText") == "true"
                                 self.validateEntryText = dsElt.get("validateEntryText") == "true"
                                 if allowedExternalHrefPattern := dsElt.get("allowedExternalHrefPattern"):
                                     self.allowedExternalHrefPattern = re.compile(allowedExternalHrefPattern)
