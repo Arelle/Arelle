@@ -278,7 +278,7 @@ class DisclosureSystem:
                                 self.authority = dsElt.get("authority")
                                 self.validateFileText = dsElt.get("validateFileText") == "true"
                                 self.validateEntryText = dsElt.get("validateEntryText") == "true"
-                                self.validateEntryText = dsElt.get("validateEntryText") == "true"
+                                self.validateCompaniesHouse = dsElt.get("validateCompaniesHouse") == "true"
                                 if allowedExternalHrefPattern := dsElt.get("allowedExternalHrefPattern"):
                                     self.allowedExternalHrefPattern = re.compile(allowedExternalHrefPattern)
                                 if allowedImageTypes := dsElt.get("allowedImageTypes"):
