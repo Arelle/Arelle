@@ -496,7 +496,7 @@ def bodyCells(
                                 dimMemQname = None # match facts that report this dimension
                             facts = facts & view.modelXbrl.factsByDimMemQname(aspect, dimMemQname)
                     for fact in sorted(facts, key=lambda f:f.objectIndex):
-                        if (all(aspectMatches(view.rendrCntx, fact, fp, aspect)  # type: ignore[no-untyped-call]
+                        if (all(aspectMatches(view.rendrCntx, fact, fp, aspect)  # type: ignore[arg-type]
                                 for aspect in matchableAspects) and
                             all(fact.context.dimMemberQname(dim,includeDefaults=True) in (dimDefaults[dim], None)
                                 for dim in cellDefaultedDims) and

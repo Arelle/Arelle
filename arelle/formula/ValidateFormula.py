@@ -703,14 +703,14 @@ def validate(
                 isinstance(modelRel.fromModelObject, ModelConsistencyAssertion)
                 and isinstance(modelRel.toModelObject, ModelFormula)
         ):
-            modelRel.toModelObject.hasConsistencyAssertion = True  # type: ignore[attr-defined]
+            modelRel.toModelObject.hasConsistencyAssertion = True
     val.modelXbrl.profileActivity("... consistency assertion setup", minTimeToShow=1.0)
 
     # validate default dimensions in instances and accumulate multi-instance-default dimension aspects
-    xpathContext.defaultDimensionAspects = set(val.modelXbrl.qnameDimensionDefaults.keys())  # type: ignore[attr-defined]
-    xpathContext.dimensionsAspectUniverse = xpathContext.defaultDimensionAspects  # type: ignore[attr-defined]
+    xpathContext.defaultDimensionAspects = set(val.modelXbrl.qnameDimensionDefaults.keys())
+    xpathContext.dimensionsAspectUniverse = xpathContext.defaultDimensionAspects
     for cntx in val.modelXbrl.contexts.values():  # note that this maybe should not include unreferenced contexts
-        xpathContext.dimensionsAspectUniverse |= cntx.qnameDims.keys()  # type: ignore[attr-defined]
+        xpathContext.dimensionsAspectUniverse |= cntx.qnameDims.keys()
 
     for instanceQname in instanceQnames:
         if (
@@ -720,10 +720,10 @@ def validate(
         ):
             for namedInstance in val.parameters[instanceQname][1]:
                 ValidateXbrlDimensions.loadDimensionDefaults(namedInstance)
-                xpathContext.defaultDimensionAspects |= namedInstance.qnameDimensionDefaults.keys()  # type: ignore[attr-defined]
-                xpathContext.dimensionsAspectUniverse |= namedInstance.qnameDimensionDefaults.keys()  # type: ignore[attr-defined]
+                xpathContext.defaultDimensionAspects |= namedInstance.qnameDimensionDefaults.keys()
+                xpathContext.dimensionsAspectUniverse |= namedInstance.qnameDimensionDefaults.keys()
                 for cntx in namedInstance.contexts.values():
-                    xpathContext.dimensionsAspectUniverse |= cntx.qnameDims.keys()  # type: ignore[attr-defined]
+                    xpathContext.dimensionsAspectUniverse |= cntx.qnameDims.keys()
     # determine reportedDimensionAspects (for which facts report any value of the dimension)
 
     # check for variable set dependencies across output instances produced
@@ -732,15 +732,15 @@ def validate(
             for varScopeRel in val.modelXbrl.relationshipSet(XbrlConst.variablesScope).toModelObject(modelVariableSet):
                 if isinstance(varScopeRel.fromModelObject, ModelVariableSet):
                     sourceVariableSet = varScopeRel.fromModelObject
-                    if sourceVariableSet.outputInstanceQname != instanceQname:  # type: ignore[attr-defined]
+                    if sourceVariableSet.outputInstanceQname != instanceQname:
                         val.modelXbrl.error(
                             "xbrlvarscopee:differentInstances",
                             _("Variable set %(xlinkLabel1)s in instance %(instance1)s has variables scope relationship to varaible set %(xlinkLabel2)s in instance %(instance2)s"),
                             modelObject=modelVariableSet,
                             xlinkLabel1=sourceVariableSet.xlinkLabel,
-                            instance1=sourceVariableSet.outputInstanceQname,  # type: ignore[attr-defined]
+                            instance1=sourceVariableSet.outputInstanceQname,
                             xlinkLabel2=modelVariableSet.xlinkLabel,
-                            instance2=modelVariableSet.outputInstanceQname,  # type: ignore[attr-defined]
+                            instance2=modelVariableSet.outputInstanceQname,
                         )
                     if sourceVariableSet.aspectModel != modelVariableSet.aspectModel:
                         val.modelXbrl.error(
@@ -850,7 +850,7 @@ def validate(
                         not runIDs
                         or runIDs.match(modelVariableSet.id)  # type: ignore[arg-type]
                         or (
-                            modelVariableSet.hasConsistencyAssertion  # type: ignore[attr-defined]
+                            modelVariableSet.hasConsistencyAssertion
                             and any(
                                 runIDs.match(modelRel.fromModelObject.id)  # type: ignore[arg-type]
                                 for modelRel in val.modelXbrl.relationshipSet(XbrlConst.consistencyAssertionFormula).toModelObject(modelVariableSet)
@@ -871,7 +871,7 @@ def validate(
                                 varSetTimeoutTimer = None
                             savedInScopeVars = xpathContext.inScopeVars.copy()
                             try:
-                                evaluate(xpathContext, modelVariableSet)  # type: ignore[no-untyped-call]
+                                evaluate(xpathContext, modelVariableSet)
                             except XPathContext.VariableSetRunTimeExceededException:
                                 val.modelXbrl.error(
                                     "formula:varSetTimeout",
@@ -1015,7 +1015,7 @@ def evaluateModelVariableSet(
                     if instanceQname is None:
                         instanceQname = instance.instanceQname
                         # required if referred to by variables scope chaining
-                        modelVariableSet.fromInstanceQnames = {instanceQname}  # type: ignore[attr-defined]
+                        modelVariableSet.fromInstanceQnames = {instanceQname}  # type: ignore[arg-type]
                     else:
                         val.modelXbrl.info(
                             "arelle:multipleOutputInstances",
@@ -1028,8 +1028,8 @@ def evaluateModelVariableSet(
             if instanceQname is None:
                 instanceQname = XbrlConst.qnStandardOutputInstance
                 instanceQnames.add(instanceQname)
-                modelVariableSet.fromInstanceQnames = None  # type: ignore[attr-defined]  # required if referred to by variables scope chaining
-            modelVariableSet.outputInstanceQname = instanceQname  # type: ignore[attr-defined]
+                modelVariableSet.fromInstanceQnames = None  # required if referred to by variables scope chaining
+            modelVariableSet.outputInstanceQname = instanceQname
             if getattr(val, "validateSBRNL", False):  # may not exist on some val objects
                 val.modelXbrl.error(
                     "SBR.NL.2.3.9.03",
@@ -1039,14 +1039,14 @@ def evaluateModelVariableSet(
                 )
         else:
             instanceQname = None
-            modelVariableSet.countSatisfied = 0  # type: ignore[attr-defined]
-            modelVariableSet.countNotSatisfied = 0  # type: ignore[attr-defined]
-            modelVariableSet.countOkMessages = 0  # type: ignore[attr-defined]
-            modelVariableSet.countWarningMessages = 0  # type: ignore[attr-defined]
-            modelVariableSet.countErrorMessages = 0  # type: ignore[attr-defined]
+            modelVariableSet.countSatisfied = 0
+            modelVariableSet.countNotSatisfied = 0
+            modelVariableSet.countOkMessages = 0
+            modelVariableSet.countWarningMessages = 0
+            modelVariableSet.countErrorMessages = 0
             checkValidationMessages(val, modelVariableSet)
         instanceProducingVariableSets[instanceQname].append(modelVariableSet)
-        modelVariableSet.outputInstanceQname = instanceQname  # type: ignore[attr-defined]
+        modelVariableSet.outputInstanceQname = instanceQname
         if modelVariableSet.aspectModel not in ("non-dimensional", "dimensional"):
             val.modelXbrl.error(
                 "xbrlve:unknownAspectModel",
@@ -1055,7 +1055,7 @@ def evaluateModelVariableSet(
                 xlinkLabel=modelVariableSet.xlinkLabel,
                 aspectModel=modelVariableSet.aspectModel,
             )
-        modelVariableSet.hasConsistencyAssertion = False  # type: ignore[attr-defined]
+        modelVariableSet.hasConsistencyAssertion = False
 
         # determine dependencies within variable sets
         nameVariables: dict[QName, ModelObject] = {}
@@ -1220,7 +1220,7 @@ def evaluateModelVariableSet(
                 dependencies=varSetInstanceDependencies,
             )
 
-        modelVariableSet.orderedVariableRelationships = [  # type: ignore[attr-defined]
+        modelVariableSet.orderedVariableRelationships = [
             qnameRels[varqname]
             for varqname in orderedNameList
             if varqname in qnameRels
@@ -1253,7 +1253,7 @@ def evaluateModelVariableSet(
                     checkValidationMessageVariables(val, consisAsser, qnameRels, xpathContext.parameterQnames)  # type: ignore[attr-defined]
 
         # check preconditions
-        modelVariableSet.preconditions = [  # type: ignore[attr-defined]
+        modelVariableSet.preconditions = [
             modelRel.toModelObject
             for modelRel in val.modelXbrl.relationshipSet(XbrlConst.variableSetPrecondition).fromModelObject(modelVariableSet)
             if isinstance(modelRel.toModelObject, ModelPrecondition)
@@ -1299,11 +1299,11 @@ def logAssertionResultCounts(val: ValidateXbrl, formulaOptions: FormulaOptions, 
     for exisValAsser in val.modelXbrl.modelVariableSets:
         if isinstance(exisValAsser, ModelVariableSetAssertion) and (not runIDs or runIDs.match(exisValAsser.id)):  # type: ignore[arg-type]
             asserTests[exisValAsser.id] = (
-                exisValAsser.countSatisfied,  # type: ignore[attr-defined]
-                exisValAsser.countNotSatisfied,  # type: ignore[attr-defined]
-                exisValAsser.countOkMessages,  # type: ignore[attr-defined]
-                exisValAsser.countWarningMessages,  # type: ignore[attr-defined]
-                exisValAsser.countErrorMessages,  # type: ignore[attr-defined]
+                exisValAsser.countSatisfied,
+                exisValAsser.countNotSatisfied,
+                exisValAsser.countOkMessages,
+                exisValAsser.countWarningMessages,
+                exisValAsser.countErrorMessages,
             )
             if formulaOptions.traceAssertionResultCounts:
                 val.modelXbrl.info(
@@ -1312,8 +1312,8 @@ def logAssertionResultCounts(val: ValidateXbrl, formulaOptions: FormulaOptions, 
                     modelObject=exisValAsser,
                     assertionType="Existence" if isinstance(exisValAsser, ModelExistenceAssertion) else "Value",
                     id=exisValAsser.id,
-                    satisfiedCount=exisValAsser.countSatisfied,  # type: ignore[attr-defined]
-                    notSatisfiedCount=exisValAsser.countNotSatisfied,  # type: ignore[attr-defined]
+                    satisfiedCount=exisValAsser.countSatisfied,
+                    notSatisfiedCount=exisValAsser.countNotSatisfied,
                 )
 
     for consisAsser in val.modelXbrl.modelConsistencyAssertions:

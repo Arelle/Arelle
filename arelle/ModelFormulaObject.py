@@ -167,6 +167,19 @@ class ModelAssertionSet(ModelFormulaResource):
 
 class ModelVariableSet(ModelFormulaResource):
     _groupFilterRelationships: list[ModelRelationship]
+    # set by ValidateFormula and FormulaEvaluator during formula processing
+    orderedVariableRelationships: list[ModelRelationship]
+    preconditions: list[ModelPrecondition]
+    fromInstanceQnames: set[QName] | None
+    outputInstanceQname: QName | None
+    hasConsistencyAssertion: bool
+    evaluationNumber: int
+    timeEvaluationStarted: float
+    countSatisfied: int
+    countNotSatisfied: int
+    countOkMessages: int
+    countWarningMessages: int
+    countErrorMessages: int
 
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelVariableSet, self).init(modelDocument)
@@ -1170,10 +1183,10 @@ class ModelAndFilter(ModelBooleanFilter):
             cmplmt: bool
         ) -> set[ModelFact]:
         if self.filterRelationships:
-            andedFacts = filterFacts(xpCtx, varBinding, facts, self.filterRelationships, "and")  # type: ignore[no-untyped-call]
+            andedFacts = filterFacts(xpCtx, varBinding, facts, self.filterRelationships, "and")
         else:
             andedFacts = set()
-        return (facts - andedFacts) if cmplmt else andedFacts  # type: ignore[no-any-return]
+        return (facts - andedFacts) if cmplmt else andedFacts
 
 
 class ModelOrFilter(ModelBooleanFilter):
@@ -1188,10 +1201,10 @@ class ModelOrFilter(ModelBooleanFilter):
             cmplmt: bool
         ) -> set[ModelFact]:
         if self.filterRelationships:
-            oredFacts = filterFacts(xpCtx, varBinding, facts, self.filterRelationships, "or")  # type: ignore[no-untyped-call]
+            oredFacts = filterFacts(xpCtx, varBinding, facts, self.filterRelationships, "or")
         else:
             oredFacts = set()
-        return (facts - oredFacts) if cmplmt else oredFacts  # type: ignore[no-any-return]
+        return (facts - oredFacts) if cmplmt else oredFacts
 
 
 class ModelConceptName(ModelFilter):
@@ -1250,7 +1263,7 @@ class ModelConceptName(ModelFilter):
             cmplmt: bool
         ) -> set[ModelFact]:
         if not self.qnameExpressionProgs: # optimize if simple
-            qnamedFacts = set.union(*[inst.factsByQname[qn]
+            qnamedFacts = set.union(*[inst.factsByQname[qn]  # type: ignore[index]
                                       for inst in varBinding.instances
                                       for qn in self.conceptQnames])
             return (facts - qnamedFacts) if cmplmt else (facts & qnamedFacts)
@@ -1287,7 +1300,7 @@ class ModelConceptPeriodType(ModelFilter):
             facts: set[ModelFact],
             cmplmt: bool
         ) -> set[ModelFact]:
-        factsOfPeriodType = set.union(*[inst.factsByPeriodType(self.periodType)
+        factsOfPeriodType = set.union(*[inst.factsByPeriodType(self.periodType)  # type: ignore[arg-type]
                                         for inst in varBinding.instances])
         return (facts - factsOfPeriodType) if cmplmt else (facts & factsOfPeriodType)
 
@@ -2006,10 +2019,10 @@ class ModelMatchFilter(ModelFilter):
             return set()
         if matchAll:
             return set(fact for fact in facts
-                       if cmplmt ^ (aspectMatches(xpCtx, fact, otherFact, aspect)))  # type: ignore[no-untyped-call]
+                       if cmplmt ^ (aspectMatches(xpCtx, fact, otherFact, aspect)))  # type: ignore[arg-type]
         else:  # each otherFact may be different from the other, any one of which makes the match succeed
             return set(fact for fact in facts
-                       if cmplmt ^ (any(aspectMatches(xpCtx, fact, anotherFact, aspect)  # type: ignore[no-untyped-call]
+                       if cmplmt ^ (any(aspectMatches(xpCtx, fact, anotherFact, aspect)  # type: ignore[arg-type]
                                         for anotherFact in otherFact)))
 
     @property
@@ -2330,11 +2343,11 @@ class ModelExplicitDimension(ModelFilter):
             dimQname = self.dimQname
             memQnames = self.staticMemberQnames
             if memQnames:
-                dimedFacts = set.union(*[inst.factsByDimMemQname(dimQname, memQname)
+                dimedFacts = set.union(*[inst.factsByDimMemQname(dimQname, memQname)  # type: ignore[arg-type]
                                          for inst in varBinding.instances
                                          for memQname in memQnames])
             else:
-                dimedFacts = set.union(*[inst.factsByDimMemQname(dimQname)
+                dimedFacts = set.union(*[inst.factsByDimMemQname(dimQname)  # type: ignore[arg-type]
                                          for inst in varBinding.instances])
             return (facts - dimedFacts) if cmplmt else (facts & dimedFacts)
 
@@ -2528,7 +2541,7 @@ class ModelRelativeFilter(ModelFilter):
         return super(ModelRelativeFilter, self).variableRefs(None, varRefSet)
 
     def aspectsCovered(self, varBinding: VariableBinding) -> set[int]:
-        return varBinding.aspectsDefined
+        return varBinding.aspectsDefined  # type: ignore[return-value]
 
     def filter(
             self,
@@ -2538,17 +2551,17 @@ class ModelRelativeFilter(ModelFilter):
             cmplmt: bool
         ) -> set[ModelFact]:
         aspectsUncovered = (varBinding.aspectsDefined - varBinding.aspectsCovered)
-        otherVarBinding = xpCtx.varBindings.get(self.variable)  # type: ignore[attr-defined]
-        hasOtherFactVar = otherVarBinding and otherVarBinding.isFactVar and not otherVarBinding.isFallback
-        otherFact = otherVarBinding.yieldedFact if hasOtherFactVar else None
+        otherVarBinding = xpCtx.varBindings.get(self.variable)  # type: ignore[arg-type]
+        hasOtherFactVar = bool(otherVarBinding and otherVarBinding.isFactVar and not otherVarBinding.isFallback)
+        otherFact = otherVarBinding.yieldedFact if hasOtherFactVar else None  # type: ignore[union-attr]
         return set(fact for fact in facts
                    if cmplmt ^ (hasOtherFactVar and
-                                aspectsMatch(xpCtx, otherFact, fact, aspectsUncovered) and  # type: ignore[no-untyped-call]
+                                aspectsMatch(xpCtx, otherFact, fact, aspectsUncovered) and
                                 (fact.isTuple or
-                                 all(aspectMatches(xpCtx, otherFact, fact, dimAspect)  # type: ignore[no-untyped-call]
-                                     for dimAspect in fact.context.dimAspects(xpCtx.defaultDimensionAspects)  # type: ignore[attr-defined,union-attr]
-                                     if (not varBinding.hasAspectValueCovered(dimAspect) and  # type: ignore[no-untyped-call]
-                                         not otherVarBinding.hasAspectValueCovered(dimAspect))))
+                                 all(aspectMatches(xpCtx, otherFact, fact, dimAspect)
+                                     for dimAspect in fact.context.dimAspects(xpCtx.defaultDimensionAspects)  # type: ignore[union-attr]
+                                     if (not varBinding.hasAspectValueCovered(dimAspect) and
+                                         not otherVarBinding.hasAspectValueCovered(dimAspect))))  # type: ignore[union-attr]
                             ))
 
     @property

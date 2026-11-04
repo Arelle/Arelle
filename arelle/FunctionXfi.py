@@ -513,7 +513,7 @@ def uncovered_aspect(xc: XPathContext.XPathContext, p: OperationDef, args: XPath
                 aspect = qn  # type: ignore[assignment]
             else:
                 return ()  # not a dimension
-            dimValue = uncoveredAspectValue(xc, aspect)  # type: ignore[no-untyped-call]
+            dimValue = uncoveredAspectValue(xc, aspect)
             if isinstance(dimValue, ModelDimensionValue):
                 if dimValue.isExplicit:
                     return dimValue.memberQname
@@ -522,7 +522,7 @@ def uncovered_aspect(xc: XPathContext.XPathContext, p: OperationDef, args: XPath
             elif isinstance(dimValue, QName):  # qname for explicit or node for typed
                 return dimValue
             return ()
-    aspectValue = uncoveredAspectValue(xc, aspect)  # type: ignore[no-untyped-call]
+    aspectValue = uncoveredAspectValue(xc, aspect)  # type: ignore[arg-type]
     if aspectValue is None:
         return ()
     return aspectValue
@@ -537,7 +537,7 @@ def has_fallback_value(xc: XPathContext.XPathContext, p: OperationDef, args: XPa
 
     checkXffFunctionUse(xc, p, "has-fallback-value")
 
-    return variableBindingIsFallback(xc, variableQname)  # type: ignore[no-untyped-call]
+    return variableBindingIsFallback(xc, variableQname)  # type: ignore[arg-type]
 
 
 def uncovered_non_dimensional_aspects(
@@ -585,9 +585,9 @@ def uncovered_aspects(
                 _("Function xff:uncovered-aspect cannot be used with implicitFiltering=false"),
             )
 
-    uncoveredAspects = uncoveredVariableSetAspects(xc)  # type: ignore[no-untyped-call]
+    uncoveredAspects = uncoveredVariableSetAspects(xc)
     return [
-        (a if dimensionAspects else aspectToToken.get(a))
+        (a if dimensionAspects else aspectToToken.get(a))  # type: ignore[arg-type]
         for a in uncoveredAspects
         if a != Aspect.DIMENSIONS and isinstance(a, QName) == dimensionAspects
     ]

@@ -7,6 +7,7 @@ import datetime
 from decimal import Decimal, InvalidOperation
 from fractions import Fraction
 from numbers import Number
+from collections import defaultdict
 from collections.abc import Callable, Iterable, MutableSequence, Sequence
 from typing import Any, TYPE_CHECKING, Union, cast
 
@@ -55,7 +56,8 @@ from arelle.typing import TypeGetText
 
 if TYPE_CHECKING:
     from arelle.ModelDocument import ModelDocument
-    from arelle.ModelFormulaObject import FormulaOptions, ModelGeneral, Trace as TraceClass
+    from arelle.formula.FormulaEvaluator import VariableBinding
+    from arelle.ModelFormulaObject import FormulaOptions, ModelGeneral, Trace as TraceClass, ModelVariableSet
 
 _: TypeGetText
 
@@ -222,6 +224,13 @@ GREGORIAN_TYPES = (gYearMonth, gYear, gMonthDay, gDay, gMonth)
 
 
 class XPathContext:
+    # set by ValidateFormula and FormulaEvaluator during formula processing
+    defaultDimensionAspects: set[QName]
+    dimensionsAspectUniverse: set[QName]
+    varBindings: dict[QName, VariableBinding]
+    evaluations: list[dict[QName, Any]]
+    evaluationHashDicts: dict[QName, defaultdict[int, set[int]]]
+
     def __init__(
             self,
             modelXbrl: ModelXbrl,
@@ -242,7 +251,7 @@ class XPathContext:
         self.contextItem = self.inputXbrlInstance.targetXbrlRootElement
         self.progHeader: ProgHeader | None = None
         self.traceType: int | None = None
-        self.variableSet = None
+        self.variableSet: ModelVariableSet | None = None
         self.factAspectsCache = factAspectsCache or FactAspectsCache(modelXbrl.modelManager.formulaOptions.cacheSize)
         self.inScopeVars: dict[QName, ModelXbrl | ModelObject | int | str] = {} if inScopeVars is None else inScopeVars
         self.cachedFilterResults: dict[ModelGeneral, set[ModelFact]] = {}

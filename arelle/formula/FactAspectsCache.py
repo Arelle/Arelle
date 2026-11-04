@@ -23,28 +23,28 @@ class FactAspectsCache:
     def clear(self) -> None:
         # Dictionaries and sets only undergo resizing upon insertion. Clearing them does not reclaim memory.
         self._size = 0
-        self._prioritizedAspects: set[int | QName] = set()
+        self._prioritizedAspects: set[int | QName | None] = set()
         self._matchingAspects: defaultdict[
             tuple[uuid.UUID, uuid.UUID],
-            defaultdict[int | QName, bool | None]
+            defaultdict[int | QName | None, bool | None]
         ] = defaultdict(lambda: defaultdict(lambda: None))
 
     @property
-    def prioritizedAspects(self) -> set[int | QName]:
+    def prioritizedAspects(self) -> set[int | QName | None]:
         return self._prioritizedAspects
 
-    def evaluations(self, fact1: ModelFact, fact2: ModelFact) -> defaultdict[int | QName, bool | None] | None:
+    def evaluations(self, fact1: ModelFact | None, fact2: ModelFact | None) -> defaultdict[int | QName | None, bool | None] | None:
         factsCacheKey = self._buildFactKey(fact1, fact2)
         return self._matchingAspects.get(factsCacheKey)
 
-    def cacheMatch(self, fact1: ModelFact, fact2: ModelFact, aspect: int | QName) -> None:
+    def cacheMatch(self, fact1: ModelFact | None, fact2: ModelFact | None, aspect: int | QName) -> None:
         self._register(fact1, fact2, aspect, True)
 
-    def cacheNotMatch(self, fact1: ModelFact, fact2: ModelFact, aspect: int | QName) -> None:
+    def cacheNotMatch(self, fact1: ModelFact | None, fact2: ModelFact | None, aspect: int | QName | None) -> None:
         self._prioritizedAspects.add(aspect)
         self._register(fact1, fact2, aspect, False)
 
-    def _register(self, fact1: ModelFact, fact2: ModelFact, aspect: int | QName, value: bool) -> None:
+    def _register(self, fact1: ModelFact | None, fact2: ModelFact | None, aspect: int | QName | None, value: bool) -> None:
         if self._size >= self._maxSize:
             # Stopping additions to the cache entirely is somewhat rudimentary. Alternative caching strategies, such as
             # LRU, were explored, but they demonstrated poorer performance on average across all tested documents. The
@@ -54,7 +54,7 @@ class FactAspectsCache:
         factsCacheKey = self._buildFactKey(fact1, fact2)
         self._matchingAspects[factsCacheKey][aspect] = value
 
-    def _buildFactKey(self, fact1: ModelFact, fact2: ModelFact) -> tuple[uuid.UUID, uuid.UUID]:
+    def _buildFactKey(self, fact1: ModelFact | None, fact2: ModelFact | None) -> tuple[uuid.UUID, uuid.UUID]:
         fact1Id = fact1.uniqueUUID if fact1 is not None else noneUUID
         fact2Id = fact2.uniqueUUID if fact2 is not None else noneUUID
         return min(fact1Id, fact2Id), max(fact1Id, fact2Id)
