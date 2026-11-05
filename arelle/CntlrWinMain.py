@@ -569,7 +569,7 @@ class CntlrWinMain(Cntlr.Cntlr):
                 underline=0,
                 onvalue=duplicateTypeArg.value
             )
-        validateMenu.add_cascade(label="Warn on duplicate facts", menu=duplicateFactWarningMenu, underline=0)
+        validateMenu.add_cascade(label=_("Warn on duplicate facts"), menu=duplicateFactWarningMenu, underline=0)
 
     def onTabChanged(self, event: Any, *args: Any) -> None:
         try:
