@@ -106,7 +106,7 @@ def evaluate(
                     xpCtx.inScopeVars.pop(varQname)
             else:
                 result = varSet.evaluationsCount > 0
-            msg = cast("ModelMessage | None", varSet.message(result))
+            msg = cast("ModelMessage | None", varSet.message(result, lang=xpCtx.formulaOptions.messageLang))
             unsatSeverity = cast(str, varSet.unsatisfiedSeverity(xpCtx, contextItem=varSet.evaluationsCount))
             if ((
                 msg is None
@@ -310,7 +310,7 @@ def evaluateVariableBindings(
             traceOf = "Formula"
         elif isinstance(varSet, ModelValueAssertion):
             result = xpCtx.evaluateBooleanValue(varSet.testProg)  # type: ignore[arg-type]
-            msg = cast("ModelMessage | None", varSet.message(result))
+            msg = cast("ModelMessage | None", varSet.message(result, lang=xpCtx.formulaOptions.messageLang))
             unsatSeverity = cast(str, varSet.unsatisfiedSeverity(xpCtx))
             if msg is not None:
                 xpCtx.inScopeVars[XbrlConst.qnVaTestExpression] = varSet.test  # type: ignore[assignment]

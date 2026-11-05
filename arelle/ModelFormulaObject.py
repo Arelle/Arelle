@@ -40,6 +40,7 @@ class FormulaOptions:
         self.compileOnly: bool = False # compile but don't execute formulas
         self.formulaAction: str | None = None # none, validate, run
         self.maximumMessageInterpolationLength: int | None = None
+        self.messageLang: str | None = None # preferred xml:lang of assertion messages, None for the first found
         self.traceParameterExpressionResult = False
         self.traceParameterInputValue = False
         self.traceCallExpressionSource = False
@@ -555,7 +556,9 @@ def _assertionMessage(
     ) -> str | ModelObject | list[str] | list[ModelObject] | None:
     msgsRelationshipSet = assertion.modelXbrl.relationshipSet(XbrlConst.assertionSatisfiedMessage if satisfied else XbrlConst.assertionUnsatisfiedMessage)  # type: ignore[union-attr]
     if msgsRelationshipSet:
-        return msgsRelationshipSet.label(assertion, preferredMessage, lang, returnText=False)
+        if (msg := msgsRelationshipSet.label(assertion, preferredMessage, lang, returnText=False)) is None and lang:
+            msg = msgsRelationshipSet.label(assertion, preferredMessage, None, returnText=False)  # none in lang, use the first found
+        return msg
     return None
 
 
