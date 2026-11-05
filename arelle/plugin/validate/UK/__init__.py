@@ -442,11 +442,12 @@ def validateXbrlFinally(val, *args, **kwargs):
         for elt in rootElt.xpath("//xhtml:*[@style]", namespaces={"xhtml": "http://www.w3.org/1999/xhtml"}):
             _validateStyleAttribute(elt, modelXbrl)
 
-    hmrc = ValidateUK(modelXbrl)
-    if val.txmyType != "charities":
-        hmrc.validate()
-    elif val.txmyType == "charities":
-        hmrc.validateCharities()
+    if val.disclosureSystem.validateCompaniesHouse:
+        hmrc = ValidateUK(modelXbrl)
+        if val.txmyType != "charities":
+            hmrc.validate()
+        elif val.txmyType == "charities":
+            hmrc.validateCharities()
 
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
