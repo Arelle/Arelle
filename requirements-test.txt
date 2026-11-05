@@ -1,6 +1,6 @@
-boto3==1.43.118
+boto3==1.43.123
 packaging==26.3
-pytest==9.1.1
+pytest==9.2.0
 pytest-xdist==3.8.0
 requests==2.34.2
 
