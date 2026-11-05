@@ -547,6 +547,18 @@ class ModelTuple(ModelFormula):
         super(ModelTuple, self).init(modelDocument)
 
 
+def _assertionMessage(
+        assertion: ModelVariableSetAssertion | ModelConsistencyAssertion,
+        satisfied: bool,
+        preferredMessage: str,
+        lang: str | None
+    ) -> str | ModelObject | list[str] | list[ModelObject] | None:
+    msgsRelationshipSet = assertion.modelXbrl.relationshipSet(XbrlConst.assertionSatisfiedMessage if satisfied else XbrlConst.assertionUnsatisfiedMessage)  # type: ignore[union-attr]
+    if msgsRelationshipSet:
+        return msgsRelationshipSet.label(assertion, preferredMessage, lang, returnText=False)
+    return None
+
+
 class ModelVariableSetAssertion(ModelVariableSet):
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelVariableSetAssertion, self).init(modelDocument)
@@ -577,10 +589,7 @@ class ModelVariableSetAssertion(ModelVariableSet):
             preferredMessage: str = "*",
             lang: str | None = None
         ) -> str | ModelObject | list[str] | list[ModelObject] | None:
-        msgsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.assertionSatisfiedMessage if satisfied else XbrlConst.assertionUnsatisfiedMessage)  # type: ignore[union-attr]
-        if msgsRelationshipSet:
-            return msgsRelationshipSet.label(self, preferredMessage, lang, returnText=False)
-        return None
+        return _assertionMessage(self, satisfied, preferredMessage, lang)
 
     def unsatisfiedSeverity(self, xpCtx: XPathContextType, contextItem: ContextItem = None) -> str | None:
         msgsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.assertionUnsatisfiedSeverities)  # type: ignore[union-attr]
@@ -662,12 +671,7 @@ class ModelConsistencyAssertion(ModelFormulaResource):
             preferredMessage: str = "*",
             lang: str | None = None
         ) -> str | ModelObject | list[str] | list[ModelObject] | None:
-        msgsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.assertionSatisfiedMessage if satisfied else XbrlConst.assertionUnsatisfiedMessage)  # type: ignore[union-attr]
-        if msgsRelationshipSet:
-            msg = msgsRelationshipSet.label(self, preferredMessage, lang, returnText=False)
-            if msg is not None:
-                return msg
-        return None
+        return _assertionMessage(self, satisfied, preferredMessage, lang)
 
     @property
     def radiusExpression(self) -> str:
