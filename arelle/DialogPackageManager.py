@@ -390,7 +390,7 @@ class DialogPackageManager(Toplevel):
                                     "name: {}\ndescription: {}\nversion: {}\nlicense: {}".format(
                                             _name, _description, _version, _license),
                                     _url,  _version, _description, _license))
-            self.loadPackageUrl(DialogOpenArchive.selectPackage(self, choices))  # type: ignore[no-untyped-call]
+            self.loadPackageUrl(DialogOpenArchive.selectPackage(self, choices))
         except TypeError:
             messagebox.showwarning(_("Unable to retrieve standard packages.  "),
                                    _("Standard packages URL is not accessible, please check if online:\n\n{0}.")

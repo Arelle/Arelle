@@ -434,7 +434,7 @@ class DialogPluginManager(Toplevel):
         entryPointRefs = EntryPointRef.discoverAll()
         choiceTuples = self._generateChoiceTuples(entryPointRefs)
 
-        selectedPath = DialogOpenArchive.selectPlugin(self, choiceTuples)  # type: ignore[no-untyped-call]
+        selectedPath = DialogOpenArchive.selectPlugin(self, choiceTuples)
         if selectedPath:
             if selectedPath.startswith(self.cntlr.pluginDir):
                 selectedPath = selectedPath[len(self.cntlr.pluginDir)+1:]
