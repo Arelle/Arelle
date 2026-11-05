@@ -76,6 +76,7 @@ from arelle import (
     DialogPackageManager,
     DialogPluginManager,
     DialogURL,
+    Locale,
     ModelDocument,
     TableStructure,
     Updater,
@@ -137,7 +138,12 @@ class CntlrWinMain(Cntlr.Cntlr):
         self.dirty = False
         overrideLang = self.config.get("labelLangOverride")
         localeSetupMessage = self.modelManager.setLocale() # set locale before GUI for menu strings, pass any msg to logger after log pane starts up
-        self.labelLang: str = overrideLang if overrideLang else self.modelManager.defaultLang
+        # an override equal to the system language is what older versions stored for "system default"
+        self.labelLang = (
+            overrideLang
+            if overrideLang and overrideLang != self.modelManager.defaultLang
+            else self.defaultTaxonomyLang()
+        )
         self.data: dict[str, Any] = {}
 
         tkinter.CallWrapper = TkinterCallWrapper  # type: ignore[misc,assignment]
@@ -269,6 +275,7 @@ class CntlrWinMain(Cntlr.Cntlr):
 
         toolsMenu.add_cascade(label=_("Formula"), menu=formulaMenu, underline=0)
         self.modelManager.formulaOptions = FormulaOptions(self.config.get("formulaParameters"))
+        self.modelManager.formulaOptions.messageLang = self.labelLang
 
         toolsMenu.add_command(label=_("Compare DTSes..."), underline=0, command=self.compareDTSes)
         cacheMenu = Menu(self.menubar, tearoff=0)
@@ -1544,6 +1551,24 @@ class CntlrWinMain(Cntlr.Cntlr):
             self.modelManager.rssWatchOptions["latestPubDate"] = latestPubDate
         self.config["rssWatchOptions"] = self.modelManager.rssWatchOptions
         self.saveConfig()
+
+    @property
+    def labelLang(self) -> str:
+        """Language for taxonomy text: labels in views and formula assertion messages."""
+        return self._labelLang
+
+    @labelLang.setter
+    def labelLang(self, lang: str) -> None:
+        self._labelLang = lang
+        if hasattr(self.modelManager, "formulaOptions"):
+            self.modelManager.formulaOptions.messageLang = lang
+
+    def defaultTaxonomyLang(self) -> str:
+        """Taxonomy text language when none is chosen: the user interface language if one was
+        chosen, else the system's."""
+        if uiLangOverride := self.config.get("userInterfaceLangOverride"):
+            return Locale.posixLocaleToBCP47Lang(uiLangOverride)
+        return self.modelManager.defaultLang
 
     def languagesDialog(self, *args: Any) -> None:
         override = self.labelLang if self.labelLang != self.modelManager.defaultLang else ""
