@@ -6,14 +6,10 @@ from __future__ import annotations
 from tkinter import Toplevel, StringVar, VERTICAL, HORIZONTAL, N, S, E, W, messagebox, Misc, Event
 from tkinter.ttk import Button, Frame, Scrollbar, Treeview
 
-from arelle.CntlrWinMain import CntlrWinMain
-from arelle.DisclosureSystem import DisclosureSystem
-from arelle.FileSource import FileSource
-
 import os
 from collections import defaultdict
 from collections.abc import Sequence
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 import regex as re
 from arelle.Cntlr import Cntlr
 from arelle.CntlrWinTooltip import ToolTip
@@ -21,6 +17,11 @@ from arelle.UrlUtil import isHttpUrl
 from arelle.PackageManager import parsePackage
 from arelle.PythonUtil import attrdict
 from arelle.typing import TypeGetText
+
+if TYPE_CHECKING:
+    from arelle.CntlrWinMain import CntlrWinMain
+    from arelle.DisclosureSystem import DisclosureSystem
+    from arelle.FileSource import FileSource
 
 _: TypeGetText
 
