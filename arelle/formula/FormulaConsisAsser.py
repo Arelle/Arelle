@@ -144,7 +144,7 @@ def evaluate(xpCtx: XPathContext, varSet: ModelVariableSet, derivedFact: ModelFa
                     id=consisAsser.id,
                     result=isSatisfied,
                 )
-            message = consisAsser.message(isSatisfied)
+            message = consisAsser.message(isSatisfied, lang=xpCtx.formulaOptions.messageLang)
             if message is not None:
                 xpCtx.inScopeVars[XbrlConst.qnCaAspectMatchedFacts] = aspectMatchedInputFacts  # type: ignore[assignment]
                 xpCtx.inScopeVars[XbrlConst.qnCaAcceptanceRadius] = acceptance  # type: ignore[assignment]

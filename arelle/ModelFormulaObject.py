@@ -40,6 +40,7 @@ class FormulaOptions:
         self.compileOnly: bool = False # compile but don't execute formulas
         self.formulaAction: str | None = None # none, validate, run
         self.maximumMessageInterpolationLength: int | None = None
+        self.messageLang: str | None = None # preferred xml:lang of assertion messages, None for the first found
         self.traceParameterExpressionResult = False
         self.traceParameterInputValue = False
         self.traceCallExpressionSource = False
@@ -547,6 +548,20 @@ class ModelTuple(ModelFormula):
         super(ModelTuple, self).init(modelDocument)
 
 
+def _assertionMessage(
+        assertion: ModelVariableSetAssertion | ModelConsistencyAssertion,
+        satisfied: bool,
+        preferredMessage: str,
+        lang: str | None
+    ) -> str | ModelObject | list[str] | list[ModelObject] | None:
+    msgsRelationshipSet = assertion.modelXbrl.relationshipSet(XbrlConst.assertionSatisfiedMessage if satisfied else XbrlConst.assertionUnsatisfiedMessage)  # type: ignore[union-attr]
+    if msgsRelationshipSet:
+        if (msg := msgsRelationshipSet.label(assertion, preferredMessage, lang, returnText=False)) is None and lang:
+            msg = msgsRelationshipSet.label(assertion, preferredMessage, None, returnText=False)  # none in lang, use the first found
+        return msg
+    return None
+
+
 class ModelVariableSetAssertion(ModelVariableSet):
     def init(self, modelDocument: ModelDocument) -> None:
         super(ModelVariableSetAssertion, self).init(modelDocument)
@@ -577,10 +592,7 @@ class ModelVariableSetAssertion(ModelVariableSet):
             preferredMessage: str = "*",
             lang: str | None = None
         ) -> str | ModelObject | list[str] | list[ModelObject] | None:
-        msgsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.assertionSatisfiedMessage if satisfied else XbrlConst.assertionUnsatisfiedMessage)  # type: ignore[union-attr]
-        if msgsRelationshipSet:
-            return msgsRelationshipSet.label(self, preferredMessage, lang, returnText=False)
-        return None
+        return _assertionMessage(self, satisfied, preferredMessage, lang)
 
     def unsatisfiedSeverity(self, xpCtx: XPathContextType, contextItem: ContextItem = None) -> str | None:
         msgsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.assertionUnsatisfiedSeverities)  # type: ignore[union-attr]
@@ -662,12 +674,7 @@ class ModelConsistencyAssertion(ModelFormulaResource):
             preferredMessage: str = "*",
             lang: str | None = None
         ) -> str | ModelObject | list[str] | list[ModelObject] | None:
-        msgsRelationshipSet = self.modelXbrl.relationshipSet(XbrlConst.assertionSatisfiedMessage if satisfied else XbrlConst.assertionUnsatisfiedMessage)  # type: ignore[union-attr]
-        if msgsRelationshipSet:
-            msg = msgsRelationshipSet.label(self, preferredMessage, lang, returnText=False)
-            if msg is not None:
-                return msg
-        return None
+        return _assertionMessage(self, satisfied, preferredMessage, lang)
 
     @property
     def radiusExpression(self) -> str:

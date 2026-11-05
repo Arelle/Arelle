@@ -137,6 +137,7 @@ class RuntimeOptions:
     statusPipe: Optional[str] = None
     renderedTableLinkbaseFile: Optional[str] = None
     tableFile: Optional[str] = None
+    taxonomyLang: Optional[str] = None
     taxonomyPackage: bool = False
     testReport: Optional[str] = None
     testReportCols: Optional[int] = None
@@ -197,6 +198,10 @@ class RuntimeOptions:
             if self.workOffline is not None and self.workOffline != workOffline:
                 raise RuntimeOptionsException("internetConnectivity conflicts with workOffline")
             self.workOffline = workOffline
+        if self.labelLang is not None:
+            if self.taxonomyLang is not None and self.taxonomyLang != self.labelLang:
+                raise RuntimeOptionsException("labelLang conflicts with taxonomyLang")
+            self.taxonomyLang = self.labelLang
         if pluginOptions:
             existingBaseOptions = sorted(
                 optionName

@@ -57,7 +57,7 @@ from arelle import (
 )
 from arelle.BetaFeatures import BETA_FEATURES_AND_DESCRIPTIONS
 from arelle.CompareInstance import compareInstance
-from arelle.Locale import format_string, setApplicationLocale, setDisableRTL
+from arelle.Locale import format_string, posixLocaleToBCP47Lang, setApplicationLocale, setDisableRTL
 from arelle.ModelFormulaObject import FormulaOptions
 from arelle.ModelValue import qname
 from arelle.ValidateFileSource import ValidateFileSource, isPackage
@@ -570,11 +570,19 @@ def parseArgs(args: list[str]) -> tuple[RuntimeOptions, dict[str, Any]]:
         )
 
     outputGroup.add_option(
+        "--taxonomyLang",
+        "--taxonomylang",
+        action="store",
+        dest="taxonomyLang",
+        help=_("Language for taxonomy text: labels in following file options and formula assertion "
+               "messages. Defaults to --uiLang when that is set, otherwise system settings.")
+        )
+    outputGroup.add_option(
         "--labelLang",
         "--labellang",
         action="store",
         dest="labelLang",
-        help=_("Language for labels in following file options (override system settings)")
+        help=_("Deprecated - use --taxonomyLang.")
         )
     outputGroup.add_option(
         "--disableRtl",
@@ -1669,6 +1677,16 @@ class CntlrCmdLine(Cntlr.Cntlr):
                       level=logging.WARNING)
         return None
 
+    def taxonomyLanguage(self, options: RuntimeOptions) -> str:
+        """Language for taxonomy text (labels and formula assertion messages): --taxonomyLang, or
+        the deprecated --labelLang, else the user interface language if one was set, else the
+        system's. Resolved here because web service requests set options after construction."""
+        if lang := options.taxonomyLang or options.labelLang:
+            return lang
+        if uiLang := options.uiLang or self.config.get("userInterfaceLangOverride"):
+            return posixLocaleToBCP47Lang(uiLang)
+        return self.modelManager.defaultLang
+
     def run(self, options: RuntimeOptions, sourceZipStream: Any = None, responseZipStream: Any = None) -> bool:
         """Process command line arguments or web service request, such as to load and validate an XBRL document, or start web server.
 
@@ -1682,6 +1700,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
         assert self.errorManager is not None, "errorManager has not been initialized"
         for b in BETA_FEATURES_AND_DESCRIPTIONS:
             self.betaFeatures[b] = getattr(options, b)
+        taxonomyLang = self.taxonomyLanguage(options)
 
         if None in (win32file, win32api, win32process, pywintypes):
             if options.statusPipe or options.monitorParentProcess:
@@ -1962,6 +1981,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                     return False
                 fo.parameterValues[parameterQname] = (None, value)
         fo.maximumMessageInterpolationLength = options.formulaMaximumMessageInterpolationLength
+        fo.messageLang = taxonomyLang
         if options.formulaParamExprResult:
             fo.traceParameterExpressionResult = True
         if options.formulaParamInputValue:
@@ -2271,31 +2291,31 @@ class CntlrCmdLine(Cntlr.Cntlr):
                         if options.DTSFile:
                             ViewFileDTS.viewDTS(modelXbrl, options.DTSFile)  # type: ignore[arg-type]
                         if options.factsFile:
-                            ViewFileFactList.viewFacts(modelXbrl, options.factsFile, labelrole=options.labelRole, lang=options.labelLang, cols=options.factListCols)  # type: ignore[arg-type]
+                            ViewFileFactList.viewFacts(modelXbrl, options.factsFile, labelrole=options.labelRole, lang=taxonomyLang, cols=options.factListCols)  # type: ignore[arg-type]
                         if options.factTableFile:
-                            ViewFileFactTable.viewFacts(modelXbrl, options.factTableFile, labelrole=options.labelRole, lang=options.labelLang, cols=options.factTableCols)  # type: ignore[arg-type]
+                            ViewFileFactTable.viewFacts(modelXbrl, options.factTableFile, labelrole=options.labelRole, lang=taxonomyLang, cols=options.factTableCols)  # type: ignore[arg-type]
                         if options.conceptsFile:
-                            ViewFileConcepts.viewConcepts(modelXbrl, options.conceptsFile, labelrole=options.labelRole, lang=options.labelLang)  # type: ignore[arg-type]
+                            ViewFileConcepts.viewConcepts(modelXbrl, options.conceptsFile, labelrole=options.labelRole, lang=taxonomyLang)  # type: ignore[arg-type]
                         if options.preFile:
-                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", XbrlConst.parentChild, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[arg-type]
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.preFile, "Presentation Linkbase", XbrlConst.parentChild, labelrole=options.labelRole, lang=taxonomyLang, cols=options.relationshipCols)  # type: ignore[arg-type]
                         if options.tableFile:
-                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.tableFile, "Table Linkbase", "Table-rendering", labelrole=options.labelRole, lang=options.labelLang)  # type: ignore[arg-type]
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.tableFile, "Table Linkbase", "Table-rendering", labelrole=options.labelRole, lang=taxonomyLang)  # type: ignore[arg-type]
                         if options.renderedTableLinkbaseFile and modelXbrl is not None and modelXbrl.hasTableRendering:
-                            ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, options.renderedTableLinkbaseFile, lang=options.labelLang)
+                            ViewFileRenderedGrid.viewRenderedGrid(modelXbrl, options.renderedTableLinkbaseFile, lang=taxonomyLang)
                         if options.calFile:
-                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", XbrlConst.summationItems, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[arg-type]
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.calFile, "Calculation Linkbase", XbrlConst.summationItems, labelrole=options.labelRole, lang=taxonomyLang, cols=options.relationshipCols)  # type: ignore[arg-type]
                         if options.dimFile:
-                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.dimFile, "Dimensions", "XBRL-dimensions", labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[arg-type]
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.dimFile, "Dimensions", "XBRL-dimensions", labelrole=options.labelRole, lang=taxonomyLang, cols=options.relationshipCols)  # type: ignore[arg-type]
                         if options.anchFile:
-                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.anchFile, "Anchoring", XbrlConst.widerNarrower, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[arg-type]
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.anchFile, "Anchoring", XbrlConst.widerNarrower, labelrole=options.labelRole, lang=taxonomyLang, cols=options.relationshipCols)  # type: ignore[arg-type]
                         if options.formulaeFile:
-                            ViewFileFormulae.viewFormulae(modelXbrl, options.formulaeFile, "Formulae", lang=options.labelLang)
+                            ViewFileFormulae.viewFormulae(modelXbrl, options.formulaeFile, "Formulae", lang=taxonomyLang)
                         if options.viewArcrole and options.viewFile:
-                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.viewFile, os.path.basename(options.viewArcrole), options.viewArcrole, labelrole=options.labelRole, lang=options.labelLang, cols=options.relationshipCols)  # type: ignore[arg-type]
+                            ViewFileRelationshipSet.viewRelationshipSet(modelXbrl, options.viewFile, os.path.basename(options.viewArcrole), options.viewArcrole, labelrole=options.labelRole, lang=taxonomyLang, cols=options.relationshipCols)  # type: ignore[arg-type]
                         if options.roleTypesFile:
-                            ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.roleTypesFile, "Role Types", isArcrole=False, lang=options.labelLang)
+                            ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.roleTypesFile, "Role Types", isArcrole=False, lang=taxonomyLang)
                         if options.arcroleTypesFile:
-                            ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.arcroleTypesFile, "Arcrole Types", isArcrole=True, lang=options.labelLang)
+                            ViewFileRoleTypes.viewRoleTypes(modelXbrl, options.arcroleTypesFile, "Arcrole Types", isArcrole=True, lang=taxonomyLang)
 
                         for pluginXbrlMethod in self.plugins.hooks("CntlrCmdLine.Xbrl.Run"):
                             pluginXbrlMethod(self, options, modelXbrl, _entrypoint, sourceZipStream=sourceZipStream, responseZipStream=responseZipStream)
