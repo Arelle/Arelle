@@ -39,7 +39,7 @@ defaultLocaleCodes = {
     "da": "DK", "de": "DE", "el": "GR", "en": "GB", "es": "ES", "et": "EE",
     "eu": "ES", "fa": "IR", "fi": "FI", "fo": "FO", "fr": "FR", "he": "IL",
     "hi": "IN", "hr": "HR", "hu": "HU", "id": "ID", "is": "IS", "it": "IT",
-    "ja": "JP", "ko": "KR", "lt": "LT", "lv": "LV", "ms": "MY", "mt": "MT",
+    "ja": "JP", "ka": "GE", "ko": "KR", "lt": "LT", "lv": "LV", "ms": "MY", "mt": "MT",
     "nl": "NL", "no": "NO", "pl": "PL", "pt": "PT", "ro": "RO", "ru": "RU",
     "sk": "SK", "sl": "SI", "sq": "AL", "sr": "RS", "sv": "SE", "th": "TH",
     "tr": "TR", "uk": "UA", "ur": "PK", "vi": "VN", "zh": "CN"}
@@ -520,6 +520,7 @@ def languageCodes() -> dict[str, str]:
             _("French (France)"): "fr-FR",
             _("French (Luxembourg)"): "fr-LU",
             _("French (Switzerland)"): "fr-CH",
+            _("Georgian (Georgia)"): "ka-GE",
             _("German (Austria)"): "de-AT",
             _("German (Germany)"): "de-DE",
             _("German (Luxembourg)"): "de-LU",
