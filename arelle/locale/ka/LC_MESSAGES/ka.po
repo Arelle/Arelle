@@ -1952,7 +1952,7 @@ msgstr ""
 
 #: arelle/CntlrWinMain.py:579
 msgid "Warn on duplicate facts"
-msgstr ""
+msgstr "გაფრთხილება ფაქტების დუბლიკატებზე"
 
 #: arelle/CntlrWinMain.py:600
 msgid "Recent files"
@@ -6413,6 +6413,8 @@ msgid ""
 "Duplicate fact set with %(duplicateType)s duplicate(s) %(qname)s: "
 "%(values)s, %(contextIDs)s."
 msgstr ""
+"ფაქტების დუბლიკატების ნაკრები (%(duplicateType)s) %(qname)s: %(values)s, "
+"%(contextIDs)s."
 
 #: arelle/ValidateXbrl.py:755
 #, python-format
@@ -6771,6 +6773,10 @@ msgid ""
 "%(contextID)s unit %(unitID)s unreportedContributingItems "
 "%(unreportedContributors)s"
 msgstr ""
+"გამოთვლის შეუსაბამობა %(concept)s-დან კავშირის როლში %(linkrole)s: "
+"წარდგენილი ჯამი %(reportedSum)s, გამოთვლილი ჯამი %(computedSum)s, "
+"კონტექსტი %(contextID)s, ერთეული %(unitID)s, წარუდგენელი შემადგენელი "
+"ელემენტები %(unreportedContributors)s"
 
 #: arelle/ValidateXbrlCalcs.py:342
 #, python-format
@@ -6779,6 +6785,9 @@ msgid ""
 "reported sum %(reportedSum)s computed sum %(computedSum)s context "
 "%(contextID)s unit %(unitID)s"
 msgstr ""
+"გამოთვლის შეუსაბამობა %(concept)s-დან კავშირის როლში %(linkrole)s: "
+"წარდგენილი ჯამი %(reportedSum)s, გამოთვლილი ჯამი %(computedSum)s, "
+"კონტექსტი %(contextID)s, ერთეული %(unitID)s"
 
 #: arelle/ValidateXbrlCalcs.py:368
 #, python-format
@@ -6814,6 +6823,8 @@ msgid ""
 "Calculations check stopped for duplicate fact values %(element)s: "
 "%(values)s, %(contextIDs)s."
 msgstr ""
+"გამოთვლების შემოწმება შეჩერდა ფაქტების დუბლირებული მნიშვნელობების გამო "
+"%(element)s: %(values)s, %(contextIDs)s."
 
 #: arelle/ValidateXbrlDTS.py:84
 msgid ""
