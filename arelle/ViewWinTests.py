@@ -1,12 +1,27 @@
 """
 See COPYRIGHT.md for copyright information.
 """
+from __future__ import annotations
+
 import os
-from arelle import (ViewWinTree, XmlUtil)
+from tkinter.ttk import Notebook
+from typing import TYPE_CHECKING, Any, cast
+
+from arelle import ViewWinTree, XmlUtil
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ViewUtil import sortCountExpected
+from arelle.typing import TypeGetText
 
-def viewTests(modelXbrl, tabWin):
+if TYPE_CHECKING:
+    from arelle.ModelDocument import ModelDocument
+    from arelle.ModelObject import ModelObject
+    from arelle.ModelTestcaseObject import ModelTestcaseVariation
+    from arelle.ModelXbrl import ModelXbrl
+
+_: TypeGetText
+
+
+def viewTests(modelXbrl: ModelXbrl, tabWin: Notebook) -> None:
     view = ViewTests(modelXbrl, tabWin)
     modelXbrl.modelManager.showStatus(_("viewing Tests"))
     view.treeView["columns"] = ("name", "readMeFirst", "infoset", "status", "call", "test", "expected", "actual")
@@ -30,13 +45,14 @@ def viewTests(modelXbrl, tabWin):
     view.treeView.heading("actual",  text="Actual")
     view.isTransformRegistry = False
     modelDocument = modelXbrl.modelDocument
-    if modelXbrl.modelDocument.type in (ModelDocumentType.REGISTRY, ModelDocumentType.REGISTRYTESTCASE):
-        if modelXbrl.modelDocument.xmlRootElement.namespaceURI == "http://xbrl.org/2011/conformance-rendering/transforms":
+    assert modelDocument is not None
+    if modelDocument.type in (ModelDocumentType.REGISTRY, ModelDocumentType.REGISTRYTESTCASE):
+        if modelDocument.xmlRootElement.namespaceURI == "http://xbrl.org/2011/conformance-rendering/transforms":
             view.treeView["displaycolumns"] = ("status", "call", "test", "expected", "actual")
             view.isTransformRegistry = True
         else:
             view.treeView["displaycolumns"] = ("name", "readMeFirst", "status", "call", "test", "expected", "actual")
-    elif modelXbrl.modelDocument.type == ModelDocumentType.XPATHTESTSUITE:
+    elif modelDocument.type == ModelDocumentType.XPATHTESTSUITE:
         view.treeView["displaycolumns"] = ("name", "readMeFirst", "status", "call", "test", "expected", "actual")
     else:
         # check if infoset needed
@@ -45,10 +61,10 @@ def viewTests(modelXbrl, tabWin):
         else:
             hasInfoset = bool(getattr(modelDocument, "outpath", None))
         view.treeView["displaycolumns"] = (("name", "readMeFirst") +
-                                           ( ("infoset",) if hasInfoset else () ) +
-                                           ( "status", "expected", "actual"))
+                                           (("infoset",) if hasInfoset else ()) +
+                                           ("status", "expected", "actual"))
 
-    menu = view.contextMenu()
+    view.contextMenu()
     view.menuAddExpandCollapse()
     view.menuAddClipboard()
     view.id = 0
@@ -59,11 +75,17 @@ def viewTests(modelXbrl, tabWin):
     view.treeView.bind("<Enter>", view.treeviewEnter, "+")
     view.treeView.bind("<Leave>", view.treeviewLeave, "+")
 
+
 class ViewTests(ViewWinTree.ViewTree):
-    def __init__(self, modelXbrl, tabWin):
+    id: int
+    isTransformRegistry: bool
+    blockSelectEvent: int
+    blockViewModelObject: int
+
+    def __init__(self, modelXbrl: ModelXbrl, tabWin: Notebook) -> None:
         super(ViewTests, self).__init__(modelXbrl, tabWin, "Tests", True)
 
-    def viewTestcaseIndexElement(self, modelDocument, parentNode, parentNodeText=None):
+    def viewTestcaseIndexElement(self, modelDocument: ModelDocument, parentNode: str, parentNodeText: str | None = None) -> None:
         self.id += 1
         if modelDocument.type in (ModelDocumentType.TESTCASESINDEX, ModelDocumentType.REGISTRY):
             nodeText = os.path.basename(modelDocument.uri)
@@ -71,53 +93,51 @@ class ViewTests(ViewWinTree.ViewTree):
                 nodeText = os.path.basename(os.path.dirname(modelDocument.uri))
             node = self.treeView.insert(parentNode, "end", modelDocument.objectId(self.id),
                                         text=nodeText, tags=("odd",))
-            self.id += 1;
+            self.id += 1
             # sort test cases by uri
             testcases = []
             for referencedDocument, _ref in sorted(modelDocument.referencesDocument.items(),
-                                                   key=lambda i:i[1].referringModelObject.objectIndex if i[1] else 0):
+                                                   key=lambda i:i[1].referringModelObject.objectIndex if i[1] else 0):  # type: ignore[union-attr]
                 if referencedDocument.type in (ModelDocumentType.TESTCASESINDEX, ModelDocumentType.REGISTRY):
                     self.viewTestcaseIndexElement(referencedDocument, node, nodeText)
                 else:
                     testcases.append((referencedDocument.uri, referencedDocument.objectId()))
             testcases.sort()
             for i, testcaseTuple in enumerate(testcases):
-                self.viewTestcase(self.modelXbrl.modelObject(testcaseTuple[1]), node, i)
+                self.viewTestcase(cast("ModelDocument", self.modelXbrl.modelObject(testcaseTuple[1])), node, i)
         elif modelDocument.type in (ModelDocumentType.TESTCASE, ModelDocumentType.REGISTRYTESTCASE):
             self.viewTestcase(modelDocument, parentNode, 1)
         elif modelDocument.type == ModelDocumentType.XPATHTESTSUITE:
             for i, elt in enumerate(modelDocument.xmlRootElement.iterchildren(tag="{http://www.w3.org/2005/02/query-test-XQTSCatalog}test-group")):
                 self.viewTestGroup(elt, parentNode, i)
-        else:
-            pass
 
-    def viewTestcase(self, modelDocument, parentNode, n):
+    def viewTestcase(self, modelDocument: ModelDocument, parentNode: str, n: int) -> None:
         node = self.treeView.insert(parentNode, "end", modelDocument.objectId(),
                                     text=os.path.basename(modelDocument.uri),
                                     tags=("odd" if n & 1 else "even",))
-        self.id += 1;
+        self.id += 1
         if hasattr(modelDocument, "testcaseVariations"):
             for i, modelTestcaseVariation in enumerate(modelDocument.testcaseVariations):
                 self.viewTestcaseVariation(modelTestcaseVariation, node, n + i + 1)
 
-    def viewTestGroup(self, group, parentNode, n):
+    def viewTestGroup(self, group: ModelObject, parentNode: str, n: int) -> None:
         node = self.treeView.insert(parentNode, "end", group.objectId(),
-                                    text=group.get("name"),
+                                    text=group.get("name"),  # type: ignore[arg-type]
                                     tags=("odd" if n & 1 else "even",))
         titleElt = XmlUtil.child(group, None, "title")
         if titleElt is not None:
             self.treeView.set(node, "name", titleElt.text)
-        self.id += 1;
+        self.id += 1
         i = -1
         for elt in group.iterchildren(tag="{http://www.w3.org/2005/02/query-test-XQTSCatalog}test-group"):
-            i = i + 1
+            i += 1
             self.viewTestGroup(elt, node, n + i + 1)
         for elt in group.iterchildren(tag="{http://www.w3.org/2005/02/query-test-XQTSCatalog}test-case"):
             if elt.get("is-XPath2") == "true":
-                i = i + 1
-                self.viewTestcaseVariation(elt, node, n + i + 1)
+                i += 1
+                self.viewTestcaseVariation(cast("ModelTestcaseVariation", elt), node, n + i + 1)
 
-    def viewTestcaseVariation(self, modelTestcaseVariation, parentNode, n):
+    def viewTestcaseVariation(self, modelTestcaseVariation: ModelTestcaseVariation, parentNode: str, n: int) -> None:
         if self.isTransformRegistry or modelTestcaseVariation.localName in ("testGroup", "test-case"):
             id = modelTestcaseVariation.name
         else:
@@ -125,37 +145,38 @@ class ViewTests(ViewWinTree.ViewTree):
             if id is None:
                 id = ""
         node = self.treeView.insert(parentNode, "end", modelTestcaseVariation.objectId(),
-                                    text=id,
+                                    text=id,  # type: ignore[arg-type]
                                     tags=("odd" if n & 1 else "even",))
         self.treeView.set(node, "name", (modelTestcaseVariation.description or modelTestcaseVariation.name))
         self.treeView.set(node, "readMeFirst", ",".join(str(uri) for uri in modelTestcaseVariation.readMeFirstUris))
         self.treeView.set(node, "status", modelTestcaseVariation.status)
         call = modelTestcaseVariation.cfcnCall
-        if call: self.treeView.set(node, "call", call[0])
+        if call:
+            self.treeView.set(node, "call", call[0])
         test = modelTestcaseVariation.cfcnTest
         if test:
             self.treeView.set(node, "test", test[0])
         if getattr(self.modelXbrl.modelDocument, "outpath", None) and modelTestcaseVariation.resultIsInfoset:
             self.treeView.set(node, "infoset", modelTestcaseVariation.resultInfosetUri)
-        _exp = sortCountExpected(modelTestcaseVariation.expected)
+        _exp = sortCountExpected(modelTestcaseVariation.expected)  # type: ignore[arg-type]
         self.treeView.set(node, "expected",
                           ", ".join(str(e) for e in _exp) if isinstance(_exp, list) else _exp)
         self.treeView.set(node, "actual", ", ".join(str(code) for code in modelTestcaseVariation.actual))
-        self.id += 1;
+        self.id += 1
 
-    def treeviewEnter(self, *args):
+    def treeviewEnter(self, *args: Any) -> None:
         self.blockSelectEvent = 0
 
-    def treeviewLeave(self, *args):
+    def treeviewLeave(self, *args: Any) -> None:
         self.blockSelectEvent = 1
 
-    def treeviewSelect(self, *args):
+    def treeviewSelect(self, *args: Any) -> None:
         if self.blockSelectEvent == 0 and self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
             self.modelXbrl.viewModelObject(self.treeView.selection()[0])
             self.blockViewModelObject -= 1
 
-    def viewModelObject(self, modelObject):
+    def viewModelObject(self, modelObject: ModelObject) -> None:
         if self.blockViewModelObject == 0:
             self.blockViewModelObject += 1
             testcaseVariationId = modelObject.objectId()

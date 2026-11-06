@@ -690,7 +690,7 @@ class ModelDocument(ModelDocumentBase):
         self.plugins: PluginProvider | None = modelXbrl.modelManager.cntlr.plugins
 
 
-    def objectId(self, refId: str = "") -> str:
+    def objectId(self, refId: str | int = "") -> str:
         return "_{0}_{1}".format(refId, self.objectIndex)
 
     # qname of root element of the document so modelDocument can be treated uniformly as modelObject
