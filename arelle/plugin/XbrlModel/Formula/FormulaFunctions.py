@@ -1621,7 +1621,7 @@ def _fn_timeSpan(args: List[FormulaValue], ctx: "FormulaRuleContext") -> Formula
         if isinstance(arg.value, TimeSpanValue):
             return arg
         if isinstance(arg.value, DateRangeValue):
-            return FormulaValue(FormulaValueType.DURATION, TimeSpanValue(arg.value.end - arg.value.start))
+            return FormulaValue(FormulaValueType.DURATION, TimeSpanValue(arg.value.length))
     if arg.type != FormulaValueType.STRING:
         raise FormulaRuntimeError(
             f"The first argument of function 'time-span' must be string, duration, found '{_typeName(arg)}'."
@@ -1668,7 +1668,7 @@ def _fn_clark(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaVal
     if a.type == FormulaValueType.QNAME:
         qn = v
     elif a.type == FormulaValueType.CONCEPT:
-        qn = getattr(v, "name", None)
+        qn = v.name
     if not isinstance(qn, QName):
         raise FormulaRuntimeError("clark() argument must be a QName or concept")
     return FormulaValue(FormulaValueType.STRING,
@@ -2053,7 +2053,7 @@ def callFunction(name: str, args: List[FormulaValue], ctx: "FormulaRuleContext")
         return fn(args, ctx)
 
     # Check user-defined functions (stored as constants)
-    const = ctx.globalCtx.constants.get(name)
+    const = ctx.globalCtx.constantValue(name)   # defined on first call if not yet
     if const is not None and callable(const.value):
         return const.value(args, ctx)
 

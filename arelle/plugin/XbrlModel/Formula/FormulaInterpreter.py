@@ -86,15 +86,21 @@ def evaluateRuleSet(globalCtx: FormulaGlobalContext) -> None:
     Results are collected into globalCtx.results and logged via the controller.
     """
     ruleSet = globalCtx.ruleSet
+    if globalCtx.parameters is None:
+        globalCtx.prepareParameters()
 
-    # Evaluate constants in declaration order (they may depend on each other)
+    # Evaluate constants in declaration order. One that reads a constant or
+    # parameter not yet evaluated evaluates it then (FormulaGlobalContext.constantValue).
     for constDecl in ruleSet.constants:
         try:
-            val = _evalConstant(constDecl, globalCtx)
-            globalCtx.constants[constDecl.name] = val
+            globalCtx.constantValue(constDecl.name)
         except Exception as exc:
             globalCtx.log("WARNING", f"formula:constant:{constDecl.name}",
                           f"Error evaluating constant ${constDecl.name}: {exc}")
+
+    # Every parameter is determined, as XBRL Formula 1.0 evaluates every
+    # parameter, so that one in error is reported whether or not a rule reads it.
+    globalCtx.parameters.determineAll()
 
     # Run rules
     for rule in ruleSet.allRules:
@@ -110,7 +116,7 @@ def evaluateRuleSet(globalCtx: FormulaGlobalContext) -> None:
 MAX_ITERATIONS = 10000
 
 
-def evaluateRule(rule, globalCtx: FormulaGlobalContext) -> None:
+def evaluateRule(rule, globalCtx: FormulaGlobalContext, onIteration=None) -> None:
     """Run one output or assert rule, once per iteration of its body.
 
     A query block evaluates once unless something in it multiplies the
@@ -124,6 +130,10 @@ def evaluateRule(rule, globalCtx: FormulaGlobalContext) -> None:
     does not cancel the iterations another query found. Where no query finds
     anything the rule still runs once, on the start iteration, with each bound
     to `none`.
+
+    onIteration(ruleCtx, guard), when given, replaces running the rule in each
+    iteration: a parameter's select is expanded into iterations exactly as a
+    rule body is, and only needs their values.
     """
     from .FormulaIterations import collectIterationSources
 
@@ -134,7 +144,10 @@ def evaluateRule(rule, globalCtx: FormulaGlobalContext) -> None:
     if not loops and not queries:
         ruleCtx = FormulaRuleContext(globalCtx)
         ruleCtx.ruleName = rule.name
-        _runRuleIteration(rule, ruleCtx, globalCtx, boundFacts=[])
+        if onIteration is not None:
+            onIteration(ruleCtx, None)
+        else:
+            _runRuleIteration(rule, ruleCtx, globalCtx, boundFacts=[])
         return
 
     emitted = [0]
@@ -174,7 +187,10 @@ def evaluateRule(rule, globalCtx: FormulaGlobalContext) -> None:
             varName = src.inner.get("varName")
             if value is not None and varName:
                 ruleCtx.bindVariable(varName, value)
-        _runRuleIteration(rule, ruleCtx, globalCtx, boundFacts=[], emitGuard=guard)
+        if onIteration is not None:
+            onIteration(ruleCtx, guard)
+        else:
+            _runRuleIteration(rule, ruleCtx, globalCtx, boundFacts=[], emitGuard=guard)
 
     def joinQueries(bindings):
         """Run once per alignment the rule's fact queries between them select."""
@@ -382,7 +398,7 @@ def _findFactsByLocalName(globalCtx: FormulaGlobalContext, localName: str) -> Li
     return [
         obj for obj in globalCtx.txmyMdl.filterNamedObjects(XbrlFact)
         if (getattr(obj, "_xValid", VALID) >= VALID
-            and isinstance(obj.factDimensions.get(conceptDimQn), QName)
+            and isinstance((obj.factDimensions or {}).get(conceptDimQn), QName)
             and obj.factDimensions[conceptDimQn].localName == localName)
     ]
 
@@ -536,7 +552,10 @@ def _evalConstant(constDecl, globalCtx: FormulaGlobalContext) -> FormulaValue:
     if isinstance(constDecl.expr, dict) and constDecl.expr.get("exprName") == "funcDecl":
         # User-defined function: wrap as a callable stored in a FormulaValue
         funcNode = constDecl.expr
-        params = [p.get("paramName") for p in funcNode.get("params", [])]
+        params = funcNode.get("params") or []
+        if isinstance(params, dict):        # one parameter parses to the node itself
+            params = [params]
+        params = [p.get("paramName") for p in params]
         bodyNode = funcNode.get("body")
 
         def userFunc(args: List[FormulaValue], ctx: FormulaRuleContext) -> FormulaValue:
@@ -940,14 +959,13 @@ def _formatCollectionItem(val: FormulaValue) -> str:
 def _formatLabel(label) -> str:
     """Format an XbrlLabel as '(roleUri) (lang) value' (Xule convention)."""
     from arelle.ModelValue import QName as _QN
-    rt = getattr(label, "labelType", None)
+    rt = label.labelType
     roleUri = None
     # Try to resolve labelType QName -> URI via the taxonomy model
     if isinstance(rt, _QN):
         # walk through the label's module to find the taxonomy
-        mod = getattr(label, "module", None)
-        txmy = getattr(mod, "taxonomy", None) if mod is not None else None
-        no = getattr(txmy, "namedObjects", None) if txmy is not None else None
+        txmy = label.xbrlCompMdl
+        no = txmy.namedObjects if txmy is not None else None
         if no is not None:
             obj = no.get(rt)
             roleUri = getattr(obj, "uri", None)
@@ -960,19 +978,19 @@ def _formatLabel(label) -> str:
             roleUri = f"http://www.xbrl.org/2003/role/{rt.localName}"
     if roleUri is None:
         roleUri = str(rt) if rt is not None else ""
-    lang = getattr(label, "language", "") or ""
-    value = getattr(label, "value", "") or ""
+    lang = label.language or ""
+    value = label.value or ""
     return f"({roleUri}) ({lang}) {value}"
 
 
 def _formatReference(ref) -> str:
     """Format an XbrlReference for output."""
-    rt = getattr(ref, "referenceType", None)
-    parts = getattr(ref, "properties", ()) or ()
+    rt = ref.referenceType
+    parts = ref.properties or ()
     pieces = []
     for p in parts:
-        pq = getattr(p, "property", None)
-        pv = getattr(p, "value", "")
+        pq = p.property
+        pv = p.value
         pn = getattr(pq, "localName", None) if pq is not None else None
         if pn is None:
             pn = str(pq) if pq is not None else "?"
@@ -981,8 +999,8 @@ def _formatReference(ref) -> str:
 
 
 def _formatPart(part) -> str:
-    pq = getattr(part, "property", None)
-    pv = getattr(part, "value", "")
+    pq = part.property
+    pv = part.value
     return f"{pq}: {pv}"
 
 
@@ -1005,8 +1023,7 @@ def _formatValue(val: FormulaValue) -> str:
     if val.type == FormulaValueType.NAMESPACE:
         return str(getattr(val.value, "uri", val.value))
     if val.type == FormulaValueType.DATA_TYPE:
-        n = getattr(val.value, "name", val.value)
-        return str(n)
+        return str(val.value.name)
     if val.type == FormulaValueType.NONE:
         return "none"
     if val.type == FormulaValueType.SKIP:
@@ -1187,7 +1204,7 @@ def _evalFactQuery(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
         from arelle.XmlValidateConst import VALID
         seedFacts = [
             f for f in sourceMdl.filterNamedObjects(XbrlFact)
-            if getattr(f, "factDimensions", None)
+            if f.factDimensions
             and getattr(f, "_xValid", VALID) >= VALID
         ]
     elif conceptFilter is not None:
@@ -1214,7 +1231,7 @@ def _evalFactQuery(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
         from arelle.XmlValidateConst import VALID
         seedFacts = [
             f for f in ctx.globalCtx.txmyMdl.filterNamedObjects(XbrlFact)
-            if getattr(f, "factDimensions", None)
+            if f.factDimensions
             and getattr(f, "_xValid", VALID) >= VALID
         ]
 
@@ -1512,26 +1529,22 @@ def _factMatchesFilter(fact, pf: dict, ctx: FormulaRuleContext) -> bool:
     dimQn = pf.get("dimQn")
     if dimQn is None:
         return True
-    factDimVal = fact.factDimensions.get(dimQn)
+    # Typed as `$fact.<dim>` would be: a period is a date or duration, not its
+    # lexical string, so `@period = date(...)` and `@period.days` compare.
+    from .FormulaProperties import factDimValue
+    dimValue = factDimValue(fact, dimQn, ctx)
+    factDimVal = dimValue.value
 
     # Optional property chain: e.g. @concept.balance — resolve fact's dim value
     # to the object (concept) then apply property chain.
     if pf["propChain"]:
-        # Wrap the fact's dim value into a FormulaValue of the appropriate
-        # type so that property dispatch (getProperty) works correctly.
-        target = factDimVal
-        if target is None:
+        if factDimVal is None:
             return False
+        cur = dimValue
         if dimQn.localName == "concept" and isinstance(factDimVal, QName):
             obj = ctx.globalCtx.txmyMdl.namedObjects.get(factDimVal)
-            cur = FormulaValue(FormulaValueType.CONCEPT, obj) if obj is not None \
-                else FormulaValue(FormulaValueType.QNAME, factDimVal)
-        elif dimQn.localName == "entity":
-            cur = FormulaValue(FormulaValueType.ENTITY, factDimVal)
-        elif dimQn.localName == "unit":
-            cur = FormulaValue(FormulaValueType.UNIT_VALUE, factDimVal)
-        else:
-            cur = target if isinstance(target, FormulaValue) else FormulaValue.fromScalar(target)
+            if obj is not None:
+                cur = FormulaValue(FormulaValueType.CONCEPT, obj)
         try:
             for prop in pf["propChain"]:
                 cur = getProperty(cur, prop, [], ctx)
@@ -1623,6 +1636,8 @@ def _loose_eq(actual, expected) -> bool:
 
 def _factMatchesCubeFilter(fact, pf: dict, ctx: FormulaRuleContext) -> bool:
     """`@cube`, `@cube = *`, `@cube = none`, `@cube.name = X`, `@cube.drs-role = R`."""
+    from .FormulaProperties import _refuseAtReportTime
+    _refuseAtReportTime(ctx, "the @cube filter")
     from XbrlModel.XbrlCube import XbrlCube
     from XbrlModel.XbrlFact import XbrlFact  # noqa
     from arelle.ModelValue import qname as mkQn
@@ -1638,7 +1653,7 @@ def _factMatchesCubeFilter(fact, pf: dict, ctx: FormulaRuleContext) -> bool:
             if cellFacts:
                 for cellEntries in cellFacts.values():
                     if any(f is fact for f, _ in cellEntries):
-                        cubeNames.append(getattr(cube, "name", None))
+                        cubeNames.append(cube.name)
                         break
         factCubeQns = [n for n in cubeNames if n is not None]
     elif isinstance(factCubeNames, (list, tuple, set)):
@@ -1666,7 +1681,7 @@ def _factMatchesCubeFilter(fact, pf: dict, ctx: FormulaRuleContext) -> bool:
         else:
             val = None
             if propChain[0] == "name":
-                val = getattr(cube, "name", None) if cube else cubeQn
+                val = cube.name if cube else cubeQn
             elif propChain[0] in ("drs-role", "drsRole", "role"):
                 val = getattr(cube, "drsRole", None) if cube else None
             if val is not None and _loose_eq(val, expected):
@@ -1727,13 +1742,13 @@ def _isNil(fact) -> bool:
     models built before the property was carried.)"""
     global _qnNilProperty
     if _qnNilProperty is None:
-        from ..ValidateFacts import qnFactNilProperty
+        from XbrlModel.ValidateFacts import qnFactNilProperty
         _qnNilProperty = qnFactNilProperty
-    if any(getattr(p, "property", None) == _qnNilProperty for p in (getattr(fact, "properties", None) or ())):
+    if any(p.property == _qnNilProperty for p in fact.properties or ()):
         return True
-    if getattr(fact, "factValues", None):
+    if fact.factValues:
         fv = next(iter(fact.factValues))
-        return fv.value is None and not getattr(fv, "valueSources", None)
+        return fv.value is None and not fv.valueSources
     return False
 
 
@@ -1894,8 +1909,10 @@ def _evalBinary(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
 
     # ---- In / not in ----
     if op == "in":
+        # A duration has no members; it may itself be a member (`$fact.period in list(...)`).
         if right.type in (FormulaValueType.DURATION, FormulaValueType.NONE, FormulaValueType.SKIP) or \
-                left.type in (FormulaValueType.DURATION,):
+                (left.type == FormulaValueType.DURATION
+                 and right.type not in (FormulaValueType.LIST, FormulaValueType.SET)):
             raise FormulaRuntimeError(
                 f"Property 'contains' or 'in' expression cannot operate on a '{_typeNameOf(right)}' and '{_typeNameOf(left)}'"
             )

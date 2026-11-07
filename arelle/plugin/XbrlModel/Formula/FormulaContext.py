@@ -101,11 +101,52 @@ class FormulaGlobalContext:
                 self.namespaces[""] = defaultNsOverride
 
         self.constants: Dict[str, FormulaValue] = {}
+        # A constant is evaluated when first read if its declaration order has
+        # not reached it yet: a parameter's select may read a constant declared
+        # after it, and the constant may read a parameter in turn.
+        self.constantDecls = {c.name: c for c in ruleSet.constants}
+        self._constantsInProgress: set = set()
+        self.parameters = None                    # FormulaParameters.ParameterResolver
+        # Non-zero while a report-time expression is evaluated, which may not
+        # read cube membership (FormulaParameters.ReportTimeViolation).
+        self.reportTimeDepth = 0
         self.factCache: Dict[QName, List] = {}    # QName → list[XbrlFact]
         self.results: List[Dict[str, Any]] = []
 
         # VectorSearch alignment availability flag
         self._vectorSearchReady: Optional[bool] = None
+
+    def prepareParameters(self, supplied=None, reportValues=None) -> None:
+        """Make the rule set's parameters readable, with values supplied by the processor.
+
+        Values already determined for this report -- by the XbrlModel validator,
+        before cube matching -- are read rather than determined again.
+        """
+        from .FormulaParameters import ParameterDecl, ParameterResolver
+        from dataclasses import replace
+        decls = {name: replace(decl) for name, decl in self.ruleSet.parameters.items()}
+        for name in decls:
+            if name in self.constantDecls:
+                self.log("ERROR", "taviqe:duplicateParameterName",
+                         f"${name} is declared as both a constant and a parameter.")
+        self.parameters = ParameterResolver(
+            self, decls, supplied=supplied, reportValues=reportValues,
+            determined=getattr(self.txmyMdl, "_formulaParameterValues", None))
+
+    def constantValue(self, name: str) -> Optional[FormulaValue]:
+        """A constant's value, evaluating it now if it has not been yet; None if no such constant."""
+        if name in self.constants:
+            return self.constants[name]
+        decl = self.constantDecls.get(name)
+        if decl is None or name in self._constantsInProgress:
+            return None
+        from .FormulaInterpreter import _evalConstant
+        self._constantsInProgress.add(name)
+        try:
+            self.constants[name] = _evalConstant(decl, self)
+        finally:
+            self._constantsInProgress.discard(name)
+        return self.constants[name]
 
     @property
     def vectorSearchReady(self) -> bool:
@@ -130,7 +171,7 @@ class FormulaGlobalContext:
             matching = [
                 obj for obj in self.txmyMdl.filterNamedObjects(XbrlFact)
                 if (getattr(obj, "_xValid", VALID) >= VALID
-                    and obj.factDimensions.get(conceptDimQn) == conceptQn)
+                    and (obj.factDimensions or {}).get(conceptDimQn) == conceptQn)
             ]
             self.factCache[conceptQn] = matching
         return self.factCache[conceptQn]
@@ -277,8 +318,12 @@ class FormulaRuleContext:
         # shadows it.
         if name in self.tags:
             return self.tags[name]
-        if name in self.globalCtx.constants:
-            return self.globalCtx.constants[name]
+        constant = self.globalCtx.constantValue(name)
+        if constant is not None:
+            return constant
+        parameters = self.globalCtx.parameters
+        if parameters is not None and name in parameters:
+            return parameters.value(name)
         # Built-in $rule-value
         if name == "rule-value" and self.ruleValue is not None:
             return self.ruleValue

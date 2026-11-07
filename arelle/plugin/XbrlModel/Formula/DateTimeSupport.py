@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 import re
 
@@ -18,6 +18,15 @@ class DateRangeValue:
     start: datetime
     end: datetime
     isForever: bool = False
+    # True when `end` names a whole last day (a fact's period, whose OIM end is
+    # the following midnight), so the duration runs to the end of that day. Not
+    # compared: a fact's year and duration('2025-01-01', '2025-12-31') are equal.
+    endOfDay: bool = field(default=False, compare=False)
+
+    @property
+    def length(self) -> timedelta:
+        """The time the duration spans: end minus start, through its last day."""
+        return self.end - self.start + (timedelta(days=1) if self.endOfDay else timedelta(0))
 
 
 @dataclass(frozen=True)
@@ -114,3 +123,42 @@ def format_range(value: DateRangeValue) -> str:
     if value.isForever:
         return "forever"
     return f"{format_instant(InstantValue(value.start))} to {format_instant(InstantValue(value.end))}"
+
+
+def day_ending(dt: datetime):
+    """The day an instant closes, and whether it closes one: midnight ends the day before.
+
+    An OIM period writes the end of 27 September as 2025-09-28T00:00:00, as the
+    XBRL 2.1 date 2025-09-27 converts to. The language names that instant by the
+    day it closes, so `date('2025-09-27')` matches it, and a duration's `end` is
+    its last day.
+    """
+    if dt.hour == dt.minute == dt.second == dt.microsecond == 0 and dt.tzinfo is None:
+        return dt - timedelta(days=1), True
+    return dt, False
+
+
+def period_from_interval(start, end):
+    """An OIM interval (start None for an instant) as a date or a duration of days."""
+    plain = lambda d: datetime(d.year, d.month, d.day, d.hour, d.minute, d.second)
+    endDay, endOfDay = day_ending(plain(end))
+    if start is None:
+        return InstantValue(endDay)
+    return DateRangeValue(plain(start), endDay, endOfDay=endOfDay)
+
+
+def parse_period_string(value: str):
+    """An OIM period string, or a date, as a date or a duration of days.
+
+    A part written as a date names a whole day, as in XBRL 2.1: 2025-01-01/2025-12-31
+    is the calendar year, and 2025-12-31 the instant at its end.
+    """
+    start, sep, end = value.rpartition("/")
+    if not sep:
+        if "T" in value:
+            return period_from_interval(None, parse_date_string(value))
+        return InstantValue(parse_date_string(value))
+    startDt = parse_date_string(start)
+    if "T" in end:
+        return period_from_interval(startDt, parse_date_string(end))
+    return DateRangeValue(startDt, parse_date_string(end), endOfDay=True)

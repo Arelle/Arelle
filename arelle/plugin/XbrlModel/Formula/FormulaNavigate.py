@@ -84,11 +84,11 @@ class NavRelationship:
 
     @property
     def source(self):
-        return None if self.isStart else getattr(self.rel, "source", None)
+        return None if self.isStart else self.rel.source
 
     @property
     def target(self):
-        return getattr(self.rel, "target", None)
+        return self.rel.target
 
     def __repr__(self):
         return f"<NavRelationship {self.source}→{self.target} depth={self.depth}>"
@@ -170,10 +170,10 @@ def selectContainers(ctx, scopeKind: Optional[str], scopeValue: Optional[Formula
         wanted = set(qns)
         out = []
         for mod in (getattr(mdl, "xbrlModels", None) or {}).values():
-            for gc in getattr(mod, "groupContents", ()) or ():
-                if getattr(gc, "groupName", None) not in wanted:
+            for gc in mod.groupContents or ():
+                if gc.groupName not in wanted:
                     continue
-                obj = mdl.namedObjects.get(getattr(gc, "forObject", None))
+                obj = mdl.namedObjects.get(gc.forObject)
                 if isinstance(obj, (XbrlNetwork, XbrlDomainNetwork)):
                     out.append((obj, None, None))
         return out
@@ -185,13 +185,13 @@ def selectContainers(ctx, scopeKind: Optional[str], scopeValue: Optional[Formula
             cube = mdl.namedObjects.get(q)
             if not isinstance(cube, XbrlCube):
                 continue
-            for cd in getattr(cube, "cubeDimensions", ()) or ():
-                if dimQns is not None and getattr(cd, "dimension", None) not in dimQns:
+            for cd in cube.cubeDimensions or ():
+                if dimQns is not None and cd.dimension not in dimQns:
                     continue
                 # A cube dimension with no domain network, or a typed one, holds
                 # no hierarchy: the cube admits any member of the dimension's
                 # domain class, so there is nothing to traverse.
-                domQn = getattr(cd, "domainNetwork", None)
+                domQn = cd.domainNetwork
                 if domQn is None:
                     continue
                 dom = mdl.namedObjects.get(domQn)
@@ -220,7 +220,7 @@ def _relationshipTypeMatches(container, wanted: Optional[set], mdl) -> bool:
 
 
 def _effectiveRelationships(mdl, container):
-    if getattr(container, "relationships", None) is None:
+    if container.relationships is None:
         return []
     return list(mdl.effectiveRelationships(container))
 
@@ -228,10 +228,10 @@ def _effectiveRelationships(mdl, container):
 def _roots(mdl, container) -> List[QName]:
     from XbrlModel.XbrlDimension import XbrlDomainNetwork
     if isinstance(container, XbrlDomainNetwork):
-        root = getattr(container, "root", None)
+        root = container.root
         if root is not None:
             return [root]
-    if getattr(container, "relationships", None) is None:
+    if container.relationships is None:
         return []
     return list(mdl.effectiveRelationshipRoots(container))
 
@@ -254,10 +254,10 @@ def _buildIndex(mdl, containers, forward=True) -> Dict[QName, List[tuple]]:
     index: Dict[QName, List[tuple]] = {}
     for container, cube, cubeDim in containers:
         for rel in _effectiveRelationships(mdl, container):
-            source = getattr(rel, "source", None)
+            source = rel.source
             if source == rootQn:
                 continue
-            key = source if forward else getattr(rel, "target", None)
+            key = source if forward else rel.target
             index.setdefault(key, []).append((rel, container, cube, cubeDim))
     return index
 
@@ -272,7 +272,7 @@ def _orderedEntries(entries: Iterable[tuple]) -> List[tuple]:
 
     def key(pair):
         i, (rel, _c, _cu, _cd) = pair
-        o = getattr(rel, "order", None)
+        o = rel.order
         return (Decimal(o) if o is not None else Decimal(0), i)
 
     return [entry for _, entry in sorted(indexed, key=key)]
@@ -291,7 +291,7 @@ def _walk(index, startQn, maxDepth, stopFn, results, visited, forward, depth=1,
     if paths is not None and not entries and stack:
         paths.append(list(stack))
     for navOrder, (rel, container, cube, cubeDim) in enumerate(entries, start=1):
-        nextQn = getattr(rel, "target" if forward else "source", None)
+        nextQn = rel.target if forward else rel.source
         key = (id(rel), nextQn)
         isCycle = key in visited
         nav = NavRelationship(rel, container, cube, cubeDim,
@@ -320,11 +320,11 @@ def _siblings(mdl, containers, startQn, which, results):
     fromIndex = _buildIndex(mdl, containers, forward=True)
     toIndex = _buildIndex(mdl, containers, forward=False)
     for parentRel, container, cube, cubeDim in toIndex.get(startQn, ()):
-        parentQn = getattr(parentRel, "source", None)
+        parentQn = parentRel.source
         sibs = _orderedEntries(fromIndex.get(parentQn, ()))
         try:
             atIdx = next(i for i, (rel, _c, _cu, _cd) in enumerate(sibs)
-                         if getattr(rel, "target", None) == startQn)
+                         if rel.target == startQn)
         except StopIteration:
             continue
         if which == "previous-siblings":

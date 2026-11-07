@@ -22,9 +22,10 @@ from typing import Any, Iterable, List, Optional, Tuple
 from arelle.ModelValue import QName
 
 
-# Functions whose result depends on state outside the model.
+# Functions whose result depends on state outside the model. model() is the
+# model being evaluated and is static; model(url) is another model.
 _NON_STATIC_FUNCTIONS = frozenset((
-    "model", "taxonomy", "instance",
+    "taxonomy", "instance",
     "csv-data", "excel-data", "json-data", "xml-data-flat",
     "random",
 ))
@@ -72,6 +73,8 @@ def nonStaticReasons(expr: Any) -> List[str]:
             name = funcCall.get("funcName")
             if name in _NON_STATIC_FUNCTIONS:
                 reasons.append(f"the function {name}() reaches outside the model")
+            elif name == "model" and funcCall.get("args"):
+                reasons.append("model(url) reaches another model")
         navigate = node.get("navigateExpr")
         if isinstance(navigate, dict) and navigate.get("modelValue") is not None:
             reasons.append("a navigate `model` clause reaches another model")
@@ -122,7 +125,7 @@ def parseConstraint(text: str):
 def _relationshipTypesWithConstraints(txmyMdl):
     from XbrlModel.XbrlNetwork import XbrlRelationshipType
     for rt in txmyMdl.filterNamedObjects(XbrlRelationshipType):
-        if getattr(rt, "constraints", None):
+        if rt.constraints:
             yield rt
 
 
@@ -147,10 +150,10 @@ def validateRelationshipConstraints(txmyMdl, cntlr=None, options=None) -> None:
     globalCtx = FormulaGlobalContext(FormulaRuleSet(), txmyMdl, cntlr=cntlr, options=options)
 
     for rt in relTypes:
-        rtName = getattr(rt, "name", None)
+        rtName = rt.name
         parsed: List[Tuple[Any, str]] = []
-        for constraintObj in getattr(rt, "constraints", None) or ():
-            text = getattr(constraintObj, "constraint", None)
+        for constraintObj in rt.constraints or ():
+            text = constraintObj.constraint
             if not isinstance(text, str) or not text.strip():
                 continue
             if isSchemaFormConstraint(text):
@@ -182,13 +185,13 @@ def validateRelationshipConstraints(txmyMdl, cntlr=None, options=None) -> None:
             continue
 
         for network in txmyMdl.filterNamedObjects(XbrlNetwork):
-            if getattr(network, "relationshipTypeName", None) != rtName:
+            if network.relationshipTypeName != rtName:
                 continue
-            if getattr(network, "relationships", None) is None:
+            if network.relationships is None:
                 continue
             from XbrlModel.XbrlConst import qnXbrlRootSource
             for rel in txmyMdl.effectiveRelationships(network):
-                if getattr(rel, "source", None) == qnXbrlRootSource:
+                if rel.source == qnXbrlRootSource:
                     continue  # the root source anchors roots; it is not content
                 satisfied = False
                 failures = []
@@ -218,8 +221,8 @@ def validateRelationshipConstraints(txmyMdl, cntlr=None, options=None) -> None:
                                     "does not satisfy the constraints of relationship type "
                                     "%(relationshipType)s: %(constraints)s"),
                                   xbrlObject=network,
-                                  source=getattr(rel, "source", None),
-                                  target=getattr(rel, "target", None),
-                                  network=getattr(network, "name", None),
+                                  source=rel.source,
+                                  target=rel.target,
+                                  network=network.name,
                                   relationshipType=rtName,
                                   constraints="; ".join(failures))

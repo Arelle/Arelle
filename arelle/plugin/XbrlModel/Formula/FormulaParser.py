@@ -82,6 +82,9 @@ def _buildGrammar():
     outputKw        = CaselessKeyword("output")
     namespaceKw     = CaselessKeyword("namespace")
     constantKw      = CaselessKeyword("constant")
+    parameterKw     = CaselessKeyword("parameter")
+    requiredKw      = CaselessKeyword("required")
+    selectKw        = CaselessKeyword("select")
     functionKw      = CaselessKeyword("function")
     versionKw       = CaselessKeyword("version")
     messageKw       = CaselessKeyword("message")
@@ -146,7 +149,7 @@ def _buildGrammar():
                        | CaselessKeyword("next-siblings")
                        | CaselessKeyword("siblings") | CaselessKeyword("self"))
 
-    declKeywords = (assertKw | outputKw | namespaceKw | constantKw | functionKw | versionKw)
+    declKeywords = (assertKw | outputKw | namespaceKw | constantKw | parameterKw | functionKw | versionKw)
 
     # ---- Identifiers ----
     _ncNameStart = r"[A-Za-z_\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]"
@@ -602,7 +605,9 @@ def _buildGrammar():
         + expr.setResultsName("valueExpr")
     ).addParseAction(_mkAssign)
 
-    blockStmt = (~(declKeywords | elseKw | ruleSuffixKw | ruleFocusKw) + (assignExpr | expr))
+    # `returns` ends a filter's `where` block: read as a QName step, the where
+    # clause yielded the returned expression and the filter selected everything.
+    blockStmt = (~(declKeywords | elseKw | returnKw | ruleSuffixKw | ruleFocusKw) + (assignExpr | expr))
     # A block runs until a clause keyword or the next declaration. Without the
     # guard the body swallowed its own rule's trailing clauses -- `message`,
     # `severity`, `query-suffix`, `rule-focus` parsed as further steps, and a
@@ -611,7 +616,7 @@ def _buildGrammar():
     # message or severity ever reached a result.
     _clauseKw = (messageKw | severityKw | ruleSuffixKw | ruleFocusKw
                  | querySuffixKw | assertKw | outputKw | constantKw
-                 | functionKw | namespaceKw)
+                 | parameterKw | functionKw | namespaceKw)
     blockExpr <<= Group(
         Group(
             OneOrMore(~_clauseKw + blockStmt + Opt(Suppress(Literal(";"))))
@@ -691,6 +696,17 @@ def _buildGrammar():
         + blockExpr.setResultsName("expr")
     ).setResultsName("constantDecl").addParseAction(_tagStatement("constantDecl"))
 
+    # ---- Parameter declaration (XBRL Formula 1.0 variable:parameter) ----
+    #   parameter $name [as Type] [required] [select Expr]
+    parameterDecl = Group(
+        Suppress(parameterKw)
+        + Suppress(Literal("$"))
+        + simpleName.setResultsName("name")
+        + Opt(Suppress(asKw) + qnameExpr.copy().setResultsName("asType"))
+        + Opt(requiredKw.setResultsName("required"))
+        + Opt(Suppress(selectKw) + blockExpr.setResultsName("selectExpr"))
+    ).setResultsName("parameterDecl").addParseAction(_tagStatement("parameterDecl"))
+
     # ---- Namespace declaration ----
     # Forms:
     #   namespace <URI>                     (default namespace)
@@ -759,6 +775,7 @@ def _buildGrammar():
         | outputAttributeDecl
         | versionDecl
         | constantDecl
+        | parameterDecl
         | outputRule
         | assertRule
         | funcDecl
@@ -901,7 +918,7 @@ def _buildRuleSet(parseRes: dict, filePath: str) -> FormulaRuleSet:
 
         if key is None:
             wrappedKey = next(iter(item), None)
-            if wrappedKey in {"namespaceDecl", "constantDecl", "outputRule", "assertRule",
+            if wrappedKey in {"namespaceDecl", "constantDecl", "parameterDecl", "outputRule", "assertRule",
                               "funcDecl", "versionDecl", "outputAttributeDecl",
                               "namespaceGroupDecl"}:
                 key = wrappedKey
@@ -924,6 +941,17 @@ def _buildRuleSet(parseRes: dict, filePath: str) -> FormulaRuleSet:
 
         elif key == "constantDecl":
             ruleSet.constants.append(ConstantDecl(name=node["name"], expr=_normalizeNode(node["expr"])))
+
+        elif key == "parameterDecl":
+            from .FormulaParameters import ParameterDecl
+            name = node["name"]
+            if name in ruleSet.parameters:
+                raise ValueError(f"taviqe:duplicateParameterName: parameter ${name} is declared twice")
+            ruleSet.parameters[name] = ParameterDecl(
+                name=name,
+                asType=_normalizeNode(node.get("asType")),
+                required=bool(node.get("required")),
+                selectExpr=_normalizeNode(node.get("selectExpr")))
 
         elif key == "outputRule":
             rule = OutputRule(

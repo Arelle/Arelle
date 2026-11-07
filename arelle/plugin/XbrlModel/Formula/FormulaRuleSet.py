@@ -81,6 +81,7 @@ class FormulaRuleSet:
     """
     namespaces: Dict[str, str] = field(default_factory=dict)
     constants: List[ConstantDecl] = field(default_factory=list)
+    parameters: Dict[str, Any] = field(default_factory=dict)   # name -> FormulaParameters.ParameterDecl
     outputRules: Dict[str, OutputRule] = field(default_factory=dict)
     assertRules: Dict[str, AssertRule] = field(default_factory=dict)
     sourceFiles: List[str] = field(default_factory=list)
@@ -89,6 +90,11 @@ class FormulaRuleSet:
         """Merge another rule set into this one (used when loading multiple files)."""
         self.namespaces.update(other.namespaces)
         self.constants.extend(other.constants)
+        for name, decl in other.parameters.items():
+            if name in self.parameters:
+                raise ValueError(f"taviqe:duplicateParameterName: parameter ${name} is declared "
+                                 f"in more than one rule set file")
+            self.parameters[name] = decl
         self.outputRules.update(other.outputRules)
         self.assertRules.update(other.assertRules)
         self.sourceFiles.extend(other.sourceFiles)

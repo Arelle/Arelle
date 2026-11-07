@@ -53,7 +53,7 @@ def _asDecimal(value) -> Optional[Decimal]:
 
 def _decimalsOf(obj) -> Optional[int]:
     """The stated decimals, or None for an exact (infinite-precision) value."""
-    d = getattr(obj, "decimals", None)
+    d = obj.decimals
     if d is None:
         return None
     if isinstance(d, str):
@@ -125,12 +125,12 @@ def effectiveFactValue(fact) -> Optional[Any]:
     returned so that a rule still sees a value; a rule that needs to detect the
     disagreement reads `factValues`.
     """
-    fvs = list(getattr(fact, "factValues", None) or ())
+    fvs = list(fact.factValues or ())
     if not fvs:
         return None
     if len(fvs) == 1:
         return fvs[0]
-    values = [getattr(fv, "value", None) for fv in fvs]
+    values = [fv.value for fv in fvs]
     decs = [_decimalsOf(fv) for fv in fvs]
     kind = classify(values, decs)
     if kind == CONSISTENT:
@@ -143,7 +143,7 @@ def effectiveFactValue(fact) -> Optional[Any]:
 # ---------------------------------------------------------------------------
 
 def _dimensionKey(fact) -> frozenset:
-    dims = getattr(fact, "factDimensions", None) or {}
+    dims = fact.factDimensions or {}
     return frozenset(
         (k, v) for k, v in dims.items()
         if isinstance(k, QName)
@@ -176,7 +176,7 @@ def deduplicateFacts(facts: List[Any], mode: Optional[str] = None) -> List[Any]:
             out.append(group[0])
             continue
         fvs = [effectiveFactValue(f) for f in group]
-        values = [getattr(fv, "value", None) if fv is not None else None for fv in fvs]
+        values = [fv.value if fv is not None else None for fv in fvs]
         decs = [_decimalsOf(fv) if fv is not None else None for fv in fvs]
         kind = classify(values, decs)
         if kind == COMPLETE:

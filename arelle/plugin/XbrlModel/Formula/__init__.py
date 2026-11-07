@@ -175,6 +175,13 @@ def validateFinished(val, *args, **kwargs):
     from .FormulaInterpreter import evaluateRuleSet
 
     globalCtx = FormulaGlobalContext(ruleSet, txmyMdl, cntlr=cntlr, options=options)
+    # Values supplied for the rule set's parameters (--parameters, or a test
+    # case's); the names the plugin reads as its own options are not parameters.
+    from .FormulaParameters import suppliedFromValidationParameters
+    supplied = suppliedFromValidationParameters(val.parameters)
+    for optionName in parameterNames:
+        supplied.pop(optionName, None)
+    globalCtx.prepareParameters(supplied=supplied)
     try:
         evaluateRuleSet(globalCtx)
     except Exception as exc:
