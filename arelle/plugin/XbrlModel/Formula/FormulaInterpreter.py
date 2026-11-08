@@ -521,9 +521,9 @@ def _runRuleIteration(rule, ruleCtx: FormulaRuleContext,
 
     # Emit result
     if isinstance(rule, AssertRule):
-        # Assert: fire message when condition is FALSE
-        passed = _isTruthy(result)
-        if not passed:
+        # An assert reports when its expression is true (`unsatisfied`, the
+        # default), or when it is false if declared `satisfied`.
+        if _isTruthy(result) != rule.reportWhenSatisfied:
             globalCtx.addResult(
                 ruleName=emittedName,
                 ruleType="assert",
@@ -764,7 +764,12 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
     # passes through unchanged.
     if exprName == "taggedExpr" or "taggedExpr" in node:
         inner = node.get("taggedExpr", node)
-        value = evaluateExpr(inner.get("expr"), ctx)
+        # A tagged fact query is stamped as an iteration source on the tag node
+        # (it carries the query's fields); its bare `expr` copy is not, and
+        # evaluated alone yields every fact rather than this iteration's.
+        value = _iterBinding(inner, ctx)
+        if value is None:
+            value = evaluateExpr(inner.get("expr"), ctx)
         tagNm = inner.get("tagName")
         if tagNm:
             ctx.bindTag(str(tagNm), value)
@@ -1905,7 +1910,7 @@ def _evalBinary(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
                 if left.type == FormulaValueType.NONE and right.type == FormulaValueType.NONE:
                     return TRUE_VALUE  # none <= none and none >= none are true via equality
                 return NONE_VALUE
-        return _compare(left, op, right, merged)
+        return _compare(left, op, right, merged, ctx)
 
     # ---- In / not in ----
     if op == "in":
@@ -2161,7 +2166,7 @@ def _strictSkipBinary(left: FormulaValue, op: str, right: FormulaValue, merged) 
 # ---------------------------------------------------------------------------
 
 def _compare(left: FormulaValue, op: str, right: FormulaValue,
-             merged) -> FormulaValue:
+             merged, ctx=None) -> FormulaValue:
     def _asComparable(fv: FormulaValue):
         if fv.type == FormulaValueType.SET:
             return frozenset(_asComparable(item) for item in fv.value)
@@ -2170,12 +2175,11 @@ def _compare(left: FormulaValue, op: str, right: FormulaValue,
         if fv.isNumeric:
             return fv.numericValue()
         if fv.type == FormulaValueType.FACT:
-            try:
-                return fv.numericValue()
-            except (TypeError, FormulaRuntimeError):
-                if fv.value.factValues:
-                    return next(iter(fv.value.factValues)).value
-                return None
+            # A fact compares as its value, typed by its concept: a decimal for a
+            # numeric concept, else the string. Converting every fact to a number
+            # raised on a text fact (`{@concept = dei:DocumentType} == '10-K'`).
+            from .FormulaProperties import _factPropValue
+            return _asComparable(_factPropValue(fv.value, [], ctx))
         if fv.type == FormulaValueType.DATE and isinstance(fv.value, InstantValue):
             return fv.value.dt
         if fv.type == FormulaValueType.DURATION:

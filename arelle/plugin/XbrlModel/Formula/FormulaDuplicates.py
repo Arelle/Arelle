@@ -15,8 +15,11 @@ Two things de-duplicate by the same rule:
 
 Classification follows Tavi's duplicate fact validation: complete duplicates
 agree on value and decimals; consistent duplicates are numeric and have
-intersecting rounding intervals; anything else is inconsistent and cannot be
-de-duplicated to a single value.
+intersecting intervals; anything else is inconsistent and cannot be
+de-duplicated to a single value. A value's interval follows its rounding mode:
+closed for a rounded value, half-open towards zero for a truncated one, the
+mode resolved as calculation validation resolves it (the fact value's own
+roundingMode, else the model's, else round-to-nearest).
 
 See COPYRIGHT.md for copyright information.
 """
@@ -69,16 +72,32 @@ def _decimalsOf(obj) -> Optional[int]:
         return None
 
 
-def _roundingInterval(value: Decimal, decimals: Optional[int]) -> Tuple[Decimal, Decimal]:
-    """The closed interval a value with this accuracy could have come from."""
+def _interval(value: Decimal, decimals: Optional[int], truncate: bool):
+    """(low, high, lowIncluded, highIncluded) a value with this accuracy could have come from.
+
+    As arelle.ValidateXbrlCalcs.rangeValue: a rounded value is the closed interval
+    half a unit either side; a truncated value was cut towards zero, so the bound
+    nearer zero is included and the other is not (both excluded for zero).
+    """
     if decimals is None:
-        return (value, value)
-    half = Decimal(5) * (Decimal(10) ** Decimal(-decimals - 1))
-    return (value - half, value + half)
+        return (value, value, True, True)
+    unit = Decimal(10) ** Decimal(-decimals)
+    if not truncate:
+        return (value - unit / 2, value + unit / 2, True, True)
+    if value > 0:
+        return (value, value + unit, True, False)
+    if value < 0:
+        return (value - unit, value, False, True)
+    return (-unit, unit, False, False)
 
 
-def classify(values: Sequence[Any], decimalsList: Sequence[Optional[int]]) -> str:
-    """Classify a set of duplicate values as complete, consistent or inconsistent."""
+def classify(values: Sequence[Any], decimalsList: Sequence[Optional[int]],
+             truncations: Optional[Sequence[bool]] = None) -> str:
+    """Classify a set of duplicate values as complete, consistent or inconsistent.
+
+    truncations gives each value's rounding mode (True for truncation); absent,
+    every value is taken as rounded to nearest.
+    """
     if len(values) < 2:
         return COMPLETE
     first = values[0]
@@ -92,13 +111,33 @@ def classify(values: Sequence[Any], decimalsList: Sequence[Optional[int]]) -> st
         # no rounding interval to reconcile, so it cannot be consistent.
         return INCONSISTENT
 
-    lo, hi = _roundingInterval(decs[0], decimalsList[0])
-    for value, dec in zip(decs[1:], decimalsList[1:]):
-        vlo, vhi = _roundingInterval(value, dec)
-        lo, hi = max(lo, vlo), min(hi, vhi)
-        if lo > hi:
+    truncations = truncations or [False] * len(decs)
+    lo = hi = None
+    loIncl = hiIncl = True
+    for value, dec, trunc in zip(decs, decimalsList, truncations):
+        vlo, vhi, vloIncl, vhiIncl = _interval(value, dec, trunc)
+        # The intersection includes a shared bound only where both intervals do.
+        if lo is None or vlo > lo:
+            lo, loIncl = vlo, vloIncl
+        elif vlo == lo:
+            loIncl = loIncl and vloIncl
+        if hi is None or vhi < hi:
+            hi, hiIncl = vhi, vhiIncl
+        elif vhi == hi:
+            hiIncl = hiIncl and vhiIncl
+        if lo > hi or (lo == hi and not (loIncl and hiIncl)):
             return INCONSISTENT
     return CONSISTENT
+
+
+def _truncations(fact, fvs) -> List[bool]:
+    """Whether each fact value was truncated, resolved as calculation validation resolves it."""
+    from XbrlModel.ValidateCalculations import _isTruncation, _truncationOf
+    compMdl = fact.xbrlCompMdl
+    if compMdl is None:
+        return [str(fv.roundingMode or "") == "truncation" for fv in fvs]
+    truncationOf = _truncationOf(compMdl, _isTruncation(compMdl))
+    return [truncationOf(fv) for fv in fvs]
 
 
 def _mostPrecise(items: Sequence[Any], decimalsList: Sequence[Optional[int]]) -> Any:
@@ -132,7 +171,7 @@ def effectiveFactValue(fact) -> Optional[Any]:
         return fvs[0]
     values = [fv.value for fv in fvs]
     decs = [_decimalsOf(fv) for fv in fvs]
-    kind = classify(values, decs)
+    kind = classify(values, decs, _truncations(fact, fvs))
     if kind == CONSISTENT:
         return _mostPrecise(fvs, decs)
     return fvs[0]
@@ -178,7 +217,9 @@ def deduplicateFacts(facts: List[Any], mode: Optional[str] = None) -> List[Any]:
         fvs = [effectiveFactValue(f) for f in group]
         values = [fv.value if fv is not None else None for fv in fvs]
         decs = [_decimalsOf(fv) if fv is not None else None for fv in fvs]
-        kind = classify(values, decs)
+        truncs = [_truncations(f, [fv])[0] if fv is not None else False
+                  for f, fv in zip(group, fvs)]
+        kind = classify(values, decs, truncs)
         if kind == COMPLETE:
             out.append(group[0])
         elif kind == CONSISTENT:

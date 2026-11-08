@@ -25,6 +25,7 @@ from .DateTimeSupport import (
     TimeSpanValue,
     parse_date_string,
     parse_time_span_string,
+    parse_period_string,
     period_from_interval,
 )
 
@@ -93,16 +94,26 @@ def _resolvePrefixed(fact, value):
     return QName(prefix, ns, local)
 
 def _periodFormulaValue(fact, per) -> FormulaValue:
-    """A stored period as a date (an instant) or a duration of whole days."""
-    # Fact validation leaves the parsed interval beside the lexical value.
-    interval = fact.factDimensions.get("_periodValue")
-    if interval is None:
-        from arelle.ModelValue import timeInterval
-        try:
-            interval = timeInterval(per)
-        except (ValueError, TypeError, AttributeError):
-            return FormulaValue(FormulaValueType.STRING, per)
-    period = period_from_interval(interval.start, interval.end)
+    """A stored period as a date (an instant) or a duration of whole days.
+
+    Typed from the lexical value as tavi.md resolves it: a date-only end or
+    instant is the midnight that closes that day, so `2024-12-31` is the instant
+    2025-01-01T00:00:00 and reads as the date 2024-12-31. Fact validation's
+    `_periodValue` (arelle's timeInterval) reads a date-only value as the
+    midnight that opens the day, a day early, so it is used only for datetime
+    spellings the lexical parser does not handle.
+    """
+    try:
+        period = parse_period_string(per.strip())
+    except (ValueError, AttributeError):
+        interval = (fact.factDimensions or {}).get("_periodValue")
+        if interval is None:
+            from arelle.ModelValue import timeInterval
+            try:
+                interval = timeInterval(per)
+            except (ValueError, TypeError, AttributeError):
+                return FormulaValue(FormulaValueType.STRING, per)
+        period = period_from_interval(interval.start, interval.end)
     return FormulaValue(FormulaValueType.DATE if isinstance(period, InstantValue)
                         else FormulaValueType.DURATION, period)
 

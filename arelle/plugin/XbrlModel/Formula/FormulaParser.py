@@ -79,6 +79,8 @@ def _buildGrammar():
 
     # ---- Keywords ----
     assertKw        = CaselessKeyword("assert")
+    satisfiedKw     = CaselessKeyword("satisfied")
+    unsatisfiedKw   = CaselessKeyword("unsatisfied")
     outputKw        = CaselessKeyword("output")
     namespaceKw     = CaselessKeyword("namespace")
     constantKw      = CaselessKeyword("constant")
@@ -679,6 +681,7 @@ def _buildGrammar():
     assertRule = Group(
         Suppress(assertKw)
         + ruleName.setResultsName("name")
+        + Opt(satisfiedKw | unsatisfiedKw).setResultsName("polarity")
         + blockExpr.setResultsName("expr")
         + Opt(whereClause)
         + Opt(messageClause)
@@ -841,43 +844,51 @@ def _tagStatement(kind):
 # Public API
 # ---------------------------------------------------------------------------
 
-def parseFormulaFile(filePath: str) -> FormulaRuleSet:
-    """
-    Parse a single `.xule` formula source file and return a FormulaRuleSet.
+# A rule nests deeply when a filter sits inside a fact query's where clause
+# inside an assert, and pyparsing recurses once per grammar level for each
+# nesting, so the default thread stack and recursion limit run out on rules that
+# are well formed. Parsing therefore runs on a thread with a deep stack.
+_PARSE_STACK_BYTES = 256 * 1024 * 1024
+_PARSE_RECURSION_LIMIT = 50000
 
-    Parsing is performed in a dedicated thread to allow a larger stack size
-    (some rule files have deeply nested expressions).
-    """
-    stackSize = 8 * 1024 * 1024  # 8 MB stack
+
+def _parseOnDeepStack(parse):
+    """Run parse() on a thread with a deep stack and recursion limit; return its result."""
     resultQueue: Queue = Queue()
     origLimit = sys.getrecursionlimit()
-    if origLimit < 5500:
-        sys.setrecursionlimit(5500)
+    origStack = threading.stack_size()
 
     def _parseThread():
         try:
-            grammar = _getGrammar()
-            parseRes = grammar.parseFile(filePath, parseAll=True).as_dict()
-            resultQueue.put(("ok", parseRes))
+            resultQueue.put(("ok", parse()))
         except Exception as exc:
             resultQueue.put(("err", exc))
 
-    t = threading.Thread(target=_parseThread, daemon=True)
-    t.start()
-    t.join()
-    sys.setrecursionlimit(origLimit)
+    try:
+        threading.stack_size(_PARSE_STACK_BYTES)
+        sys.setrecursionlimit(max(origLimit, _PARSE_RECURSION_LIMIT))
+        t = threading.Thread(target=_parseThread, daemon=True)
+        t.start()
+        t.join()
+    finally:
+        threading.stack_size(origStack)
+        sys.setrecursionlimit(origLimit)
 
     status, payload = resultQueue.get()
     if status == "err":
         raise payload
+    return payload
 
-    return _buildRuleSet(payload, filePath)
+
+def parseFormulaFile(filePath: str) -> FormulaRuleSet:
+    """Parse a single `.xule` formula source file and return a FormulaRuleSet."""
+    parseRes = _parseOnDeepStack(lambda: _getGrammar().parseFile(filePath, parseAll=True).as_dict())
+    return _buildRuleSet(parseRes, filePath)
 
 
 def parseFormulaString(source: str, fileName: str = "<string>") -> FormulaRuleSet:
-    """Parse a Xule formula string (useful for unit tests)."""
-    grammar = _getGrammar()
-    parseRes = grammar.parseString(source, parseAll=True).as_dict()
+    """Parse a formula string: a parameter's select, a relationship constraint, a test."""
+    parseRes = _parseOnDeepStack(lambda: _getGrammar().parseString(source, parseAll=True).as_dict())
     return _buildRuleSet(parseRes, fileName)
 
 
@@ -964,8 +975,12 @@ def _buildRuleSet(parseRes: dict, filePath: str) -> FormulaRuleSet:
             ruleSet.outputRules[rule.name] = rule
 
         elif key == "assertRule":
+            polarity = node.get("polarity")
+            if isinstance(polarity, (list, tuple)):
+                polarity = polarity[0] if polarity else None
             rule = AssertRule(
                 name=node["name"],
+                reportWhenSatisfied=str(polarity or "").lower() == "satisfied",
                 expr=_normalizeNode(node["expr"]),
                 messageExpr=_normalizeNode(node.get("message", {}).get("msgExpr")),
                 severityExpr=_normalizeNode(node.get("severityClause", {}).get("severityExpr")),

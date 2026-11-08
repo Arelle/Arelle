@@ -11,6 +11,7 @@ See COPYRIGHT.md for copyright information.
 from __future__ import annotations
 
 import hashlib
+import pickle
 import json
 import os
 import time
@@ -48,13 +49,17 @@ class OutputRule:
 
 @dataclass
 class AssertRule:
-    """Raises a validation message when the condition is false."""
+    """Reports a result when its condition is true (`unsatisfied`, the default),
+    or, declared `satisfied`, when it is false."""
     name: str
     expr: Any           # AST node for the boolean condition
     messageExpr: Optional[Any] = None
     severity: str = "error"
     severityExpr: Optional[Any] = None  # AST node for the severity clause
     suffixExpr: Optional[Any] = None    # AST node for the rule-suffix string
+    # `assert Name satisfied` reports when the expression is false; the default,
+    # `unsatisfied`, reports when it is true (tavi-formula.md, "Assert block").
+    reportWhenSatisfied: bool = False
 
 
 # ---------------------------------------------------------------------------
@@ -121,6 +126,61 @@ def _fileHash(path: str) -> str:
     return h.hexdigest()
 
 
+# Parsing is slow (pyparsing explores many alternatives per token: a rule file of
+# a few hundred generated rows takes seconds to minutes), and rule files change
+# far less often than they are run. A parsed file is therefore kept between runs,
+# keyed by its path and content and by the source of the modules that define the
+# parse, so that editing either a rule file or the grammar invalidates it.
+_PARSE_MODULES = ("FormulaParser.py", "FormulaRuleSet.py", "FormulaParameters.py")
+_parserVersion: Optional[str] = None
+
+
+def _parserVersionKey() -> str:
+    global _parserVersion
+    if _parserVersion is None:
+        h = hashlib.sha256()
+        here = os.path.dirname(os.path.abspath(__file__))
+        for name in _PARSE_MODULES:
+            with open(os.path.join(here, name), "rb") as fh:
+                h.update(fh.read())
+        _parserVersion = h.hexdigest()
+    return _parserVersion
+
+
+def _parseCacheDir(cntlr) -> Optional[str]:
+    """Where parsed rule files are kept: the Arelle user cache, when there is a controller."""
+    for c in (cntlr, getattr(cntlr, "cntlr", None)):   # a controller, or a model manager
+        userAppDir = getattr(c, "userAppDir", None)
+        if userAppDir:
+            return os.path.join(userAppDir, "cache", "formula-parse")
+    return None
+
+
+def _parseFileCached(path: str, cacheDir: Optional[str]) -> "FormulaRuleSet":
+    """Parse one rule file, or load it as parsed by an earlier run."""
+    from .FormulaParser import parseFormulaFile
+    if cacheDir is None:
+        return parseFormulaFile(path)
+    key = hashlib.sha256(f"{os.path.abspath(path)}|{_fileHash(path)}|{_parserVersionKey()}"
+                         .encode("utf-8")).hexdigest()
+    cacheFile = os.path.join(cacheDir, key + ".pickle")
+    try:
+        with open(cacheFile, "rb") as fh:
+            return pickle.load(fh)
+    except (OSError, EOFError, pickle.UnpicklingError, AttributeError, ImportError):
+        pass                                   # absent or unreadable: parse it again
+    ruleSet = parseFormulaFile(path)
+    try:
+        os.makedirs(cacheDir, exist_ok=True)
+        tmpFile = f"{cacheFile}.{os.getpid()}.tmp"
+        with open(tmpFile, "wb") as fh:
+            pickle.dump(ruleSet, fh, protocol=pickle.HIGHEST_PROTOCOL)
+        os.replace(tmpFile, cacheFile)        # never leave a half-written entry
+    except OSError:
+        pass                                   # a cache that cannot be written is not an error
+    return ruleSet
+
+
 def loadRuleSet(paths: List[str], cntlr=None) -> "FormulaRuleSet":
     """
     Load and compile a rule set from one or more `.xule` source files or
@@ -139,7 +199,7 @@ def loadRuleSet(paths: List[str], cntlr=None) -> "FormulaRuleSet":
     FormulaRuleSet
         The merged and compiled rule set ready for interpretation.
     """
-    from .FormulaParser import parseFormulaFile
+    cacheDir = _parseCacheDir(cntlr)
 
     # Expand directories to individual .xule files
     xuleFiles: List[str] = []
@@ -163,7 +223,7 @@ def loadRuleSet(paths: List[str], cntlr=None) -> "FormulaRuleSet":
     for i, xuleFile in enumerate(xuleFiles, 1):
         try:
             startTime = time.perf_counter()
-            ruleSet = parseFormulaFile(xuleFile)
+            ruleSet = _parseFileCached(xuleFile, cacheDir)
             elapsedSecs = time.perf_counter() - startTime
             mergeTime = time.perf_counter()
             merged.mergeFrom(ruleSet)
