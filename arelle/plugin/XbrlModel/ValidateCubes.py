@@ -121,7 +121,10 @@ def matchFactToCube(compMdl, factspace, cubeObj):
                 canonicalValue = canonicalUnitValue(factDimVal, compMdl)
                 if len(canonicalValue[0]) == 1 and not canonicalValue[1]:
                     factDimVal = canonicalValue[0][0]
-            if mems and factDimVal not in mems:
+            # A declared domain network restricts the dimension to its members, even when it has none (a
+            # base network that importing modules fill by `extends`, none of which is loaded); only a cube
+            # dimension with no domainNetwork leaves the dimension open.
+            if (mems or cubeDimObj.domainNetwork) and factDimVal not in mems:
                 hasDims = False # skip this cube
                 break
         elif dimName == periodCoreDim:
@@ -144,10 +147,10 @@ def matchFactToCube(compMdl, factspace, cubeObj):
             if not isTyped:
                 dimMbrQn = qname(factspace.factDimensions.get(dimName), factspace.module._prefixNamespaces)
             mems = cubeDimObj.allowedMembers(compMdl)
-            # Empty mems means no domainNetwork is set on this cube dimension:
-            # the cube imposes no member restriction, so any member value is accepted.
+            # No domainNetwork on this cube dimension: the cube imposes no member restriction. A declared
+            # one restricts to its members, even when it has none (see the core dimensions above).
             if (isinstance(dimObj, XbrlDimension) and not isTyped and
-                mems and dimMbrQn not in mems):
+                (mems or cubeDimObj.domainNetwork) and dimMbrQn not in mems):
                 hasDims = False # skip this cube
                 break
     return hasDims
@@ -185,7 +188,8 @@ def validateCubes(compMdl, factspace):
 
 def _cubeConceptCandidateIndex(compMdl):
     """(conceptToCubes, openCubes): a concept QName -> the cubes listing it as a concept member,
-       and the cubes whose concept dimension is open (no domain, so any concept is allowed). Built
+       and the cubes whose concept dimension is open (no domainNetwork, so any concept is allowed; a
+       declared domain network with no members admits no concept). Built
        from every module's cubes (including anonymous extension cubes) using the same concept
        member set matchFactToCube consults (XbrlCubeDimension.allowedMembers), and cached on the
        model; cleared by clearEffectiveCaches when the effective relationships change."""
@@ -200,12 +204,11 @@ def _cubeConceptCandidateIndex(compMdl):
                 continue # adds to its base cube (see isExtensionAddition); not a cube of its own
             conceptDim = next((cd for cd in (cubeObj.cubeDimensions or ())
                                if cd.dimension == conceptCoreDim), None)
-            members = conceptDim.allowedMembers(compMdl) if conceptDim is not None else None
-            if members:
-                for conceptQn in members:
-                    conceptToCubes.setdefault(conceptQn, []).append(cubeObj)
-            else:
+            if conceptDim is None or not conceptDim.domainNetwork:
                 openCubes.append(cubeObj) # open concept dimension -> matches any fact's concept
+                continue
+            for conceptQn in conceptDim.allowedMembers(compMdl):
+                conceptToCubes.setdefault(conceptQn, []).append(cubeObj)
     index = (conceptToCubes, openCubes)
     compMdl._cubeConceptCandidateIndexCache = index
     return index
