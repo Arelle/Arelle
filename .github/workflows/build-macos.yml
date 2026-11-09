@@ -107,8 +107,28 @@ jobs:
           echo "artifact_versioned_name=arelle-macos-${{ inputs.python_architecture }}-${{ env.BUILD_VERSION }}.dmg" >> $GITHUB_OUTPUT
           echo "uploaded_artifact_name=macos ${{ inputs.python_architecture }} distribution" >> $GITHUB_OUTPUT
           echo "DMG_BUILD_ARTIFACT_PATH=dist_dmg/arelle-macos-${{ inputs.python_architecture }}-${{ env.BUILD_VERSION }}.dmg" >> $GITHUB_ENV
+          echo "APP_ARTIFACT_NAME=macos ${{ inputs.python_architecture }} signed app" >> "$GITHUB_ENV"
+      # Re-runs reuse the signed app from an earlier attempt so a notarization failure doesn't need a full
+      # rebuild. Delete the signed app artifact from the run before re-running if a full rebuild is ever required.
+      - name: Download signed app from an earlier attempt
+        if: ${{ inputs.codesign_and_notarize && github.run_attempt != '1' }}
+        uses: actions/download-artifact@v8.0.2
+        with:
+          # A pattern downloads nothing instead of failing when no earlier attempt uploaded the app.
+          pattern: ${{ env.APP_ARTIFACT_NAME }}
+          merge-multiple: true
+          path: earlier-attempt
+      - name: Unpack signed app from an earlier attempt
+        id: earlier-app
+        if: ${{ inputs.codesign_and_notarize && github.run_attempt != '1' }}
+        run: |
+          if [ -f earlier-attempt/notarization.zip ]; then
+            mv earlier-attempt/notarization.zip notarization.zip
+            ditto -x -k notarization.zip build
+            echo "reused=true" >> "$GITHUB_OUTPUT"
+          fi
       - name: Install certificate
-        if: ${{ inputs.codesign_and_notarize }}
+        if: ${{ inputs.codesign_and_notarize && steps.earlier-app.outputs.reused != 'true' }}
         env:
           MAC_BUILD_CERTIFICATE_BASE64: ${{ secrets.MAC_BUILD_CERTIFICATE_BASE64 }}
           MAC_BUILD_CERTIFICATE_NAME: 'Developer ID Application: Workiva Inc. (5ZF66U48UD)'
@@ -134,12 +154,23 @@ jobs:
           echo MAC_BUILD_CERTIFICATE_NAME="$MAC_BUILD_CERTIFICATE_NAME"
           echo "CODESIGN_IDENTITY=${{ env.MAC_BUILD_CERTIFICATE_NAME }}" >> $GITHUB_ENV
       - name: Build app
+        if: ${{ steps.earlier-app.outputs.reused != 'true' }}
         run: ./scripts/buildMacDist.sh
       - name: Remove git directories
+        if: ${{ steps.earlier-app.outputs.reused != 'true' }}
         run: find build/Arelle.app/Contents -name .git -exec rm -fR {} \;
       - name: Zip app for notarization
-        if: ${{ inputs.codesign_and_notarize }}
+        if: ${{ inputs.codesign_and_notarize && steps.earlier-app.outputs.reused != 'true' }}
         run: ditto -c -k --keepParent "build/Arelle.app" "notarization.zip"
+      - name: Upload signed app for re-runs
+        if: ${{ inputs.codesign_and_notarize && steps.earlier-app.outputs.reused != 'true' }}
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: ${{ env.APP_ARTIFACT_NAME }}
+          if-no-files-found: error
+          path: notarization.zip
+          compression-level: 0
+          retention-days: 7
       - name: Submit app for notarization
         if: ${{ inputs.codesign_and_notarize }}
         uses: ./.github/actions/retry
