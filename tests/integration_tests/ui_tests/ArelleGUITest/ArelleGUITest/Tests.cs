@@ -222,7 +222,8 @@ namespace ArelleGUITest
             Logger.Default.Info("wait for document to load and UI to populate");
             // wait for the panes corresponding to tabs and their content to be created,
             // e.g. Tables/DTS on the left and Fact Table/Fact List on the right.
-            Retry.WhileNull(() => Window.FindFirstByXPath("/Pane/Pane/Pane/Pane/Pane/Pane/Pane"), timeout: TimeSpan.FromMinutes(1), ignoreException: true);
+            AutomationElement? populatedPane = Retry.WhileNull(() => Window.FindFirstByXPath("/Pane/Pane/Pane/Pane/Pane/Pane/Pane"), timeout: TimeSpan.FromMinutes(1), ignoreException: true).Result;
+            Assert.That(populatedPane, Is.Not.Null, "document did not load and populate the UI within the timeout");
             AutomationElement iconsAndMainArea = Window.FindFirstByXPath("/Pane/Pane");
             AutomationElement[] iconsAndMainAreaChildren = iconsAndMainArea.FindAllChildren();
             AutomationElement mainArea = iconsAndMainAreaChildren[0];
