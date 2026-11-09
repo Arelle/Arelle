@@ -310,7 +310,6 @@ exclude = '''(?x)(
 module = [
     'arelle.Version',
     'arelle.ViewFileTests',
-    'arelle.ViewWinTests',
     'arelle.archive.CustomLogger',
     'arelle.archive.LoadEFMvalidate',
     'arelle.archive.LoadSavePreLbCsv',
