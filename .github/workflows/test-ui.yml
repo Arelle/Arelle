@@ -56,6 +56,7 @@ jobs:
       zip_artifact_versioned_name: ${{ github.event_name == 'pull_request' && needs.build-windows-pr.outputs.zip_artifact_versioned_name || needs.build-windows-dispatch.outputs.zip_artifact_versioned_name }}
       exe_uploaded_artifact_name: ${{ github.event_name == 'pull_request' && needs.build-windows-pr.outputs.exe_uploaded_artifact_name || needs.build-windows-dispatch.outputs.exe_uploaded_artifact_name }}
       zip_uploaded_artifact_name: ${{ github.event_name == 'pull_request' && needs.build-windows-pr.outputs.zip_uploaded_artifact_name || needs.build-windows-dispatch.outputs.zip_uploaded_artifact_name }}
+      ARELLE_TESTS_MEDIA_PATH: ${{ github.workspace }}\testsmedia
     steps:
       - name: Checkout arelle
         uses: actions/checkout@v7.0.1
@@ -134,7 +135,7 @@ jobs:
         with:
           name: screenshots-${{ matrix.build-type }}
           if-no-files-found: error
-          path: 'd:\temp\testsmedia\*.png'
+          path: ${{ env.ARELLE_TESTS_MEDIA_PATH }}\**\*.png
       - name: Upload videos
         # videos are only saved on test failure
         if: failure()
@@ -142,4 +143,4 @@ jobs:
         with:
           name: videos-${{ matrix.build-type }}
           if-no-files-found: error
-          path: 'd:\temp\testsmedia\*.avi'
+          path: ${{ env.ARELLE_TESTS_MEDIA_PATH }}\**\*.avi

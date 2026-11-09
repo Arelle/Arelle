@@ -20,6 +20,14 @@ namespace ArelleGUITest
     {
         protected override ApplicationStartMode ApplicationStartMode => ApplicationStartMode.OncePerTest;
         protected override VideoRecordingMode VideoRecordingMode => VideoRecordingMode.OnePerTest;
+        protected override string TestsMediaPath
+        {
+            get
+            {
+                string? testsMediaPath = Environment.GetEnvironmentVariable("ARELLE_TESTS_MEDIA_PATH");
+                return String.IsNullOrEmpty(testsMediaPath) ? base.TestsMediaPath : Path.Join(testsMediaPath, TestContext.CurrentContext.Test.Name);
+            }
+        }
 
         abstract record ExecutionTypeT(string? ArellePath, string ArelleResourcesPath)
         {
