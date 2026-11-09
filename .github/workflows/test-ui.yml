@@ -125,6 +125,17 @@ jobs:
           # Arelle uses when no config exists.
           '{"fileHistory": [], "windowGeometry": "800x500+200+100", "workOffline": true}' | Out-File (Join-Path $arelleDir 'config.json') -Encoding utf8NoBOM
           echo "XDG_CONFIG_HOME=$configHome" >> $env:GITHUB_ENV
+      - name: Install ffmpeg
+        # FlaUI downloads ffmpeg for video recording without retrying unless ARELLE_FFMPEG_PATH is set.
+        uses: ./.github/actions/retry
+        with:
+          shell: pwsh
+          command: |
+            choco install ffmpeg
+            # choco exits successfully after installing nothing when the community feed returns an error.
+            $ffmpegPath = "$env:ChocolateyInstall\lib\ffmpeg\tools\ffmpeg\bin\ffmpeg.exe"
+            if (-not (Test-Path $ffmpegPath)) { exit 1 }
+            echo "ARELLE_FFMPEG_PATH=$ffmpegPath" >> $env:GITHUB_ENV
 
       - name: Run tests
         if: matrix.build-type == 'installer' || matrix.build-type == 'zip'
