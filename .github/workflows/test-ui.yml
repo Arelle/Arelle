@@ -102,6 +102,29 @@ jobs:
         run: dotnet build tests\integration_tests\ui_tests\ArelleGUITest\ArelleGUITest.sln
       - name: Set build path
         run: echo "BUILD_PATH=$((gi tests\integration_tests\ui_tests\ArelleGUITest\ArelleGUITest\bin\Debug\*).FullName)" >> $env:GITHUB_ENV
+      - name: Download taxonomy package
+        env:
+          PACKAGE_URL: https://arelle-public.s3.amazonaws.com/ci/taxonomy_packages/ui-test-taxonomies.zip
+        run: |
+          $configHome = Join-Path $env:RUNNER_TEMP 'xdg-config'
+          $arelleDir = Join-Path $configHome 'arelle'
+          $packagePath = Join-Path $env:RUNNER_TEMP 'ui-test-taxonomies.zip'
+          Invoke-WebRequest $env:PACKAGE_URL -OutFile $packagePath -MaximumRetryCount 5 -RetryIntervalSec 10
+          New-Item -ItemType Directory -Force $arelleDir | Out-Null
+          # Loading documents only needs the remappings. The packages list is only read by the Package Manager dialog.
+          $packageRoot = "$packagePath\arelle-ui-test-taxonomies"
+          @{
+            packages = @()
+            remappings = @{
+              'https://xbrl.fasb.org/' = "$packageRoot\xbrl.fasb.org\"
+              'https://xbrl.sec.gov/' = "$packageRoot\xbrl.sec.gov\"
+            }
+          } | ConvertTo-Json | Out-File (Join-Path $arelleDir 'taxonomyPackages.json') -Encoding utf8NoBOM
+          # Working offline makes Arelle use its bundled copies of the xbrl.org schemas, and makes anything
+          # missing from the package fail fast instead of downloading. The other keys are the defaults
+          # Arelle uses when no config exists.
+          '{"fileHistory": [], "windowGeometry": "800x500+200+100", "workOffline": true}' | Out-File (Join-Path $arelleDir 'config.json') -Encoding utf8NoBOM
+          echo "XDG_CONFIG_HOME=$configHome" >> $env:GITHUB_ENV
 
       - name: Run tests
         if: matrix.build-type == 'installer' || matrix.build-type == 'zip'
