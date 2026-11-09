@@ -137,16 +137,38 @@ jobs:
         run: ./scripts/buildMacDist.sh
       - name: Remove git directories
         run: find build/Arelle.app/Contents -name .git -exec rm -fR {} \;
-      - name: Notarize app
+      - name: Zip app for notarization
+        if: ${{ inputs.codesign_and_notarize }}
+        run: ditto -c -k --keepParent "build/Arelle.app" "notarization.zip"
+      - name: Submit app for notarization
+        if: ${{ inputs.codesign_and_notarize }}
+        uses: ./.github/actions/retry
+        env:
+          USERNAME: ${{ secrets.MAC_BUILD_NOTARIZATION_USERNAME }}
+          PASSWORD: ${{ secrets.MAC_BUILD_NOTARIZATION_PASSWORD }}
+          TEAM_ID: '5ZF66U48UD'
+        with:
+          max_attempts: 3
+          command: xcrun notarytool submit "notarization.zip" -v --apple-id "$USERNAME" --password "$PASSWORD" --team-id "$TEAM_ID" --wait --timeout 30m --output-format json > notarization.json
+      - name: Check notarization status
         if: ${{ inputs.codesign_and_notarize }}
         env:
           USERNAME: ${{ secrets.MAC_BUILD_NOTARIZATION_USERNAME }}
           PASSWORD: ${{ secrets.MAC_BUILD_NOTARIZATION_PASSWORD }}
           TEAM_ID: '5ZF66U48UD'
         run: |
-          ditto -c -k --keepParent "build/Arelle.app" "notarization.zip"
-          xcrun notarytool submit "notarization.zip" -v --apple-id "$USERNAME" --password "$PASSWORD" --team-id "$TEAM_ID" --wait --timeout 30m --output-format json
-          xcrun stapler staple -v "build/Arelle.app"
+          cat notarization.json
+          if [ "$(plutil -extract status raw -o - notarization.json)" != "Accepted" ]; then
+            xcrun notarytool log "$(plutil -extract id raw -o - notarization.json)" --apple-id "$USERNAME" --password "$PASSWORD" --team-id "$TEAM_ID"
+            echo "::error::Notarization was not accepted."
+            exit 1
+          fi
+      - name: Staple app
+        if: ${{ inputs.codesign_and_notarize }}
+        # Stapling looks up the ticket in CloudKit, which can drop connections or lag behind notarization.
+        uses: ./.github/actions/retry
+        with:
+          command: xcrun stapler staple -v "build/Arelle.app"
       - name: Build DMG
         run: |
           pwd
