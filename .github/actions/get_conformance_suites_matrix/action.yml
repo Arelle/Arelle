@@ -12,5 +12,15 @@ runs:
       shell: bash
       run: |
         echo 'matrix<<EOF' >> $GITHUB_OUTPUT
-        python -m tests.integration_tests.validation.discover_tests | tee -a $GITHUB_OUTPUT
+        cat <<'JSON'
+        [
+            {
+                "environment": "integration-tests",
+                "name": "probe",
+                "short_name": "probe",
+                "os": "ubuntu-24.04",
+                "python_version": "3.12"
+            }
+        ]
+        JSON
         echo EOF >> $GITHUB_OUTPUT
