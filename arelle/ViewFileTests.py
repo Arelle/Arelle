@@ -62,7 +62,7 @@ class ViewTests(ViewFile.View):
     ) -> None:
         super(ViewTests, self).__init__(modelXbrl, outfile, "Tests")
         if isinstance(cols, str):
-            cols = cols.split(",")
+            cols = cols.replace(",", " ").split()
         self.cols = cols if cols else []
 
     def viewTestcaseIndexElement(
