@@ -1835,7 +1835,7 @@ class CntlrWinMain(Cntlr.Cntlr):
         elif self.hasWin32gui:
             import win32gui
             try:
-                filename, filter, flags = {"open":win32gui.GetOpenFileNameW,  # type: ignore[call-arg]
+                filename, filter, flags = {"open":win32gui.GetOpenFileNameW,
                                            "save":win32gui.GetSaveFileNameW}[action](
                             hwndOwner=(owner if owner else parent).winfo_id(),
                             hInstance=win32gui.GetModuleHandle(None),
