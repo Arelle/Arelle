@@ -12,5 +12,15 @@ runs:
       shell: bash
       run: |
         echo 'matrix<<EOF' >> $GITHUB_OUTPUT
-        echo '[]'
+        cat <<'JSON'
+        [
+            {
+                "artifact_name": "probe-nonexistent logs",
+                "environment": "none",
+                "name": "probe_nonexistent_test",
+                "os": "ubuntu-24.04",
+                "python_version": "3.12"
+            }
+        ]
+        JSON
         echo EOF >> $GITHUB_OUTPUT
