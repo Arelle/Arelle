@@ -1,18 +1,36 @@
 """
 See COPYRIGHT.md for copyright information.
 """
+from __future__ import annotations
+
+import os
+from typing import TYPE_CHECKING, Any, cast
+
 from arelle import ViewFile
 from arelle.ModelDocumentType import ModelDocumentType
+from arelle.typing import TypeGetText
 from arelle.ViewUtil import sortCountExpected
-import os
 
-def viewTests(modelXbrl, outfile, cols=None):
+if TYPE_CHECKING:
+    from arelle.FileSource import FileNamedStringIO
+    from arelle.ModelDocument import ModelDocument
+    from arelle.ModelTestcaseObject import ModelTestcaseVariation
+    from arelle.ModelXbrl import ModelXbrl
+
+_: TypeGetText
+
+
+def viewTests(
+    modelXbrl: ModelXbrl,
+    outfile: str | FileNamedStringIO | None,
+    cols: str | list[str] | None = None,
+) -> None:
     modelXbrl.modelManager.showStatus(_("viewing Tests"))
     view = ViewTests(modelXbrl, outfile, cols)
-    view.viewTestcaseIndexElement(modelXbrl.modelDocument)
+    view.viewTestcaseIndexElement(modelXbrl.modelDocument)  # type: ignore[arg-type]
     view.close()
 
-COL_WIDTHS = {
+COL_WIDTHS: dict[str, int] = {
     "Index": 12,
     "Index.1": 12,
     "Index.2": 12,
@@ -25,20 +43,40 @@ COL_WIDTHS = {
     "ReadMeFirst": 20,
     "Status": 8,
     "Expected": 20,
-    "Actual": 100}
+    "Actual": 100,
+}
+
 
 class ViewTests(ViewFile.View):
-    def __init__(self, modelXbrl, outfile, cols):
-        super(ViewTests, self).__init__(modelXbrl, outfile, "Tests")
-        self.cols = cols
+    cols: list[str]
+    nestedIndexDepth: int
+    xlsxDocName: str | None
+    xlsxDocNames: list[str]
+    xlsxTestcase: str
 
-    def viewTestcaseIndexElement(self, modelDocument, parentDocument=None, nestedDepth=0):
-        if parentDocument is None: # not a nested testacases index
+    def __init__(
+        self,
+        modelXbrl: ModelXbrl,
+        outfile: str | FileNamedStringIO | None,
+        cols: str | list[str] | None,
+    ) -> None:
+        super(ViewTests, self).__init__(modelXbrl, outfile, "Tests")
+        if isinstance(cols, str):
+            cols = cols.split(",")
+        self.cols = cols if cols else []
+
+    def viewTestcaseIndexElement(
+        self,
+        modelDocument: ModelDocument,
+        parentDocument: ModelDocument | None = None,
+        nestedDepth: int = 0,
+    ) -> None:
+        assert self.modelXbrl is not None
+        if parentDocument is None:  # not a nested testacases index
             self.nestedIndexDepth = 0
             self.xlsxDocNames = []
             self.xlsxTestcase = ""
             if self.cols:
-                if isinstance(self.cols,str): self.cols = self.cols.replace(","," ").split()
                 unrecognizedCols = []
                 for col in self.cols:
                     if col not in COL_WIDTHS:
@@ -49,10 +87,10 @@ class ViewTests(ViewFile.View):
                                          modelXbrl=self.modelXbrl, cols=",".join(unrecognizedCols))
                 if "Period" in self.cols:
                     i = self.cols.index("Period")
-                    self.cols[i:i+1] = ["Start", "End/Instant"]
+                    self.cols[i:i + 1] = ["Start", "End/Instant"]
             else:
                 self.cols = ["Index"]
-                def determineNestedIndexDepth(doc, nestedDepth):
+                def determineNestedIndexDepth(doc: ModelDocument, nestedDepth: int) -> None:
                     if nestedDepth > self.nestedIndexDepth:
                         self.nestedIndexDepth = nestedDepth
                         self.cols.append("Index.{}".format(nestedDepth))
@@ -71,8 +109,8 @@ class ViewTests(ViewFile.View):
             self.addRow(self.cols, asHeader=True)
 
         if modelDocument.type in (ModelDocumentType.TESTCASESINDEX, ModelDocumentType.REGISTRY):
-            cols = []
-            attr = {}
+            cols: list[str] = []
+            attr: dict[str, str] = {}
             if self.type in (ViewFile.XLSX, ViewFile.CSV):
                 self.xlsxDocName = None
             indexColName = "Index.{}".format(nestedDepth) if nestedDepth else "Index"
@@ -93,22 +131,22 @@ class ViewTests(ViewFile.View):
             # sort test cases by uri
             testcases = []
             for referencedDocument, _ref in sorted(modelDocument.referencesDocument.items(),
-                                             key=lambda i:i[1].referringModelObject.objectIndex if i[1] else 0):
+                                             key=lambda i:i[1].referringModelObject.objectIndex if i[1] else 0):  # type: ignore[union-attr]
                 if referencedDocument.type in (ModelDocumentType.TESTCASESINDEX, ModelDocumentType.REGISTRY):
                     self.viewTestcaseIndexElement(referencedDocument, modelDocument, nestedDepth+1)
                 else:
                     testcases.append((referencedDocument.uri, referencedDocument.objectId()))
             testcases.sort()
             for testcaseTuple in testcases:
-                self.viewTestcase(self.modelXbrl.modelObject(testcaseTuple[1]), 1)
+                self.viewTestcase(cast("ModelDocument", self.modelXbrl.modelObject(testcaseTuple[1])), 1)
         elif modelDocument.type in (ModelDocumentType.TESTCASE, ModelDocumentType.REGISTRYTESTCASE):
             self.viewTestcase(modelDocument, 0)
         else:
             pass
 
-    def viewTestcase(self, modelDocument, indent):
-        cols = []
-        attr = {}
+    def viewTestcase(self, modelDocument: ModelDocument, indent: int) -> None:
+        cols: list[str] = []
+        attr: dict[str, str] = {}
         docName = os.path.basename(modelDocument.uri)
         if docName == "index.xml":
             docName = os.path.basename(os.path.dirname(modelDocument.uri))
@@ -126,21 +164,21 @@ class ViewTests(ViewFile.View):
         if self.type not in (ViewFile.XLSX, ViewFile.CSV):
             self.addRow(cols, treeIndent=indent, xmlRowElementName="testcase", xmlRowEltAttr=attr, xmlCol0skipElt=True)
         for modelTestcaseVariation in getattr(modelDocument, "testcaseVariations", ()):
-            self.viewTestcaseVariation(modelTestcaseVariation, indent+1)
+            self.viewTestcaseVariation(modelTestcaseVariation, indent + 1)
 
-    def viewTestcaseVariation(self, modelTestcaseVariation, indent):
+    def viewTestcaseVariation(self, modelTestcaseVariation: ModelTestcaseVariation, indent: int) -> None:
         id = modelTestcaseVariation.id
         if id is None:
             id = ""
-        cols = []
-        attr = {}
+        cols: list[str | None] = []
+        attr: dict[str, str | None] = {}
         if self.type in (ViewFile.XLSX, ViewFile.CSV):
             cols.extend(self.xlsxDocNames)
             cols.append(self.xlsxTestcase)
-            indent = 0 # excel & CSV show all columns to allow filtering
+            indent = 0  # excel & CSV show all columns to allow filtering
         for col in self.cols:
             if self.type in (ViewFile.XLSX, ViewFile.CSV) and (col.startswith("Index") or col == "Testcase"):
-                pass # these columns added above
+                pass  # these columns added above
             elif col == "Id":
                 cols.append(id or modelTestcaseVariation.name)
             elif col == "Name":
@@ -155,7 +193,7 @@ class ViewTests(ViewFile.View):
             elif col == "Status":
                 cols.append(modelTestcaseVariation.status)
             elif col == "Expected":
-                _exp = sortCountExpected(modelTestcaseVariation.expected)
+                _exp = sortCountExpected(modelTestcaseVariation.expected)  # type: ignore[arg-type]
                 cols.append(", ".join(str(e) for e in _exp) if isinstance(_exp, list) else _exp)
             elif col == "Actual":
                 cols.append(", ".join(str(code) for code in modelTestcaseVariation.actual))

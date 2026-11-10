@@ -728,7 +728,7 @@ class CntlrWinMain(Cntlr.Cntlr):
                 if not filename:
                     return False
                 try:
-                    ViewFileTests.viewTests(self.modelManager.modelXbrl, filename)
+                    ViewFileTests.viewTests(self.modelManager.modelXbrl, filename)  # type: ignore[arg-type]
                 except (IOError, EnvironmentError) as err:
                     tkinter.messagebox.showwarning(_("arelle - Error"),
                                         _("Failed to save {0}:\n{1}").format(
@@ -1835,7 +1835,7 @@ class CntlrWinMain(Cntlr.Cntlr):
         elif self.hasWin32gui:
             import win32gui
             try:
-                filename, filter, flags = {"open":win32gui.GetOpenFileNameW,
+                filename, filter, flags = {"open":win32gui.GetOpenFileNameW,  # type: ignore[call-arg]
                                            "save":win32gui.GetSaveFileNameW}[action](
                             hwndOwner=(owner if owner else parent).winfo_id(),
                             hInstance=win32gui.GetModuleHandle(None),

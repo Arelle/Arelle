@@ -2263,7 +2263,7 @@ class CntlrCmdLine(Cntlr.Cntlr):
                                     traceback.format_exc()))
 
                         if options.testReport:
-                            ViewFileTests.viewTests(self.modelManager.modelXbrl, options.testReport, options.testReportCols)  # type: ignore[no-untyped-call]
+                            ViewFileTests.viewTests(self.modelManager.modelXbrl, options.testReport, options.testReportCols)  # type: ignore[arg-type]
 
                         if options.rssReport:
                             ViewFileRssFeed.viewRssFeed(self.modelManager.modelXbrl, options.rssReport, options.rssReportCols)  # type: ignore[arg-type]
