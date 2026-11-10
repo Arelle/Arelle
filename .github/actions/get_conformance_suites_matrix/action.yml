@@ -12,7 +12,7 @@ runs:
       shell: bash
       run: |
         echo 'matrix<<EOF' >> $GITHUB_OUTPUT
-        cat <<'JSON'
+        cat <<'JSON' >> $GITHUB_OUTPUT
         [
             {
                 "environment": "integration-tests",
