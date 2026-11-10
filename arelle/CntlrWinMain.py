@@ -728,7 +728,7 @@ class CntlrWinMain(Cntlr.Cntlr):
                 if not filename:
                     return False
                 try:
-                    ViewFileTests.viewTests(self.modelManager.modelXbrl, filename)
+                    ViewFileTests.viewTests(self.modelManager.modelXbrl, filename)  # type: ignore[arg-type]
                 except (IOError, EnvironmentError) as err:
                     tkinter.messagebox.showwarning(_("arelle - Error"),
                                         _("Failed to save {0}:\n{1}").format(
