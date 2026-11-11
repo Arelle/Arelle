@@ -917,6 +917,7 @@ def checkElements(val: ValidateXbrl, modelDocument: ModelDocument, parent: _Elem
                     targetRole = elt.get("{http://xbrl.org/2005/xbrldt}targetRole")
                     if not XbrlConst.isStandardRole(targetRole) and \
                        elt.qname == XbrlConst.qnLinkDefinitionArc and \
+                       not XmlValidate.isAttributeInvalid(elt, "{http://xbrl.org/2005/xbrldt}targetRole") and \
                        targetRole not in val.roleRefURIs:  # type: ignore[operator]
                         val.modelXbrl.error("xbrldte:TargetRoleNotResolvedError",
                             _("TargetRole %(targetRole)s is missing a roleRef"),
