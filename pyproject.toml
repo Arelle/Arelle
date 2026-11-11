@@ -308,7 +308,6 @@ exclude = '''(?x)(
 # remove from list below as each module is updated with type hinting
 [[tool.mypy.overrides]]
 module = [
-    'arelle.Version',
     'arelle.archive.CustomLogger',
     'arelle.archive.LoadEFMvalidate',
     'arelle.archive.LoadSavePreLbCsv',
@@ -366,7 +365,6 @@ module = [
     'arelle.archive.plugin.validate.calc2',
     'arelle.archive.plugin.validateSchemaLxml',
     'arelle.archive.plugin.validateTableInfoset',
-    'arelle.examples.plugin.formulaSuiteConverter',
     'arelle.examples.plugin.functionsCustom',
     'arelle.examples.plugin.hello_dolly',
     'arelle.examples.plugin.rssSaveOim',

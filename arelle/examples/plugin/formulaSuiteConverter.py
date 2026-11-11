@@ -9,12 +9,20 @@ XBRL formula conf suite converter
      --source-test-suite-dir {directory containing index.xml file for suite)
      --converted-test-suite-dir {directory receiving converted suite)
 """
+from __future__ import annotations
+
+from optparse import OptionParser
+from typing import Any
+
 from arelle import ModelXbrl, XmlUtil
+from arelle.Cntlr import Cntlr
 from arelle.ModelDocument import Type
 from arelle.ModelValue import qname
 from arelle.ViewUtilFormulae import rootFormulaObjects, formulaObjSortKey
 from arelle.PrototypeDtsObject import PrototypeObject
 from arelle.PythonUtil import attrdict
+from arelle.RuntimeOptions import RuntimeOptions
+from arelle.typing import TypeGetText
 from arelle.Version import authorLabel, copyrightLabel
 import os, shutil
 from lxml import etree
@@ -23,14 +31,32 @@ import regex as re
 oimErrPattern = re.compile("(oime|xbrlxe):")
 QN_SCHEMA_REF = qname("{http://www.xbrl.org/2003/linkbase}schemaRef")
 
-def convertVariation(cntlr, variationFile, variationElt, inPath, outPath, entryPoint, resultInstFile):
+_: TypeGetText
+
+
+def _removeVariation(variationElt: etree._Element) -> None:
+    parent = variationElt.getparent()
+    if parent is not None:
+        parent.remove(variationElt)
+
+
+def convertVariation(
+    cntlr: Cntlr,
+    variationFile: str,
+    variationElt: etree._Element,
+    inPath: str,
+    outPath: str,
+    entryPoint: str,
+    resultInstFile: str | None,
+) -> dict[str, str]:
     entryFile = os.path.join(inPath, entryPoint)
     modelXbrl = ModelXbrl.load(cntlr.modelManager, entryFile)
     doc = modelXbrl.modelDocument
-    formulaRootObjects = rootFormulaObjects(modelXbrl) # sets var sets up
+    assert doc is not None
+    formulaRootObjects = rootFormulaObjects(modelXbrl)  # sets var sets up
     formulaFile = None
     for formulaRootObject in sorted(formulaRootObjects, key=formulaObjSortKey):
-        formulaFile = formulaRootObject.modelDocument.basename # first formula file
+        formulaFile = formulaRootObject.modelDocument.basename  # first formula file
         break
     # convert formula linkbaseRefs into shim schema refs
     if doc.type in (Type.INSTANCE, Type.INLINEXBRL, Type.INLINEXBRLDOCUMENTSET):
@@ -60,20 +86,20 @@ def convertVariation(cntlr, variationFile, variationElt, inPath, outPath, entryP
 </schema>
 """.format(lbRef))
                 lbDoc.type = Type.SCHEMA
-                ref.referringModelObject = PrototypeObject(ref.referringModelObject.modelDocument, ref.referringModelObject)
-                ref.referringModelObject.qname = QN_SCHEMA_REF
+                ref.referringModelObject = PrototypeObject(ref.referringModelObject.modelDocument, ref.referringModelObject)  # type: ignore[assignment,union-attr]
+                ref.referringModelObject.qname = QN_SCHEMA_REF  # type: ignore[misc,union-attr]
 
     # perform OIM validation on xBRL-XML source instance
     for pluginXbrlMethod in cntlr.plugins.hooks("Validate.XBRL.Finally"):
         pluginXbrlMethod(doc)
-    if any(oimErrPattern.match(err) for err in modelXbrl.errors):
+    if any(isinstance(err, str) and oimErrPattern.match(err) for err in modelXbrl.errors):
         modelXbrl.error("testSuiteConverter:unconvertableTestcase",
                         f"Variation {variationFile} {variationElt.get('id')} has OIM errors",
                         modelObject=modelXbrl)
-        variationElt.getparent().remove(variationElt)
+        _removeVariation(variationElt)
         return {}
-    transformedFiles = {}
-    convertedFiles = {}
+    transformedFiles: dict[str, str] = {}
+    convertedFiles: dict[str, str] = {}
     if formulaFile:
         formulaOutFile = os.path.splitext(formulaFile)[0] + ".xf"
         transformedFiles["xbrlFormulaFile"] = os.path.join(outPath, formulaOutFile)
@@ -91,7 +117,7 @@ def convertVariation(cntlr, variationFile, variationElt, inPath, outPath, entryP
         modelXbrl.error("testSuiteConverter:unconvertableTestcase",
                         f"Variation {variationFile} {variationElt.get('id')} is not transformable to XF or OIM: {ex}",
                         modelObject=modelXbrl)
-        variationElt.getparent().remove(variationElt)
+        _removeVariation(variationElt)
         return {}
     if resultInstFile:
         resultOutFile = os.path.splitext(resultInstFile)[0] + ".json"
@@ -104,11 +130,12 @@ def convertVariation(cntlr, variationFile, variationElt, inPath, outPath, entryP
             modelXbrl.error("testSuiteConverter:unconvertableTestcase",
                             f"Variation {variationFile} {variationElt.get('id')} is not transformable to XF or OIM: {ex}",
                             modelObject=modelXbrl)
-            variationElt.getparent().remove(variationElt)
+            _removeVariation(variationElt)
             return {}
     return convertedFiles
 
-def convertTestcase(cntlr, inPath, outPath, testcaseFile):
+
+def convertTestcase(cntlr: Cntlr, inPath: str, outPath: str, testcaseFile: str) -> None:
     testcaseDir = os.path.dirname(testcaseFile)
     indexTree = etree.parse(os.path.join(inPath, testcaseFile))
     # check if an index to testcases
@@ -125,13 +152,13 @@ def convertTestcase(cntlr, inPath, outPath, testcaseFile):
             if not os.path.exists(tcOutPath):
                 os.mkdir(tcOutPath)
             for testcaseElt in testcasesElt.iter("testcase"):
-                convertTestcase(cntlr, tcInPath, tcOutPath, testcaseElt.get("uri"))
+                convertTestcase(cntlr, tcInPath, tcOutPath, testcaseElt.get("uri"))  # type: ignore[arg-type]
     else:
         # testcase file
-        convertedFiles = {}
+        convertedFiles: dict[str, str] = {}
         for variationElt in indexTree.iter("{*}variation"):
             readMeFirstElt = variationElt.find("*/*[@readMeFirst='true']")
-            readMeFirstFile = readMeFirstElt.text
+            readMeFirstFile = readMeFirstElt.text  # type: ignore[union-attr]
             resultInstElt = variationElt.find("{*}result/{*}instance")
             if resultInstElt is not None:
                 resultInstFile = resultInstElt.text
@@ -145,8 +172,8 @@ def convertTestcase(cntlr, inPath, outPath, testcaseFile):
                 tcOutPath = outPath
             if not os.path.exists(tcOutPath):
                 os.mkdir(tcOutPath)
-            if os.path.exists(os.path.join(tcInPath, readMeFirstFile)):
-                convertedFiles |= convertVariation(cntlr, os.path.basename(testcaseFile), variationElt, tcInPath, tcOutPath, readMeFirstFile, resultInstFile)
+            if os.path.exists(os.path.join(tcInPath, readMeFirstFile)):  # type: ignore[arg-type]
+                convertedFiles |= convertVariation(cntlr, os.path.basename(testcaseFile), variationElt, tcInPath, tcOutPath, readMeFirstFile, resultInstFile)  # type: ignore[arg-type]
         if convertedFiles:
             # update testcase and copy over un-converted files
             if testcaseDir:
@@ -162,9 +189,9 @@ def convertTestcase(cntlr, inPath, outPath, testcaseFile):
                     if elt.text in convertedFiles:
                         elt.text = convertedFiles[elt.text]
                     else:
-                        srcFile = os.path.join(tcInPath, elt.text)
+                        srcFile = os.path.join(tcInPath, elt.text)  # type: ignore[arg-type]
                         if os.path.exists(srcFile):
-                            dstFile = os.path.join(tcOutPath, elt.text)
+                            dstFile = os.path.join(tcOutPath, elt.text)  # type: ignore[arg-type]
                             dstdir = os.path.dirname(dstFile)
                             if not os.path.exists(dstdir):
                                 os.mkdir(dstdir)
@@ -176,16 +203,18 @@ def convertTestcase(cntlr, inPath, outPath, testcaseFile):
         with open(tcOutFile, "w", encoding="utf-8") as fh:
             XmlUtil.writexml(fh, indexTree, indent="  ", encoding="utf-8")
 
-def convertSuite(cntlr, options, *args, **kwargs):
+
+def convertSuite(cntlr: Cntlr, options: RuntimeOptions, *args: Any, **kwargs: Any) -> None:
     sourceSuiteDir = getattr(options, "sourceTestSuiteDir", None)
     convertedSuiteDir = getattr(options, "convertedTestSuiteDir", None)
-    if not os.path.exists(sourceSuiteDir):
-        os.mkdir(sourceSuiteDir)
+    if not os.path.exists(sourceSuiteDir):  # type: ignore[arg-type]
+        os.mkdir(sourceSuiteDir)  # type: ignore[arg-type]
     for testcaseFile in ("index.xml",):
-        convertTestcase(cntlr, sourceSuiteDir, convertedSuiteDir, testcaseFile)
-        shutil.copyfile(os.path.join(sourceSuiteDir, testcaseFile), os.path.join(convertedSuiteDir, testcaseFile))
+        convertTestcase(cntlr, sourceSuiteDir, convertedSuiteDir, testcaseFile)  # type: ignore[arg-type]
+        shutil.copyfile(os.path.join(sourceSuiteDir, testcaseFile), os.path.join(convertedSuiteDir, testcaseFile))  # type: ignore[arg-type]
 
-def commandLineOptionExtender(parser, *args, **kwargs):
+
+def commandLineOptionExtender(parser: OptionParser, *args: Any, **kwargs: Any) -> None:
     parser.add_option("--source-test-suite-dir",
                       action="store",
                       dest="sourceTestSuiteDir",
