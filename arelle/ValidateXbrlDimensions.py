@@ -75,7 +75,7 @@ def checkBaseSet(val: ValidateXbrl | ModelXbrl, arcrole: str, ELR: str, relsSet:
                             modelObject=hasHcRel, arcroleType=os.path.basename(arcrole),
                             source=priItemConcept.qname, target=hcConcept.qname, linkrole=ELR)
                     hcContextElement = hasHcRel.contextElement
-                    if hcContextElement not in ("segment","scenario"):
+                    if hcContextElement is None:
                         val.modelXbrl.error("xbrldte:HasHypercubeMissingContextElementAttributeError",
                             _("HasHypercube %(arcroleType)s relationship from %(source)s to %(target)s in link role %(linkrole)s must have a context element"),
                             modelObject=hasHcRel, arcroleType=os.path.basename(arcrole),
