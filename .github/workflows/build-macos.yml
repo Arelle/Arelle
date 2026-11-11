@@ -206,6 +206,11 @@ jobs:
           max_attempts: 3
           # hdiutil intermittently fails with "Resource busy" on hosted runners.
           command: |
+            # A failed attempt can leave the image mounted, and the next attach would mount it as "Arelle 1".
+            for volume in /Volumes/Arelle*; do
+              if [ -d "$volume" ]; then hdiutil detach -force "$volume"; fi
+            done
+            rm -rf dist_dmg
             pwd
             mkdir dist_dmg
             SIZE=`du -ms | awk '{print int($1 + 20 + 0.5)}'`
