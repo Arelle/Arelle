@@ -21,12 +21,26 @@ This plug-in imports the following plug-ins:
   EDGAR/validate for isolation of multi-IXDS filings into primary and supplemental modelXbrl objects
 """
 
+from __future__ import annotations
+
 import os
+from tkinter import Menu
+from typing import TYPE_CHECKING, Any, cast
+
 from arelle import ModelXbrl
+from arelle.Cntlr import Cntlr
 from arelle.FileSource import openFileSource
+from arelle.typing import TypeGetText
 from arelle.Version import authorLabel, copyrightLabel
 
-def saveFilingOim(cntlr, zippedUrl, oimFile):
+if TYPE_CHECKING:
+    from arelle.CntlrWinMain import CntlrWinMain
+    from arelle.ViewWinRssFeed import ViewRssFeed
+
+_: TypeGetText
+
+
+def saveFilingOim(cntlr: Cntlr, zippedUrl: str | None, oimFile: str) -> None:
     # load filing
     modelXbrl = ModelXbrl.load(cntlr.modelManager,
                                openFileSource(zippedUrl, cntlr))
@@ -35,27 +49,29 @@ def saveFilingOim(cntlr, zippedUrl, oimFile):
             saveLoadableOIM(modelXbrl, oimFile)
             modelXbrl.info("arelle:savedOIM", _("Saved OIM File {}").format(oimFile))
         # check for supplemental instances
-        if hasattr(modelXbrl, "supplementalModelXbrls"):
+        supplementalModelXbrls = getattr(modelXbrl, "supplementalModelXbrls", None)
+        if supplementalModelXbrls is not None:
             oimFileDir = os.path.dirname(oimFile)
-            for supplementalModelXbrl in modelXbrl.supplementalModelXbrls:
+            for supplementalModelXbrl in supplementalModelXbrls:
                 # use basename for the json file
                 supplementalOimFile = os.path.join(oimFileDir, os.path.splitext(supplementalModelXbrl.basename)[0] + ".json")
                 for saveLoadableOIM in cntlr.plugins.hooks("SaveLoadableOim.Save"):
                     saveLoadableOIM(supplementalModelXbrl, supplementalOimFile)
-                    modelXbrl.info("arelle:savedOIM",_("Saved OIM File {}").format(supplementalOimFile))
+                    modelXbrl.info("arelle:savedOIM", _("Saved OIM File {}").format(supplementalOimFile))
                 supplementalModelXbrl.close()
         modelXbrl.close()
 
 
-def rssFeedFilingMenuExtender(viewRssFeed, menu, *args, **kwargs):
+def rssFeedFilingMenuExtender(viewRssFeed: ViewRssFeed, menu: Menu, *args: Any, **kwargs: Any) -> None:
     # Extend menu with an item for the savedts plugin
     menu.add_command(label="Save Filing OIM",
                      underline=0,
-                     command=lambda: saveFilingOimMenuCommand(viewRssFeed) )
+                     command=lambda: saveFilingOimMenuCommand(viewRssFeed))
 
-def saveFilingOimMenuCommand(viewRssFeed):
+
+def saveFilingOimMenuCommand(viewRssFeed: ViewRssFeed) -> None:
     # save DTS menu item has been invoked
-    cntlr = viewRssFeed.modelXbrl.modelManager.cntlr
+    cntlr = cast("CntlrWinMain", viewRssFeed.modelXbrl.modelManager.cntlr)
     # get rssItemObj for the currently active row (if any)
     rssItemObj = viewRssFeed.modelXbrl.modelObject(viewRssFeed.menuRow)
     if rssItemObj is None:
@@ -63,19 +79,18 @@ def saveFilingOimMenuCommand(viewRssFeed):
     # get file name into which to save log file while in foreground thread
     oimFile = cntlr.uiFileDialog("save",
             title=_("arelle - Save Filing OIM JSON file"),
-            initialdir=cntlr.config.setdefault("loadableExcelFileDir","."),
+            initialdir=cntlr.config.setdefault("loadableExcelFileDir", "."),
             filetypes=[(_("JSON file .json"), "*.json")],
             defaultextension=".json")
     if not oimFile:
-        return False
-    import os
+        return
     cntlr.config["loadableOIMFileDir"] = os.path.dirname(oimFile)
     cntlr.saveConfig()
 
     import threading
     thread = threading.Thread(target=lambda
                                   _cntlr=cntlr,
-                                  _zippedUrl=rssItemObj.zippedUrl,
+                                  _zippedUrl=rssItemObj.zippedUrl,  # type: ignore[attr-defined]
                                   _oimFile=oimFile:
                                         saveFilingOim(_cntlr, _zippedUrl, _oimFile))
     thread.daemon = True
@@ -89,7 +104,7 @@ __pluginInfo__ = {
     "license": "Apache-2",
     "author": authorLabel,
     "copyright": copyrightLabel,
-    "import": ("saveLoadableOIM", "inlineXbrlDocumentSet", "EDGAR/validate"), # import dependent modules
+    "import": ("saveLoadableOIM", "inlineXbrlDocumentSet", "EDGAR/validate"),  # import dependent modules
     # classes of mount points (required)
     "RssFeed.Menu.Filing": rssFeedFilingMenuExtender
 }

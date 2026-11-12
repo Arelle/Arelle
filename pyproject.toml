@@ -367,7 +367,6 @@ module = [
     'arelle.archive.plugin.validateTableInfoset',
     'arelle.examples.plugin.functionsCustom',
     'arelle.examples.plugin.hello_dolly',
-    'arelle.examples.plugin.rssSaveOim',
     'arelle.plugin.CacheBuilder',
     'arelle.plugin.EdgarRendererAllReports',
     'arelle.plugin.SECCorrespondenceLoader',
