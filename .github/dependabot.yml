@@ -70,3 +70,6 @@ updates:
     ignore:
       - dependency-name: cx_Freeze
       - dependency-name: freeze-core
+      - dependency-name: python-dateutil
+        versions:
+          - ">= 3"
