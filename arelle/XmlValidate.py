@@ -963,6 +963,12 @@ def validateValue(
         elt.sValue = sValue
 
 
+def isAttributeInvalid(elt: ModelObject, attrTag: str) -> bool:
+    """Whether the attribute is present and failed schema validation."""
+    modelAttribute = getattr(elt, "xAttributes", {}).get(attrTag)
+    return modelAttribute is not None and modelAttribute.xValid == INVALID
+
+
 def _facetTypeAndFacets(facetName: str, baseXsdType: str) -> tuple[str, dict[str, int | EnumerationFacet] | None]:
     facets: dict[str, int | EnumerationFacet] | None = None
     if facetName in ("length", "minLength", "maxLength"):
