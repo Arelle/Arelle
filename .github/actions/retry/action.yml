@@ -1,0 +1,63 @@
+name: Retry
+description: Runs a command the same way a run step would, retrying with exponential backoff until it succeeds. Requires bash, and PowerShell for pwsh commands, which every GitHub-hosted runner includes.
+inputs:
+  command:
+    description: 'The command to run'
+    required: true
+  shell:
+    description: 'The shell to run the command with (bash or pwsh)'
+    required: false
+    default: 'bash'
+  max_attempts:
+    description: 'The number of attempts before failing'
+    required: false
+    default: '5'
+  initial_delay_seconds:
+    description: 'The delay before the first retry, doubling before each later retry'
+    required: false
+    default: '15'
+
+runs:
+  using: composite
+  steps:
+    - name: Run with retries
+      shell: bash
+      env:
+        COMMAND: ${{ inputs.command }}
+        COMMAND_SHELL: ${{ inputs.shell }}
+        INITIAL_DELAY_SECONDS: ${{ inputs.initial_delay_seconds }}
+        MAX_ATTEMPTS: ${{ inputs.max_attempts }}
+      run: |
+        script="$RUNNER_TEMP/retry-$$-$RANDOM"
+        # These wrappers match how GitHub runs bash and pwsh steps, so a failing command fails the attempt.
+        case "$COMMAND_SHELL" in
+          bash)
+            script="$script.sh"
+            printf '%s\n' "$COMMAND" > "$script"
+            run() { bash --noprofile --norc -eo pipefail "$script"; }
+            ;;
+          pwsh)
+            script="$script.ps1"
+            printf '%s\n' "\$ErrorActionPreference = 'stop'" "$COMMAND" 'if ((Test-Path -LiteralPath variable:\LASTEXITCODE)) { exit $LASTEXITCODE }' > "$script"
+            run() { pwsh -NoProfile -NonInteractive -File "$script"; }
+            ;;
+          *)
+            echo "::error::Unsupported shell '$COMMAND_SHELL'."
+            exit 1
+            ;;
+        esac
+        delay=$INITIAL_DELAY_SECONDS
+        for ((attempt = 1; ; attempt++)); do
+          status=0
+          run || status=$?
+          if ((status == 0)); then
+            break
+          fi
+          if ((attempt >= MAX_ATTEMPTS)); then
+            echo "::error::Command failed after $attempt attempts."
+            exit 1
+          fi
+          echo "::warning::Attempt $attempt failed with exit code $status, retrying in $delay seconds."
+          sleep "$delay"
+          delay=$((delay * 2))
+        done

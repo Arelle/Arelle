@@ -56,6 +56,7 @@ jobs:
       zip_artifact_versioned_name: ${{ github.event_name == 'pull_request' && needs.build-windows-pr.outputs.zip_artifact_versioned_name || needs.build-windows-dispatch.outputs.zip_artifact_versioned_name }}
       exe_uploaded_artifact_name: ${{ github.event_name == 'pull_request' && needs.build-windows-pr.outputs.exe_uploaded_artifact_name || needs.build-windows-dispatch.outputs.exe_uploaded_artifact_name }}
       zip_uploaded_artifact_name: ${{ github.event_name == 'pull_request' && needs.build-windows-pr.outputs.zip_uploaded_artifact_name || needs.build-windows-dispatch.outputs.zip_uploaded_artifact_name }}
+      ARELLE_TESTS_MEDIA_PATH: ${{ github.workspace }}\testsmedia
     steps:
       - name: Checkout arelle
         uses: actions/checkout@v7.0.1
@@ -101,6 +102,40 @@ jobs:
         run: dotnet build tests\integration_tests\ui_tests\ArelleGUITest\ArelleGUITest.sln
       - name: Set build path
         run: echo "BUILD_PATH=$((gi tests\integration_tests\ui_tests\ArelleGUITest\ArelleGUITest\bin\Debug\*).FullName)" >> $env:GITHUB_ENV
+      - name: Download taxonomy package
+        env:
+          PACKAGE_URL: https://arelle-public.s3.amazonaws.com/ci/taxonomy_packages/ui-test-taxonomies.zip
+        run: |
+          $configHome = Join-Path $env:RUNNER_TEMP 'xdg-config'
+          $arelleDir = Join-Path $configHome 'arelle'
+          $packagePath = Join-Path $env:RUNNER_TEMP 'ui-test-taxonomies.zip'
+          Invoke-WebRequest $env:PACKAGE_URL -OutFile $packagePath -MaximumRetryCount 5 -RetryIntervalSec 10
+          New-Item -ItemType Directory -Force $arelleDir | Out-Null
+          # Loading documents only needs the remappings. The packages list is only read by the Package Manager dialog.
+          $packageRoot = "$packagePath\arelle-ui-test-taxonomies"
+          @{
+            packages = @()
+            remappings = @{
+              'https://xbrl.fasb.org/' = "$packageRoot\xbrl.fasb.org\"
+              'https://xbrl.sec.gov/' = "$packageRoot\xbrl.sec.gov\"
+            }
+          } | ConvertTo-Json | Out-File (Join-Path $arelleDir 'taxonomyPackages.json') -Encoding utf8NoBOM
+          # Working offline makes Arelle use its bundled copies of the xbrl.org schemas, and makes anything
+          # missing from the package fail fast instead of downloading. The other keys are the defaults
+          # Arelle uses when no config exists.
+          '{"fileHistory": [], "windowGeometry": "800x500+200+100", "workOffline": true}' | Out-File (Join-Path $arelleDir 'config.json') -Encoding utf8NoBOM
+          echo "XDG_CONFIG_HOME=$configHome" >> $env:GITHUB_ENV
+      - name: Install ffmpeg
+        # FlaUI downloads ffmpeg for video recording without retrying unless ARELLE_FFMPEG_PATH is set.
+        uses: ./.github/actions/retry
+        with:
+          shell: pwsh
+          command: |
+            choco install ffmpeg
+            # choco exits successfully after installing nothing when the community feed returns an error.
+            $ffmpegPath = "$env:ChocolateyInstall\lib\ffmpeg\tools\ffmpeg\bin\ffmpeg.exe"
+            if (-not (Test-Path $ffmpegPath)) { exit 1 }
+            echo "ARELLE_FFMPEG_PATH=$ffmpegPath" >> $env:GITHUB_ENV
 
       - name: Run tests
         if: matrix.build-type == 'installer' || matrix.build-type == 'zip'
@@ -134,7 +169,7 @@ jobs:
         with:
           name: screenshots-${{ matrix.build-type }}
           if-no-files-found: error
-          path: 'd:\temp\testsmedia\*.png'
+          path: ${{ env.ARELLE_TESTS_MEDIA_PATH }}\**\*.png
       - name: Upload videos
         # videos are only saved on test failure
         if: failure()
@@ -142,4 +177,4 @@ jobs:
         with:
           name: videos-${{ matrix.build-type }}
           if-no-files-found: error
-          path: 'd:\temp\testsmedia\*.avi'
+          path: ${{ env.ARELLE_TESTS_MEDIA_PATH }}\**\*.avi

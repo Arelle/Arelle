@@ -1,5 +1,6 @@
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
+using FlaUI.Core.Capturing;
 using FlaUI.Core.Conditions;
 using FlaUI.Core.Definitions;
 using FlaUI.Core.Input;
@@ -20,6 +21,27 @@ namespace ArelleGUITest
     {
         protected override ApplicationStartMode ApplicationStartMode => ApplicationStartMode.OncePerTest;
         protected override VideoRecordingMode VideoRecordingMode => VideoRecordingMode.OnePerTest;
+        protected override string TestsMediaPath
+        {
+            get
+            {
+                string? testsMediaPath = Environment.GetEnvironmentVariable("ARELLE_TESTS_MEDIA_PATH");
+                return String.IsNullOrEmpty(testsMediaPath) ? base.TestsMediaPath : Path.Join(testsMediaPath, TestContext.CurrentContext.Test.Name);
+            }
+        }
+
+        protected override async Task AdjustRecorderSettings(VideoRecorderSettings videoRecorderSettings)
+        {
+            string? ffmpegPath = Environment.GetEnvironmentVariable("ARELLE_FFMPEG_PATH");
+            if (String.IsNullOrEmpty(ffmpegPath))
+            {
+                await base.AdjustRecorderSettings(videoRecorderSettings);
+            }
+            else
+            {
+                videoRecorderSettings.ffmpegPath = ffmpegPath;
+            }
+        }
 
         abstract record ExecutionTypeT(string? ArellePath, string ArelleResourcesPath)
         {
@@ -214,7 +236,8 @@ namespace ArelleGUITest
             Logger.Default.Info("wait for document to load and UI to populate");
             // wait for the panes corresponding to tabs and their content to be created,
             // e.g. Tables/DTS on the left and Fact Table/Fact List on the right.
-            Retry.WhileNull(() => Window.FindFirstByXPath("/Pane/Pane/Pane/Pane/Pane/Pane/Pane"), timeout: TimeSpan.FromMinutes(1), ignoreException: true);
+            AutomationElement? populatedPane = Retry.WhileNull(() => Window.FindFirstByXPath("/Pane/Pane/Pane/Pane/Pane/Pane/Pane"), timeout: TimeSpan.FromMinutes(1), ignoreException: true).Result;
+            Assert.That(populatedPane, Is.Not.Null, "document did not load and populate the UI within the timeout");
             AutomationElement iconsAndMainArea = Window.FindFirstByXPath("/Pane/Pane");
             AutomationElement[] iconsAndMainAreaChildren = iconsAndMainArea.FindAllChildren();
             AutomationElement mainArea = iconsAndMainAreaChildren[0];
