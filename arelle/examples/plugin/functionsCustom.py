@@ -3,18 +3,29 @@ Sample custom functions plugin for formula custom functions
 
 See COPYRIGHT.md for copyright information.
 """
+from __future__ import annotations
+
+from decimal import Decimal
+from typing import Any, Callable
+
 from arelle import XbrlUtil
 from arelle.formula import XPathContext
-from arelle.ModelValue import qname
+from arelle.formula.XPathParser import OperationDef
+from arelle.ModelValue import QName, qname
 from arelle.ModelInstanceObject import ModelDimensionValue
 from arelle.Version import authorLabel, copyrightLabel
-from decimal import Decimal
+
 
 # custom function for test case 22015 v01, same as in FunctionCustom.py
-def  test_22015v01_my_fn_PDxEV(xc, p, contextItem, args):
+def  test_22015v01_my_fn_PDxEV(
+        xc: XPathContext.XPathContext,
+        p: OperationDef,
+        contextItem: XPathContext.ContextItem,
+        args: XPathContext.ResultStack,
+) -> list[float]:
     if len(args) != 2: raise XPathContext.FunctionNumArgs()
-    PDseq = args[0] if isinstance(args[0],(list,tuple)) else (args[0],)
-    EVseq = args[1] if isinstance(args[1],(list,tuple)) else (args[1],)
+    PDseq = args[0] if isinstance(args[0], (list, tuple)) else (args[0],)
+    EVseq = args[1] if isinstance(args[1], (list, tuple)) else (args[1],)
     dimQname = qname("{http://www.example.com/wgt-avg}ExposuresDimension")
     PDxEV = []
     for pd in PDseq:
@@ -23,25 +34,26 @@ def  test_22015v01_my_fn_PDxEV(xc, p, contextItem, args):
             for ev in EVseq:
                 if ev.context is not None:
                     evDim = ev.context.dimValue(dimQname)
-                    if pdDim is not None and isinstance(pdDim,ModelDimensionValue):
+                    if pdDim is not None and isinstance(pdDim, ModelDimensionValue):
                         dimEqual =  pdDim.isEqualTo(evDim, equalMode=XbrlUtil.S_EQUAL2)
-                    elif evDim is not None and isinstance(evDim,ModelDimensionValue):
+                    elif evDim is not None and isinstance(evDim, ModelDimensionValue):
                         dimEqual =  evDim.isEqualTo(pdDim, equalMode=XbrlUtil.S_EQUAL2)
                     else:
-                        dimEqual = (pdDim == evDim)
+                        dimEqual = pdDim == evDim
                     if dimEqual:
-                        PDxEV.append(pd.xValue * ev.xValue)
+                        pdX = pd.xValue
+                        evX = ev.xValue
                         # type promotion required
-                        if isinstance(pdX,Decimal) and isinstance(evX,float):
+                        if isinstance(pdX, Decimal) and isinstance(evX, float):
                             pdX = float(pdX)
-                        elif isinstance(evX,Decimal) and isinstance(pdX,float):
+                        elif isinstance(evX, Decimal) and isinstance(pdX, float):
                             pdX = float(evX)
                         PDxEV.append(pdX * evX)
                         break
     return PDxEV
 
 # returns dict of function QName and method executing the function
-def customFunctions():
+def customFunctions() -> dict[QName | None, Callable[..., Any]]:
     return {
         # sample function included for formula tests
         qname("{http://www.example.com/wgt-avg/function}my-fn:PDxEV"): test_22015v01_my_fn_PDxEV
