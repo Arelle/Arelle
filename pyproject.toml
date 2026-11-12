@@ -365,7 +365,6 @@ module = [
     'arelle.archive.plugin.validate.calc2',
     'arelle.archive.plugin.validateSchemaLxml',
     'arelle.archive.plugin.validateTableInfoset',
-    'arelle.examples.plugin.functionsCustom',
     'arelle.examples.plugin.hello_dolly',
     'arelle.plugin.CacheBuilder',
     'arelle.plugin.EdgarRendererAllReports',
