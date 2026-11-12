@@ -48,7 +48,7 @@ class DialogLanguage(Toplevel):
         else:
             localeOptionTitles = list(self.languageCodes.keys())
         localeOptions = (_("System default locale ({0})").format(mainWin.modelManager.defaultLang), *sorted(localeOptionTitles))
-        labelLanguageOptions = (_("System default language ({0})").format(mainWin.modelManager.defaultLang), *sorted(self.languageCodes.keys()))
+        labelLanguageOptions = (_("Same as user interface language ({0})").format(mainWin.defaultTaxonomyLang()), *sorted(self.languageCodes.keys()))
         self.uiLang = Locale.posixLocaleToBCP47Lang(mainWin.config.get("userInterfaceLangOverride", ""))
         if self.uiLang == "" or self.uiLang == mainWin.modelManager.defaultLang:
             self.uiLangIndex: int | None = 0
@@ -110,12 +110,13 @@ class DialogLanguage(Toplevel):
         Locale.setDisableRTL(self.cbDisableRtl.value)
         labelLangIndex = self.cbLabelLang.valueIndex
         if labelLangIndex >= 0 and labelLangIndex != self.labelLangIndex: # changed
-            if labelLangIndex == 0:
-                langCode = self.mainWin.modelManager.defaultLang
+            if labelLangIndex == 0:  # follow the user interface language
+                self.mainWin.config.pop("labelLangOverride", None)
+                self.mainWin.labelLang = self.mainWin.defaultTaxonomyLang()
             else:
                 langCode = self.languageCodes[self.cbLabelLang.value]
-            self.mainWin.config["labelLangOverride"] = langCode
-            self.mainWin.labelLang = langCode
+                self.mainWin.config["labelLangOverride"] = langCode
+                self.mainWin.labelLang = langCode
 
         uiLangIndex = self.cbUiLang.valueIndex
         if uiLangIndex >= 0 and uiLangIndex != self.uiLangIndex: # changed
@@ -139,6 +140,8 @@ class DialogLanguage(Toplevel):
             else: # use system default
                 self.mainWin.config.pop("userInterfaceLangOverride", None)
             self.mainWin.setUiLanguage(localeCode)
+            if not self.mainWin.config.get("labelLangOverride"):  # taxonomy text follows the UI
+                self.mainWin.labelLang = self.mainWin.defaultTaxonomyLang()
 
             if messagebox.askyesno(
                     _("User interface language changed"),
