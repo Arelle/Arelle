@@ -25,7 +25,7 @@ config = ConformanceSuiteConfig(
         ),
     ],
     base_taxonomy_validation="none",
-    disclosure_system="hmrc",
+    disclosure_system="hmrc-ch",
     info_url="https://www.gov.uk/government/organisations/hm-revenue-customs",
     name=PurePath(__file__).stem,
     plugins=frozenset({"validate/UK"}),
