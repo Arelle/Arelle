@@ -86,7 +86,9 @@ def _getGrammar():
 def _buildGrammar():
     """Construct and return the complete Xule pyparsing grammar."""
 
-    ParserElement.enable_packrat()
+    # Unbounded: the default cache (128 entries) is overrun by every long expression, and the 11 levels of
+    # infix_notation are then re-parsed at each parenthesis (NT20 klein, 30 rules: 33.9 s bounded, 2.5 s not).
+    ParserElement.enable_packrat(None)
 
     # ---- Whitespace / comments ----
     comment = c_style_comment | (Literal("//") + SkipTo(line_end))
