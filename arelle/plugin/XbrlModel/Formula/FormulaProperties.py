@@ -237,6 +237,14 @@ def _typedFactValue(fact, raw, ctx) -> FormulaValue:
             isNumeric = bool(concept.isNumeric(_mdlOf(fact, ctx)))
         except (AttributeError, TypeError):
             isNumeric = False
+        if not isNumeric and _xsBaseType(concept, _mdlOf(fact, ctx)) in ("date", "dateTime"):
+            # A date fact is a date, as date('2025-12-31') is, so it compares with one and
+            # date arithmetic applies; a lexical form the language has no date for (a time
+            # zone, fractional seconds) stays a string.
+            try:
+                return FormulaValue(FormulaValueType.DATE, InstantValue(parse_date_string(raw.strip())))
+            except ValueError:
+                return FormulaValue(FormulaValueType.STRING, raw)
         if not isNumeric and _isQNameValued(concept, _mdlOf(fact, ctx)):
             # A QName-valued fact (xs:QName, enum:enumerationItemType, rxp:Gv's member types)
             # is a QName, as in XULE, so it compares with a dimension member; its prefix
@@ -254,14 +262,18 @@ def _typedFactValue(fact, raw, ctx) -> FormulaValue:
         return FormulaValue(FormulaValueType.BOOLEAN, raw == "true")
     return FormulaValue(FormulaValueType.STRING, raw)
 
-def _isQNameValued(concept, mdl) -> bool:
-    """Whether the concept's dataType derives from xs:QName."""
+def _xsBaseType(concept, mdl) -> Optional[str]:
+    """The XML Schema built-in type the concept's dataType derives from (date, QName, ...)."""
     dtObj = mdl.namedObjects.get(getattr(concept, "dataType", None)) if mdl is not None else None
     xsBase = getattr(dtObj, "xsBaseType", None)
     try:
-        return xsBase is not None and xsBase(mdl) == "QName"
+        return xsBase(mdl) if xsBase is not None else None
     except (AttributeError, TypeError):
-        return False
+        return None
+
+def _isQNameValued(concept, mdl) -> bool:
+    """Whether the concept's dataType derives from xs:QName."""
+    return _xsBaseType(concept, mdl) == "QName"
 
 def _factPropDecimals(fact, args, ctx):
     from .FormulaDuplicates import effectiveFactValue

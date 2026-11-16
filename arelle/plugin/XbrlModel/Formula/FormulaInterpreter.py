@@ -585,6 +585,12 @@ def _runRuleIteration(rule, ruleCtx: FormulaRuleContext,
     except FormulaSkip:
         return
     except FormulaRuntimeError as exc:
+        if ruleCtx.readIterIds & ruleCtx.emptyIterIds:
+            # The body read a query that selected nothing, so this iteration is not real (the
+            # guard cancels it once a body completes); the error is what the missing value did
+            # to the expression, `date(string($d))` of an absent $d, not an error in the rule.
+            # XULE and XBRL Formula do not evaluate such an iteration at all.
+            return
         globalCtx.log("WARNING", f"formula:eval:{rule.name}",
                       f"Runtime error in rule {rule.name!r}: {exc}")
         # For Output rules emit the error text so conformance tests that
@@ -1072,7 +1078,13 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
         value = _iterBinding(inner, ctx)
         if value is None:
             _forkAtDeferred(inner, ctx)
-            value = evaluateExpr(inner.get("expr"), ctx)
+            if "factQuery" in inner:
+                # Not bound (inside `list(...)` or another aggregating call): read as a
+                # collection, as the untagged query is. The `expr` copy is the query's bare
+                # body, which is not an expression on its own and evaluated to `none`.
+                value = evaluateExpr({"factQuery": inner["factQuery"]}, ctx)
+            else:
+                value = evaluateExpr(inner.get("expr"), ctx)
         tagNm = inner.get("tagName")
         if tagNm:
             ctx.bindTag(str(tagNm), value)
@@ -1094,6 +1106,16 @@ def evaluateExpr(node: Any, ctx: FormulaRuleContext) -> FormulaValue:
             return bound
         _forkAtDeferred(node, ctx)
         result = _evalFactQuery(node.get("factQuery", node), ctx)
+        # A query read as a collection (`list({...})`, `sum(...)`) inside an aligned iteration
+        # aggregates that alignment only, as XULE's aggregates do: beside
+        # $P = {@concept = EquityAndLiabilities}, `sum(list({@concept in set(Equity, ...)}))` is the
+        # sum for $P's period, not every period's. A covered query has no alignment and keeps
+        # every fact; a rule with no alignment (no aligned query bound) keeps every fact too.
+        if ctx.alignment is not None and result.type == FormulaValueType.LIST:
+            result = FormulaValue(FormulaValueType.LIST, [
+                item for item in result.value
+                if item.type != FormulaValueType.FACT or item.alignment is None
+                or item.alignment == ctx.alignment])
         # A query the driver did not bind is read as a collection: its facts are
         # among those the iteration's result concerns (see _resultFacts).
         if result.type in (FormulaValueType.LIST, FormulaValueType.SET):
@@ -1620,9 +1642,9 @@ def _evalFactQuery(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
             continue
 
         # Nils handling
+        # `nils` includes nil facts with the others (tavi-formula.md "Handling nils"), so only
+        # `nonils` filters here; `nildefault` substitutes a value for a nil fact
         if nilsMode == "nonils" and _isNil(fact):
-            continue
-        if nilsMode == "nils" and not _isNil(fact):
             continue
 
         # Apply dimension filters
@@ -2038,6 +2060,25 @@ def _factMatchesCubeFilter(fact, pf: dict, ctx: FormulaRuleContext) -> bool:
     # @cube.name = X  or  @cube.drs-role = R
     propChain = pf["propChain"]
     expected = pf["expected"]
+    if op in ("in", "not in"):
+        # @cube in set(A, B): the fact is in one of the named cubes (by name, or by the property
+        # the chain names), as `@concept in set(...)` is for concepts
+        coll = pf["value"]
+        items = ([i.value if isinstance(i, FormulaValue) else i for i in coll.value]
+                 if coll is not None and coll.type in (FormulaValueType.LIST, FormulaValueType.SET) else [])
+        found = False
+        for cubeQn in factCubeQns:
+            cube = ctx.globalCtx.txmyMdl.namedObjects.get(cubeQn) if isinstance(cubeQn, QName) else None
+            if not propChain or propChain[0] == "name":
+                val = cube.name if cube is not None else cubeQn
+            elif propChain[0] in ("drs-role", "drsRole", "role"):
+                val = getattr(cube, "drsRole", None) if cube is not None else None
+            else:
+                val = None
+            if val is not None and any(_loose_eq(val, item) for item in items):
+                found = True
+                break
+        return found if op == "in" else not found
     for cubeQn in factCubeQns:
         cube = ctx.globalCtx.txmyMdl.namedObjects.get(cubeQn) if isinstance(cubeQn, QName) else None
         if not propChain:
@@ -2264,6 +2305,9 @@ def _evalBinary(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
 
     # ---- Arithmetic ----
     if op in ("+", "-", "*", "/"):
+        if op in ("+", "-"):
+            # a date fact takes part in date arithmetic as its date, `$end - time-span('P1Y')`
+            left, right = _dateOfFact(left, ctx), _dateOfFact(right, ctx)
         return _arith(left, op, right, merged)
 
     # ---- Comparison ----
@@ -2401,6 +2445,17 @@ def _evalUnary(node: dict, ctx: FormulaRuleContext) -> FormulaValue:
 # ---------------------------------------------------------------------------
 # Arithmetic helpers
 # ---------------------------------------------------------------------------
+
+def _dateOfFact(value: FormulaValue, ctx: FormulaRuleContext) -> FormulaValue:
+    """A fact whose concept is a date (xs:date, xs:dateTime) as its date, keeping its alignment."""
+    if value.type != FormulaValueType.FACT:
+        return value
+    from .FormulaProperties import _factPropValue
+    typed = _factPropValue(value.value, [], ctx)
+    if typed.type != FormulaValueType.DATE:
+        return value
+    return FormulaValue(FormulaValueType.DATE, typed.value, alignment=value.alignment)
+
 
 def _arith(left: FormulaValue, op: str, right: FormulaValue,
            merged) -> FormulaValue:

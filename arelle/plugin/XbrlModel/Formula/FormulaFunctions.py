@@ -1554,6 +1554,10 @@ def _fn_date(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValu
     if len(args) != 1:
         raise FormulaRuntimeError("The 'date' function must have at least one argument, found none.")
     arg = args[0]
+    if arg.type == FormulaValueType.FACT:
+        # a fact converts as its value: a date fact is already a date, a text fact is parsed
+        from .FormulaProperties import _factPropValue
+        arg = _factPropValue(arg.value, [], ctx)
     if arg.type == FormulaValueType.DATE:
         return arg
     if arg.type != FormulaValueType.STRING:
