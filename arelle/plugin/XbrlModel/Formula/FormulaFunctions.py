@@ -1550,7 +1550,41 @@ def _fn_toJson(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaVa
     return FormulaValue(FormulaValueType.STRING, json.dumps(_to_primitive(args[0]), separators=(",", ":"), ensure_ascii=False))
 
 
+def _formatArg(arg: FormulaValue) -> str:
+    """An argument as an error message shows it: its value, and its type where the value is not a number."""
+    if arg.type in (FormulaValueType.INTEGER, FormulaValueType.DECIMAL, FormulaValueType.FLOAT):
+        return str(arg.value)
+    return f"'{_typeName(arg)}'"
+
+
 def _fn_date(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+    if len(args) == 3:
+        # date(year, month, day): a date built from numbers, as NT's rules build the start of a
+        # previous or following year, without going through a string
+        parts = []
+        for arg, part in zip(args, ("year", "month", "day")):
+            if arg.type == FormulaValueType.FACT:
+                from .FormulaProperties import _factPropValue
+                arg = _factPropValue(arg.value, [], ctx)
+            number = None
+            if arg.type == FormulaValueType.STRING:
+                # an xs:gYear, gMonth or gDay fact's lexical form: 2025, --09, ---27
+                m = re.fullmatch(r"\s*-{0,3}(\d+)\s*", str(arg.value))
+                number = Decimal(m.group(1)) if m else None
+            else:
+                try:
+                    number = Decimal(str(arg.numericValue()))
+                except (TypeError, ValueError, InvalidOperation):
+                    number = None
+            if number is None or not number.is_finite() or number != number.to_integral_value():
+                raise FormulaRuntimeError(
+                    f"The {part} argument of function 'date' must be an integer, found {_formatArg(arg)}")
+            parts.append(int(number))
+        from datetime import datetime
+        try:
+            return FormulaValue(FormulaValueType.DATE, InstantValue(datetime(*parts)))
+        except ValueError as exc:
+            raise FormulaRuntimeError(f"date({parts[0]}, {parts[1]}, {parts[2]}) is not a date: {exc}") from exc
     if len(args) != 1:
         raise FormulaRuntimeError("The 'date' function must have at least one argument, found none.")
     arg = args[0]
