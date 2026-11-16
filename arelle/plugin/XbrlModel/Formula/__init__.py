@@ -29,7 +29,8 @@ import os
 from typing import Any, List, Optional
 
 parameterNames = ("formulaRulesets", "formulaAlignThreshold", "formulaEmbedDim", "formulaOutputFile", "formulaDefaultNamespace",
-                  "formulaResultFactLimit", "formulaRuleSetName", "formulaDerivedContent")
+                  "formulaResultFactLimit", "formulaRuleSetName", "formulaDerivedContent",
+                  "formulaCurrentDateTime", "formulaTimeZone")
 
 # ---------------------------------------------------------------------------
 # Arelle plugin hook: command-line options
@@ -89,6 +90,23 @@ def cmdLineOptionExtender(parser, *args, **kwargs):
              "taking precedence over any `namespace \"URI\"` default declared "
              "in the .xule sources. Useful when the test ruleset was written "
              "against an older taxonomy version than the filing under test.",
+    )
+    parser.add_option(
+        "--formula-current-date-time",
+        action="store",
+        dest="formulaCurrentDateTime",
+        default=None,
+        help="The moment current-date() and current-date-time() return, as an ISO "
+             "date-time (2026-11-15T18:05:00, or with an offset), in place of the clock "
+             "when the run starts: for a reproducible run or a test.",
+    )
+    parser.add_option(
+        "--formula-time-zone",
+        action="store",
+        dest="formulaTimeZone",
+        default=None,
+        help="The IANA time zone (America/New_York) whose wall-clock time "
+             "current-date() and current-date-time() return; default the processor's own.",
     )
     parser.add_option(
         "--formula-result-fact-limit",
@@ -167,7 +185,7 @@ def validateFinished(val, *args, **kwargs):
             options["formulaRulesets"] = joined
         for opt in ("formulaAlignThreshold", "formulaEmbedDim", "formulaOutputFile",
                     "formulaDefaultNamespace", "formulaResultFactLimit", "formulaRuleSetName",
-                    "formulaDerivedContent"):
+                    "formulaDerivedContent", "formulaCurrentDateTime", "formulaTimeZone"):
             val_ = getattr(cliOpts, opt, None)
             if val_ is not None and opt not in options:
                 options[opt] = val_

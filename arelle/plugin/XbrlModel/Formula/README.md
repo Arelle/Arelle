@@ -282,6 +282,8 @@ if $x > 0 then $x else -$x
 | `--formula-embed-dim INT` | `64` | Embedding dimension for VectorSearch. |
 | `--formula-output-file PATH` | *(none)* | Write JSON results to this file. |
 | `--formula-default-namespace URI` | *(none)* | Override the rule set's default namespace. Unqualified concept references (`@Assets`) resolve against this URI, taking precedence over any `namespace "URI"` default declared in `.xule` sources. Use this when a test ruleset was written against an older taxonomy version than the filing under test. |
+| `--formula-current-date-time ISO` | *(the clock)* | The moment `current-date()` and `current-date-time()` return, as an ISO date-time (`2026-11-15T18:05:00`, or with an offset), in place of the clock when the run starts: for a reproducible run or a test. |
+| `--formula-time-zone ZONE` | *(the processor's)* | The IANA time zone (`America/New_York`) whose wall-clock time `current-date()` and `current-date-time()` return. |
 
 ---
 

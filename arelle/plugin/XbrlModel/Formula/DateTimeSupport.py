@@ -119,6 +119,28 @@ def parse_time_span_string(value: str) -> TimeSpanValue:
     raise ValueError(f"Could not convert {value!r} into a time-period.")
 
 
+def processing_date_time(supplied=None, zoneName=None) -> datetime:
+    """The moment a run is processed, as current-date() and current-date-time() return it.
+
+    A date in the language carries no time zone, so the moment is wall-clock time: in
+    `zoneName` (an IANA name such as America/New_York) where one is given, otherwise in the
+    processor's own zone, as XPath's implicit time zone. `supplied` (an ISO date-time) fixes
+    the moment instead of reading the clock, for a reproducible run or a test; given with an
+    offset and a zone, it is converted to that zone's wall clock. Whole seconds.
+    """
+    zone = None
+    if zoneName:
+        from zoneinfo import ZoneInfo
+        zone = ZoneInfo(zoneName)          # ZoneInfoNotFoundError (a KeyError) for an unknown name
+    if supplied:
+        moment = datetime.fromisoformat(str(supplied).strip())
+        if moment.tzinfo is not None and zone is not None:
+            moment = moment.astimezone(zone)
+    else:
+        moment = datetime.now(zone) if zone is not None else datetime.now()
+    return moment.replace(tzinfo=None, microsecond=0)
+
+
 def format_range(value: DateRangeValue) -> str:
     if value.isForever:
         return "forever"

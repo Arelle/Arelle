@@ -26,6 +26,7 @@ from .DateTimeSupport import (
     InstantValue,
     DateRangeValue,
     TimeSpanValue,
+    format_instant,
     parse_date_string,
     parse_time_span_string,
 )
@@ -674,7 +675,8 @@ def _fn_string(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaVa
     if arg.type == FormulaValueType.QNAME:
         return FormulaValue(FormulaValueType.STRING, str(getattr(arg.value, "localName", arg.value)))
     if arg.type == FormulaValueType.DATE and isinstance(arg.value, InstantValue):
-        return FormulaValue(FormulaValueType.STRING, str(_excelSerialFromInstant(arg.value)))
+        # ISO 8601, as XULE writes a date: YYYY-MM-DD, with the time where it has one
+        return FormulaValue(FormulaValueType.STRING, format_instant(arg.value))
     if arg.type == FormulaValueType.DURATION:
         if isinstance(arg.value, DateRangeValue):
             if getattr(arg.value, "isForever", False):
@@ -1564,6 +1566,21 @@ def _fn_date(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValu
         raise FormulaRuntimeError(str(exc)) from exc
 
 
+def _fn_currentDate(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+    """current-date(): the day the run is processed, as date('YYYY-MM-DD') names it (XPath fn:current-date)."""
+    if args:
+        raise FormulaRuntimeError("current-date() does not accept arguments")
+    moment = ctx.globalCtx.processingDateTime
+    return FormulaValue(FormulaValueType.DATE, InstantValue(moment.replace(hour=0, minute=0, second=0)))
+
+
+def _fn_currentDateTime(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
+    """current-date-time(): the moment the run is processed, wall-clock time (XPath fn:current-dateTime)."""
+    if args:
+        raise FormulaRuntimeError("current-date-time() does not accept arguments")
+    return FormulaValue(FormulaValueType.DATE, InstantValue(ctx.globalCtx.processingDateTime))
+
+
 def _fn_duration(args: List[FormulaValue], ctx: "FormulaRuleContext") -> FormulaValue:
     if len(args) != 2:
         raise FormulaRuntimeError("duration() requires exactly two arguments")
@@ -2004,6 +2021,8 @@ BUILTIN_FUNCTIONS: Dict[str, Callable] = {
     # Alignment
     "alignment":        _fn_alignment,    # Date/time
     "date":             _fn_date,
+    "current-date":     _fn_currentDate,
+    "current-date-time": _fn_currentDateTime,
     "duration":         _fn_duration,    "forever":          _fn_forever,
     "time-span":        _fn_timeSpan,
     "day":              _fn_day,

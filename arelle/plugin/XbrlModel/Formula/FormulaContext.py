@@ -66,6 +66,9 @@ class FormulaGlobalContext:
         self.txmyMdl    = txmyMdl
         self.cntlr      = cntlr
         self.options    = options
+        # The moment current-date() and current-date-time() return: fixed when the run starts,
+        # so every rule, and every iteration of one, sees the same time.
+        self.processingDateTime = self._processingDateTime(options, cntlr)
 
         # Namespace prefix map: start from the model (so taxonomy-declared
         # prefixes are visible), then overlay the rule-set declarations so
@@ -175,6 +178,23 @@ class FormulaGlobalContext:
             ]
             self.factCache[conceptQn] = matching
         return self.factCache[conceptQn]
+
+    @staticmethod
+    def _processingDateTime(options, cntlr):
+        from .DateTimeSupport import processing_date_time
+        def option(name):
+            if isinstance(options, dict):
+                return options.get(name)
+            return getattr(options, name, None)
+        supplied, zoneName = option("formulaCurrentDateTime"), option("formulaTimeZone")
+        try:
+            return processing_date_time(supplied, zoneName)
+        except (ValueError, KeyError) as exc:   # a malformed date-time, an unknown zone
+            if cntlr is not None:
+                cntlr.addToLog(f"--formula-current-date-time {supplied!r} / --formula-time-zone {zoneName!r} "
+                               f"not usable ({exc}); the processor's clock and zone are used",
+                               messageCode="formula:invalidProcessingTime", level="WARNING")
+            return processing_date_time()
 
     @staticmethod
     def _modelNamespaces(txmyMdl) -> Dict[str, str]:

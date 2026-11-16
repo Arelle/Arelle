@@ -61,7 +61,7 @@ class ReportTimeViolation(FormulaRuntimeError):
 _EXTERNAL_FUNCTIONS = frozenset((
     "taxonomy", "instance",
     "csv-data", "excel-data", "json-data", "xml-data-flat",
-    "random",
+    "random", "current-date", "current-date-time",
 ))
 
 
