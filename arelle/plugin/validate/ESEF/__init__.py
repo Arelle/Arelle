@@ -69,6 +69,7 @@ from arelle.XbrlConst import xhtml
 from arelle.formula.XPathContext import XPathContext
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import PluginHooks
+from arelle.utils.validate.ValidationUtil import loadAuthorityValidations
 from .ESEFPluginData import ESEFPluginData
 from .ESEF_2021.ValidateXbrlFinally import validateXbrlFinally as validateXbrlFinally2021
 from .ESEF_Current.ValidateXbrlFinally import validateXbrlFinally as validateXbrlFinallyCurrent
@@ -78,7 +79,6 @@ from .Util import (
     esefDisclosureSystemSelected,
     getDisclosureSystemYear,
     isEsefExcludedInstance,
-    loadAuthorityValidations,
     shouldRunEsefValidationRules,
 )
 from .ValidationPluginExtension import ValidationPluginExtension

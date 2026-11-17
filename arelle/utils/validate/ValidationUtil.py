@@ -4,11 +4,15 @@ See COPYRIGHT.md for copyright information.
 
 from __future__ import annotations
 
+import json
+import os
 from collections.abc import Generator, Iterable
+from typing import Any, Union, cast
 
 from lxml.etree import _Element
 
 from arelle import XbrlConst
+from arelle.FileSource import openFileStream
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelObject import ModelObject
 from arelle.ModelValue import QName
@@ -53,3 +57,14 @@ def hasPresentationalConceptsWithFacts(
                     if dimValue.memberQname in memberQnameFilter:
                         return True
     return False
+
+
+def loadAuthorityValidations(modelXbrl: ModelXbrl) -> list[Any] | dict[Any, Any]:
+    # resources dir is in the source tree (development/testing) or in the web cache dir (production)
+    resourcesDir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, "plugin", "validate", "ESEF", "resources"))
+    if not os.path.exists(resourcesDir):
+        resourcesDir = os.path.join(modelXbrl.modelManager.cntlr.webCache.cacheDir, "resources", "validation", "ESEF")
+    _file = openFileStream(modelXbrl.modelManager.cntlr, os.path.join(resourcesDir, "authority-validations.json"), "rt", encoding="utf-8")
+    validations = json.load(_file) # {localName: date, ...}
+    _file.close()
+    return cast(Union[dict[Any, Any], list[Any]], validations)
