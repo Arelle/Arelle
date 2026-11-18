@@ -308,7 +308,7 @@ class ESEFPlugin(PluginHooks):
         pluginData = ESEFPluginData.get(modelXbrl.modelManager.cntlr, ESEF_PLUGIN_NAME)
         val.authority = pluginData.getEsefAuthority(modelXbrl, parameters)
 
-        authorityValidations = loadAuthorityValidations(val.modelXbrl)
+        authorityValidations = loadAuthorityValidations(val.modelXbrl, Path(__file__).parent, "ESEF")
         # loadAuthorityValidations returns either a list or a dict but in this context, we expect a dict.
         # By using cast, we let mypy know that a list is _not_ expected here.
         authorityValidations = cast(dict[Any, Any], authorityValidations)

@@ -59,11 +59,16 @@ def hasPresentationalConceptsWithFacts(
     return False
 
 
-def loadAuthorityValidations(modelXbrl: ModelXbrl) -> list[Any] | dict[Any, Any]:
-    # resources dir is in the source tree (development/testing) or in the web cache dir (production)
-    resourcesDir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, "plugin", "validate", "ESEF", "resources"))
+def loadAuthorityValidations(modelXbrl: ModelXbrl, pluginDir: str | os.PathLike[str], pluginName: str) -> list[Any] | dict[Any, Any]:
+    """
+    Loads resources/authority-validations.json for a plugin.
+
+    :param pluginDir: directory of the plugin, whose "resources" subdirectory holds the file (development/testing).
+    :param pluginName: name used for the web cache location (production): resources/validation/<pluginName>.
+    """
+    resourcesDir = os.path.abspath(os.path.join(pluginDir, "resources"))
     if not os.path.exists(resourcesDir):
-        resourcesDir = os.path.join(modelXbrl.modelManager.cntlr.webCache.cacheDir, "resources", "validation", "ESEF")
+        resourcesDir = os.path.join(modelXbrl.modelManager.cntlr.webCache.cacheDir, "resources", "validation", pluginName)
     _file = openFileStream(modelXbrl.modelManager.cntlr, os.path.join(resourcesDir, "authority-validations.json"), "rt", encoding="utf-8")
     validations = json.load(_file) # {localName: date, ...}
     _file.close()

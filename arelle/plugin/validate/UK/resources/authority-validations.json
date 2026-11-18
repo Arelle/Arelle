@@ -1,0 +1,35 @@
+{
+    "copyright": [
+        "(c) 2022 Workiva, All rights reserved"
+    ],
+    "description": [
+        "Authority validation parameters.",
+        "",
+        "The format is as follows:",
+        "",
+        "A JSON object by authority with objects ",
+        "",
+        "key: code of the authority",
+        "name: authority for which this object applies",
+        "authorityName: name of issuing authority, such as ESMA for ESEF and FRC for UKSEF",
+        "reference: document(s) pertinent to authority validation"
+    ],
+    "default": {
+        "authorityName": "UK",
+        "comment": "Base HMRC validations where regulator specific validations are decided by the entity ID",
+        "validateUsingEntityID": true,
+        "validateUsingEntityIDOverride": null
+    },
+    "hmrc": {
+        "authorityName": "HMRC",
+        "comment": "Base HMRC validations",
+        "validateUsingEntityID": false,
+        "validateUsingEntityIDOverride": false
+    },
+    "companieshouse": {
+        "authorityName": "COHO",
+        "comment": "Base HMRC validations + Companies House validations",
+        "validateUsingEntityID": false,
+        "validateUsingEntityIDOverride": true
+    }
+}

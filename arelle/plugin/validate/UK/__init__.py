@@ -8,6 +8,8 @@ References:
 - [HMRC CT Inline XBRL Style Guide](https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/434588/xbrl-style-guide.pdf)
 """
 import os
+from pathlib import Path
+from typing import Any, cast
 from arelle import XmlUtil
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelValue import qname, dateTime, DATE, dateUnionEqual
@@ -19,6 +21,7 @@ import regex as re
 import tinycss2.ast
 from collections import defaultdict
 from arelle.XmlValidate import VALID
+from arelle.utils.validate.ValidationUtil import loadAuthorityValidations
 
 from .ValidateUK import ValidateUK
 
@@ -144,6 +147,13 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.validateHMRCplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "UKplugin", False)
     if not (val.validateHMRCplugin) or not val.modelXbrl.modelDocument:
         return
+
+    # resources/authority-validations.json may be a list or a dict; a dict is expected here.
+    authorityValidations = cast(dict[Any, Any], loadAuthorityValidations(val.modelXbrl, Path(__file__).parent, "UK"))
+
+    val.authParam = authorityValidations["default"]
+    if hasattr(val, "authority"):
+        val.authParam.update(authorityValidations.get(val.authority, {}))
 
     if parameters:
         p = parameters.get(qname("type",noPrefixIsNoNamespace=True))
