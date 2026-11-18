@@ -6,6 +6,34 @@ References:
 - <https://xbrl.frc.org.uk> (taxonomies, filing requirements, consistency checks)
 - [Joint Filing Common Validation Checks](https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/434597/joint-filing-validation-checks.pdf)
 - [HMRC CT Inline XBRL Style Guide](https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/434588/xbrl-style-guide.pdf)
+
+GUI operation:
+- Enable the validate/UK plugin and select the `hmrc` disclosure system.
+- Optionally select an authority from `Tools` > `Validation` > `UK authority`.
+
+Command line operation:
+`python arelleCmdLine.py --plugins validate/UK --disclosureSystem hmrc --validate --file {my-report-file}`
+
+Authority-specific configuration:
+The --ukAuthority option selects the authority whose validations are applied. Valid authority codes are
+defined in resources/authority-validations.json:
+- `--ukAuthority companieshouse` applies the HMRC validations plus the Companies House validations.
+- `--ukAuthority hmrc` applies the base HMRC validations only.
+
+When no authority is given, the default entry in resources/authority-validations.json applies: the
+Companies House validations run only if a context uses the Companies House entity identifier scheme
+(`http://www.companieshouse.gov.uk/`).
+
+The authority is taken from the first of these that is set:
+1. `--ukAuthority`
+2. the `authority` attribute of the disclosure system configuration
+3. the GUI selection
+4. the `authority` formula parameter, e.g. `--parameters "authority=companieshouse"`
+
+An unrecognized authority logs `Arelle.invalidUKAuthority` and the default entry applies.
+
+Python API:
+`RuntimeOptions(pluginOptions={"ukAuthority": "companieshouse"})` or `RuntimeOptions(parameters="authority=companieshouse")`
 """
 import os
 from dataclasses import dataclass
