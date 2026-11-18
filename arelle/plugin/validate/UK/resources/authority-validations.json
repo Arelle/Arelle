@@ -10,26 +10,26 @@
         "A JSON object by authority with objects ",
         "",
         "key: code of the authority",
-        "name: authority for which this object applies",
-        "authorityName: name of issuing authority, such as ESMA for ESEF and FRC for UKSEF",
-        "reference: document(s) pertinent to authority validation"
+        "authorityName: name of issuing authority, such as HMRC or Companies House. UK is the default.",
+        "validateUsingIdentifierScheme: Flag to determine whether or not to run Companies House validations based on identifer scheme.",
+        "validateUsingIdentifierSchemeOverride: Flag override to specifically use base validations or base + CoHo validations."
     ],
     "default": {
         "authorityName": "UK",
         "comment": "Base HMRC validations where regulator specific validations are decided by the entity ID",
-        "validateUsingEntityID": true,
-        "validateUsingEntityIDOverride": null
+        "validateUsingIdentifierScheme": true,
+        "validateUsingIdentifierSchemeOverride": null
     },
     "hmrc": {
         "authorityName": "HMRC",
         "comment": "Base HMRC validations",
-        "validateUsingEntityID": false,
-        "validateUsingEntityIDOverride": false
+        "validateUsingIdentifierScheme": false,
+        "validateUsingIdentifierSchemeOverride": false
     },
     "companieshouse": {
         "authorityName": "COHO",
         "comment": "Base HMRC validations + Companies House validations",
-        "validateUsingEntityID": false,
-        "validateUsingEntityIDOverride": true
+        "validateUsingIdentifierScheme": false,
+        "validateUsingIdentifierSchemeOverride": true
     }
 }

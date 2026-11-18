@@ -27,6 +27,7 @@ from .ValidateUK import ValidateUK
 
 FRC_URL_DOMAIN = "http://xbrl.frc.org.uk/"
 memNameNumPattern = re.compile(r"^([A-Za-z-]+)([0-9]+)$")
+AUTHORITY_CODES = frozenset({"companieshouse", "hmrc"})
 compTxmyNamespacePattern = re.compile(r"http://www.govtalk.gov.uk/uk/fr/tax/uk-hmrc-ct/[0-9-]{10}")
 IMG_URL_CSS_PROPERTIES = frozenset([
     "background", "background-image",
@@ -143,6 +144,25 @@ def disclosureSystemConfigURL(disclosureSystem, *args, **kwargs):
     return os.path.join(os.path.dirname(__file__), "config.xml")
 
 
+def _getAuthority(val, parameters):
+    authority = getattr(val.disclosureSystem, "authority", None)
+    if not authority and parameters:
+        # authority is supplied as a formula parameter, e.g. parameters="authority=companieshouse"
+        p = parameters.get(qname("authority", noPrefixIsNoNamespace=True))
+        if p and len(p) == 2 and p[1] not in ("null", "None", None):
+            authority = p[1]
+    if authority and authority not in AUTHORITY_CODES:
+        val.modelXbrl.error(
+            "Arelle.invalidUKAuthority",
+            _("Invalid authority '%(authority)s'. Valid values: %(validValues)s."),
+            modelObject=val.modelXbrl,
+            authority=authority,
+            validValues=", ".join(sorted(AUTHORITY_CODES)),
+        )
+        return None
+    return authority
+
+
 def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.validateHMRCplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "UKplugin", False)
     if not (val.validateHMRCplugin) or not val.modelXbrl.modelDocument:
@@ -151,9 +171,9 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     # resources/authority-validations.json may be a list or a dict; a dict is expected here.
     authorityValidations = cast(dict[Any, Any], loadAuthorityValidations(val.modelXbrl, Path(__file__).parent, "UK"))
 
+    val.authority = _getAuthority(val, parameters)
     val.authParam = authorityValidations["default"]
-    if hasattr(val, "authority"):
-        val.authParam.update(authorityValidations.get(val.authority, {}))
+    val.authParam.update(authorityValidations.get(val.authority, {}))
 
     if parameters:
         p = parameters.get(qname("type",noPrefixIsNoNamespace=True))
@@ -452,14 +472,22 @@ def validateXbrlFinally(val, *args, **kwargs):
         for elt in rootElt.xpath("//xhtml:*[@style]", namespaces={"xhtml": "http://www.w3.org/1999/xhtml"}):
             _validateStyleAttribute(elt, modelXbrl)
 
-    hmrc = ValidateUK(modelXbrl)
-    if val.txmyType != "charities":
-        hmrc.validate()
-    elif val.txmyType == "charities":
-        hmrc.validateCharities()
+    if modelDocument.type in (ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL):
+        if _runValidateUK(val.authParam, hasCompaniesHouseContext):
+            hmrc = ValidateUK(modelXbrl)
+            if val.txmyType != "charities":
+                hmrc.validate()
+            elif val.txmyType == "charities":
+                hmrc.validateCharities()
 
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
+
+
+def _runValidateUK(authParam, hasCompaniesHouseContext):
+    if authParam["validateUsingIdentifierScheme"]:
+        return hasCompaniesHouseContext
+    return authParam["validateUsingIdentifierSchemeOverride"]
 
 
 def _validateStyleElement(elt, modelXbrl):
