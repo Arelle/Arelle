@@ -8,6 +8,7 @@ References:
 - [HMRC CT Inline XBRL Style Guide](https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/434588/xbrl-style-guide.pdf)
 """
 import os
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
 from arelle import XmlUtil
@@ -21,13 +22,30 @@ import regex as re
 import tinycss2.ast
 from collections import defaultdict
 from arelle.XmlValidate import VALID
+from arelle.utils.PluginData import PluginData
 from arelle.utils.validate.ValidationUtil import loadAuthorityValidations
 
 from .ValidateUK import ValidateUK
 
 FRC_URL_DOMAIN = "http://xbrl.frc.org.uk/"
 memNameNumPattern = re.compile(r"^([A-Za-z-]+)([0-9]+)$")
+PLUGIN_NAME = "Validate UK"
 AUTHORITY_CODES = frozenset({"companieshouse", "hmrc"})
+AUTHORITY_CONFIG_KEY = "ukAuthority"
+
+
+@dataclass
+class UKPluginData(PluginData):
+    authority: str | None = None
+
+    @staticmethod
+    def get(cntlr):
+        pluginData = cntlr.getPluginData(PLUGIN_NAME)
+        if pluginData is None:
+            pluginData = UKPluginData(PLUGIN_NAME)
+            cntlr.setPluginData(pluginData)
+        return pluginData
+
 compTxmyNamespacePattern = re.compile(r"http://www.govtalk.gov.uk/uk/fr/tax/uk-hmrc-ct/[0-9-]{10}")
 IMG_URL_CSS_PROPERTIES = frozenset([
     "background", "background-image",
@@ -144,8 +162,51 @@ def disclosureSystemConfigURL(disclosureSystem, *args, **kwargs):
     return os.path.join(os.path.dirname(__file__), "config.xml")
 
 
+def cntlrCmdLineOptions(parser, *args, **kwargs):
+    parser.add_option(
+        "--ukAuthority",
+        action="store",
+        dest="ukAuthority",
+        choices=sorted(AUTHORITY_CODES),
+        help=_("Select UK authority for jurisdiction-specific validation configuration."),
+    )
+
+
+def cntlrCmdLineUtilityRun(cntlr, options, *args, **kwargs):
+    # capture the option before validation begins
+    ukAuthority = getattr(options, "ukAuthority", None)
+    if ukAuthority:
+        UKPluginData.get(cntlr).authority = ukAuthority
+
+
+def cntlrWinMainMenuValidation(cntlr, menu, *args, **kwargs):
+    from tkinter import Menu as TkMenu, StringVar
+
+    authorityMenu = TkMenu(menu, tearoff=0)
+    cntlr.config.setdefault(AUTHORITY_CONFIG_KEY, "")
+    authorityVar = StringVar(value=cntlr.config.get(AUTHORITY_CONFIG_KEY, ""))
+
+    def setAuthority(*args):
+        cntlr.config[AUTHORITY_CONFIG_KEY] = authorityVar.get()
+        cntlr.saveConfig()
+
+    authorityVar.trace_add("write", setAuthority)
+    authorityMenu.add_radiobutton(label=_("None"), variable=authorityVar, value="")
+    authorityMenu.add_separator()
+    for code in sorted(AUTHORITY_CODES):
+        authorityMenu.add_radiobutton(label=code, variable=authorityVar, value=code)
+    menu.add_cascade(label=_("UK authority"), menu=authorityMenu, underline=0)
+
+
+def validateComplete(cntlr, fileSource, *args, **kwargs):
+    UKPluginData.get(cntlr).authority = None
+
+
 def _getAuthority(val, parameters):
-    authority = getattr(val.disclosureSystem, "authority", None)
+    cntlr = val.modelXbrl.modelManager.cntlr
+    authority = UKPluginData.get(cntlr).authority
+    if not authority and cntlr.hasGui and cntlr.config is not None:
+        authority = cntlr.config.get(AUTHORITY_CONFIG_KEY) or None
     if not authority and parameters:
         # authority is supplied as a formula parameter, e.g. parameters="authority=companieshouse"
         p = parameters.get(qname("authority", noPrefixIsNoNamespace=True))
@@ -576,7 +637,7 @@ class GDV:
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
-    "name": "Validate UK",
+    "name": PLUGIN_NAME,
     "aliases": [
         "validate/hmrc",
     ],
@@ -589,6 +650,10 @@ __pluginInfo__ = {
     "DisclosureSystem.Types": disclosureSystemTypes,
     "DisclosureSystem.ConfigURL": disclosureSystemConfigURL,
 
+    "CntlrCmdLine.Options": cntlrCmdLineOptions,
+    "CntlrCmdLine.Utility.Run": cntlrCmdLineUtilityRun,
+    "CntlrWinMain.Menu.Validation": cntlrWinMainMenuValidation,
+    "Validate.Complete": validateComplete,
     "Validate.XBRL.Start": validateXbrlStart,
     "Validate.XBRL.Finally": validateXbrlFinally,
 }
