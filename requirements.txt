@@ -12,13 +12,13 @@ numpy==2.5.4 ; python_version > "3.11"
 openpyxl==3.1.5
 pyparsing==3.3.3
 python-dateutil==2.9.0.post0
-regex==2026.11.9
+regex==2026.11.15
 tornado==6.6.1
 truststore==0.10.5
 typing-extensions==4.16.0
 # plugins
 # security plugin
-pycryptodome==4.4.0
+pycryptodome==4.5.0
 # xbrlDB plugin
 oracledb==26.1.0
 pg8000==1.31.6
