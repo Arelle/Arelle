@@ -17,7 +17,7 @@
 
     <context id="accounting-standards">
         <entity>
-            <identifier scheme="http://www.gooog">12345678</identifier>
+            <identifier scheme="http://www.companieshouse.gov.uk/">12345678</identifier>
             <segment>
                 <xbrldi:explicitMember dimension="bus:AccountingStandardsDimension">bus:SmallEntities</xbrldi:explicitMember>
             </segment>
@@ -31,7 +31,7 @@
 
     <context id="accounts-status">
         <entity>
-            <identifier scheme="http://www.gooog">12345678</identifier>
+            <identifier scheme="http://www.companieshouse.gov.uk/">12345678</identifier>
             <segment>
                 <xbrldi:explicitMember dimension="bus:AccountsStatusDimension">bus:Audited</xbrldi:explicitMember>
             </segment>
@@ -45,7 +45,7 @@
 
     <context id="accounts-type">
         <entity>
-            <identifier scheme="http://www.gooog">12345678</identifier>
+            <identifier scheme="http://www.companieshouse.gov.uk/">12345678</identifier>
             <segment>
                 <xbrldi:explicitMember dimension="bus:AccountsTypeDimension">bus:FullAccounts</xbrldi:explicitMember>
             </segment>
@@ -59,7 +59,7 @@
 
     <context id="scope-accounts">
         <entity>
-            <identifier scheme="http://www.gooog">12345678</identifier>
+            <identifier scheme="http://www.companieshouse.gov.uk/">12345678</identifier>
             <segment>
                 <xbrldi:explicitMember dimension="bus:ScopeAccountsDimension">bus:GroupAccountsOnly</xbrldi:explicitMember>
             </segment>
@@ -73,7 +73,7 @@
 
     <context id="duration">
         <entity>
-            <identifier scheme="http://www.gooog">12345678</identifier>
+            <identifier scheme="http://www.companieshouse.gov.uk/">12345678</identifier>
         </entity>
         <period>
             <startDate>2020-01-01</startDate>
@@ -121,12 +121,13 @@
 
     <context id="instant">
         <entity>
-            <identifier scheme="http://www.gooog">12345678</identifier>
+            <identifier scheme="http://www.companieshouse.gov.uk/">12345678</identifier>
         </entity>
         <period>
             <instant>2021-01-01</instant>
         </period>
     </context>
+    <bus:UKCompaniesHouseRegisteredNumber contextRef="duration">12345678</bus:UKCompaniesHouseRegisteredNumber>
     <bus:BalanceSheetDate contextRef="instant">2021-01-01</bus:BalanceSheetDate>
     <bus:EndDateForPeriodCoveredByReport contextRef="instant">2021-01-01</bus:EndDateForPeriodCoveredByReport>
     <bus:StartDateForPeriodCoveredByReport contextRef="instant">2020-01-01</bus:StartDateForPeriodCoveredByReport>
@@ -135,7 +136,7 @@
 
     <context id="instant-2">
         <entity>
-            <identifier scheme="http://www.gooog">12345678</identifier>
+            <identifier scheme="http://www.companieshouse.gov.uk/">12345678</identifier>
             <segment>
                 <xbrldi:explicitMember dimension="bus:GroupCompanyDataDimension">bus:Consolidated</xbrldi:explicitMember>
             </segment>
@@ -151,7 +152,7 @@
 
     <context id="legal-form-entity">
         <entity>
-            <identifier scheme="http://www.gooog">12345678</identifier>
+            <identifier scheme="http://www.companieshouse.gov.uk/">12345678</identifier>
             <segment>
                 <xbrldi:explicitMember dimension="bus:LegalFormEntityDimension">bus:UnlimitedCompany</xbrldi:explicitMember>
             </segment>
