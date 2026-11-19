@@ -372,7 +372,6 @@ module = [
     'arelle.plugin.UKCompaniesHouseLoader',
     'arelle.plugin.formulaLoader',
     'arelle.plugin.formulaSaver',
-    'arelle.plugin.formulaXPathChecker',
     'arelle.plugin.inlineXbrlDocumentSet',
     'arelle.plugin.internet.proxyNTLM',
     'arelle.plugin.internet.proxyNTLM.HTTPNtlmAuthHandler',
