@@ -383,7 +383,6 @@ module = [
     'arelle.plugin.logging.dpmSignature',
     'arelle.plugin.logging.dqcParameters',
     'arelle.plugin.logging.saveMessages',
-    'arelle.plugin.OimTaxonomy',
     'arelle.plugin.OimTaxonomy.ModelValueMore',
     'arelle.plugin.OimTaxonomy.ValidateDTS',
     'arelle.plugin.OimTaxonomy.ViewXbrlTxmyObj',

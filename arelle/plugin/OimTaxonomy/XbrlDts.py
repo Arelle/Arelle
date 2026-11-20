@@ -35,6 +35,7 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
     linkTypes: dict[str, AnyURI]
     linkGroups: dict[str, AnyURI]
     facts: dict[str, XbrlFact]
+    groupContents: defaultdict[QName, OrderedSet[QName]]
 
     def __init__(self, isReport:bool = False, *args: Any, **kwargs: Any) -> None:
         super(XbrlDts, self).__init__(*args, **kwargs)
@@ -125,7 +126,7 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
             for obj in getattr(self, "facts", EMPTY_DICT).values():
                 yield obj
 
-    def error(self, *args, **kwargs):
+    def error(self, *args: Any, **kwargs: Any) -> None:
         if "xbrlObject" in kwargs:
             argValue = kwargs["xbrlObject"]
             if isinstance(argValue, (tuple,list,set,OrderedSet)):
@@ -138,7 +139,7 @@ class XbrlDts(ModelXbrl): # complete wrapper for ModelXbrl
                 kwargs["sourceFileLine"] = modelObject.entryLoadingUrl
         super(XbrlDts, self).error(*args, **kwargs)
 
-    def warning(self, *args, **kwargs):
+    def warning(self, *args: Any, **kwargs: Any) -> None:
         if "xbrlObject" in kwargs:
             argValue = kwargs["xbrlObject"]
             if isinstance(argValue, (tuple,list)):
