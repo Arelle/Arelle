@@ -16,19 +16,25 @@ For debugging, saves the xsd objects loaded from the OIM taxonomy if
 
 """
 
-from typing import TYPE_CHECKING, cast, GenericAlias, Union, _UnionGenericAlias, get_origin
+from __future__ import annotations
 
-import os, io, json, sys, time, traceback
+from collections.abc import Callable
+from math import log10
+from types import GenericAlias
+from typing import TYPE_CHECKING, Any, Union, cast, get_origin
+from typing import _UnionGenericAlias  # type: ignore[attr-defined]
+
+import os, io, json, traceback
 import jsonschema
-import regex as re
 from collections import OrderedDict, defaultdict
 from decimal import Decimal
-from arelle.ModelDocument import load, Type,  create as createModelDocument
+from arelle.ModelDocument import load as loadModelDocument, Type, create as createModelDocument
 from arelle.ModelValue import qname, QName
 from arelle.PythonUtil import SEQUENCE_TYPES, OrderedSet
+from arelle.typing import TypeGetText
 from arelle.Version import authorLabel, copyrightLabel
-from arelle.XmlUtil import setXmlns
-from arelle import ModelDocument, UrlUtil, XmlValidate
+from arelle.XmlUtil import setXmlns, addChild
+from arelle import UrlUtil, ValidateXbrlDimensions, XmlValidate, XbrlConst
 
 # XbrlObject modules contain nested XbrlOBjects and their type objects
 
@@ -48,16 +54,31 @@ from .XbrlTransform import XbrlTransform
 from .XbrlUnit import XbrlUnit
 from .XbrlTaxonomy import XbrlTaxonomy
 from .XbrlTaxonomyObject import XbrlObject, XbrlReferencableTaxonomyObject, XbrlTaxonomyTagObject
-from .XbrlDts import XbrlDts, castToDts
+from .XbrlDts import XbrlDts, castToDts, create as createXbrlDts
 from .XbrlTypes import XbrlTaxonomyType, QNameKeyType, SQNameKeyType, DefaultTrue, DefaultFalse, DefaultZero
 from .ValidateDTS import validateDTS
 from .ModelValueMore import SQName, QNameAt
 from .ViewXbrlTxmyObj import viewXbrlTxmyObj
 from .XbrlConst import xbrl, oimTaxonomyDocTypePattern, oimTaxonomyDocTypes, qnXbrlLabelObj, xbrlTaxonomyObjects
 
-
 from arelle.oim.Load import (DUPJSONKEY, DUPJSONVALUE, EMPTY_DICT, EMPTY_LIST, UrlInvalidPattern,
                              OIMException, NotOIMException)
+
+if TYPE_CHECKING:
+    from optparse import OptionParser
+
+    from arelle.Cntlr import Cntlr
+    from arelle.CntlrWinMain import CntlrWinMain
+    from arelle.ModelDocument import ModelDocument as ModelDocumentClass
+    from arelle.ModelObject import ModelObject
+    from arelle.ModelXbrl import ModelXbrl
+    from arelle.RuntimeOptions import RuntimeOptions
+    from arelle.ValidateXbrl import ValidateXbrl
+
+_: TypeGetText
+
+LoggerFn = Callable[..., None]
+LoadResult = Union["ModelDocumentClass", Exception, dict[str, Any], None]
 
 RESOURCES_DIR = os.path.join(os.path.dirname(__file__), "resources")
 OIMT_SCHEMA = os.path.join(RESOURCES_DIR, "oim-taxonomy-schema.json")
@@ -65,63 +86,65 @@ OIMT_SCHEMA = os.path.join(RESOURCES_DIR, "oim-taxonomy-schema.json")
 saveOIMTaxonomySchemaFiles = False
 SAVE_OIM_SCHEMA_CMDLINE_PARAMETER = "--saveOIMschemafile"
 SAVE_OIM_SCHEMA_FORULA_PARAMETER = qname("saveOIMschemafile", noPrefixIsNoNamespace=True)
-jsonschemaValidator = None
+jsonschemaValidator: jsonschema.Draft7Validator | None = None
 
-EMPTY_SET = set()
+EMPTY_SET: set[Any] = set()
 
-def jsonGet(tbl, key, default=None):
+
+def jsonGet(tbl: Any, key: str, default: Any = None) -> Any:
     if isinstance(tbl, dict):
         return tbl.get(key, default)
     return default
 
-def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwargs):
+
+def loadOIMTaxonomy(
+        cntlr: Cntlr,
+        error: LoggerFn,
+        warning: LoggerFn,
+        modelXbrl: ModelXbrl,
+        oimFile: Any,
+        mappedUri: str,
+        **kwargs: Any,
+) -> LoadResult:
     global jsonschemaValidator
-    from arelle import ModelDocument, ModelXbrl, XmlUtil
-    from arelle.ModelDocument import ModelDocumentReference
     from arelle.ModelValue import qname
 
-    _return = None # modelDocument or an exception
+    _return: LoadResult = None  # modelDocument or an exception
 
     try:
         currentAction = "initializing"
-        startingErrorCount = len(modelXbrl.errors) if modelXbrl else 0
-        startedAt = time.time()
-        documentType = None # set by loadDict
-        includeObjects = kwargs.get("includeObjects")
-        includeObjectTypes = kwargs.get("includeObjectTypes")
+        documentType = None  # set by loadDict
         excludeLabels = kwargs.get("excludeLabels", False)
         followImport = kwargs.get("followImport", True)
 
         currentAction = "loading and parsing OIM Taxonomy file"
-        loadDictErrors = []
-        def ldError(msgCode, msgText, **kwargs):
+        loadDictErrors: list[tuple[str, str, dict[str, Any]]] = []
+
+        def ldError(msgCode: str, msgText: str, **kwargs: Any) -> None:
             loadDictErrors.append((msgCode, msgText, kwargs))
 
-        def loadDict(keyValuePairs):
-            _dict = {}
-            _valueKeyDict = {}
+        def loadDict(keyValuePairs: list[tuple[str, Any]]) -> dict[str, Any]:
+            _dict: dict[str, Any] = {}
+            _valueKeyDict: dict[Any, str] = {}
             for key, value in keyValuePairs:
                 if isinstance(value, dict):
                     if key == "documentInfo" and "documentType" in value:
-                        global documentType
                         documentType = value["documentType"]
                     if key in ("namespaces", "taxonomy"):
-                        normalizedDict = {}
-                        normalizedValueKeyDict = {}
+                        normalizedDict: dict[str, Any] = {}
+                        normalizedValueKeyDict: dict[Any, str] = {}
                         if DUPJSONKEY in value:
                             normalizedDict[DUPJSONKEY] = value[DUPJSONKEY]
                         if DUPJSONVALUE in value:
                             normalizedDict[DUPJSONVALUE] = value[DUPJSONVALUE]
                         for _key, _value in value.items():
-                            # _key = _key.strip() # per !178 keys have only normalized values, don't normalize key
-                            # _value = _value.strip()
-                            if _key in normalizedDict: # don't put the duplicate in the dictionary but report it as error
+                            if _key in normalizedDict:  # don't put the duplicate in the dictionary but report it as error
                                 if DUPJSONKEY not in normalizedDict:
                                     normalizedDict[DUPJSONKEY] = []
                                 normalizedDict[DUPJSONKEY].append((_key, _value, normalizedDict[_key]))
                             elif isinstance(_value, SEQUENCE_TYPES):
                                 normalizedDict[_key] = _value
-                            else: # do put into dictionary, only report if it's a map object
+                            else:  # do put into dictionary, only report if it's a map object
                                 normalizedDict[_key] = _value
                                 if key == "namespaces":
                                     if _value in normalizedValueKeyDict:
@@ -133,57 +156,48 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                             if key == "namespaces":
                                 if not XmlValidate.NCNamePattern.match(_key):
                                     ldError("{}:invalidJSONStructure",
-                                          _('The %(map)s alias "%(alias)s" must be a canonical NCName value'),
-                                          modelObject=modelXbrl, map=key, alias=_key)
+                                            _('The %(map)s alias "%(alias)s" must be a canonical NCName value'),
+                                            modelObject=modelXbrl, map=key, alias=_key)
                                 if UrlInvalidPattern.match(_value):
                                     ldError("{}:invalidJSONStructure",
-                                          _('The %(map)s alias "%(alias)s" URI must be a canonical URI value: "%(URI)s".'),
-                                          modelObject=modelXbrl, map=key, alias=_key, URI=_value)
+                                            _('The %(map)s alias "%(alias)s" URI must be a canonical URI value: "%(URI)s".'),
+                                            modelObject=modelXbrl, map=key, alias=_key, URI=_value)
                                 elif not (_value and UrlUtil.isAbsolute(_value)) or UrlInvalidPattern.match(_value):
                                     ldError("oimce:invalidURI",
                                             _('The %(map)s "%(alias)s" URI is invalid: "%(URI)s".'),
                                             modelObject=modelXbrl, map=key, alias=_key, URI=_value)
-                        value.clear() # replace with normalized values
+                        value.clear()  # replace with normalized values
                         for _key, _value in normalizedDict.items():
                             value[_key] = _value
                     if DUPJSONKEY in value:
                         for _errKey, _errValue, _otherValue in value[DUPJSONKEY]:
-                            if key in ("namespaces", ):
-                                ldError("{}:invalidJSON", # {} expanded when loadDictErrors are processed
-                                                _('The %(map)s alias "%(prefix)s" is used on uri "%(uri1)s" and uri ""%(uri2)s.'),
-                                                modelObject=modelXbrl, map=key, prefix=_errKey, uri1=_errValue, uri2=_otherValue)
+                            if key in ("namespaces",):
+                                ldError("{}:invalidJSON",  # {} expanded when loadDictErrors are processed
+                                        _('The %(map)s alias "%(prefix)s" is used on uri "%(uri1)s" and uri ""%(uri2)s.'),
+                                        modelObject=modelXbrl, map=key, prefix=_errKey, uri1=_errValue, uri2=_otherValue)
                             else:
-                                ldError("{}:invalidJSON", # {} expanded when loadDictErrors are processed
-                                                _('The %(obj)s key "%(key)s" is used on multiple objects.'),
-                                                modelObject=modelXbrl, obj=key, key=_errKey)
+                                ldError("{}:invalidJSON",  # {} expanded when loadDictErrors are processed
+                                        _('The %(obj)s key "%(key)s" is used on multiple objects.'),
+                                        modelObject=modelXbrl, obj=key, key=_errKey)
                         del value[DUPJSONKEY]
                     if DUPJSONVALUE in value:
-                        if key in ("namespaces", ):
+                        if key in ("namespaces",):
                             for _errValue, _errKey, _otherKey in value[DUPJSONVALUE]:
                                 ldError("oimce:multipleAliasesForURI",
-                                                _('The "%(map)s" value "%(uri)s" is used on alias "%(alias1)s" and alias "%(alias2)s".'),
-                                                modelObject=modelXbrl, map=key, uri=_errValue, alias1=_errKey, alias2=_otherKey)
+                                        _('The "%(map)s" value "%(uri)s" is used on alias "%(alias1)s" and alias "%(alias2)s".'),
+                                        modelObject=modelXbrl, map=key, uri=_errValue, alias1=_errKey, alias2=_otherKey)
                         del value[DUPJSONVALUE]
-                if key in _dict: # don't put the duplicate in the dictionary but report it as error
+                if key in _dict:  # don't put the duplicate in the dictionary but report it as error
                     if DUPJSONKEY not in _dict:
                         _dict[DUPJSONKEY] = []
                     _dict[DUPJSONKEY].append((key, value, _dict[key]))
-                else: # do put into dictionary, only report if it's a map object
+                else:  # do put into dictionary, only report if it's a map object
                     _dict[key] = value
-                    """
-                    if isinstance(value, str):
-                        if value in _valueKeyDict:
-                            if DUPJSONVALUE not in _dict:
-                                _dict[DUPJSONVALUE] = []
-                            _dict[DUPJSONVALUE].append((value, key, _valueKeyDict[value]))
-                        else:
-                            _valueKeyDict[value] = key
-                    """
             return _dict
 
         errPrefix = "xbrlte"
         try:
-            if isinstance(oimFile, dict) and oimFile.get("documentInfo",{}).get("documentType") in oimTaxonomyDocTypes:
+            if isinstance(oimFile, dict) and oimFile.get("documentInfo", {}).get("documentType") in oimTaxonomyDocTypes:
                 oimObject = oimFile
                 href = "BakedInConstants"
                 txFileName = href
@@ -192,17 +206,17 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                 _file = modelXbrl.fileSource.file(oimFile, encoding="utf-8-sig")[0]
                 href = os.path.basename(oimFile)
                 txFileName = oimFile
-                txBase = os.path.dirname(oimFile) # import referenced taxonomies
+                txBase = os.path.dirname(oimFile)  # import referenced taxonomies
                 with _file as f:
                     oimObject = json.load(f, object_pairs_hook=loadDict, parse_float=Decimal)
         except UnicodeDecodeError as ex:
             raise OIMException("{}:invalidJSON".format(errPrefix),
-                  _("File MUST use utf-8 encoding: %(file)s, error %(error)s"),
-                  sourceFileLine=oimFile, error=str(ex))
+                               _("File MUST use utf-8 encoding: %(file)s, error %(error)s"),
+                               sourceFileLine=oimFile, error=str(ex))
         except json.JSONDecodeError as ex:
             raise OIMException("{}:invalidJSON".format(errPrefix),
-                    "JSON error while %(action)s, %(file)s, error %(error)s",
-                    file=oimFile, action=currentAction, error=ex)
+                               "JSON error while %(action)s, %(file)s, error %(error)s",
+                               file=oimFile, action=currentAction, error=ex)
         # schema validation
         if jsonschemaValidator is None:
             with io.open(OIMT_SCHEMA, mode="rt") as fh:
@@ -211,12 +225,12 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             for err in jsonschemaValidator.iter_errors(oimObject) or ():
                 path = []
                 for p in err.absolute_path:
-                    path.append(f"[{p}]" if isinstance(p,int) else f"/{p}")
+                    path.append(f"[{p}]" if isinstance(p, int) else f"/{p}")
                 msg = err.message
                 error("jsonschema:oimTaxonomyError",
                       _("Error: %(error)s, jsonObj: %(path)s"),
                       sourceFileLine=href, error=msg, path="".join(path))
-        except (jsonschema.exceptions.SchemaError, jsonschema.exceptions._RefResolutionError, jsonschema.exceptions.UndefinedTypeCheck) as ex:
+        except (jsonschema.exceptions.SchemaError, jsonschema.exceptions._RefResolutionError, jsonschema.exceptions.UndefinedTypeCheck) as ex: # type: ignore[attr-defined]
             msg = str(ex)
             if "PointerToNowhere" in msg:
                 msg = msg[:121]
@@ -238,31 +252,30 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             return {}
 
         # report loadDict errors
-        for msgCode, msgText, kwargs in loadDictErrors:
-            error(msgCode.format(errPrefix), msgText, sourceFileLine=href, **kwargs)
+        for msgCode, msgText, msgKwargs in loadDictErrors:
+            error(msgCode.format(errPrefix), msgText, sourceFileLine=href, **msgKwargs)
         del loadDictErrors[:]
 
-        extensionProperties = {} # key is property QName, value is property path
+        extensionProperties: dict[str, str] = {}  # key is property QName, value is property path
 
         currentAction = "identifying Metadata objects"
 
         # create the taxonomy document
         currentAction = "creating schema"
-        prevErrLen = len(modelXbrl.errors) # track any xbrl validation errors
-        if modelXbrl: # pull loader implementation
-            modelXbrl.blockDpmDBrecursion = True
+        prevErrLen = len(modelXbrl.errors)  # track any xbrl validation errors
+        if modelXbrl:  # pull loader implementation
+            modelXbrl.blockDpmDBrecursion = True  # type: ignore[attr-defined]
             schemaDoc = _return = createModelDocument(
-                  modelXbrl,
-                  Type.SCHEMA,
-                  txFileName,
-                  initialComment="loaded from OIM Taxonomy {}".format(mappedUri),
-                  documentEncoding="utf-8",
-                  # base=txBase or modelXbrl.entryLoadingUrl
-                  )
+                modelXbrl,
+                Type.SCHEMA,
+                txFileName,
+                initialComment="loaded from OIM Taxonomy {}".format(mappedUri),
+                documentEncoding="utf-8",
+            )
             schemaDoc.inDTS = True
-            xbrlDts = castToDts(modelXbrl, isReport)
-        else: # API implementation
-            xbrlDts = ModelDts.create(
+            xbrlDts = castToDts(modelXbrl, isReport)  # type: ignore[no-untyped-call]
+        else:  # API implementation
+            xbrlDts = createXbrlDts(
                 cntlr.modelManager,
                 Type.SCHEMA,
                 initialComment="loaded from OIM Taxonomy {}".format(mappedUri),
@@ -273,16 +286,16 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                   _("Unable to obtain a valid taxonomy from URLs provided"),
                   sourceFileLine=href)
         # first OIM Taxonomy load Baked In objects
-        if not xbrlDts.namedObjects and not "loadingBakedInObjects" in kwargs:
+        if not xbrlDts.namedObjects and "loadingBakedInObjects" not in kwargs:
             loadOIMTaxonomy(cntlr, error, warning, modelXbrl, xbrlTaxonomyObjects, "BakedInCoreObjects", loadingBakedInObjects=True, **kwargs)
             loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "xbrlSpec.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
             loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "types.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
             loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "utr.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
             loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "ref.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
             loadOIMTaxonomy(cntlr, error, warning, modelXbrl, os.path.join(RESOURCES_DIR, "iso4217.json"), "BakedInXbrlSpecObjects", loadingBakedInObjects=True, **kwargs)
-        namespacePrefixes = {}
-        prefixNamespaces = {}
-        namespaceUrls = {}
+        namespacePrefixes: dict[str, str] = {}
+        prefixNamespaces: dict[str, str] = {}
+        namespaceUrls: dict[str | None, str] = {}
         for prefix, ns in documentInfo.get("namespaces", EMPTY_DICT).items():
             if ns and prefix:
                 namespacePrefixes[ns] = prefix
@@ -308,7 +321,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                       sourceFileLine=href, extensionProperty=extPropertyPath)
 
         for iImpTxmy, impTxmyObj in enumerate(taxonomyObj.get("importedTaxonomies", EMPTY_LIST)):
-            if qnXbrlLabelObj in getattr(impTxmyObj, "includeObjectTypes",()):
+            if qnXbrlLabelObj in getattr(impTxmyObj, "includeObjectTypes", ()):
                 impTxmyObj.includeObjectTypes.delete(qnXbrlLabelObj)
                 xbrlDts.error("oimte:invalidObjectType",
                               _("/taxonomy/importedTaxonomies[%(iImpTxmy)s] must not have a label object in the includeObjectTypes property"),
@@ -320,46 +333,36 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                 if ns not in xbrlDts.namespaceDocs and followImport:
                     url = namespaceUrls.get(ns)
                     if url:
-                        load(xbrlDts, url, base=oimFile, isDiscovered=schemaDoc.inDTS, isIncluded=kwargs.get("isIncluded"), namespace=ns,
-                             includeObjects=(qname(qn, prefixNamespaces) for qn in impTxmyObj.get("includeObjects",())) or None,
-                             includeObjectTypes=(qname(qn, prefixNamespaces) for qn in impTxmyObj.get("includeObjectTypes",())) or None,
-                             excludeLabels=impTxmyObj.get("excludeLabels",False),
-                             followImport=impTxmyObj.get("followImport",True))
+                        loadModelDocument(xbrlDts, url, base=oimFile, isDiscovered=schemaDoc.inDTS, isIncluded=kwargs.get("isIncluded", False), namespace=ns,
+                             includeObjects=(qname(qn, prefixNamespaces) for qn in impTxmyObj.get("includeObjects", ())) or None,
+                             includeObjectTypes=(qname(qn, prefixNamespaces) for qn in impTxmyObj.get("includeObjectTypes", ())) or None,
+                             excludeLabels=impTxmyObj.get("excludeLabels", False),
+                             followImport=impTxmyObj.get("followImport", True))
             else:
                 xbrlDts.error("oime:missingQNameProperty",
                               _("/taxonomy/importedTaxonomies[%(iImpTxmy)s] must have a taxonomyName (QName) property"),
                               sourceFileLine=href, index=iImpTxmy)
-        def singular(name):
-            if name.endswith("ies"):
-                return name[:-3] + "y"
-            elif name.endswith("s"):
-                return name[:-1]
-            return name
-        def plural(name):
+
+        def plural(name: str) -> str:
             if name.endswith("y"):
                 return name[:-1] + "ies"
             else:
                 return name + "s"
-        def addToCol(oimParentObj, objName, newObj, key):
-            parentCol = getattr(oimParentObj, plural(objName), None) # parent collection object
-            if colObj is not None:
-                if key:
-                    colObj[key] = newObj
-                else:
-                    colObj.add(newObj)
 
-        jsonEltsNotInObjClass = []
-        jsonEltsReqdButMissing = []
-        namedObjectDuplicates = defaultdict(OrderedSet)
-        def createTaxonomyObject(jsonObj, oimParentObj, keyClass, objClass, newObj, pathParts):
-            keyValue = None
-            relatedNames = [] # to tag an object with labels or references
+        jsonEltsNotInObjClass: list[str] = []
+        jsonEltsReqdButMissing: list[str] = []
+        namedObjectDuplicates: defaultdict[Any, OrderedSet[Any]] = defaultdict(OrderedSet)
+
+        def createTaxonomyObject(jsonObj: dict[str, Any], oimParentObj: Any, keyClass: Any, objClass: Any, newObj: Any, pathParts: list[str]) -> Any:
+            keyValue: Any = None
+            relatedNames: list[Any] = [] # to tag an object with labels or references
             unexpectedJsonProps = set(jsonObj.keys())
             for propName, propType in getattr(objClass, "__annotations__", EMPTY_DICT).items():
+                propClass: Any
                 if isinstance(propType, GenericAlias):
-                    propClass = propType.__origin__ # collection type such as OrderedSet, dict
+                    propClass = propType.__origin__  # collection type such as OrderedSet, dict
                     collectionProp = propClass()
-                    setattr(newObj, propName, collectionProp) # fresh new dict or OrderedSet (even if no contents for it)
+                    setattr(newObj, propName, collectionProp)  # fresh new dict or OrderedSet (even if no contents for it)
                 else:
                     propClass = propType
                 if propName in jsonObj:
@@ -368,15 +371,15 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                         continue
                     jsonValue = jsonObj[propName]
                     if isinstance(propType, GenericAlias):
-                        if len(propType.__args__) == 2: # dict
-                            _keyClass = propType.__args__[0] # class of key such as QNameKey
-                            eltClass = propType.__args__[1] # class of collection elements such as XbrlConcept
-                        elif len(propType.__args__) == 1: # set such as OrderedSet or list
+                        if len(propType.__args__) == 2:  # dict
+                            _keyClass = propType.__args__[0]  # class of key such as QNameKey
+                            eltClass = propType.__args__[1]  # class of collection elements such as XbrlConcept
+                        elif len(propType.__args__) == 1:  # set such as OrderedSet or list
                             _keyClass = None
                             eltClass = propType.__args__[0]
                         if isinstance(jsonValue, list):
                             for iObj, listObj in enumerate(jsonValue):
-                                if isinstance(eltClass, str) or getattr(eltClass, "__name__", "").startswith("Xbrl"): # nested Xbrl objects
+                                if isinstance(eltClass, str) or getattr(eltClass, "__name__", "").startswith("Xbrl"):  # nested Xbrl objects
                                     if isinstance(listObj, dict):
                                         # this handles lists of dict objects.  For dicts of key-value dict objects see above.
                                         createTaxonomyObjects(propName, listObj, newObj, pathParts + [f"{propName}[{iObj}]"])
@@ -384,14 +387,14 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                         error("xbrlte:invalidObjectType",
                                               _("Object expected but non-object found: %(listObj)s, jsonObj: %(path)s"),
                                               sourceFileLine=href, listObj=listObj, path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
-                                else: # collection contains ordinary values
+                                else:  # collection contains ordinary values
                                     if eltClass in (QName, QNameKeyType, SQName, SQNameKeyType):
                                         listObj = qname(listObj, prefixNamespaces)
                                         if listObj is None:
                                             error("xbrlte:invalidQName",
                                                   _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
                                                   sourceFileLine=href, qname=jsonObj[propName], path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
-                                            continue # skip this property
+                                            continue  # skip this property
                                         if propName == "relatedNames":
                                             relatedNames.append(listObj)
                                     if propClass in (set, OrderedSet):
@@ -407,7 +410,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                             error("xbrlte:invalidQName",
                                                   _("QName is invalid: %(qname)s, jsonObj: %(path)s"),
                                                   sourceFileLine=href, qname=_valKey, path=f"{'/'.join(pathParts + [f'{propName}[{iObj}]'])}")
-                                            continue # skip this property
+                                            continue  # skip this property
                                     elif str in _keyClass.__args__:
                                         _valKey = valKey
                                     else:
@@ -417,12 +420,12 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                 else:
                                     continue
                                 collectionProp[_valKey] = valVal
-                    elif isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] is type(None) and isinstance(jsonValue,dict): # optional embdded object
-                        createTaxonomyObjects(propName, jsonValue, newObj, pathParts + [propName]) # object property
+                    elif isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] is type(None) and isinstance(jsonValue, dict):  # optional embdded object
+                        createTaxonomyObjects(propName, jsonValue, newObj, pathParts + [propName])  # object property
                     else:
                         optional = False
                         if isinstance(propType, _UnionGenericAlias) and propType.__args__[-1] is type(None):
-                            propType = propType.__args__[0] # scalar property
+                            propType = propType.__args__[0]  # scalar property
                             optional = True
                         if propType == QNameAt:
                             jsonValue, _sep, atSuffix = jsonValue.partition("@")
@@ -436,26 +439,26 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                     jsonValue = None
                                 else:
                                     # TBD: set newObj to invalid so it isn't usable (it was already set in collection objects above when being created)
-                                    return # skip this nested object entirely
+                                    return None  # skip this nested object entirely
                             elif propType == QNameAt:
                                 jsonValue = QNameAt(jsonValue.prefix, jsonValue.namespaceURI, jsonValue.localName, atSuffix)
                             if propName == "relatedName":
                                 relatedNames.append(jsonValue)
                         setattr(newObj, propName, jsonValue)
                         if (keyClass and keyClass == propType) or (not keyClass and propType in (QNameKeyType, SQNameKeyType)):
-                            keyValue = jsonValue # e.g. the QNAme of the new object for parent object collection
-                elif propType in (type(oimParentObj), type(oimParentObj).__name__): # propType may be a TypeAlias which is a string name of class
+                            keyValue = jsonValue  # e.g. the QNAme of the new object for parent object collection
+                elif propType in (type(oimParentObj), type(oimParentObj).__name__):  # propType may be a TypeAlias which is a string name of class
                     setattr(newObj, propName, oimParentObj)
-                elif (((get_origin(propType) is Union) or isinstance(get_origin(propType), type(Union))) and # Optional[ ] type
-                       propType.__args__[-1] in (type(None), DefaultTrue, DefaultFalse, DefaultZero)):
-                          setattr(newObj, propName, {type(None): None, DefaultTrue: True, DefaultFalse: False, DefaultZero:0}[propType.__args__[-1]]) # use first of union for prop value creation
-                else: # absent json element
-                    if not propClass in (dict, set, OrderedSet, OrderedDict):
+                elif (((get_origin(propType) is Union) or isinstance(get_origin(propType), type(Union))) and  # Optional[ ] type
+                      propType.__args__[-1] in (type(None), DefaultTrue, DefaultFalse, DefaultZero)):
+                    setattr(newObj, propName, {type(None): None, DefaultTrue: True, DefaultFalse: False, DefaultZero: 0}[propType.__args__[-1]]) # use first of union for prop value creation
+                else:  # absent json element
+                    if propClass not in (dict, set, OrderedSet, OrderedDict):
                         jsonEltsReqdButMissing.append(f"{'/'.join(pathParts + [propName])}")
-                        setattr(newObj, propName, None) # not defaultable but set to None anyway
+                        setattr(newObj, propName, None)  # not defaultable but set to None anyway
             if unexpectedJsonProps:
                 for propName in unexpectedJsonProps:
-                    jsonEltsNotInObjClass.append(f"{'/'.join(pathParts + [propName])}={jsonObj.get(propName,'(absent)')}")
+                    jsonEltsNotInObjClass.append(f"{'/'.join(pathParts + [propName])}={jsonObj.get(propName, '(absent)')}")
             if isinstance(newObj, XbrlReferencableTaxonomyObject):
                 if keyValue in xbrlDts.namedObjects:
                     namedObjectDuplicates[keyValue].add(newObj)
@@ -467,50 +470,50 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                     xbrlDts.tagObjects[relatedQn].append(newObj)
             return keyValue
 
-        def createTaxonomyObjects(jsonKey, jsonObj, oimParentObj, pathParts):
+        def createTaxonomyObjects(jsonKey: str, jsonObj: Any, oimParentObj: Any, pathParts: list[str]) -> Any:
             # find collection owner in oimParentObj
             for objName in (jsonKey, plural(jsonKey)):
                 ownrPropType = getattr(oimParentObj, "__annotations__", EMPTY_DICT).get(objName)
                 if ownrPropType is not None:
                     break
             if ownrPropType is not None:
-                ownrProp = getattr(oimParentObj, objName, None) # owner collection or property
+                ownrProp: Any = getattr(oimParentObj, objName, None)  # owner collection or property
                 if ownrPropType is not None:
                     if isinstance(ownrPropType, GenericAlias):
-                        ownrPropClass = ownrPropType.__origin__ # collection type such as OrderedSet, dict
-                        if len(ownrPropType.__args__) == 2: # dict
-                            keyClass = ownrPropType.__args__[0] # class of key such as QNameKey
-                            objClass = ownrPropType.__args__[1] # class of obj such as XbrlConcept
-                        elif len(ownrPropType.__args__) == 1: # set such as OrderedSet or list
+                        ownrPropClass: Any = ownrPropType.__origin__  # collection type such as OrderedSet, dict
+                        if len(ownrPropType.__args__) == 2:  # dict
+                            keyClass = ownrPropType.__args__[0]  # class of key such as QNameKey
+                            objClass = ownrPropType.__args__[1]  # class of obj such as XbrlConcept
+                        elif len(ownrPropType.__args__) == 1:  # set such as OrderedSet or list
                             keyClass = None
                             objClass = ownrPropType.__args__[0]
-                        if ownrProp is None: # the parent object's dict or OrderedSet doesn't exist yet
+                        if ownrProp is None:  # the parent object's dict or OrderedSet doesn't exist yet
                             ownrProp = ownrPropClass()
-                            setattr(oimParentObj, propName, ownrProp) # fresh new dict or OrderedSet
-                        if objClass == XbrlFact and isinstance(jsonObj, dict): # this is a JSON key-value dict going into a dict, for lists of dicts see below
+                            setattr(oimParentObj, objName, ownrProp)  # fresh new dict or OrderedSet
+                        if objClass == XbrlFact and isinstance(jsonObj, dict):  # this is a JSON key-value dict going into a dict, for lists of dicts see below
                             for id, value in jsonObj.items():
                                 newObj = objClass(dtsObjectIndex=len(xbrlDts.xbrlObjects))
                                 xbrlDts.xbrlObjects.append(newObj)
                                 newObj.id = id
                                 createTaxonomyObject(value, oimParentObj, str, objClass, newObj, pathParts + [f"[{id}]"])
                                 ownrProp[id] = newObj
-                            return None # facts not returnable
-                    elif isinstance(ownrPropType, _UnionGenericAlias) and ownrPropType.__args__[-1] is type(None): # optional nested object
+                            return None  # facts not returnable
+                    elif isinstance(ownrPropType, _UnionGenericAlias) and ownrPropType.__args__[-1] is type(None):  # optional nested object
                         keyClass = None
                         objClass = ownrPropType.__args__[0]
-                    else: # parent      is just an object field, not a  collection
-                        objClass = ownrPropType # e.g just a Concept but no owning collection
+                    else:  # parent is just an object field, not a collection
+                        objClass = ownrPropType  # e.g just a Concept but no owning collection
                     if objClass == XbrlTaxonomyType:
                         objClass = XbrlTaxonomy
                     if issubclass(objClass, XbrlObject):
-                        newObj = objClass(dtsObjectIndex=len(xbrlDts.xbrlObjects)) # e.g. this is the new Concept
+                        newObj = objClass(dtsObjectIndex=len(xbrlDts.xbrlObjects))  # e.g. this is the new Concept
                         xbrlDts.xbrlObjects.append(newObj)
                         classCountProp = f"_{objClass.__name__}Count"
                         classIndex = getattr(oimParentObj, classCountProp, 0)
                         setattr(newObj, "_classIndex", classIndex)
-                        setattr(oimParentObj, classCountProp,classIndex+1)
+                        setattr(oimParentObj, classCountProp, classIndex + 1)
                     else:
-                        newObj = objClass() # e.g. XbrlProperty
+                        newObj = objClass()  # e.g. XbrlProperty
                     keyValue = createTaxonomyObject(jsonObj, oimParentObj, keyClass, objClass, newObj, pathParts)
                     if isinstance(ownrPropType, GenericAlias):
                         if len(ownrPropType.__args__) == 2:
@@ -520,7 +523,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                             ownrProp.add(newObj)
                         else:
                             ownrProp.append(newObj)
-                    elif isinstance(ownrPropType, _UnionGenericAlias) and ownrPropType.__args__[-1] is type(None): # optional nested object
+                    elif isinstance(ownrPropType, _UnionGenericAlias) and ownrPropType.__args__[-1] is type(None):  # optional nested object
                         setattr(oimParentObj, pathParts[-1], newObj)
                     return newObj
             return None
@@ -538,10 +541,10 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                   _("Json file missing required elements: %(missingElements)s"),
                   sourceFileLine=href, missingElements=", ".join(jsonEltsReqdButMissing))
 
-        for qname, dupObjs in namedObjectDuplicates.items():
+        for dupQName, dupObjs in namedObjectDuplicates.items():
             xbrlDts.error("oimte:duplicateObjects",
-                  _("Multiple referenceable objects have the same name: %(qname)s"),
-                  xbrlObject=dupObjs, qname=qname)
+                          _("Multiple referenceable objects have the same name: %(qname)s"),
+                          xbrlObject=dupObjs, qname=dupQName)
 
         if newTxmy is not None:
             for impTxmy in newTxmy.importedTaxonomies:
@@ -553,39 +556,35 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
 
         xbrlDts.namespaceDocs[taxonomyName.namespaceURI].append(schemaDoc)
 
-        return schemaDoc
-
         # convert to XML Taxonomy
-
-
-        QN_ANNOTATION = qname("{http://www.w3.org/2001/XMLSchema}xs:annotation")
-        QN_APPINFO = qname("{http://www.w3.org/2001/XMLSchema}xs:appinfo")
-        QN_IMPORT = qname("{http://www.w3.org/2001/XMLSchema}xs:import")
-        QN_ELEMENT = qname("{http://www.w3.org/2001/XMLSchema}xs:element")
-        QN_PERIOD_TYPE = qname("{http://www.xbrl.org/2003/instance}xbrli:periodType")
-        QN_BALANCE = qname("{http://www.xbrl.org/2003/instance}xbrli:balance")
-        QN_SUBS_GROUP = qname("{http://www.w3.org/2001/XMLSchema}xs:substitutionGroup")
-        QN_ROLE_TYPE = qname("{http://www.xbrl.org/2003/linkbase}link:roleType")
-        QN_ROLE_TYPE = qname("{http://www.xbrl.org/2003/linkbase}link:roleType")
-        QN_DEFINITION = qname("{http://www.xbrl.org/2003/linkbase}link:definition")
-        QN_USED_ON = qname("{http://www.xbrl.org/2003/linkbase}link:usedOn")
+        QN_ANNOTATION = QName("xs", "http://www.w3.org/2001/XMLSchema", "annotation")
+        QN_APPINFO = QName("xs", "http://www.w3.org/2001/XMLSchema", "appinfo")
+        QN_IMPORT = QName("xs", "http://www.w3.org/2001/XMLSchema", "import")
+        QN_ELEMENT = QName("xs", "http://www.w3.org/2001/XMLSchema", "element")
+        QN_PERIOD_TYPE = QName("xbrli", "http://www.xbrl.org/2003/instance", "periodType")
+        QN_BALANCE = QName("xbrli", "http://www.xbrl.org/2003/instance", "balance")
+        QN_SUBS_GROUP = QName("xs", "http://www.w3.org/2001/XMLSchema", "substitutionGroup")
+        QN_ROLE_TYPE = QName("link", "http://www.xbrl.org/2003/linkbase", "roleType")
+        QN_DEFINITION = QName("link", "http://www.xbrl.org/2003/linkbase", "definition")
+        QN_USED_ON = QName("link", "http://www.xbrl.org/2003/linkbase", "usedOn")
 
         # convert into XML Taxonomy
         schemaElt = schemaDoc.xmlRootElement
         annotationElt = addChild(schemaElt, QN_ANNOTATION)
         appinfoElt = addChild(annotationElt, QN_APPINFO)
 
+        taxonomyRefs: list[dict[str, Any]] = list(documentInfo.get("taxonomy", EMPTY_LIST))
         if not any(t["namespace"] == "http://www.xbrl.org/2003/instance" for t in taxonomyRefs):
-            taxonomyRefs.insert(0, {"namespace":"http://www.xbrl.org/2003/instance", "entryPoint":"http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"})
+            taxonomyRefs.insert(0, {"namespace": "http://www.xbrl.org/2003/instance", "entryPoint": "http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"})
         if "cubes" in taxonomyObj and not any(t["namespace"] == "http://xbrl.org/2005/xbrldt" for t in taxonomyRefs):
-            taxonomyRefs.insert(0, {"namespace":"http://xbrl.org/2005/xbrldt", "entryPoint": "http://www.xbrl.org/2005/xbrldt-2005.xsd"})
+            taxonomyRefs.insert(0, {"namespace": "http://xbrl.org/2005/xbrldt", "entryPoint": "http://www.xbrl.org/2005/xbrldt-2005.xsd"})
         for txmyRefObj in taxonomyRefs:
             schemaDoc.addDocumentReference(
-                loadModelDocument(modelXbrl, txmyRefObj.get("entryPoint"), txBase, namespace=txmyRefObj.get("namespace"), isDiscovered=True),
+                loadModelDocument(modelXbrl, txmyRefObj["entryPoint"], txBase, namespace=txmyRefObj["namespace"], isDiscovered=True),
                 "import")
             addChild(schemaElt, QN_IMPORT, attributes={
-                "namespace": txmyRefObj.get("namespace"),
-                "schemaLocation": txmyRefObj.get("entryPoint")})
+                "namespace": txmyRefObj["namespace"],
+                "schemaLocation": txmyRefObj["entryPoint"]})
 
         # additional namespaces needed
         for prefix, ns in (("xlink", "http://www.w3.org/1999/xlink"),
@@ -597,32 +596,25 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                 prefixNamespaces[prefix] = ns
                 setXmlns(schemaDoc, prefix, ns)
 
-
-
         # Move to end
         currentAction = "identifying default dimensions"
         if modelXbrl is not None:
-            ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl) # needs dimension defaults
+            ValidateXbrlDimensions.loadDimensionDefaults(modelXbrl)  # needs dimension defaults
 
         currentAction = "creating concepts"
         conceptObjs = taxonomyObj.get("concepts", [])
-        conceptNum = 0 # for synthetic concept number
-        syntheticConceptFormat = "_f{{:0{}}}".format(int(log10(len(conceptObjs) or 1))) #want
-
-        numConceptCreationXbrlErrors = 0
 
         for conceptI, conceptObj in enumerate(conceptObjs):
             nillable = conceptObj.get("nillable", True)
             periodType = conceptObj.get("periodType", True)
             balance = conceptObj.get("balance", None)
             abstract = conceptObj.get("abstract", None)
-            nillable = conceptObj.get("abstract", None)
             name = qname(conceptObj.get("name", ""), prefixNamespaces)
             if name:
                 dataType = qname(conceptObj.get("dataType", ""), prefixNamespaces)
                 substitutionGroup = qname(conceptObj.get("substitutionGroup", ""), prefixNamespaces)
-                attributes = {"id": f"{name.prefix}_{name.localName}",
-                              "name": name.localName}
+                attributes: dict[str | QName, Any] = {"id": f"{name.prefix}_{name.localName}",
+                                                      "name": name.localName}
                 if dataType:
                     attributes["type"] = str(dataType)
                 if periodType:
@@ -635,16 +627,14 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                     attributes["nillable"] = str(nillable).lower()
                 attributes["substitutionGroup"] = str(substitutionGroup)
 
-                conceptElt = addChild(schemaElt,
-                                      QN_ELEMENT,
-                                      attributes=attributes)
+                addChild(schemaElt, QN_ELEMENT, attributes=attributes)
             else:
                 error("oimte:invalidConceptName",
                       "%(path)s concept name %(name)s is not valid",
                       modelObject=modelXbrl, path=f"taxonomy/concept[{conceptI+1}]", name=conceptObj.get("name", ""))
 
         # find which linkbases networkURIs are used on
-        usedOn = defaultdict(set)
+        usedOn: defaultdict[str, set[str]] = defaultdict(set)
         for dimObj in taxonomyObj.get("cubes", []) + taxonomyObj.get("domains", []):
             networkURI = dimObj.get("networkURI", "")
             if networkURI:
@@ -666,7 +656,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                 usedOn[networkURI].add("link:definitionLink")
 
         # define role types
-        locallyDefinedRoles = OrderedDict() # URI: {name, description, usedOns}
+        locallyDefinedRoles: OrderedDict[str, dict[str, str]] = OrderedDict()  # URI: {name, description, usedOns}
         # networkURI can appear multiple times in different places, infer a single role definition from all
         for objI, networkObj in enumerate(taxonomyObj.get("networks", []) + taxonomyObj.get("domains", [])):
             networkURI = networkObj.get("networkURI", "")
@@ -677,28 +667,27 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             if "name" in networkObj:
                 roleDef["name"] = networkObj["name"]
             if "description" in networkObj:
-                roleDev["description"] = networkObj["description"]
-        locallyDefinedRoleHrefs = {}
+                roleDef["description"] = networkObj["description"]
+        locallyDefinedRoleHrefs: dict[str, str] = {}
         for objI, (networkURI, networkObj) in enumerate(locallyDefinedRoles.items()):
-            name = networkObj.get("name", f"_roleType_{objI+1}")
+            name = networkObj.get("name", f"_roleType_{objI + 1}")
             description = networkObj.get("description", "")
             locallyDefinedRoleHrefs[networkURI] = f"#{name}"
 
-            roleTypeElt = addChild(appinfoElt, QN_ROLE_TYPE,
-                                   attributes={"id": name,
-                                               "roleURI": networkURI})
+            roleTypeElt = addChild(appinfoElt, QN_ROLE_TYPE, attributes={"id": name, "roleURI": networkURI})
             if description:
                 addChild(roleTypeElt, QN_DEFINITION, text=description)
             for u in usedOn[networkURI]:
                 addChild(roleTypeElt, QN_USED_ON, text=u)
-            modelXbrl.roleTypes[networkURI].append(roleTypeElt)
+            modelXbrl.roleTypes[networkURI].append(roleTypeElt)  # type: ignore[arg-type]
 
         # create ELRs
-        lbElts = []
+        lbElts: list[ModelObject] = []
         xlinkLabelFormat = "{{}}{{:0{}}}".format(int(log10(len(taxonomyObj.get("labels", [])) or 1)))
-        locXlinkLabels = {}
-        hrefsNsWithoutPrefix = defaultdict(list)
-        def locXlinkLabel(elrElt, conceptRef, path):
+        locXlinkLabels: dict[str, str] = {}
+        hrefsNsWithoutPrefix: defaultdict[str, list[str]] = defaultdict(list)
+
+        def locXlinkLabel(elrElt: ModelObject, conceptRef: Any, path: str) -> str:
             if conceptRef not in locXlinkLabels:
                 qn = qname(conceptRef, prefixNamespaces)
                 if qn is None:
@@ -708,7 +697,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                 elif qn.namespaceURI not in namespacePrefixes:
                     hrefsNsWithoutPrefix[qn.namespaceURI or "(none)"].append(path)
                 concept = modelXbrl.qnameConcepts.get(qn)
-                xlinkLabel = xlinkLabelFormat.format("loc", len(locXlinkLabels)+1)
+                xlinkLabel = xlinkLabelFormat.format("loc", len(locXlinkLabels) + 1)
                 locXlinkLabels[conceptRef] = xlinkLabel
                 if concept is not None:
                     addChild(elrElt, XbrlConst.qnLinkLoc,
@@ -720,8 +709,9 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                           "%(path)s concept reference %(conceptRef)s, qname %(qname)s, does not correspond to a defined concept",
                           modelObject=modelXbrl, path=path, qname=qn, conceptRef=conceptRef)
             return locXlinkLabels[conceptRef]
+
         lbElt = addChild(appinfoElt, XbrlConst.qnLinkLinkbase,
-                         attributes={"id":"_labels_"})
+                         attributes={"id": "_labels_"})
         lbElts.append(lbElt)
         elrElt = addChild(lbElt, XbrlConst.qnLinkLabelLink,
                          attributes={"{http://www.w3.org/1999/xlink}role": XbrlConst.defaultLinkRole,
@@ -731,10 +721,9 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             value = labelObj.get("value", "")
             language = labelObj.get("language", "")
             relatedID = labelObj.get("relatedID", [])
-            xlinkLbl = xlinkLabelFormat.format("label", labelI+1)
+            xlinkLbl = xlinkLabelFormat.format("label", labelI + 1)
             addChild(elrElt, XbrlConst.qnLinkLabel, text=value,
-                     attributes={# "id": xlinkLbl,
-                                 "{http://www.w3.org/1999/xlink}label": xlinkLbl,
+                     attributes={"{http://www.w3.org/1999/xlink}label": xlinkLbl,
                                  "{http://www.w3.org/1999/xlink}role": labelType,
                                  "{http://www.w3.org/1999/xlink}lang": language,
                                  "{http://www.w3.org/1999/xlink}type": "resource"})
@@ -745,7 +734,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                                      "{http://www.w3.org/1999/xlink}arcrole": XbrlConst.conceptLabel,
                                      "{http://www.w3.org/1999/xlink}type": "arc"})
 
-        def addRoleRefs(lbElt, roles, arcroles):
+        def addRoleRefs(lbElt: ModelObject, roles: set[str], arcroles: set[str]) -> None:
             firstElr = lbElt[0]
             for role in sorted(roles):
                 if role in locallyDefinedRoleHrefs:
@@ -755,39 +744,38 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                              attributes={
                                  "{http://www.w3.org/1999/xlink}roleURI": role,
                                  "{http://www.w3.org/1999/xlink}type": "simple",
-                                 "{http://www.w3.org/1999/xlink}href": href})
+                                 "{http://www.w3.org/1999/xlink}href": href,
+                             })
             for arcrole in sorted(arcroles):
                 if arcrole.startswith("http://xbrl.org/int/dim/arcrole"):
                     href = f"http://www.xbrl.org/2005/xbrldt-2005.xsd#{os.path.basename(arcrole)}"
                     addChild(lbElt, XbrlConst.qnLinkArcroleRef,
                              beforeSibling=firstElr,
-                                 attributes={
-                                     "{http://www.w3.org/1999/xlink}arcroleURI": arcrole,
-                                     "{http://www.w3.org/1999/xlink}type": "simple",
-                                     "{http://www.w3.org/1999/xlink}href": href})
+                             attributes={
+                                 "{http://www.w3.org/1999/xlink}arcroleURI": arcrole,
+                                 "{http://www.w3.org/1999/xlink}type": "simple",
+                                 "{http://www.w3.org/1999/xlink}href": href,
+                             })
             roles.clear()
             arcroles.clear()
 
-        domainIDHypercubeQNames = {}
-        domainIDPrimaryDimensions = {}
-        domainIDPeriodDimensions = {}
+        domainIDHypercubeQNames: dict[str, str] = {}
+        domainIDPrimaryDimensions: dict[str, str] = {}
+        domainIDPeriodDimensions: dict[str, str] = {}
         lbElt = addChild(appinfoElt, XbrlConst.qnLinkLinkbase)
         lbElts.append(lbElt)
-        lbEltRoleRefs = set()
-        lbEltArcroleRefs = set()
+        lbEltRoleRefs: set[str] = set()
+        lbEltArcroleRefs: set[str] = set()
         for cubeI, cubeObj in enumerate(taxonomyObj.get("cubes", [])):
-            locXlinkLabels.clear() # separate locs per elr
-            networkURI = cubeObj.get("networkURI", "") # ELR
-            hypercubeConcept = cubeObj.get("name", "") # hypercube concept clark name
-            cubeType = cubeObj.get("cubeType", "")
+            locXlinkLabels.clear()  # separate locs per elr
+            networkURI = cubeObj.get("networkURI", "")  # ELR
+            hypercubeConcept = cubeObj.get("name", "")  # hypercube concept clark name
             elrElt = addChild(lbElt, XbrlConst.qnLinkDefinitionLink,
                              attributes={"{http://www.w3.org/1999/xlink}role": networkURI,
                                          "{http://www.w3.org/1999/xlink}type": "extended"})
             lbEltRoleRefs.add(networkURI)
             for dimI, dimObj in enumerate(cubeObj.get("dimensions", [])):
-                dimensionType = dimObj.get("dimensionType", "")
                 domainID = dimObj.get("domainID", "")
-                dimensionType = dimObj.get("dimensionType", "")
                 dimensionConcept = dimObj.get("dimensionConcept", "")
                 if dimensionConcept == "xbrl:PrimaryDimension":
                     domainIDPrimaryDimensions[domainID] = hypercubeConcept
@@ -803,7 +791,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                     lbEltArcroleRefs.add(XbrlConst.hypercubeDimension)
 
         for domI, domObj in enumerate(taxonomyObj.get("domains", [])):
-            locXlinkLabels.clear() # separate locs per elr
+            locXlinkLabels.clear()  # separate locs per elr
             networkURI = domObj.get("networkURI", "")
             domainID = domObj.get("domainID", "")
             domainConcept = domObj.get("domainConcept", "")
@@ -846,7 +834,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
         lbElt = addChild(appinfoElt, XbrlConst.qnLinkLinkbase)
         lbElts.append(lbElt)
         for networkI, networkObj in enumerate(taxonomyObj.get("networks", [])):
-            locXlinkLabels.clear() # separate locs per elr
+            locXlinkLabels.clear()  # separate locs per elr
             networkURI = networkObj.get("networkURI", "")
             elrElt = addChild(lbElt, XbrlConst.qnLinkDefinitionLink,
                              attributes={"{http://www.w3.org/1999/xlink}role": networkURI,
@@ -856,38 +844,38 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             for relI, relObj in enumerate(relationships):
                 source = relObj.get("source", "")
                 target = relObj.get("target", "")
-                order = relObj.get("order", None)
                 relationshipType = relObj.get("relationshipType", "")
                 preferredLabel = relObj.get("preferredLabel", None)
                 weight = relObj.get("weight", None)
-                attributes = {"{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, source, f"network[{networkI}]/relationship[{relI}/source"),
-                              "{http://www.w3.org/1999/xlink}to": locXlinkLabel(elrElt, target, f"network[{networkI}]/relationship[{relI}/target"),
-                              "{http://www.w3.org/1999/xlink}arcrole": relationshipType,
-                              "{http://www.w3.org/1999/xlink}type": "arc"}
+                relAttributes: dict[str | QName, Any] = {
+                    "{http://www.w3.org/1999/xlink}from": locXlinkLabel(elrElt, source, f"network[{networkI}]/relationship[{relI}/source"),
+                    "{http://www.w3.org/1999/xlink}to": locXlinkLabel(elrElt, target, f"network[{networkI}]/relationship[{relI}/target"),
+                    "{http://www.w3.org/1999/xlink}arcrole": relationshipType,
+                    "{http://www.w3.org/1999/xlink}type": "arc",
+                }
                 lbEltArcroleRefs.add(relationshipType)
                 if weight is not None:
-                    attributes["weight"] = weight
+                    relAttributes["weight"] = weight
                 if preferredLabel is not None:
-                    attributes["preferredLabel"] = preferredLabel
-                addChild(elrElt, XbrlConst.qnLinkDefinitionArc, attributes)
+                    relAttributes["preferredLabel"] = preferredLabel
+                addChild(elrElt, XbrlConst.qnLinkDefinitionArc, attributes=relAttributes)
         addRoleRefs(lbElt, lbEltRoleRefs, lbEltArcroleRefs)
 
-        locXlinkLabels.clear() # separate locs per elr
+        locXlinkLabels.clear()  # separate locs per elr
         elrElt = addChild(lbElt, XbrlConst.qnLinkReferenceLink,
                          attributes={"{http://www.w3.org/1999/xlink}role": XbrlConst.defaultLinkRole,
                                      "{http://www.w3.org/1999/xlink}type": "extended"})
         for refI, refObj in enumerate(taxonomyObj.get("references", [])):
             referenceType = refObj.get("referenceType", "")
             relatedIDs = refObj.get("relatedID", "")
-            xlinkLbl = xlinkLabelFormat.format("reference", refI+1)
+            xlinkLbl = xlinkLabelFormat.format("reference", refI + 1)
             refElt = addChild(elrElt, XbrlConst.qnLinkReference,
                               attributes={"{http://www.w3.org/1999/xlink}label": xlinkLbl,
                                           "{http://www.w3.org/1999/xlink}role": referenceType,
                                           "{http://www.w3.org/1999/xlink}type": "resource"})
-            for partObj in sorted(refObj.get("parts", []), key=lambda o:refObj.get("order", 0)):
+            for partObj in sorted(refObj.get("parts", []), key=lambda o: refObj.get("order", 0)):
                 name = partObj.get("name", "")
                 value = partObj.get("value", "")
-                partI = partObj.get("order", "")
                 addChild(refElt, qname(name, prefixNamespaces), text=value)
             for relatedID in relatedIDs:
                 addChild(elrElt, XbrlConst.qnLinkLabelArc,
@@ -903,7 +891,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
             schemaDoc.linkbaseDiscover(lbElt)
 
         # errors
-        for hrefNs, paths in sorted(hrefsNsWithoutPrefix.items(), key=lambda i:i[0]):
+        for hrefNs, paths in sorted(hrefsNsWithoutPrefix.items(), key=lambda i: i[0]):
             error("oimte:missingConceptRefPrefx",
                   "Namespace has no prefix %(namespace)s in %(paths)s",
                   modelObject=modelXbrl, namespace=hrefNs, paths=", ".join(paths))
@@ -911,7 +899,7 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
         # save schema files if specified
         if (saveOIMTaxonomySchemaFiles or
             modelXbrl.modelManager.formulaOptions.typedParameters(modelXbrl.prefixedNamespaces)
-            .get(SAVE_OIM_SCHEMA_FORULA_PARAMETER, ("",None))[1] not in (None, "", "false")):
+            .get(SAVE_OIM_SCHEMA_FORULA_PARAMETER, ("", None))[1] not in (None, "", "false")):
             schemaDoc.save(schemaDoc.filepath.replace(".json", "-json.xsd"))
 
         return schemaDoc
@@ -925,30 +913,33 @@ def loadOIMTaxonomy(cntlr, error, warning, modelXbrl, oimFile, mappedUri, **kwar
                 error(ex.code, ex.message, modelObject=modelXbrl, **ex.msgArgs)
         else:
             error("arelleOIMloader:error",
-                    "Error while %(action)s, error %(errorType)s %(error)s\n traceback %(traceback)s",
-                    modelObject=modelXbrl, action=currentAction, errorType=ex.__class__.__name__, error=ex,
-                    traceback=traceback.format_exc())
+                  "Error while %(action)s, error %(errorType)s %(error)s\n traceback %(traceback)s",
+                  modelObject=modelXbrl, action=currentAction, errorType=ex.__class__.__name__, error=ex,
+                  traceback=traceback.format_exc())
 
-    global lastFilePath, lastFilePath
+    global lastFilePath, lastFilePathIsOIM
     lastFilePath = None
     lastFilePathIsOIM = False
     return _return
 
-def oimTaxonomyValidator(val, parameters):
+
+def oimTaxonomyValidator(val: ValidateXbrl, parameters: Any) -> None:
     if not isinstance(val.modelXbrl, XbrlDts): # if no OIM Taxonomy DTS give up
         return
     try:
-        validateDTS(val.modelXbrl)
+        validateDTS(val.modelXbrl)  # type: ignore[no-untyped-call]
     except Exception as ex:
         val.modelXbrl.error("arelleOIMloader:error",
-                "Error while validating, error %(errorType)s %(error)s\n traceback %(traceback)s",
-                modelObject=val.modelXbrl, errorType=ex.__class__.__name__, error=ex,
-                traceback=traceback.format_exc())
+                            "Error while validating, error %(errorType)s %(error)s\n traceback %(traceback)s",
+                            modelObject=val.modelXbrl, errorType=ex.__class__.__name__, error=ex,
+                            traceback=traceback.format_exc())
 
-lastFilePath = None
+
+lastFilePath: str | None = None
 lastFilePathIsOIM = False
 
-def isOimTaxonomyLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwargs):
+
+def isOimTaxonomyLoadable(modelXbrl: ModelXbrl, mappedUri: str, normalizedUri: str, filepath: str, **kwargs: Any) -> bool:
     global lastFilePath, lastFilePathIsOIM
     lastFilePath = None
     lastFilePathIsOIM = False
@@ -961,47 +952,51 @@ def isOimTaxonomyLoadable(modelXbrl, mappedUri, normalizedUri, filepath, **kwarg
             lastFilePath = filepath
     return lastFilePathIsOIM
 
-def oimTaxonomyLoader(modelXbrl, mappedUri, filepath, *args, **kwargs):
+
+def oimTaxonomyLoader(modelXbrl: ModelXbrl, mappedUri: str, filepath: str, *args: Any, **kwargs: Any) -> LoadResult:
     if filepath != lastFilePath or not lastFilePathIsOIM:
-        return None # not an OIM file
+        return None  # not an OIM file
 
     cntlr = modelXbrl.modelManager.cntlr
     cntlr.showStatus(_("Loading OIM taxonomy file: {0}").format(os.path.basename(filepath)))
     doc = loadOIMTaxonomy(cntlr, modelXbrl.error, modelXbrl.warning, modelXbrl, filepath, mappedUri, **kwargs)
     if doc is None:
-        return None # not an OIM file
+        return None  # not an OIM file
     return doc
 
-def optionsExtender(parser, *args, **kwargs):
+
+def optionsExtender(parser: OptionParser, *args: Any, **kwargs: Any) -> None:
     parser.add_option(SAVE_OIM_SCHEMA_CMDLINE_PARAMETER,
                       action="store_true",
                       dest="saveOIMTaxonomySchemaFiles",
                       help=_("Save each OIM taxonomy file an xsd named -json.xsd."))
-def filingStart(self, options, *args, **kwargs):
+
+
+def filingStart(self: Cntlr, options: RuntimeOptions, *args: Any, **kwargs: Any) -> None:
     global saveOIMTaxonomySchemaFiles
-    if options.saveOIMTaxonomySchemaFiles:
+    if getattr(options, "saveOIMTaxonomySchemaFiles", False):
         saveOIMTaxonomySchemaFiles = True
 
-def oimTaxonomyLoaded(cntlr, options, xbrlDts, *args, **kwargs):
+
+def oimTaxonomyLoaded(cntlr: Cntlr, options: RuntimeOptions | None, xbrlDts: XbrlDts, *args: Any, **kwargs: Any) -> None:
     # index groupContents
     xbrlDts.groupContents = defaultdict(OrderedSet)
     for txmy in xbrlDts.taxonomies.values():
         for grpCnts in txmy.groupContents:
-            for relName in getattr(grpCnts, "relatedNames", ()): # if object was invalid there are no attributes, e.g. bad QNames
+            for relName in getattr(grpCnts, "relatedNames", ()):  # if object was invalid there are no attributes, e.g. bad QNames
                 xbrlDts.groupContents[grpCnts.groupName].add(relName)
 
-def oimTaxonomyViews(cntlr, xbrlDts):
-    oimTaxonomyLoaded(cntlr, None, xbrlDts)
+
+def oimTaxonomyViews(cntlr: CntlrWinMain, xbrlDts: ModelXbrl) -> bool:
+    oimTaxonomyLoaded(cntlr, None, cast(XbrlDts, xbrlDts))
     if isinstance(xbrlDts, XbrlDts):
-        initialViews = []
-        if getattr(xbrlDts, "facts", ()): # has instance facts
-            initialViews.append( (XbrlFact, cntlr.tabWinTopRt, "Report Facts") )
+        initialViews: list[tuple[type[Any], Any, str]] = []
+        if getattr(xbrlDts, "facts", ()):  # has instance facts
+            initialViews.append((XbrlFact, cntlr.tabWinTopRt, "Report Facts"))
         initialViews.extend(((XbrlConcept, cntlr.tabWinBtm, "XBRL Concepts"),
                              (XbrlGroup, cntlr.tabWinTopRt, "XBRL Groups"),
                              (XbrlNetwork, cntlr.tabWinTopRt, "XBRL Networks"),
-                             (XbrlCube, cntlr.tabWinTopRt, "XBRL Cubes")
-                            ))
-        initialViews = tuple(initialViews)
+                             (XbrlCube, cntlr.tabWinTopRt, "XBRL Cubes")))
         additionalViews = ((XbrlAbstract, cntlr.tabWinBtm, "XBRL Abstracts"),
                            (XbrlCubeType, cntlr.tabWinBtm, "XBRL Cube Types"),
                            (XbrlDataType, cntlr.tabWinBtm, "XBRL Data Types"),
@@ -1015,9 +1010,10 @@ def oimTaxonomyViews(cntlr, xbrlDts):
                            (XbrlTransform, cntlr.tabWinBtm, "XBRL Transforms"),
                            (XbrlUnit, cntlr.tabWinBtm, "XBRL Units"),)
         for view in initialViews:
-            viewXbrlTxmyObj(xbrlDts, *view, additionalViews)
-        return True # block ordinary taxonomy views
+            viewXbrlTxmyObj(xbrlDts, *view, additionalViews)  # type: ignore[no-untyped-call]
+        return True  # block ordinary taxonomy views
     return False
+
 
 __pluginInfo__ = {
     "name": "OIM Taxonomy",
