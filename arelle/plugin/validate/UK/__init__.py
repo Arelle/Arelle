@@ -566,7 +566,7 @@ def validateXbrlFinally(val, *args, **kwargs):
             hmrc = ValidateUK(modelXbrl)
             if val.txmyType != "charities":
                 hmrc.validate()
-            elif val.txmyType == "charities":
+            else:
                 hmrc.validateCharities()
 
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
@@ -574,7 +574,7 @@ def validateXbrlFinally(val, *args, **kwargs):
 
 
 def _runValidateUK(authParam, hasCompaniesHouseContext):
-    if authParam["validateUsingIdentifierScheme"]:
+    if authParam["validateUsingIdentifierSchemeOverride"] is None:
         return hasCompaniesHouseContext
     return authParam["validateUsingIdentifierSchemeOverride"]
 
