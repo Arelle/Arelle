@@ -564,7 +564,7 @@ or label linkbases.  Multiple file names are separated by a '|' character.</td><
 <tr><td style="text-indent: 1em;">taxonomyLang</td><td>Language for taxonomy text (labels and formula assertion messages), e.g., <code>&taxonomyLang=ja</code>.  Defaults to uiLang when that is set, otherwise system settings.</td></tr>
 <tr><td style="text-indent: 1em;">labelLang</td><td>Deprecated - use taxonomyLang.</td></tr>
 <tr><td style="text-indent: 1em;">labelRole</td><td>Label role instead of standard label, e.g., <code>&labelRole=http://www.xbrl.org/2003/role/verboseLabel</code>.  To use the concept QName instead of a label, specify <code>&labelRole=XBRL-concept-name</code>.</td></tr>
-<tr><td style="text-indent: 1em;">uiLang</td><td>User interface language to override system settings, e.g., <code>&uiLang=fr</code>.  Changes setting for current session (but not saved setting).</td></tr>
+<tr><td style="text-indent: 1em;">uiLang</td><td>Language of Arelle's own messages.  This can only be set when the web server is started, e.g., <code>--webserver localhost:8080 --uiLang ka</code>.  A request uiLang for a different language is not applied and logs an <code>arelle:uiLangNotApplied</code> warning.  Use taxonomyLang to choose the language of labels and formula assertion messages per request.</td></tr>
 <tr><td style="text-indent: 1em;">calcs</td><td>Specify calculation validation:<br/>
 <code>c10</code> or <code>xbrl21</code>: Calc 1.0 (XBRL 2.1) calculations<br/>
 <code>c10d</code> or <code>xbrl21-dedup</code>: Calc 1.0 (XBRL 2.1) calculations<br/>

@@ -1702,6 +1702,17 @@ class CntlrCmdLine(Cntlr.Cntlr):
             self.betaFeatures[b] = getattr(options, b)
         taxonomyLang = self.taxonomyLanguage(options)
 
+        if options.uiLang and (
+            posixLocaleToBCP47Lang(options.uiLang).split("-")[0] != posixLocaleToBCP47Lang(self.uiLang).split("-")[0]
+        ):
+            # gettext installs a process-wide translation, so the UI language cannot change per run (e.g. web request)
+            self.addToLog(
+                _("uiLang {0} not applied, messages use {1}. The user interface language can only be set when Arelle starts "
+                  "(e.g. --uiLang on the command line or web server) and needs a matching message catalogue. "
+                  "uiLang still sets the default taxonomyLang.").format(options.uiLang, self.uiLang),
+                messageCode="arelle:uiLangNotApplied",
+                level=logging.WARNING)
+
         if None in (win32file, win32api, win32process, pywintypes):
             if options.statusPipe or options.monitorParentProcess:
                 self.addToLog(f"--statusPipe {options.statusPipe} cannot be installed, packages for win32 missing")
