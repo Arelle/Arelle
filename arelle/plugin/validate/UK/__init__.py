@@ -235,11 +235,6 @@ def _getAuthority(val, parameters):
     authority = UKPluginData.get(cntlr).authority
     if not authority and cntlr.hasGui and cntlr.config is not None:
         authority = cntlr.config.get(AUTHORITY_CONFIG_KEY) or None
-    if not authority and parameters:
-        # authority is supplied as a formula parameter, e.g. parameters="authority=companieshouse"
-        p = parameters.get(qname("authority", noPrefixIsNoNamespace=True))
-        if p and len(p) == 2 and p[1] not in ("null", "None", None):
-            authority = p[1]
     if authority and authority not in AUTHORITY_CODES:
         val.modelXbrl.error(
             "Arelle.invalidUKAuthority",
