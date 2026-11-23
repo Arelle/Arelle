@@ -1,44 +1,50 @@
 """
 See COPYRIGHT.md for copyright information.
 """
+
+from __future__ import annotations
+
+from typing import Any
+
 import regex as re
-from arelle.ModelValue import qname
+
+from arelle.ModelValue import QName
 from arelle.XbrlConst import xsd
 
 # MERGE TO arelle.XbrlConst when promoting plugin to infrastructure
 
-oimTaxonomyDocTypePattern = re.compile(r"\s*\{.*\"documentType\"\s*:\s*\"https://xbrl.org/[0-9]{4}/taxonomy\"", flags=re.DOTALL)
-oimTaxonomyDocTypes = (
-        "https://xbrl.org/2025/taxonomy",
-    )
+oimTaxonomyDocTypePattern: re.Pattern[str] = re.compile(r"\s*\{.*\"documentType\"\s*:\s*\"https://xbrl.org/[0-9]{4}/taxonomy\"", flags=re.DOTALL)
+oimTaxonomyDocTypes: tuple[str, ...] = (
+    "https://xbrl.org/2025/taxonomy",
+)
 
-xbrl = "https://xbrl.org/2025"
+xbrl: str = "https://xbrl.org/2025"
 
-qnStdLabel = qname(xbrl, "xbrli:label")
-qnXsDate = qname(xsd, "xs:date")
-qnXsDateTime = qname(xsd, "xs:dateTime")
-qnXsDuration = qname(xsd, "xs:duration")
-qnXsQName = qname(xsd, "xs:QName")
+qnStdLabel: QName = QName.fromParts("label", xbrl, "xbrli")
+qnXsDate: QName = QName.fromParts("date", xsd, "xs")
+qnXsDateTime: QName = QName.fromParts("dateTime", xsd, "xs")
+qnXsDuration: QName = QName.fromParts("duration", xsd, "xs")
+qnXsQName: QName = QName.fromParts("QName", xsd, "xs")
 
-qnXbrlLabelObj = qname(xbrl, "xbrl:labelObject")
+qnXbrlLabelObj: QName = QName.fromParts("labelObject", xbrl, "xbrl")
 
-objectsWithProperties = {
-    qname(xbrl, "xbrl:taxonomyObject"),
-    qname(xbrl, "xbrl:conceptObject"),
-    qname(xbrl, "xbrl:abstractObject"),
-    qname(xbrl, "xbrl:cubeObject"),
-    qname(xbrl, "xbrl:dimensionObject"),
-    qname(xbrl, "xbrl:domainObject"),
-    qname(xbrl, "xbrl:entityObject"),
-    qname(xbrl, "xbrl:groupObject"),
-    qname(xbrl, "xbrl:networkObject"),
+objectsWithProperties: set[QName] = {
+    QName.fromParts("taxonomyObject", xbrl, "xbrl"),
+    QName.fromParts("conceptObject", xbrl, "xbrl"),
+    QName.fromParts("abstractObject", xbrl, "xbrl"),
+    QName.fromParts("cubeObject", xbrl, "xbrl"),
+    QName.fromParts("dimensionObject", xbrl, "xbrl"),
+    QName.fromParts("domainObject", xbrl, "xbrl"),
+    QName.fromParts("entityObject", xbrl, "xbrl"),
+    QName.fromParts("groupObject", xbrl, "xbrl"),
+    QName.fromParts("networkObject", xbrl, "xbrl"),
     qnXbrlLabelObj,
-    qname(xbrl, "xbrl:memberObject"),
-    qname(xbrl, "xbrl:referenceObject"),
-    qname(xbrl, "xbrl:relationshipObject"),
-    }
+    QName.fromParts("memberObject", xbrl, "xbrl"),
+    QName.fromParts("referenceObject", xbrl, "xbrl"),
+    QName.fromParts("relationshipObject", xbrl, "xbrl"),
+}
 
-xbrlTaxonomyObjects = {
+xbrlTaxonomyObjects: dict[str, Any] = {
     "documentInfo": {
         "documentType": oimTaxonomyDocTypes[0],
         "namespaces": {
@@ -185,7 +191,6 @@ xbrlTaxonomyObjects = {
                 "name": "xs:nonPositiveInteger",
                 "baseType": "xs:integer",
                 "maxInclusive": 0
-
             },
             {
                 "name": "xs:negativeInteger",
@@ -200,24 +205,24 @@ xbrlTaxonomyObjects = {
                 "name": "xs:int",
                 "baseType": "xs:long",
                 "maxInclusive": 2147483647,
-                "minInclusive":  -2147483648
+                "minInclusive": -2147483648
             },
             {
                 "name": "xs:short",
                 "baseType": "xs:int",
                 "maxInclusive": 32767,
-                "minInclusive":  -32768
+                "minInclusive": -32768
             },
             {
                 "name": "xs:byte",
                 "baseType": "xs:short",
                 "maxInclusive": 127,
-                "minInclusive":  -128
+                "minInclusive": -128
             },
             {
                 "name": "xs:nonNegativeInteger",
                 "baseType": "xs:integer",
-                "minInclusive":  0
+                "minInclusive": 0
             },
             {
                 "name": "xs:unsignedLong",
@@ -242,7 +247,7 @@ xbrlTaxonomyObjects = {
             {
                 "name": "xs:positiveInteger",
                 "baseType": "xs:nonNegativeInteger",
-                "minInclusive":  1
+                "minInclusive": 1
             },
             {
                 "name": "xs:yearMonthDuration",
