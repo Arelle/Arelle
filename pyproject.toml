@@ -391,7 +391,6 @@ module = [
     'arelle.plugin.OimTaxonomy.ViewXbrlTxmyObj',
     'arelle.plugin.OimTaxonomy.XbrlAbstract',
     'arelle.plugin.OimTaxonomy.XbrlConcept',
-    'arelle.plugin.OimTaxonomy.XbrlConst',
     'arelle.plugin.OimTaxonomy.XbrlCube',
     'arelle.plugin.OimTaxonomy.XbrlDimension',
     'arelle.plugin.OimTaxonomy.XbrlDts',
