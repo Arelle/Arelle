@@ -230,7 +230,7 @@ def loadOIMTaxonomy(
                 error("jsonschema:oimTaxonomyError",
                       _("Error: %(error)s, jsonObj: %(path)s"),
                       sourceFileLine=href, error=msg, path="".join(path))
-        except (jsonschema.exceptions.SchemaError, jsonschema.exceptions._RefResolutionError, jsonschema.exceptions.UndefinedTypeCheck) as ex: # type: ignore[attr-defined]
+        except (jsonschema.exceptions.SchemaError, jsonschema.exceptions._RefResolutionError, jsonschema.exceptions.UndefinedTypeCheck) as ex:  # type: ignore[attr-defined]
             msg = str(ex)
             if "PointerToNowhere" in msg:
                 msg = msg[:121]
@@ -681,7 +681,7 @@ def loadOIMTaxonomy(
                 addChild(roleTypeElt, QN_DEFINITION, text=description)
             for u in usedOn[networkURI]:
                 addChild(roleTypeElt, QN_USED_ON, text=u)
-            modelXbrl.roleTypes[networkURI].append(roleTypeElt)  # type: ignore[arg-type]
+            modelXbrl.roleTypes[networkURI].append(roleTypeElt)
 
         # create ELRs
         lbElts: list[ModelObject] = []
