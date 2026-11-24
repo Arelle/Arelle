@@ -556,6 +556,8 @@ def loadOIMTaxonomy(
 
         xbrlDts.namespaceDocs[taxonomyName.namespaceURI].append(schemaDoc)
 
+        return schemaDoc
+
         # convert to XML Taxonomy
         QN_ANNOTATION = QName("xs", "http://www.w3.org/2001/XMLSchema", "annotation")
         QN_APPINFO = QName("xs", "http://www.w3.org/2001/XMLSchema", "appinfo")
