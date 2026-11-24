@@ -26,14 +26,12 @@ Companies House validations run only if a context uses the Companies House entit
 
 The authority is taken from the first of these that is set:
 1. `--ukAuthority`
-2. the `authority` attribute of the disclosure system configuration
 3. the GUI selection
-4. the `authority` formula parameter, e.g. `--parameters "authority=companieshouse"`
 
 An unrecognized authority logs `Arelle.invalidUKAuthority` and the default entry applies.
 
 Python API:
-`RuntimeOptions(pluginOptions={"ukAuthority": "companieshouse"})` or `RuntimeOptions(parameters="authority=companieshouse")`
+`RuntimeOptions(pluginOptions={"ukAuthority": "companieshouse"})`
 """
 import os
 from dataclasses import dataclass
@@ -256,8 +254,8 @@ def validateXbrlStart(val, parameters=None, *args, **kwargs):
     authorityValidations = cast(dict[Any, Any], loadAuthorityValidations(val.modelXbrl, Path(__file__).parent, "UK"))
 
     val.authority = _getAuthority(val, parameters)
-    val.authParam = authorityValidations["default"]
-    val.authParam.update(authorityValidations.get(val.authority, {}))
+    val.ukAuthParam = authorityValidations["default"]
+    val.ukAuthParam.update(authorityValidations.get(val.authority, {}))
 
     if parameters:
         p = parameters.get(qname("type",noPrefixIsNoNamespace=True))
@@ -309,7 +307,7 @@ def validateXbrlFinally(val, *args, **kwargs):
     modelXbrl.profileActivity()
     modelXbrl.modelManager.showStatus(_statusMsg)
 
-    if modelDocument.type in (ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL):
+    if modelDocument.type in (ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET):
         labelHasNegativeTermPattern = re.compile(r".*[(].*\w.*[)].*")
 
         companyReferenceNumberContexts = defaultdict(list)
@@ -556,8 +554,8 @@ def validateXbrlFinally(val, *args, **kwargs):
         for elt in rootElt.xpath("//xhtml:*[@style]", namespaces={"xhtml": "http://www.w3.org/1999/xhtml"}):
             _validateStyleAttribute(elt, modelXbrl)
 
-    if modelDocument.type in (ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL):
-        if _runValidateUK(val.authParam, hasCompaniesHouseContext):
+    if modelDocument.type in (ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET):
+        if _runValidateUK(val.ukAuthParam, hasCompaniesHouseContext):
             hmrc = ValidateUK(modelXbrl)
             if val.txmyType != "charities":
                 hmrc.validate()
@@ -568,10 +566,10 @@ def validateXbrlFinally(val, *args, **kwargs):
     modelXbrl.modelManager.showStatus(None)
 
 
-def _runValidateUK(authParam, hasCompaniesHouseContext):
-    if authParam["validateUsingIdentifierSchemeOverride"] is None:
+def _runValidateUK(ukAuthParam, hasCompaniesHouseContext):
+    if ukAuthParam["validateUsingIdentifierSchemeOverride"] is None:
         return hasCompaniesHouseContext
-    return authParam["validateUsingIdentifierSchemeOverride"]
+    return ukAuthParam["validateUsingIdentifierSchemeOverride"]
 
 
 def _validateStyleElement(elt, modelXbrl):
