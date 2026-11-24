@@ -407,7 +407,6 @@ module = [
     'arelle.plugin.OimTaxonomy.XbrlTypes',
     'arelle.plugin.OimTaxonomy.XbrlUnit',
     'arelle.plugin.profileCmdLine',
-    'arelle.plugin.profileFormula',
     'arelle.plugin.saveCHComponentFile',
     'arelle.plugin.saveDTS',
     'arelle.plugin.saveLoadableExcel',
