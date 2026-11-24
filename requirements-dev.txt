@@ -3,6 +3,7 @@ ruff==0.17.5
 mypy==2.4.1
 
 types-boto3[s3]==1.44.3
+types-jsonschema==4.26.0.20261006
 types-lxml==2026.2.16
 types-openpyxl==3.1.5.20261017
 types-PyMySQL==1.2.4.20261116
