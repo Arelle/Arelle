@@ -1,0 +1,31 @@
+{
+    "copyright": [
+        "(c) 2022 Workiva, All rights reserved"
+    ],
+    "description": [
+        "Authority validation parameters.",
+        "",
+        "The format is as follows:",
+        "",
+        "A JSON object by authority with objects ",
+        "",
+        "key: code of the authority",
+        "authorityName: name of issuing authority, such as HMRC or Companies House. UK is the default.",
+        "validateUsingIdentifierSchemeOverride: Flag override to specifically use base validations or base + CoHo validations. If unset then fallback to the identifier scheme."
+    ],
+    "default": {
+        "authorityName": "UK",
+        "comment": "Base HMRC validations where regulator specific validations are decided by the identifier scheme",
+        "validateUsingIdentifierSchemeOverride": null
+    },
+    "hmrc": {
+        "authorityName": "HMRC",
+        "comment": "Base HMRC validations",
+        "validateUsingIdentifierSchemeOverride": false
+    },
+    "companieshouse": {
+        "authorityName": "COHO",
+        "comment": "Base HMRC validations + Companies House validations",
+        "validateUsingIdentifierSchemeOverride": true
+    }
+}

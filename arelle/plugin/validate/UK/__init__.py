@@ -6,8 +6,37 @@ References:
 - <https://xbrl.frc.org.uk> (taxonomies, filing requirements, consistency checks)
 - [Joint Filing Common Validation Checks](https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/434597/joint-filing-validation-checks.pdf)
 - [HMRC CT Inline XBRL Style Guide](https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/434588/xbrl-style-guide.pdf)
+
+GUI operation:
+- Enable the validate/UK plugin and select the `hmrc` disclosure system.
+- Optionally select an authority from `Tools` > `Validation` > `UK authority`.
+
+Command line operation:
+`python arelleCmdLine.py --plugins validate/UK --disclosureSystem hmrc --validate --file {my-report-file}`
+
+Authority-specific configuration:
+The --ukAuthority option selects the authority whose validations are applied. Valid authority codes are
+defined in resources/authority-validations.json:
+- `--ukAuthority companieshouse` applies the HMRC validations plus the Companies House validations.
+- `--ukAuthority hmrc` applies the base HMRC validations only.
+
+When no authority is given, the default entry in resources/authority-validations.json applies: the
+Companies House validations run only if a context uses the Companies House entity identifier scheme
+(`http://www.companieshouse.gov.uk/`).
+
+The authority is taken from the first of these that is set:
+1. `--ukAuthority`
+3. the GUI selection
+
+An unrecognized authority logs `Arelle.invalidUKAuthority` and the default entry applies.
+
+Python API:
+`RuntimeOptions(pluginOptions={"ukAuthority": "companieshouse"})`
 """
 import os
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, cast
 from arelle import XmlUtil
 from arelle.ModelDocumentType import ModelDocumentType
 from arelle.ModelValue import qname, dateTime, DATE, dateUnionEqual
@@ -19,11 +48,30 @@ import regex as re
 import tinycss2.ast
 from collections import defaultdict
 from arelle.XmlValidate import VALID
+from arelle.utils.PluginData import PluginData
+from arelle.utils.validate.ValidationUtil import loadAuthorityValidations
 
 from .ValidateUK import ValidateUK
 
 FRC_URL_DOMAIN = "http://xbrl.frc.org.uk/"
 memNameNumPattern = re.compile(r"^([A-Za-z-]+)([0-9]+)$")
+PLUGIN_NAME = "Validate UK"
+AUTHORITY_CODES = frozenset({"companieshouse", "hmrc"})
+AUTHORITY_CONFIG_KEY = "ukAuthority"
+
+
+@dataclass
+class UKPluginData(PluginData):
+    authority: str | None = None
+
+    @staticmethod
+    def get(cntlr):
+        pluginData = cntlr.getPluginData(PLUGIN_NAME)
+        if pluginData is None:
+            pluginData = UKPluginData(PLUGIN_NAME)
+            cntlr.setPluginData(pluginData)
+        return pluginData
+
 compTxmyNamespacePattern = re.compile(r"http://www.govtalk.gov.uk/uk/fr/tax/uk-hmrc-ct/[0-9-]{10}")
 IMG_URL_CSS_PROPERTIES = frozenset([
     "background", "background-image",
@@ -140,10 +188,74 @@ def disclosureSystemConfigURL(disclosureSystem, *args, **kwargs):
     return os.path.join(os.path.dirname(__file__), "config.xml")
 
 
+def cntlrCmdLineOptions(parser, *args, **kwargs):
+    parser.add_option(
+        "--ukAuthority",
+        action="store",
+        dest="ukAuthority",
+        choices=sorted(AUTHORITY_CODES),
+        help=_("Select UK authority for jurisdiction-specific validation configuration."),
+    )
+
+
+def cntlrCmdLineUtilityRun(cntlr, options, *args, **kwargs):
+    # capture the option before validation begins
+    ukAuthority = getattr(options, "ukAuthority", None)
+    if ukAuthority:
+        UKPluginData.get(cntlr).authority = ukAuthority
+
+
+def cntlrWinMainMenuValidation(cntlr, menu, *args, **kwargs):
+    from tkinter import Menu as TkMenu, StringVar
+
+    authorityMenu = TkMenu(menu, tearoff=0)
+    cntlr.config.setdefault(AUTHORITY_CONFIG_KEY, "")
+    authorityVar = StringVar(value=cntlr.config.get(AUTHORITY_CONFIG_KEY, ""))
+
+    def setAuthority(*args):
+        cntlr.config[AUTHORITY_CONFIG_KEY] = authorityVar.get()
+        cntlr.saveConfig()
+
+    authorityVar.trace_add("write", setAuthority)
+    authorityMenu.add_radiobutton(label=_("None"), variable=authorityVar, value="")
+    authorityMenu.add_separator()
+    for code in sorted(AUTHORITY_CODES):
+        authorityMenu.add_radiobutton(label=code, variable=authorityVar, value=code)
+    menu.add_cascade(label=_("UK authority"), menu=authorityMenu, underline=0)
+
+
+def validateComplete(cntlr, fileSource, *args, **kwargs):
+    UKPluginData.get(cntlr).authority = None
+
+
+def _getAuthority(val, parameters):
+    cntlr = val.modelXbrl.modelManager.cntlr
+    authority = UKPluginData.get(cntlr).authority
+    if not authority and cntlr.hasGui and cntlr.config is not None:
+        authority = cntlr.config.get(AUTHORITY_CONFIG_KEY) or None
+    if authority and authority not in AUTHORITY_CODES:
+        val.modelXbrl.error(
+            "Arelle.invalidUKAuthority",
+            _("Invalid authority '%(authority)s'. Valid values: %(validValues)s."),
+            modelObject=val.modelXbrl,
+            authority=authority,
+            validValues=", ".join(sorted(AUTHORITY_CODES)),
+        )
+        return None
+    return authority
+
+
 def validateXbrlStart(val, parameters=None, *args, **kwargs):
     val.validateHMRCplugin = val.validateDisclosureSystem and getattr(val.disclosureSystem, "UKplugin", False)
     if not (val.validateHMRCplugin) or not val.modelXbrl.modelDocument:
         return
+
+    # resources/authority-validations.json may be a list or a dict; a dict is expected here.
+    authorityValidations = cast(dict[Any, Any], loadAuthorityValidations(val.modelXbrl, Path(__file__).parent, "UK"))
+
+    val.authority = _getAuthority(val, parameters)
+    val.ukAuthParam = authorityValidations["default"]
+    val.ukAuthParam.update(authorityValidations.get(val.authority, {}))
 
     if parameters:
         p = parameters.get(qname("type",noPrefixIsNoNamespace=True))
@@ -195,7 +307,7 @@ def validateXbrlFinally(val, *args, **kwargs):
     modelXbrl.profileActivity()
     modelXbrl.modelManager.showStatus(_statusMsg)
 
-    if modelDocument.type in (ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL):
+    if modelDocument.type in (ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET):
         labelHasNegativeTermPattern = re.compile(r".*[(].*\w.*[)].*")
 
         companyReferenceNumberContexts = defaultdict(list)
@@ -442,14 +554,22 @@ def validateXbrlFinally(val, *args, **kwargs):
         for elt in rootElt.xpath("//xhtml:*[@style]", namespaces={"xhtml": "http://www.w3.org/1999/xhtml"}):
             _validateStyleAttribute(elt, modelXbrl)
 
-    hmrc = ValidateUK(modelXbrl)
-    if val.txmyType != "charities":
-        hmrc.validate()
-    elif val.txmyType == "charities":
-        hmrc.validateCharities()
+    if modelDocument.type in (ModelDocumentType.INSTANCE, ModelDocumentType.INLINEXBRL, ModelDocumentType.INLINEXBRLDOCUMENTSET):
+        if _runValidateUK(val.ukAuthParam, hasCompaniesHouseContext):
+            hmrc = ValidateUK(modelXbrl)
+            if val.txmyType != "charities":
+                hmrc.validate()
+            else:
+                hmrc.validateCharities()
 
     modelXbrl.profileActivity(_statusMsg, minTimeToShow=0.0)
     modelXbrl.modelManager.showStatus(None)
+
+
+def _runValidateUK(ukAuthParam, hasCompaniesHouseContext):
+    if ukAuthParam["validateUsingIdentifierSchemeOverride"] is None:
+        return hasCompaniesHouseContext
+    return ukAuthParam["validateUsingIdentifierSchemeOverride"]
 
 
 def _validateStyleElement(elt, modelXbrl):
@@ -538,7 +658,7 @@ class GDV:
 
 __pluginInfo__ = {
     # Do not use _( ) in pluginInfo itself (it is applied later, after loading
-    "name": "Validate UK",
+    "name": PLUGIN_NAME,
     "aliases": [
         "validate/hmrc",
     ],
@@ -551,6 +671,10 @@ __pluginInfo__ = {
     "DisclosureSystem.Types": disclosureSystemTypes,
     "DisclosureSystem.ConfigURL": disclosureSystemConfigURL,
 
+    "CntlrCmdLine.Options": cntlrCmdLineOptions,
+    "CntlrCmdLine.Utility.Run": cntlrCmdLineUtilityRun,
+    "CntlrWinMain.Menu.Validation": cntlrWinMainMenuValidation,
+    "Validate.Complete": validateComplete,
     "Validate.XBRL.Start": validateXbrlStart,
     "Validate.XBRL.Finally": validateXbrlFinally,
 }

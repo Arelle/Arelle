@@ -69,6 +69,7 @@ from arelle.XbrlConst import xhtml
 from arelle.formula.XPathContext import XPathContext
 from arelle.typing import TypeGetText
 from arelle.utils.PluginHooks import PluginHooks
+from arelle.utils.validate.ValidationUtil import loadAuthorityValidations
 from .ESEFPluginData import ESEFPluginData
 from .ESEF_2021.ValidateXbrlFinally import validateXbrlFinally as validateXbrlFinally2021
 from .ESEF_Current.ValidateXbrlFinally import validateXbrlFinally as validateXbrlFinallyCurrent
@@ -78,7 +79,6 @@ from .Util import (
     esefDisclosureSystemSelected,
     getDisclosureSystemYear,
     isEsefExcludedInstance,
-    loadAuthorityValidations,
     shouldRunEsefValidationRules,
 )
 from .ValidationPluginExtension import ValidationPluginExtension
@@ -308,7 +308,7 @@ class ESEFPlugin(PluginHooks):
         pluginData = ESEFPluginData.get(modelXbrl.modelManager.cntlr, ESEF_PLUGIN_NAME)
         val.authority = pluginData.getEsefAuthority(modelXbrl, parameters)
 
-        authorityValidations = loadAuthorityValidations(val.modelXbrl)
+        authorityValidations = loadAuthorityValidations(val.modelXbrl, Path(__file__).parent, "ESEF")
         # loadAuthorityValidations returns either a list or a dict but in this context, we expect a dict.
         # By using cast, we let mypy know that a list is _not_ expected here.
         authorityValidations = cast(dict[Any, Any], authorityValidations)

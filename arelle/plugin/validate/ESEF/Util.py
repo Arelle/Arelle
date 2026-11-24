@@ -3,16 +3,14 @@ See COPYRIGHT.md for copyright information.
 """
 from __future__ import annotations
 
-import json
 import os
 from collections import defaultdict
 from collections.abc import Collection
-from typing import Any, Union, cast
+from typing import Any
 import regex as re
 
 from lxml.etree import _Element
 
-from arelle.FileSource import openFileStream
 from arelle.ModelDocument import ModelDocument
 from arelle.ModelDtsObject import ModelConcept
 from arelle.ModelInstanceObject import ModelContext, ModelFact, ModelUnit
@@ -97,13 +95,6 @@ def resourcesFilePath(modelManager: ModelManager, fileName: str) -> str:
         _resourcesDir = os.path.join(modelManager.cntlr.webCache.cacheDir, "resources", "validation", "ESEF")
 
     return os.path.join(_resourcesDir, fileName)
-
-
-def loadAuthorityValidations(modelXbrl: ModelXbrl) -> list[Any] | dict[Any, Any]:
-    _file = openFileStream(modelXbrl.modelManager.cntlr, resourcesFilePath(modelXbrl.modelManager, "authority-validations.json"), "rt", encoding="utf-8")
-    validations = json.load(_file) # {localName: date, ...}
-    _file.close()
-    return cast(Union[dict[Any, Any], list[Any]], validations)
 
 
 def checkForMultiLangDuplicates(modelXbrl: ModelXbrl) -> None:
