@@ -3,33 +3,48 @@ Profile Formula Validation is an example of a plug-in to GUI menu that will prof
 
 See COPYRIGHT.md for copyright information.
 """
-import os
-from arelle.Version import authorLabel, copyrightLabel
-from tkinter import simpledialog, messagebox
 
-def profileFormulaMenuEntender(cntlr, menu, *args, **kwargs):
+from __future__ import annotations
+
+import os
+from tkinter import Menu, messagebox, simpledialog
+from typing import TYPE_CHECKING, Any, cast
+
+from arelle.typing import TypeGetText
+from arelle.Version import authorLabel, copyrightLabel
+
+if TYPE_CHECKING:
+    from arelle.CntlrWinMain import CntlrWinMain
+    from arelle.ModelXbrl import ModelXbrl
+    from arelle.ValidateXbrl import ValidateXbrl
+
+_: TypeGetText
+
+
+def profileFormulaMenuEntender(cntlr: CntlrWinMain, menu: Menu, *args: Any, **kwargs: Any) -> None:
     # Extend menu with an item for the profile formula plugin
     menu.add_command(label="Profile formula validation",
                      underline=0,
-                     command=lambda: profileFormulaMenuCommand(cntlr) )
+                     command=lambda: profileFormulaMenuCommand(cntlr))
 
-def profileFormulaMenuCommand(cntlr):
+
+def profileFormulaMenuCommand(cntlr: CntlrWinMain) -> None:
     # save DTS menu item has been invoked
     if cntlr.modelManager is None or cntlr.modelManager.modelXbrl is None:
         cntlr.addToLog("No taxonomy loaded.")
         return
 
     # get file name into which to save log file while in foreground thread
-    profileReportFile = cntlr.uiFileDialog("save",
+    profileReportFile: str = cntlr.uiFileDialog("save",
             title=_("arelle - Save Formula Profile Report"),
-            initialdir=cntlr.config.setdefault("formulaProfileReportDir","."),
+            initialdir=cntlr.config.setdefault("formulaProfileReportDir", "."),
             filetypes=[(_("Profile report file .log"), "*.log")],
             defaultextension=".log")
     if not profileReportFile:
-        return False
+        return
     errMsg = ""
-    maxRunTime = 0
-    while (1):
+    maxRunTime: float = 0
+    while 1:
         timeout = simpledialog.askstring(_("arelle - Set formula run time limit"),
                 _("{0}You may enter the maximum number of minutes to run formulas.\n"
                   "(Leave empty for no run time limitation.)".format(errMsg)),
@@ -51,11 +66,13 @@ def profileFormulaMenuCommand(cntlr):
 
     # perform validation and profiling on background thread
     import threading
-    thread = threading.Thread(target=lambda c=cntlr, f=profileReportFile, t=maxRunTime, e=excludeCompileTime: backgroundProfileFormula(c,f,t,e))
+    thread = threading.Thread(target=backgroundProfileFormula,
+                              args=(cntlr, profileReportFile, maxRunTime, excludeCompileTime))
     thread.daemon = True
     thread.start()
 
-def backgroundProfileFormula(cntlr, profileReportFile, maxRunTime, excludeCompileTime):
+
+def backgroundProfileFormula(cntlr: CntlrWinMain, profileReportFile: str, maxRunTime: float, excludeCompileTime: bool) -> None:
     from arelle import Locale, ValidateXbrlDimensions
     from arelle.formula import ValidateFormula, XPathParser
 
@@ -69,13 +86,17 @@ def backgroundProfileFormula(cntlr, profileReportFile, maxRunTime, excludeCompil
 
     # a minimal validation class for formula validator parameters that are needed
     class Validate:
-        def __init__(self, modelXbrl):
+        validateFormulaCompileOnly: bool
+
+        def __init__(self, modelXbrl: ModelXbrl) -> None:
             self.modelXbrl = modelXbrl
             self.parameters = None
             self.validateSBRNL = False
-        def close(self):
+
+        def close(self) -> None:
             self.__dict__.clear()
 
+    assert cntlr.modelManager.modelXbrl is not None
     val = Validate(cntlr.modelManager.modelXbrl)
     formulaOptions = val.modelXbrl.modelManager.formulaOptions
     if maxRunTime > 0:
@@ -84,7 +105,7 @@ def backgroundProfileFormula(cntlr, profileReportFile, maxRunTime, excludeCompil
         startedAt = time.time()
         cntlr.addToLog(_("pre-compiling formulas before profiling"))
         val.validateFormulaCompileOnly = True
-        ValidateFormula.validate(val)
+        ValidateFormula.validate(cast("ValidateXbrl", val))
         del val.validateFormulaCompileOnly
         cntlr.addToLog(Locale.format_string(cntlr.modelManager.locale,
                                             _("formula pre-compiling completed in %.2f secs"),
@@ -118,13 +139,14 @@ def backgroundProfileFormula(cntlr, profileReportFile, maxRunTime, excludeCompil
     sys.stdout = priorStdOut
     os.remove(statsFile)
 
+
 __pluginInfo__ = {
     "name": "Profile Formula Validation",
     "version": "1.0",
     "description": "This plug-in adds a profiled formula validation. "
-                    "Includes XPath compilation in the profile if it is the first validation of instance; "
-                    "to exclude XPath compile statistics, validate first the normal way (e.g., toolbar button) "
-                    "and then validate again using this profile formula validation plug-in.  ",
+                   "Includes XPath compilation in the profile if it is the first validation of instance; "
+                   "to exclude XPath compile statistics, validate first the normal way (e.g., toolbar button) "
+                   "and then validate again using this profile formula validation plug-in.  ",
     "license": "Apache-2",
     "author": authorLabel,
     "copyright": copyrightLabel,
