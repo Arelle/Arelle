@@ -314,7 +314,7 @@ class ModelRelationshipSet:
             modelFrom: ModelObject,
             axis: str,
             modelTo: ModelObject | None = None,
-            visited: set[ModelObject] | None = None,
+            visited: set[ModelObject | tuple[ModelObject, str | None, str | None]] | None = None,
             isDRS: bool = False,
             consecutiveLinkrole: bool = False
         ) -> bool: # either model concept or qname
@@ -345,7 +345,6 @@ class ModelRelationshipSet:
                     visited.add(toConcept)
                     if self.isRelated(toConcept, axis, modelTo, visited, isDRS):
                         return True
-                    visited.discard(toConcept)
             return False
         isDescendantAxis = "descendant" in axis
         if axis.startswith("ancestral-"): # allow ancestral-sibling...
@@ -356,13 +355,11 @@ class ModelRelationshipSet:
                 return False # prevent looping
             visited.add(modelFrom)
             # any ancestral sibling?
-            isRel = any(
+            return any(
                 self.isRelated(modelRel.fromModelObject, axis, modelTo, visited)
                 for modelRel in self.toModelObject(modelFrom)
                 if modelRel.fromModelObject is not None
             )
-            visited.discard(modelFrom)
-            return isRel
         if axis.startswith("sibling"):  # allow sibling-or-self or sibling-or-descendant
             axis = axis[7:] # remove sibling, else recursion will loop
             return any(
@@ -378,8 +375,9 @@ class ModelRelationshipSet:
                 continue
             if isDescendantAxis:
                 if visited is None: visited = set()
-                if toConcept not in visited:
-                    visited.add(toConcept)
+                visitKey = (toConcept, modelRel.arcrole, modelRel.consecutiveLinkrole)
+                if visitKey not in visited:
+                    visited.add(visitKey)
                     if isDRS:
                         if (self.modelXbrl.relationshipSet(consecutiveArcrole[modelRel.arcrole],  # type: ignore[index]
                                                            modelRel.consecutiveLinkrole, self.linkqname, self.arcqname)
@@ -393,7 +391,6 @@ class ModelRelationshipSet:
                     else:
                         if self.isRelated(toConcept, axis, modelTo, visited, isDRS):
                             return True
-                    visited.discard(toConcept)
         return False
 
     def label(
