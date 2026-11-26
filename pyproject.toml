@@ -410,7 +410,6 @@ module = [
     'arelle.plugin.saveDTS',
     'arelle.plugin.saveLoadableExcel',
     'arelle.plugin.saveLoadableOIM',
-    'arelle.plugin.saveOIMTaxonomy',
     'arelle.plugin.saveSKOS',
     'arelle.plugin.saveSampleInstance',
     'arelle.plugin.security.cryptAES_CBC',
