@@ -1069,10 +1069,12 @@ class ValidateXbrl:
             if revCycleRel is not None and rel.isIdenticalTo(revCycleRel):
                 continue # don't double back on self in undirected testing
             relTo = rel.toModelObject
+            if relTo is None:
+                continue
             if relTo in fromConcepts: #forms a directed cycle
                 return [cycleType,rel]
             fromConcepts.add(relTo)  # type: ignore[arg-type]
-            nextRels = relsSet.fromModelObject(relTo)  # type: ignore[arg-type]
+            nextRels = relsSet.fromModelObject(relTo)
             foundCycle = self.fwdCycle(relsSet, nextRels, noUndirected, fromConcepts)
             if foundCycle is not None:
                 foundCycle.append(rel)
@@ -1096,6 +1098,8 @@ class ValidateXbrl:
         for rel in relsSet.toModelObject(toConcept):
             if not rel.isIdenticalTo(turnbackRel):
                 relFrom = rel.fromModelObject
+                if relFrom is None:
+                    continue
                 if relFrom in fromConcepts:
                     return ["undirected",rel]
                 fromConcepts.add(relFrom)  # type: ignore[arg-type]
@@ -1103,7 +1107,7 @@ class ValidateXbrl:
                 if foundCycle is not None:
                     foundCycle.append(rel)
                     return foundCycle
-                fwdRels = relsSet.fromModelObject(relFrom)  # type: ignore[arg-type]
+                fwdRels = relsSet.fromModelObject(relFrom)
                 foundCycle = self.fwdCycle(relsSet, fwdRels, True, fromConcepts, cycleType="undirected", revCycleRel=rel)
                 if foundCycle is not None:
                     foundCycle.append(rel)
