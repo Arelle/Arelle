@@ -1064,7 +1064,10 @@ class ValidateXbrl:
         fromConcepts: set[ModelConcept | ModelCustomFunctionSignature | ModelInlineFact],
         cycleType: str = "directed",
         revCycleRel: ModelRelationship | None = None,
+        clearedConcepts: set[ModelObject] | None = None,
     ) -> list[str | ModelRelationship] | None:
+        if clearedConcepts is None:
+            clearedConcepts = set()
         for rel in rels:
             if revCycleRel is not None and rel.isIdenticalTo(revCycleRel):
                 continue # don't double back on self in undirected testing
@@ -1073,13 +1076,17 @@ class ValidateXbrl:
                 continue
             if relTo in fromConcepts: #forms a directed cycle
                 return [cycleType,rel]
+            if relTo in clearedConcepts:
+                continue
             fromConcepts.add(relTo)  # type: ignore[arg-type]
             nextRels = relsSet.fromModelObject(relTo)
-            foundCycle = self.fwdCycle(relsSet, nextRels, noUndirected, fromConcepts)
+            foundCycle = self.fwdCycle(relsSet, nextRels, noUndirected, fromConcepts, clearedConcepts=clearedConcepts)
             if foundCycle is not None:
                 foundCycle.append(rel)
                 return foundCycle
             fromConcepts.discard(relTo)
+            if not noUndirected:
+                clearedConcepts.add(relTo)
             # look for back path in any of the ELRs visited (pass None as ELR)
             if noUndirected:
                 foundCycle = self.revCycle(relsSet, relTo, rel, fromConcepts)  # type: ignore[arg-type]
