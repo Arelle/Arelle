@@ -1,20 +1,20 @@
-ruff==0.17.5
+ruff==0.17.6
 
 mypy==2.4.1
 
-types-boto3[s3]==1.44.3
+types-boto3[s3]==1.44.9
 types-jsonschema==4.26.0.20261006
 types-lxml==2026.2.16
-types-openpyxl==3.1.5.20261017
-types-PyMySQL==1.2.4.20261116
-types-python-dateutil==2.9.0.20261116
-types-pytz==2026.6.0.20261031
-types-pywin32==312.0.0.20261104
-types-regex==2026.11.15.20261116
+types-openpyxl==3.1.5.20261122
+types-PyMySQL==1.2.4.20261122
+types-python-dateutil==2.9.0.20261122
+types-pytz==2026.6.0.20261122
+types-pywin32==312.0.0.20261122
+types-regex==2026.11.19.20261122
 types-requests==2.33.0.20261030
 types-simplejson==4.3.0.20261112
 types-ujson==5.10.0.20250822
-types-waitress==3.0.1.20260724
+types-waitress==3.0.1.20261122
 typing-extensions==4.16.0
 
 -r requirements-test.txt
