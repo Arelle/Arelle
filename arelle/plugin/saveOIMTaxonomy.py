@@ -53,9 +53,9 @@ def saveOIMTaxonomy(dts: ModelXbrl, jsonFile: str) -> None:
             for doc, docReference in modelDocument.referencesDocument.items():
                 if "href" in docReference.referenceTypes:
                     extensionSchemaDoc = doc
-                extensionPrefix = namespacePrefixes[extensionSchemaDoc.targetNamespace]  # type: ignore[union-attr,index]
-                namespacesInUse.add(extensionSchemaDoc.targetNamespace)  # type: ignore[union-attr,arg-type]
-                break
+                    extensionPrefix = namespacePrefixes[extensionSchemaDoc.targetNamespace]  # type: ignore[index]
+                    namespacesInUse.add(extensionSchemaDoc.targetNamespace)  # type: ignore[arg-type]
+                    break
     if extensionSchemaDoc is None:
         dts.info("error:saveLoadableOIMTaxonomy",
          _("Unable to identify extension taxonomy."),
