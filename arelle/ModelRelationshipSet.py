@@ -314,7 +314,7 @@ class ModelRelationshipSet:
             modelFrom: ModelObject,
             axis: str,
             modelTo: ModelObject | None = None,
-            visited: set[ModelObject] | None = None,
+            visited: set[ModelObject | tuple[ModelObject, str | None, str | None]] | None = None,
             isDRS: bool = False,
             consecutiveLinkrole: bool = False
         ) -> bool: # either model concept or qname
@@ -338,12 +338,13 @@ class ModelRelationshipSet:
                 toConcept = modelRel.fromModelObject
                 if modelTo is None or modelTo == toConcept:
                     return True
+                if toConcept is None:
+                    continue
                 if visited is None: visited = set()
                 if toConcept not in visited:
-                    visited.add(toConcept)  # type: ignore[arg-type]
-                    if self.isRelated(toConcept, axis, modelTo, visited, isDRS):  # type: ignore[arg-type]
+                    visited.add(toConcept)
+                    if self.isRelated(toConcept, axis, modelTo, visited, isDRS):
                         return True
-                    visited.discard(toConcept)
             return False
         isDescendantAxis = "descendant" in axis
         if axis.startswith("ancestral-"): # allow ancestral-sibling...
@@ -353,36 +354,43 @@ class ModelRelationshipSet:
             if modelFrom in visited:
                 return False # prevent looping
             visited.add(modelFrom)
-            isRel = any(self.isRelated(modelRel.fromModelObject, axis, modelTo, visited)  # type: ignore[arg-type] # any ancestral sibling?
-                        for modelRel in self.toModelObject(modelFrom))
-            visited.discard(modelFrom)
-            return isRel
+            # any ancestral sibling?
+            return any(
+                self.isRelated(modelRel.fromModelObject, axis, modelTo, visited)
+                for modelRel in self.toModelObject(modelFrom)
+                if modelRel.fromModelObject is not None
+            )
         if axis.startswith("sibling"):  # allow sibling-or-self or sibling-or-descendant
             axis = axis[7:] # remove sibling, else recursion will loop
-            return any(self.isRelated(modelRel.fromModelObject, axis, modelTo)  # type: ignore[arg-type]
-                       for modelRel in self.toModelObject(modelFrom))
+            return any(
+                self.isRelated(modelRel.fromModelObject, axis, modelTo)
+                for modelRel in self.toModelObject(modelFrom)
+                if modelRel.fromModelObject is not None
+            )
         for modelRel in self.fromModelObject(modelFrom):
             toConcept = modelRel.toModelObject
             if modelTo is None or modelTo == toConcept:
                 return True
+            if toConcept is None:
+                continue
             if isDescendantAxis:
                 if visited is None: visited = set()
-                if toConcept not in visited:
-                    visited.add(toConcept)  # type: ignore[arg-type]
+                visitKey = (toConcept, modelRel.arcrole, modelRel.consecutiveLinkrole)
+                if visitKey not in visited:
+                    visited.add(visitKey)
                     if isDRS:
                         if (self.modelXbrl.relationshipSet(consecutiveArcrole[modelRel.arcrole],  # type: ignore[index]
                                                            modelRel.consecutiveLinkrole, self.linkqname, self.arcqname)
-                            .isRelated(toConcept, axis, modelTo, visited, isDRS)):  # type: ignore[arg-type]
+                            .isRelated(toConcept, axis, modelTo, visited, isDRS)):
                             return True
                     elif consecutiveLinkrole: # allows starting at relationship set with ELR None
                         if (self.modelXbrl.relationshipSet(modelRel.arcrole,  # type: ignore[arg-type]
                                                            modelRel.consecutiveLinkrole, self.linkqname, self.arcqname)
-                            .isRelated(toConcept, axis, modelTo, visited, isDRS, consecutiveLinkrole)):  # type: ignore[arg-type]
+                            .isRelated(toConcept, axis, modelTo, visited, isDRS, consecutiveLinkrole)):
                             return True
                     else:
-                        if self.isRelated(toConcept, axis, modelTo, visited, isDRS):  # type: ignore[arg-type]
+                        if self.isRelated(toConcept, axis, modelTo, visited, isDRS):
                             return True
-                    visited.discard(toConcept)
         return False
 
     def label(

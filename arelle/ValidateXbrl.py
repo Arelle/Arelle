@@ -1064,20 +1064,29 @@ class ValidateXbrl:
         fromConcepts: set[ModelConcept | ModelCustomFunctionSignature | ModelInlineFact],
         cycleType: str = "directed",
         revCycleRel: ModelRelationship | None = None,
+        clearedConcepts: set[ModelObject] | None = None,
     ) -> list[str | ModelRelationship] | None:
+        if clearedConcepts is None:
+            clearedConcepts = set()
         for rel in rels:
             if revCycleRel is not None and rel.isIdenticalTo(revCycleRel):
                 continue # don't double back on self in undirected testing
             relTo = rel.toModelObject
+            if relTo is None:
+                continue
             if relTo in fromConcepts: #forms a directed cycle
                 return [cycleType,rel]
+            if relTo in clearedConcepts:
+                continue
             fromConcepts.add(relTo)  # type: ignore[arg-type]
-            nextRels = relsSet.fromModelObject(relTo)  # type: ignore[arg-type]
-            foundCycle = self.fwdCycle(relsSet, nextRels, noUndirected, fromConcepts)
+            nextRels = relsSet.fromModelObject(relTo)
+            foundCycle = self.fwdCycle(relsSet, nextRels, noUndirected, fromConcepts, clearedConcepts=clearedConcepts)
             if foundCycle is not None:
                 foundCycle.append(rel)
                 return foundCycle
             fromConcepts.discard(relTo)
+            if not noUndirected:
+                clearedConcepts.add(relTo)
             # look for back path in any of the ELRs visited (pass None as ELR)
             if noUndirected:
                 foundCycle = self.revCycle(relsSet, relTo, rel, fromConcepts)  # type: ignore[arg-type]
@@ -1096,6 +1105,8 @@ class ValidateXbrl:
         for rel in relsSet.toModelObject(toConcept):
             if not rel.isIdenticalTo(turnbackRel):
                 relFrom = rel.fromModelObject
+                if relFrom is None:
+                    continue
                 if relFrom in fromConcepts:
                     return ["undirected",rel]
                 fromConcepts.add(relFrom)  # type: ignore[arg-type]
@@ -1103,7 +1114,7 @@ class ValidateXbrl:
                 if foundCycle is not None:
                     foundCycle.append(rel)
                     return foundCycle
-                fwdRels = relsSet.fromModelObject(relFrom)  # type: ignore[arg-type]
+                fwdRels = relsSet.fromModelObject(relFrom)
                 foundCycle = self.fwdCycle(relsSet, fwdRels, True, fromConcepts, cycleType="undirected", revCycleRel=rel)
                 if foundCycle is not None:
                     foundCycle.append(rel)
