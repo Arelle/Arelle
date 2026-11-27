@@ -929,7 +929,7 @@ def oimTaxonomyValidator(val: ValidateXbrl, parameters: Any) -> None:
     if not isinstance(val.modelXbrl, XbrlDts): # if no OIM Taxonomy DTS give up
         return
     try:
-        validateDTS(val.modelXbrl)  # type: ignore[no-untyped-call]
+        validateDTS(val.modelXbrl)
     except Exception as ex:
         val.modelXbrl.error("arelleOIMloader:error",
                             "Error while validating, error %(errorType)s %(error)s\n traceback %(traceback)s",

@@ -384,7 +384,6 @@ module = [
     'arelle.plugin.logging.dqcParameters',
     'arelle.plugin.logging.saveMessages',
     'arelle.plugin.OimTaxonomy.ModelValueMore',
-    'arelle.plugin.OimTaxonomy.ValidateDTS',
     'arelle.plugin.OimTaxonomy.ViewXbrlTxmyObj',
     'arelle.plugin.OimTaxonomy.XbrlAbstract',
     'arelle.plugin.OimTaxonomy.XbrlConcept',
